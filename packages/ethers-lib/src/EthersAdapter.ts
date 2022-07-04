@@ -15,10 +15,10 @@ import { ethers } from 'ethers'
 import {
   getMultiSendContractInstance,
   getSafeContractInstance,
-  // getSafeProxyFactoryContractInstance
+  getSafeProxyFactoryContractInstance
 } from './contracts/contractInstancesEthers'
-import GnosisSafeContractEthers from './contracts/SmartWallet/SmartWalletContractEthers'
-import GnosisSafeProxyFactoryEthersContract from './contracts/SmartWalletProxyFactory/SmartWalletProxyFactoryEthersContract'
+import SmartWalletContractEthers from './contracts/SmartWallet/SmartWalletContractEthers'
+import SmartWalletProxyFactoryEthersContract from './contracts/SmartWalletFactory/SmartWalletProxyFactoryEthersContract'
 import MultiSendEthersContract from './contracts/MultiSend/MultiSendEthersContract'
 
 type Ethers = typeof ethers
@@ -69,7 +69,6 @@ class EthersAdapter implements EthAdapter {
   }
 
   getSafeContract({
-    smartAccountVersion,
     chainId,
     singletonDeployment,
     customContractAddress
@@ -80,11 +79,10 @@ class EthersAdapter implements EthAdapter {
     if (!contractAddress) {
       throw new Error('Invalid Safe Proxy contract address')
     }
-    return getSafeContractInstance(smartAccountVersion, contractAddress, this.#signer)
+    return getSafeContractInstance(contractAddress, this.#signer)
   }
 
   getMultiSendContract({
-    smartAccountVersion,
     chainId,
     singletonDeployment,
     customContractAddress
@@ -95,22 +93,21 @@ class EthersAdapter implements EthAdapter {
     if (!contractAddress) {
       throw new Error('Invalid Multi Send contract address')
     }
-    return getMultiSendContractInstance(smartAccountVersion, contractAddress, this.#signer)
+    return getMultiSendContractInstance(contractAddress, this.#signer)
   }
 
   getSafeProxyFactoryContract({
-    smartAccountVersion,
     chainId,
     singletonDeployment,
     customContractAddress
-  }: GetContractProps): GnosisSafeProxyFactoryEthersContract {
+  }: GetContractProps): SmartWalletProxyFactoryEthersContract {
     const contractAddress = customContractAddress
       ? customContractAddress
       : singletonDeployment?.networkAddresses[chainId]
     if (!contractAddress) {
       throw new Error('Invalid Safe Proxy Factory contract address')
     }
-    return getSafeProxyFactoryContractInstance(smartAccountVersion, contractAddress, this.#signer)
+    return getSafeProxyFactoryContractInstance(contractAddress, this.#signer)
   }
 
   async getContractCode(address: string): Promise<string> {

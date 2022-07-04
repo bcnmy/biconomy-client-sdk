@@ -27,14 +27,12 @@ export interface EthAdapter {
   getBalance(address: string): Promise<BigNumber>
   getChainId(): Promise<number>
   getSafeContract({
-    smartAccountVersion,
     chainId,
     singletonDeployment,
     customContractAddress,
     customContractAbi
   }: GetContractProps): SmartWalletContract
   getMultiSendContract({
-    smartAccountVersion,
     chainId,
     singletonDeployment,
     customContractAddress,

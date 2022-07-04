@@ -6,10 +6,11 @@ import {
   TransactionOptions,
   TransactionResult
 } from '../types'
+import { BigNumber } from '@ethersproject/bignumber'
 
 export interface SmartWalletContract {
   getVersion(): Promise<SmartAccountVersion>
-  getNonce(batchId: number): Promise<number>
+  getNonce(batchId: number): Promise<BigNumber>
   getTransactionHash(smartAccountTrxData: SmartAccountTrxData): Promise<string>
   execTransaction(
     transaction: SmartAccountTrx,

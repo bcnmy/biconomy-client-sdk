@@ -18,7 +18,7 @@ class SmartWalletContractEthers implements SmartWalletContract {
     return (await this.contract.VERSION()) as SmartAccountVersion
   }
 
-  async getNonce(batchId: number): Promise<number>{
+  async getNonce(batchId: number): Promise<BigNumber>{
     return this.contract.getNonce(batchId)
   }
   async getTransactionHash(smartAccountTrxData: SmartAccountTrxData): Promise<string> {
