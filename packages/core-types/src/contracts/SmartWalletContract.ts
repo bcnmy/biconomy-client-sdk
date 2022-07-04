@@ -9,8 +9,7 @@ import {
 
 export interface SmartWalletContract {
   getVersion(): Promise<SmartAccountVersion>
-  getAddress(): string
-  getNonce(): Promise<number>
+  getNonce(batchId: number): Promise<number>
   getTransactionHash(smartAccountTrxData: SmartAccountTrxData): Promise<string>
   execTransaction(
     transaction: SmartAccountTrx,

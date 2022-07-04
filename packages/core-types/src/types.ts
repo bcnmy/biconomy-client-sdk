@@ -42,7 +42,7 @@ export interface Signature {
 }
 
 export interface SmartAccountTrx {
-  readonly data: SmartAccountTrxData
+  readonly data: Transaction
   readonly signatures: Map<string, Signature>
   addSignature(signature: Signature): void
   encodedSignatures(): string
@@ -53,15 +53,14 @@ export interface Transaction {
   readonly value: string
   readonly data: string
   readonly operation: OperationType
-  readonly SmartAccountTxGas: number
+  readonly safeTxGas: number
 }
 
 export interface FeeRefundData {
-  readonly baseGas?: number
-  readonly gasPrice?: number
-  readonly gasToken?: string
-  readonly refundReceiver?: string
-  readonly nonce?: number
+  readonly baseGas: number
+  readonly gasPrice: number
+  readonly gasToken: string
+  readonly refundReceiver: string
 }
 
 export interface TransactionOptions {

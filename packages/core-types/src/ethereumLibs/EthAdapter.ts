@@ -1,6 +1,6 @@
 import { BigNumber } from '@ethersproject/bignumber'
 import { SingletonDeployment } from '@gnosis.pm/safe-deployments'
-import { SmartWalletContract } from 'contracts/SmartWallet'
+import { SmartWalletContract } from 'contracts/SmartWalletContract'
 import { AbiItem } from 'web3-utils'
 import { MultiSendContract } from '../contracts/MultiSendContract'
 import { SmartAccountVersion, Eip3770Address } from '../types'

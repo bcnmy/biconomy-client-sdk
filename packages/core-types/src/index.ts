@@ -1,5 +1,5 @@
-export * from './contracts/SmartWallet'
+export * from './contracts/SmartWalletContract'
 export * from './contracts/MultiSendContract'
-export * from './contracts/MultiSendContract'
+export * from './contracts/SmartWalletFactoryContract'
 export * from './ethereumLibs/EthAdapter'
 export * from './types'

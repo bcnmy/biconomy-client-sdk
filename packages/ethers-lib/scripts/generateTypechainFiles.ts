@@ -17,7 +17,8 @@ const safeContractsPath = './artifacts/contracts/Deps_V1_0_0.sol'
 
 const safeContracts_V1_0_0 = [
   `${safeContractsPath}/SmartWallet_SV1_0_0.json`,
-  `${safeContractsPath}/MultiSend_SV1_0_0.json`
+  `${safeContractsPath}/MultiSend_SV1_0_0.json`,
+  `${safeContractsPath}/SmartWalletFacoryContract_SV1_0_0.json`
 ].join(' ')
 
 // Won't be included in dist/ folder

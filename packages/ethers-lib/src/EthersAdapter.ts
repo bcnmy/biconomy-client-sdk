@@ -15,7 +15,7 @@ import { ethers } from 'ethers'
 import {
   getMultiSendContractInstance,
   getSafeContractInstance,
-  getSafeProxyFactoryContractInstance
+  // getSafeProxyFactoryContractInstance
 } from './contracts/contractInstancesEthers'
 import GnosisSafeContractEthers from './contracts/SmartWallet/SmartWalletContractEthers'
 import GnosisSafeProxyFactoryEthersContract from './contracts/SmartWalletProxyFactory/SmartWalletProxyFactoryEthersContract'
