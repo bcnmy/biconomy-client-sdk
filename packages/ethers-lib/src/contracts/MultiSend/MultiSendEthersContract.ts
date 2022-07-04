@@ -1,13 +1,13 @@
 import { MultiSendContract } from 'core-types'
 import {
-  MultiSendSV100 as MultiSend_V1_0_0,
-  MultiSendSV100Interface
-} from '../../../typechain/src/ethers-v5/v1.0.0/MultiSendSV100'
+  MultiSendContract as MultiSend_TypeChain,
+  MultiSendContractInterface
+} from '../../../typechain/src/ethers-v5/v1.0.0/MultiSendContract'
 
 class MultiSendEthersContract implements MultiSendContract {
-  constructor(public contract: MultiSend_V1_0_0) {}
+  constructor(public contract: MultiSend_TypeChain) {}
 
-  encode: MultiSendSV100Interface['encodeFunctionData'] = (methodName: any, params: any): string => {
+  encode: MultiSendContractInterface['encodeFunctionData'] = (methodName: any, params: any): string => {
     return this.contract.interface.encodeFunctionData(methodName, params)
   }
 }

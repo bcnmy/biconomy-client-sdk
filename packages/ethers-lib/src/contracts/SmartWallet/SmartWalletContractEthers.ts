@@ -9,10 +9,10 @@ import {
   TransactionResult
 } from 'core-types'
 import { toTxResult } from '../../utils'
-import { SmartWalletSV100 as SmartWallet_V1_0_0 } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletSV100'
-import { SmartWalletSV100Interface } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletSV100'
+import { SmartWalletContract as SmartWalletContract_TypeChain } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletContract'
+import { SmartWalletContractInterface } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletContract'
 class SmartWalletContractEthers implements SmartWalletContract {
-  constructor(public contract: SmartWallet_V1_0_0) {}
+  constructor(public contract: SmartWalletContract_TypeChain) {}
 
   async getVersion(): Promise<SmartAccountVersion> {
     return (await this.contract.VERSION()) as SmartAccountVersion
@@ -53,7 +53,7 @@ class SmartWalletContractEthers implements SmartWalletContract {
     return toTxResult(txResponse, options)
   }
 
-  encode: SmartWalletSV100Interface['encodeFunctionData'] = (methodName: any, params: any): string => {
+  encode: SmartWalletContractInterface['encodeFunctionData'] = (methodName: any, params: any): string => {
     return this.contract.interface.encodeFunctionData(methodName, params)
   }
 }

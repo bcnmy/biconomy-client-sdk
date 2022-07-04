@@ -1,5 +1,5 @@
 {
-  "name": "@gnosis.pm/safe-ethers-lib",
+  "name": "ethers-lib",
   "version": "1.1.0",
   "description": "Ethers library adapter to be used by Safe Core SDK",
   "main": "dist/src/index.js",
@@ -18,19 +18,11 @@
     "format": "prettier --write \"{src,tests,hardhat,scripts}/**/*.ts\"",
     "lint": "tslint -p tsconfig.json"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/gnosis/safe-core-sdk.git"
-  },
-  "author": "Gnosis Safe (https://gnosis-safe.io)",
+  "author": "Biconomy (https://biconomy.io)",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/gnosis/safe-core-sdk/issues"
-  },
   "files": [
     "dist"
   ],
-  "homepage": "https://github.com/gnosis/safe-core-sdk#readme",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.5",
     "@nomiclabs/hardhat-waffle": "^2.0.3",

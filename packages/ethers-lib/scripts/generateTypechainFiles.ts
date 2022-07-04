@@ -13,22 +13,13 @@ const outDirTests = 'typechain/tests/'
 
 // Contract list for which the Typechain files will be generated
 // Will be included in dist/ folder
-const safeContractsPath = './artifacts/contracts/Deps_V1_0_0.sol'
+const safeContractsPath = './artifacts/contracts/index.sol'
 
 const safeContracts_V1_0_0 = [
-  `${safeContractsPath}/SmartWallet_SV1_0_0.json`,
-  `${safeContractsPath}/MultiSend_SV1_0_0.json`,
-  `${safeContractsPath}/SmartWalletFacoryContract_SV1_0_0.json`
+  `${safeContractsPath}/SmartWalletContract.json`,
+  `${safeContractsPath}/MultiSendContract.json`,
+  `${safeContractsPath}/SmartWalletFactoryContract.json`
 ].join(' ')
-
-// Won't be included in dist/ folder
-const safeContractsTestPath = '../../node_modules/@gnosis.pm/safe-contracts-v1.2.0/build/contracts'
-const openZeppelinContractsPath = '../../node_modules/openzeppelin-solidity/build/contracts'
-// const testContracts = [
-//   `${safeContractsTestPath}/DailyLimitModule.json`,
-//   `${safeContractsTestPath}/SocialRecoveryModule.json`,
-//   `${openZeppelinContractsPath}/ERC20Mintable.json`
-// ].join(' ')
 
 // Remove existing Typechain files
 execSync(`rimraf ${outDirSrc} ${outDirTests}`)
@@ -70,6 +61,3 @@ moveTypechainFiles(
   `${typeChainDirectorySrcPath}${ethersV5}/v1.0.0`,
   `${typeChainDirectoryBuildPath}${ethersV5}/v1.0.0`
 )
-
-// Tests: Ethers V5 types
-//generateTypechainFiles(ethersV5, `${outDirTests}${ethersV5}`, testContracts)

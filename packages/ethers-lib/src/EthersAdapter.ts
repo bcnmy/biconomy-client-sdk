@@ -7,8 +7,7 @@ import {
   EthAdapter,
   EthAdapterTransaction,
   GetContractProps,
-  SmartWalletContract,
-  SmartAccountVersion
+  SmartWalletContract
 } from 'core-types'
 import { validateEip3770Address } from '@gnosis.pm/safe-core-sdk-utils'
 import { ethers } from 'ethers'
@@ -17,7 +16,6 @@ import {
   getSafeContractInstance,
   getSafeProxyFactoryContractInstance
 } from './contracts/contractInstancesEthers'
-import SmartWalletContractEthers from './contracts/SmartWallet/SmartWalletContractEthers'
 import SmartWalletProxyFactoryEthersContract from './contracts/SmartWalletFactory/SmartWalletProxyFactoryEthersContract'
 import MultiSendEthersContract from './contracts/MultiSend/MultiSendEthersContract'
 
