@@ -1,6 +1,6 @@
 import {
   FeeRefundData,
-  Transaction,
+  SmartAccountTrx,
   SmartAccountTrxData,
   SmartAccountVersion,
   TransactionOptions,
@@ -12,13 +12,11 @@ export interface SmartWalletContract {
   getAddress(): string
   getNonce(): Promise<number>
   getTransactionHash(smartAccountTrxData: SmartAccountTrxData): Promise<string>
-  getModulesPaginated(start: string, pageSize: number): Promise<string[]>
-  isModuleEnabled(moduleAddress: string): Promise<boolean>
   execTransaction(
-    transaction: Transaction,
+    transaction: SmartAccountTrx,
     batchId: number,
-    feeRefundData: FeeRefundData
+    feeRefundData: FeeRefundData,
+    options: TransactionOptions
   ): Promise<TransactionResult>
   encode(methodName: string, params: any): string
-  estimateGas(methodName: string, params: any[], options: TransactionOptions): Promise<number>
 }

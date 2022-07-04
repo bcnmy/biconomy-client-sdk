@@ -23,7 +23,6 @@ export interface GetContractProps {
 }
 
 export interface EthAdapter {
-  isAddress(address: string): boolean
   getEip3770Address(fullAddress: string): Promise<Eip3770Address>
   getBalance(address: string): Promise<BigNumber>
   getChainId(): Promise<number>

@@ -17,6 +17,10 @@
   "author": "Biconomy (https://biconomy.io)",
   "devDependencies": {
     "lerna": "^5.1.6",
-    "nx": "^14.3.6"
+    "nx": "^14.3.6",
+    "ts-node": "^10.8.2"
+  },
+  "dependencies": {
+    "hardhat": "^2.9.9"
   }
 }
