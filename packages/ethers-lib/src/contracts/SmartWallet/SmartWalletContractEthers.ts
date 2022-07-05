@@ -18,7 +18,7 @@ class SmartWalletContractEthers implements SmartWalletContract {
     return (await this.contract.VERSION()) as SmartAccountVersion
   }
 
-  async getNonce(batchId: number): Promise<BigNumber>{
+  async getNonce(batchId: number): Promise<BigNumber> {
     return this.contract.getNonce(batchId)
   }
   async getTransactionHash(smartAccountTrxData: SmartAccountTrxData): Promise<string> {
@@ -42,7 +42,6 @@ class SmartWalletContractEthers implements SmartWalletContract {
     feeRefundData: FeeRefundData,
     options: TransactionOptions
   ): Promise<TransactionResult> {
-
     // TODO: estimate GAS before making the transaction
     const txResponse = await this.contract.execTransaction(
       smartAccountTrx.data,
@@ -53,7 +52,10 @@ class SmartWalletContractEthers implements SmartWalletContract {
     return toTxResult(txResponse, options)
   }
 
-  encode: SmartWalletContractInterface['encodeFunctionData'] = (methodName: any, params: any): string => {
+  encode: SmartWalletContractInterface['encodeFunctionData'] = (
+    methodName: any,
+    params: any
+  ): string => {
     return this.contract.interface.encodeFunctionData(methodName, params)
   }
 }

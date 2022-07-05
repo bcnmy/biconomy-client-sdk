@@ -84,3 +84,18 @@ export interface Eip3770Address {
   prefix: string
   address: string
 }
+
+export interface UserOperation {
+  sender: string
+  nonce: number
+  initCode: string
+  callData: string
+  callGas: number
+  verificationGas: number
+  preVerificationGas: number
+  maxFeePerGas: number
+  maxPriorityFeePerGas: number
+  paymaster: string
+  paymasterData: string
+  signature: string
+}

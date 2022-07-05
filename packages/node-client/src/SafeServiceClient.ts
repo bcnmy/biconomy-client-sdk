@@ -294,7 +294,11 @@ class SafeServiceClient implements SafeTransactionService {
    * @throws "Signing owner is not an owner of the Safe"
    * @throws "Not found"
    */
-  async removeSafeDelegate({ safe, delegate, signer }: SmartAccountDelegateDeleteConfig): Promise<void> {
+  async removeSafeDelegate({
+    safe,
+    delegate,
+    signer
+  }: SmartAccountDelegateDeleteConfig): Promise<void> {
     if (safe === '') {
       throw new Error('Invalid Safe address')
     }

@@ -7,7 +7,10 @@ import {
 class MultiSendEthersContract implements MultiSendContract {
   constructor(public contract: MultiSend_TypeChain) {}
 
-  encode: MultiSendContractInterface['encodeFunctionData'] = (methodName: any, params: any): string => {
+  encode: MultiSendContractInterface['encodeFunctionData'] = (
+    methodName: any,
+    params: any
+  ): string => {
     return this.contract.interface.encodeFunctionData(methodName, params)
   }
 }

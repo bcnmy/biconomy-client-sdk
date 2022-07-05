@@ -9,17 +9,15 @@ import SmartWalletFacoryContractEthers from './SmartWalletFactory/SmartWalletPro
 export function getSafeContractInstance(
   contractAddress: string,
   signer: Signer
-): | SmartWalletContractEthers{
-
+): SmartWalletContractEthers {
   let safeContract = SmartWalletContract.connect(contractAddress, signer)
   return new SmartWalletContractEthers(safeContract)
-    }
+}
 
 export function getMultiSendContractInstance(
   contractAddress: string,
   signer: Signer
-): MultiSendEthersContract{
-  
+): MultiSendEthersContract {
   let multiSendContract = MultiSendContract.connect(contractAddress, signer)
   return new MultiSendEthersContract(multiSendContract)
 }
@@ -27,7 +25,7 @@ export function getMultiSendContractInstance(
 export function getSafeProxyFactoryContractInstance(
   contractAddress: string,
   signer: Signer
-): SmartWalletFacoryContractEthers{
+): SmartWalletFacoryContractEthers {
   let walletFactoryContract = SmartWalletFactoryContract.connect(contractAddress, signer)
   return new SmartWalletFacoryContractEthers(walletFactoryContract)
 }
