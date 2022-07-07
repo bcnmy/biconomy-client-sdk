@@ -9,12 +9,12 @@ export interface SmartAccountConfig {
   relayerUrl?: string
   nodeUrl?: string
 }
-// { ContractInfo } hold details related to contract 
+// { ContractInfo } hold details related to contract
 export interface ContractInfo {
-  defaultAddress: string;
-  version: string;
-  abi: any[];
-  networkAddresses: Record<string, string>;
-  contractName: string;
-  released: boolean;
+  defaultAddress: string
+  version: string
+  abi: any[]
+  networkAddresses: Record<string, string>
+  contractName: string
+  released: boolean
 }
