@@ -13,8 +13,8 @@ import { validateEip3770Address } from '@gnosis.pm/safe-core-sdk-utils'
 import { ethers } from 'ethers'
 import {
   getMultiSendContractInstance,
-  getSafeContractInstance,
-  getSafeProxyFactoryContractInstance
+  getSmartWalletContractInstance,
+  getSmartWalletFactoryContractInstance
 } from './contracts/contractInstancesEthers'
 import SmartWalletProxyFactoryEthersContract from './contracts/SmartWalletFactory/SmartWalletProxyFactoryEthersContract'
 import MultiSendEthersContract from './contracts/MultiSend/MultiSendEthersContract'
@@ -66,46 +66,34 @@ class EthersAdapter implements EthAdapter {
     return (await this.#provider.getNetwork()).chainId
   }
 
-  getSafeContract({
-    chainId,
-    singletonDeployment,
-    customContractAddress
-  }: GetContractProps): SmartWalletContract {
-    const contractAddress = customContractAddress
-      ? customContractAddress
-      : singletonDeployment?.networkAddresses[chainId]
+  getSmartWalletContract({ chainId, singletonDeployment }: GetContractProps): SmartWalletContract {
+    const contractAddress = singletonDeployment?.networkAddresses[chainId]
     if (!contractAddress) {
       throw new Error('Invalid Safe Proxy contract address')
     }
-    return getSafeContractInstance(contractAddress, this.#signer)
+    return getSmartWalletContractInstance(contractAddress, this.#signer)
   }
 
   getMultiSendContract({
     chainId,
-    singletonDeployment,
-    customContractAddress
+    singletonDeployment
   }: GetContractProps): MultiSendEthersContract {
-    const contractAddress = customContractAddress
-      ? customContractAddress
-      : singletonDeployment?.networkAddresses[chainId]
+    const contractAddress = singletonDeployment?.networkAddresses[chainId]
     if (!contractAddress) {
       throw new Error('Invalid Multi Send contract address')
     }
     return getMultiSendContractInstance(contractAddress, this.#signer)
   }
 
-  getSafeProxyFactoryContract({
+  getSmartWalletFactoryContract({
     chainId,
-    singletonDeployment,
-    customContractAddress
+    singletonDeployment
   }: GetContractProps): SmartWalletProxyFactoryEthersContract {
-    const contractAddress = customContractAddress
-      ? customContractAddress
-      : singletonDeployment?.networkAddresses[chainId]
+    const contractAddress = singletonDeployment?.networkAddresses[chainId]
     if (!contractAddress) {
       throw new Error('Invalid Safe Proxy Factory contract address')
     }
-    return getSafeProxyFactoryContractInstance(contractAddress, this.#signer)
+    return getSmartWalletFactoryContractInstance(contractAddress, this.#signer)
   }
 
   async getContractCode(address: string): Promise<string> {

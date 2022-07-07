@@ -1,0 +1,161 @@
+{
+    "defaultAddress": "0x76E2cFc1F5Fa8F6a5b3fC4c8F4788F0116861F9B",
+    "released": true,
+    "contractName": "WalletFactory",
+    "version": "1.0.0",
+    "networkAddresses": {
+      "1": "0x76E2cFc1F5Fa8F6a5b3fC4c8F4788F0116861F9B",
+      "4": "0x76E2cFc1F5Fa8F6a5b3fC4c8F4788F0116861F9B",
+      "5": "0x76E2cFc1F5Fa8F6a5b3fC4c8F4788F0116861F9B",
+      "42": "0x76E2cFc1F5Fa8F6a5b3fC4c8F4788F0116861F9B",
+      "88": "0x76E2cFc1F5Fa8F6a5b3fC4c8F4788F0116861F9B",
+      "100": "0x76E2cFc1F5Fa8F6a5b3fC4c8F4788F0116861F9B",
+      "246": "0x76E2cFc1F5Fa8F6a5b3fC4c8F4788F0116861F9B",
+      "73799": "0x76E2cFc1F5Fa8F6a5b3fC4c8F4788F0116861F9B"
+    },
+    "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_baseImpl",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "constructor"
+        },
+        {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "_proxy",
+              "type": "address"
+            },
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "_implementation",
+              "type": "address"
+            },
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "_owner",
+              "type": "address"
+            }
+          ],
+          "name": "WalletCreated",
+          "type": "event"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_owner",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "_entryPoint",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "_handler",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_index",
+              "type": "uint256"
+            }
+          ],
+          "name": "deployCounterFactualWallet",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "proxy",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_owner",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "_entryPoint",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "_handler",
+              "type": "address"
+            }
+          ],
+          "name": "deployWallet",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "proxy",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "_owner",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_index",
+              "type": "uint256"
+            }
+          ],
+          "name": "getAddressForCounterfactualWallet",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "_wallet",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ],
+          "name": "isWalletExist",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        }
+    ]
+  }
+  

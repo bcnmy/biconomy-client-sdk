@@ -14,6 +14,10 @@ import { SmartWalletContractInterface } from '../../../typechain/src/ethers-v5/v
 class SmartWalletContractEthers implements SmartWalletContract {
   constructor(public contract: SmartWalletContract_TypeChain) {}
 
+  getAddress(): string {
+    return this.contract.address
+  }
+
   async getVersion(): Promise<SmartAccountVersion> {
     return (await this.contract.VERSION()) as SmartAccountVersion
   }

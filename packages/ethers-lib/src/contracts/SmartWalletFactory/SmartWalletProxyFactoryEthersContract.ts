@@ -1,9 +1,13 @@
-import { SmartWalletFacoryContract, TransactionResult } from 'core-types'
+import { SmartWalletFactoryContract, TransactionResult } from 'core-types'
 import { toTxResult } from '../../utils'
-import { SmartWalletFactoryContract as SmartWalletFacoryContract_TypeChain } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletFactoryContract'
+import { SmartWalletFactoryContract as SmartWalletFactoryContract_TypeChain } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletFactoryContract'
 
-class SmartWalletFacoryContractEthers implements SmartWalletFacoryContract {
-  constructor(public contract: SmartWalletFacoryContract_TypeChain) {}
+class SmartWalletFacoryContractEthers implements SmartWalletFactoryContract {
+  constructor(public contract: SmartWalletFactoryContract_TypeChain) {}
+
+  getAddress(): string {
+    return this.contract.address
+  }
 
   async deployCounterFactualWallet(
     owner: string,

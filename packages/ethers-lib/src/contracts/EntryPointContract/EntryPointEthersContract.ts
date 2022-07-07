@@ -8,6 +8,10 @@ import { toTxResult } from '../../utils'
 class EntryPointEthersContract implements EntryPointContract {
   constructor(public contract: EntryPointContract_TypeChain) {}
 
+  getAddress(): string {
+    return this.contract.address
+  }
+
   async simulateValidation(userOperation: UserOperation): Promise<TransactionResult> {
     const resultSet = await this.contract.simulateValidation(userOperation)
     return toTxResult(resultSet)

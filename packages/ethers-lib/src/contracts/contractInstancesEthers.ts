@@ -6,7 +6,7 @@ import SmartWalletContractEthers from './SmartWallet/SmartWalletContractEthers'
 import MultiSendEthersContract from './MultiSend/MultiSendEthersContract'
 import SmartWalletFacoryContractEthers from './SmartWalletFactory/SmartWalletProxyFactoryEthersContract'
 
-export function getSafeContractInstance(
+export function getSmartWalletContractInstance(
   contractAddress: string,
   signer: Signer
 ): SmartWalletContractEthers {
@@ -22,7 +22,7 @@ export function getMultiSendContractInstance(
   return new MultiSendEthersContract(multiSendContract)
 }
 
-export function getSafeProxyFactoryContractInstance(
+export function getSmartWalletFactoryContractInstance(
   contractAddress: string,
   signer: Signer
 ): SmartWalletFacoryContractEthers {

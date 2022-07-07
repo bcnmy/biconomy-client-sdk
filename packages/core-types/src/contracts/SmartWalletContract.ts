@@ -9,6 +9,7 @@ import {
 import { BigNumber } from '@ethersproject/bignumber'
 
 export interface SmartWalletContract {
+  getAddress(): string
   getVersion(): Promise<SmartAccountVersion>
   getNonce(batchId: number): Promise<BigNumber>
   getTransactionHash(smartAccountTrxData: SmartAccountTrxData): Promise<string>

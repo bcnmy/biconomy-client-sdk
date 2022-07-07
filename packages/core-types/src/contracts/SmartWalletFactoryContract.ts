@@ -1,5 +1,6 @@
 import { TransactionResult } from '../types'
-export interface SmartWalletFacoryContract {
+export interface SmartWalletFactoryContract {
+  getAddress(): string
   deployCounterFactualWallet(
     owner: string,
     entryPoint: string,
