@@ -1,6 +1,6 @@
 {
-  "name": "root",
-  "private": true,
+  "name": "biconomy-sdk",
+  "private": false,
   "scripts": {
     "clean": "lerna clean",
     "unbuild": "lerna run unbuild",
