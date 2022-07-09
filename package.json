@@ -8,7 +8,9 @@
     "test": "FORCE_COLOR=1 lerna run test --stream --npm-client=yarn",
     "test:ci": "FORCE_COLOR=1 lerna run test:ci --stream --npm-client=yarn",
     "format": "lerna run format --npm-client=yarn",
-    "prettier": "lerna run prettier --npm-client=npm"
+    "prettier": "lerna run prettier --npm-client=npm",
+    "diff": "lerna diff",
+    "new-version": "lerna version --conventional-commits --yes"
   },
   "workspaces": {
     "packages": [
