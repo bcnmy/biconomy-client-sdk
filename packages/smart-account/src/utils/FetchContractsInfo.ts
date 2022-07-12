@@ -1,9 +1,9 @@
-import { SmartWalletContract, SmartWalletFactoryContract, MultiSendContract } from 'core-types'
+import { SmartWalletContract, SmartWalletFactoryContract, MultiSendContract } from '@biconomy-sdk/core-types'
 import SmartWalletFactory from '../assets/WalletFactory.json'
 import SmartWallet from '../assets/SmartWallet.json'
 import MultiSend from '../assets/MultiSend.json'
 
-import EthersAdapter from 'ethers-lib'
+import EthersAdapter from '@biconomy-sdk/ethers-lib'
 
 export function getSmartWalletFactoryContract(
   chainId: number,

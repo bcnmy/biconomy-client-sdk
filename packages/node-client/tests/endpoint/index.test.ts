@@ -1,7 +1,7 @@
 import { getDefaultProvider } from '@ethersproject/providers'
 import { Wallet } from '@ethersproject/wallet'
 import Safe from '@gnosis.pm/safe-core-sdk'
-import { EthAdapter, SmartAccountTrxDataPartial } from 'core-types'
+import { EthAdapter, SmartAccountTrxDataPartial } from '@biconomy-sdk/core-types'
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import sinon from 'sinon'

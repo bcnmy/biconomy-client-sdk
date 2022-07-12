@@ -1,4 +1,4 @@
-import { EntryPointContract, UserOperation, TransactionResult } from 'core-types'
+import { EntryPointContract, UserOperation, TransactionResult } from '@biconomy-sdk/core-types'
 import {
   EntryPointContract as EntryPointContract_TypeChain,
   EntryPointContractInterface

@@ -1,5 +1,5 @@
 import { Signer } from '@ethersproject/abstract-signer'
-import { EthAdapter } from 'core-types'
+import { EthAdapter } from '@biconomy-sdk/core-types'
 import SafeTransactionService from './SafeTransactionService'
 import {
   AllTransactionsListResponse,

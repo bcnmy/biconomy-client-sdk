@@ -7,7 +7,7 @@ import {
   TransactionOptions,
   FeeRefundData,
   TransactionResult
-} from 'core-types'
+} from '@biconomy-sdk/core-types'
 import { toTxResult } from '../../utils'
 import { SmartWalletContract as SmartWalletContract_TypeChain } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletContract'
 import { SmartWalletContractInterface } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletContract'

@@ -1,5 +1,5 @@
 import { Signer } from '@ethersproject/abstract-signer'
-import { SmartAccountTrx } from 'core-types'
+import { SmartAccountTrx } from '@biconomy-sdk/core-types'
 
 export type SmartAccountInfoResponse = {
   readonly name: string

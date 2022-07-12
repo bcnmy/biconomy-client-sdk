@@ -1,5 +1,5 @@
 import { SmartAccountConfig, networks, NetworkConfig, ChainId } from './types'
-import EthersAdapter from 'ethers-lib'
+import EthersAdapter from '@biconomy-sdk/ethers-lib'
 import { ethers } from 'ethers'
 import {
   getSmartWalletFactoryContract,
@@ -11,7 +11,7 @@ import {
   SmartWalletContract,
   MultiSendContract,
   TransactionResult
-} from 'core-types'
+} from '@biconomy-sdk/core-types'
 
 class SmartAccount {
   // { ethAdapter } is a window that gave access to all the Implemented function of it
