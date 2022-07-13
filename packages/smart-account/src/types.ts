@@ -3,6 +3,10 @@ export interface SmartAccountConfig {
   activeNetworkId: ChainId
   supportedNetworksIds: ChainId[]
 }
+// backend_url
+// relayer_url
+// provider?
+
 export interface ContractInfo {
   defaultAddress: string
   version: string

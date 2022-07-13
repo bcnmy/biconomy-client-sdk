@@ -1,5 +1,9 @@
 {
   "name": "biconomy-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bcnmy/biconomy-client-sdk"
+  },
   "private": false,
   "scripts": {
     "clean": "lerna clean",
@@ -11,6 +15,12 @@
     "prettier": "lerna run prettier --npm-client=npm",
     "diff": "lerna diff",
     "new-version": "lerna version --conventional-commits --yes"
+  },
+  "changelog": {
+    "labels": {
+      "feature": "New Feature",
+      "bug": "Bug Fix"
+    }
   },
   "workspaces": {
     "packages": [

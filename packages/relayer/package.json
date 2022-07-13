@@ -22,7 +22,10 @@
     "url": "git+https://github.com/bcnmy/biconomy-client-sdk.git"
   },
   "scripts": {
-    "test": "echo \"Error: run tests from root\" && exit 1"
+    "unbuild": "rimraf dist *.tsbuildinfo",
+    "build": "rimraf dist && tsc",
+    "format": "prettier --write \"{src,tests}/**/*.ts\"",
+    "lint": "tslint -p tsconfig.json"
   },
   "bugs": {
     "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"

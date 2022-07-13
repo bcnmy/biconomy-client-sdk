@@ -12,6 +12,7 @@ import {
   MultiSendContract,
   TransactionResult
 } from '@biconomy-sdk/core-types'
+import SafeServiceClient from '@biconomy-sdk/node-client';
 
 class SmartAccount {
   // { ethAdapter } is a window that gave access to all the Implemented function of it
@@ -22,6 +23,8 @@ class SmartAccount {
 
   // hold supported network info
   supportedNetworkIds!: ChainId[]
+
+  nodeClient!: SafeServiceClient 
 
   // contract instances
   smartWalletContract!: { [chainId: number]: SmartWalletContract }
@@ -36,8 +39,13 @@ class SmartAccount {
     this.multiSendContract = {}
     this.smartWalletFacoryContract = {}
     this.supportedNetworkIds = config.supportedNetworksIds
+    
+    //this.nodeClient = new SafeServiceClient(<fixed backend node url>) ?
 
     // providers and contracts initialization
+
+    // this.getSupportedChainsInfo
+
     for (let index = 0; index < this.supportedNetworkIds.length; index++) {
       const provider = new ethers.providers.JsonRpcProvider(
         networks[this.supportedNetworkIds[index]].providerUrl
@@ -52,8 +60,12 @@ class SmartAccount {
       // contracts initialization
       // comments as contracts are not yet deployed
       this.initializeContracts(this.supportedNetworkIds[index]).then()
+
     }
   }
+
+  // getSupportedNetworks / chains endpoint
+
 
   // intialize contract to be used throughout this class
   private async initializeContracts(chainId: ChainId): Promise<void> {
