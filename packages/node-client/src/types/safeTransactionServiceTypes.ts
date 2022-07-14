@@ -19,6 +19,51 @@ export type SmartAccountInfoResponse = {
   }
 }
 
+export type BlockExplorerConfig = {
+   address: string
+   txHash: string
+   api: string
+}
+
+export type TokenInfo = {
+  id: number
+  name: string
+  symbol: string
+  blockChain: number
+  ercType?: string
+  decimals: number
+  logoUri: string
+  address: string
+  isNativeToken: boolean
+  isEnabled: boolean
+  cmcId: number //Verify
+  price: number //Verify
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type ChainConfig = {
+  chain_id: number
+  name: string
+  symbol: string
+  isL2: boolean
+  isMainnet: boolean
+  description: string
+  blockExplorerUriTemplate: BlockExplorerConfig
+  ensRegistryAddress: string
+  walletFactoryAddress: string
+  walletAddress: string // base wallet
+  entryPoint: string //should make this address var
+  fallBackHandler: string //should make this address var
+  relayerURL: string
+  providerUrl: string
+  indexerUrl: string
+  backendNodeUrl: string
+  createdAt: Date
+  updatedAt: Date
+  token: TokenInfo
+}
+
 export type MasterCopyResponse = {
   address: string
   version: string

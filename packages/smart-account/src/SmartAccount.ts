@@ -1,4 +1,4 @@
-import { SmartAccountConfig, networks, NetworkConfig, ChainId } from './types'
+import { SmartAccountConfig, networks, NetworkConfig, ChainId, ChainConfig } from './types'
 import EthersAdapter from '@biconomy-sdk/ethers-lib'
 import { ethers } from 'ethers'
 import {
@@ -40,11 +40,12 @@ class SmartAccount {
     this.smartWalletFacoryContract = {}
     this.supportedNetworkIds = config.supportedNetworksIds
     
-    //this.nodeClient = new SafeServiceClient(<fixed backend node url>) ?
+    this.nodeClient = new SafeServiceClient({txServiceUrl: config.backend_url});
 
     // providers and contracts initialization
 
-    // this.getSupportedChainsInfo
+    const chainConfig = this.getSupportedChainsInfo();
+    console.log("chain config: ", chainConfig);
 
     for (let index = 0; index < this.supportedNetworkIds.length; index++) {
       const provider = new ethers.providers.JsonRpcProvider(
@@ -81,6 +82,10 @@ class SmartAccount {
       chainId,
       this.ethAdapter[chainId]
     )
+  }
+
+  private async getSupportedChainsInfo(): Promise<ChainConfig[]> {
+    return this.nodeClient.getChainInfo();
   }
 
   // return adapter instance to used for blockchain interactions

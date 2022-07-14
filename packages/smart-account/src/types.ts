@@ -2,6 +2,7 @@ export interface SmartAccountConfig {
   owner: string // EOA address
   activeNetworkId: ChainId
   supportedNetworksIds: ChainId[]
+  backend_url: string
 }
 // backend_url
 // relayer_url
@@ -52,11 +53,56 @@ export interface NetworkConfig {
   isDefaultChain?: boolean
 }
 
-export type BlockExplorerConfig = {
+/*export type BlockExplorerConfig = {
   name?: string
   rootUrl: string
   addressUrl?: string
   txnHashUrl?: string
+}*/
+
+export type BlockExplorerConfig = {
+  address: string
+  txHash: string
+  api: string
+}
+
+export type TokenInfo = {
+  id: number
+  name: string
+  symbol: string
+  blockChain: number
+  ercType?: string
+  decimals: number
+  logoUri: string
+  address: string
+  isNativeToken: boolean
+  isEnabled: boolean
+  cmcId: number //Verify
+  price: number //Verify
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type ChainConfig = {
+  chain_id: number
+  name: string
+  symbol: string
+  isL2: boolean
+  isMainnet: boolean
+  description: string
+  blockExplorerUriTemplate: BlockExplorerConfig
+  ensRegistryAddress: string
+  walletFactoryAddress: string
+  walletAddress: string // base wallet
+  entryPoint: string //should make this address var
+  fallBackHandler: string //should make this address var
+  relayerURL: string
+  providerUrl: string
+  indexerUrl: string
+  backendNodeUrl: string
+  createdAt: Date
+  updatedAt: Date
+  token: TokenInfo
 }
 
 export const networks: Record<ChainId, NetworkConfig> = {
@@ -67,8 +113,10 @@ export const networks: Record<ChainId, NetworkConfig> = {
     name: 'mainnet',
     title: 'Ethereum',
     blockExplorer: {
-      name: 'Etherscan',
-      rootUrl: 'https://etherscan.io/'
+      // name: 'Etherscan',
+      address: 'https://etherscan.io/address',
+      txHash: 'https://etherscan.io/tx',
+      api: 'https://api.etherscan.io/'
     },
     providerUrl: 'https://mainnet.infura.io/v3/c6ed0fff2278441896180f00a2f9ad55'
   },
@@ -80,8 +128,10 @@ export const networks: Record<ChainId, NetworkConfig> = {
     title: 'Ropsten',
     testnet: true,
     blockExplorer: {
-      name: 'Etherscan (Ropsten)',
-      rootUrl: 'https://ropsten.etherscan.io/'
+      //name: 'Etherscan (Ropsten)',
+      address: 'https://ropsten.etherscan.io/address',
+      txHash: 'https://ropsten.etherscan.io/tx',
+      api: 'https://api.ropsten.etherscan.io/'
     },
     providerUrl: 'https://ropsten.infura.io/v3/c6ed0fff2278441896180f00a2f9ad55'
   },
@@ -93,8 +143,10 @@ export const networks: Record<ChainId, NetworkConfig> = {
     title: 'Rinkeby',
     testnet: true,
     blockExplorer: {
-      name: 'Etherscan (Rinkeby)',
-      rootUrl: 'https://rinkeby.etherscan.io/'
+      //name: 'Etherscan (Rinkeby)',
+      address: 'https://rinkeby.etherscan.io/address',
+      txHash: 'https://rinkeby.etherscan.io/tx',
+      api: 'https://api.rinkeby.etherscan.io/'
     },
     providerUrl: 'https://rinkeby.infura.io/v3/c6ed0fff2278441896180f00a2f9ad55'
   },
@@ -106,8 +158,10 @@ export const networks: Record<ChainId, NetworkConfig> = {
     title: 'Goerli',
     testnet: true,
     blockExplorer: {
-      name: 'Etherscan (Goerli)',
-      rootUrl: 'https://goerli.etherscan.io/'
+      //name: 'Etherscan (Goerli)',
+      address: 'https://goerli.etherscan.io/address',
+      txHash: 'https://goerli.etherscan.io/tx',
+      api: 'https://api.goerli.etherscan.io/'
     },
     providerUrl: 'https://goerli.infura.io/v3/c6ed0fff2278441896180f00a2f9ad55'
   },
@@ -119,8 +173,10 @@ export const networks: Record<ChainId, NetworkConfig> = {
     title: 'Kovan',
     testnet: true,
     blockExplorer: {
-      name: 'Etherscan (Kovan)',
-      rootUrl: 'https://kovan.etherscan.io/'
+      //name: 'Etherscan (Kovan)',
+      address: 'https://kovan.etherscan.io/address',
+      txHash: 'https://kovan.etherscan.io/tx',
+      api: 'https://api.kovan.etherscan.io/',
     },
     providerUrl: 'https://kovan.infura.io/v3/c6ed0fff2278441896180f00a2f9ad55'
   }
