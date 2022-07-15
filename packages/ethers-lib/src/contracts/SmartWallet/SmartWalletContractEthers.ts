@@ -11,6 +11,7 @@ import {
 import { toTxResult } from '../../utils'
 import { SmartWalletContract as SmartWalletContract_TypeChain } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletContract'
 import { SmartWalletContractInterface } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletContract'
+import { getJsonWalletAddress } from 'ethers/lib/utils'
 class SmartWalletContractEthers implements SmartWalletContract {
   constructor(public contract: SmartWalletContract_TypeChain) {}
 
@@ -18,12 +19,16 @@ class SmartWalletContractEthers implements SmartWalletContract {
     return this.contract.address
   }
 
+  async getOwner(): Promise<string> {
+    return await this.contract.getOwner()
+  }
+
   async getVersion(): Promise<SmartAccountVersion> {
     return (await this.contract.VERSION()) as SmartAccountVersion
   }
 
   async getNonce(batchId: number): Promise<BigNumber> {
-    return this.contract.getNonce(batchId)
+    return await this.contract.getNonce(batchId)
   }
   async getTransactionHash(smartAccountTrxData: SmartAccountTrxData): Promise<string> {
     return this.contract.getTransactionHash(

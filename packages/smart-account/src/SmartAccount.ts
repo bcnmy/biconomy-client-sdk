@@ -44,7 +44,7 @@ class SmartAccount {
 
     // providers and contracts initialization
 
-    const chainConfig = this.getSupportedChainsInfo();
+    const chainConfig = this.getSupportedChainsInfo().then();
     console.log("chain config: ", chainConfig);
 
     for (let index = 0; index < this.supportedNetworkIds.length; index++) {
@@ -60,9 +60,17 @@ class SmartAccount {
       })
       // contracts initialization
       // comments as contracts are not yet deployed
+      
+      // move under chain info helper
       this.initializeContracts(this.supportedNetworkIds[index]).then()
 
     }
+  }
+
+  // only for testing
+  public async init() {
+    const chainConfig = await this.getSupportedChainsInfo();
+    console.log("chain config: ", chainConfig);
   }
 
   // getSupportedNetworks / chains endpoint

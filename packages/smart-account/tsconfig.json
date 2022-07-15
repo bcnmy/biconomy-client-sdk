@@ -3,7 +3,8 @@
   "compilerOptions": {
     "composite": true,
     "outDir": "dist",
-    "baseUrl": "src"
+    "baseUrl": "src",
+    "resolveJsonModule": true
   },
   "include": ["src", "src/**/*.json"]
 }

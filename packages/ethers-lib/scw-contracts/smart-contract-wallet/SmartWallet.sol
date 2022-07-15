@@ -70,6 +70,10 @@ contract SmartWallet is
         emit EOAChanged(address(this),owner,_newOwner);
     }
 
+    function getOwner() public view returns(address){
+        return owner;
+    }
+
     /**
      * @notice Updates the implementation of the base wallet
      * @param _implementation New wallet implementation
