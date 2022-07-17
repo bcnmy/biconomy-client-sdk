@@ -29,7 +29,7 @@ class SmartAccount {
   // contract instances
   smartWalletContract!: { [chainId: number]: SmartWalletContract }
   multiSendContract!: { [chainId: number]: MultiSendContract }
-  smartWalletFacoryContract!: { [chainId: number]: SmartWalletFactoryContract }
+  smartWalletFactoryContract!: { [chainId: number]: SmartWalletFactoryContract }
 
   constructor(config: SmartAccountConfig) {
 
@@ -37,59 +37,54 @@ class SmartAccount {
     this.ethAdapter = {}
     this.smartWalletContract = {}
     this.multiSendContract = {}
-    this.smartWalletFacoryContract = {}
+    this.smartWalletFactoryContract = {}
     this.supportedNetworkIds = config.supportedNetworksIds
     
     this.nodeClient = new SafeServiceClient({txServiceUrl: config.backend_url});
+  }
 
-    // providers and contracts initialization
-
-    const chainConfig = this.getSupportedChainsInfo().then();
+  // for testing
+  // providers and contracts initialization
+  public async init(): Promise<SmartAccount> {
+    const chainConfig = await this.getSupportedChainsInfo();
     console.log("chain config: ", chainConfig);
 
-    for (let index = 0; index < this.supportedNetworkIds.length; index++) {
+    this.supportedNetworkIds.forEach(async (network) => {
       const provider = new ethers.providers.JsonRpcProvider(
-        networks[this.supportedNetworkIds[index]].providerUrl
+        networks[network].providerUrl
       )
-      const signer = provider.getSigner(config.owner)
+      const signer = provider.getSigner(this.#smartAccountConfig.owner)
 
       // instantiating EthersAdapter instance and maintain it as class level variable
-      this.ethAdapter[this.supportedNetworkIds[index]] = new EthersAdapter({
+      this.ethAdapter[network] = new EthersAdapter({
         ethers,
         signer
       })
-      // contracts initialization
-      // comments as contracts are not yet deployed
-      
-      // move under chain info helper
-      this.initializeContracts(this.supportedNetworkIds[index]).then()
 
-    }
-  }
-
-  // only for testing
-  public async init() {
-    const chainConfig = await this.getSupportedChainsInfo();
-    console.log("chain config: ", chainConfig);
+      this.initializeContracts(network);
+    })    
+    return this;
   }
 
   // getSupportedNetworks / chains endpoint
 
 
   // intialize contract to be used throughout this class
-  private async initializeContracts(chainId: ChainId): Promise<void> {
-    this.smartWalletContract[networks[chainId].chainId] = await getSmartWalletContract(
+  private initializeContracts(chainId: ChainId) {
+    this.smartWalletFactoryContract[networks[chainId].chainId] = getSmartWalletFactoryContract(
       chainId,
       this.ethAdapter[chainId]
-    )
-    this.multiSendContract[networks[chainId].chainId] = await getMultiSendContract(
+    );
+
+    this.smartWalletContract[networks[chainId].chainId] = getSmartWalletContract(
       chainId,
       this.ethAdapter[chainId]
-    )
-    this.smartWalletFacoryContract[networks[chainId].chainId] = await getSmartWalletFactoryContract(
+    );
+
+    this.multiSendContract[networks[chainId].chainId] = getMultiSendContract(
       chainId,
       this.ethAdapter[chainId]
-    )
+    );
   }
 
   private async getSupportedChainsInfo(): Promise<ChainConfig[]> {
@@ -116,9 +111,13 @@ class SmartAccount {
     return this.multiSendContract[networks[chainId].chainId]
   }
 
-  // return proxy wallet instance
   factory(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): SmartWalletFactoryContract {
-    return this.smartWalletFacoryContract[networks[chainId].chainId]
+    return this.smartWalletFactoryContract[networks[chainId].chainId]
+  }
+
+  // Review
+  async getAddress(index: number = 0, chainId: ChainId = this.#smartAccountConfig.activeNetworkId) : Promise<string> {
+    return await this.getAddressForCounterfactualWallet(index,chainId);
   }
 
   /**
@@ -127,8 +126,8 @@ class SmartAccount {
    * @description return address for Smart account
    * @returns
    */
-  getAddressForCounterfactualWallet(index: number = 0, chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<string> {
-    return this.smartWalletFacoryContract[
+  async getAddressForCounterfactualWallet(index: number = 0, chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<string> {
+    return await this.smartWalletFactoryContract[
       networks[chainId].chainId
     ].getAddressForCounterfactualWallet(this.#smartAccountConfig.owner, index)
   }
@@ -139,6 +138,8 @@ class SmartAccount {
    * @description deploy Smart Account for EOA against specific index
    * @returns
    */
+  // Marked for deletion
+  // Call the relayer for deployment!
   async deployCounterFactualWallet(
     index: number = 0,
     chainId: ChainId = this.#smartAccountConfig.activeNetworkId
@@ -150,7 +151,7 @@ class SmartAccount {
       throw new Error('Smart Wallet is not deployed on the current network')
     }
     // TODO: relayer stuff
-    return this.smartWalletFacoryContract[chainId].deployCounterFactualWallet(
+    return this.smartWalletFactoryContract[chainId].deployCounterFactualWallet(
       this.#smartAccountConfig.owner,
       networkInfo.entryPoint,
       networkInfo.fallbackHandler,

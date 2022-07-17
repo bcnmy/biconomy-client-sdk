@@ -8,7 +8,7 @@
   "scripts": {
     "clean": "lerna clean",
     "unbuild": "lerna run unbuild",
-    "build": "lerna run build --stream --npm-client=yarn",
+    "build": "npm install -D nx@latest && lerna run build --stream --npm-client=yarn",
     "test": "FORCE_COLOR=1 lerna run test --stream --npm-client=yarn",
     "test:ci": "FORCE_COLOR=1 lerna run test:ci --stream --npm-client=yarn",
     "format": "lerna run format --npm-client=yarn",
@@ -30,7 +30,7 @@
   "author": "Biconomy (https://biconomy.io)",
   "devDependencies": {
     "lerna": "^5.1.6",
-    "nx": "^14.4.2",
+    "nx": "^14.4.3",
     "prettier": "2.7.1",
     "ts-node": "^10.8.2"
   },

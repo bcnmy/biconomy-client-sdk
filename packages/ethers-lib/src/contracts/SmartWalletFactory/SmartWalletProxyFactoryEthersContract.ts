@@ -2,7 +2,7 @@ import { SmartWalletFactoryContract, TransactionResult } from '@biconomy-sdk/cor
 import { toTxResult } from '../../utils'
 import { SmartWalletFactoryContract as SmartWalletFactoryContract_TypeChain } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletFactoryContract'
 
-class SmartWalletFacoryContractEthers implements SmartWalletFactoryContract {
+class SmartWalletFactoryContractEthers implements SmartWalletFactoryContract {
   constructor(public contract: SmartWalletFactoryContract_TypeChain) {}
 
   getAddress(): string {
@@ -38,4 +38,4 @@ class SmartWalletFacoryContractEthers implements SmartWalletFactoryContract {
   }
 }
 
-export default SmartWalletFacoryContractEthers
+export default SmartWalletFactoryContractEthers
