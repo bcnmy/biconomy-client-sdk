@@ -31,6 +31,9 @@ class SmartAccount {
   multiSendContract!: { [chainId: number]: MultiSendContract }
   smartWalletFactoryContract!: { [chainId: number]: SmartWalletFactoryContract }
 
+
+  // Review :: ToDo
+  // To be able to passs provider : WalletProviderLike 
   constructor(config: SmartAccountConfig) {
 
     this.#smartAccountConfig = config

@@ -1,3 +1,5 @@
+
+// walletProvider: WalletProviderLike
 export interface SmartAccountConfig {
   owner: string // EOA address
   activeNetworkId: ChainId

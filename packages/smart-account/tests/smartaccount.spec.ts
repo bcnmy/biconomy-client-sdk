@@ -1,38 +1,33 @@
-import SmartAccount from '@biconomy-sdk/smart-account'; // 
+import SmartAccount from '../src/SmartAccount';
+import { LocalRelayer } from '@biconomy-sdk/relayer'
+// import { Contract, ethers, Signer as AbstractSigner } from 'ethers'
 
 
-export function main() {
-  enum ChainId {
-    // Ethereum
-    MAINNET = 1,
-    ROPSTEN = 3,
-    RINKEBY = 4,
-    GOERLI = 5,
-    KOVAN = 42
-  }
+import chaiAsPromised from 'chai-as-promised'
+import * as chai from 'chai'
 
-const wallet = new SmartAccount({
-    owner: '0x4281d6888D7a3A6736B0F596823810ffBd7D4808',
-    activeNetworkId: ChainId.MAINNET,
-    supportedNetworksIds: [ChainId.MAINNET, ChainId.RINKEBY],
-    backend_url: "http://localhost:3000/v1"
+// import hardhat from 'hardhat'
+// import { BytesLike, Interface } from 'ethers/lib/utils'
+
+describe('Wallet integration', function () {
+  let relayer: LocalRelayer
+
+  before(async () => {
   })
 
-  wallet.ethersAdapter(ChainId.RINKEBY).getTransaction('0x3dbc9da5b081a93658d4bf2f85bce2e74332b1806b287248b318c6da13c27994')
-  .then(res=>{
-    console.log('Tx Details are ', res);
+  beforeEach(async () => {
+  })
+  
+  after(async () => {
   })
 
-  wallet.ethersAdapter(ChainId.MAINNET).getBalance('0x4281d6888D7a3A6736B0F596823810ffBd7D4808')
-  .then(res=>{
-    console.log('Balance is ', res);
+  describe('Smart account usage and basic actions', () => {
+
+    beforeEach(async () => {
+    })
+
+    it('Should init and return details of smart account', async () => {
+    })
   })
-}
+})
 
-main();
-
-
-  /*wallet.ethersAdapter(ChainId.RINKEBY).getOwner()
-  .then(res=>{
-    console.log('Chain id is ', res);
-  })*/
