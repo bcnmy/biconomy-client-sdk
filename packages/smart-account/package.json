@@ -14,7 +14,10 @@
     "unbuild": "rimraf dist *.tsbuildinfo",
     "build": "rimraf dist && tsc",
     "test": "yarn test:concurrently 'yarn test:run'",
+    "test:file": "TS_NODE_PROJECT=../../tsconfig.test.json mocha -r ts-node/register --timeout 30000",
+    "test:concurrently": "concurrently -k --success first 'yarn start:hardhat > /dev/null'",
     "test:run": "yarn test:file tests/**/*.spec.ts",
+    "start:hardhat": "yarn run hardhat node --port 7047 --config ./hardhat.config.js",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
     "lint": "tslint -p tsconfig.json"
   },
@@ -36,6 +39,7 @@
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
     "ethers": "^5.5.3",
+    "jest-cli": "^28.1.3",
     "prettier": "^2.6.2",
     "typescript": "^4.6.3"
   },
@@ -47,6 +51,7 @@
     "@ethersproject/contracts": "^5.6.0",
     "@ethersproject/providers": "^5.6.8",
     "@gnosis.pm/safe-deployments": "^1.12.0",
-    "web3-core": "^1.7.1"
+    "web3-core": "^1.7.1",
+    "@types/mocha": "^9.1.1"
   }
 }

@@ -1,5 +1,7 @@
 import { TransactionResult } from '../types'
+import { Interface } from "@ethersproject/abi";
 export interface SmartWalletFactoryContract {
+  getInterface(): Interface
   getAddress(): string
   deployCounterFactualWallet(
     owner: string,

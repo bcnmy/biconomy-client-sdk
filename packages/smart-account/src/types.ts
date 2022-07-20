@@ -1,14 +1,71 @@
+import { BytesLike, Wallet } from 'ethers';
+import { ExternalProvider, Web3Provider } from '@ethersproject/providers';
 
 // walletProvider: WalletProviderLike
 export interface SmartAccountConfig {
-  owner: string // EOA address
+  // owner: string // EOA address
   activeNetworkId: ChainId
   supportedNetworksIds: ChainId[]
+  providers: Web3Provider[]
   backend_url: string
 }
-// backend_url
 // relayer_url
 // provider?
+
+export interface SmartAccountState {
+  address: string,
+  owner: string,
+  isDeployed: boolean
+}
+
+export interface SmartAccountContext {
+  entryPointAddress: string,
+  fallbackHandlerAddress: string,
+  // multiSendAddress: string,
+  // multiSendObnlyCallAddress: string,
+}
+
+// reference i could work on
+export interface WalletProvider {
+  readonly type?: string;
+  readonly wallet?: Wallet;
+  readonly address: string;
+  readonly networkName?: NetworkNames;
+  signMessage(message: BytesLike): Promise<string>;
+}
+
+export interface WalletLike {
+  privateKey: string;
+}
+
+export type WalletProviderLike = string | WalletLike | WalletProvider;
+
+export enum NetworkNames {
+  Mainnet = 'mainnet',
+  Ropsten = 'ropsten',
+  Rinkeby = 'rinkeby',
+  Goerli = 'goerli',
+  Kovan = 'kovan',
+  Xdai = 'xdai',
+  Bsc = 'bsc',
+  BscTest = 'bscTest',
+  Fantom = 'fantom',
+  FantomTest = 'fantomTest',
+  Matic = 'matic',
+  Mumbai = 'mumbai',
+  Aurora = 'aurora',
+  AuroraTest = 'auroraTest',
+  Avalanche = 'avalanche',
+  Fuji = 'fuji',
+  Optimism = 'optimism',
+  OptimismKovan = 'optimismKovan',
+  Arbitrum = 'arbitrum',
+  ArbitrumTest = 'arbitrumTest',
+  Moonbeam = 'moonbeam',
+  Moonbase = 'moonbase',
+  Celo = 'celo',
+  CeloTest = 'celoTest',
+}
 
 export interface ContractInfo {
   defaultAddress: string

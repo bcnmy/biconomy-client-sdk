@@ -4,7 +4,8 @@
     "composite": true,
     "outDir": "dist",
     "baseUrl": "src",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
   },
   "include": ["src", "src/**/*.json"]
 }

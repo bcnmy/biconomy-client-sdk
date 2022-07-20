@@ -1,15 +1,18 @@
 {
-  "name": "@biconomy-sdk/relayer",
+  "name": "@biconomy-sdk/transactions",
   "version": "1.0.0",
-  "description": "relayer client to dispatach transactions on blockchain",
+  "description": "utils for sending all transaction legos",
+  "main": "dist/src/index.js",
+  "typings": "dist/src/index.d.ts",
   "keywords": [
-    "relayer"
+    "legos",
+    "batching",
+    "one-click",
+    "cross-chain"
   ],
   "author": "livingrockrises <chirag@biconomy.io>",
   "homepage": "https://github.com/bcnmy/biconomy-client-sdk#readme",
   "license": "MIT",
-  "main": "dist/src/index.js",
-  "typings": "dist/src/index.d.ts",
   "files": [
     "dist"
   ],
@@ -22,14 +25,6 @@
     "build": "rimraf dist && tsc",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
     "lint": "tslint -p tsconfig.json"
-  },
-  "dependencies": {
-    "@biconomy-sdk/smart-account": "*",
-    "@biconomy-sdk/core-types": "*"
-  },
-  "devDependencies": {
-    "@biconomy-sdk/smart-account": "*",
-    "@biconomy-sdk/core-types": "*"
   },
   "bugs": {
     "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"

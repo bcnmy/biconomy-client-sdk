@@ -8,6 +8,14 @@ export enum OperationType {
   DelegateCall // 1
 }
 
+// Temp
+export interface SmartAccountContext {
+  entryPointAddress: string,
+  fallbackHandlerAddress: string,
+  // multiSendAddress: string,
+  // multiSendObnlyCallAddress: string,
+}
+
 export interface MetaTransactionData {
   readonly to: string
   readonly value: string

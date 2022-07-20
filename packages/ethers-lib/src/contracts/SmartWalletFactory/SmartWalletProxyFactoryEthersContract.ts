@@ -1,9 +1,15 @@
 import { SmartWalletFactoryContract, TransactionResult } from '@biconomy-sdk/core-types'
+import { Interface } from "@ethersproject/abi";
 import { toTxResult } from '../../utils'
 import { SmartWalletFactoryContract as SmartWalletFactoryContract_TypeChain } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletFactoryContract'
+import { ethers } from 'ethers'
 
 class SmartWalletFactoryContractEthers implements SmartWalletFactoryContract {
   constructor(public contract: SmartWalletFactoryContract_TypeChain) {}
+
+  getInterface(): Interface {
+    return this.contract.interface;
+  }
 
   getAddress(): string {
     return this.contract.address
