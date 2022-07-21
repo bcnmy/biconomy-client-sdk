@@ -1,4 +1,4 @@
-import { BytesLike, Wallet } from 'ethers';
+import { BytesLike, Wallet, BigNumberish } from 'ethers';
 import { ExternalProvider, Web3Provider } from '@ethersproject/providers';
 
 // walletProvider: WalletProviderLike
@@ -11,6 +11,21 @@ export interface SmartAccountConfig {
 }
 // relayer_url
 // provider?
+
+// TODO
+// Review location, usage and name of types
+
+export interface Transaction {
+  to: string
+  value?: BigNumberish
+  data?: string
+  nonce?: BigNumberish
+  gasLimit?: BigNumberish
+  // delegateCall?: boolean
+  // revertOnError?: boolean
+}
+
+export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 export interface SmartAccountState {
   address: string,

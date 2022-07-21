@@ -3,6 +3,7 @@ import { Interface } from "@ethersproject/abi";
 export interface SmartWalletFactoryContract {
   getInterface(): Interface
   getAddress(): string
+  isWalletExist(wallet:string): Promise<boolean> 
   deployCounterFactualWallet(
     owner: string,
     entryPoint: string,

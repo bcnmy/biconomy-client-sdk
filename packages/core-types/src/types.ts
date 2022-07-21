@@ -1,5 +1,6 @@
 import { ContractTransaction } from '@ethersproject/contracts'
 import { PromiEvent, TransactionReceipt } from 'web3-core/types'
+import { BigNumber } from '@ethersproject/bignumber';
 
 export type SmartAccountVersion = '1.3.0' | '1.2.0' | '1.1.1'
 
@@ -16,6 +17,24 @@ export interface SmartAccountContext {
   // multiSendObnlyCallAddress: string,
 }
 
+// TODO
+// Review location , names and usage of all types
+
+export interface RawTransactionType {
+  from?: string;
+  gasPrice?: string | BigNumber;
+  maxFeePerGas?: string | BigNumber;
+  maxPriorityFeePerGas?: string | BigNumber;
+  gasLimit?: string;
+  to: string;
+  value: string | number;
+  data?: string;
+  chainId: number;
+  nonce?: number | string;
+  // accessList?: AccessListItem[];
+  type?: number;
+};
+
 export interface MetaTransactionData {
   readonly to: string
   readonly value: string
@@ -25,7 +44,7 @@ export interface MetaTransactionData {
 
 export interface SmartAccountTrxData extends MetaTransactionData {
   readonly operation: OperationType
-  readonly SmartAccountTxGas: number
+  readonly targetTxGas: number
   readonly baseGas: number
   readonly gasPrice: number
   readonly gasToken: string
@@ -34,12 +53,25 @@ export interface SmartAccountTrxData extends MetaTransactionData {
 }
 
 export interface SmartAccountTrxDataPartial extends MetaTransactionData {
-  readonly SmartAccountTxGas?: number
+  readonly targetTxGas?: number
   readonly baseGas?: number
   readonly gasPrice?: number
   readonly gasToken?: string
   readonly refundReceiver?: string
   readonly nonce?: number
+}
+
+export interface WalletTransaction {
+  to: string;
+  value: string;
+  data: string;
+  operation: number;
+  targetTxGas: string | number; 
+  baseGas: string | number;
+  gasPrice: string | number;
+  gasToken: string;
+  refundReceiver: string;
+  nonce: number
 }
 
 export interface Signature {

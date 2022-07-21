@@ -1,4 +1,5 @@
 import { TransactionRequest, TransactionResponse } from '@ethersproject/providers'
+import { RawTransactionType } from '@biconomy-sdk/core-types';
 import { Signer as AbstractSigner, ethers } from 'ethers'
 import { Relayer } from '.';
 
@@ -23,6 +24,7 @@ export class LocalRelayer implements Relayer {
     async deployWallet(factory:SmartWalletFactoryContract, context: SmartAccountContext, eoa:string, index:number = 0): Promise<TransactionResponse> {
       // TODO
       // Should check if already deployed
+      // if(!(await factory.isWalletExist())) throw new Error("Smart Account is Already Deployed")
       const walletDeployTxn = this.prepareWalletDeploy(factory, context, eoa,index);
       const tx = this.signer.sendTransaction({ ...walletDeployTxn, gasLimit: ethers.constants.Two.pow(24) });
       return tx;
@@ -45,22 +47,30 @@ export class LocalRelayer implements Relayer {
       }
     }
 
+    /*async isWalletDeployed(walletAddress: string): Promise<boolean> {
+      // Check if wallet is deployed
+      return true;
+    }*/
+
     /*async getFeeOptions(
-     
     ): Promise<{ options: FeeOption[] }> {
       return { options: [] }
     }*/
   
-    /*async gasRefundOptions(
-      
+    /*async gasRefundOptions( 
     ): Promise<FeeOption[]> {
       const { options } = //await this.getFeeOptions()
       return options
     }*/
 
-    /*async relay(signedTxs: SignedTransactions, quote?: FeeQuote) : Promise<TransactionResponse> {
-        // preprendWalletDeploy
-        // get txn helpers
-        // this.signer.sendTransaction()
-    }*/
+    async relay(rawTx: RawTransactionType /*quote?: FeeQuote*/) : Promise<TransactionResponse> {
+      // check if wallet if deployed
+      // If not =>> preprendWalletDeploy
+
+      // @notice
+      // We'd need multiSend instance then 
+      // rawTx to becomes multiSend address and data gets prepared again 
+      const tx = this.signer.sendTransaction({ ...rawTx, gasLimit: ethers.constants.Two.pow(24) });
+      return tx;
+    }
   }

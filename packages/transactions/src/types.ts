@@ -6,6 +6,7 @@ import {
     BigNumberish,
     Signer,
     PopulatedTransaction,
+    BytesLike
   } from "ethers";
   import { TypedDataSigner } from "@ethersproject/abstract-signer";
   import { AddressZero } from "@ethersproject/constants";
@@ -33,6 +34,19 @@ export interface MetaTransaction {
     data: string;
     operation: number;
 };
+
+export interface WalletTransaction {
+    to: string;
+    value: string;
+    data: string;
+    operation: number;
+    targetTxGas: string | number; 
+    baseGas: string | number;
+    gasPrice: string | number;
+    gasToken: string;
+    refundReceiver: string;
+    nonce: number
+}
   
 /*export interface SafeTransaction extends MetaTransaction {
     targetTxGas: string | number;
@@ -43,9 +57,9 @@ export interface MetaTransaction {
     nonce: string | number;
 };*/
   
-export interface Transaction {
+export interface ExecTransaction {
     to: string;
-    value: string | number | BigNumber;
+    value: string;
     data: string;
     operation: number;
     targetTxGas: string | number;
@@ -58,8 +72,8 @@ export interface FeeRefund {
     refundReceiver: string;
 };
   
-export interface WalletTransaction {
-    _tx: Transaction;
+export interface SmartAccountTransaction {
+    _tx: ExecTransaction;
     refundInfo: FeeRefund;
     batchId: number;
     nonce: string | number;

@@ -1,6 +1,8 @@
-import { SmartAccountConfig, networks, NetworkConfig, ChainId, ChainConfig, SmartAccountState, SmartAccountContext } from './types'
+import { SmartAccountConfig, networks, NetworkConfig, ChainId, ChainConfig, 
+  SmartAccountState, SmartAccountContext, Transaction, ZERO_ADDRESS } from './types'
+  import { TypedDataDomain, TypedDataField, TypedDataSigner } from '@ethersproject/abstract-signer'
 import EthersAdapter from '@biconomy-sdk/ethers-lib'
-import { ethers, providers } from 'ethers'
+import { ethers, providers, Wallet } from 'ethers'
 import {
   getSmartWalletFactoryContract,
   getMultiSendContract,
@@ -12,9 +14,12 @@ import {
   MultiSendContract,
   TransactionResult
 } from '@biconomy-sdk/core-types'
+import { TransactionRequest, TransactionResponse } from '@ethersproject/providers';
 import SafeServiceClient from '@biconomy-sdk/node-client';
 import { Web3Provider } from '@ethersproject/providers'
 import { Relayer } from '@biconomy-sdk/relayer';
+import { WalletTransaction, ExecTransaction, FeeRefund, SmartAccountTransaction, getSignatureParameters } from '@biconomy-sdk/transactions';
+import { RawTransactionType } from '@biconomy-sdk/core-types'
 
 class SmartAccount {
   // { ethAdapter } is a window that gave access to all the Implemented function of it
@@ -68,6 +73,7 @@ class SmartAccount {
 
     for(let i=0; i < this.supportedNetworkIds.length; i++) {
       const network = this.supportedNetworkIds[i];
+      // @notice : I think we should be providing providers in multi chain context 
       const provider = this.providers[i];
       // check if corresponds to same chainId correctly
       const signer = provider.getSigner();
@@ -100,6 +106,7 @@ class SmartAccount {
       this.ethAdapter[chainId]
     );
 
+    // Should attach the address here
     this.smartWalletContract[networks[chainId].chainId] = getSmartWalletContract(
       chainId,
       this.ethAdapter[chainId]
@@ -133,9 +140,104 @@ class SmartAccount {
     return this
   }
 
+  // async sendSignedTransaction : must expect signature!
+
+  // async sign 
+
+
+  // will get signer's signature
+  // TODO:
+  // Signer should be able to use _typedSignData
+  async sendTransaction(tx:WalletTransaction, batchId:number = 0, chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<TransactionResponse> {
+    let rawTx: RawTransactionType = {
+      to: tx.to,
+      data: tx.data,
+      value: 0,
+      chainId: chainId
+    };
+
+    const transaction: ExecTransaction = {
+      to: tx.to,
+      value: tx.value,
+      data: tx.data,
+      operation: tx.operation,
+      targetTxGas: tx.targetTxGas,
+    };
+
+    const refundInfo: FeeRefund = {
+      baseGas: tx.baseGas,
+      gasPrice: tx.gasPrice,
+      gasToken: tx.gasToken,
+      refundReceiver: tx.refundReceiver,
+    };
+
+    debugger;
+
+    // going to go with personal sign
+    const transactionHash:string = await this.smartAccount(chainId).getTransactionHash(tx);
+
+    let signature:string = await this.ethersAdapter(chainId).getSigner().signMessage(ethers.utils.arrayify(transactionHash));
+    let { r, s, v } = getSignatureParameters(signature);
+    v += 4;
+    let vNew = ethers.BigNumber.from(v).toHexString();
+    signature = r + s.slice(2) + vNew.slice(2);
+
+    const walletInterface = this.smartAccount(chainId).getInterface();
+
+    console.log("built txn");
+
+    console.log(transaction);
+    console.log(refundInfo);
+    console.log(batchId);
+    console.log(signature);
+
+    debugger; 
+    
+    let executionData = walletInterface.encodeFunctionData(walletInterface.getFunction('execTransaction'),
+    [ transaction,
+      batchId,
+      refundInfo,
+      signature
+    ]
+    );
+
+    console.log("exec data");
+    console.log(executionData);
+
+    rawTx.to = this.smartAccount(chainId).getAddress();
+    rawTx.data = executionData;
+
+    const txn = this.relayer.relay(rawTx);
+    return txn;
+  }
+
+  // Todo : rename 
+  // This transaction is without fee refund
+  // We need to have identifiers for these txns
+  async createSmartAccountTransaction(transaction: Transaction, batchId:number = 0,chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<WalletTransaction> {
+    const nonce = (await this.smartAccount(chainId).getNonce(batchId)).toNumber();
+    return {
+      to: transaction.to,
+      value: "0x",
+      data: transaction.data || '',
+      operation: 0,
+      targetTxGas: 0,
+      baseGas: 0,
+      gasPrice: 0,
+      gasToken: ZERO_ADDRESS,
+      refundReceiver: ZERO_ADDRESS,
+      nonce
+    }
+  };
+
+  // 
+
   // return smartaccount instance
   smartAccount(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): SmartWalletContract {
-    return this.smartWalletContract[networks[chainId].chainId]
+    const smartWallet = this.smartWalletContract[networks[chainId].chainId]
+    const address = this.address;
+    smartWallet.setAddress(address);
+    return smartWallet;
   }
 
   factory(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): SmartWalletFactoryContract {
@@ -150,9 +252,10 @@ class SmartAccount {
   // Review
   // might be coming wrong..
   async isDeployed(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<boolean> {
-    const readProvider = new ethers.providers.JsonRpcProvider(networks[chainId].providerUrl);
-    const walletCode = await readProvider.getCode(await this.getAddress(chainId));
-    return !!walletCode && walletCode !== '0x'
+    // const readProvider = new ethers.providers.JsonRpcProvider(networks[chainId].providerUrl);
+    //const walletCode = await readProvider.getCode(await this.getAddress(chainId));
+    // return !!walletCode && walletCode !== '0x'
+    return await this.factory(chainId).isWalletExist(this.address);
   }
 
   async getSmartAccountState(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<SmartAccountState> {

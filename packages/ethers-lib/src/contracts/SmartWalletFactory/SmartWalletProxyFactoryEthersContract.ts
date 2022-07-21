@@ -1,8 +1,7 @@
 import { SmartWalletFactoryContract, TransactionResult } from '@biconomy-sdk/core-types'
-import { Interface } from "@ethersproject/abi";
 import { toTxResult } from '../../utils'
 import { SmartWalletFactoryContract as SmartWalletFactoryContract_TypeChain } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletFactoryContract'
-import { ethers } from 'ethers'
+import { Interface } from "@ethersproject/abi";
 
 class SmartWalletFactoryContractEthers implements SmartWalletFactoryContract {
   constructor(public contract: SmartWalletFactoryContract_TypeChain) {}
@@ -11,8 +10,17 @@ class SmartWalletFactoryContractEthers implements SmartWalletFactoryContract {
     return this.contract.interface;
   }
 
+  async isWalletExist(wallet: string): Promise<boolean> {
+    const doesExist = await this.contract.isWalletExist(wallet);
+    return doesExist;
+  }
+
   getAddress(): string {
     return this.contract.address
+  }
+
+  setAddress(address:string) {
+    this.contract.attach(address); 
   }
 
   async deployCounterFactualWallet(

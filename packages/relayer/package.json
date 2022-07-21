@@ -24,11 +24,9 @@
     "lint": "tslint -p tsconfig.json"
   },
   "dependencies": {
-    "@biconomy-sdk/smart-account": "*",
     "@biconomy-sdk/core-types": "*"
   },
   "devDependencies": {
-    "@biconomy-sdk/smart-account": "*",
     "@biconomy-sdk/core-types": "*"
   },
   "bugs": {

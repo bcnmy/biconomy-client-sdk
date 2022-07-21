@@ -3,7 +3,7 @@ import {
   SmartAccountVersion,
   SmartWalletContract,
   SmartAccountTrx,
-  SmartAccountTrxData,
+  WalletTransaction,
   TransactionOptions,
   FeeRefundData,
   TransactionResult
@@ -11,12 +11,20 @@ import {
 import { toTxResult } from '../../utils'
 import { SmartWalletContract as SmartWalletContract_TypeChain } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletContract'
 import { SmartWalletContractInterface } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletContract'
-import { getJsonWalletAddress } from 'ethers/lib/utils'
+import { getJsonWalletAddress, Interface } from 'ethers/lib/utils'
 class SmartWalletContractEthers implements SmartWalletContract {
   constructor(public contract: SmartWalletContract_TypeChain) {}
 
+  getInterface(): Interface {
+    return this.contract.interface;
+  }
+
   getAddress(): string {
     return this.contract.address
+  }
+
+  setAddress(address: string) {
+    this.contract.attach(address);
   }
 
   async getOwner(): Promise<string> {
@@ -30,13 +38,13 @@ class SmartWalletContractEthers implements SmartWalletContract {
   async getNonce(batchId: number): Promise<BigNumber> {
     return await this.contract.getNonce(batchId)
   }
-  async getTransactionHash(smartAccountTrxData: SmartAccountTrxData): Promise<string> {
+  async getTransactionHash(smartAccountTrxData: WalletTransaction): Promise<string> {
     return this.contract.getTransactionHash(
       smartAccountTrxData.to,
       smartAccountTrxData.value,
       smartAccountTrxData.data,
       smartAccountTrxData.operation,
-      smartAccountTrxData.SmartAccountTxGas,
+      smartAccountTrxData.targetTxGas,
       smartAccountTrxData.baseGas,
       smartAccountTrxData.gasPrice,
       smartAccountTrxData.gasToken,

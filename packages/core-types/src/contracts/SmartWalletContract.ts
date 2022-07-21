@@ -1,19 +1,25 @@
 import {
   FeeRefundData,
   SmartAccountTrx,
-  SmartAccountTrxData,
+  WalletTransaction,
   SmartAccountVersion,
   TransactionOptions,
   TransactionResult
 } from '../types'
 import { BigNumber } from '@ethersproject/bignumber'
+import { Interface } from "@ethersproject/abi";
 
+
+// TODO
+// Rename
 export interface SmartWalletContract {
   getAddress(): string
+  getInterface(): Interface
+  setAddress(address:string): any
   getOwner(): Promise<string>
   getVersion(): Promise<SmartAccountVersion>
   getNonce(batchId: number): Promise<BigNumber>
-  getTransactionHash(smartAccountTrxData: SmartAccountTrxData): Promise<string>
+  getTransactionHash(smartAccountTrxData: WalletTransaction): Promise<string>
   execTransaction(
     transaction: SmartAccountTrx,
     batchId: number,
