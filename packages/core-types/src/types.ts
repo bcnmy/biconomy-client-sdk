@@ -1,6 +1,6 @@
 import { ContractTransaction } from '@ethersproject/contracts'
 import { PromiEvent, TransactionReceipt } from 'web3-core/types'
-import { BigNumber } from '@ethersproject/bignumber';
+import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
 
 export type SmartAccountVersion = '1.3.0' | '1.2.0' | '1.1.1'
 
@@ -27,12 +27,27 @@ export interface RawTransactionType {
   maxPriorityFeePerGas?: string | BigNumber;
   gasLimit?: string;
   to: string;
-  value: string | number;
+  value: BigNumberish;
   data?: string;
   chainId: number;
   nonce?: number | string;
   // accessList?: AccessListItem[];
   type?: number;
+};
+
+export interface ExecTransaction {
+  to: string;
+  value: BigNumberish;
+  data: string;
+  operation: number;
+  targetTxGas: string | number;
+};
+
+export interface FeeRefund {
+  baseGas: string | number;
+  gasPrice: string | number;
+  gasToken: string;
+  refundReceiver: string;
 };
 
 export interface MetaTransactionData {
@@ -63,7 +78,7 @@ export interface SmartAccountTrxDataPartial extends MetaTransactionData {
 
 export interface WalletTransaction {
   to: string;
-  value: string;
+  value: BigNumberish;
   data: string;
   operation: number;
   targetTxGas: string | number; 

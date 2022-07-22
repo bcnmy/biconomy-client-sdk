@@ -37,7 +37,7 @@ export interface MetaTransaction {
 
 export interface WalletTransaction {
     to: string;
-    value: string;
+    value: BigNumberish;
     data: string;
     operation: number;
     targetTxGas: string | number; 
@@ -59,7 +59,7 @@ export interface WalletTransaction {
   
 export interface ExecTransaction {
     to: string;
-    value: string;
+    value: BigNumberish;
     data: string;
     operation: number;
     targetTxGas: string | number;

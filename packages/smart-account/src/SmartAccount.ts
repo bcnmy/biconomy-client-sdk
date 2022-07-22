@@ -12,14 +12,14 @@ import {
   SmartWalletFactoryContract,
   SmartWalletContract,
   MultiSendContract,
-  TransactionResult
+  TransactionResult,
+  RawTransactionType
 } from '@biconomy-sdk/core-types'
 import { TransactionRequest, TransactionResponse } from '@ethersproject/providers';
 import SafeServiceClient from '@biconomy-sdk/node-client';
 import { Web3Provider } from '@ethersproject/providers'
-import { Relayer } from '@biconomy-sdk/relayer';
+import { Relayer, LocalRelayer } from '@biconomy-sdk/relayer';
 import { WalletTransaction, ExecTransaction, FeeRefund, SmartAccountTransaction, getSignatureParameters } from '@biconomy-sdk/transactions';
-import { RawTransactionType } from '@biconomy-sdk/core-types'
 
 class SmartAccount {
   // { ethAdapter } is a window that gave access to all the Implemented function of it
@@ -77,6 +77,7 @@ class SmartAccount {
       const provider = this.providers[i];
       // check if corresponds to same chainId correctly
       const signer = provider.getSigner();
+      // this.relayer = new LocalRelayer(signer); // should relayer client be chosen per chain?
 
       // instantiating EthersAdapter instance and maintain it as class level variable
       this.ethAdapter[network] = new EthersAdapter({
@@ -152,7 +153,7 @@ class SmartAccount {
     let rawTx: RawTransactionType = {
       to: tx.to,
       data: tx.data,
-      value: 0,
+      value: tx.value,
       chainId: chainId
     };
 
@@ -171,8 +172,6 @@ class SmartAccount {
       refundReceiver: tx.refundReceiver,
     };
 
-    debugger;
-
     // going to go with personal sign
     const transactionHash:string = await this.smartAccount(chainId).getTransactionHash(tx);
 
@@ -182,7 +181,9 @@ class SmartAccount {
     let vNew = ethers.BigNumber.from(v).toHexString();
     signature = r + s.slice(2) + vNew.slice(2);
 
-    const walletInterface = this.smartAccount(chainId).getInterface();
+    // const walletInterface = this.smartAccount(chainId).getInterface();
+    let walletContract = this.smartAccount(chainId).getContract();
+    walletContract = walletContract.attach(this.address);
 
     console.log("built txn");
 
@@ -190,24 +191,23 @@ class SmartAccount {
     console.log(refundInfo);
     console.log(batchId);
     console.log(signature);
-
-    debugger; 
     
-    let executionData = walletInterface.encodeFunctionData(walletInterface.getFunction('execTransaction'),
-    [ transaction,
+    let { data } = await walletContract.populateTransaction.execTransaction(
+      transaction,
       batchId,
       refundInfo,
       signature
-    ]
     );
 
     console.log("exec data");
-    console.log(executionData);
+    console.log(data);
 
-    rawTx.to = this.smartAccount(chainId).getAddress();
-    rawTx.data = executionData;
+    console.log('raw tx');
+    console.log(rawTx);
+    rawTx.to = this.address;
+    rawTx.data = data;
 
-    const txn = this.relayer.relay(rawTx);
+    const txn = await this.relayer.relay(rawTx);
     return txn;
   }
 
@@ -216,9 +216,10 @@ class SmartAccount {
   // We need to have identifiers for these txns
   async createSmartAccountTransaction(transaction: Transaction, batchId:number = 0,chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<WalletTransaction> {
     const nonce = (await this.smartAccount(chainId).getNonce(batchId)).toNumber();
+    console.log('nonce: ', nonce);
     return {
       to: transaction.to,
-      value: "0x",
+      value: 0,
       data: transaction.data || '',
       operation: 0,
       targetTxGas: 0,
@@ -236,12 +237,16 @@ class SmartAccount {
   smartAccount(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): SmartWalletContract {
     const smartWallet = this.smartWalletContract[networks[chainId].chainId]
     const address = this.address;
-    smartWallet.setAddress(address);
+    smartWallet.getContract().attach(address);
     return smartWallet;
   }
 
   factory(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): SmartWalletFactoryContract {
     return this.smartWalletFactoryContract[networks[chainId].chainId]
+  }
+
+  multiSend(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): MultiSendContract {
+    return this.multiSendContract[networks[chainId].chainId]
   }
 
   // Optional index allowed
@@ -267,6 +272,7 @@ class SmartAccount {
     return state;
   }
 
+  // apend owner?
   async getSmartAccountContext(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<SmartAccountContext> {
     const context: SmartAccountContext = {
       entryPointAddress: networks[chainId].entryPoint,
@@ -280,6 +286,7 @@ class SmartAccount {
   // sendSignedTransaction
   // signMessage
   // signTransaction
+  // getTokenBalances()
   // Discuss about multichain aspect of relayer node url and clients
   // TODO: get details from backend config
 

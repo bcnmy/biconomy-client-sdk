@@ -2,21 +2,25 @@ import { BigNumber } from '@ethersproject/bignumber'
 import {
   SmartAccountVersion,
   SmartWalletContract,
-  SmartAccountTrx,
   WalletTransaction,
-  TransactionOptions,
-  FeeRefundData,
+  ExecTransaction,
+  FeeRefund,
   TransactionResult
 } from '@biconomy-sdk/core-types'
 import { toTxResult } from '../../utils'
 import { SmartWalletContract as SmartWalletContract_TypeChain } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletContract'
 import { SmartWalletContractInterface } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletContract'
 import { getJsonWalletAddress, Interface } from 'ethers/lib/utils'
+import { Contract } from '@ethersproject/contracts';
 class SmartWalletContractEthers implements SmartWalletContract {
   constructor(public contract: SmartWalletContract_TypeChain) {}
 
   getInterface(): Interface {
     return this.contract.interface;
+  }
+
+  getContract(): Contract {
+    return this.contract;
   }
 
   getAddress(): string {
@@ -54,19 +58,19 @@ class SmartWalletContractEthers implements SmartWalletContract {
   }
 
   async execTransaction(
-    smartAccountTrx: SmartAccountTrx,
+    _tx: ExecTransaction,
     batchId: number,
-    feeRefundData: FeeRefundData,
-    options: TransactionOptions
+    refundInfo: FeeRefund,
+    signatures: string
   ): Promise<TransactionResult> {
     // TODO: estimate GAS before making the transaction
     const txResponse = await this.contract.execTransaction(
-      smartAccountTrx.data,
+      _tx,
       batchId,
-      feeRefundData,
-      smartAccountTrx.encodedSignatures()
+      refundInfo,
+      signatures
     )
-    return toTxResult(txResponse, options)
+    return toTxResult(txResponse)
   }
 
   encode: SmartWalletContractInterface['encodeFunctionData'] = (
