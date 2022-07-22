@@ -8,6 +8,7 @@ pragma solidity ^0.8.0;
 import "./libs/LibAddress.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./IWallet.sol";
 import "./common/Singleton.sol";
 import "./storage/WalletStorage.sol";
@@ -18,7 +19,6 @@ import "./common/SignatureDecoder.sol";
 import "./common/SecuredTokenTransfer.sol";
 import "./interfaces/ISignatureValidator.sol";
 import "./interfaces/IERC165.sol";
-import "./libs/SafeMath.sol";
 import "./libs/ECDSA.sol";
 
 // Hooks not made a base yet
@@ -36,7 +36,6 @@ contract SmartWallet is
     {
     using ECDSA for bytes32;
     using LibAddress for address;
-    using SafeMath for uint256;
 
     event ImplementationUpdated(address newImplementation);
     event ExecutionFailure(bytes32 txHash, uint256 payment);
@@ -68,10 +67,6 @@ contract SmartWallet is
         require(_newOwner != address(0), "Smart Account:: new Signatory address cannot be zero");
         owner = _newOwner;
         emit EOAChanged(address(this),owner,_newOwner);
-    }
-
-    function getOwner() public view returns(address){
-        return owner;
     }
 
     /**
@@ -123,10 +118,19 @@ contract SmartWallet is
     function init(address _owner, address _entryPoint, address _handler) public initializer { 
         require(owner == address(0), "Already initialized");
         require(entryPoint == address(0), "Already initialized");
+        require(_owner != address(0),"Invalid owner");
+        require(_entryPoint != address(0), "Invalid Entrypoint");
         owner = _owner;
         entryPoint = _entryPoint;
         if (_handler != address(0)) internalSetFallbackHandler(_handler);
         setupModules(address(0), bytes(""));
+    }
+
+    /**
+     * @dev Returns the largest of two numbers.
+     */
+    function max(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a >= b ? a : b;
     }
 
     // @review 2D nonces and args as default batchId 0 is always used
@@ -167,14 +171,14 @@ contract SmartWallet is
 
         // We require some gas to emit the events (at least 2500) after the execution and some to perform code until the execution (500)
         // We also include the 1/64 in the check that is not send along with a call to counteract potential shortings because of EIP-150
-        require(gasleft() >= ((_tx.targetTxGas * 64) / 63).max(_tx.targetTxGas + 2500) + 500, "BSA010");
+        require(gasleft() >= max((_tx.targetTxGas * 64) / 63,_tx.targetTxGas + 2500) + 500, "BSA010");
         // Use scope here to limit variable lifetime and prevent `stack too deep` errors
         {
             uint256 gasUsed = gasleft();
             // If the gasPrice is 0 we assume that nearly all available gas can be used (it is always more than targetTxGas)
             // We only substract 2500 (compared to the 3000 before) to ensure that the amount passed is still higher than targetTxGas
             success = execute(_tx.to, _tx.value, _tx.data, _tx.operation, refundInfo.gasPrice == 0 ? (gasleft() - 2500) : _tx.targetTxGas);
-            gasUsed = gasUsed.sub(gasleft());
+            gasUsed = gasUsed - gasleft();
             // If no targetTxGas and no gasPrice was set (e.g. both are 0), then the internal tx is required to be successful
             // This makes it possible to use `estimateGas` without issues, as it searches for the minimum gas where the tx doesn't revert
             require(success || _tx.targetTxGas != 0 || refundInfo.gasPrice != 0, "BSA013");
@@ -199,10 +203,12 @@ contract SmartWallet is
         address payable receiver = refundReceiver == address(0) ? payable(tx.origin) : refundReceiver;
         if (gasToken == address(0)) {
             // For ETH we will only adjust the gas price to not be higher than the actual used gas price
-            payment = gasUsed.add(baseGas).mul(gasPrice < tx.gasprice ? gasPrice : tx.gasprice);
-            require(receiver.send(payment), "BSA011");
+            payment = (gasUsed + baseGas) * (gasPrice < tx.gasprice ? gasPrice : tx.gasprice);
+            // Review: low level call value vs transfer
+            (bool success,) = receiver.call{value: payment}("");
+            require(success, "BSA011");
         } else {
-            payment = gasUsed.add(baseGas).mul(gasPrice);
+            payment = (gasUsed + baseGas) * (gasPrice);
             require(transferToken(gasToken, receiver, payment), "BSA012");
         }
     }
@@ -234,10 +240,10 @@ contract SmartWallet is
             // Check that signature data pointer (s) is not pointing inside the static part of the signatures bytes
                 // This check is not completely accurate, since it is possible that more signatures than the threshold are send.
                 // Here we only check that the pointer is not pointing inside the part that is being processed
-                require(uint256(s) >= uint256(1).mul(65), "BSA021");
+                require(uint256(s) >= uint256(1) * 65, "BSA021");
 
                 // Check that signature data pointer (s) is in bounds (points to the length of data -> 32 bytes)
-                require(uint256(s).add(32) <= signatures.length, "BSA022");
+                require(uint256(s) + 32 <= signatures.length, "BSA022");
 
                 // Check if the contract signature is in bounds: start of data is s + 32 and end is start + signature length
                 uint256 contractSignatureLen;
@@ -245,7 +251,7 @@ contract SmartWallet is
                 assembly {
                     contractSignatureLen := mload(add(add(signatures, s), 0x20))
                 }
-                require(uint256(s).add(32).add(contractSignatureLen) <= signatures.length, "BSA023");
+                require(uint256(s) + 32 + contractSignatureLen <= signatures.length, "BSA023");
 
                 // Check signature
                 bytes memory contractSignature;
@@ -267,8 +273,31 @@ contract SmartWallet is
         }
     }
 
+    /// review necessity for this method for estimating execute call
+    /// @dev Allows to estimate a transaction.
+    ///      This method is only meant for estimation purpose, therefore the call will always revert and encode the result in the revert data.
+    ///      Since the `estimateGas` function includes refunds, call this method to get an estimated of the costs that are deducted from the safe with `execTransaction`
+    /// @param to Destination address of Safe transaction.
+    /// @param value Ether value of transaction.
+    /// @param data Data payload of transaction.
+    /// @param operation Operation type of transaction.
+    /// @return Estimate without refunds and overhead fees (base transaction and payload data gas costs).
+    function requiredTxGas(
+        address to,
+        uint256 value,
+        bytes calldata data,
+        Enum.Operation operation
+    ) external returns (uint256) {
+        uint256 startGas = gasleft();
+        // We don't provide an error message here, as we use it to return the estimate
+        require(execute(to, value, data, operation, gasleft()));
+        uint256 requiredGas = startGas - gasleft();
+        // Convert response to string and return via error message
+        revert(string(abi.encodePacked(requiredGas)));
+    }
 
-    /// @dev Returns hash to be signed by owners.
+
+    /// @dev Returns hash to be signed by owner.
     /// @param to Destination address.
     /// @param value Ether value.
     /// @param data Data payload.
@@ -340,13 +369,16 @@ contract SmartWallet is
 
     // Extra Utils
     
+    // Review: low level call value vs transfer // dest.transfer(amount);
     function transfer(address payable dest, uint amount) external onlyOwner {
-        dest.transfer(amount);
+        require(dest != address(0), "this action will burn your funds");
+        (bool success,) = dest.call{value:amount}("");
+        require(success,"transfer failed");
     }
 
     function pullTokens(address token, address dest, uint256 amount) external onlyOwner {
         IERC20 tokenContract = IERC20(token);
-        tokenContract.transfer(dest, amount);
+        SafeERC20.safeTransfer(tokenContract, dest, amount);
     }
 
     function exec(address dest, uint value, bytes calldata func) external onlyOwner{
@@ -355,8 +387,11 @@ contract SmartWallet is
 
     function execBatch(address[] calldata dest, bytes[] calldata func) external onlyOwner{
         require(dest.length == func.length, "wrong array lengths");
-        for (uint i = 0; i < dest.length; i++) {
+        for (uint i = 0; i < dest.length;) {
             _call(dest[i], 0, func[i]);
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -385,19 +420,18 @@ contract SmartWallet is
     function validateUserOp(UserOperation calldata userOp, bytes32 requestId, uint requiredPrefund) external override {
         _requireFromEntryPoint();
         _validateSignature(userOp, requestId);
-        _validateAndIncrementNonce(userOp);
+        //during construction, the "nonce" field hold the salt.
+        // if we assert it is zero, then we allow only a single wallet per owner.
+        if (userOp.initCode.length == 0) {
+            _validateAndUpdateNonce(userOp);
+        }
         _payPrefund(requiredPrefund);
     }
 
     // review nonce conflict with AA userOp nonce
     // userOp can omit nonce or have batchId as well!
-    function _validateAndIncrementNonce(UserOperation calldata userOp) internal {
-        //during construction, the "nonce" field hold the salt.
-        // if we assert it is zero, then we allow only a single wallet per owner.
-        if (userOp.initCode.length == 0) {
-            require(nonces[0]++ == userOp.nonce, "wallet: invalid nonce");
-        }
-        // default batchId aka space 0 for any wallet
+    function _validateAndUpdateNonce(UserOperation calldata userOp) internal {
+        require(nonces[0]++ == userOp.nonce, "wallet: invalid nonce");
     }
 
     function _payPrefund(uint requiredPrefund) internal {
@@ -425,5 +459,9 @@ contract SmartWallet is
     function supportsInterface(bytes4 interfaceId) external view virtual override returns (bool) {
         return interfaceId == type(IERC165).interfaceId; // 0x01ffc9a7
     }
-    
+
+    // Review
+    // withdrawDepositTo
+    // addDeposit
+    // getDeposit
 }

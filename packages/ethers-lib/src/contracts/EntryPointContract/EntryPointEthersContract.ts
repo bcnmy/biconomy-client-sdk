@@ -21,11 +21,6 @@ class EntryPointEthersContract implements EntryPointContract {
     return this.contract.getRequestId(userOperation)
   }
 
-  async handleOp(userOperation: UserOperation, beneficiary: string): Promise<TransactionResult> {
-    const resultSet = await this.contract.handleOp(userOperation, beneficiary)
-    return toTxResult(resultSet)
-  }
-
   async handleOps(
     userOperations: UserOperation[],
     beneficiary: string
@@ -36,10 +31,6 @@ class EntryPointEthersContract implements EntryPointContract {
 
   async getSenderAddress(initCode: string, salt: number): Promise<string> {
     return this.contract.getSenderAddress(initCode, salt)
-  }
-
-  async isPaymasterStaked(address: string, stake: number): Promise<boolean> {
-    return this.contract.isPaymasterStaked(address, stake)
   }
 }
 

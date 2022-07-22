@@ -211,8 +211,8 @@ export const networks: Record<ChainId, NetworkConfig> = {
   },
   [ChainId.RINKEBY]: {
     chainId: ChainId.RINKEBY,
-    entryPoint: '0xfb8131c260749c7835a08ccbdb64728de432858e',
-    fallbackHandler: '0x006b640910f739fec38b936b8efb8f6e3109aaca',
+    entryPoint: '0x1D67cb5Db425bD6Bdf7472c44E6415c6B450Ae0B',
+    fallbackHandler: '0xa9939Cb3Ed4efaeA050f75A23fD8709cBE6181e4',
     name: 'rinkeby',
     title: 'Rinkeby',
     testnet: true,

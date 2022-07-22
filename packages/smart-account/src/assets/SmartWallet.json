@@ -1,14 +1,14 @@
 {
-    "defaultAddress": "0xEAD2502dAe0b5731edE898Fd48Ea59C7f0dA0a05",
+    "defaultAddress": "0xcc5fBe9f7727Ee62688672C814819Cd9818B9c68",
     "released": true,
     "contractName": "SmartWallet",
     "version": "1.0.0",
     "networkAddresses": {
-      "1": "0xEAD2502dAe0b5731edE898Fd48Ea59C7f0dA0a05",
-      "4": "0xEAD2502dAe0b5731edE898Fd48Ea59C7f0dA0a05",
-      "5": "0xEAD2502dAe0b5731edE898Fd48Ea59C7f0dA0a05",
-      "42": "0xEAD2502dAe0b5731edE898Fd48Ea59C7f0dA0a05",
-      "100": "0xEAD2502dAe0b5731edE898Fd48Ea59C7f0dA0a05"
+      "1": "0xcc5fBe9f7727Ee62688672C814819Cd9818B9c68",
+      "4": "0xcc5fBe9f7727Ee62688672C814819Cd9818B9c68",
+      "5": "0xcc5fBe9f7727Ee62688672C814819Cd9818B9c68",
+      "42": "0xcc5fBe9f7727Ee62688672C814819Cd9818B9c68",
+      "100": "0xcc5fBe9f7727Ee62688672C814819Cd9818B9c68"
     },
     "abi": [
       {
@@ -641,19 +641,6 @@
         "type": "function"
       },
       {
-        "inputs": [],
-        "name": "getOwner",
-        "outputs": [
-          {
-            "internalType": "address",
-            "name": "",
-            "type": "address"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
         "inputs": [
           {
             "internalType": "address",
@@ -715,45 +702,6 @@
           }
         ],
         "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "uint256",
-            "name": "gasUsed",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "baseGas",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "gasPrice",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address",
-            "name": "gasToken",
-            "type": "address"
-          },
-          {
-            "internalType": "address payable",
-            "name": "refundReceiver",
-            "type": "address"
-          }
-        ],
-        "name": "handlePaymentAndRevert",
-        "outputs": [
-          {
-            "internalType": "uint256",
-            "name": "",
-            "type": "uint256"
-          }
-        ],
-        "stateMutability": "nonpayable",
         "type": "function"
       },
       {

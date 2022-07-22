@@ -32,7 +32,7 @@ class SmartWalletContractEthers implements SmartWalletContract {
   }
 
   async getOwner(): Promise<string> {
-    return await this.contract.getOwner()
+    return await this.contract.owner()
   }
 
   async getVersion(): Promise<SmartAccountVersion> {
