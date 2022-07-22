@@ -13,12 +13,6 @@
   "scripts": {
     "unbuild": "rimraf dist",
     "build": "yarn rimraf dist && tsc",
-    "test:web3": "export TESTS_PATH=tests/endpoint && export ETH_LIB=web3 && nyc hardhat test",
-    "test:ethers": "export TESTS_PATH=tests/endpoint && export ETH_LIB=ethers && nyc hardhat test",
-    "test": "yarn test:ethers",
-    "test:ci:web3": "export TESTS_PATH=tests/e2e && export ETH_LIB=web3 && nyc hardhat test",
-    "test:ci:ethers": "export TESTS_PATH=tests/e2e && export ETH_LIB=ethers && nyc hardhat test",
-    "test:ci": "yarn test:ci:ethers",
     "format": "prettier --write \"{src,tests,e2e}/**/*.ts\"",
     "lint": "tslint -p tsconfig.json"
   },

@@ -9,7 +9,6 @@
     "clean": "lerna clean",
     "unbuild": "lerna run unbuild",
     "build": "npm install -D nx@latest && lerna run build --stream --npm-client=yarn",
-    "test": "FORCE_COLOR=1 lerna run test --stream --npm-client=yarn",
     "test:ci": "FORCE_COLOR=1 lerna run test:ci --stream --npm-client=yarn",
     "format": "lerna run format --npm-client=yarn",
     "prettier": "lerna run prettier --npm-client=npm",
