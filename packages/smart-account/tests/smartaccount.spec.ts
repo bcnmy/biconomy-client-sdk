@@ -54,10 +54,19 @@ describe('Wallet integration', function () {
         ROPSTEN = 3,
         RINKEBY = 4,
         GOERLI = 5,
-        KOVAN = 42
+        KOVAN = 42,
+        HARDHAT = 31337
       }
 
       const userAddress = await ethnode.signer?.getAddress() || '';
+
+      console.log(ethnode.provider);
+      const eoaSigner = ethnode.provider?.getSigner()
+
+      if(eoaSigner) {
+        const eoa = await eoaSigner.getAddress();
+        console.log('eoa ', eoa);
+      }
 
       const wallet = new SmartAccount({
         // owner: userAddress,
@@ -67,7 +76,8 @@ describe('Wallet integration', function () {
         backend_url: "http://localhost:3000/v1"
     });
 
-
+      // I'd have to deploy the contracts and set specs
+      // const smartAccount = await wallet.init();
     })
   })
 })

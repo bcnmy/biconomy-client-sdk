@@ -106,7 +106,8 @@ export enum ChainId {
   ROPSTEN = 3,
   RINKEBY = 4,
   GOERLI = 5,
-  KOVAN = 42
+  KOVAN = 42,
+  HARDHAT = 31337 //Temp
 }
 export interface NetworkConfig {
   entryPoint: string // abstract account contract
@@ -253,5 +254,20 @@ export const networks: Record<ChainId, NetworkConfig> = {
       api: 'https://api.kovan.etherscan.io/',
     },
     providerUrl: 'https://kovan.infura.io/v3/c6ed0fff2278441896180f00a2f9ad55'
-  }
+  },
+  [ChainId.HARDHAT]: {
+    chainId: ChainId.ROPSTEN,
+    entryPoint: '0xfb8131c260749c7835a08ccbdb64728de432858e',
+    fallbackHandler: '0x006b640910f739fec38b936b8efb8f6e3109aaca',
+    name: 'ropsten',
+    title: 'Ropsten',
+    testnet: true,
+    blockExplorer: {
+      //name: 'Etherscan (Ropsten)',
+      address: 'https://ropsten.etherscan.io/address',
+      txHash: 'https://ropsten.etherscan.io/tx',
+      api: 'https://api.ropsten.etherscan.io/'
+    },
+    providerUrl: 'https://ropsten.infura.io/v3/c6ed0fff2278441896180f00a2f9ad55'
+  },
 }

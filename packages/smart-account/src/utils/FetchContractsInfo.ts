@@ -1,7 +1,5 @@
 import { SmartWalletContract, SmartWalletFactoryContract, MultiSendContract } from '@biconomy-sdk/core-types'
-import SmartWalletFactory from '../assets/WalletFactory.json'
-import SmartWallet from '../assets/SmartWallet.json'
-import MultiSend from '../assets/MultiSend.json'
+import { WalletFactory, SmartWallet, MultiSend } from '../assets/index'
 
 import EthersAdapter from '@biconomy-sdk/ethers-lib'
 
@@ -11,7 +9,7 @@ export function getSmartWalletFactoryContract(
 ): SmartWalletFactoryContract {
   return ethAdapter.getSmartWalletFactoryContract({
     chainId,
-    singletonDeployment: SmartWalletFactory
+    singletonDeployment: SmartWallet
   })
 }
 export function getMultiSendContract(

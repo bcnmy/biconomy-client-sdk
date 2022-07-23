@@ -21,10 +21,18 @@ export class LocalRelayer implements Relayer {
       if (!this.signer.provider) throw new Error("Signer must have a provider")
     }
 
+    // TODO
+
+    // Review function arguments and return values
+    // Could get smartAccount instance 
+    // Defines a type that takes config, context for SCW in play along with other details
     async deployWallet(factory:SmartWalletFactoryContract, context: SmartAccountContext, eoa:string, index:number = 0): Promise<TransactionResponse> {
-      // TODO
       // Should check if already deployed
-      // if(!(await factory.isWalletExist())) throw new Error("Smart Account is Already Deployed")
+      const address = await factory.getAddressForCounterfactualWallet(eoa,index);
+      const isExist = await factory.isWalletExist(address);
+      if(isExist) {
+        throw new Error("Smart Account is Already Deployed")
+      }
       const walletDeployTxn = this.prepareWalletDeploy(factory, context, eoa,index);
       const tx = this.signer.sendTransaction({ ...walletDeployTxn, gasLimit: ethers.constants.Two.pow(24) });
       return tx;
@@ -63,9 +71,12 @@ export class LocalRelayer implements Relayer {
       return options
     }*/
 
+    // Should make an object that takes config and context
     async relay(rawTx: RawTransactionType /*quote?: FeeQuote*/) : Promise<TransactionResponse> {
-      // check if wallet if deployed
+      // check if wallet if deployed (needs wallet config)
+
       // If not =>> preprendWalletDeploy
+      // Needs MultiSendCallOnly address from Context
 
       // @notice
       // We'd need multiSend instance then 
