@@ -9,7 +9,7 @@ export function getSmartWalletFactoryContract(
 ): SmartWalletFactoryContract {
   return ethAdapter.getSmartWalletFactoryContract({
     chainId,
-    singletonDeployment: SmartWallet
+    singletonDeployment: WalletFactory
   })
 }
 export function getMultiSendContract(
