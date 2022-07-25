@@ -19,7 +19,7 @@ import { TransactionRequest, TransactionResponse } from '@ethersproject/provider
 import SafeServiceClient from '@biconomy-sdk/node-client';
 import { Web3Provider } from '@ethersproject/providers'
 import { Relayer, LocalRelayer } from '@biconomy-sdk/relayer';
-import { WalletTransaction, ExecTransaction, FeeRefund, SmartAccountTransaction, getSignatureParameters } from '@biconomy-sdk/transactions';
+import { WalletTransaction, ExecTransaction, FeeRefund, SmartAccountTransaction, getSignatureParameters, EIP712_WALLET_TX_TYPE } from '@biconomy-sdk/transactions';
 
 class SmartAccount {
   // { ethAdapter } is a window that gave access to all the Implemented function of it
@@ -172,10 +172,15 @@ class SmartAccount {
       refundReceiver: tx.refundReceiver,
     };
 
-    // going to go with personal sign
-    const transactionHash:string = await this.smartAccount(chainId).getTransactionHash(tx);
+    const hash:string = ethers.utils._TypedDataEncoder.hash(
+      { verifyingContract: this.address, chainId },
+      EIP712_WALLET_TX_TYPE,
+      tx
+    );
 
-    let signature:string = await this.ethersAdapter(chainId).getSigner().signMessage(ethers.utils.arrayify(transactionHash));
+    // going to go with personal sign
+
+    let signature:string = await this.ethersAdapter(chainId).getSigner().signMessage(ethers.utils.arrayify(hash));
     let { r, s, v } = getSignatureParameters(signature);
     v += 4;
     let vNew = ethers.BigNumber.from(v).toHexString();
@@ -199,11 +204,6 @@ class SmartAccount {
       signature
     );
 
-    console.log("exec data");
-    console.log(data);
-
-    console.log('raw tx');
-    console.log(rawTx);
     rawTx.to = this.address;
     rawTx.data = data;
 
@@ -215,7 +215,9 @@ class SmartAccount {
   // This transaction is without fee refund
   // We need to have identifiers for these txns
   async createSmartAccountTransaction(transaction: Transaction, batchId:number = 0,chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<WalletTransaction> {
-    const nonce = (await this.smartAccount(chainId).getNonce(batchId)).toNumber();
+    let walletContract = this.smartAccount(chainId).getContract();
+    walletContract = walletContract.attach(this.address);
+    const nonce = (await walletContract.getNonce(batchId)).toNumber();
     console.log('nonce: ', nonce);
     return {
       to: transaction.to,
