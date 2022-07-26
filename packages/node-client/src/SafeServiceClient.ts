@@ -30,7 +30,7 @@ import {
   TokenInfoListResponse,
   TokenInfoResponse,
   TransferListResponse,
-  ChainConfig
+  ChainConfigResponse
 } from './types/safeTransactionServiceTypes'
 import { getTxServiceBaseUrl } from './utils'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
@@ -121,7 +121,7 @@ class SafeServiceClient implements SafeTransactionService {
    *
    * @returns The list of Network info 
    */
-   async getChainInfo(): Promise<Array<ChainConfig>> {
+   async getChainInfo(): Promise<ChainConfigResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/chains/`,
       method: HttpMethod.Get

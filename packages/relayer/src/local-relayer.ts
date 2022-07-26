@@ -22,7 +22,6 @@ export class LocalRelayer implements Relayer {
     }
 
     // TODO
-
     // Review function arguments and return values
     // Could get smartAccount instance 
     // Defines a type that takes config, context for SCW in play along with other details

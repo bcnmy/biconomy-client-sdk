@@ -49,6 +49,7 @@
     "@biconomy-sdk/ethers-lib": "*",
     "@biconomy-sdk/node-client": "*",
     "@biconomy-sdk/transactions": "*",
+    "@biconomy-sdk/relayer": "*",
     "@ethersproject/bignumber": "^5.6.0",
     "@ethersproject/contracts": "^5.6.0",
     "@ethersproject/providers": "^5.6.8",

@@ -5,27 +5,31 @@ import { SmartWalletFactoryContract__factory as SmartWalletFactoryContract } fro
 import SmartWalletContractEthers from './SmartWallet/SmartWalletContractEthers'
 import MultiSendEthersContract from './MultiSend/MultiSendEthersContract'
 import SmartWalletFacoryContractEthers from './SmartWalletFactory/SmartWalletProxyFactoryEthersContract'
+import { JsonRpcProvider } from '@ethersproject/providers'
 
 export function getSmartWalletContractInstance(
   contractAddress: string,
-  signer: Signer
+  // signer: Signer
+  provider: JsonRpcProvider
 ): SmartWalletContractEthers {
-  let safeContract = SmartWalletContract.connect(contractAddress, signer)
+  let safeContract = SmartWalletContract.connect(contractAddress, provider)
   return new SmartWalletContractEthers(safeContract)
 }
 
+// Review
 export function getMultiSendContractInstance(
   contractAddress: string,
-  signer: Signer
+  // signer: Signer
+  provider: JsonRpcProvider
 ): MultiSendEthersContract {
-  let multiSendContract = MultiSendContract.connect(contractAddress, signer)
+  let multiSendContract = MultiSendContract.connect(contractAddress, provider)
   return new MultiSendEthersContract(multiSendContract)
 }
 
 export function getSmartWalletFactoryContractInstance(
   contractAddress: string,
-  signer: Signer
+  provider: JsonRpcProvider
 ): SmartWalletFacoryContractEthers {
-  let walletFactoryContract = SmartWalletFactoryContract.connect(contractAddress, signer)
+  let walletFactoryContract = SmartWalletFactoryContract.connect(contractAddress, provider)
   return new SmartWalletFacoryContractEthers(walletFactoryContract)
 }

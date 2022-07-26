@@ -3,18 +3,14 @@ import { ExternalProvider, Web3Provider } from '@ethersproject/providers';
 
 // walletProvider: WalletProviderLike
 export interface SmartAccountConfig {
-  // owner: string // EOA address
   activeNetworkId: ChainId
   supportedNetworksIds: ChainId[]
-  providers: Web3Provider[]
+  // walletProvider: Web3Provider // getting provider that can sign messages
   backend_url: string
 }
-// relayer_url
-// provider?
 
 // TODO
 // Review location, usage and name of types
-
 export interface Transaction {
   to: string
   value?: BigNumberish
@@ -107,6 +103,7 @@ export enum ChainId {
   RINKEBY = 4,
   GOERLI = 5,
   KOVAN = 42,
+  MUMBAI = 80001,
   HARDHAT = 31337 //Temp
 }
 export interface NetworkConfig {
@@ -158,8 +155,14 @@ export type TokenInfo = {
   updatedAt: Date
 }
 
+export type ChainConfigResponse = {
+  message: string
+  code: number
+  data: ChainConfig[]
+}
+
 export type ChainConfig = {
-  chain_id: number
+  chainId: number
   name: string
   symbol: string
   isL2: boolean
@@ -255,8 +258,23 @@ export const networks: Record<ChainId, NetworkConfig> = {
     },
     providerUrl: 'https://kovan.infura.io/v3/c6ed0fff2278441896180f00a2f9ad55'
   },
+  [ChainId.MUMBAI]: {
+    chainId: ChainId.MUMBAI,
+    entryPoint: '0xfb8131c260749c7835a08ccbdb64728de432858e',
+    fallbackHandler: '0x006b640910f739fec38b936b8efb8f6e3109aaca',
+    name: 'ropsten',
+    title: 'Ropsten',
+    testnet: true,
+    blockExplorer: {
+      //name: 'Etherscan (Ropsten)',
+      address: 'https://ropsten.etherscan.io/address',
+      txHash: 'https://ropsten.etherscan.io/tx',
+      api: 'https://api.ropsten.etherscan.io/'
+    },
+    providerUrl: 'https://ropsten.infura.io/v3/c6ed0fff2278441896180f00a2f9ad55'
+  },
   [ChainId.HARDHAT]: {
-    chainId: ChainId.ROPSTEN,
+    chainId: ChainId.HARDHAT,
     entryPoint: '0xfb8131c260749c7835a08ccbdb64728de432858e',
     fallbackHandler: '0x006b640910f739fec38b936b8efb8f6e3109aaca',
     name: 'ropsten',

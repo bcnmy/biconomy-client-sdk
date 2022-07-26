@@ -1,7 +1,7 @@
 import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { Signer } from '@ethersproject/abstract-signer'
 import { BigNumber } from '@ethersproject/bignumber'
-import { Provider } from '@ethersproject/providers'
+import { Provider, JsonRpcProvider } from '@ethersproject/providers'
 import {
   Eip3770Address,
   EthAdapter,
@@ -26,14 +26,16 @@ export interface EthersAdapterConfig {
   ethers: Ethers
   /** signer - Ethers signer */
   signer: Signer
+
+  provider: JsonRpcProvider
 }
 
 class EthersAdapter implements EthAdapter {
   #ethers: Ethers
   #signer: Signer
-  #provider: Provider
+  #provider: JsonRpcProvider
 
-  constructor({ ethers, signer }: EthersAdapterConfig) {
+  constructor({ ethers, signer, provider }: EthersAdapterConfig) {
     if (!ethers) {
       throw new Error('ethers property missing from options')
     }
@@ -41,11 +43,13 @@ class EthersAdapter implements EthAdapter {
       throw new Error('Signer must be connected to a provider')
     }
     this.#signer = signer
-    this.#provider = signer.provider
+    this.#provider = provider
+    //this.#provider = signer.provider
     this.#ethers = ethers
   }
 
-  getProvider(): Provider {
+  // Review
+  getProvider(): JsonRpcProvider {
     return this.#provider
   }
 
@@ -71,7 +75,7 @@ class EthersAdapter implements EthAdapter {
     if (!contractAddress) {
       throw new Error('Invalid Safe Proxy contract address')
     }
-    return getSmartWalletContractInstance(contractAddress, this.#signer)
+    return getSmartWalletContractInstance(contractAddress, this.#provider)
   }
 
   getMultiSendContract({
@@ -82,7 +86,7 @@ class EthersAdapter implements EthAdapter {
     if (!contractAddress) {
       throw new Error('Invalid Multi Send contract address')
     }
-    return getMultiSendContractInstance(contractAddress, this.#signer)
+    return getMultiSendContractInstance(contractAddress, this.#provider)
   }
 
   getSmartWalletFactoryContract({
@@ -93,7 +97,7 @@ class EthersAdapter implements EthAdapter {
     if (!contractAddress) {
       throw new Error('Invalid Safe Proxy Factory contract address')
     }
-    return getSmartWalletFactoryContractInstance(contractAddress, this.#signer)
+    return getSmartWalletFactoryContractInstance(contractAddress, this.#provider)
   }
 
   async getContractCode(address: string): Promise<string> {
@@ -118,6 +122,7 @@ class EthersAdapter implements EthAdapter {
     return this.#signer.signMessage(messageArray)
   }
 
+  // Review
   async estimateGas(transaction: EthAdapterTransaction): Promise<number> {
     return (await this.#provider.estimateGas(transaction)).toNumber()
   }

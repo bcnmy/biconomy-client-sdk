@@ -11,6 +11,7 @@ const Web3 = require('web3')
 const { expect } = chai.use(chaiAsPromised)
 
 import hardhat from 'hardhat'
+import { deployWalletContracts } from './utils/deploy';
 import { BytesLike, Interface } from 'ethers/lib/utils'
 
 type EthereumInstance = {
@@ -55,12 +56,12 @@ describe('Wallet integration', function () {
         RINKEBY = 4,
         GOERLI = 5,
         KOVAN = 42,
+        MUMBAI = 80001,
         HARDHAT = 31337
       }
 
       const userAddress = await ethnode.signer?.getAddress() || '';
 
-      console.log(ethnode.provider);
       const eoaSigner = ethnode.provider?.getSigner()
 
       if(eoaSigner) {
@@ -68,13 +69,21 @@ describe('Wallet integration', function () {
         console.log('eoa ', eoa);
       }
 
-      const wallet = new SmartAccount({
-        // owner: userAddress,
-        activeNetworkId: ChainId.RINKEBY,
-        supportedNetworksIds: [ChainId.RINKEBY], // has to be consisttent providers and network names
-        providers: [ethnode.provider],
-        backend_url: "http://localhost:3000/v1"
-    });
+      const wallet = new SmartAccount(ethnode.provider,{
+        activeNetworkId: ChainId.HARDHAT,
+        supportedNetworksIds: [ChainId.HARDHAT], // has to be consisttent providers and network names
+        // walletProvider: ethnode.provider,
+        //backend_url: "http://localhost:3000/v1"
+      });
+
+       // const smartAccount = await wallet.init();
+
+       const [ smartWallet, walletFactory, multiSend ] = await deployWalletContracts(ethnode.signer);
+
+       console.log('base wallet deployed at : ', smartWallet.address);
+       console.log('wallet factory deployed at : ', walletFactory.address);
+       console.log('multi send deployed at : ', multiSend.address);
+       
 
       // I'd have to deploy the contracts and set specs
       // const smartAccount = await wallet.init();

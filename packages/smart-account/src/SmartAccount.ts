@@ -1,5 +1,5 @@
-import { SmartAccountConfig, networks, NetworkConfig, ChainId, ChainConfig, 
-  SmartAccountState, SmartAccountContext, Transaction, ZERO_ADDRESS } from './types'
+import { SmartAccountConfig, networks, ChainId, ChainConfig, 
+  SmartAccountState, SmartAccountContext, Transaction, ZERO_ADDRESS, ChainConfigResponse } from './types'
   import { TypedDataDomain, TypedDataField, TypedDataSigner } from '@ethersproject/abstract-signer'
 import EthersAdapter from '@biconomy-sdk/ethers-lib'
 import { ethers, providers, Wallet } from 'ethers'
@@ -15,7 +15,7 @@ import {
   TransactionResult,
   RawTransactionType
 } from '@biconomy-sdk/core-types'
-import { TransactionRequest, TransactionResponse } from '@ethersproject/providers';
+import { JsonRpcSigner, TransactionRequest, TransactionResponse } from '@ethersproject/providers';
 import SafeServiceClient from '@biconomy-sdk/node-client';
 import { Web3Provider } from '@ethersproject/providers'
 import { Relayer, LocalRelayer } from '@biconomy-sdk/relayer';
@@ -33,7 +33,12 @@ class SmartAccount {
   // hold supported network info
   supportedNetworkIds!: ChainId[]
 
-  providers!:  Web3Provider[]
+  chainConfig!: ChainConfig[]
+
+  // providers!:  Web3Provider[]
+  provider!:  Web3Provider
+
+  signer!: JsonRpcSigner 
 
   nodeClient!: SafeServiceClient 
 
@@ -51,44 +56,50 @@ class SmartAccount {
 
   // Review :: ToDo
   // To be able to passs provider : WalletProviderLike 
-  constructor(config: SmartAccountConfig) {
+  // in mexa sdk we have ExternalProvider
+  constructor(walletProvider:Web3Provider ,config?: Partial<SmartAccountConfig>) {
 
-    this.#smartAccountConfig = config
+    this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
+    if (config) {
+      this.#smartAccountConfig = { ...this.#smartAccountConfig, ...config }
+    }
+
     this.ethAdapter = {}
     this.smartWalletContract = {}
     this.multiSendContract = {}
     this.smartWalletFactoryContract = {}
-    this.supportedNetworkIds = config.supportedNetworksIds
-    this.providers = config.providers
+    this.supportedNetworkIds = this.#smartAccountConfig.supportedNetworksIds;
+    this.provider = walletProvider
+    this.signer = walletProvider.getSigner();
     
-    this.nodeClient = new SafeServiceClient({txServiceUrl: config.backend_url});
+    this.nodeClient = new SafeServiceClient({txServiceUrl: this.#smartAccountConfig.backend_url});
   }
 
   // for testing
   // providers and contracts initialization
   public async init(): Promise<SmartAccount> {
-    const chainConfig = await this.getSupportedChainsInfo();
+    const chainConfig = (await this.getSupportedChainsInfo()).data;
+    this.chainConfig = chainConfig;
     console.log("chain config: ", chainConfig);
     // instead of getting from networks, get details from chainConfig
 
+    const signer = this.signer;
+    // Review
+    // check usage of getsignerByAddress from mexa/sdk and playground
+
     for(let i=0; i < this.supportedNetworkIds.length; i++) {
       const network = this.supportedNetworkIds[i];
-      // @notice : I think we should be providing providers in multi chain context 
-      const provider = this.providers[i];
-      // check if corresponds to same chainId correctly
-      const signer = provider.getSigner();
-      // this.relayer = new LocalRelayer(signer); // should relayer client be chosen per chain?
-
+      const providerUrl = chainConfig.find(n => n.chainId === network)?.providerUrl;
+      const readProvider = new ethers.providers.JsonRpcProvider(providerUrl);
       // instantiating EthersAdapter instance and maintain it as class level variable
       this.ethAdapter[network] = new EthersAdapter({
         ethers,
-        signer
+        signer,
+        provider:readProvider
       })
 
-      // TODO
-      //this.context[network].entryPointAddress = networks[network].entryPoint; // come from chainConfig
-      //this.context[network].fallbackHandlerAddress = networks[network].fallbackHandler; // come from chainConfig
-
+      // EntryPoint and FallbackHandler etc Has to be same for all networks
+    
       this.initializeContracts(network);
     }   
     // Review
@@ -102,24 +113,24 @@ class SmartAccount {
 
   // intialize contract to be used throughout this class
   private initializeContracts(chainId: ChainId) {
-    this.smartWalletFactoryContract[networks[chainId].chainId] = getSmartWalletFactoryContract(
+    this.smartWalletFactoryContract[chainId] = getSmartWalletFactoryContract(
       chainId,
       this.ethAdapter[chainId]
     );
 
     // Should attach the address here
-    this.smartWalletContract[networks[chainId].chainId] = getSmartWalletContract(
+    this.smartWalletContract[chainId] = getSmartWalletContract(
       chainId,
       this.ethAdapter[chainId]
     );
 
-    this.multiSendContract[networks[chainId].chainId] = getMultiSendContract(
+    this.multiSendContract[chainId] = getMultiSendContract(
       chainId,
       this.ethAdapter[chainId]
     );
   }
 
-  private async getSupportedChainsInfo(): Promise<ChainConfig[]> {
+  private async getSupportedChainsInfo(): Promise<ChainConfigResponse> {
     return this.nodeClient.getChainInfo();
   }
 
@@ -129,9 +140,9 @@ class SmartAccount {
   }
 
   // return configuration used for intialization of the { wallet } instance
-  getSmartAccountConfig(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): NetworkConfig {
+  getSmartAccountConfig(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): ChainConfig {
     // networks should come from chainConfig instead
-    return networks[chainId]
+    return this.chainConfig[chainId]
   }
 
   // Assigns transaction relayer to this smart wallet instance
@@ -179,7 +190,6 @@ class SmartAccount {
     );
 
     // going to go with personal sign
-
     let signature:string = await this.ethersAdapter(chainId).getSigner().signMessage(ethers.utils.arrayify(hash));
     let { r, s, v } = getSignatureParameters(signature);
     v += 4;
@@ -189,13 +199,6 @@ class SmartAccount {
     // const walletInterface = this.smartAccount(chainId).getInterface();
     let walletContract = this.smartAccount(chainId).getContract();
     walletContract = walletContract.attach(this.address);
-
-    console.log("built txn");
-
-    console.log(transaction);
-    console.log(refundInfo);
-    console.log(batchId);
-    console.log(signature);
     
     let { data } = await walletContract.populateTransaction.execTransaction(
       transaction,
@@ -212,7 +215,7 @@ class SmartAccount {
   }
 
   // Todo : rename 
-  // This transaction is without fee refund
+  // This transaction is without fee refund (gasless)
   // We need to have identifiers for these txns
   async createSmartAccountTransaction(transaction: Transaction, batchId:number = 0,chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<WalletTransaction> {
     let walletContract = this.smartAccount(chainId).getContract();
@@ -233,22 +236,20 @@ class SmartAccount {
     }
   };
 
-  // 
-
   // return smartaccount instance
   smartAccount(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): SmartWalletContract {
-    const smartWallet = this.smartWalletContract[networks[chainId].chainId]
+    const smartWallet = this.smartWalletContract[chainId]
     const address = this.address;
     smartWallet.getContract().attach(address);
     return smartWallet;
   }
 
   factory(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): SmartWalletFactoryContract {
-    return this.smartWalletFactoryContract[networks[chainId].chainId]
+    return this.smartWalletFactoryContract[chainId]
   }
 
   multiSend(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): MultiSendContract {
-    return this.multiSendContract[networks[chainId].chainId]
+    return this.multiSendContract[chainId]
   }
 
   // Optional index allowed
@@ -257,11 +258,13 @@ class SmartAccount {
   }
 
   // Review
-  // might be coming wrong..
   async isDeployed(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<boolean> {
+    // might be coming wrong..
     // const readProvider = new ethers.providers.JsonRpcProvider(networks[chainId].providerUrl);
-    //const walletCode = await readProvider.getCode(await this.getAddress(chainId));
+    // const walletCode = await readProvider.getCode(await this.getAddress(chainId));
     // return !!walletCode && walletCode !== '0x'
+
+    // but below works
     return await this.factory(chainId).isWalletExist(this.address);
   }
 
@@ -274,11 +277,13 @@ class SmartAccount {
     return state;
   }
 
-  // apend owner?
+  // append owner?
   async getSmartAccountContext(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<SmartAccountContext> {
+    const entryPoint = this.chainConfig.find(n => n.chainId === chainId)?.entryPoint;
+    const fallbackHandlerAddress = this.chainConfig.find(n => n.chainId === chainId)?.fallBackHandler;
     const context: SmartAccountContext = {
-      entryPointAddress: networks[chainId].entryPoint,
-      fallbackHandlerAddress: networks[chainId].fallbackHandler
+      entryPointAddress: entryPoint || '',
+      fallbackHandlerAddress: fallbackHandlerAddress || ''
    }
    return context;
   }
@@ -302,8 +307,15 @@ class SmartAccount {
    */
   async getAddressForCounterfactualWallet(index: number = 0, chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<string> {
     return await this.smartWalletFactoryContract[
-      networks[chainId].chainId
+      chainId
     ].getAddressForCounterfactualWallet(this.owner, index)
   }
 }
+
+export const DefaultSmartAccountConfig: SmartAccountConfig = {
+  activeNetworkId: ChainId.RINKEBY, //Update later
+  supportedNetworksIds: [ChainId.GOERLI, ChainId.RINKEBY, ChainId.MUMBAI],
+  backend_url: "http://localhost:3000/v1"
+}
+
 export default SmartAccount
