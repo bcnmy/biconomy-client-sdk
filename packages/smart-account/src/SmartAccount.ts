@@ -19,7 +19,16 @@ import { JsonRpcSigner, TransactionRequest, TransactionResponse } from '@ethersp
 import SafeServiceClient from '@biconomy-sdk/node-client';
 import { Web3Provider } from '@ethersproject/providers'
 import { Relayer, LocalRelayer } from '@biconomy-sdk/relayer';
-import { WalletTransaction, ExecTransaction, FeeRefund, SmartAccountTransaction, getSignatureParameters, EIP712_WALLET_TX_TYPE } from '@biconomy-sdk/transactions';
+import { 
+  WalletTransaction, 
+  ExecTransaction, 
+  FeeRefund, 
+  SmartAccountTransaction, 
+  getSignatureParameters, 
+  EIP712_WALLET_TX_TYPE, 
+  buildWalletTransaction, 
+  safeSignMessage 
+} from '@biconomy-sdk/transactions';
 
 class SmartAccount {
   // { ethAdapter } is a window that gave access to all the Implemented function of it
@@ -104,6 +113,7 @@ class SmartAccount {
     }   
     // Review
     this.owner = await this.ethersAdapter().getSignerAddress();
+    // Commeting below only for debugging test case!!
     this.address = await this.getAddress();
     return this;
   }
@@ -153,7 +163,6 @@ class SmartAccount {
   }
 
   // async sendSignedTransaction : must expect signature!
-
   // async sign 
 
 
@@ -183,24 +192,21 @@ class SmartAccount {
       refundReceiver: tx.refundReceiver,
     };
 
-    const hash:string = ethers.utils._TypedDataEncoder.hash(
-      { verifyingContract: this.address, chainId },
-      EIP712_WALLET_TX_TYPE,
-      tx
-    );
-
-    // going to go with personal sign
-    let signature:string = await this.ethersAdapter(chainId).getSigner().signMessage(ethers.utils.arrayify(hash));
-    let { r, s, v } = getSignatureParameters(signature);
-    v += 4;
-    let vNew = ethers.BigNumber.from(v).toHexString();
-    signature = r + s.slice(2) + vNew.slice(2);
-
-    // const walletInterface = this.smartAccount(chainId).getInterface();
+    // Should call this.signTransaction
     let walletContract = this.smartAccount(chainId).getContract();
     walletContract = walletContract.attach(this.address);
-    
-    let { data } = await walletContract.populateTransaction.execTransaction(
+
+    const { signer, data } = await safeSignMessage(
+      this.signer,
+      walletContract,
+      tx,
+      chainId
+    );
+
+    let signature = "0x";
+    signature += data.slice(2);
+ 
+    let execTransaction = await walletContract.populateTransaction.execTransaction(
       transaction,
       batchId,
       refundInfo,
@@ -208,7 +214,7 @@ class SmartAccount {
     );
 
     rawTx.to = this.address;
-    rawTx.data = data;
+    rawTx.data = execTransaction.data;
 
     const txn = await this.relayer.relay(rawTx);
     return txn;
@@ -222,18 +228,16 @@ class SmartAccount {
     walletContract = walletContract.attach(this.address);
     const nonce = (await walletContract.getNonce(batchId)).toNumber();
     console.log('nonce: ', nonce);
-    return {
+
+
+    const walletTx: WalletTransaction = buildWalletTransaction({
       to: transaction.to,
-      value: 0,
-      data: transaction.data || '',
-      operation: 0,
-      targetTxGas: 0,
-      baseGas: 0,
-      gasPrice: 0,
-      gasToken: ZERO_ADDRESS,
-      refundReceiver: ZERO_ADDRESS,
+      // value: ethers.utils.parseEther("1"),
+      data: transaction.data, // for token transfers use encodeTransfer
       nonce
-    }
+    });
+
+    return walletTx;
   };
 
   // return smartaccount instance

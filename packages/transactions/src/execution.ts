@@ -11,6 +11,8 @@ import {
 import { TypedDataSigner } from "@ethersproject/abstract-signer";
 import { AddressZero } from "@ethersproject/constants";
 
+// TODO
+// Review all types and their placement and dependency
 export const EIP_DOMAIN = {
     EIP712Domain: [
         { type: "uint256", name: "chainId" },
@@ -113,9 +115,9 @@ export const calculateSafeDomainSeparator = (
     });
 };
 
-export const preimageSafeTransactionHash = (
+export const preimageWalletTransactionHash = (
     safe: Contract,
-    safeTx: SafeTransaction,
+    safeTx: WalletTransaction,
     chainId: BigNumberish
 ): string => {
     return utils._TypedDataEncoder.encode(
@@ -125,9 +127,9 @@ export const preimageSafeTransactionHash = (
     );
 };
 
-export const calculateSafeTransactionHash = (
+export const calculateWalletTransactionHash = (
     safe: Contract,
-    safeTx: SafeTransaction,
+    safeTx: WalletTransaction,
     chainId: BigNumberish
 ): string => {
     return utils._TypedDataEncoder.hash(
@@ -152,7 +154,7 @@ export const calculateSafeMessageHash = (
 export const safeSignTypedData = async (
     signer: Signer & TypedDataSigner,
     safe: Contract,
-    safeTx: SafeTransaction,
+    safeTx: WalletTransaction,
     chainId?: BigNumberish
 ): Promise<SafeSignature> => {
     if (!chainId && !signer.provider)
@@ -186,11 +188,11 @@ export const signHash = async (
 export const safeSignMessage = async (
     signer: Signer,
     safe: Contract,
-    safeTx: SafeTransaction,
+    safeTx: WalletTransaction,
     chainId?: BigNumberish
 ): Promise<SafeSignature> => {
     const cid = chainId || (await signer.provider!!.getNetwork()).chainId;
-    return signHash(signer, calculateSafeTransactionHash(safe, safeTx, cid));
+    return signHash(signer, calculateWalletTransactionHash(safe, safeTx, cid));
 };
 
 export const buildSignatureBytes = (signatures: SafeSignature[]): string => {
@@ -206,12 +208,12 @@ export const buildSignatureBytes = (signatures: SafeSignature[]): string => {
 
 export const executeTx = async (
     safe: Contract,
-    safeTx: SafeTransaction,
+    safeTx: WalletTransaction,
     signatures: SafeSignature[],
     overrides?: any
 ): Promise<any> => {
     const signatureBytes = buildSignatureBytes(signatures);
-    const transaction: Transaction = {
+    const transaction: ExecTransaction = {
         to: safeTx.to,
         value: safeTx.value,
         data: safeTx.data,
@@ -235,12 +237,12 @@ export const executeTx = async (
 
 export const populateExecuteTx = async (
     safe: Contract,
-    safeTx: SafeTransaction,
+    safeTx: WalletTransaction,
     signatures: SafeSignature[],
     overrides?: any
 ): Promise<PopulatedTransaction> => {
     const signatureBytes = buildSignatureBytes(signatures);
-    const transaction: Transaction = {
+    const transaction: ExecTransaction = {
         to: safeTx.to,
         value: safeTx.value,
         data: safeTx.data,
@@ -268,10 +270,10 @@ export const buildContractCall = (
     params: any[],
     nonce: number,
     delegateCall?: boolean,
-    overrides?: Partial<SafeTransaction>
-): SafeTransaction => {
+    overrides?: Partial<WalletTransaction>
+): WalletTransaction => {
     const data = contract.interface.encodeFunctionData(method, params);
-    return buildSafeTransaction(
+    return buildWalletTransaction(
         Object.assign(
             {
                 to: contract.address,
@@ -286,7 +288,7 @@ export const buildContractCall = (
 
 export const executeTxWithSigners = async (
     safe: Contract,
-    tx: SafeTransaction,
+    tx: WalletTransaction,
     signers: Wallet[],
     overrides?: any
 ) => {
@@ -303,7 +305,7 @@ export const executeContractCallWithSigners = async (
     params: any[],
     signers: Wallet[],
     delegateCall?: boolean,
-    overrides?: Partial<SafeTransaction>
+    overrides?: Partial<WalletTransaction>
 ) => {
     const tx = buildContractCall(
         contract,
@@ -316,9 +318,9 @@ export const executeContractCallWithSigners = async (
     return executeTxWithSigners(safe, tx, signers);
 };
 
-export const buildSafeTransaction = (template: {
+export const buildWalletTransaction = (template: {
     to: string;
-    value?: BigNumber | number | string;
+    value?: BigNumberish;
     data?: string;
     operation?: number;
     targetTxGas?: number | string;
@@ -327,7 +329,7 @@ export const buildSafeTransaction = (template: {
     gasToken?: string;
     refundReceiver?: string;
     nonce: number;
-}): SafeTransaction => {
+}): WalletTransaction => {
     return {
         to: template.to,
         value: template.value || 0,

@@ -2,9 +2,11 @@ import { Contract, utils } from "ethers";
 import {
     buildContractCall,
     MetaTransaction,
-    SafeTransaction,
+    WalletTransaction,
 } from "./execution";
 
+// TODO
+// Review all types
 const encodeMetaTransaction = (tx: MetaTransaction): string => {
     const data = utils.arrayify(tx.data);
     const encoded = utils.solidityPack(
@@ -22,8 +24,8 @@ export const buildMultiSendSafeTx = (
     multiSend: Contract,
     txs: MetaTransaction[],
     nonce: number,
-    overrides?: Partial<SafeTransaction>
-): SafeTransaction => {
+    overrides?: Partial<WalletTransaction>
+): WalletTransaction => {
     return buildContractCall(
         multiSend,
         "multiSend",

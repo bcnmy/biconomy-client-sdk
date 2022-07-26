@@ -104,7 +104,7 @@ export enum ChainId {
   GOERLI = 5,
   KOVAN = 42,
   MUMBAI = 80001,
-  HARDHAT = 31337 //Temp
+  HARDHAT = 31338 //Temp
 }
 export interface NetworkConfig {
   entryPoint: string // abstract account contract

@@ -33,7 +33,7 @@ describe('Wallet integration', function () {
     ethnode.provider = new ethers.providers.Web3Provider(hardhat.network.provider.send);
 
     ethnode.signer = ethnode.provider.getSigner()
-    ethnode.chainId = 31337
+    ethnode.chainId = 31338
   })
 
   beforeEach(async () => {
@@ -57,7 +57,7 @@ describe('Wallet integration', function () {
         GOERLI = 5,
         KOVAN = 42,
         MUMBAI = 80001,
-        HARDHAT = 31337
+        HARDHAT = 31338
       }
 
       const userAddress = await ethnode.signer?.getAddress() || '';
@@ -76,9 +76,16 @@ describe('Wallet integration', function () {
         //backend_url: "http://localhost:3000/v1"
       });
 
-       // const smartAccount = await wallet.init();
+       //const smartAccount = await wallet.init();
+
+       //console.log(smartAccount.owner);
 
        const [ smartWallet, walletFactory, multiSend ] = await deployWalletContracts(ethnode.signer);
+
+       let isContract = false;
+       const code = await ethnode.provider?.getCode("0x0ba464506a3D66C962121e3C25ed56678A2585B6") || '';
+       if(code.slice(2).length > 0) isContract = true;
+       console.log(isContract);
 
        console.log('base wallet deployed at : ', smartWallet.address);
        console.log('wallet factory deployed at : ', walletFactory.address);
