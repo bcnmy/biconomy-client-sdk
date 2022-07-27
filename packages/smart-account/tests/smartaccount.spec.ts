@@ -91,6 +91,7 @@ describe('Wallet integration', function () {
        console.log('wallet factory deployed at : ', walletFactory.address);
        console.log('multi send deployed at : ', multiSend.address);
        
+       // There must be a way to set wallet context before we go with init and deploy + txn tests
 
       // I'd have to deploy the contracts and set specs
       // const smartAccount = await wallet.init();

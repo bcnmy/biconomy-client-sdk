@@ -1,5 +1,6 @@
 import { BytesLike, Wallet, BigNumberish } from 'ethers';
 import { ExternalProvider, Web3Provider } from '@ethersproject/providers';
+import { MultiSendContract, SmartWalletFactoryContract, SmartWalletContract } from '@biconomy-sdk/core-types';
 
 // walletProvider: WalletProviderLike
 export interface SmartAccountConfig {
@@ -26,14 +27,15 @@ export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 export interface SmartAccountState {
   address: string,
   owner: string,
-  isDeployed: boolean
+  isDeployed: boolean,
+  entryPointAddress: string,
+  fallbackHandlerAddress: string,
 }
 
 export interface SmartAccountContext {
-  entryPointAddress: string,
-  fallbackHandlerAddress: string,
-  // multiSendAddress: string,
-  // multiSendObnlyCallAddress: string,
+  baseWallet: SmartWalletContract,
+  walletFactory: SmartWalletFactoryContract,
+  multiSend: MultiSendContract
 }
 
 // reference i could work on

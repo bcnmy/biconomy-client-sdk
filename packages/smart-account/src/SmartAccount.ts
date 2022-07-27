@@ -1,5 +1,5 @@
 import { SmartAccountConfig, networks, ChainId, ChainConfig, 
-  SmartAccountState, SmartAccountContext, Transaction, ZERO_ADDRESS, ChainConfigResponse } from './types'
+  SmartAccountContext, Transaction, ZERO_ADDRESS, ChainConfigResponse } from './types'
   import { TypedDataDomain, TypedDataField, TypedDataSigner } from '@ethersproject/abstract-signer'
 import EthersAdapter from '@biconomy-sdk/ethers-lib'
 import { ethers, providers, Wallet } from 'ethers'
@@ -13,7 +13,8 @@ import {
   SmartWalletContract,
   MultiSendContract,
   TransactionResult,
-  RawTransactionType
+  RawTransactionType,
+  SmartAccountState,
 } from '@biconomy-sdk/core-types'
 import { JsonRpcSigner, TransactionRequest, TransactionResponse } from '@ethersproject/providers';
 import SafeServiceClient from '@biconomy-sdk/node-client';
@@ -56,6 +57,8 @@ class SmartAccount {
   owner!: string
 
   address!: string
+
+  // Can make isDeployed a state variable
 
   // contract instances
   smartWalletContract!: { [chainId: number]: SmartWalletContract }
@@ -150,10 +153,11 @@ class SmartAccount {
   }
 
   // return configuration used for intialization of the { wallet } instance
-  getSmartAccountConfig(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): ChainConfig {
+  // Review wording and need
+  /*getSmartAccountConfig(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): ChainConfig {
     // networks should come from chainConfig instead
     return this.chainConfig[chainId]
-  }
+  }*/
 
   // Assigns transaction relayer to this smart wallet instance
   setRelayer(relayer: Relayer): SmartAccount {
@@ -162,8 +166,29 @@ class SmartAccount {
     return this
   }
 
+  setActiveChain(chainId: ChainId): SmartAccount {
+    this.#smartAccountConfig.activeNetworkId = chainId;
+    return this;
+  }
+
   // async sendSignedTransaction : must expect signature!
   // async sign 
+  async signTransaction(tx: WalletTransaction, chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<string> {
+
+    let walletContract = this.smartAccount(chainId).getContract();
+    walletContract = walletContract.attach(this.address);
+
+    const { signer, data } = await safeSignMessage(
+      this.signer,
+      walletContract,
+      tx,
+      chainId
+    );
+
+    let signature = "0x";
+    signature += data.slice(2);
+    return signature;
+  }
 
 
   // will get signer's signature
@@ -196,15 +221,7 @@ class SmartAccount {
     let walletContract = this.smartAccount(chainId).getContract();
     walletContract = walletContract.attach(this.address);
 
-    const { signer, data } = await safeSignMessage(
-      this.signer,
-      walletContract,
-      tx,
-      chainId
-    );
-
-    let signature = "0x";
-    signature += data.slice(2);
+    let signature = await this.signTransaction(tx);
  
     let execTransaction = await walletContract.populateTransaction.execTransaction(
       transaction,
@@ -216,7 +233,14 @@ class SmartAccount {
     rawTx.to = this.address;
     rawTx.data = execTransaction.data;
 
-    const txn = await this.relayer.relay(rawTx);
+    const state = await this.getSmartAccountState(chainId);
+
+    const signedTx = {
+      rawTx,
+      tx
+    }
+
+    const txn = await this.relayer.relay(signedTx, state, this.getSmartAccountContext(chainId));
     return txn;
   }
 
@@ -226,9 +250,14 @@ class SmartAccount {
   async createSmartAccountTransaction(transaction: Transaction, batchId:number = 0,chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<WalletTransaction> {
     let walletContract = this.smartAccount(chainId).getContract();
     walletContract = walletContract.attach(this.address);
-    const nonce = (await walletContract.getNonce(batchId)).toNumber();
+    
+    // If the wallet is not deployed yet then nonce would be zero
+    // Review
+    let nonce = 0;
+    if(await this.isDeployed(chainId)) {
+      nonce = (await walletContract.getNonce(batchId)).toNumber();
+    } 
     console.log('nonce: ', nonce);
-
 
     const walletTx: WalletTransaction = buildWalletTransaction({
       to: transaction.to,
@@ -241,6 +270,7 @@ class SmartAccount {
   };
 
   // return smartaccount instance
+  // maybe call this basewallet or wallet
   smartAccount(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): SmartWalletContract {
     const smartWallet = this.smartWalletContract[chainId]
     const address = this.address;
@@ -272,23 +302,27 @@ class SmartAccount {
     return await this.factory(chainId).isWalletExist(this.address);
   }
 
+  // sort of config
   async getSmartAccountState(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<SmartAccountState> {
+    const entryPoint = this.chainConfig.find(n => n.chainId === chainId)?.entryPoint;
+    const fallbackHandlerAddress = this.chainConfig.find(n => n.chainId === chainId)?.fallBackHandler;
     const state: SmartAccountState = {
        address: this.address,
        owner: this.owner,
-       isDeployed: await this.isDeployed(chainId)
+       isDeployed: await this.isDeployed(chainId), // could be set as state in init
+       entryPointAddress: entryPoint || '',
+       fallbackHandlerAddress: fallbackHandlerAddress || ''
     }
     return state;
   }
 
-  // append owner?
-  async getSmartAccountContext(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<SmartAccountContext> {
-    const entryPoint = this.chainConfig.find(n => n.chainId === chainId)?.entryPoint;
-    const fallbackHandlerAddress = this.chainConfig.find(n => n.chainId === chainId)?.fallBackHandler;
+  // Instead of addresses should return contract instances
+  getSmartAccountContext(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): SmartAccountContext {
     const context: SmartAccountContext = {
-      entryPointAddress: entryPoint || '',
-      fallbackHandlerAddress: fallbackHandlerAddress || ''
-   }
+      baseWallet: this.smartAccount(chainId), //might as well do getContract and attach and return contract
+      walletFactory: this.factory(chainId),
+      multiSend: this.multiSend(chainId)
+    }
    return context;
   }
 
@@ -296,12 +330,12 @@ class SmartAccount {
   // accountConfiguration?
   // sendSignedTransaction
   // signMessage
-  // signTransaction
-  // getTokenBalances()
+  
   // Discuss about multichain aspect of relayer node url and clients
   // TODO: get details from backend config
 
   // more methods to fetch balance via backend -> indexer node
+  // getTokenBalances()
 
   /**
    * @param address Owner aka {EOA} address

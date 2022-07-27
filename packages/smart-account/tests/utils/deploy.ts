@@ -9,6 +9,7 @@ const MultiSendArtifact = require('@biconomy-sdk/ethers-lib/artifacts/scw-contra
 export async function deployWalletContracts(
     signer: ethers.Signer
 ): Promise<[Contract, Contract, Contract]> {
+    // could get these from type chain
 
     const smartWallet = (await new ethers.ContractFactory(SmartWalletArtifact.abi, SmartWalletArtifact.bytecode, signer).deploy(
     )) as unknown as Contract
