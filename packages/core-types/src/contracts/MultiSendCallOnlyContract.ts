@@ -1,6 +1,6 @@
 import { Contract } from '@ethersproject/contracts';
 import { Interface } from "@ethersproject/abi";
-export interface MultiSendContract {
+export interface MultiSendCallOnlyContract {
   getAddress(): string
   getContract(): Contract
   getInterface(): Interface

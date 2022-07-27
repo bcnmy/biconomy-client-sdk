@@ -1,20 +1,17 @@
 import { BytesLike, Wallet, BigNumberish } from 'ethers';
 import { ExternalProvider, Web3Provider } from '@ethersproject/providers';
+import { MultiSendContract, SmartWalletFactoryContract, SmartWalletContract, MultiSendCallOnlyContract } from '@biconomy-sdk/core-types';
 
 // walletProvider: WalletProviderLike
 export interface SmartAccountConfig {
-  // owner: string // EOA address
   activeNetworkId: ChainId
   supportedNetworksIds: ChainId[]
-  providers: Web3Provider[]
+  // walletProvider: Web3Provider // getting provider that can sign messages
   backend_url: string
 }
-// relayer_url
-// provider?
 
 // TODO
 // Review location, usage and name of types
-
 export interface Transaction {
   to: string
   value?: BigNumberish
@@ -30,14 +27,16 @@ export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 export interface SmartAccountState {
   address: string,
   owner: string,
-  isDeployed: boolean
+  isDeployed: boolean,
+  entryPointAddress: string,
+  fallbackHandlerAddress: string,
 }
 
 export interface SmartAccountContext {
-  entryPointAddress: string,
-  fallbackHandlerAddress: string,
-  // multiSendAddress: string,
-  // multiSendObnlyCallAddress: string,
+  baseWallet: SmartWalletContract,
+  walletFactory: SmartWalletFactoryContract,
+  multiSend: MultiSendContract,
+  multiSendCall: MultiSendCallOnlyContract
 }
 
 // reference i could work on
@@ -106,7 +105,9 @@ export enum ChainId {
   ROPSTEN = 3,
   RINKEBY = 4,
   GOERLI = 5,
-  KOVAN = 42
+  KOVAN = 42,
+  MUMBAI = 80001,
+  HARDHAT = 31338 //Temp
 }
 export interface NetworkConfig {
   entryPoint: string // abstract account contract
@@ -157,8 +158,14 @@ export type TokenInfo = {
   updatedAt: Date
 }
 
+export type ChainConfigResponse = {
+  message: string
+  code: number
+  data: ChainConfig[]
+}
+
 export type ChainConfig = {
-  chain_id: number
+  chainId: number
   name: string
   symbol: string
   isL2: boolean
@@ -211,8 +218,8 @@ export const networks: Record<ChainId, NetworkConfig> = {
   },
   [ChainId.RINKEBY]: {
     chainId: ChainId.RINKEBY,
-    entryPoint: '0xfb8131c260749c7835a08ccbdb64728de432858e',
-    fallbackHandler: '0x006b640910f739fec38b936b8efb8f6e3109aaca',
+    entryPoint: '0x1D67cb5Db425bD6Bdf7472c44E6415c6B450Ae0B',
+    fallbackHandler: '0xa9939Cb3Ed4efaeA050f75A23fD8709cBE6181e4',
     name: 'rinkeby',
     title: 'Rinkeby',
     testnet: true,
@@ -253,5 +260,35 @@ export const networks: Record<ChainId, NetworkConfig> = {
       api: 'https://api.kovan.etherscan.io/',
     },
     providerUrl: 'https://kovan.infura.io/v3/c6ed0fff2278441896180f00a2f9ad55'
-  }
+  },
+  [ChainId.MUMBAI]: {
+    chainId: ChainId.MUMBAI,
+    entryPoint: '0xfb8131c260749c7835a08ccbdb64728de432858e',
+    fallbackHandler: '0x006b640910f739fec38b936b8efb8f6e3109aaca',
+    name: 'ropsten',
+    title: 'Ropsten',
+    testnet: true,
+    blockExplorer: {
+      //name: 'Etherscan (Ropsten)',
+      address: 'https://ropsten.etherscan.io/address',
+      txHash: 'https://ropsten.etherscan.io/tx',
+      api: 'https://api.ropsten.etherscan.io/'
+    },
+    providerUrl: 'https://ropsten.infura.io/v3/c6ed0fff2278441896180f00a2f9ad55'
+  },
+  [ChainId.HARDHAT]: {
+    chainId: ChainId.HARDHAT,
+    entryPoint: '0xfb8131c260749c7835a08ccbdb64728de432858e',
+    fallbackHandler: '0x006b640910f739fec38b936b8efb8f6e3109aaca',
+    name: 'ropsten',
+    title: 'Ropsten',
+    testnet: true,
+    blockExplorer: {
+      //name: 'Etherscan (Ropsten)',
+      address: 'https://ropsten.etherscan.io/address',
+      txHash: 'https://ropsten.etherscan.io/tx',
+      api: 'https://api.ropsten.etherscan.io/'
+    },
+    providerUrl: 'https://ropsten.infura.io/v3/c6ed0fff2278441896180f00a2f9ad55'
+  },
 }

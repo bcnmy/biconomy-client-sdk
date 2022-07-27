@@ -19,31 +19,8 @@ export type SmartAccountInfoResponse = {
   }
 }
 
-export type BlockExplorerConfig = {
-   address: string
-   txHash: string
-   api: string
-}
-
-export type TokenInfo = {
-  id: number
-  name: string
-  symbol: string
-  blockChain: number
-  ercType?: string
-  decimals: number
-  logoUri: string
-  address: string
-  isNativeToken: boolean
-  isEnabled: boolean
-  cmcId: number //Verify
-  price: number //Verify
-  createdAt: Date
-  updatedAt: Date
-}
-
 export type ChainConfig = {
-  chain_id: number
+  chainId: number
   name: string
   symbol: string
   isL2: boolean
@@ -85,6 +62,35 @@ export type SafeInfoResponse = {
 
 export type OwnerResponse = {
   safes: string[]
+}
+
+export type BlockExplorerConfig = {
+  address: string
+  txHash: string
+  api: string
+}
+
+export type TokenInfo = {
+  id: number
+  name: string
+  symbol: string
+  blockChain: number
+  ercType?: string
+  decimals: number
+  logoUri: string
+  address: string
+  isNativeToken: boolean
+  isEnabled: boolean
+  cmcId: number //Verify
+  price: number //Verify
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type ChainConfigResponse = {
+  message: string
+  code: number
+  data: ChainConfig[]
 }
 
 export type SmartAccountCreationInfoResponse = {

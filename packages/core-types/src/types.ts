@@ -1,6 +1,10 @@
 import { ContractTransaction } from '@ethersproject/contracts'
 import { PromiEvent, TransactionReceipt } from 'web3-core/types'
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
+import { SmartWalletFactoryContract } from './contracts/SmartWalletFactoryContract';
+import { MultiSendContract } from './contracts/MultiSendContract';
+import { MultiSendCallOnlyContract } from './contracts/MultiSendCallOnlyContract';
+import { SmartWalletContract } from './contracts/SmartWalletContract';
 
 export type SmartAccountVersion = '1.3.0' | '1.2.0' | '1.1.1'
 
@@ -11,10 +15,18 @@ export enum OperationType {
 
 // Temp
 export interface SmartAccountContext {
+  baseWallet: SmartWalletContract,
+  walletFactory: SmartWalletFactoryContract,
+  multiSend: MultiSendContract,
+  multiSendCall: MultiSendCallOnlyContract,
+}
+
+export interface SmartAccountState {
+  address: string,
+  owner: string,
+  isDeployed: boolean,
   entryPointAddress: string,
   fallbackHandlerAddress: string,
-  // multiSendAddress: string,
-  // multiSendObnlyCallAddress: string,
 }
 
 // TODO
@@ -34,6 +46,11 @@ export interface RawTransactionType {
   // accessList?: AccessListItem[];
   type?: number;
 };
+
+export interface SignedTransaction {
+  rawTx: RawTransactionType,
+  tx: WalletTransaction
+}
 
 export interface ExecTransaction {
   to: string;

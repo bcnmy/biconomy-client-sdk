@@ -7,9 +7,14 @@ import {
   SmartWalletFactoryContract,
   SmartWalletContract,
   MultiSendContract,
+  MultiSendCallOnlyContract,
   TransactionResult,
-  SmartAccountContext
+  SmartAccountContext,
+  SmartAccountState, 
+  SignedTransaction,
+  WalletTransaction
 } from '@biconomy-sdk/core-types'
+import { MetaTransaction, encodeMultiSend } from './utils/multisend';
 
 export class LocalRelayer implements Relayer {
     private signer: AbstractSigner
@@ -21,28 +26,38 @@ export class LocalRelayer implements Relayer {
       if (!this.signer.provider) throw new Error("Signer must have a provider")
     }
 
-    async deployWallet(factory:SmartWalletFactoryContract, context: SmartAccountContext, eoa:string, index:number = 0): Promise<TransactionResponse> {
-      // TODO
+    // TODO
+    // Review function arguments and return values
+    // Could get smartAccount instance 
+    // Defines a type that takes config, context for SCW in play along with other details
+    async deployWallet(config: SmartAccountState, context: SmartAccountContext, index:number = 0): Promise<TransactionResponse> {
       // Should check if already deployed
-      // if(!(await factory.isWalletExist())) throw new Error("Smart Account is Already Deployed")
-      const walletDeployTxn = this.prepareWalletDeploy(factory, context, eoa,index);
+      //Review for index and ownership transfer case
+      const {address} = config;
+      const {walletFactory} = context;
+      const isExist = await walletFactory.isWalletExist(address);
+      if(isExist) {
+        throw new Error("Smart Account is Already Deployed")
+      }
+      const walletDeployTxn = this.prepareWalletDeploy(config, context, index);
       const tx = this.signer.sendTransaction({ ...walletDeployTxn, gasLimit: ethers.constants.Two.pow(24) });
       return tx;
     }
 
     prepareWalletDeploy( // owner, entryPoint, handler, index
-      factory:SmartWalletFactoryContract,
+      config:SmartAccountState,
       context: SmartAccountContext,
-      eoa: string,
       index: number = 0,
       // context: WalletContext
     ): { to: string, data: string} {
-      const factoryInterface = factory.getInterface();
+      const {walletFactory} = context;
+      const {owner, entryPointAddress, fallbackHandlerAddress} = config;
+      const factoryInterface = walletFactory.getInterface();
   
       return {
-        to: factory.getAddress(), // from context
+        to: walletFactory.getAddress(), // from context
         data: factoryInterface.encodeFunctionData(factoryInterface.getFunction('deployCounterFactualWallet'),
-          [eoa, context.entryPointAddress, context.fallbackHandlerAddress, index]
+          [owner, entryPointAddress, fallbackHandlerAddress, index]
         )
       }
     }
@@ -63,14 +78,53 @@ export class LocalRelayer implements Relayer {
       return options
     }*/
 
-    async relay(rawTx: RawTransactionType /*quote?: FeeQuote*/) : Promise<TransactionResponse> {
-      // check if wallet if deployed
-      // If not =>> preprendWalletDeploy
+    // Should make an object that takes config and context
+    // Add feeQuote later
+    // Appending tx and rawTx may not be necessary
 
-      // @notice
-      // We'd need multiSend instance then 
-      // rawTx to becomes multiSend address and data gets prepared again 
-      const tx = this.signer.sendTransaction({ ...rawTx, gasLimit: ethers.constants.Two.pow(24) });
+    async relay(signedTx: SignedTransaction, config: SmartAccountState, context: SmartAccountContext) : Promise<TransactionResponse> {
+      
+      const { isDeployed, address } = config;
+      const { multiSendCall } = context; // multisend has to be multiSendCallOnly here!
+      if(!isDeployed) {
+        // If not =>> preprendWalletDeploy
+        console.log('here');
+        const {to, data} = this.prepareWalletDeploy(config,context);
+        const originalTx:WalletTransaction = signedTx.tx;
+
+        const txs: MetaTransaction[] = [
+          {
+            to,
+            value: 0,
+            data,
+            operation: 0
+          },
+          {
+            to: address,
+            value: 0,
+            data: signedTx.rawTx.data || '',
+            operation: 0
+          }
+        ]
+
+        const txnData = multiSendCall.getInterface().encodeFunctionData("multiSend", [
+          encodeMultiSend(txs),
+        ]);
+        console
+
+        const finalRawRx = {
+          to: multiSendCall.getAddress(),
+          data: txnData
+        }
+        console.log('finaRawTx');
+        console.log(finalRawRx);
+
+        const tx = this.signer.sendTransaction({ ...finalRawRx, gasLimit: ethers.constants.Two.pow(24) });
+        return tx;
+        // rawTx to becomes multiSend address and data gets prepared again 
+      }
+
+      const tx = this.signer.sendTransaction({ ...signedTx.rawTx, gasLimit: ethers.constants.Two.pow(24) });
       return tx;
     }
   }
