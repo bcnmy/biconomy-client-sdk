@@ -1,5 +1,6 @@
 export * from './contracts/SmartWalletContract'
 export * from './contracts/MultiSendContract'
+export * from './contracts/MultiSendCallOnlyContract'
 export * from './contracts/SmartWalletFactoryContract'
 export * from './contracts/EntryPointContract'
 export * from './ethereumLibs/EthAdapter'

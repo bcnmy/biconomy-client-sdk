@@ -13,11 +13,13 @@ import { validateEip3770Address } from '@gnosis.pm/safe-core-sdk-utils'
 import { ethers } from 'ethers'
 import {
   getMultiSendContractInstance,
+  getMultiSendCallOnlyContractInstance,
   getSmartWalletContractInstance,
   getSmartWalletFactoryContractInstance
 } from './contracts/contractInstancesEthers'
 import SmartWalletProxyFactoryEthersContract from './contracts/SmartWalletFactory/SmartWalletProxyFactoryEthersContract'
 import MultiSendEthersContract from './contracts/MultiSend/MultiSendEthersContract'
+import MultiSendCallOnlyEthersContract from './contracts/MultiSendCallOnly/MultiSendCallOnlyEthersContract'
 
 type Ethers = typeof ethers
 
@@ -87,6 +89,17 @@ class EthersAdapter implements EthAdapter {
       throw new Error('Invalid Multi Send contract address')
     }
     return getMultiSendContractInstance(contractAddress, this.#provider)
+  }
+
+  getMultiSendCallOnlyContract({
+    chainId,
+    singletonDeployment
+  }: GetContractProps): MultiSendCallOnlyEthersContract {
+    const contractAddress = singletonDeployment?.networkAddresses[chainId]
+    if (!contractAddress) {
+      throw new Error('Invalid Multi Send contract address')
+    }
+    return getMultiSendCallOnlyContractInstance(contractAddress, this.#provider)
   }
 
   getSmartWalletFactoryContract({

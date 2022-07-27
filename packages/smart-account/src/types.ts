@@ -1,6 +1,6 @@
 import { BytesLike, Wallet, BigNumberish } from 'ethers';
 import { ExternalProvider, Web3Provider } from '@ethersproject/providers';
-import { MultiSendContract, SmartWalletFactoryContract, SmartWalletContract } from '@biconomy-sdk/core-types';
+import { MultiSendContract, SmartWalletFactoryContract, SmartWalletContract, MultiSendCallOnlyContract } from '@biconomy-sdk/core-types';
 
 // walletProvider: WalletProviderLike
 export interface SmartAccountConfig {
@@ -35,7 +35,8 @@ export interface SmartAccountState {
 export interface SmartAccountContext {
   baseWallet: SmartWalletContract,
   walletFactory: SmartWalletFactoryContract,
-  multiSend: MultiSendContract
+  multiSend: MultiSendContract,
+  multiSendCall: MultiSendCallOnlyContract
 }
 
 // reference i could work on

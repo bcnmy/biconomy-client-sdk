@@ -6,12 +6,14 @@ import { ethers, providers, Wallet } from 'ethers'
 import {
   getSmartWalletFactoryContract,
   getMultiSendContract,
+  getMultiSendCallOnlyContract,
   getSmartWalletContract
 } from './utils/FetchContractsInfo'
 import {
   SmartWalletFactoryContract,
   SmartWalletContract,
   MultiSendContract,
+  MultiSendCallOnlyContract,
   TransactionResult,
   RawTransactionType,
   SmartAccountState,
@@ -63,6 +65,7 @@ class SmartAccount {
   // contract instances
   smartWalletContract!: { [chainId: number]: SmartWalletContract }
   multiSendContract!: { [chainId: number]: MultiSendContract }
+  multiSendCallOnlyContract!: { [chainId: number]: MultiSendCallOnlyContract }
   smartWalletFactoryContract!: { [chainId: number]: SmartWalletFactoryContract }
 
 
@@ -79,6 +82,7 @@ class SmartAccount {
     this.ethAdapter = {}
     this.smartWalletContract = {}
     this.multiSendContract = {}
+    this.multiSendCallOnlyContract = {}
     this.smartWalletFactoryContract = {}
     this.supportedNetworkIds = this.#smartAccountConfig.supportedNetworksIds;
     this.provider = walletProvider
@@ -138,6 +142,11 @@ class SmartAccount {
     );
 
     this.multiSendContract[chainId] = getMultiSendContract(
+      chainId,
+      this.ethAdapter[chainId]
+    );
+
+    this.multiSendCallOnlyContract[chainId] = getMultiSendCallOnlyContract(
       chainId,
       this.ethAdapter[chainId]
     );
@@ -286,6 +295,10 @@ class SmartAccount {
     return this.multiSendContract[chainId]
   }
 
+  multiSendCall(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): MultiSendCallOnlyContract {
+    return this.multiSendCallOnlyContract[chainId]
+  }
+
   // Optional index allowed
   async getAddress(index: number = 0, chainId: ChainId = this.#smartAccountConfig.activeNetworkId) : Promise<string> {
     return await this.getAddressForCounterfactualWallet(index,chainId);
@@ -321,7 +334,8 @@ class SmartAccount {
     const context: SmartAccountContext = {
       baseWallet: this.smartAccount(chainId), //might as well do getContract and attach and return contract
       walletFactory: this.factory(chainId),
-      multiSend: this.multiSend(chainId)
+      multiSend: this.multiSend(chainId),
+      multiSendCall: this.multiSendCall(chainId)
     }
    return context;
   }

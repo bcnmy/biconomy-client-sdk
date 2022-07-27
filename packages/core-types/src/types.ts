@@ -3,6 +3,7 @@ import { PromiEvent, TransactionReceipt } from 'web3-core/types'
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
 import { SmartWalletFactoryContract } from './contracts/SmartWalletFactoryContract';
 import { MultiSendContract } from './contracts/MultiSendContract';
+import { MultiSendCallOnlyContract } from './contracts/MultiSendCallOnlyContract';
 import { SmartWalletContract } from './contracts/SmartWalletContract';
 
 export type SmartAccountVersion = '1.3.0' | '1.2.0' | '1.1.1'
@@ -16,7 +17,8 @@ export enum OperationType {
 export interface SmartAccountContext {
   baseWallet: SmartWalletContract,
   walletFactory: SmartWalletFactoryContract,
-  multiSend: MultiSendContract
+  multiSend: MultiSendContract,
+  multiSendCall: MultiSendCallOnlyContract,
 }
 
 export interface SmartAccountState {

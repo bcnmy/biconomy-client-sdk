@@ -7,6 +7,7 @@ import {
   SmartWalletFactoryContract,
   SmartWalletContract,
   MultiSendContract,
+  MultiSendCallOnlyContract,
   TransactionResult,
   SmartAccountContext,
   SmartAccountState, 
@@ -80,12 +81,14 @@ export class LocalRelayer implements Relayer {
     // Should make an object that takes config and context
     // Add feeQuote later
     // Appending tx and rawTx may not be necessary
+
     async relay(signedTx: SignedTransaction, config: SmartAccountState, context: SmartAccountContext) : Promise<TransactionResponse> {
       
       const { isDeployed, address } = config;
-      const { multiSend } = context;
+      const { multiSendCall } = context; // multisend has to be multiSendCallOnly here!
       if(!isDeployed) {
         // If not =>> preprendWalletDeploy
+        console.log('here');
         const {to, data} = this.prepareWalletDeploy(config,context);
         const originalTx:WalletTransaction = signedTx.tx;
 
@@ -104,16 +107,19 @@ export class LocalRelayer implements Relayer {
           }
         ]
 
-        const txnData = multiSend.getInterface().encodeFunctionData("multiSend", [
+        const txnData = multiSendCall.getInterface().encodeFunctionData("multiSend", [
           encodeMultiSend(txs),
         ]);
+        console
 
         const finalRawRx = {
-          to: multiSend.getAddress(),
+          to: multiSendCall.getAddress(),
           data: txnData
         }
+        console.log('finaRawTx');
+        console.log(finalRawRx);
 
-        const tx = this.signer.sendTransaction({ ...signedTx.rawTx, gasLimit: ethers.constants.Two.pow(24) });
+        const tx = this.signer.sendTransaction({ ...finalRawRx, gasLimit: ethers.constants.Two.pow(24) });
         return tx;
         // rawTx to becomes multiSend address and data gets prepared again 
       }

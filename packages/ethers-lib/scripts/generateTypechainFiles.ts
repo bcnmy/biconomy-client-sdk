@@ -18,6 +18,7 @@ const safeContractsPath = './artifacts/contracts/index.sol'
 const safeContracts_V1_0_0 = [
   `${safeContractsPath}/SmartWalletContract.json`,
   `${safeContractsPath}/MultiSendContract.json`,
+  `${safeContractsPath}/MultiSendCallOnlyContract.json`,
   `${safeContractsPath}/SmartWalletFactoryContract.json`,
   `${safeContractsPath}/EntryPointContract.json`
 ].join(' ')

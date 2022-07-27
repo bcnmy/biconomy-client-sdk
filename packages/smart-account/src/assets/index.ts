@@ -1,39 +1,39 @@
 export const MultiSend = {
-    "defaultAddress": "0x8D29bE29923b68abfDD21e541b9374737B49cdAD",
+    "defaultAddress": "0xb1D112B7Ef6a1F0787943dee588127ED0dbD41A8",
     "released": true,
     "contractName": "MultiSend",
     "version": "1.0.0",
     "networkAddresses": {
-      "1": "0x8D29bE29923b68abfDD21e541b9374737B49cdAD",
-      "4": "0x8D29bE29923b68abfDD21e541b9374737B49cdAD",
-      "5": "0x8D29bE29923b68abfDD21e541b9374737B49cdAD",
-      "42": "0x8D29bE29923b68abfDD21e541b9374737B49cdAD",
-      "88": "0x8D29bE29923b68abfDD21e541b9374737B49cdAD",
-      "100": "0x8D29bE29923b68abfDD21e541b9374737B49cdAD",
-      "246": "0x8D29bE29923b68abfDD21e541b9374737B49cdAD",
-      "73799": "0x8D29bE29923b68abfDD21e541b9374737B49cdAD",
+      "1": "0xb1D112B7Ef6a1F0787943dee588127ED0dbD41A8",
+      "4": "0xb1D112B7Ef6a1F0787943dee588127ED0dbD41A8",
+      "5": "0xb1D112B7Ef6a1F0787943dee588127ED0dbD41A8",
+      "42": "0xb1D112B7Ef6a1F0787943dee588127ED0dbD41A8",
+      "88": "0xb1D112B7Ef6a1F0787943dee588127ED0dbD41A8",
+      "100": "0xb1D112B7Ef6a1F0787943dee588127ED0dbD41A8",
+      "246": "0xb1D112B7Ef6a1F0787943dee588127ED0dbD41A8",
+      "73799": "0xb1D112B7Ef6a1F0787943dee588127ED0dbD41A8",
       "31338": "0x1A3F36c656Da24c18C703B8c2d1829F5D32E8E49",
     },
-    "abi": [
-        {
-          "inputs": [],
-          "stateMutability": "nonpayable",
-          "type": "constructor"
-        },
-        {
-          "inputs": [
-            {
-              "internalType": "bytes",
-              "name": "transactions",
-              "type": "bytes"
-            }
-          ],
-          "name": "multiSend",
-          "outputs": [],
-          "stateMutability": "payable",
-          "type": "function"
-        }
-    ]
+    "abi": [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[{"internalType":"bytes","name":"transactions","type":"bytes"}],"name":"multiSend","outputs":[],"stateMutability":"payable","type":"function"}]
+  }
+
+  export const MultiSendCallOnly = {
+    "defaultAddress": "0x0Bc8A760B4a8a922A88b1C1773e3798641348508",
+    "released": true,
+    "contractName": "MultiSendCallOnly",
+    "version": "1.0.0",
+    "networkAddresses": {
+      "1": "0x0Bc8A760B4a8a922A88b1C1773e3798641348508",
+      "4": "0x0Bc8A760B4a8a922A88b1C1773e3798641348508",
+      "5": "0x0Bc8A760B4a8a922A88b1C1773e3798641348508",
+      "42": "0x0Bc8A760B4a8a922A88b1C1773e3798641348508",
+      "88": "0x0Bc8A760B4a8a922A88b1C1773e3798641348508",
+      "100": "0x0Bc8A760B4a8a922A88b1C1773e3798641348508",
+      "246": "0x0Bc8A760B4a8a922A88b1C1773e3798641348508",
+      "73799": "0x0Bc8A760B4a8a922A88b1C1773e3798641348508",
+      "31338": "0x1A3F36c656Da24c18C703B8c2d1829F5D32E8E49",
+    },
+    "abi": [{"inputs":[{"internalType":"bytes","name":"transactions","type":"bytes"}],"name":"multiSend","outputs":[],"stateMutability":"payable","type":"function"}]
   }
 
   export const SmartWallet = {
