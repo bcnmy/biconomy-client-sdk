@@ -38,7 +38,7 @@ describe('Wallet integration', function () {
 
   beforeEach(async () => {
   })
-  
+
   after(async () => {
   })
 
@@ -64,37 +64,45 @@ describe('Wallet integration', function () {
 
       const eoaSigner = ethnode.provider?.getSigner()
 
-      if(eoaSigner) {
+      if (eoaSigner) {
         const eoa = await eoaSigner.getAddress();
         console.log('eoa ', eoa);
       }
 
-      const wallet = new SmartAccount(ethnode.provider,{
-        activeNetworkId: ChainId.HARDHAT,
-        supportedNetworksIds: [ChainId.HARDHAT], // has to be consisttent providers and network names
+      const wallet = new SmartAccount(ethnode.provider, {
+        activeNetworkId: ChainId.RINKEBY,
+        supportedNetworksIds: [ChainId.RINKEBY], // has to be consisttent providers and network names
         // walletProvider: ethnode.provider,
         //backend_url: "http://localhost:3000/v1"
       });
 
-       //const smartAccount = await wallet.init();
+      // adds entry point, multiSendCall and fallbackHandler
+      // const [ smartWallet, walletFactory, multiSend ] = await deployWalletContracts(ethnode.signer);
 
-       //console.log(smartAccount.owner);
+      /*console.log('base wallet deployed at : ', smartWallet.address);
+      console.log('wallet factory deployed at : ', walletFactory.address);
+      console.log('multi send deployed at : ', multiSend.address);*/
 
-       const [ smartWallet, walletFactory, multiSend ] = await deployWalletContracts(ethnode.signer);
-
-       let isContract = false;
-       const code = await ethnode.provider?.getCode("0x0ba464506a3D66C962121e3C25ed56678A2585B6") || '';
-       if(code.slice(2).length > 0) isContract = true;
-       console.log(isContract);
-
-       console.log('base wallet deployed at : ', smartWallet.address);
-       console.log('wallet factory deployed at : ', walletFactory.address);
-       console.log('multi send deployed at : ', multiSend.address);
-       
-       // There must be a way to set wallet context before we go with init and deploy + txn tests
+      // There must be a way to set wallet context before we go with init and deploy + txn tests
 
       // I'd have to deploy the contracts and set specs
-      // const smartAccount = await wallet.init();
+      const smartAccount = await wallet.init();
+      console.log(wallet.owner);
+
+      console.log(smartAccount.smartAccount(ChainId.RINKEBY).getAddress());
+      console.log(smartAccount.factory(ChainId.RINKEBY).getAddress());
+
+      const signer = await smartAccount.ethersAdapter().getSignerAddress();
+
+      const address = await smartAccount.getAddress();
+      console.log('counter factual wallet address: ', address);
+
+      const isDeployed = await smartAccount.isDeployed(); /// can pass chainId here
+      // Check if the smart wallet is deployed or not
+      const state = await smartAccount.getSmartAccountState();
+      console.log('wallet state');
+      console.log(state);
+      expect(isDeployed).to.be.equal(false)
     })
   })
 })
