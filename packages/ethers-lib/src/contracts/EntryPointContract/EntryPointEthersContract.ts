@@ -4,7 +4,7 @@ import {
   EntryPointContractInterface
 } from '../../../typechain/src/ethers-v5/v1.0.0/EntryPointContract'
 import { toTxResult } from '../../utils'
-import { Contract } from '@ethersproject/contracts';
+import { Contract } from '@ethersproject/contracts'
 
 class EntryPointEthersContract implements EntryPointContract {
   constructor(public contract: EntryPointContract_TypeChain) {}
@@ -14,7 +14,7 @@ class EntryPointEthersContract implements EntryPointContract {
   }
 
   getContract(): Contract {
-    return this.contract;
+    return this.contract
   }
 
   async simulateValidation(userOperation: UserOperation): Promise<TransactionResult> {

@@ -1,10 +1,10 @@
 import { ContractTransaction } from '@ethersproject/contracts'
 import { PromiEvent, TransactionReceipt } from 'web3-core/types'
-import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
-import { SmartWalletFactoryContract } from './contracts/SmartWalletFactoryContract';
-import { MultiSendContract } from './contracts/MultiSendContract';
-import { MultiSendCallOnlyContract } from './contracts/MultiSendCallOnlyContract';
-import { SmartWalletContract } from './contracts/SmartWalletContract';
+import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
+import { SmartWalletFactoryContract } from './contracts/SmartWalletFactoryContract'
+import { MultiSendContract } from './contracts/MultiSendContract'
+import { MultiSendCallOnlyContract } from './contracts/MultiSendCallOnlyContract'
+import { SmartWalletContract } from './contracts/SmartWalletContract'
 
 export type SmartAccountVersion = '1.3.0' | '1.2.0' | '1.1.1'
 
@@ -15,57 +15,57 @@ export enum OperationType {
 
 // Temp
 export interface SmartAccountContext {
-  baseWallet: SmartWalletContract,
-  walletFactory: SmartWalletFactoryContract,
-  multiSend: MultiSendContract,
-  multiSendCall: MultiSendCallOnlyContract,
+  baseWallet: SmartWalletContract
+  walletFactory: SmartWalletFactoryContract
+  multiSend: MultiSendContract
+  multiSendCall: MultiSendCallOnlyContract
 }
 
 export interface SmartAccountState {
-  address: string,
-  owner: string,
-  isDeployed: boolean,
-  entryPointAddress: string,
-  fallbackHandlerAddress: string,
+  address: string
+  owner: string
+  isDeployed: boolean
+  entryPointAddress: string
+  fallbackHandlerAddress: string
 }
 
 // TODO
 // Review location , names and usage of all types
 
 export interface RawTransactionType {
-  from?: string;
-  gasPrice?: string | BigNumber;
-  maxFeePerGas?: string | BigNumber;
-  maxPriorityFeePerGas?: string | BigNumber;
-  gasLimit?: string;
-  to: string;
-  value: BigNumberish;
-  data?: string;
-  chainId: number;
-  nonce?: number | string;
+  from?: string
+  gasPrice?: string | BigNumber
+  maxFeePerGas?: string | BigNumber
+  maxPriorityFeePerGas?: string | BigNumber
+  gasLimit?: string
+  to: string
+  value: BigNumberish
+  data?: string
+  chainId: number
+  nonce?: number | string
   // accessList?: AccessListItem[];
-  type?: number;
-};
+  type?: number
+}
 
 export interface SignedTransaction {
-  rawTx: RawTransactionType,
+  rawTx: RawTransactionType
   tx: WalletTransaction
 }
 
 export interface ExecTransaction {
-  to: string;
-  value: BigNumberish;
-  data: string;
-  operation: number;
-  targetTxGas: string | number;
-};
+  to: string
+  value: BigNumberish
+  data: string
+  operation: number
+  targetTxGas: string | number
+}
 
 export interface FeeRefund {
-  baseGas: string | number;
-  gasPrice: string | number;
-  gasToken: string;
-  refundReceiver: string;
-};
+  baseGas: string | number
+  gasPrice: string | number
+  gasToken: string
+  refundReceiver: string
+}
 
 export interface MetaTransactionData {
   readonly to: string
@@ -94,15 +94,15 @@ export interface SmartAccountTrxDataPartial extends MetaTransactionData {
 }
 
 export interface WalletTransaction {
-  to: string;
-  value: BigNumberish;
-  data: string;
-  operation: number;
-  targetTxGas: string | number; 
-  baseGas: string | number;
-  gasPrice: string | number;
-  gasToken: string;
-  refundReceiver: string;
+  to: string
+  value: BigNumberish
+  data: string
+  operation: number
+  targetTxGas: string | number
+  baseGas: string | number
+  gasPrice: string | number
+  gasToken: string
+  refundReceiver: string
   nonce: number
 }
 

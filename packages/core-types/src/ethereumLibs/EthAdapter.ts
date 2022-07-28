@@ -27,7 +27,10 @@ export interface EthAdapter {
   getChainId(): Promise<number>
   getSmartWalletContract({ chainId, singletonDeployment }: GetContractProps): SmartWalletContract
   getMultiSendContract({ chainId, singletonDeployment }: GetContractProps): MultiSendContract
-  getMultiSendCallOnlyContract({ chainId, singletonDeployment }: GetContractProps): MultiSendCallOnlyContract
+  getMultiSendCallOnlyContract({
+    chainId,
+    singletonDeployment
+  }: GetContractProps): MultiSendCallOnlyContract
   getSmartWalletFactoryContract({
     chainId,
     singletonDeployment
