@@ -72,6 +72,8 @@ class SmartAccount {
   // Review :: ToDo
   // To be able to passs provider : WalletProviderLike 
   // in mexa sdk we have ExternalProvider
+
+  //TODO : Discuss regarding provider urls
   constructor(walletProvider:Web3Provider ,config?: Partial<SmartAccountConfig>) {
 
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
@@ -89,12 +91,14 @@ class SmartAccount {
     this.signer = walletProvider.getSigner();
     
     this.nodeClient = new SafeServiceClient({txServiceUrl: this.#smartAccountConfig.backend_url});
+    // Use this.relayer with relayer service URL
   }
 
   // for testing
   // providers and contracts initialization
+  // TODO: Error handling with proper message and docs hint if some function is called without init
   public async init(): Promise<SmartAccount> {
-    const chainConfig = (await this.getSupportedChainsInfo()).data;
+    const chainConfig = (await this.getSupportedChainsInfo()).data; 
     this.chainConfig = chainConfig;
     console.log("chain config: ", chainConfig);
     // instead of getting from networks, get details from chainConfig
@@ -180,6 +184,8 @@ class SmartAccount {
     return this;
   }
 
+  // Transaction methods might move into different module/package
+
   // async sendSignedTransaction : must expect signature!
   // async sign 
   async signTransaction(tx: WalletTransaction, chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<string> {
@@ -203,6 +209,13 @@ class SmartAccount {
   // will get signer's signature
   // TODO:
   // Signer should be able to use _typedSignData
+  /**
+   * 
+   * @param tx 
+   * @param batchId 
+   * @param chainId 
+   * @returns 
+   */
   async sendTransaction(tx:WalletTransaction, batchId:number = 0, chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<TransactionResponse> {
     let rawTx: RawTransactionType = {
       to: tx.to,
@@ -256,6 +269,13 @@ class SmartAccount {
   // Todo : rename 
   // This transaction is without fee refund (gasless)
   // We need to have identifiers for these txns
+  /**
+   * 
+   * @param transaction 
+   * @param batchId 
+   * @param chainId 
+   * @returns 
+   */
   async createSmartAccountTransaction(transaction: Transaction, batchId:number = 0,chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<WalletTransaction> {
     let walletContract = this.smartAccount(chainId).getContract();
     walletContract = walletContract.attach(this.address);
@@ -295,11 +315,23 @@ class SmartAccount {
     return this.multiSendContract[chainId]
   }
 
+  /**
+   * 
+   * @param chainId 
+   * @returns 
+   */
   multiSendCall(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): MultiSendCallOnlyContract {
     return this.multiSendCallOnlyContract[chainId]
   }
 
   // Optional index allowed
+  /**
+   * @description
+   * @notice
+   * @param index 
+   * @param chainId 
+   * @returns 
+   */
   async getAddress(index: number = 0, chainId: ChainId = this.#smartAccountConfig.activeNetworkId) : Promise<string> {
     return await this.getAddressForCounterfactualWallet(index,chainId);
   }
@@ -330,6 +362,11 @@ class SmartAccount {
   }
 
   // Instead of addresses should return contract instances
+  /**
+   * 
+   * @param chainId 
+   * @returns 
+   */
   getSmartAccountContext(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): SmartAccountContext {
     const context: SmartAccountContext = {
       baseWallet: this.smartAccount(chainId), //might as well do getContract and attach and return contract
@@ -351,6 +388,8 @@ class SmartAccount {
   // more methods to fetch balance via backend -> indexer node
   // getTokenBalances()
 
+  // @notice : instead of just reading from contract this should come from backend (given owner and index)
+  // this API would be able to check history of owner, contract updates and read from chain
   /**
    * @param address Owner aka {EOA} address
    * @param index number of smart account deploy i.e {0, 1 ,2 ...}

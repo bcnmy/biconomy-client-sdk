@@ -9,6 +9,7 @@ export interface SmartAccountConfig {
   // walletProvider: Web3Provider // getting provider that can sign messages
   backend_url: string
 }
+// array of provider urls for supperted networks?
 
 // TODO
 // Review location, usage and name of types
