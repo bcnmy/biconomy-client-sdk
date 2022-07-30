@@ -9,6 +9,7 @@ export interface SmartAccountConfig {
   // walletProvider: Web3Provider // getting provider that can sign messages
   backend_url: string
 }
+// relayer_url
 
 // TODO
 // Review location, usage and name of types
@@ -107,7 +108,7 @@ export enum ChainId {
   GOERLI = 5,
   KOVAN = 42,
   MUMBAI = 80001,
-  HARDHAT = 31338 //Temp
+  GANACHE = 1337 //Temp
 }
 export interface NetworkConfig {
   entryPoint: string // abstract account contract
@@ -276,8 +277,8 @@ export const networks: Record<ChainId, NetworkConfig> = {
     },
     providerUrl: 'https://ropsten.infura.io/v3/c6ed0fff2278441896180f00a2f9ad55'
   },
-  [ChainId.HARDHAT]: {
-    chainId: ChainId.HARDHAT,
+  [ChainId.GANACHE]: {
+    chainId: ChainId.GANACHE,
     entryPoint: '0xfb8131c260749c7835a08ccbdb64728de432858e',
     fallbackHandler: '0x006b640910f739fec38b936b8efb8f6e3109aaca',
     name: 'ropsten',

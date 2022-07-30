@@ -89,6 +89,7 @@ class SmartAccount {
     this.signer = walletProvider.getSigner();
     
     this.nodeClient = new SafeServiceClient({txServiceUrl: this.#smartAccountConfig.backend_url});
+    // this.relayer = 
   }
 
   // for testing
@@ -130,25 +131,30 @@ class SmartAccount {
 
   // intialize contract to be used throughout this class
   private initializeContracts(chainId: ChainId) {
+    const smartWalletAddress = this.chainConfig.find(n => n.chainId === chainId)?.walletAddress || '';
+    const smartWalletFactoryAddress = this.chainConfig.find(n => n.chainId === chainId)?.walletFactoryAddress || ''; 
+    // TODO
+    // multiSend addresses from chainConfig
+
     this.smartWalletFactoryContract[chainId] = getSmartWalletFactoryContract(
-      chainId,
-      this.ethAdapter[chainId]
+      this.ethAdapter[chainId],
+      smartWalletFactoryAddress
     );
 
     // Should attach the address here
     this.smartWalletContract[chainId] = getSmartWalletContract(
-      chainId,
-      this.ethAdapter[chainId]
+      this.ethAdapter[chainId],
+      smartWalletAddress
     );
 
     this.multiSendContract[chainId] = getMultiSendContract(
-      chainId,
-      this.ethAdapter[chainId]
+      this.ethAdapter[chainId],
+      smartWalletAddress // multiSend addresses should be in chain config
     );
 
     this.multiSendCallOnlyContract[chainId] = getMultiSendCallOnlyContract(
-      chainId,
-      this.ethAdapter[chainId]
+      this.ethAdapter[chainId],
+      smartWalletAddress
     );
   }
 
