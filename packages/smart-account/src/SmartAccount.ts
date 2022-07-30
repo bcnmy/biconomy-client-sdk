@@ -213,7 +213,7 @@ class SmartAccount {
     let rawTx: RawTransactionType = {
       to: tx.to,
       data: tx.data,
-      value: tx.value,
+      value: 0,
       chainId: chainId
     };
 
@@ -276,7 +276,7 @@ class SmartAccount {
 
     const walletTx: WalletTransaction = buildWalletTransaction({
       to: transaction.to,
-      // value: ethers.utils.parseEther("1"),
+      value: transaction.value,
       data: transaction.data, // for token transfers use encodeTransfer
       nonce
     });
@@ -363,7 +363,7 @@ class SmartAccount {
    * @description return address for Smart account
    * @returns
    */
-  async getAddressForCounterfactualWallet(index: number = 0, chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<string> {
+  private async getAddressForCounterfactualWallet(index: number = 0, chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<string> {
     return await this.smartWalletFactoryContract[
       chainId
     ].getAddressForCounterfactualWallet(this.owner, index)
