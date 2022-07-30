@@ -3,16 +3,17 @@ import { ExternalProvider, Web3Provider } from '@ethersproject/providers';
 import { MultiSendContract, SmartWalletFactoryContract, SmartWalletContract, MultiSendCallOnlyContract } from '@biconomy-sdk/core-types';
 
 // walletProvider: WalletProviderLike
+// TODO : Ability to provide custom URLs for all supported networks
 export interface SmartAccountConfig {
   activeNetworkId: ChainId
   supportedNetworksIds: ChainId[]
-  // walletProvider: Web3Provider // getting provider that can sign messages
   backend_url: string
 }
 // relayer_url
 
 // TODO
-// Review location, usage and name of types
+// Review location, usage and name of types @chirag
+// Should be kept in native types and the moment it needs to be shared by other package, move to core types and use from there
 export interface Transaction {
   to: string
   value?: BigNumberish
