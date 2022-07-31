@@ -156,10 +156,11 @@ class SmartAccount {
   private initializeContracts(chainId: ChainId) {
     // We get the addresses using chainConfig fetched from backend node
     const smartWalletAddress = this.chainConfig.find(n => n.chainId === chainId)?.walletAddress || '';
-    const smartWalletFactoryAddress = this.chainConfig.find(n => n.chainId === chainId)?.walletFactoryAddress || ''; 
+    const smartWalletFactoryAddress = this.chainConfig.find(n => n.chainId === chainId)?.walletFactoryAddress || '';
+    const multiSendAddress = this.chainConfig.find(n => n.chainId === chainId)?.multiSendAddress || '';
+    const multiSendCallAddress = this.chainConfig.find(n => n.chainId === chainId)?.multiSendCallAddress || ''; 
     
-    // TODO
-    // multiSend addresses from chainConfig
+
     this.smartWalletFactoryContract[chainId] = getSmartWalletFactoryContract(
       this.ethAdapter[chainId],
       smartWalletFactoryAddress
@@ -173,12 +174,12 @@ class SmartAccount {
 
     this.multiSendContract[chainId] = getMultiSendContract(
       this.ethAdapter[chainId],
-      smartWalletAddress // multiSend addresses should be in chain config
+      multiSendAddress
     );
 
     this.multiSendCallOnlyContract[chainId] = getMultiSendCallOnlyContract(
       this.ethAdapter[chainId],
-      smartWalletAddress
+      multiSendCallAddress
     );
   }
 
