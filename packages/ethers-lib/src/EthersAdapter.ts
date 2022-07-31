@@ -74,7 +74,7 @@ class EthersAdapter implements EthAdapter {
 
   getSmartWalletContract(address: string): SmartWalletContract {
     if (!address) {
-      throw new Error('Invalid Safe Proxy contract address')
+      throw new Error('Invalid Smart Wallet contract address')
     }
     return getSmartWalletContractInstance(address, this.#provider)
   }
@@ -95,7 +95,7 @@ class EthersAdapter implements EthAdapter {
 
   getSmartWalletFactoryContract(address:string): SmartWalletProxyFactoryEthersContract {
     if (!address) {
-      throw new Error('Invalid Safe Proxy Factory contract address')
+      throw new Error('Invalid Wallet Factory contract address')
     }
     return getSmartWalletFactoryContractInstance(address, this.#provider)
   }

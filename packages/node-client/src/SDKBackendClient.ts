@@ -1,6 +1,5 @@
 import { Signer } from '@ethersproject/abstract-signer'
-import { EthAdapter } from '@biconomy-sdk/core-types'
-import SafeTransactionService from './SafeTransactionService'
+import SmartAccountTransactionService from './SmartAccountTransactionService'
 import {
   AllTransactionsListResponse,
   AllTransactionsOptions,
@@ -31,24 +30,24 @@ import {
   TokenInfoResponse,
   TransferListResponse,
   ChainConfigResponse
-} from './types/safeTransactionServiceTypes'
+} from './types/smartAccountTransactionServiceTypes'
 import { getTxServiceBaseUrl } from './utils'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
 
-export interface SafeServiceClientConfig {
+export interface SDKBackendClientConfig {
   /** txServiceUrl - Safe Transaction Service URL */
   txServiceUrl: string
   /** ethAdapter - Ethereum adapter */
   // ethAdapter: EthAdapter
 }
 
-class SafeServiceClient implements SafeTransactionService {
+class SDKBackendClient implements SmartAccountTransactionService {
   #txServiceBaseUrl: string
   // #ethAdapter: EthAdapter
 
   // Review
   // Removed ethAdapter
-  constructor({ txServiceUrl }: SafeServiceClientConfig) {
+  constructor({ txServiceUrl }: SDKBackendClientConfig) {
     this.#txServiceBaseUrl = getTxServiceBaseUrl(txServiceUrl)
     // this.#ethAdapter = ethAdapter
   }
@@ -667,4 +666,4 @@ class SafeServiceClient implements SafeTransactionService {
   }
 }
 
-export default SafeServiceClient
+export default SDKBackendClient

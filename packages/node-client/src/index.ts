@@ -1,5 +1,5 @@
-import SafeServiceClient, { SafeServiceClientConfig } from './SafeServiceClient'
+import SDKBackendClient, { SDKBackendClientConfig } from './SDKBackendClient'
 
-export * from './types/safeTransactionServiceTypes'
-export default SafeServiceClient
-export { SafeServiceClientConfig }
+export * from './types/smartAccountTransactionServiceTypes'
+export default SDKBackendClient
+export { SDKBackendClientConfig }

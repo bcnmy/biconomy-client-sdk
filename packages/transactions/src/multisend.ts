@@ -20,7 +20,7 @@ export const encodeMultiSend = (txs: MetaTransaction[]): string => {
     return "0x" + txs.map((tx) => encodeMetaTransaction(tx)).join("");
 };
 
-export const buildMultiSendSafeTx = (
+export const buildMultiSendSmartAccountTx = (
     multiSend: Contract,
     txs: MetaTransaction[],
     nonce: number,

@@ -125,7 +125,7 @@ export interface Transaction {
   readonly value: string
   readonly data: string
   readonly operation: OperationType
-  readonly safeTxGas: number
+  readonly targetTxGas: number
 }
 
 export interface FeeRefundData {

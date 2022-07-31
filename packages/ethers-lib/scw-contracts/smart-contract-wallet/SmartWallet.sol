@@ -137,7 +137,7 @@ contract SmartWallet is
     // TODO : Update description
     // TODO : Add batchId and update in test cases, utils etc
     // Gnosis style transaction with optional repay in native tokens OR ERC20 
-    /// @dev Allows to execute a Safe transaction confirmed by required number of owners and then pays the account that submitted the transaction.
+    /// @dev Allows to execute a wallet transaction confirmed by required number of owners and then pays the account that submitted the transaction.
     /// Note: The fees are always transferred, even if the user transaction fails.
     /// @param _tx Wallet transaction 
     /// @param batchId batchId key for 2D nonces
@@ -276,8 +276,8 @@ contract SmartWallet is
     /// review necessity for this method for estimating execute call
     /// @dev Allows to estimate a transaction.
     ///      This method is only meant for estimation purpose, therefore the call will always revert and encode the result in the revert data.
-    ///      Since the `estimateGas` function includes refunds, call this method to get an estimated of the costs that are deducted from the safe with `execTransaction`
-    /// @param to Destination address of Safe transaction.
+    ///      Since the `estimateGas` function includes refunds, call this method to get an estimated of the costs that are deducted from the wallet with `execTransaction`
+    /// @param to Destination address of wallet transaction.
     /// @param value Ether value of transaction.
     /// @param data Data payload of transaction.
     /// @param operation Operation type of transaction.
@@ -302,8 +302,8 @@ contract SmartWallet is
     /// @param value Ether value.
     /// @param data Data payload.
     /// @param operation Operation type.
-    /// @param targetTxGas Fas that should be used for the safe transaction.
-    /// @param baseGas Gas costs for data used to trigger the safe transaction.
+    /// @param targetTxGas Fas that should be used for the wallet transaction.
+    /// @param baseGas Gas costs for data used to trigger the wallet transaction.
     /// @param gasPrice Maximum gas price that should be used for this transaction.
     /// @param gasToken Token address (or 0 if ETH) that is used for the payment.
     /// @param refundReceiver Address of receiver of gas payment (or 0 if tx.origin).
@@ -348,7 +348,7 @@ contract SmartWallet is
         FeeRefund memory refundInfo,
         uint256 _nonce
     ) public view returns (bytes memory) {
-        bytes32 safeTxHash =
+        bytes32 walletTxHash =
             keccak256(
                 abi.encode(
                     WALLET_TX_TYPEHASH,
@@ -364,7 +364,7 @@ contract SmartWallet is
                     _nonce
                 )
             );
-        return abi.encodePacked(bytes1(0x19), bytes1(0x01), domainSeparator(), safeTxHash);
+        return abi.encodePacked(bytes1(0x19), bytes1(0x01), domainSeparator(), walletTxHash);
     }
 
     // Extra Utils

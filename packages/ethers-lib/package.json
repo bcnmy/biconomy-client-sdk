@@ -1,13 +1,11 @@
 {
   "name": "@biconomy-sdk/ethers-lib",
   "version": "1.0.0",
-  "description": "Ethers library adapter to be used by Safe Core SDK",
+  "description": "Ethers library adapter to be used by Biconomy SDK",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
   "keywords": [
     "Ethereum",
-    "Gnosis",
-    "Safe",
     "SDK",
     "Ethers"
   ],

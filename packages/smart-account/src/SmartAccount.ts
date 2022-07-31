@@ -19,7 +19,7 @@ import {
   SmartAccountState,
 } from '@biconomy-sdk/core-types'
 import { JsonRpcSigner, TransactionRequest, TransactionResponse } from '@ethersproject/providers';
-import SafeServiceClient from '@biconomy-sdk/node-client';
+import SDKBackendClient from '@biconomy-sdk/node-client';
 import { Web3Provider } from '@ethersproject/providers'
 import { Relayer, LocalRelayer } from '@biconomy-sdk/relayer';
 import { 
@@ -29,8 +29,8 @@ import {
   SmartAccountTransaction, 
   getSignatureParameters, 
   EIP712_WALLET_TX_TYPE, 
-  buildWalletTransaction, 
-  safeSignMessage 
+  buildSmartAccountTransaction, 
+  smartAccountSignMessage 
 } from '@biconomy-sdk/transactions';
 
 // Create an instance of Smart Account with multi-chain support.
@@ -62,7 +62,7 @@ class SmartAccount {
 
   // Instance of backend client responsible for retriving any infromation from the backend node
   // Indexer related methods (fetchBalances, transactionHistory) are exposed using backend node
-  nodeClient!: SafeServiceClient 
+  nodeClient!: SDKBackendClient 
 
   // Instance of relayer (Relayer Service Client) connected with this Smart Account and always ready to dispatch transactions
   // relayer.relay => dispatch to blockchain
@@ -107,7 +107,7 @@ class SmartAccount {
     this.supportedNetworkIds = this.#smartAccountConfig.supportedNetworksIds;
     this.provider = walletProvider
     this.signer = walletProvider.getSigner();
-    this.nodeClient = new SafeServiceClient({txServiceUrl: this.#smartAccountConfig.backend_url});
+    this.nodeClient = new SDKBackendClient({txServiceUrl: this.#smartAccountConfig.backend_url});
     // Upcoming
     //this.relayer = 
   }
@@ -240,7 +240,7 @@ class SmartAccount {
     walletContract = walletContract.attach(this.address);
 
     // TODO - rename and organize utils
-    const { signer, data } = await safeSignMessage(
+    const { signer, data } = await smartAccountSignMessage(
       this.signer,
       walletContract,
       tx,
@@ -328,7 +328,7 @@ class SmartAccount {
     } 
     console.log('nonce: ', nonce);
 
-    const walletTx: WalletTransaction = buildWalletTransaction({
+    const walletTx: WalletTransaction = buildSmartAccountTransaction({
       to: transaction.to,
       value: transaction.value,
       data: transaction.data, // for token transfers use encodeTransfer

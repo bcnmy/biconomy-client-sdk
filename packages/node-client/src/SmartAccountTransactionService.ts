@@ -26,9 +26,9 @@ import {
   TokenInfoListResponse,
   TokenInfoResponse,
   TransferListResponse
-} from './types/safeTransactionServiceTypes'
+} from './types/smartAccountTransactionServiceTypes'
 
-interface SafeTransactionService {
+interface SmartAccountTransactionService {
   // About
   getServiceInfo(): Promise<SmartAccountInfoResponse>
   getServiceMasterCopiesInfo(): Promise<MasterCopyResponse[]>
@@ -89,4 +89,4 @@ interface SafeTransactionService {
   getToken(tokenAddress: string): Promise<TokenInfoResponse>
 }
 
-export default SafeTransactionService
+export default SmartAccountTransactionService

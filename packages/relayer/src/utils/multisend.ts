@@ -31,7 +31,7 @@ export const buildContractCall = (
     overrides?: Partial<WalletTransaction>
 ): WalletTransaction => {
     const data = contract.interface.encodeFunctionData(method, params);
-    return buildWalletTransaction(
+    return buildSmartAccountTransaction(
         Object.assign(
             {
                 to: contract.address,
@@ -44,7 +44,7 @@ export const buildContractCall = (
     );
 };
 
-export const buildWalletTransaction = (template: {
+export const buildSmartAccountTransaction = (template: {
     to: string;
     value?: BigNumberish;
     data?: string;
@@ -83,7 +83,7 @@ export const encodeMultiSend = (txs: MetaTransaction[]): string => {
     return "0x" + txs.map((tx) => encodeMetaTransaction(tx)).join("");
 };
 
-export const buildMultiSendSafeTx = (
+export const buildMultiSendSmartAccountTx = (
     multiSend: Contract,
     txs: MetaTransaction[],
     nonce: number,
