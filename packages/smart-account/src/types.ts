@@ -1,6 +1,11 @@
-import { BytesLike, Wallet, BigNumberish } from 'ethers';
-import { ExternalProvider, Web3Provider } from '@ethersproject/providers';
-import { MultiSendContract, SmartWalletFactoryContract, SmartWalletContract, MultiSendCallOnlyContract } from '@biconomy-sdk/core-types';
+import { BytesLike, Wallet, BigNumberish } from 'ethers'
+import { ExternalProvider, Web3Provider } from '@ethersproject/providers'
+import {
+  MultiSendContract,
+  SmartWalletFactoryContract,
+  SmartWalletContract,
+  MultiSendCallOnlyContract
+} from '@biconomy-sdk/core-types'
 
 // walletProvider: WalletProviderLike
 // TODO : Ability to provide custom URLs for all supported networks
@@ -24,37 +29,37 @@ export interface Transaction {
   // revertOnError?: boolean
 }
 
-export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 export interface SmartAccountState {
-  address: string,
-  owner: string,
-  isDeployed: boolean,
-  entryPointAddress: string,
-  fallbackHandlerAddress: string,
+  address: string
+  owner: string
+  isDeployed: boolean
+  entryPointAddress: string
+  fallbackHandlerAddress: string
 }
 
 export interface SmartAccountContext {
-  baseWallet: SmartWalletContract,
-  walletFactory: SmartWalletFactoryContract,
-  multiSend: MultiSendContract,
+  baseWallet: SmartWalletContract
+  walletFactory: SmartWalletFactoryContract
+  multiSend: MultiSendContract
   multiSendCall: MultiSendCallOnlyContract
 }
 
 // reference i could work on
 export interface WalletProvider {
-  readonly type?: string;
-  readonly wallet?: Wallet;
-  readonly address: string;
-  readonly networkName?: NetworkNames;
-  signMessage(message: BytesLike): Promise<string>;
+  readonly type?: string
+  readonly wallet?: Wallet
+  readonly address: string
+  readonly networkName?: NetworkNames
+  signMessage(message: BytesLike): Promise<string>
 }
 
 export interface WalletLike {
-  privateKey: string;
+  privateKey: string
 }
 
-export type WalletProviderLike = string | WalletLike | WalletProvider;
+export type WalletProviderLike = string | WalletLike | WalletProvider
 
 export enum NetworkNames {
   Mainnet = 'mainnet',
@@ -80,7 +85,7 @@ export enum NetworkNames {
   Moonbeam = 'moonbeam',
   Moonbase = 'moonbase',
   Celo = 'celo',
-  CeloTest = 'celoTest',
+  CeloTest = 'celoTest'
 }
 
 export interface ContractInfo {
@@ -261,7 +266,7 @@ export const networks: Record<ChainId, NetworkConfig> = {
       //name: 'Etherscan (Kovan)',
       address: 'https://kovan.etherscan.io/address',
       txHash: 'https://kovan.etherscan.io/tx',
-      api: 'https://api.kovan.etherscan.io/',
+      api: 'https://api.kovan.etherscan.io/'
     },
     providerUrl: 'https://kovan.infura.io/v3/c6ed0fff2278441896180f00a2f9ad55'
   },
@@ -294,5 +299,5 @@ export const networks: Record<ChainId, NetworkConfig> = {
       api: 'https://api.ropsten.etherscan.io/'
     },
     providerUrl: 'https://ropsten.infura.io/v3/c6ed0fff2278441896180f00a2f9ad55'
-  },
+  }
 }

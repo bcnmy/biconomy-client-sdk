@@ -1,5 +1,5 @@
 import { UserOperation, TransactionResult } from '../types'
-import { Contract } from '@ethersproject/contracts';
+import { Contract } from '@ethersproject/contracts'
 
 export interface EntryPointContract {
   getContract(): Contract

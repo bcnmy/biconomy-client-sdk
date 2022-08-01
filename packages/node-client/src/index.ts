@@ -1,5 +1,5 @@
-import SDKBackendClient, { SDKBackendClientConfig } from './SDKBackendClient'
+import NodeClient, { NodeClientConfig } from './NodeClient'
 
-export * from './types/smartAccountTransactionServiceTypes'
-export default SDKBackendClient
-export { SDKBackendClientConfig }
+export * from './types/NodeClientTypes'
+export default NodeClient
+export { NodeClientConfig }

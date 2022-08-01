@@ -1,6 +1,11 @@
-import { SmartAccountConfig, networks, ChainId, ChainConfig, 
-  SmartAccountContext, Transaction, ZERO_ADDRESS, ChainConfigResponse } from './types'
-  import { TypedDataDomain, TypedDataField, TypedDataSigner } from '@ethersproject/abstract-signer'
+import {
+  SmartAccountConfig,
+  ChainId,
+  ChainConfig,
+  SmartAccountContext,
+  Transaction,
+  ChainConfigResponse
+} from './types'
 import EthersAdapter from '@biconomy-sdk/ethers-lib'
 import { ethers, providers, Wallet } from 'ethers'
 import {
@@ -14,24 +19,23 @@ import {
   SmartWalletContract,
   MultiSendContract,
   MultiSendCallOnlyContract,
-  TransactionResult,
   RawTransactionType,
-  SmartAccountState,
+  SmartAccountState
 } from '@biconomy-sdk/core-types'
-import { JsonRpcSigner, TransactionRequest, TransactionResponse } from '@ethersproject/providers';
-import SDKBackendClient from '@biconomy-sdk/node-client';
+import { JsonRpcSigner, TransactionRequest, TransactionResponse } from '@ethersproject/providers'
+import NodeClient from '@biconomy-sdk/node-client'
 import { Web3Provider } from '@ethersproject/providers'
-import { Relayer, LocalRelayer } from '@biconomy-sdk/relayer';
-import { 
-  WalletTransaction, 
-  ExecTransaction, 
-  FeeRefund, 
+import { Relayer, LocalRelayer } from '@biconomy-sdk/relayer'
+import {
+  WalletTransaction,
+  ExecTransaction,
+  FeeRefund,
   SmartAccountTransaction, 
   getSignatureParameters, 
   EIP712_WALLET_TX_TYPE, 
   buildSmartAccountTransaction, 
   smartAccountSignMessage 
-} from '@biconomy-sdk/transactions';
+} from '@biconomy-sdk/transactions'
 
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount {
@@ -51,18 +55,12 @@ class SmartAccount {
   // Chain configurations fetched from backend
   chainConfig!: ChainConfig[]
 
-  // A wallet provider shared between all chains and just acts as signer!
-  // Must pass a provider with signers with accounts 
-  // could be just signer
-  provider!:  Web3Provider
+  // providers!:  Web3Provider[]
+  provider!: Web3Provider
 
-  // Signer extracted from above provider instance
-  // Review type
-  signer!: JsonRpcSigner 
+  signer!: JsonRpcSigner
 
-  // Instance of backend client responsible for retriving any infromation from the backend node
-  // Indexer related methods (fetchBalances, transactionHistory) are exposed using backend node
-  nodeClient!: SDKBackendClient 
+  nodeClient!: NodeClient
 
   // Instance of relayer (Relayer Service Client) connected with this Smart Account and always ready to dispatch transactions
   // relayer.relay => dispatch to blockchain
@@ -104,12 +102,13 @@ class SmartAccount {
     this.multiSendContract = {}
     this.multiSendCallOnlyContract = {}
     this.smartWalletFactoryContract = {}
-    this.supportedNetworkIds = this.#smartAccountConfig.supportedNetworksIds;
+    this.supportedNetworkIds = this.#smartAccountConfig.supportedNetworksIds
     this.provider = walletProvider
-    this.signer = walletProvider.getSigner();
-    this.nodeClient = new SDKBackendClient({txServiceUrl: this.#smartAccountConfig.backend_url});
-    // Upcoming
-    //this.relayer = 
+    this.signer = walletProvider.getSigner()
+
+    this.nodeClient = new NodeClient({ txServiceUrl: this.#smartAccountConfig.backend_url })
+    // upcoming
+    // this.relayer
   }
 
   // TODO
@@ -138,7 +137,7 @@ class SmartAccount {
       this.ethAdapter[network] = new EthersAdapter({
         ethers,
         signer,
-        provider:readProvider
+        provider: readProvider
       })
 
       this.initializeContracts(network);
@@ -177,6 +176,7 @@ class SmartAccount {
       multiSendAddress
     );
 
+    this.multiSendContract[chainId] = getMultiSendContract(chainId, this.ethAdapter[chainId])
     this.multiSendCallOnlyContract[chainId] = getMultiSendCallOnlyContract(
       this.ethAdapter[chainId],
       multiSendCallAddress
@@ -188,7 +188,7 @@ class SmartAccount {
    * @returns ChainConfig response received from backend node
    */
   private async getSupportedChainsInfo(): Promise<ChainConfigResponse> {
-    return this.nodeClient.getChainInfo();
+    return this.nodeClient.getAllSupportedChains()
   }
 
   // return adapter instance to be used for blockchain interactions
@@ -221,8 +221,8 @@ class SmartAccount {
    * @returns self/this
    */
   setActiveChain(chainId: ChainId): SmartAccount {
-    this.#smartAccountConfig.activeNetworkId = chainId;
-    return this;
+    this.#smartAccountConfig.activeNetworkId = chainId
+    return this
   }
 
   // Can also add := sendSignedTransaction
@@ -265,47 +265,47 @@ class SmartAccount {
       data: tx.data,
       value: 0,
       chainId: chainId
-    };
+    }
 
     const transaction: ExecTransaction = {
       to: tx.to,
       value: tx.value,
       data: tx.data,
       operation: tx.operation,
-      targetTxGas: tx.targetTxGas,
-    };
+      targetTxGas: tx.targetTxGas
+    }
 
     const refundInfo: FeeRefund = {
       baseGas: tx.baseGas,
       gasPrice: tx.gasPrice,
       gasToken: tx.gasToken,
-      refundReceiver: tx.refundReceiver,
-    };
+      refundReceiver: tx.refundReceiver
+    }
+    
+    let walletContract = this.smartAccount(chainId).getContract()
+    walletContract = walletContract.attach(this.address)
 
-    let walletContract = this.smartAccount(chainId).getContract();
-    walletContract = walletContract.attach(this.address);
+    let signature = await this.signTransaction(tx)
 
-    let signature = await this.signTransaction(tx);
- 
     let execTransaction = await walletContract.populateTransaction.execTransaction(
       transaction,
       batchId,
       refundInfo,
       signature
-    );
+    )
 
-    rawTx.to = this.address;
-    rawTx.data = execTransaction.data;
+    rawTx.to = this.address
+    rawTx.data = execTransaction.data
 
-    const state = await this.getSmartAccountState(chainId);
+    const state = await this.getSmartAccountState(chainId)
 
     const signedTx = {
       rawTx,
       tx
     }
 
-    const txn = await this.relayer.relay(signedTx, state, this.getSmartAccountContext(chainId));
-    return txn;
+    const txn = await this.relayer.relay(signedTx, state, this.getSmartAccountContext(chainId))
+    return txn
   }
 
   /**
@@ -333,10 +333,10 @@ class SmartAccount {
       value: transaction.value,
       data: transaction.data, // for token transfers use encodeTransfer
       nonce
-    });
+    })
 
-    return walletTx;
-  };
+    return walletTx
+  }
 
   /**
    * 
@@ -410,7 +410,7 @@ class SmartAccount {
     // return !!walletCode && walletCode !== '0x'
 
     // but below works
-    return await this.factory(chainId).isWalletExist(this.address);
+    return await this.factory(chainId).isWalletExist(this.address)
   }
 
   /**
@@ -422,13 +422,13 @@ class SmartAccount {
     const entryPoint = this.chainConfig.find(n => n.chainId === chainId)?.entryPoint;
     const fallbackHandlerAddress = this.chainConfig.find(n => n.chainId === chainId)?.fallBackHandler;
     const state: SmartAccountState = {
-       address: this.address,
-       owner: this.owner,
-       isDeployed: await this.isDeployed(chainId), // could be set as state in init
-       entryPointAddress: entryPoint || '',
-       fallbackHandlerAddress: fallbackHandlerAddress || ''
+      address: this.address,
+      owner: this.owner,
+      isDeployed: await this.isDeployed(chainId), // could be set as state in init
+      entryPointAddress: entryPoint || '',
+      fallbackHandlerAddress: fallbackHandlerAddress || ''
     }
-    return state;
+    return state
   }
 
   // 
@@ -446,12 +446,15 @@ class SmartAccount {
       multiSendCall: this.multiSendCall(chainId)
       // Could be added dex router for chain in the future
     }
-   return context;
+    return context
   }
 
   // Review :  more / other potential methods
   // sendSignedTransaction
   // signMessage
+
+  // Discuss about multichain aspect of relayer node url and clients
+  // TODO: get details from backend config
   // NOTE: Discuss about multichain aspect of relayer node url and clients
 
   // more methods to fetch balance via backend -> indexer node
@@ -475,7 +478,7 @@ class SmartAccount {
 export const DefaultSmartAccountConfig: SmartAccountConfig = {
   activeNetworkId: ChainId.RINKEBY, //Update later
   supportedNetworksIds: [ChainId.GOERLI, ChainId.RINKEBY, ChainId.MUMBAI],
-  backend_url: "http://localhost:3000/v1"
+  backend_url: 'http://localhost:3000/v1'
 }
 
 export default SmartAccount

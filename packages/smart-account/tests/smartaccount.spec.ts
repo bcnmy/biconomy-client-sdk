@@ -1,4 +1,4 @@
-import SmartAccount from '../src/SmartAccount';
+import SmartAccount from '../src/SmartAccount'
 import { LocalRelayer } from '@biconomy-sdk/relayer'
 import { Contract, ethers, Signer as AbstractSigner } from 'ethers'
 import { JsonRpcProvider, TransactionReceipt, TransactionResponse, Web3Provider } from '@ethersproject/providers';
@@ -16,10 +16,10 @@ import { Transaction } from '../src/types';
 import { WalletTransaction } from '@biconomy-sdk/core-types';
 
 type EthereumInstance = {
-  chainId?: number,
-  provider?: Web3Provider,
+  chainId?: number
+  provider?: Web3Provider
   signer?: AbstractSigner
-};
+}
 
 enum ChainId {
   // Ethereum
@@ -47,11 +47,9 @@ describe('Wallet integration', function () {
     ethnode.chainId = 1337
   })
 
-  beforeEach(async () => {
-  })
+  beforeEach(async () => {})
 
-  after(async () => {
-  })
+  after(async () => {})
 
   describe('Smart account usage and basic actions', () => {
 
@@ -285,7 +283,7 @@ describe('Wallet integration', function () {
         supportedNetworksIds: [ChainId.RINKEBY, ChainId.GANACHE], // has to be consisttent providers and network names
         // walletProvider: ethnode.provider,
         //backend_url: "http://localhost:3000/v1"
-      });
+      })
 
       const smartAccount = await wallet.init();
       
@@ -339,10 +337,10 @@ describe('Wallet integration', function () {
 
       console.log(smartAccount.factory().getAddress());
 
-      const signer = await smartAccount.ethersAdapter().getSignerAddress();
+      const signer = await smartAccount.ethersAdapter().getSignerAddress()
 
-      const address = await smartAccount.getAddress();
-      console.log('counter factual wallet address: ', address);
+      const address = await smartAccount.getAddress()
+      console.log('counter factual wallet address: ', address)
 
       expect(address).to.be.equal(smartAccount.address)
 
@@ -415,4 +413,3 @@ describe('Wallet integration', function () {
     })
   })
 })
-
