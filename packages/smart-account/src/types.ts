@@ -8,15 +8,17 @@ import {
 } from '@biconomy-sdk/core-types'
 
 // walletProvider: WalletProviderLike
+// TODO : Ability to provide custom URLs for all supported networks
 export interface SmartAccountConfig {
   activeNetworkId: ChainId
   supportedNetworksIds: ChainId[]
-  // walletProvider: Web3Provider // getting provider that can sign messages
   backend_url: string
 }
+// relayer_url
 
 // TODO
-// Review location, usage and name of types
+// Review location, usage and name of types @chirag
+// Should be kept in native types and the moment it needs to be shared by other package, move to core types and use from there
 export interface Transaction {
   to: string
   value?: BigNumberish
@@ -112,7 +114,7 @@ export enum ChainId {
   GOERLI = 5,
   KOVAN = 42,
   MUMBAI = 80001,
-  HARDHAT = 31338 //Temp
+  GANACHE = 1337 //Temp
 }
 export interface NetworkConfig {
   entryPoint: string // abstract account contract
@@ -179,6 +181,8 @@ export type ChainConfig = {
   blockExplorerUriTemplate: BlockExplorerConfig
   ensRegistryAddress: string
   walletFactoryAddress: string
+  multiSendAddress: string
+  multiSendCallAddress: string
   walletAddress: string // base wallet
   entryPoint: string //should make this address var
   fallBackHandler: string //should make this address var
@@ -281,8 +285,8 @@ export const networks: Record<ChainId, NetworkConfig> = {
     },
     providerUrl: 'https://ropsten.infura.io/v3/c6ed0fff2278441896180f00a2f9ad55'
   },
-  [ChainId.HARDHAT]: {
-    chainId: ChainId.HARDHAT,
+  [ChainId.GANACHE]: {
+    chainId: ChainId.GANACHE,
     entryPoint: '0xfb8131c260749c7835a08ccbdb64728de432858e',
     fallbackHandler: '0x006b640910f739fec38b936b8efb8f6e3109aaca',
     name: 'ropsten',

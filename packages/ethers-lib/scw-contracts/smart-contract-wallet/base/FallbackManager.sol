@@ -21,7 +21,7 @@ contract FallbackManager is SelfAuthorized {
 
     /// @dev Allows to add a contract to handle fallback calls.
     ///      Only fallback calls without value and with data will be forwarded.
-    ///      This can only be done via a Safe transaction.
+    ///      This can only be done via a wallet transaction.
     /// @param handler contract to handle fallback calls.
     function setFallbackHandler(address handler) public authorized {
         internalSetFallbackHandler(handler);

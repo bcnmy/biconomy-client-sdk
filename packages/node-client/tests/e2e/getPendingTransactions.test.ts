@@ -1,12 +1,12 @@
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
-import SafeServiceClient from '../../src'
+import SDKBackendClient from '../../src'
 import config from '../utils/config'
 import { getServiceClient } from '../utils/setupServiceClient'
 
 chai.use(chaiAsPromised)
 
-let serviceSdk: SafeServiceClient
+let serviceSdk: SDKBackendClient
 
 describe('getPendingTransactions', () => {
   before(async () => {

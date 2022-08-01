@@ -6,7 +6,7 @@ import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
-import SafeServiceClient, {
+import SDKBackendClient, {
   SafeBalancesOptions,
   SafeBalancesUsdOptions,
   SafeCollectiblesOptions,
@@ -37,7 +37,7 @@ const signer = new Wallet(
   provider
 )
 let ethAdapter: EthAdapter
-let serviceSdk: SafeServiceClient
+let serviceSdk: SDKBackendClient
 
 describe('Endpoint tests', () => {
   before(async () => {

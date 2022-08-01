@@ -1,13 +1,13 @@
 import { Signer } from '@ethersproject/abstract-signer'
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
-import SafeServiceClient, { SmartAccountDelegateConfig } from '../../src'
+import SDKBackendClient, { SmartAccountDelegateConfig } from '../../src'
 import config from '../utils/config'
 import { getServiceClient } from '../utils/setupServiceClient'
 
 chai.use(chaiAsPromised)
 
-let serviceSdk: SafeServiceClient
+let serviceSdk: SDKBackendClient
 let signer: Signer
 
 describe('addSafeDelegate', () => {

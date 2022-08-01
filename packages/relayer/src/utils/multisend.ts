@@ -30,31 +30,31 @@ export const buildContractCall = (
   delegateCall?: boolean,
   overrides?: Partial<WalletTransaction>
 ): WalletTransaction => {
-  const data = contract.interface.encodeFunctionData(method, params)
-  return buildWalletTransaction(
-    Object.assign(
-      {
-        to: contract.address,
-        data,
-        operation: delegateCall ? 1 : 0,
-        nonce
-      },
-      overrides
-    )
-  )
-}
+    const data = contract.interface.encodeFunctionData(method, params);
+    return buildSmartAccountTransaction(
+        Object.assign(
+            {
+                to: contract.address,
+                data,
+                operation: delegateCall ? 1 : 0,
+                nonce,
+            },
+            overrides
+        )
+    );
+};
 
-export const buildWalletTransaction = (template: {
-  to: string
-  value?: BigNumberish
-  data?: string
-  operation?: number
-  targetTxGas?: number | string
-  baseGas?: number | string
-  gasPrice?: number | string
-  gasToken?: string
-  refundReceiver?: string
-  nonce: number
+export const buildSmartAccountTransaction = (template: {
+    to: string;
+    value?: BigNumberish;
+    data?: string;
+    operation?: number;
+    targetTxGas?: number | string;
+    baseGas?: number | string;
+    gasPrice?: number | string;
+    gasToken?: string;
+    refundReceiver?: string;
+    nonce: number;
 }): WalletTransaction => {
   return {
     to: template.to,
@@ -83,11 +83,11 @@ export const encodeMultiSend = (txs: MetaTransaction[]): string => {
   return '0x' + txs.map((tx) => encodeMetaTransaction(tx)).join('')
 }
 
-export const buildMultiSendSafeTx = (
-  multiSend: Contract,
-  txs: MetaTransaction[],
-  nonce: number,
-  overrides?: Partial<WalletTransaction>
+export const buildMultiSendSmartAccountTx = (
+    multiSend: Contract,
+    txs: MetaTransaction[],
+    nonce: number,
+    overrides?: Partial<WalletTransaction>
 ): WalletTransaction => {
   return buildContractCall(multiSend, 'multiSend', [encodeMultiSend(txs)], nonce, true, overrides)
 }

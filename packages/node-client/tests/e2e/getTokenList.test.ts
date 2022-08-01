@@ -1,8 +1,8 @@
 import chai from 'chai'
-import SafeServiceClient from '../../src'
+import SDKBackendClient from '../../src'
 import { getServiceClient } from '../utils/setupServiceClient'
 
-let serviceSdk: SafeServiceClient
+let serviceSdk: SDKBackendClient
 
 describe('getTokenList', () => {
   before(async () => {
