@@ -175,8 +175,7 @@ class SmartAccount {
       this.ethAdapter[chainId],
       multiSendAddress
     );
-
-    this.multiSendContract[chainId] = getMultiSendContract(chainId, this.ethAdapter[chainId])
+    
     this.multiSendCallOnlyContract[chainId] = getMultiSendCallOnlyContract(
       this.ethAdapter[chainId],
       multiSendCallAddress
