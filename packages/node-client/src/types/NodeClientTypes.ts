@@ -32,6 +32,8 @@ export type ChainConfig = {
   blockExplorerUriTemplate: BlockExplorerConfig
   ensRegistryAddress: string
   walletFactoryAddress: string
+  multiSendAddress: string
+  multiSendCallAddress: string
   walletAddress: string // base wallet
   entryPoint: string //should make this address var
   fallBackHandler: string //should make this address var
