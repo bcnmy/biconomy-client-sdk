@@ -34,7 +34,9 @@ import {
   getSignatureParameters, 
   EIP712_WALLET_TX_TYPE, 
   buildSmartAccountTransaction, 
-  smartAccountSignMessage 
+  smartAccountSignMessage,
+  MetaTransaction, 
+  buildMultiSendSmartAccountTx
 } from '@biconomy-sdk/transactions'
 
 // Create an instance of Smart Account with multi-chain support.
@@ -336,6 +338,50 @@ class SmartAccount {
 
     return walletTx
   }
+
+    /**
+   * Prepares compatible WalletTransaction object based on Transaction Request
+   * @todo Write test case and limit batch size based on test results in scw-contracts
+   * @notice This transaction is without fee refund (gasless)
+   * @param transaction 
+   * @param batchId 
+   * @param chainId 
+   * @returns 
+   */
+     async createSmartAccountTransactionBatch(transactions: Transaction[], batchId:number = 0,chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<WalletTransaction> {
+      let walletContract = this.smartAccount(chainId).getContract();
+      walletContract = walletContract.attach(this.address);
+      
+      // NOTE : If the wallet is not deployed yet then nonce would be zero
+      let nonce = 0;
+      if(await this.isDeployed(chainId)) {
+        nonce = (await walletContract.getNonce(batchId)).toNumber();
+      } 
+      console.log('nonce: ', nonce);
+  
+      
+      const txs: MetaTransaction[] = [];
+
+      for(let i=0; i < transactions.length; i++) {
+
+        const innerTx: WalletTransaction = buildSmartAccountTransaction({
+          to: transactions[i].to,
+          value: transactions[i].value,
+          data: transactions[i].data, // for token transfers use encodeTransfer
+          nonce: 0
+        })
+
+        txs.push(innerTx);
+      }
+
+      const walletTx: WalletTransaction = buildMultiSendSmartAccountTx(
+        this.multiSend(chainId).getContract(),
+        txs,
+        nonce
+      );
+  
+      return walletTx
+    }
 
   /**
    * 

@@ -43,7 +43,7 @@ export const EIP712_SMART_ACCOUNT_MESSAGE_TYPE = {
 
 export interface MetaTransaction {
   to: string
-  value: string | number | BigNumber
+  value: BigNumberish
   data: string
   operation: number
 }
@@ -73,11 +73,7 @@ export interface FeeRefund {
   refundReceiver: string
 }
 
-export interface WalletTransaction {
-  to: string
-  value: BigNumberish
-  data: string
-  operation: number
+export interface WalletTransaction extends MetaTransaction{
   targetTxGas: string | number
   baseGas: string | number
   gasPrice: string | number
