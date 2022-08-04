@@ -1,11 +1,10 @@
 import { BigNumber } from '@ethersproject/bignumber'
 import { SingletonDeployment } from '@gnosis.pm/safe-deployments'
 import { SmartWalletContract } from 'contracts/SmartWalletContract'
-import { AbiItem } from 'web3-utils'
 import { MultiSendContract } from '../contracts/MultiSendContract'
 import { MultiSendCallOnlyContract } from '../contracts/MultiSendCallOnlyContract'
 import { SmartWalletFactoryContract } from '../contracts/SmartWalletFactoryContract'
-import { SmartAccountVersion, Eip3770Address } from '../types'
+import { Eip3770Address } from '../types'
 
 export interface EthAdapterTransaction {
   to: string

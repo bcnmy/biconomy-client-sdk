@@ -1,13 +1,5 @@
-import {
-  FeeRefundData,
-  SmartAccountTrx,
-  WalletTransaction,
-  SmartAccountVersion,
-  TransactionOptions,
-  TransactionResult,
-  ExecTransaction,
-  FeeRefund
-} from '../types'
+import { WalletTransaction, ExecTransaction, FeeRefund } from '../transaction.types'
+import { SmartAccountVersion } from '../types'
 import { BigNumber } from '@ethersproject/bignumber'
 import { Interface } from '@ethersproject/abi'
 import { Contract } from '@ethersproject/contracts'

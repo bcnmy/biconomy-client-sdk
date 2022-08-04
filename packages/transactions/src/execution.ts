@@ -37,9 +37,9 @@ export const EIP712_WALLET_TX_TYPE = {
 }
 
 export const EIP712_SMART_ACCOUNT_MESSAGE_TYPE = {
-    // "SmartAccountMessage(bytes message)"
-    SmartAccountMessage: [{ type: "bytes", name: "message" }],
-};
+  // "SmartAccountMessage(bytes message)"
+  SmartAccountMessage: [{ type: 'bytes', name: 'message' }]
+}
 
 export interface MetaTransaction {
   to: string
@@ -50,12 +50,12 @@ export interface MetaTransaction {
 
 // Marked for deletion
 export interface SmartaccountTransaction extends MetaTransaction {
-    targetTxGas: string | number;
-    baseGas: string | number;
-    gasPrice: string | number;
-    gasToken: string;
-    refundReceiver: string;
-    nonce: string | number;
+  targetTxGas: string | number
+  baseGas: string | number
+  gasPrice: string | number
+  gasToken: string
+  refundReceiver: string
+  nonce: string | number
 }
 
 export interface Transaction {
@@ -102,168 +102,162 @@ export interface SmartAccountTransaction {
 }
 
 export interface SmartAccountSignature {
-    signer: string;
-    data: string;
-  }
+  signer: string
+  data: string
+}
 
 export const calculateSmartAccountDomainSeparator = (
-    wallet: Contract,
-    chainId: BigNumberish
+  wallet: Contract,
+  chainId: BigNumberish
 ): string => {
-    return utils._TypedDataEncoder.hashDomain({
-        verifyingContract: wallet.address,
-        chainId,
-    });
-};
+  return utils._TypedDataEncoder.hashDomain({
+    verifyingContract: wallet.address,
+    chainId
+  })
+}
 
 export const preimageWalletTransactionHash = (
-    wallet: Contract,
-    SmartAccountTx: WalletTransaction,
-    chainId: BigNumberish
+  wallet: Contract,
+  SmartAccountTx: WalletTransaction,
+  chainId: BigNumberish
 ): string => {
-    return utils._TypedDataEncoder.encode(
-        { verifyingContract: wallet.address, chainId },
-        EIP712_WALLET_TX_TYPE,
-        SmartAccountTx
-    );
-};
+  return utils._TypedDataEncoder.encode(
+    { verifyingContract: wallet.address, chainId },
+    EIP712_WALLET_TX_TYPE,
+    SmartAccountTx
+  )
+}
 
 export const calculateSmartAccountTransactionHash = (
-    wallet: Contract,
-    SmartAccountTx: WalletTransaction,
-    chainId: BigNumberish
+  wallet: Contract,
+  SmartAccountTx: WalletTransaction,
+  chainId: BigNumberish
 ): string => {
-    return utils._TypedDataEncoder.hash(
-        { verifyingContract: wallet.address, chainId },
-        EIP712_WALLET_TX_TYPE,
-        SmartAccountTx
-    );
-};
+  return utils._TypedDataEncoder.hash(
+    { verifyingContract: wallet.address, chainId },
+    EIP712_WALLET_TX_TYPE,
+    SmartAccountTx
+  )
+}
 
 export const calculateSmartAccountMessageHash = (
-    wallet: Contract,
-    message: string,
-    chainId: BigNumberish
+  wallet: Contract,
+  message: string,
+  chainId: BigNumberish
 ): string => {
-    return utils._TypedDataEncoder.hash(
-        { verifyingContract: wallet.address, chainId },
-        EIP712_SMART_ACCOUNT_MESSAGE_TYPE,
-        { message }
-    );
-};
+  return utils._TypedDataEncoder.hash(
+    { verifyingContract: wallet.address, chainId },
+    EIP712_SMART_ACCOUNT_MESSAGE_TYPE,
+    { message }
+  )
+}
 
 export const smartAccountSignTypedData = async (
-    signer: Signer & TypedDataSigner,
-    wallet: Contract,
-    SmartAccountTx: WalletTransaction,
-    chainId?: BigNumberish
+  signer: Signer & TypedDataSigner,
+  wallet: Contract,
+  SmartAccountTx: WalletTransaction,
+  chainId?: BigNumberish
 ): Promise<SmartAccountSignature> => {
-    if (!chainId && !signer.provider)
-        throw Error("Provider required to retrieve chainId");
-    const cid = chainId || (await signer.provider!!.getNetwork()).chainId;
-    const signerAddress = await signer.getAddress();
-    return {
-        signer: signerAddress,
-        data: await signer._signTypedData(
-            { verifyingContract: wallet.address, chainId: cid },
-            EIP712_WALLET_TX_TYPE,
-            SmartAccountTx
-        ),
-    };
-};
+  if (!chainId && !signer.provider) throw Error('Provider required to retrieve chainId')
+  const cid = chainId || (await signer.provider!!.getNetwork()).chainId
+  const signerAddress = await signer.getAddress()
+  return {
+    signer: signerAddress,
+    data: await signer._signTypedData(
+      { verifyingContract: wallet.address, chainId: cid },
+      EIP712_WALLET_TX_TYPE,
+      SmartAccountTx
+    )
+  }
+}
 
-export const signHash = async (
-    signer: Signer,
-    hash: string
-): Promise<SmartAccountSignature> => {
-    const typedDataHash = utils.arrayify(hash);
-    const signerAddress = await signer.getAddress();
-    return {
-        signer: signerAddress,
-        data: (await signer.signMessage(typedDataHash))
-            .replace(/1b$/, "1f")
-            .replace(/1c$/, "20"),
-    };
-};
+export const signHash = async (signer: Signer, hash: string): Promise<SmartAccountSignature> => {
+  const typedDataHash = utils.arrayify(hash)
+  const signerAddress = await signer.getAddress()
+  return {
+    signer: signerAddress,
+    data: (await signer.signMessage(typedDataHash)).replace(/1b$/, '1f').replace(/1c$/, '20')
+  }
+}
 
 export const smartAccountSignMessage = async (
-    signer: Signer,
-    wallet: Contract,
-    SmartAccountTx: WalletTransaction,
-    chainId?: BigNumberish
+  signer: Signer,
+  wallet: Contract,
+  SmartAccountTx: WalletTransaction,
+  chainId?: BigNumberish
 ): Promise<SmartAccountSignature> => {
-    const cid = chainId || (await signer.provider!!.getNetwork()).chainId;
-    return signHash(signer, calculateSmartAccountTransactionHash(wallet, SmartAccountTx, cid));
-};
+  const cid = chainId || (await signer.provider!!.getNetwork()).chainId
+  return signHash(signer, calculateSmartAccountTransactionHash(wallet, SmartAccountTx, cid))
+}
 
 export const buildSignatureBytes = (signatures: SmartAccountSignature[]): string => {
-    signatures.sort((left, right) =>
-        left.signer.toLowerCase().localeCompare(right.signer.toLowerCase())
-    );
-    let signatureBytes = "0x";
-    for (const sig of signatures) {
-        signatureBytes += sig.data.slice(2);
-    }
-    return signatureBytes;
-};
+  signatures.sort((left, right) =>
+    left.signer.toLowerCase().localeCompare(right.signer.toLowerCase())
+  )
+  let signatureBytes = '0x'
+  for (const sig of signatures) {
+    signatureBytes += sig.data.slice(2)
+  }
+  return signatureBytes
+}
 
 export const executeTx = async (
-    wallet: Contract,
-    SmartAccountTx: WalletTransaction,
-    signatures: SmartAccountSignature[],
-    overrides?: any
+  wallet: Contract,
+  SmartAccountTx: WalletTransaction,
+  signatures: SmartAccountSignature[],
+  overrides?: any
 ): Promise<any> => {
-    const signatureBytes = buildSignatureBytes(signatures);
-    const transaction: ExecTransaction = {
-        to: SmartAccountTx.to,
-        value: SmartAccountTx.value,
-        data: SmartAccountTx.data,
-        operation: SmartAccountTx.operation,
-        targetTxGas: SmartAccountTx.targetTxGas,
-    };
-    const refundInfo: FeeRefund = {
-        baseGas: SmartAccountTx.baseGas,
-        gasPrice: SmartAccountTx.gasPrice,
-        gasToken: SmartAccountTx.gasToken,
-        refundReceiver: SmartAccountTx.refundReceiver,
-    };
-    return wallet.execTransaction(
-        transaction,
-        0, // batchId
-        refundInfo,
-        signatureBytes,
-        overrides || {}
-    );
-};
+  const signatureBytes = buildSignatureBytes(signatures)
+  const transaction: ExecTransaction = {
+    to: SmartAccountTx.to,
+    value: SmartAccountTx.value,
+    data: SmartAccountTx.data,
+    operation: SmartAccountTx.operation,
+    targetTxGas: SmartAccountTx.targetTxGas
+  }
+  const refundInfo: FeeRefund = {
+    baseGas: SmartAccountTx.baseGas,
+    gasPrice: SmartAccountTx.gasPrice,
+    gasToken: SmartAccountTx.gasToken,
+    refundReceiver: SmartAccountTx.refundReceiver
+  }
+  return wallet.execTransaction(
+    transaction,
+    0, // batchId
+    refundInfo,
+    signatureBytes,
+    overrides || {}
+  )
+}
 
 export const populateExecuteTx = async (
-    wallet: Contract,
-    SmartAccountTx: WalletTransaction,
-    signatures: SmartAccountSignature[],
-    overrides?: any
+  wallet: Contract,
+  SmartAccountTx: WalletTransaction,
+  signatures: SmartAccountSignature[],
+  overrides?: any
 ): Promise<PopulatedTransaction> => {
-    const signatureBytes = buildSignatureBytes(signatures);
-    const transaction: ExecTransaction = {
-        to: SmartAccountTx.to,
-        value: SmartAccountTx.value,
-        data: SmartAccountTx.data,
-        operation: SmartAccountTx.operation,
-        targetTxGas: SmartAccountTx.targetTxGas,
-    };
-    const refundInfo: FeeRefund = {
-        baseGas: SmartAccountTx.baseGas,
-        gasPrice: SmartAccountTx.gasPrice,
-        gasToken: SmartAccountTx.gasToken,
-        refundReceiver: SmartAccountTx.refundReceiver,
-    };
-    return wallet.populateTransaction.execTransaction(
-        transaction,
-        0, // batchId
-        refundInfo,
-        signatureBytes,
-        overrides || {}
-    );
-};
+  const signatureBytes = buildSignatureBytes(signatures)
+  const transaction: ExecTransaction = {
+    to: SmartAccountTx.to,
+    value: SmartAccountTx.value,
+    data: SmartAccountTx.data,
+    operation: SmartAccountTx.operation,
+    targetTxGas: SmartAccountTx.targetTxGas
+  }
+  const refundInfo: FeeRefund = {
+    baseGas: SmartAccountTx.baseGas,
+    gasPrice: SmartAccountTx.gasPrice,
+    gasToken: SmartAccountTx.gasToken,
+    refundReceiver: SmartAccountTx.refundReceiver
+  }
+  return wallet.populateTransaction.execTransaction(
+    transaction,
+    0, // batchId
+    refundInfo,
+    signatureBytes,
+    overrides || {}
+  )
+}
 
 export const buildContractCall = (
   contract: Contract,
@@ -273,63 +267,63 @@ export const buildContractCall = (
   delegateCall?: boolean,
   overrides?: Partial<WalletTransaction>
 ): WalletTransaction => {
-    const data = contract.interface.encodeFunctionData(method, params);
-    return buildSmartAccountTransaction(
-        Object.assign(
-            {
-                to: contract.address,
-                data,
-                operation: delegateCall ? 1 : 0,
-                nonce,
-            },
-            overrides
-        )
-    );
-};
+  const data = contract.interface.encodeFunctionData(method, params)
+  return buildSmartAccountTransaction(
+    Object.assign(
+      {
+        to: contract.address,
+        data,
+        operation: delegateCall ? 1 : 0,
+        nonce
+      },
+      overrides
+    )
+  )
+}
 
 export const executeTxWithSigners = async (
-    wallet: Contract,
-    tx: WalletTransaction,
-    signers: Wallet[],
-    overrides?: any
+  wallet: Contract,
+  tx: WalletTransaction,
+  signers: Wallet[],
+  overrides?: any
 ) => {
-    const sigs = await Promise.all(
-        signers.map((signer) => smartAccountSignTypedData(signer, wallet, tx))
-    );
-    return executeTx(wallet, tx, sigs, overrides);
-};
+  const sigs = await Promise.all(
+    signers.map((signer) => smartAccountSignTypedData(signer, wallet, tx))
+  )
+  return executeTx(wallet, tx, sigs, overrides)
+}
 
 export const executeContractCallWithSigners = async (
-    wallet: Contract,
-    contract: Contract,
-    method: string,
-    params: any[],
-    signers: Wallet[],
-    delegateCall?: boolean,
-    overrides?: Partial<WalletTransaction>
+  wallet: Contract,
+  contract: Contract,
+  method: string,
+  params: any[],
+  signers: Wallet[],
+  delegateCall?: boolean,
+  overrides?: Partial<WalletTransaction>
 ) => {
-    const tx = buildContractCall(
-        contract,
-        method,
-        params,
-        await wallet.getNonce(0), //default batchId @review
-        delegateCall,
-        overrides
-    );
-    return executeTxWithSigners(wallet, tx, signers);
-};
+  const tx = buildContractCall(
+    contract,
+    method,
+    params,
+    await wallet.getNonce(0), //default batchId @review
+    delegateCall,
+    overrides
+  )
+  return executeTxWithSigners(wallet, tx, signers)
+}
 
 export const buildSmartAccountTransaction = (template: {
-    to: string;
-    value?: BigNumberish;
-    data?: string;
-    operation?: number;
-    targetTxGas?: number | string;
-    baseGas?: number | string;
-    gasPrice?: number | string;
-    gasToken?: string;
-    refundReceiver?: string;
-    nonce: number;
+  to: string
+  value?: BigNumberish
+  data?: string
+  operation?: number
+  targetTxGas?: number | string
+  baseGas?: number | string
+  gasPrice?: number | string
+  gasToken?: string
+  refundReceiver?: string
+  nonce: number
 }): WalletTransaction => {
   return {
     to: template.to,

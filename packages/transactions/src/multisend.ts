@@ -17,10 +17,10 @@ export const encodeMultiSend = (txs: MetaTransaction[]): string => {
 }
 
 export const buildMultiSendSmartAccountTx = (
-    multiSend: Contract,
-    txs: MetaTransaction[],
-    nonce: number,
-    overrides?: Partial<WalletTransaction>
+  multiSend: Contract,
+  txs: MetaTransaction[],
+  nonce: number,
+  overrides?: Partial<WalletTransaction>
 ): WalletTransaction => {
   return buildContractCall(multiSend, 'multiSend', [encodeMultiSend(txs)], nonce, true, overrides)
 }

@@ -79,21 +79,21 @@ class EthersAdapter implements EthAdapter {
     return getSmartWalletContractInstance(address, this.#provider)
   }
 
-  getMultiSendContract(address:string): MultiSendEthersContract {
+  getMultiSendContract(address: string): MultiSendEthersContract {
     if (!address) {
       throw new Error('Invalid Multi Send contract address')
     }
     return getMultiSendContractInstance(address, this.#provider)
   }
 
-  getMultiSendCallOnlyContract(address:string): MultiSendCallOnlyEthersContract {
+  getMultiSendCallOnlyContract(address: string): MultiSendCallOnlyEthersContract {
     if (!address) {
       throw new Error('Invalid Multi Send contract address')
     }
     return getMultiSendCallOnlyContractInstance(address, this.#provider)
   }
 
-  getSmartWalletFactoryContract(address:string): SmartWalletProxyFactoryEthersContract {
+  getSmartWalletFactoryContract(address: string): SmartWalletProxyFactoryEthersContract {
     if (!address) {
       throw new Error('Invalid Wallet Factory contract address')
     }
