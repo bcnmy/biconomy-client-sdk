@@ -29,7 +29,7 @@
   "author": "Biconomy (https://biconomy.io)",
   "devDependencies": {
     "lerna": "^5.1.6",
-    "nx": "^14.5.1",
+    "nx": "^14.5.2",
     "prettier": "2.7.1",
     "ts-node": "^10.8.2"
   },
