@@ -90,6 +90,11 @@ class SmartAccount {
   /**Constrcutor for the Smart Account. If config is not provided it makes Smart Contract available using default configuration
    * If you wish to use your own backend server and relayer service, pass the URLs here
    */
+  // Review :: ToDo
+  // To be able to passs provider : WalletProviderLike 
+  // in mexa sdk we have ExternalProvider
+
+  //TODO : Discuss regarding provider urls
   constructor(walletProvider:Web3Provider ,config?: Partial<SmartAccountConfig>) {
 
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
@@ -119,7 +124,7 @@ class SmartAccount {
    * @returns this/self - instance of SmartAccount
    */
   public async init(): Promise<SmartAccount> {
-    const chainConfig = (await this.getSupportedChainsInfo()).data;
+    const chainConfig = (await this.getSupportedChainsInfo()).data; 
     this.chainConfig = chainConfig;
     // console.log("chain config: ", chainConfig);
     
@@ -459,6 +464,8 @@ class SmartAccount {
   // more methods to fetch balance via backend -> indexer node
   // getTokenBalances() @Talha
 
+  // @notice : instead of just reading from contract this should come from backend (given owner and index)
+  // this API would be able to check history of owner, contract updates and read from chain
   /**
    * @param address Owner aka {EOA} address
    * @param index number of smart account deploy i.e {0, 1 ,2 ...}
