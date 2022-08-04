@@ -61,6 +61,7 @@ packages/node-client/package-lock.json
 packages/relayer/package-lock.json
 packages/smart-account/package-lock.json
 packages/transactions/package-lock.json
+package-lock.json
 
 # Typechain
 typechain
