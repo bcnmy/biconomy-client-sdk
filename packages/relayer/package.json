@@ -24,7 +24,7 @@
     "lint": "tslint -p tsconfig.json"
   },
   "dependencies": {
-    "@biconomy-sdk/core-types": "^0.0.2",
+    "@biconomy-sdk/core-types": "*",
     "@ethersproject/providers": "^5.6.8",
     "ethers": "^5.6.9"
   },
