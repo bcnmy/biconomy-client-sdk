@@ -29,12 +29,12 @@ type EthereumInstance = {
 enum ChainId {
   // Ethereum
   MAINNET = 1,
-  ROPSTEN = 3,
-  RINKEBY = 4,
   GOERLI = 5,
-  KOVAN = 42,
-  MUMBAI = 80001,
-  GANACHE = 1337
+  POLYGON_MUMBAI = 80001,
+  POLYGON_MAINNET = 137,
+  BSC_TESTNET = 97,
+  BSC_MAINNET = 56,
+  GANACHE = 1337 //Temp
 }
 
 // import hardhat from 'hardhat'
@@ -209,7 +209,7 @@ describe('Wallet integration', function () {
 
       const wallet = new SmartAccount(ethnode.provider, {
         activeNetworkId: ChainId.GANACHE,
-        supportedNetworksIds: [ChainId.RINKEBY, ChainId.GANACHE] // has to be consisttent providers and network names
+        supportedNetworksIds: [ChainId.GOERLI, ChainId.GANACHE] // has to be consisttent providers and network names
         // walletProvider: ethnode.provider,
         //backend_url: "http://localhost:3000/v1"
       })
@@ -243,7 +243,7 @@ describe('Wallet integration', function () {
 
       const wallet = new SmartAccount(ethnode.provider, {
         activeNetworkId: ChainId.GANACHE,
-        supportedNetworksIds: [ChainId.RINKEBY, ChainId.GANACHE] // has to be consisttent providers and network names
+        supportedNetworksIds: [ChainId.GOERLI, ChainId.GANACHE] // has to be consisttent providers and network names
         // walletProvider: ethnode.provider,
         //backend_url: "http://localhost:3000/v1"
       })
@@ -280,7 +280,7 @@ describe('Wallet integration', function () {
 
       const wallet = new SmartAccount(ethnode.provider, {
         activeNetworkId: ChainId.GANACHE,
-        supportedNetworksIds: [ChainId.RINKEBY, ChainId.GANACHE] // has to be consisttent providers and network names
+        supportedNetworksIds: [ChainId.GOERLI, ChainId.GANACHE] // has to be consisttent providers and network names
         // walletProvider: ethnode.provider,
         //backend_url: "http://localhost:3000/v1"
       })
@@ -321,7 +321,7 @@ describe('Wallet integration', function () {
 
       const wallet = new SmartAccount(ethnode.provider, {
         activeNetworkId: ChainId.GANACHE,
-        supportedNetworksIds: [ChainId.RINKEBY, ChainId.GANACHE] // has to be consisttent providers and network names
+        supportedNetworksIds: [ChainId.GOERLI, ChainId.GANACHE] // has to be consisttent providers and network names
         // walletProvider: ethnode.provider,
         //backend_url: "http://localhost:3000/v1"
       })
@@ -342,7 +342,7 @@ describe('Wallet integration', function () {
 
       expect(address).to.be.equal(smartAccount.address)
 
-      smartAccount.setActiveChain(ChainId.RINKEBY)
+      smartAccount.setActiveChain(ChainId.GOERLI)
 
       // Now on Rinkeby
       const isDeployed = await smartAccount.isDeployed() /// can pass chainId here
@@ -360,7 +360,7 @@ describe('Wallet integration', function () {
 
       const wallet = new SmartAccount(ethnode.provider, {
         activeNetworkId: ChainId.GANACHE,
-        supportedNetworksIds: [ChainId.RINKEBY, ChainId.GANACHE] // has to be consisttent providers and network names
+        supportedNetworksIds: [ChainId.GOERLI ,ChainId.GANACHE] // has to be consisttent providers and network names
         // walletProvider: ethnode.provider,
         //backend_url: "http://localhost:3000/v1"
       })

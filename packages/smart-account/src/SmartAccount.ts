@@ -547,8 +547,8 @@ class SmartAccount {
 // Temporary default config
 // TODO/NOTE : make Goerli and Mumbai as test networks and remove others
 export const DefaultSmartAccountConfig: SmartAccountConfig = {
-  activeNetworkId: ChainId.RINKEBY, //Update later
-  supportedNetworksIds: [ChainId.GOERLI, ChainId.RINKEBY, ChainId.MUMBAI],
+  activeNetworkId: ChainId.GOERLI, //Update later
+  supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],
   backend_url: 'http://localhost:3000/v1'
 }
 

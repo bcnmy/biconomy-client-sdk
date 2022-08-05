@@ -28,10 +28,10 @@ export enum ChainNames {
 export enum ChainId {
   // Ethereum
   MAINNET = 1,
-  ROPSTEN = 3,
-  RINKEBY = 4,
   GOERLI = 5,
-  KOVAN = 42,
-  MUMBAI = 80001,
+  POLYGON_MUMBAI = 80001,
+  POLYGON_MAINNET = 137,
+  BSC_TESTNET = 97,
+  BSC_MAINNET = 56,
   GANACHE = 1337 //Temp
 }
