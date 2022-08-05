@@ -7,7 +7,7 @@ import {
   IndividualTokenResponse,
   SmartAccountsResponse,
   BalancesDto,
-  BalancesRespose,
+  BalancesResponse,
   UsdBalanceResponse
 } from './types/NodeClientTypes'
 import { getTxServiceBaseUrl } from './utils'
@@ -99,7 +99,7 @@ class NodeClient implements INodeClient {
     })
   }
 
-  async getAlltokenBalances(balancesDto: BalancesDto): Promise<BalancesRespose> {
+  async getAlltokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/smart-accounts/balances`,
       method: HttpMethod.Post,

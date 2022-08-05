@@ -63,12 +63,14 @@ export interface SmartAccountTrxDataPartial extends MetaTransactionData {
   readonly refundReceiver?: string
   readonly nonce?: number
 }
-
-export interface WalletTransaction {
+export interface MetaTransaction {
   to: string
   value: BigNumberish
   data: string
   operation: number
+}
+
+export interface WalletTransaction extends MetaTransaction{
   targetTxGas: string | number
   baseGas: string | number
   gasPrice: string | number

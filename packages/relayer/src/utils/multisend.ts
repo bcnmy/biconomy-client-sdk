@@ -4,16 +4,12 @@ import { AddressZero } from '@ethersproject/constants'
 
 export interface MetaTransaction {
   to: string
-  value: string | number | BigNumber
+  value: BigNumberish
   data: string
   operation: number
 }
 
-export interface WalletTransaction {
-  to: string
-  value: BigNumberish
-  data: string
-  operation: number
+export interface WalletTransaction extends MetaTransaction{
   targetTxGas: string | number
   baseGas: string | number
   gasPrice: string | number

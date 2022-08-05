@@ -145,7 +145,7 @@ export type SmartAccountsResponse = {
   code: number
   data: ISmartAccount
 }
-export type BalancesRespose = {
+export type BalancesResponse = {
   message: string
   code: number
   data: IBalances[]

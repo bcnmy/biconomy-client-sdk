@@ -6,7 +6,7 @@ import {
   SupportedTokensResponse,
   IndividualTokenResponse,
   SmartAccountsResponse,
-  BalancesRespose,
+  BalancesResponse,
   BalancesDto,
   UsdBalanceResponse
 } from './types/NodeClientTypes'
@@ -32,7 +32,7 @@ interface INodeClient {
 
   getSmartAccountsByOwner(chainId: number, owner: string): Promise<SmartAccountsResponse>
 
-  getAlltokenBalances(balancesDto: BalancesDto): Promise<BalancesRespose>
+  getAlltokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse>
 
   getTotalBalanceInUsd(balancesDto: BalancesDto): Promise<UsdBalanceResponse>
 }
