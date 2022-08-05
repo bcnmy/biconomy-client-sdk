@@ -549,7 +549,7 @@ class SmartAccount {
 export const DefaultSmartAccountConfig: SmartAccountConfig = {
   activeNetworkId: ChainId.GOERLI, //Update later
   supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],
-  backend_url: 'http://localhost:3000/v1'
+  backend_url: 'https://sdk-backend.staging.biconomy.io/v1'
 }
 
 export default SmartAccount

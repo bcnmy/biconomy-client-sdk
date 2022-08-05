@@ -67,7 +67,7 @@ describe('Wallet integration', function () {
       console.log('multi send deployed at : ', multiSend.address)
       console.log('multi send deployed at : ', multiSendCallOnly.address)
 
-      const scope = nock('http://localhost:3000')
+      const scope = nock('https://sdk-backend.staging.biconomy.io')
         .persist()
         .get('/v1/chains/')
         .reply(200, {
@@ -398,8 +398,6 @@ describe('Wallet integration', function () {
       const wallet = new SmartAccount(ethnode.provider, {
         activeNetworkId: ChainId.GANACHE,
         supportedNetworksIds: [ChainId.GOERLI, ChainId.GANACHE] // has to be consisttent providers and network names
-        // walletProvider: ethnode.provider,
-        //backend_url: "http://localhost:3000/v1"
       })
 
       const smartAccount = await wallet.init()
@@ -439,8 +437,6 @@ describe('Wallet integration', function () {
       const wallet = new SmartAccount(ethnode.provider, {
         activeNetworkId: ChainId.GANACHE,
         supportedNetworksIds: [ChainId.GOERLI, ChainId.GANACHE] // has to be consisttent providers and network names
-        // walletProvider: ethnode.provider,
-        //backend_url: "http://localhost:3000/v1"
       })
 
       const smartAccount = await wallet.init()
@@ -478,8 +474,6 @@ describe('Wallet integration', function () {
       const wallet = new SmartAccount(ethnode.provider, {
         activeNetworkId: ChainId.GANACHE,
         supportedNetworksIds: [ChainId.GOERLI ,ChainId.GANACHE] // has to be consisttent providers and network names
-        // walletProvider: ethnode.provider,
-        //backend_url: "http://localhost:3000/v1"
       })
 
       const smartAccount = await wallet.init()
