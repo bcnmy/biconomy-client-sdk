@@ -189,11 +189,13 @@ class SmartAccount {
     return this.nodeClient.getAllSupportedChains()
   }
 
-  private async getAlltokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse> {
+  public async getAlltokenBalances(balancesDto: BalancesDto, chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<BalancesResponse> {
+    if(!balancesDto.chainId) balancesDto.chainId = chainId;
     return this.nodeClient.getAlltokenBalances(balancesDto)
   }
 
-  private async getTotalBalanceInUsd(balancesDto: BalancesDto): Promise<UsdBalanceResponse> {
+  public async getTotalBalanceInUsd(balancesDto: BalancesDto, chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<UsdBalanceResponse> {
+    if(!balancesDto.chainId) balancesDto.chainId = chainId;  
     return this.nodeClient.getTotalBalanceInUsd(balancesDto)
   }
 
