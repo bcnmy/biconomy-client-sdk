@@ -1,14 +1,8 @@
-import { TransactionRequest, TransactionResponse } from '@ethersproject/providers'
-import { RawTransactionType } from '@biconomy-sdk/core-types'
+import { TransactionResponse } from '@ethersproject/providers'
 import { Signer as AbstractSigner, ethers } from 'ethers'
 import { Relayer } from '.'
 
 import {
-  SmartWalletFactoryContract,
-  SmartWalletContract,
-  MultiSendContract,
-  MultiSendCallOnlyContract,
-  TransactionResult,
   SmartAccountContext,
   SmartAccountState,
   SignedTransaction,

@@ -1,11 +1,5 @@
-import { ethers, providers } from 'ethers'
-import { TransactionRequest, TransactionResponse } from '@ethersproject/providers'
-import {
-  SignedTransaction,
-  RawTransactionType,
-  SmartAccountState,
-  SmartAccountContext
-} from '@biconomy-sdk/core-types'
+import { TransactionResponse } from '@ethersproject/providers'
+import { SignedTransaction, SmartAccountState, SmartAccountContext } from '@biconomy-sdk/core-types'
 
 export interface Relayer {
   // relayer will submit the transaction(s) to the network and return the transaction response.

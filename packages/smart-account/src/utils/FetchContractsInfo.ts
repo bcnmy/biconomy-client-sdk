@@ -10,13 +10,13 @@ import EthersAdapter from '@biconomy-sdk/ethers-lib'
 
 export function getSmartWalletFactoryContract(
   ethAdapter: EthersAdapter,
-  address:string
+  address: string
 ): SmartWalletFactoryContract {
   return ethAdapter.getSmartWalletFactoryContract(address)
 }
 export function getMultiSendContract(
   ethAdapter: EthersAdapter,
-  address:string
+  address: string
 ): MultiSendContract {
   return ethAdapter.getMultiSendContract(address)
 }
