@@ -63,7 +63,7 @@
     }
   },
   "dependencies": {
-    "@biconomy-sdk/core-types": "*",
+    "@biconomy-sdk/core-types": "^1.0.0",
     "@ethersproject/abstract-signer": "^5.6.0",
     "@gnosis.pm/safe-core-sdk": "^2.1.0",
     "node-fetch": "^2.6.6"
