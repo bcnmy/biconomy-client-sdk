@@ -1,3 +1,4 @@
+import { ChainId, SmartAccountVersion } from '@biconomy-sdk/core-types'
 export type SmartAccountInfoResponse = {
   readonly name: string
   readonly version: string
@@ -22,8 +23,16 @@ export type BalancesDto = {
   tokenAddresses: string[]
 }
 
+export type ContractDetails = {
+  version: SmartAccountVersion
+
+  address: string
+
+  abi: string
+}
+
 export type ChainConfig = {
-  chainId: number
+  chainId: ChainId
   name: string
   symbol: string
   isL2: boolean
@@ -31,12 +40,12 @@ export type ChainConfig = {
   description: string
   blockExplorerUriTemplate: BlockExplorerConfig
   ensRegistryAddress: string
-  walletFactoryAddress: string
-  multiSendAddress: string
-  multiSendCallAddress: string
-  walletAddress: string // base wallet
-  entryPoint: string //should make this address var
-  fallBackHandler: string //should make this address var
+  walletFactory: ContractDetails[]
+  multiSend: ContractDetails[]
+  multiSendCall: ContractDetails[]
+  wallet: ContractDetails[] // base wallet
+  entryPoint: ContractDetails[] //should make this address var
+  fallBackHandler: ContractDetails[] //should make this address var
   relayerURL: string
   providerUrl: string
   indexerUrl: string
