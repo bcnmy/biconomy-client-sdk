@@ -2,7 +2,6 @@ import { SmartWalletFactoryContract } from './contracts/SmartWalletFactoryContra
 import { MultiSendContract } from './contracts/MultiSendContract'
 import { MultiSendCallOnlyContract } from './contracts/MultiSendCallOnlyContract'
 import { SmartWalletContract } from './contracts/SmartWalletContract'
-import { BigNumber, BigNumberish } from 'ethers'
 
 export type SmartAccountVersion = '1.3.0' | '1.2.0' | '1.1.1'
 
