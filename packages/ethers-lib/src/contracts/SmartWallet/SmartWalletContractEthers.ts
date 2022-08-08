@@ -11,16 +11,16 @@ import { toTxResult } from '../../utils'
 import { SmartWalletContract as SmartWalletContract_TypeChain } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletContract'
 import { SmartWalletContractInterface } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletContract'
 import { getJsonWalletAddress, Interface } from 'ethers/lib/utils'
-import { Contract } from '@ethersproject/contracts';
+import { Contract } from '@ethersproject/contracts'
 class SmartWalletContractEthers implements SmartWalletContract {
   constructor(public contract: SmartWalletContract_TypeChain) {}
 
   getInterface(): Interface {
-    return this.contract.interface;
+    return this.contract.interface
   }
 
   getContract(): Contract {
-    return this.contract;
+    return this.contract
   }
 
   getAddress(): string {
@@ -28,7 +28,7 @@ class SmartWalletContractEthers implements SmartWalletContract {
   }
 
   setAddress(address: string) {
-    this.contract.attach(address);
+    this.contract.attach(address)
   }
 
   async getOwner(): Promise<string> {
@@ -64,12 +64,7 @@ class SmartWalletContractEthers implements SmartWalletContract {
     signatures: string
   ): Promise<TransactionResult> {
     // TODO: estimate GAS before making the transaction
-    const txResponse = await this.contract.execTransaction(
-      _tx,
-      batchId,
-      refundInfo,
-      signatures
-    )
+    const txResponse = await this.contract.execTransaction(_tx, batchId, refundInfo, signatures)
     return toTxResult(txResponse)
   }
 

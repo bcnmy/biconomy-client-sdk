@@ -1,11 +1,10 @@
 import { BigNumber } from '@ethersproject/bignumber'
 import { SingletonDeployment } from '@gnosis.pm/safe-deployments'
 import { SmartWalletContract } from 'contracts/SmartWalletContract'
-import { AbiItem } from 'web3-utils'
 import { MultiSendContract } from '../contracts/MultiSendContract'
 import { MultiSendCallOnlyContract } from '../contracts/MultiSendCallOnlyContract'
 import { SmartWalletFactoryContract } from '../contracts/SmartWalletFactoryContract'
-import { SmartAccountVersion, Eip3770Address } from '../types'
+import { Eip3770Address } from '../types'
 
 export interface EthAdapterTransaction {
   to: string
@@ -25,13 +24,10 @@ export interface EthAdapter {
   getEip3770Address(fullAddress: string): Promise<Eip3770Address>
   getBalance(address: string): Promise<BigNumber>
   getChainId(): Promise<number>
-  getSmartWalletContract({ chainId, singletonDeployment }: GetContractProps): SmartWalletContract
-  getMultiSendContract({ chainId, singletonDeployment }: GetContractProps): MultiSendContract
-  getMultiSendCallOnlyContract({ chainId, singletonDeployment }: GetContractProps): MultiSendCallOnlyContract
-  getSmartWalletFactoryContract({
-    chainId,
-    singletonDeployment
-  }: GetContractProps): SmartWalletFactoryContract
+  getSmartWalletContract(address: string): SmartWalletContract
+  getMultiSendContract(address: string): MultiSendContract
+  getMultiSendCallOnlyContract(address: string): MultiSendCallOnlyContract
+  getSmartWalletFactoryContract(address: string): SmartWalletFactoryContract
   getContractCode(address: string): Promise<string>
   isContractDeployed(address: string): Promise<boolean>
   getTransaction(transactionHash: string): Promise<any>

@@ -33,7 +33,7 @@ if (['rinkeby'].includes(argv.network) && INFURA_KEY === undefined) {
 }
 
 const config: HardhatUserConfig = {
-  defaultNetwork: "rinkeby",
+  // defaultNetwork: "rinkeby",
   paths: {
     tests: TESTS_PATH
   },

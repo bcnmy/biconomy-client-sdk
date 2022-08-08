@@ -1,5 +1,5 @@
-import SafeServiceClient, { SafeServiceClientConfig } from './SafeServiceClient'
+import NodeClient, { NodeClientConfig } from './NodeClient'
 
-export * from './types/safeTransactionServiceTypes'
-export default SafeServiceClient
-export { SafeServiceClientConfig }
+export * from './types/NodeClientTypes'
+export default NodeClient
+export { NodeClientConfig }

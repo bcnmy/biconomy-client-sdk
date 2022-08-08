@@ -28,12 +28,10 @@
   },
   "author": "Biconomy (https://biconomy.io)",
   "devDependencies": {
+    "hardhat": "^2.9.9",
     "lerna": "^5.1.6",
-    "nx": "^14.4.3",
+    "nx": "^14.5.4",
     "prettier": "2.7.1",
     "ts-node": "^10.8.2"
-  },
-  "dependencies": {
-    "hardhat": "^2.9.9"
   }
 }
