@@ -326,7 +326,7 @@ class SmartAccount {
    * @param chainId
    * @returns
    */
-  async createSmartAccountTransaction(
+  async createTransaction(
     transaction: Transaction,
     batchId: number = 0,
     chainId: ChainId = this.#smartAccountConfig.activeNetworkId
@@ -360,7 +360,7 @@ class SmartAccount {
    * @param chainId 
    * @returns 
    */
-     async createSmartAccountTransactionBatch(transactions: Transaction[], batchId:number = 0,chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<WalletTransaction> {
+     async createTransactionBatch(transactions: Transaction[], batchId:number = 0,chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<WalletTransaction> {
       let walletContract = this.smartAccount(chainId).getContract();
       walletContract = walletContract.attach(this.address);
       
