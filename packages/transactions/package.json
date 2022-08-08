@@ -29,6 +29,9 @@
   "bugs": {
     "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@ethersproject/abstract-signer": "^5.6.2",
     "@ethersproject/constants": "^5.6.1",

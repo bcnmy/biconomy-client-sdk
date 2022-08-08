@@ -31,6 +31,9 @@
   "devDependencies": {
     "@biconomy-sdk/core-types": "*"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "bugs": {
     "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"
   }

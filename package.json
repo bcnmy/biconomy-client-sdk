@@ -26,6 +26,9 @@
       "packages/*"
     ]
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "author": "Biconomy (https://biconomy.io)",
   "devDependencies": {
     "hardhat": "^2.9.9",

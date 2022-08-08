@@ -62,6 +62,9 @@
       "pre-commit": "lint-staged"
     }
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@biconomy-sdk/core-types": "^1.0.0",
     "@ethersproject/abstract-signer": "^5.6.0",

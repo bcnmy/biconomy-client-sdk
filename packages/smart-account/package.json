@@ -26,6 +26,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "@biconomy-sdk/core-types": "*",
     "@biconomy-sdk/ethers-lib": "*",
