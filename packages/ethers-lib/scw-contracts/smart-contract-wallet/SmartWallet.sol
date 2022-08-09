@@ -213,6 +213,31 @@ contract SmartWallet is
         }
     }
 
+    function handlePaymentRevert(
+        uint256 gasUsed,
+        uint256 baseGas,
+        uint256 gasPrice,
+        address gasToken,
+        address payable refundReceiver
+    ) external returns (uint256 payment) {
+        uint256 startGas = gasleft();
+        // solhint-disable-next-line avoid-tx-origin
+        address payable receiver = refundReceiver == address(0) ? payable(tx.origin) : refundReceiver;
+        if (gasToken == address(0)) {
+            // For ETH we will only adjust the gas price to not be higher than the actual used gas price
+            payment = (gasUsed + baseGas) * (gasPrice < tx.gasprice ? gasPrice : tx.gasprice);
+            // Review: low level call value vs transfer
+            (bool success,) = receiver.call{value: payment}("");
+            require(success, "BSA011");
+        } else {
+            payment = (gasUsed + baseGas) * (gasPrice);
+            require(transferToken(gasToken, receiver, payment), "BSA012");
+        }
+        uint256 requiredGas = startGas - gasleft();
+        // Convert response to string and return via error message
+        revert(string(abi.encodePacked(requiredGas)));
+    }
+
     // @review
     /**
      * @dev Checks whether the signature provided is valid for the provided data, hash. Will revert otherwise.
