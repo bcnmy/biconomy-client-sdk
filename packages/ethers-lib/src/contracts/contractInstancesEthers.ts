@@ -1,10 +1,17 @@
-import { SmartWalletContract__factory as SmartWalletContract } from '../../typechain/src/ethers-v5/v1.0.0/factories/SmartWalletContract__factory'
-import { MultiSendContract__factory as MultiSendContract } from '../../typechain/src/ethers-v5/v1.0.0/factories/MultiSendContract__factory'
-import { MultiSendCallOnlyContract__factory as MultiSendCallOnlyContract } from '../../typechain/src/ethers-v5/v1.0.0/factories/MultiSendCallOnlyContract__factory'
-import { SmartWalletFactoryContract__factory as SmartWalletFactoryContract } from '../../typechain/src/ethers-v5/v1.0.0/factories/SmartWalletFactoryContract__factory'
+import { SmartWalletContractV100__factory as SmartWalletContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/SmartWalletContractV100__factory'
+import { SmartWalletContractV101__factory as SmartWalletContractV101 } from '../../typechain/src/ethers-v5/v1.0.1/factories/SmartWalletContractV101__factory'
+
+import { MultiSendContractV100__factory as MultiSendContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/MultiSendContractV100__factory'
+import { MultiSendContractV101__factory as MultiSendContractV101 } from '../../typechain/src/ethers-v5/v1.0.1/factories/MultiSendContractV101__factory'
+
+import { MultiSendCallOnlyContractV100__factory as MultiSendCallOnlyContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/MultiSendCallOnlyContractV100__factory'
+import { MultiSendCallOnlyContractV101__factory as MultiSendCallOnlyContractV101 } from '../../typechain/src/ethers-v5/v1.0.1/factories/MultiSendCallOnlyContractV101__factory'
+
+import { SmartWalletFactoryContractV100__factory as SmartWalletFactoryContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/SmartWalletFactoryContractV100__factory'
+import { SmartWalletFactoryContractV101__factory as SmartWalletFactoryContractV101 } from '../../typechain/src/ethers-v5/v1.0.1/factories/SmartWalletFactoryContractV101__factory'
 
 import SmartWalletContractEthers_v1_0_0 from './SmartWallet/v1.0.0/SmartWalletContractEthers'
-import SmartWalletContractEthers_v1_0_1 from './SmartWallet/v1.0.0/SmartWalletContractEthers'
+import SmartWalletContractEthers_v1_0_1 from './SmartWallet/v1.0.1/SmartWalletContractEthers'
 
 import MultiSendEthersContract_v1_0_0 from './MultiSend/v1.0.0/MultiSendEthersContract'
 import MultiSendEthersContract_v1_0_1 from './MultiSend/v1.0.1/MultiSendEthersContract'
@@ -27,10 +34,10 @@ export function getSmartWalletContractInstance(
   let walletContract
   switch (smartAccountVersion) {
     case '1.0.0':
-      walletContract = SmartWalletContract.connect(contractAddress, provider)
+      walletContract = SmartWalletContractV100.connect(contractAddress, provider)
       return new SmartWalletContractEthers_v1_0_0(walletContract)
     case '1.0.1':
-      walletContract = SmartWalletContract.connect(contractAddress, provider)
+      walletContract = SmartWalletContractV101.connect(contractAddress, provider)
       return new SmartWalletContractEthers_v1_0_1(walletContract)
   }
 }
@@ -46,10 +53,10 @@ export function getMultiSendContractInstance(
 
   switch (smartAccountVersion) {
     case '1.0.0':
-      multiSendContract = MultiSendContract.connect(contractAddress, provider)
+      multiSendContract = MultiSendContractV100.connect(contractAddress, provider)
       return new MultiSendEthersContract_v1_0_0(multiSendContract)
     case '1.0.1':
-      multiSendContract = MultiSendContract.connect(contractAddress, provider)
+      multiSendContract = MultiSendContractV101.connect(contractAddress, provider)
       return new MultiSendEthersContract_v1_0_1(multiSendContract)
   }
 }
@@ -64,10 +71,10 @@ export function getMultiSendCallOnlyContractInstance(
 
   switch (smartAccountVersion) {
     case '1.0.0':
-      multiSendCallContract = MultiSendCallOnlyContract.connect(contractAddress, provider)
+      multiSendCallContract = MultiSendCallOnlyContractV100.connect(contractAddress, provider)
       return new MultiSendCallOnlyEthersContract_v1_0_0(multiSendCallContract)
     case '1.0.1':
-      multiSendCallContract = MultiSendCallOnlyContract.connect(contractAddress, provider)
+      multiSendCallContract = MultiSendCallOnlyContractV101.connect(contractAddress, provider)
       return new MultiSendCallOnlyEthersContract_v1_0_1(multiSendCallContract)
   }
 }
@@ -81,10 +88,10 @@ export function getSmartWalletFactoryContractInstance(
 
   switch (smartAccountVersion) {
     case '1.0.0':
-      walletFactoryContract = SmartWalletFactoryContract.connect(contractAddress, provider)
+      walletFactoryContract = SmartWalletFactoryContractV100.connect(contractAddress, provider)
       return new SmartWalletFacoryContractEthers_v1_0_0(walletFactoryContract)
     case '1.0.1':
-      walletFactoryContract = SmartWalletFactoryContract.connect(contractAddress, provider)
+      walletFactoryContract = SmartWalletFactoryContractV101.connect(contractAddress, provider)
       return new SmartWalletFacoryContractEthers_v1_0_1(walletFactoryContract)
   }
 }

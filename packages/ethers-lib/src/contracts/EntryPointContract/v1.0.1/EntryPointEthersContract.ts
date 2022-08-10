@@ -1,8 +1,8 @@
 import { EntryPointContract, UserOperation, TransactionResult } from '@biconomy-sdk/core-types'
 import {
-  EntryPointContract as EntryPointContract_TypeChain,
-  EntryPointContractInterface
-} from '../../../../typechain/src/ethers-v5/v1.0.0/EntryPointContract'
+  EntryPointContractV101 as EntryPointContract_TypeChain,
+  EntryPointContractV101Interface
+} from '../../../../typechain/src/ethers-v5/v1.0.1/EntryPointContractV101'
 import { toTxResult } from '../../../utils'
 import { Contract } from '@ethersproject/contracts'
 

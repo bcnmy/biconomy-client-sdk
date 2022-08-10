@@ -1,8 +1,8 @@
 import { MultiSendContract } from '@biconomy-sdk/core-types'
 import {
-  MultiSendContract as MultiSend_TypeChain,
-  MultiSendContractInterface
-} from '../../../../typechain/src/ethers-v5/v1.0.0/MultiSendContract'
+  MultiSendContractV100 as MultiSend_TypeChain,
+  MultiSendContractV100Interface
+} from '../../../../typechain/src/ethers-v5/v1.0.0/MultiSendContractV100'
 import { Contract } from '@ethersproject/contracts'
 import { Interface } from '@ethersproject/abi'
 
@@ -21,7 +21,7 @@ class MultiSendEthersContract implements MultiSendContract {
     return this.contract.interface
   }
 
-  encode: MultiSendContractInterface['encodeFunctionData'] = (
+  encode: MultiSendContractV100Interface['encodeFunctionData'] = (
     methodName: any,
     params: any
   ): string => {

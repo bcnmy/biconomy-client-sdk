@@ -16,18 +16,18 @@ const outDirTests = 'typechain/tests/'
 const smartAccountContractsPath = './artifacts/contracts'
 
 const smartAccountContracts_V1_0_0 = [
-  `${smartAccountContractsPath}/V1.0.0.sol/SmartWalletContract.json`,
-  `${smartAccountContractsPath}/V1.0.0.sol//MultiSendContract.json`,
-  `${smartAccountContractsPath}/V1.0.0.sol//MultiSendCallOnlyContract.json`,
-  `${smartAccountContractsPath}/V1.0.0.sol//SmartWalletFactoryContract.json`,
-  `${smartAccountContractsPath}/V1.0.0.sol//EntryPointContract.json`
+  `${smartAccountContractsPath}/V1.0.0.sol/SmartWalletContract_v1_0_0.json`,
+  `${smartAccountContractsPath}/V1.0.0.sol//MultiSendContract_v1_0_0.json`,
+  `${smartAccountContractsPath}/V1.0.0.sol//MultiSendCallOnlyContract_v1_0_0.json`,
+  `${smartAccountContractsPath}/V1.0.0.sol//SmartWalletFactoryContract_v1_0_0.json`,
+  `${smartAccountContractsPath}/V1.0.0.sol//EntryPointContract_v1_0_0.json`
 ].join(' ')
 const smartAccountContracts_V1_0_1 = [
-  `${smartAccountContractsPath}/V1.0.1.sol/SmartWalletContract.json`,
-  `${smartAccountContractsPath}/V1.0.1.sol/MultiSendContract.json`,
-  `${smartAccountContractsPath}/V1.0.1.sol/MultiSendCallOnlyContract.json`,
-  `${smartAccountContractsPath}/V1.0.1.sol/SmartWalletFactoryContract.json`,
-  `${smartAccountContractsPath}/V1.0.1.sol/EntryPointContract.json`
+  `${smartAccountContractsPath}/V1.0.1.sol/SmartWalletContract_v1_0_1.json`,
+  `${smartAccountContractsPath}/V1.0.1.sol/MultiSendContract_v1_0_1.json`,
+  `${smartAccountContractsPath}/V1.0.1.sol/MultiSendCallOnlyContract_v1_0_1.json`,
+  `${smartAccountContractsPath}/V1.0.1.sol/SmartWalletFactoryContract_v1_0_1.json`,
+  `${smartAccountContractsPath}/V1.0.1.sol/EntryPointContract_v1_0_1.json`
 ].join(' ')
 
 // Remove existing Typechain files

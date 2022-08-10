@@ -7,13 +7,13 @@ import { MultiSend } from "scw-contracts-v1.0.1/contracts/smart-contract-wallet/
 import { MultiSendCallOnly } from "scw-contracts-v1.0.1/contracts/smart-contract-wallet/libs/MultiSendCallOnly.sol";
 import { EntryPoint } from "scw-contracts-v1.0.1/contracts/references/aa-4337/EntryPoint.sol";
 
-contract SmartWalletFactoryContract is WalletFactory {
+contract SmartWalletFactoryContract_v1_0_1 is WalletFactory {
     constructor(address _defaultImpl) WalletFactory(_defaultImpl){}
 }
-contract SmartWalletContract is SmartWallet {}
-contract MultiSendContract is MultiSend {}
-contract MultiSendCallOnlyContract is MultiSendCallOnly {}
-contract EntryPointContract is EntryPoint {
+contract SmartWalletContract_v1_0_1 is SmartWallet {}
+contract MultiSendContract_v1_0_1 is MultiSend {}
+contract MultiSendCallOnlyContract_v1_0_1 is MultiSendCallOnly {}
+contract EntryPointContract_v1_0_1 is EntryPoint {
     constructor(address _create2factory, uint _paymasterStake, uint32 _unstakeDelaySec) EntryPoint(_create2factory, _paymasterStake, _unstakeDelaySec){}
 }
 

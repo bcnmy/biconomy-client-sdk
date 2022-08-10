@@ -8,9 +8,9 @@ import {
   TransactionResult
 } from '@biconomy-sdk/core-types'
 import { toTxResult } from '../../../utils'
-import { SmartWalletContract as SmartWalletContract_TypeChain } from '../../../../typechain/src/ethers-v5/v1.0.0/SmartWalletContract'
-import { SmartWalletContractInterface } from '../../../../typechain/src/ethers-v5/v1.0.0/SmartWalletContract'
-import { getJsonWalletAddress, Interface } from 'ethers/lib/utils'
+import { SmartWalletContractV101 as SmartWalletContract_TypeChain } from '../../../../typechain/src/ethers-v5/v1.0.1/SmartWalletContractV101'
+import { SmartWalletContractV101Interface } from '../../../../typechain/src/ethers-v5/v1.0.1/SmartWalletContractV101'
+import { Interface } from 'ethers/lib/utils'
 import { Contract } from '@ethersproject/contracts'
 class SmartWalletContractEthers implements SmartWalletContract {
   constructor(public contract: SmartWalletContract_TypeChain) {}
@@ -68,7 +68,7 @@ class SmartWalletContractEthers implements SmartWalletContract {
     return toTxResult(txResponse)
   }
 
-  encode: SmartWalletContractInterface['encodeFunctionData'] = (
+  encode: SmartWalletContractV101Interface['encodeFunctionData'] = (
     methodName: any,
     params: any
   ): string => {
