@@ -19,6 +19,7 @@ import { deployWalletContracts } from './utils/deploy'
 import { BytesLike, Interface } from 'ethers/lib/utils'
 import { Transaction } from '../src/types'
 import { WalletTransaction } from '@biconomy-sdk/core-types'
+import { textSpanContainsPosition } from 'typescript'
 
 type EthereumInstance = {
   chainId?: number
@@ -504,6 +505,79 @@ describe('Wallet integration', function () {
 
       const smartAccountTransaction: WalletTransaction =
         await smartAccount.createSmartAccountTransaction(tx)
+
+      // Attach relayer before sending a transaction
+
+      const signer = await smartAccount.ethersAdapter().getSignerAddress()
+      if (eoaSigner) {
+        const relayer = new LocalRelayer(eoaSigner)
+        smartAccount.setRelayer(relayer)
+        expect(smartAccount.relayer).to.be.equal(relayer)
+        const response: TransactionResponse = await smartAccount.sendTransaction(
+          smartAccountTransaction
+        )
+
+        const receipt: TransactionReceipt = await response.wait(1)
+        expect(receipt.status).to.be.equal(1)
+        console.log('balance after ', await ethnode.provider?.getBalance(smartAccountAddress))
+        expect((await ethnode.provider?.getBalance(smartAccountAddress))?.toString()).to.be.equal(
+          ethers.utils.parseEther('0.5').toString()
+        )
+      }
+    })
+
+    it('Should be able to send batch of transactions', async () => {
+      const userAddress = (await ethnode.signer?.getAddress()) || ''
+      const eoaSigner = ethnode.provider?.getSigner()
+
+      const wallet = new SmartAccount(ethnode.provider, {
+        activeNetworkId: ChainId.GANACHE,
+        supportedNetworksIds: [ChainId.GOERLI ,ChainId.GANACHE] // has to be consisttent providers and network names
+      })
+
+      const smartAccount = await wallet.init()
+
+      const signerAddress = await smartAccount.ethersAdapter().getSignerAddress()
+
+      const smartAccountAddress = smartAccount.address
+
+      // Wallet would have been deployed already
+      const isDeployed = await smartAccount.isDeployed() /// can pass chainId here
+      expect(isDeployed).to.be.equal(true)
+
+      console.log('balance before ', await ethnode.provider?.getBalance(smartAccountAddress))
+
+      await ethnode.signer?.sendTransaction({
+        from: signerAddress,
+        to: smartAccountAddress,
+        value: ethers.utils.parseEther('1')
+      })
+
+      console.log('balance after ', await ethnode.provider?.getBalance(smartAccountAddress))
+
+      const txs: Transaction[] = []
+
+      const tx1: Transaction = {
+        to: signerAddress,
+        data: '0x',
+        value: ethers.utils.parseEther('0.5')
+      }
+
+      txs.push(tx1)
+
+      console.log('receiver 1 ', signerAddress);
+      console.log('receiver 2 ', (await ethnode.provider?.getSigner(1).getAddress()));
+
+      const tx2: Transaction = {
+        to: (await ethnode.provider?.getSigner(1).getAddress()) || signerAddress,
+        data: '0x',
+        value: ethers.utils.parseEther('0.5')
+      }
+
+      txs.push(tx2)
+
+      const smartAccountTransaction: WalletTransaction =
+        await smartAccount.createSmartAccountTransactionBatch(txs)
 
       // Attach relayer before sending a transaction
 
