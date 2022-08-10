@@ -12,3 +12,4 @@ export interface Relayer {
   }
   
   export * from './local-relayer'
+  export * from './rest-relayer'

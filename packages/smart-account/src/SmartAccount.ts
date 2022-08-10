@@ -138,7 +138,6 @@ class SmartAccount {
       chainId,
       this.ethAdapter[chainId]
     );
-
     // Should attach the address here
     this.smartWalletContract[chainId] = getSmartWalletContract(
       chainId,
