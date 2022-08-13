@@ -3,8 +3,8 @@ import {
   MultiSendCallOnlyContract as MultiSendCallOnly_TypeChain,
   MultiSendCallOnlyContractInterface
 } from '../../../typechain/src/ethers-v5/v1.0.0/MultiSendCallOnlyContract'
-import { Contract } from '@ethersproject/contracts';
-import { Interface } from "@ethersproject/abi";
+import { Contract } from '@ethersproject/contracts'
+import { Interface } from '@ethersproject/abi'
 
 class MultiSendCallOnlyEthersContract implements MultiSendCallOnlyContract {
   constructor(public contract: MultiSendCallOnly_TypeChain) {}
@@ -14,11 +14,11 @@ class MultiSendCallOnlyEthersContract implements MultiSendCallOnlyContract {
   }
 
   getContract(): Contract {
-    return this.contract;
+    return this.contract
   }
 
   getInterface(): Interface {
-    return this.contract.interface;
+    return this.contract.interface
   }
 
   encode: MultiSendCallOnlyContractInterface['encodeFunctionData'] = (

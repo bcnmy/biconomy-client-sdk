@@ -72,45 +72,32 @@ class EthersAdapter implements EthAdapter {
     return (await this.#provider.getNetwork()).chainId
   }
 
-  getSmartWalletContract({ chainId, singletonDeployment }: GetContractProps): SmartWalletContract {
-    const contractAddress = singletonDeployment?.networkAddresses[chainId]
-    if (!contractAddress) {
-      throw new Error('Invalid Safe Proxy contract address')
+  getSmartWalletContract(address: string): SmartWalletContract {
+    if (!address) {
+      throw new Error('Invalid Smart Wallet contract address')
     }
-    return getSmartWalletContractInstance(contractAddress, this.#provider)
+    return getSmartWalletContractInstance(address, this.#provider)
   }
 
-  getMultiSendContract({
-    chainId,
-    singletonDeployment
-  }: GetContractProps): MultiSendEthersContract {
-    const contractAddress = singletonDeployment?.networkAddresses[chainId]
-    if (!contractAddress) {
+  getMultiSendContract(address: string): MultiSendEthersContract {
+    if (!address) {
       throw new Error('Invalid Multi Send contract address')
     }
-    return getMultiSendContractInstance(contractAddress, this.#provider)
+    return getMultiSendContractInstance(address, this.#provider)
   }
 
-  getMultiSendCallOnlyContract({
-    chainId,
-    singletonDeployment
-  }: GetContractProps): MultiSendCallOnlyEthersContract {
-    const contractAddress = singletonDeployment?.networkAddresses[chainId]
-    if (!contractAddress) {
+  getMultiSendCallOnlyContract(address: string): MultiSendCallOnlyEthersContract {
+    if (!address) {
       throw new Error('Invalid Multi Send contract address')
     }
-    return getMultiSendCallOnlyContractInstance(contractAddress, this.#provider)
+    return getMultiSendCallOnlyContractInstance(address, this.#provider)
   }
 
-  getSmartWalletFactoryContract({
-    chainId,
-    singletonDeployment
-  }: GetContractProps): SmartWalletProxyFactoryEthersContract {
-    const contractAddress = singletonDeployment?.networkAddresses[chainId]
-    if (!contractAddress) {
-      throw new Error('Invalid Safe Proxy Factory contract address')
+  getSmartWalletFactoryContract(address: string): SmartWalletProxyFactoryEthersContract {
+    if (!address) {
+      throw new Error('Invalid Wallet Factory contract address')
     }
-    return getSmartWalletFactoryContractInstance(contractAddress, this.#provider)
+    return getSmartWalletFactoryContractInstance(address, this.#provider)
   }
 
   async getContractCode(address: string): Promise<string> {

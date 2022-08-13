@@ -1,13 +1,11 @@
 {
   "name": "@biconomy-sdk/ethers-lib",
   "version": "1.0.0",
-  "description": "Ethers library adapter to be used by Safe Core SDK",
+  "description": "Ethers library adapter to be used by Biconomy SDK",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
   "keywords": [
     "Ethereum",
-    "Gnosis",
-    "Safe",
     "SDK",
     "Ethers"
   ],
@@ -41,8 +39,11 @@
     "typechain": "^7.0.0",
     "typescript": "^4.6.3"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
-    "@biconomy-sdk/core-types": "*",
+    "@biconomy-sdk/core-types": "^1.0.0",
     "@gnosis.pm/safe-core-sdk-utils": "^1.1.0",
     "@openzeppelin/contracts": "^4.6.0"
   },

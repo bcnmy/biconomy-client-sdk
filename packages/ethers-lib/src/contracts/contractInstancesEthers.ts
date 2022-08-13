@@ -14,8 +14,8 @@ export function getSmartWalletContractInstance(
   // signer: Signer
   provider: JsonRpcProvider
 ): SmartWalletContractEthers {
-  let safeContract = SmartWalletContract.connect(contractAddress, provider)
-  return new SmartWalletContractEthers(safeContract)
+  let walletContract = SmartWalletContract.connect(contractAddress, provider)
+  return new SmartWalletContractEthers(walletContract)
 }
 
 // Review
