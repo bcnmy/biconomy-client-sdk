@@ -1,10 +1,10 @@
 import { Contract, ethers } from 'ethers'
 
 // import { SmartWalletContract } from '@biconomy-sdk/core-types'
-const SmartWalletArtifact = require('@biconomy-sdk/ethers-lib/artifacts/scw-contracts/smart-contract-wallet/Smartwallet.sol/SmartWallet.json')
-const WalletFactoryArtifact = require('@biconomy-sdk/ethers-lib/artifacts/scw-contracts/smart-contract-wallet/WalletFactory.sol/WalletFactory.json')
-const MultiSendArtifact = require('@biconomy-sdk/ethers-lib/artifacts/scw-contracts/smart-contract-wallet/libs/MultiSend.sol/MultiSend.json')
-const MultiSendCallOnlyArtifact = require('@biconomy-sdk/ethers-lib/artifacts/scw-contracts/smart-contract-wallet/libs/MultiSendCallOnly.sol/MultiSendCallOnly.json')
+const SmartWalletArtifact = require('@biconomy-sdk/ethers-lib/artifacts/contracts/V1.0.1.sol/SmartWalletContract_v1_0_1.json')
+const WalletFactoryArtifact = require('@biconomy-sdk/ethers-lib/artifacts/contracts/V1.0.1.sol/SmartWalletFactoryContract_v1_0_1.json')
+const MultiSendArtifact = require('@biconomy-sdk/ethers-lib/artifacts/contracts/V1.0.1.sol/MultiSendContract_v1_0_1.json')
+const MultiSendCallOnlyArtifact = require('@biconomy-sdk/ethers-lib/artifacts/contracts/V1.0.1.sol/MultiSendCallOnlyContract_v1_0_1.json')
 
 export async function deployWalletContracts(
   signer: ethers.Signer
