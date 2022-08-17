@@ -39,8 +39,11 @@
     "typechain": "^7.0.0",
     "typescript": "^4.6.3"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
-    "@biconomy-sdk/core-types": "*",
+    "@biconomy-sdk/core-types": "^1.0.0",
     "@gnosis.pm/safe-core-sdk-utils": "^1.1.0",
     "@openzeppelin/contracts": "^4.6.0",
     "scw-contracts-v1.0.0": "npm:scw-contracts@^1.0.0",
