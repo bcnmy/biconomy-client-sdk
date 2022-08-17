@@ -1,0 +1,40 @@
+{
+  "name": "@biconomy-sdk/transactions",
+  "version": "1.0.0",
+  "description": "utils for sending all transaction legos",
+  "main": "dist/src/index.js",
+  "typings": "dist/src/index.d.ts",
+  "keywords": [
+    "legos",
+    "batching",
+    "one-click",
+    "cross-chain"
+  ],
+  "author": "livingrockrises <chirag@biconomy.io>",
+  "homepage": "https://github.com/bcnmy/biconomy-client-sdk#readme",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bcnmy/biconomy-client-sdk.git"
+  },
+  "scripts": {
+    "unbuild": "rimraf dist *.tsbuildinfo",
+    "build": "rimraf dist && tsc",
+    "format": "prettier --write \"{src,tests}/**/*.ts\"",
+    "lint": "tslint -p tsconfig.json"
+  },
+  "bugs": {
+    "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@ethersproject/abstract-signer": "^5.6.2",
+    "@ethersproject/constants": "^5.6.1",
+    "ethers": "^5.6.9"
+  }
+}

@@ -13,13 +13,14 @@ const outDirTests = 'typechain/tests/'
 
 // Contract list for which the Typechain files will be generated
 // Will be included in dist/ folder
-const safeContractsPath = './artifacts/contracts/index.sol'
+const smartAccountContractsPath = './artifacts/contracts/index.sol'
 
-const safeContracts_V1_0_0 = [
-  `${safeContractsPath}/SmartWalletContract.json`,
-  `${safeContractsPath}/MultiSendContract.json`,
-  `${safeContractsPath}/SmartWalletFactoryContract.json`,
-  `${safeContractsPath}/EntryPointContract.json`
+const smartAccountContracts_V1_0_0 = [
+  `${smartAccountContractsPath}/SmartWalletContract.json`,
+  `${smartAccountContractsPath}/MultiSendContract.json`,
+  `${smartAccountContractsPath}/MultiSendCallOnlyContract.json`,
+  `${smartAccountContractsPath}/SmartWalletFactoryContract.json`,
+  `${smartAccountContractsPath}/EntryPointContract.json`
 ].join(' ')
 
 // Remove existing Typechain files
@@ -57,7 +58,7 @@ function moveTypechainFiles(inDir: string, outDir: string): void {
 const ethersV5 = 'ethers-v5'
 
 // Src: Ethers V5 types
-generateTypechainFiles(ethersV5, `${outDirSrc}${ethersV5}/v1.0.0`, safeContracts_V1_0_0)
+generateTypechainFiles(ethersV5, `${outDirSrc}${ethersV5}/v1.0.0`, smartAccountContracts_V1_0_0)
 moveTypechainFiles(
   `${typeChainDirectorySrcPath}${ethersV5}/v1.0.0`,
   `${typeChainDirectoryBuildPath}${ethersV5}/v1.0.0`

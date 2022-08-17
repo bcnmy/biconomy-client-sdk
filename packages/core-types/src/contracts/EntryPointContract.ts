@@ -1,10 +1,11 @@
-import { UserOperation, TransactionResult } from '../types'
+import { UserOperation } from '../types'
+import { TransactionResult } from '../transaction.types'
+import { Contract } from '@ethersproject/contracts'
 
 export interface EntryPointContract {
-  handleOp(userOperation: UserOperation, beneficiary: string): Promise<TransactionResult>
+  getContract(): Contract
   handleOps(userOperations: UserOperation[], beneficiary: string): Promise<TransactionResult>
   simulateValidation(userOperation: UserOperation): Promise<TransactionResult>
   getRequestId(userOperation: UserOperation): Promise<string>
   getSenderAddress(initCode: string, salt: number): Promise<string>
-  isPaymasterStaked(address: string, stake: number): Promise<boolean>
 }

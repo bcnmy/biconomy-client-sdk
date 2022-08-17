@@ -1,23 +1,25 @@
 import { TransactionResponse } from '@ethersproject/abstract-provider'
 import { Signer } from '@ethersproject/abstract-signer'
 import { BigNumber } from '@ethersproject/bignumber'
-import { Provider } from '@ethersproject/providers'
+import { Provider, JsonRpcProvider } from '@ethersproject/providers'
 import {
   Eip3770Address,
   EthAdapter,
   EthAdapterTransaction,
   GetContractProps,
   SmartWalletContract
-} from 'core-types'
+} from '@biconomy-sdk/core-types'
 import { validateEip3770Address } from '@gnosis.pm/safe-core-sdk-utils'
 import { ethers } from 'ethers'
 import {
   getMultiSendContractInstance,
-  getSafeContractInstance,
-  getSafeProxyFactoryContractInstance
+  getMultiSendCallOnlyContractInstance,
+  getSmartWalletContractInstance,
+  getSmartWalletFactoryContractInstance
 } from './contracts/contractInstancesEthers'
 import SmartWalletProxyFactoryEthersContract from './contracts/SmartWalletFactory/SmartWalletProxyFactoryEthersContract'
 import MultiSendEthersContract from './contracts/MultiSend/MultiSendEthersContract'
+import MultiSendCallOnlyEthersContract from './contracts/MultiSendCallOnly/MultiSendCallOnlyEthersContract'
 
 type Ethers = typeof ethers
 
@@ -26,14 +28,16 @@ export interface EthersAdapterConfig {
   ethers: Ethers
   /** signer - Ethers signer */
   signer: Signer
+
+  provider: JsonRpcProvider
 }
 
 class EthersAdapter implements EthAdapter {
   #ethers: Ethers
   #signer: Signer
-  #provider: Provider
+  #provider: JsonRpcProvider
 
-  constructor({ ethers, signer }: EthersAdapterConfig) {
+  constructor({ ethers, signer, provider }: EthersAdapterConfig) {
     if (!ethers) {
       throw new Error('ethers property missing from options')
     }
@@ -41,11 +45,13 @@ class EthersAdapter implements EthAdapter {
       throw new Error('Signer must be connected to a provider')
     }
     this.#signer = signer
-    this.#provider = signer.provider
+    this.#provider = provider
+    //this.#provider = signer.provider
     this.#ethers = ethers
   }
 
-  getProvider(): Provider {
+  // Review
+  getProvider(): JsonRpcProvider {
     return this.#provider
   }
 
@@ -66,46 +72,32 @@ class EthersAdapter implements EthAdapter {
     return (await this.#provider.getNetwork()).chainId
   }
 
-  getSafeContract({
-    chainId,
-    singletonDeployment,
-    customContractAddress
-  }: GetContractProps): SmartWalletContract {
-    const contractAddress = customContractAddress
-      ? customContractAddress
-      : singletonDeployment?.networkAddresses[chainId]
-    if (!contractAddress) {
-      throw new Error('Invalid Safe Proxy contract address')
+  getSmartWalletContract(address: string): SmartWalletContract {
+    if (!address) {
+      throw new Error('Invalid Smart Wallet contract address')
     }
-    return getSafeContractInstance(contractAddress, this.#signer)
+    return getSmartWalletContractInstance(address, this.#provider)
   }
 
-  getMultiSendContract({
-    chainId,
-    singletonDeployment,
-    customContractAddress
-  }: GetContractProps): MultiSendEthersContract {
-    const contractAddress = customContractAddress
-      ? customContractAddress
-      : singletonDeployment?.networkAddresses[chainId]
-    if (!contractAddress) {
+  getMultiSendContract(address: string): MultiSendEthersContract {
+    if (!address) {
       throw new Error('Invalid Multi Send contract address')
     }
-    return getMultiSendContractInstance(contractAddress, this.#signer)
+    return getMultiSendContractInstance(address, this.#provider)
   }
 
-  getSafeProxyFactoryContract({
-    chainId,
-    singletonDeployment,
-    customContractAddress
-  }: GetContractProps): SmartWalletProxyFactoryEthersContract {
-    const contractAddress = customContractAddress
-      ? customContractAddress
-      : singletonDeployment?.networkAddresses[chainId]
-    if (!contractAddress) {
-      throw new Error('Invalid Safe Proxy Factory contract address')
+  getMultiSendCallOnlyContract(address: string): MultiSendCallOnlyEthersContract {
+    if (!address) {
+      throw new Error('Invalid Multi Send contract address')
     }
-    return getSafeProxyFactoryContractInstance(contractAddress, this.#signer)
+    return getMultiSendCallOnlyContractInstance(address, this.#provider)
+  }
+
+  getSmartWalletFactoryContract(address: string): SmartWalletProxyFactoryEthersContract {
+    if (!address) {
+      throw new Error('Invalid Wallet Factory contract address')
+    }
+    return getSmartWalletFactoryContractInstance(address, this.#provider)
   }
 
   async getContractCode(address: string): Promise<string> {
@@ -130,6 +122,7 @@ class EthersAdapter implements EthAdapter {
     return this.#signer.signMessage(messageArray)
   }
 
+  // Review
   async estimateGas(transaction: EthAdapterTransaction): Promise<number> {
     return (await this.#provider.estimateGas(transaction)).toNumber()
   }

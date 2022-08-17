@@ -2,32 +2,53 @@ import { BigNumber } from '@ethersproject/bignumber'
 import {
   SmartAccountVersion,
   SmartWalletContract,
-  SmartAccountTrx,
-  SmartAccountTrxData,
-  TransactionOptions,
-  FeeRefundData,
+  WalletTransaction,
+  ExecTransaction,
+  FeeRefund,
   TransactionResult
-} from 'core-types'
+} from '@biconomy-sdk/core-types'
 import { toTxResult } from '../../utils'
 import { SmartWalletContract as SmartWalletContract_TypeChain } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletContract'
 import { SmartWalletContractInterface } from '../../../typechain/src/ethers-v5/v1.0.0/SmartWalletContract'
+import { getJsonWalletAddress, Interface } from 'ethers/lib/utils'
+import { Contract } from '@ethersproject/contracts'
 class SmartWalletContractEthers implements SmartWalletContract {
   constructor(public contract: SmartWalletContract_TypeChain) {}
+
+  getInterface(): Interface {
+    return this.contract.interface
+  }
+
+  getContract(): Contract {
+    return this.contract
+  }
+
+  getAddress(): string {
+    return this.contract.address
+  }
+
+  setAddress(address: string) {
+    this.contract.attach(address)
+  }
+
+  async getOwner(): Promise<string> {
+    return await this.contract.owner()
+  }
 
   async getVersion(): Promise<SmartAccountVersion> {
     return (await this.contract.VERSION()) as SmartAccountVersion
   }
 
   async getNonce(batchId: number): Promise<BigNumber> {
-    return this.contract.getNonce(batchId)
+    return await this.contract.getNonce(batchId)
   }
-  async getTransactionHash(smartAccountTrxData: SmartAccountTrxData): Promise<string> {
+  async getTransactionHash(smartAccountTrxData: WalletTransaction): Promise<string> {
     return this.contract.getTransactionHash(
       smartAccountTrxData.to,
       smartAccountTrxData.value,
       smartAccountTrxData.data,
       smartAccountTrxData.operation,
-      smartAccountTrxData.SmartAccountTxGas,
+      smartAccountTrxData.targetTxGas,
       smartAccountTrxData.baseGas,
       smartAccountTrxData.gasPrice,
       smartAccountTrxData.gasToken,
@@ -37,19 +58,14 @@ class SmartWalletContractEthers implements SmartWalletContract {
   }
 
   async execTransaction(
-    smartAccountTrx: SmartAccountTrx,
+    _tx: ExecTransaction,
     batchId: number,
-    feeRefundData: FeeRefundData,
-    options: TransactionOptions
+    refundInfo: FeeRefund,
+    signatures: string
   ): Promise<TransactionResult> {
     // TODO: estimate GAS before making the transaction
-    const txResponse = await this.contract.execTransaction(
-      smartAccountTrx.data,
-      batchId,
-      feeRefundData,
-      smartAccountTrx.encodedSignatures()
-    )
-    return toTxResult(txResponse, options)
+    const txResponse = await this.contract.execTransaction(_tx, batchId, refundInfo, signatures)
+    return toTxResult(txResponse)
   }
 
   encode: SmartWalletContractInterface['encodeFunctionData'] = (

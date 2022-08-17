@@ -1,13 +1,25 @@
 {
-  "name": "root",
-  "private": true,
+  "name": "biconomy-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bcnmy/biconomy-client-sdk"
+  },
+  "private": false,
   "scripts": {
     "clean": "lerna clean",
     "unbuild": "lerna run unbuild",
-    "build": "lerna run build --stream --npm-client=yarn",
-    "test": "FORCE_COLOR=1 lerna run test --stream --npm-client=yarn",
+    "build": "npm install -D nx@latest && lerna run build --stream --npm-client=yarn",
     "test:ci": "FORCE_COLOR=1 lerna run test:ci --stream --npm-client=yarn",
-    "format": "lerna run format --npm-client=yarn"
+    "format": "lerna run format --npm-client=yarn",
+    "prettier": "lerna run prettier --npm-client=npm",
+    "diff": "lerna diff",
+    "new-version": "lerna version --conventional-commits --yes"
+  },
+  "changelog": {
+    "labels": {
+      "feature": "New Feature",
+      "bug": "Bug Fix"
+    }
   },
   "workspaces": {
     "packages": [
@@ -16,11 +28,10 @@
   },
   "author": "Biconomy (https://biconomy.io)",
   "devDependencies": {
+    "hardhat": "^2.9.9",
     "lerna": "^5.1.6",
-    "nx": "^14.3.6",
+    "nx": "^14.5.4",
+    "prettier": "2.7.1",
     "ts-node": "^10.8.2"
-  },
-  "dependencies": {
-    "hardhat": "^2.9.9"
   }
 }

@@ -54,6 +54,15 @@ cache
 artifacts
 deployments
 
+# lockfiles
+packages/core-types/package-lock.json
+packages/ethers-lib/package-lock.json
+packages/node-client/package-lock.json
+packages/relayer/package-lock.json
+packages/smart-account/package-lock.json
+packages/transactions/package-lock.json
+package-lock.json
+
 # Typechain
 typechain
 
