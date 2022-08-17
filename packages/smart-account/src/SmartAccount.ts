@@ -153,7 +153,11 @@ class SmartAccount {
         signer,
         provider: readProvider
       })
-
+      console.log('network is ', network);
+      // console.log('signer is ', signer)
+      // console.log('readProvider ', readProvider)
+      console.log('network ', this.ethAdapter[network]);
+      
       this.initializeContracts(network)
     }
 
@@ -175,36 +179,48 @@ class SmartAccount {
     const multiSend = currentChainInfo.multiSend
     const multiSendCall = currentChainInfo.multiSendCall
 
-    console.log(this.smartWalletFactoryContract[chainId])
+    this.smartWalletFactoryContract[chainId] = {}
+    this.smartWalletContract[chainId] = {}
+    this.multiSendContract[chainId] = {}
+    this.multiSendCallOnlyContract[chainId] = {}
+
     console.log("===>>>>>>>>");
 
     for (let index = 0; index < smartWallet.length; index++) {
       console.log("===>>>");
       const version = smartWallet[index].version
-      console.log(version);
-      this.smartWalletFactoryContract[chainId] = {}
-      this.smartWalletFactoryContract[chainId][`${version}`] = getSmartWalletFactoryContract(
+      console.log(smartWallet[index]);
+
+      const dummyInstance = getSmartWalletFactoryContract(
         version,
         this.ethAdapter[chainId],
         smartWalletFactoryAddress[index].address
       )
+      console.log('this.ethAdapter[chainId] ', this.ethAdapter[chainId]);
+      
+      console.log('dummyInstance ', dummyInstance);
+      
+      this.smartWalletFactoryContract[chainId].version = getSmartWalletFactoryContract(
+        version,
+        this.ethAdapter[chainId],
+        smartWalletFactoryAddress[index].address
+      )
+      console.log(' logging instance ', this.smartWalletFactoryContract[chainId].version);
+      
       // NOTE/TODO : attached address is not wallet address yet
-      this.smartWalletContract[chainId] = {}
-      this.smartWalletContract[chainId][`${version}`] = getSmartWalletContract(
+      this.smartWalletContract[chainId].version = getSmartWalletContract(
         version,
         this.ethAdapter[chainId],
         smartWallet[index].address
       )
 
-      this.multiSendContract[chainId] = {}
-      this.multiSendContract[chainId][`${version}`] = getMultiSendContract(
+      this.multiSendContract[chainId].version = getMultiSendContract(
         version,
         this.ethAdapter[chainId],
         multiSend[index].address
       )
 
-      this.multiSendCallOnlyContract[chainId] = {}
-      this.multiSendCallOnlyContract[chainId][`${version}`] = getMultiSendCallOnlyContract(
+      this.multiSendCallOnlyContract[chainId].version = getMultiSendCallOnlyContract(
         version,
         this.ethAdapter[chainId],
         multiSendCall[index].address
