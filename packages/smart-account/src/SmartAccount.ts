@@ -326,7 +326,7 @@ class SmartAccount {
    * @param chainId
    * @returns
    */
-  async createTransaction(
+  async createSmartAccountTransaction(
     transaction: Transaction,
     batchId: number = 0,
     chainId: ChainId = this.#smartAccountConfig.activeNetworkId
@@ -345,62 +345,6 @@ class SmartAccount {
       to: transaction.to,
       value: transaction.value,
       data: transaction.data, // for token transfers use encodeTransfer
-      nonce
-    })
-
-    return walletTx
-  }
-
-  // Other helpers go here for pre build (feeOptions and quotes from relayer) , build and execution of refund type transactions 
-
-  /**
-   * Prepares compatible WalletTransaction object based on Transaction Request
-   * @todo Rename based on other variations to prepare transaction
-   * @notice This transaction is with fee refund (smart account pays using it's own assets accepted by relayers)
-   * @param transaction
-   * @param batchId
-   * @param chainId
-   * @returns
-   */
-   async createRefundTransaction(
-    transaction: Transaction,
-    feeToken: string, // review types
-    batchId: number = 0,
-    chainId: ChainId = this.#smartAccountConfig.activeNetworkId
-  ): Promise<WalletTransaction> {
-    let walletContract = this.smartAccount(chainId).getContract()
-    walletContract = walletContract.attach(this.address)
-
-    // NOTE : If the wallet is not deployed yet then nonce would be zero
-    let nonce = 0
-    if (await this.isDeployed(chainId)) {
-      nonce = (await walletContract.getNonce(batchId)).toNumber()
-    }
-    console.log('nonce: ', nonce)
-
-    const gasEstimate1 = await this.ethersAdapter(chainId).estimateGas({
-      to: transaction.to,
-      data: transaction.data || '0x',
-      from: this.address,
-    });
-
-    // Depending on feeToken provide baseGas!
-
-    const baseGas = 25348 + 4928 + 16730 + 40015; //goerli USDC
-    const refundReceiver = "0x0000000000000000000000000000000000000000";
-    const gasToken = feeToken;
-    const gasPrice = "17"; // this would be token gas price
-    const targetTxGas = gasEstimate1; // would come from estimator
-
-    const walletTx: WalletTransaction = buildSmartAccountTransaction({
-      to: transaction.to,
-      value: transaction.value,
-      data: transaction.data, // for token transfers use encodeTransfer
-      targetTxGas,
-      baseGas,
-      refundReceiver,
-      gasPrice,
-      gasToken,
       nonce
     })
 
@@ -416,7 +360,7 @@ class SmartAccount {
    * @param chainId 
    * @returns 
    */
-     async createTransactionBatch(transactions: Transaction[], batchId:number = 0,chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<WalletTransaction> {
+     async createSmartAccountTransactionBatch(transactions: Transaction[], batchId:number = 0,chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<WalletTransaction> {
       let walletContract = this.smartAccount(chainId).getContract();
       walletContract = walletContract.attach(this.address);
       
@@ -583,8 +527,6 @@ class SmartAccount {
   // more methods to fetch balance via backend -> indexer node
   // getTokenBalances() @Talha
 
-  // @notice : instead of just reading from contract this should come from backend (given owner and index)
-  // this API would be able to check history of owner, contract updates and read from chain
   /**
    * @param address Owner aka {EOA} address
    * @param index number of smart account deploy i.e {0, 1 ,2 ...}
