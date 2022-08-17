@@ -24,12 +24,15 @@
     "lint": "tslint -p tsconfig.json"
   },
   "dependencies": {
-    "@biconomy-sdk/core-types": "*",
+    "@biconomy-sdk/core-types": "^1.0.0",
     "@ethersproject/providers": "^5.6.8",
     "ethers": "^5.6.9"
   },
   "devDependencies": {
     "@biconomy-sdk/core-types": "*"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "bugs": {
     "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"
