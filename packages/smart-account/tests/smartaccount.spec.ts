@@ -577,7 +577,7 @@ describe('Wallet integration', function () {
       txs.push(tx2)
 
       const smartAccountTransaction: WalletTransaction =
-        await smartAccount.createSmartAccountTransactionBatch(txs)
+        await smartAccount.createTransactionBatch(txs)
 
       // Attach relayer before sending a transaction
 
