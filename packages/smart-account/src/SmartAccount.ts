@@ -160,18 +160,11 @@ class SmartAccount {
       this.chainConfig.find((n) => n.chainId === chainId)?.multiSendCallAddress || ''
 
     this.smartWalletFactoryContract[chainId] = getSmartWalletFactoryContract(
-<<<<<<< HEAD
-      chainId,
-      this.ethAdapter[chainId]
-    );
-    // Should attach the address here
-=======
       this.ethAdapter[chainId],
       smartWalletFactoryAddress
     )
 
     // NOTE/TODO : attached address is not wallet address yet
->>>>>>> d5276ee0ea7e352b374389a4604e2df839442ebe
     this.smartWalletContract[chainId] = getSmartWalletContract(
       this.ethAdapter[chainId],
       smartWalletAddress
