@@ -3,6 +3,5 @@
     "packages/*"
   ],
   "useNx": true,
-  "version": "1.0.0",
-  "useWorkspaces": true
+  "version": "1.0.0"
 }

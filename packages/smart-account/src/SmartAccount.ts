@@ -42,7 +42,7 @@ import { BalancesResponse, UsdBalanceResponse } from '@biconomy-sdk/node-client'
 
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount {
-  DEFAULT_VERSION: SmartAccountVersion = '1.0.1'
+  DEFAULT_VERSION: SmartAccountVersion = '1.0.0'
   // { ethAdapter } is a window that gives access to all the implemented functions of it
   // requires signer and read-only provider
   ethAdapter!: { [chainId: number]: EthersAdapter }
@@ -118,11 +118,11 @@ class SmartAccount {
   }
 
   /**
-   * 
+   *
    * @param smartAccountVersion
    * @description // set wallet version to be able to interact with different deployed versions
    */
-  setWalletVersion(smartAccountVersion: SmartAccountVersion){
+  setWalletVersion(smartAccountVersion: SmartAccountVersion) {
     this.DEFAULT_VERSION = smartAccountVersion
   }
 
@@ -146,6 +146,7 @@ class SmartAccount {
       const providerUrl = chainConfig.find((n) => n.chainId === network)?.providerUrl
       // To keep it network agnostic
       // Note: think about events when signer needs to pay gas
+      
       const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
       // Instantiating EthersAdapter instance and maintain it as above mentioned class level variable
       this.ethAdapter[network] = new EthersAdapter({
@@ -153,14 +154,13 @@ class SmartAccount {
         signer,
         provider: readProvider
       })
-      console.log('network is ', network);
-      // console.log('signer is ', signer)
-      // console.log('readProvider ', readProvider)
-      console.log('network ', this.ethAdapter[network]);
-      
+
+      this.smartWalletFactoryContract[network] = {}
+      this.smartWalletContract[network] = {}
+      this.multiSendContract[network] = {}
+      this.multiSendCallOnlyContract[network] = {}
       this.initializeContracts(network)
     }
-
     // We set the common owner by quering default active chainId ethAdapter
     this.owner = await this.ethersAdapter().getSignerAddress()
     // @review
@@ -178,54 +178,66 @@ class SmartAccount {
     const smartWalletFactoryAddress = currentChainInfo.walletFactory
     const multiSend = currentChainInfo.multiSend
     const multiSendCall = currentChainInfo.multiSendCall
-
-    this.smartWalletFactoryContract[chainId] = {}
-    this.smartWalletContract[chainId] = {}
-    this.multiSendContract[chainId] = {}
-    this.multiSendCallOnlyContract[chainId] = {}
-
-    console.log("===>>>>>>>>");
-
     for (let index = 0; index < smartWallet.length; index++) {
-      console.log("===>>>");
       const version = smartWallet[index].version
-      console.log(smartWallet[index]);
+      console.log(smartWallet[index])
 
-      const dummyInstance = getSmartWalletFactoryContract(
+      this.smartWalletFactoryContract[chainId][version] = getSmartWalletFactoryContract(
         version,
         this.ethAdapter[chainId],
         smartWalletFactoryAddress[index].address
       )
-      console.log('this.ethAdapter[chainId] ', this.ethAdapter[chainId]);
-      
-      console.log('dummyInstance ', dummyInstance);
-      
-      this.smartWalletFactoryContract[chainId].version = getSmartWalletFactoryContract(
-        version,
-        this.ethAdapter[chainId],
-        smartWalletFactoryAddress[index].address
-      )
-      console.log(' logging instance ', this.smartWalletFactoryContract[chainId].version);
-      
       // NOTE/TODO : attached address is not wallet address yet
-      this.smartWalletContract[chainId].version = getSmartWalletContract(
+      this.smartWalletContract[chainId][version] = getSmartWalletContract(
         version,
         this.ethAdapter[chainId],
         smartWallet[index].address
       )
 
-      this.multiSendContract[chainId].version = getMultiSendContract(
+      this.multiSendContract[chainId][version] = getMultiSendContract(
         version,
         this.ethAdapter[chainId],
         multiSend[index].address
       )
 
-      this.multiSendCallOnlyContract[chainId].version = getMultiSendCallOnlyContract(
+      this.multiSendCallOnlyContract[chainId][version] = getMultiSendCallOnlyContract(
         version,
         this.ethAdapter[chainId],
         multiSendCall[index].address
       )
     }
+  }
+
+  // Review :  more / other potential methods
+  // sendSignedTransaction
+  // signMessage
+
+  // Discuss about multichain aspect of relayer node url and clients
+  // TODO: get details from backend config
+  // NOTE: Discuss about multichain aspect of relayer node url and clients
+
+  // more methods to fetch balance via backend -> indexer node
+  // getTokenBalances() @Talha
+
+  /**
+   * @param address Owner aka {EOA} address
+   * @param index number of smart account deploy i.e {0, 1 ,2 ...}
+   * @description return address for Smart account
+   * @returns
+   */
+  private async getAddressForCounterfactualWallet(
+    // smartAccountVersion: SmartAccountVersion = this.DEFAULT_VERSION,
+    index: number = 0,
+    chainId: ChainId = this.#smartAccountConfig.activeNetworkId
+  ): Promise<string> {
+    console.log('index and ChainId ', index, chainId, this.DEFAULT_VERSION)
+    console.log(
+      'Instance to this is ',
+      this.smartWalletFactoryContract[chainId][this.DEFAULT_VERSION]
+    )
+    return this.smartWalletFactoryContract[chainId][
+      this.DEFAULT_VERSION
+    ].getAddressForCounterfactualWallet(this.owner, index)
   }
 
   /**
@@ -590,33 +602,6 @@ class SmartAccount {
       // Could be added dex router for chain in the future
     }
     return context
-  }
-
-  // Review :  more / other potential methods
-  // sendSignedTransaction
-  // signMessage
-
-  // Discuss about multichain aspect of relayer node url and clients
-  // TODO: get details from backend config
-  // NOTE: Discuss about multichain aspect of relayer node url and clients
-
-  // more methods to fetch balance via backend -> indexer node
-  // getTokenBalances() @Talha
-
-  /**
-   * @param address Owner aka {EOA} address
-   * @param index number of smart account deploy i.e {0, 1 ,2 ...}
-   * @description return address for Smart account
-   * @returns
-   */
-  private async getAddressForCounterfactualWallet(
-    // smartAccountVersion: SmartAccountVersion = this.DEFAULT_VERSION,
-    index: number = 0,
-    chainId: ChainId = this.#smartAccountConfig.activeNetworkId
-  ): Promise<string> {
-    return await this.smartWalletFactoryContract[chainId][
-      this.DEFAULT_VERSION
-    ].getAddressForCounterfactualWallet(this.owner, index)
   }
 }
 
