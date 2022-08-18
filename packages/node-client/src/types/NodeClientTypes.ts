@@ -158,3 +158,11 @@ export type UsdBalanceResponse = {
     totalBalance: number
   }
 }
+
+export type EstimateGasResponse = {
+  message: string
+  code: number
+  data: {
+    gas: number
+  }
+}
