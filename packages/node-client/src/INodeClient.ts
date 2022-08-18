@@ -38,7 +38,7 @@ interface INodeClient {
 
   getTotalBalanceInUsd(balancesDto: BalancesDto): Promise<UsdBalanceResponse>
 
-  estimateExternalGas(chainId: number, estimatorAddress: string, encodedData: string): Promise<EstimateGasResponse>
+  estimateExternalGas(chainId: number, encodedData: string): Promise<EstimateGasResponse>
 
   estimateRequiredTxGas(chainId: number, estimatorAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse>
 

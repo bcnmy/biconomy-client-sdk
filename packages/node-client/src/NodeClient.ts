@@ -115,13 +115,12 @@ class NodeClient implements INodeClient {
       body: balancesDto
     })
   }
-  async estimateExternalGas(chainId: number, estimatorAddress: string, encodedData: string): Promise<EstimateGasResponse> {
+  async estimateExternalGas(chainId: number, encodedData: string): Promise<EstimateGasResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/estimator/external`,
       method: HttpMethod.Post,
       body: {
         chainId,
-        estimatorAddress,
         encodedData
       }
     })
