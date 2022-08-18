@@ -1,4 +1,4 @@
-import { MetaTransactionData } from '@biconomy-sdk/core-types'
+import { MetaTransactionData, FeeRefundData } from '@biconomy-sdk/core-types'
 import { Signer } from '@ethersproject/abstract-signer'
 import {
   TokenPriceResponse,
@@ -42,7 +42,7 @@ interface INodeClient {
 
   estimateRequiredTxGas(chainId: number, estimatorAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse>
 
-  estimateHandlePaymentGas(chainId: number, estimatorAddress: string, feeRefund: MetaTransactionData): Promise<EstimateGasResponse>
+  estimateHandlePaymentGas(chainId: number, estimatorAddress: string, feeRefund: FeeRefundData): Promise<EstimateGasResponse>
 }
 
 export default INodeClient

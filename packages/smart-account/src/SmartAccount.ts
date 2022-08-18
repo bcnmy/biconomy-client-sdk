@@ -205,11 +205,11 @@ class SmartAccount {
   public async estimateExternalGas(chainId: number, encodedData: string): Promise<EstimateGasResponse> {
     return this.nodeClient.estimateExternalGas(chainId, encodedData)
   }
-  public async estimateRequiredTxGas(chainId: number, estimatorAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse> {
-    return this.nodeClient.estimateRequiredTxGas(chainId, estimatorAddress, transaction)
+  public async estimateRequiredTxGas(chainId: number, walletAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse> {
+    return this.nodeClient.estimateRequiredTxGas(chainId, walletAddress, transaction)
   }
-  public async estimateHandlePaymentGas(chainId: number, estimatorAddress: string, feeRefundData: FeeRefundData): Promise<EstimateGasResponse> {
-    return this.nodeClient.estimateHandlePaymentGas(chainId, estimatorAddress, feeRefundData)
+  public async estimateHandlePaymentGas(chainId: number, walletAddress: string, feeRefundData: FeeRefundData): Promise<EstimateGasResponse> {
+    return this.nodeClient.estimateHandlePaymentGas(chainId, walletAddress, feeRefundData)
   }
 
 
@@ -379,7 +379,7 @@ class SmartAccount {
       data: transaction.data || '0x',
       operation: OperationType.Call
     }
-    const gasEstimate1 = await this.estimateRequiredTxGas(chainId, this.address, internalTx)
+    const gasEstimate1 = Number(await this.estimateRequiredTxGas(chainId, this.address, internalTx))
 
     /*const gasEstimate1 = await this.ethersAdapter(chainId).estimateGas({
       to: transaction.to,
@@ -396,7 +396,7 @@ class SmartAccount {
       refundReceiver: "0x0000000000000000000000000000000000000000"
     }
 
-    const handlePaymentEstimate = await this.estimateHandlePaymentGas(chainId, this.address, refundDetails)
+    const handlePaymentEstimate = Number(await this.estimateHandlePaymentGas(chainId, this.address, refundDetails))
 
     const baseGas = handlePaymentEstimate + 4928; // delegate call + event emission + state updates
     const refundReceiver = "0x0000000000000000000000000000000000000000";
