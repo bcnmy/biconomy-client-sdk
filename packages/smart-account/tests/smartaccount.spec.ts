@@ -424,7 +424,7 @@ describe('Wallet integration', function () {
       }
 
       const smartAccountTransaction: WalletTransaction =
-        await smartAccount.createSmartAccountTransaction(tx)
+        await smartAccount.createTransaction(tx)
 
       const signature = await smartAccount.signTransaction(smartAccountTransaction)
       console.log('signature is: ', signature)
@@ -504,7 +504,7 @@ describe('Wallet integration', function () {
       }
 
       const smartAccountTransaction: WalletTransaction =
-        await smartAccount.createSmartAccountTransaction(tx)
+        await smartAccount.createTransaction(tx)
 
       // Attach relayer before sending a transaction
 
