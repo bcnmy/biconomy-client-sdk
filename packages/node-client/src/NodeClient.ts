@@ -13,7 +13,7 @@ import {
 } from './types/NodeClientTypes'
 import { getTxServiceBaseUrl } from './utils'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-import { MetaTransactionData } from '@biconomy-sdk/core-types'
+import { FeeRefundData, MetaTransactionData } from '@biconomy-sdk/core-types'
 export interface NodeClientConfig {
   /** txServiceUrl - Safe Transaction Service URL */
   txServiceUrl: string
@@ -136,14 +136,14 @@ class NodeClient implements INodeClient {
       }
     })
   }
-  async estimateHandlePaymentGas(chainId: number, estimatorAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse> {
+  async estimateHandlePaymentGas(chainId: number, estimatorAddress: string, feeRefundData: FeeRefundData): Promise<EstimateGasResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/estimator/handle-payment`,
       method: HttpMethod.Post,
       body: {
         chainId,
         estimatorAddress,
-        transaction
+        feeRefundData
       }
     })
   }
