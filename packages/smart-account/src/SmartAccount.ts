@@ -200,15 +200,15 @@ class SmartAccount {
     return this.nodeClient.getTotalBalanceInUsd(balancesDto)
   }
 
-  public async estimateExternalGas(chainId: number, estimatorAddress: string, encodedData: string): Promise<EstimateGasResponse> {
-    return this.nodeClient.estimateExternalGas(chainId, estimatorAddress, encodedData)
+  /*public async estimateExternalGas(chainId: number, encodedData: string): Promise<EstimateGasResponse> {
+    return this.nodeClient.estimateExternalGas(chainId, encodedData)
   }
   public async estimateRequiredTxGas(chainId: number, estimatorAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse> {
     return this.nodeClient.estimateRequiredTxGas(chainId, estimatorAddress, transaction)
   }
   public async estimateHandlePaymentGas(chainId: number, estimatorAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse> {
     return this.nodeClient.estimateHandlePaymentGas(chainId, estimatorAddress, transaction)
-  }
+  }*/
 
 
   // return adapter instance to be used for blockchain interactions
