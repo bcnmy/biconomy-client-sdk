@@ -366,7 +366,7 @@ class SmartAccount {
    * @param chainId
    * @returns
    */
-   /*async createRefundTransaction(
+   async createRefundTransaction(
     transaction: Transaction,
     feeToken: string, // review types
     tokenGasPrice: number, // review types
@@ -388,25 +388,31 @@ class SmartAccount {
 
     const internalTx: MetaTransactionData = {
       to: transaction.to,
-      value: '0x',
+      value: transaction.value || 0,
       data: transaction.data || '0x',
       operation: OperationType.Call
     }
-    const gasEstimate1 = Number(await this.estimateRequiredTxGas(chainId, this.address, internalTx))
+    console.log(internalTx);
+    const response = await this.estimateRequiredTxGas(chainId, this.address, internalTx);
+    const gasEstimate1 = Number(response.data.gas)
+    console.log('required txgas estimate ', gasEstimate1);
 
     // Depending on feeToken provide baseGas!
 
     const refundDetails: FeeRefundData = {
-      // gasUsed: gasEstimate1,
+      gasUsed: gasEstimate1,
       baseGas: gasEstimate1,
       gasPrice: tokenGasPrice, // this would be token gas price // review
       gasToken: feeToken,
       refundReceiver: "0x0000000000000000000000000000000000000000"
     }
 
-    const handlePaymentEstimate = Number(await this.estimateHandlePaymentGas(chainId, this.address, refundDetails))
+    const handlePaymentResponse = await this.estimateHandlePaymentGas(chainId, this.address, refundDetails);
+    const handlePaymentEstimate = Number(handlePaymentResponse.data.gas)
 
-    const baseGas = handlePaymentEstimate + 4928; // delegate call + event emission + state updates
+    console.log('handle payment estimate ', handlePaymentEstimate);
+
+    const baseGas = handlePaymentEstimate + 4928 + 22900; // delegate call + event emission + state updates
   
     const walletTx: WalletTransaction = buildSmartAccountTransaction({
       to: transaction.to,
@@ -421,7 +427,7 @@ class SmartAccount {
     })
 
     return walletTx
-  }*/
+  }
 
 
   /**

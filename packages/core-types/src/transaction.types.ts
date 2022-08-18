@@ -41,7 +41,7 @@ export interface FeeRefund {
 
 export interface MetaTransactionData {
   readonly to: string
-  readonly value: string
+  readonly value: BigNumberish
   readonly data: string
   readonly operation?: OperationType
 }
