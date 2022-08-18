@@ -339,12 +339,21 @@ class SmartAccount {
    * @param batchId 
    * @param chainId 
    */
-  async prepareRefundTransaction(
+  /*async prepareRefundTransaction(
     transaction: Transaction,
     batchId: number = 0, // may not be necessary
     chainId: ChainId = this.#smartAccountConfig.activeNetworkId) {
 
-  }
+    // const gasPriceQuotes = relayer.getFeeOptions 
+
+    // 1. If wallet is deployed
+    // 2. If wallet is not deployed (batch wallet deployment on multisend) 
+
+    // actual estimation with dummy sig
+    // => calc feeQuotes => store to be shown in widget (If wallet is not deployed show higher quote)
+
+    // return {a, b}
+  }*/
 
   // Other helpers go here for pre build (feeOptions and quotes from relayer) , build and execution of refund type transactions 
 
@@ -357,9 +366,10 @@ class SmartAccount {
    * @param chainId
    * @returns
    */
-   async createRefundTransaction(
+   /*async createRefundTransaction(
     transaction: Transaction,
     feeToken: string, // review types
+    tokenGasPrice: number, // review types
     batchId: number = 0,
     chainId: ChainId = this.#smartAccountConfig.activeNetworkId
   ): Promise<WalletTransaction> {
@@ -373,6 +383,9 @@ class SmartAccount {
     }
     console.log('nonce: ', nonce)
 
+    // in terms of calculating baseGas we should know if wallet is deployed or not otherwise it needs to consider deployment cost 
+    // (will get batched by relayer)
+
     const internalTx: MetaTransactionData = {
       to: transaction.to,
       value: '0x',
@@ -381,17 +394,12 @@ class SmartAccount {
     }
     const gasEstimate1 = Number(await this.estimateRequiredTxGas(chainId, this.address, internalTx))
 
-    /*const gasEstimate1 = await this.ethersAdapter(chainId).estimateGas({
-      to: transaction.to,
-      data: transaction.data || '0x',
-      from: this.address,
-    });*/
-
     // Depending on feeToken provide baseGas!
 
     const refundDetails: FeeRefundData = {
+      // gasUsed: gasEstimate1,
       baseGas: gasEstimate1,
-      gasPrice: 17, // this would be token gas price // review
+      gasPrice: tokenGasPrice, // this would be token gas price // review
       gasToken: feeToken,
       refundReceiver: "0x0000000000000000000000000000000000000000"
     }
@@ -399,9 +407,7 @@ class SmartAccount {
     const handlePaymentEstimate = Number(await this.estimateHandlePaymentGas(chainId, this.address, refundDetails))
 
     const baseGas = handlePaymentEstimate + 4928; // delegate call + event emission + state updates
-    const refundReceiver = "0x0000000000000000000000000000000000000000";
-    const gasToken = feeToken;
-
+  
     const walletTx: WalletTransaction = buildSmartAccountTransaction({
       to: transaction.to,
       value: transaction.value,
@@ -415,7 +421,7 @@ class SmartAccount {
     })
 
     return walletTx
-  }
+  }*/
 
 
   /**
