@@ -15,7 +15,10 @@ import {
   MultiSendContract,
   MultiSendCallOnlyContract,
   RawTransactionType,
-  SmartAccountState
+  SmartAccountState,
+  MetaTransactionData,
+  OperationType,
+  FeeRefundData
 } from '@biconomy-sdk/core-types'
 import { JsonRpcSigner, TransactionResponse } from '@ethersproject/providers'
 import NodeClient, { ChainConfig, SupportedChainsResponse } from '@biconomy-sdk/node-client'
@@ -34,7 +37,7 @@ import {
   buildMultiSendSmartAccountTx
 } from '@biconomy-sdk/transactions'
 import { BalancesDto } from '@biconomy-sdk/node-client'
-import { BalancesResponse, UsdBalanceResponse } from '@biconomy-sdk/node-client'
+import { BalancesResponse, UsdBalanceResponse, EstimateGasResponse } from '@biconomy-sdk/node-client'
 
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount {
@@ -199,6 +202,17 @@ class SmartAccount {
     return this.nodeClient.getTotalBalanceInUsd(balancesDto)
   }
 
+  public async estimateExternalGas(chainId: number, encodedData: string): Promise<EstimateGasResponse> {
+    return this.nodeClient.estimateExternalGas(chainId, encodedData)
+  }
+  public async estimateRequiredTxGas(chainId: number, estimatorAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse> {
+    return this.nodeClient.estimateRequiredTxGas(chainId, estimatorAddress, transaction)
+  }
+  public async estimateHandlePaymentGas(chainId: number, estimatorAddress: string, feeRefundData: FeeRefundData): Promise<EstimateGasResponse> {
+    return this.nodeClient.estimateHandlePaymentGas(chainId, estimatorAddress, feeRefundData)
+  }
+
+
   // return adapter instance to be used for blockchain interactions
   /**
    * adapter instance to be used for some blockchain interactions
@@ -317,6 +331,93 @@ class SmartAccount {
     return txn
   }
 
+  // Get Fee Options from relayer and make it available for display
+  // We can also show list of transactions to be processed (decodeContractCall)
+  /**
+   * 
+   * @param transaction 
+   * @param batchId 
+   * @param chainId 
+   */
+  async prepareRefundTransaction(
+    transaction: Transaction,
+    batchId: number = 0, // may not be necessary
+    chainId: ChainId = this.#smartAccountConfig.activeNetworkId) {
+
+  }
+
+  // Other helpers go here for pre build (feeOptions and quotes from relayer) , build and execution of refund type transactions 
+
+  /**
+   * Prepares compatible WalletTransaction object based on Transaction Request
+   * @todo Rename based on other variations to prepare transaction
+   * @notice This transaction is with fee refund (smart account pays using it's own assets accepted by relayers)
+   * @param transaction
+   * @param batchId
+   * @param chainId
+   * @returns
+   */
+   async createRefundTransaction(
+    transaction: Transaction,
+    feeToken: string, // review types
+    batchId: number = 0,
+    chainId: ChainId = this.#smartAccountConfig.activeNetworkId
+  ): Promise<WalletTransaction> {
+    let walletContract = this.smartAccount(chainId).getContract()
+    walletContract = walletContract.attach(this.address)
+
+    // NOTE : If the wallet is not deployed yet then nonce would be zero
+    let nonce = 0
+    if (await this.isDeployed(chainId)) {
+      nonce = (await walletContract.getNonce(batchId)).toNumber()
+    }
+    console.log('nonce: ', nonce)
+
+    const internalTx: MetaTransactionData = {
+      to: transaction.to,
+      value: '0x',
+      data: transaction.data || '0x',
+      operation: OperationType.Call
+    }
+    const gasEstimate1 = await this.estimateRequiredTxGas(chainId, this.address, internalTx)
+
+    /*const gasEstimate1 = await this.ethersAdapter(chainId).estimateGas({
+      to: transaction.to,
+      data: transaction.data || '0x',
+      from: this.address,
+    });*/
+
+    // Depending on feeToken provide baseGas!
+
+    const refundDetails: FeeRefundData = {
+      baseGas: gasEstimate1,
+      gasPrice: 17, // this would be token gas price // review
+      gasToken: feeToken,
+      refundReceiver: "0x0000000000000000000000000000000000000000"
+    }
+
+    const handlePaymentEstimate = await this.estimateHandlePaymentGas(chainId, this.address, refundDetails)
+
+    const baseGas = handlePaymentEstimate + 4928; // delegate call + event emission + state updates
+    const refundReceiver = "0x0000000000000000000000000000000000000000";
+    const gasToken = feeToken;
+
+    const walletTx: WalletTransaction = buildSmartAccountTransaction({
+      to: transaction.to,
+      value: transaction.value,
+      data: transaction.data, // for token transfers use encodeTransfer
+      targetTxGas: gasEstimate1,
+      baseGas,
+      refundReceiver: "0x0000000000000000000000000000000000000000",
+      gasPrice: refundDetails.gasPrice.toString(), //review
+      gasToken: refundDetails.gasToken,
+      nonce
+    })
+
+    return walletTx
+  }
+
+
   /**
    * Prepares compatible WalletTransaction object based on Transaction Request
    * @todo Rename based on other variations to prepare transaction
@@ -326,7 +427,7 @@ class SmartAccount {
    * @param chainId
    * @returns
    */
-  async createSmartAccountTransaction(
+  async createTransaction(
     transaction: Transaction,
     batchId: number = 0,
     chainId: ChainId = this.#smartAccountConfig.activeNetworkId
@@ -360,7 +461,7 @@ class SmartAccount {
    * @param chainId 
    * @returns 
    */
-     async createSmartAccountTransactionBatch(transactions: Transaction[], batchId:number = 0,chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<WalletTransaction> {
+     async createTransactionBatch(transactions: Transaction[], batchId:number = 0,chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<WalletTransaction> {
       let walletContract = this.smartAccount(chainId).getContract();
       walletContract = walletContract.attach(this.address);
       

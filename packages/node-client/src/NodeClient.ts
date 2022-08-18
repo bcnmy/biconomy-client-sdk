@@ -8,11 +8,12 @@ import {
   SmartAccountsResponse,
   BalancesDto,
   BalancesResponse,
-  UsdBalanceResponse
+  UsdBalanceResponse,
+  EstimateGasResponse
 } from './types/NodeClientTypes'
 import { getTxServiceBaseUrl } from './utils'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-
+import { MetaTransactionData } from '@biconomy-sdk/core-types'
 export interface NodeClientConfig {
   /** txServiceUrl - Safe Transaction Service URL */
   txServiceUrl: string
@@ -112,6 +113,38 @@ class NodeClient implements INodeClient {
       url: `${this.#txServiceBaseUrl}/smart-accounts/balance`,
       method: HttpMethod.Post,
       body: balancesDto
+    })
+  }
+  async estimateExternalGas(chainId: number, encodedData: string): Promise<EstimateGasResponse> {
+    return sendRequest({
+      url: `${this.#txServiceBaseUrl}/estimator/external`,
+      method: HttpMethod.Post,
+      body: {
+        chainId,
+        encodedData
+      }
+    })
+  }
+  async estimateRequiredTxGas(chainId: number, estimatorAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse> {
+    return sendRequest({
+      url: `${this.#txServiceBaseUrl}/estimator/required`,
+      method: HttpMethod.Post,
+      body: {
+        chainId,
+        estimatorAddress,
+        transaction
+      }
+    })
+  }
+  async estimateHandlePaymentGas(chainId: number, estimatorAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse> {
+    return sendRequest({
+      url: `${this.#txServiceBaseUrl}/estimator/handle-payment`,
+      method: HttpMethod.Post,
+      body: {
+        chainId,
+        estimatorAddress,
+        transaction
+      }
     })
   }
 }
