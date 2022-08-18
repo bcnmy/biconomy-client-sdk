@@ -49,3 +49,7 @@ export interface UserOperation {
   paymasterData: string
   signature: string
 }
+
+export interface RestRelayerOptions {
+  url: string
+}
