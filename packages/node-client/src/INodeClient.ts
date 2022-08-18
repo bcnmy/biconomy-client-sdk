@@ -42,7 +42,7 @@ interface INodeClient {
 
   estimateRequiredTxGas(chainId: number, estimatorAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse>
 
-  estimateHandlePaymentGas(chainId: number, estimatorAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse>
+  estimateHandlePaymentGas(chainId: number, estimatorAddress: string, feeRefund: MetaTransactionData): Promise<EstimateGasResponse>
 }
 
 export default INodeClient
