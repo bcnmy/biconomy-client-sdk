@@ -592,6 +592,12 @@ class SmartAccount {
         gasToken: refundDetails.gasToken,
         nonce
       })
+
+      // If wallet is not deployed revise targetTxGas and baseGas
+      if(!(await this.isDeployed(chainId))) {
+        finalWalletTx.targetTxGas = 500000
+        finalWalletTx.baseGas = baseGas + 22900
+      }
   
       return finalWalletTx
   }  
