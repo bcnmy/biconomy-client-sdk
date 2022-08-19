@@ -355,6 +355,30 @@ class SmartAccount {
     // return {a, b}
   }*/
 
+  // Get Fee Options from relayer and make it available for display
+  // We can also show list of transactions to be processed (decodeContractCall)
+  /**
+   * 
+   * @param transaction 
+   * @param batchId 
+   * @param chainId 
+   */
+  /*async prepareRefundTransactionBatch(
+    transactions: Transaction[],
+    batchId: number = 0, // may not be necessary
+    chainId: ChainId = this.#smartAccountConfig.activeNetworkId) {
+
+    // const gasPriceQuotes = relayer.getFeeOptions 
+
+    // 1. If wallet is deployed
+    // 2. If wallet is not deployed (batch wallet deployment on multisend) 
+
+    // actual estimation with dummy sig
+    // => calc feeQuotes => store to be shown in widget (If wallet is not deployed show higher quote)
+
+    // return {a, b}
+  }*/
+
   // Other helpers go here for pre build (feeOptions and quotes from relayer) , build and execution of refund type transactions 
 
   /**
@@ -413,7 +437,7 @@ class SmartAccount {
     console.log('handle payment estimate ', handlePaymentEstimate);
 
     // If the wallet deployment has to be appended then baseGas would change
-    const baseGas = handlePaymentEstimate + 4928 + 22900; // delegate call + event emission + state updates
+    const baseGas = handlePaymentEstimate + 4928 + 2360; // delegate call + event emission + state updates
   
     const walletTx: WalletTransaction = buildSmartAccountTransaction({
       to: transaction.to,
@@ -465,7 +489,12 @@ class SmartAccount {
     return walletTx
   }
 
-  async createRefundTransactionBatch(transactions: Transaction[], batchId:number = 0,chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<WalletTransaction> {
+  async createRefundTransactionBatch(
+  transactions: Transaction[], 
+  feeToken: string, // review types
+  tokenGasPrice: number, // review types, 
+  batchId:number = 0,
+  chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<WalletTransaction> {
     let walletContract = this.smartAccount(chainId).getContract();
     walletContract = walletContract.attach(this.address);
       
@@ -495,8 +524,53 @@ class SmartAccount {
         txs,
         nonce
       );
+
+      console.log('wallet txn with refund ', walletTx);
+
+      const internalTx: MetaTransactionData = {
+        to: walletTx.to,
+        value: walletTx.value || 0,
+        data: walletTx.data || '0x',
+        operation: walletTx.operation
+      }
+      console.log(internalTx);
+      const response = await this.estimateRequiredTxGas(chainId, this.address, internalTx);
+      // considerable offset ref gnosis safe service client safeTxGas
+      const gasEstimate1 = Number(response.data.gas) //+ 50000
+      console.log('required txgas estimate ', gasEstimate1);
   
-      return walletTx
+      // Depending on feeToken provide baseGas!
+  
+      const refundDetails: FeeRefundData = {
+        gasUsed: gasEstimate1,
+        baseGas: gasEstimate1,
+        gasPrice: tokenGasPrice, // this would be token gas price // review
+        gasToken: feeToken,
+        refundReceiver: "0x0000000000000000000000000000000000000000"
+      }
+  
+      const handlePaymentResponse = await this.estimateHandlePaymentGas(chainId, this.address, refundDetails);
+      const handlePaymentEstimate = Number(handlePaymentResponse.data.gas)
+  
+      console.log('handle payment estimate ', handlePaymentEstimate);
+  
+      // If the wallet deployment has to be appended then baseGas would change
+      const baseGas = handlePaymentEstimate + 4928 + 2360; // delegate call + event emission + state updates
+
+      const finalWalletTx: WalletTransaction = buildSmartAccountTransaction({
+        to: walletTx.to,
+        value: walletTx.value,
+        data: walletTx.data, // for token transfers use encodeTransfer
+        operation: walletTx.operation,
+        targetTxGas: gasEstimate1,
+        baseGas: baseGas,
+        refundReceiver: "0x0000000000000000000000000000000000000000",
+        gasPrice: refundDetails.gasPrice.toString(), //review
+        gasToken: refundDetails.gasToken,
+        nonce
+      })
+  
+      return finalWalletTx
   }  
 
     /**
@@ -539,6 +613,7 @@ class SmartAccount {
         txs,
         nonce
       );
+      console.log('wallet txn without refund ', walletTx);
   
       return walletTx
     }
