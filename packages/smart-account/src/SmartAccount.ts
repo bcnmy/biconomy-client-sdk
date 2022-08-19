@@ -412,6 +412,7 @@ class SmartAccount {
 
     console.log('handle payment estimate ', handlePaymentEstimate);
 
+    // If the wallet deployment has to be appended then baseGas would change
     const baseGas = handlePaymentEstimate + 4928 + 22900; // delegate call + event emission + state updates
   
     const walletTx: WalletTransaction = buildSmartAccountTransaction({
@@ -463,6 +464,40 @@ class SmartAccount {
 
     return walletTx
   }
+
+  async createRefundTransactionBatch(transactions: Transaction[], batchId:number = 0,chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<WalletTransaction> {
+    let walletContract = this.smartAccount(chainId).getContract();
+    walletContract = walletContract.attach(this.address);
+      
+      // NOTE : If the wallet is not deployed yet then nonce would be zero
+      let nonce = 0;
+      if(await this.isDeployed(chainId)) {
+        nonce = (await walletContract.getNonce(batchId)).toNumber();
+      } 
+      console.log('nonce: ', nonce);
+
+      const txs: MetaTransaction[] = [];
+
+      for(let i=0; i < transactions.length; i++) {
+
+        const innerTx: WalletTransaction = buildSmartAccountTransaction({
+          to: transactions[i].to,
+          value: transactions[i].value,
+          data: transactions[i].data, // for token transfers use encodeTransfer
+          nonce: 0
+        })
+
+        txs.push(innerTx);
+      }
+
+      const walletTx: WalletTransaction = buildMultiSendSmartAccountTx(
+        this.multiSend(chainId).getContract(),
+        txs,
+        nonce
+      );
+  
+      return walletTx
+  }  
 
     /**
    * Prepares compatible WalletTransaction object based on Transaction Request
