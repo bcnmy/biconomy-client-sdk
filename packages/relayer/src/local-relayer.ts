@@ -6,7 +6,8 @@ import {
   SmartAccountContext,
   SmartAccountState,
   SignedTransaction,
-  WalletTransaction
+  WalletTransaction,
+  FeeOptionsResponse
 } from '@biconomy-sdk/core-types'
 import { MetaTransaction, encodeMultiSend } from './utils/multisend'
 
@@ -141,9 +142,9 @@ export class LocalRelayer implements Relayer {
     return tx
   }
 
-  async getFeeOptions(chainId: number) {
+  getFeeOptions(chainId: number) : FeeOptionsResponse {
     console.log('requested fee options for chain ', chainId);
-    const feeOptions = {
+    const feeOptions: FeeOptionsResponse = {
       "msg": "all ok",
       "data": {
           "chainId": 5,
