@@ -54,3 +54,18 @@ export interface UserOperation {
 export interface RestRelayerOptions {
   url: string
 }
+
+export interface TokenData {
+  tokenGasPrice: string,
+  symbol: string,
+  address: string, 
+  decimal: number,
+  logoUrl: string
+}
+export interface FeeOptionsResponse {
+  msg: string,
+  data: {
+    chainId: number,
+    response: Array<TokenData>
+  }
+}
