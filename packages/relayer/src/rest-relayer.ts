@@ -143,6 +143,13 @@ export class RestRelayer implements Relayer {
         url: `${this.#relayServiceBaseUrl}`,
         method: HttpMethod.Post,
         body: { ...signedTx.rawTx, gasLimit: ethers.constants.Two.pow(24) }
-        })
+      })
+    }
+
+    async getFeeOptions(chainId: number) {
+      return sendRequest({
+        url: `${this.#relayServiceBaseUrl}/feeOptions?chainId=${chainId}`,
+        method: HttpMethod.Get,
+      })
     }
   }

@@ -25,6 +25,7 @@ export interface SmartAccountState {
   fallbackHandlerAddress: string
 }
 export interface FeeRefundData {
+  readonly gasUsed: number
   readonly baseGas: number
   readonly gasPrice: number
   readonly gasToken: string
