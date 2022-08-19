@@ -13,7 +13,8 @@ import {
   SignedTransaction,
   WalletTransaction,
   RawTransactionType,
-  RestRelayerOptions
+  RestRelayerOptions,
+  FeeOptionsResponse
 } from '@biconomy-sdk/core-types'
 import { MetaTransaction, encodeMultiSend } from './utils/multisend';
 import { HttpMethod, sendRequest } from './utils/httpRequests';
@@ -146,7 +147,7 @@ export class RestRelayer implements Relayer {
       })
     }
 
-    async getFeeOptions(chainId: number) {
+    async getFeeOptions(chainId: number): Promise<FeeOptionsResponse> {
       return sendRequest({
         url: `${this.#relayServiceBaseUrl}/feeOptions?chainId=${chainId}`,
         method: HttpMethod.Get,
