@@ -35,6 +35,7 @@ export interface FeeRefund {
   gasUsed: string | number
   baseGas: string | number
   gasPrice: string | number
+  tokenGasPriceFactor: string | number
   gasToken: string
   refundReceiver: string
 }
@@ -75,6 +76,7 @@ export interface WalletTransaction extends MetaTransaction{
   targetTxGas: string | number
   baseGas: string | number
   gasPrice: string | number
+  tokenGasPriceFactor: string | number
   gasToken: string
   refundReceiver: string
   nonce: number

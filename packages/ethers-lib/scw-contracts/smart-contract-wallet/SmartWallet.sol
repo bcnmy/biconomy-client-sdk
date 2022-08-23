@@ -191,7 +191,7 @@ contract SmartWallet is
             if (refundInfo.gasPrice > 0) {
                 //console.log("sent %s", startGas - gasleft());
                 // extraGas = gasleft();
-                payment = handlePayment(startGas - gasleft(), refundInfo.baseGas, refundInfo.gasPrice, refundInfo.gasToken, refundInfo.refundReceiver);
+                payment = handlePayment(startGas - gasleft(), refundInfo.baseGas, refundInfo.gasPrice, refundInfo.tokenGasPriceFactor, refundInfo.gasToken, refundInfo.refundReceiver);
             }
             if (success) emit ExecutionSuccess(txHash, payment);
             else emit ExecutionFailure(txHash, payment);
@@ -204,6 +204,7 @@ contract SmartWallet is
         uint256 gasUsed,
         uint256 baseGas,
         uint256 gasPrice,
+        uint256 tokenGasPriceFactor,
         address gasToken,
         address payable refundReceiver
     ) private returns (uint256 payment) {
@@ -217,7 +218,7 @@ contract SmartWallet is
             (bool success,) = receiver.call{value: payment}("");
             require(success, "BSA011");
         } else {
-            payment = (gasUsed + baseGas) * (gasPrice);
+            payment = (gasUsed + baseGas) * (gasPrice) / (tokenGasPriceFactor);
             require(transferToken(gasToken, receiver, payment), "BSA012");
         }
         // uint256 requiredGas = startGas - gasleft();
@@ -228,6 +229,7 @@ contract SmartWallet is
         uint256 gasUsed,
         uint256 baseGas,
         uint256 gasPrice,
+        uint256 tokenGasPriceFactor,
         address gasToken,
         address payable refundReceiver
     ) external returns (uint256 payment) {
@@ -241,7 +243,7 @@ contract SmartWallet is
             (bool success,) = receiver.call{value: payment}("");
             require(success, "BSA011");
         } else {
-            payment = (gasUsed + baseGas) * (gasPrice);
+            payment = (gasUsed + baseGas) * (gasPrice) / (tokenGasPriceFactor );
             require(transferToken(gasToken, receiver, payment), "BSA012");
         }
         uint256 requiredGas = startGas - gasleft();
@@ -260,7 +262,7 @@ contract SmartWallet is
         bytes32 dataHash,
         bytes memory data,
         bytes memory signatures
-    ) public view {
+    ) public view virtual {
         uint8 v;
         bytes32 r;
         bytes32 s;
@@ -354,6 +356,7 @@ contract SmartWallet is
         uint256 targetTxGas,
         uint256 baseGas,
         uint256 gasPrice,
+        uint256 tokenGasPriceFactor,
         address gasToken,
         address payable refundReceiver,
         uint256 _nonce
@@ -368,6 +371,7 @@ contract SmartWallet is
         FeeRefund memory refundInfo = FeeRefund({
             baseGas: baseGas,
             gasPrice: gasPrice,
+            tokenGasPriceFactor: tokenGasPriceFactor,
             gasToken: gasToken,
             refundReceiver: refundReceiver
         });

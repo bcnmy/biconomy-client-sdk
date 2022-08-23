@@ -69,6 +69,7 @@ export interface Transaction {
 export interface FeeRefund {
   baseGas: string | number
   gasPrice: string | number
+  tokenGasPriceFactor:  string | number
   gasToken: string
   refundReceiver: string
 }
@@ -77,6 +78,7 @@ export interface WalletTransaction extends MetaTransaction{
   targetTxGas: string | number
   baseGas: string | number
   gasPrice: string | number
+  tokenGasPriceFactor: string | number
   gasToken: string
   refundReceiver: string
   nonce: number
@@ -214,6 +216,7 @@ export const executeTx = async (
   const refundInfo: FeeRefund = {
     baseGas: SmartAccountTx.baseGas,
     gasPrice: SmartAccountTx.gasPrice,
+    tokenGasPriceFactor: SmartAccountTx.tokenGasPriceFactor,
     gasToken: SmartAccountTx.gasToken,
     refundReceiver: SmartAccountTx.refundReceiver
   }
@@ -243,6 +246,7 @@ export const populateExecuteTx = async (
   const refundInfo: FeeRefund = {
     baseGas: SmartAccountTx.baseGas,
     gasPrice: SmartAccountTx.gasPrice,
+    tokenGasPriceFactor: SmartAccountTx.tokenGasPriceFactor,
     gasToken: SmartAccountTx.gasToken,
     refundReceiver: SmartAccountTx.refundReceiver
   }
@@ -317,6 +321,7 @@ export const buildSmartAccountTransaction = (template: {
   targetTxGas?: number | string
   baseGas?: number | string
   gasPrice?: number | string
+  tokenGasPriceFactor?: number | string
   gasToken?: string
   refundReceiver?: string
   nonce: number
@@ -329,6 +334,7 @@ export const buildSmartAccountTransaction = (template: {
     targetTxGas: template.targetTxGas || 0,
     baseGas: template.baseGas || 0,
     gasPrice: template.gasPrice || 0,
+    tokenGasPriceFactor: template.tokenGasPriceFactor || 1,
     gasToken: template.gasToken || AddressZero,
     refundReceiver: template.refundReceiver || AddressZero,
     nonce: template.nonce
