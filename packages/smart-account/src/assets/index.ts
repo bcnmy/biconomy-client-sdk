@@ -1245,3 +1245,14 @@ export const WalletFactory = {
     }
   ]
 }
+
+export const GasEstimator = {
+  defaultAddress: '0xc6e8748a08e591250a3eed526e9455859633c6c4',
+  released: true,
+  contractName: 'WalletFactory',
+  version: '1.0.0',
+  networkAddresses: {
+    '5': '0xc6e8748a08e591250a3eed526e9455859633c6c4',
+  },
+  abi: [ { "inputs": [ { "internalType": "address", "name": "_to", "type": "address" }, { "internalType": "bytes", "name": "_data", "type": "bytes" } ], "name": "estimate", "outputs": [ { "internalType": "bool", "name": "success", "type": "bool" }, { "internalType": "bytes", "name": "result", "type": "bytes" }, { "internalType": "uint256", "name": "gas", "type": "uint256" } ], "stateMutability": "nonpayable", "type": "function" } ]
+}
