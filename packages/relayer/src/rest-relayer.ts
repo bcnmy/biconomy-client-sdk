@@ -143,7 +143,10 @@ export class RestRelayer implements Relayer {
       return sendRequest({
         url: `${this.#relayServiceBaseUrl}`,
         method: HttpMethod.Post,
-        body: { ...signedTx.rawTx, gasLimit: ethers.constants.Two.pow(24) }
+        body: { ...signedTx.rawTx, gasLimit: ethers.constants.Two.pow(24), refundInfo: {
+          tokenGasPrice: signedTx.tx.gasPrice,
+          gasToken: signedTx.tx.gasToken,
+        } }
       })
     }
 
