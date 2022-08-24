@@ -28,6 +28,7 @@ export interface FeeRefundData {
   readonly gasUsed: number
   readonly baseGas: number
   readonly gasPrice: number
+  readonly tokenGasPriceFactor: string | number
   readonly gasToken: string
   readonly refundReceiver: string
 }
@@ -51,21 +52,40 @@ export interface UserOperation {
   signature: string
 }
 
+export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
+
 export interface RestRelayerOptions {
   url: string
 }
 
 export interface TokenData {
-  tokenGasPrice: string,
+  tokenGasPrice: number, // review
+  offset?: number, // review
   symbol: string,
   address: string, 
   decimal: number,
   logoUrl: string
 }
+
+export interface FeeQuote {
+  symbol: string,
+  address: string, 
+  decimal: number,
+  logoUrl: string,
+  payment: number,
+  tokenGasPrice: number, //review
+  offset?: number,
+}
+
 export interface FeeOptionsResponse {
   msg: string,
   data: {
     chainId: number,
     response: Array<TokenData>
   }
+}
+export interface FeeOption {
+  feeToken: string,
+  tokenGasPrice: number | string, //review
+  offset: number | string // review
 }

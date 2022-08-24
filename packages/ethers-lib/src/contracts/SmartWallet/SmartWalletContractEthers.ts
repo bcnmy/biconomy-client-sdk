@@ -51,6 +51,7 @@ class SmartWalletContractEthers implements SmartWalletContract {
       smartAccountTrxData.targetTxGas,
       smartAccountTrxData.baseGas,
       smartAccountTrxData.gasPrice,
+      smartAccountTrxData.tokenGasPriceFactor,
       smartAccountTrxData.gasToken,
       smartAccountTrxData.refundReceiver,
       smartAccountTrxData.nonce

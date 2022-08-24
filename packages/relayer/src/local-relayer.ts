@@ -136,26 +136,26 @@ export class LocalRelayer implements Relayer {
 
     const tx = this.signer.sendTransaction({
       ...signedTx.rawTx,
-      gasLimit: ethers.constants.Two.pow(24),
-      gasPrice: 5000000000,
+      gasLimit: ethers.constants.Two.pow(24)
     })
     return tx
   }
 
-  getFeeOptions(chainId: number) : FeeOptionsResponse {
+  async getFeeOptions(chainId: number) : Promise<FeeOptionsResponse> {
     console.log('requested fee options for chain ', chainId);
     const feeOptions: FeeOptionsResponse = {
       "msg": "all ok",
       "data": {
           "chainId": 5,
           "response": [
-              {
-                  "tokenGasPrice": "5",
-                  "symbol": "USDC",
-                  "address": "0xb5B640E6414b6DeF4FC9B3C1EeF373925effeCcF",
-                  "decimal": 6,
-                  "logoUrl": "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/usdc.png"
-              }]
+            {
+              "tokenGasPrice": 157718,
+              "symbol": "USDC",
+              "address": "0xb5B640E6414b6DeF4FC9B3C1EeF373925effeCcF",
+              "decimal": 6,
+              "logoUrl": "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/usdc.png",
+              "offset": 1000000
+          }]
             }
         };
     return feeOptions;
