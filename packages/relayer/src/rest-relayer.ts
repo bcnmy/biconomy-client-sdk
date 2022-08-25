@@ -13,7 +13,8 @@ import {
   SignedTransaction,
   WalletTransaction,
   RawTransactionType,
-  RestRelayerOptions
+  RestRelayerOptions,
+  FeeOptionsResponse
 } from '@biconomy-sdk/core-types'
 import { MetaTransaction, encodeMultiSend } from './utils/multisend';
 import { HttpMethod, sendRequest } from './utils/httpRequests';
@@ -142,7 +143,17 @@ export class RestRelayer implements Relayer {
       return sendRequest({
         url: `${this.#relayServiceBaseUrl}`,
         method: HttpMethod.Post,
-        body: { ...signedTx.rawTx, gasLimit: ethers.constants.Two.pow(24) }
-        })
+        body: { ...signedTx.rawTx, /*gasLimit: ethers.constants.Two.pow(24),*/ refundInfo: {
+          tokenGasPrice: signedTx.tx.gasPrice,
+          gasToken: signedTx.tx.gasToken,
+        } }
+      })
+    }
+
+    async getFeeOptions(chainId: number): Promise<FeeOptionsResponse> {
+      return sendRequest({
+        url: `${this.#relayServiceBaseUrl}/feeOptions?chainId=${chainId}`,
+        method: HttpMethod.Get,
+      })
     }
   }

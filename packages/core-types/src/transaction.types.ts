@@ -32,15 +32,17 @@ export interface ExecTransaction {
 }
 
 export interface FeeRefund {
+  gasUsed: string | number
   baseGas: string | number
   gasPrice: string | number
+  tokenGasPriceFactor: string | number
   gasToken: string
   refundReceiver: string
 }
 
 export interface MetaTransactionData {
   readonly to: string
-  readonly value: string
+  readonly value: BigNumberish
   readonly data: string
   readonly operation?: OperationType
 }
@@ -74,6 +76,7 @@ export interface WalletTransaction extends MetaTransaction{
   targetTxGas: string | number
   baseGas: string | number
   gasPrice: string | number
+  tokenGasPriceFactor: string | number
   gasToken: string
   refundReceiver: string
   nonce: number
