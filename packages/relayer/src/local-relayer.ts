@@ -7,7 +7,8 @@ import {
   SmartAccountState,
   SignedTransaction,
   WalletTransaction,
-  FeeOptionsResponse
+  FeeOptionsResponse,
+  RelayResponse
 } from '@biconomy-sdk/core-types'
 import { MetaTransaction, encodeMultiSend } from './utils/multisend'
 
@@ -90,7 +91,7 @@ export class LocalRelayer implements Relayer {
     signedTx: SignedTransaction,
     config: SmartAccountState,
     context: SmartAccountContext
-  ): Promise<TransactionResponse> {
+  ): Promise<RelayResponse> {
     const { isDeployed, address } = config
     const { multiSendCall } = context // multisend has to be multiSendCallOnly here!
     if (!isDeployed) {
