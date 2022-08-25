@@ -30,7 +30,7 @@
   "devDependencies": {
     "hardhat": "^2.9.9",
     "lerna": "^5.1.6",
-    "nx": "^14.5.8",
+    "nx": "^14.5.10",
     "prettier": "2.7.1",
     "ts-node": "^10.8.2"
   }
