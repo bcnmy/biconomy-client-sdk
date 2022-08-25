@@ -10,7 +10,7 @@ import "../interfaces/IERC165.sol";
 /// @author Richard Meissner - <richard@gnosis.pm>
 contract DefaultCallbackHandler is ERC1155TokenReceiver, ERC777TokensRecipient, ERC721TokenReceiver, IERC165 {
     string public constant NAME = "Default Callback Handler";
-    string public constant VERSION = "1.0.0";
+    string public constant VERSION = "1.0.1";
 
     function onERC1155Received(
         address,
