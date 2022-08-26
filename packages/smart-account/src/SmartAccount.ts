@@ -142,7 +142,7 @@ class SmartAccount {
    * @param smartAccountVersion
    * @description // set wallet version to be able to interact with different deployed versions
    */
-  setWalletVersion(smartAccountVersion: SmartAccountVersion) {
+  setSmartAccountVersion(smartAccountVersion: SmartAccountVersion) {
     this.DEFAULT_VERSION = smartAccountVersion
   }
 
@@ -390,7 +390,7 @@ class SmartAccount {
     let walletContract = this.smartWalletContract[chainId][this.DEFAULT_VERSION].getContract()
     walletContract = walletContract.attach(this.address)
 
-    let signature = await this.signTransaction(tx)
+    let signature = await this.signTransaction({tx, chainId})
 
     let execTransaction = await walletContract.populateTransaction.execTransaction(
       transaction,
@@ -509,10 +509,10 @@ class SmartAccount {
   async estimateTransactionBatch(
     prepareRefundTransactionDto: PrepareRefundTransactionDto
     ): Promise<number> {
-      const { transaction, batchId = 0, chainId = this.#smartAccountConfig.activeNetworkId} = prepareRefundTransactionDto
+      const { transactions, batchId = 0, chainId = this.#smartAccountConfig.activeNetworkId} = prepareRefundTransactionDto
       // eth_call api method
       let estimatedGasUsed = 435318;
-      console.log('transactions ', transaction);
+      console.log('transactions ', transactions);
       console.log('batchId ', batchId);
       console.log('chainId ', chainId);
       return estimatedGasUsed;

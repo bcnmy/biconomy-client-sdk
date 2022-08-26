@@ -26,7 +26,7 @@ export type PrepareTransactionDto = {
 }
 
 export type PrepareRefundTransactionDto = {
-    transaction: Transaction[]
+    transactions: Transaction[]
     batchId: number
     chainId: ChainId
 }
@@ -51,7 +51,7 @@ export type TransactionDto = {
 }
 
 export type TransactionBatchDto = {
-    transaction: Transaction
+    transactions: Transaction[]
     batchId: number
     chainId: ChainId
 }
