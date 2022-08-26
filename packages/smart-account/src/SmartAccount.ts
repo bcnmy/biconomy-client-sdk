@@ -10,7 +10,11 @@ import {
   findContractAddressesByVersion
 } from './utils/FetchContractsInfo'
 import {
+  ExecTransaction,
+  FeeRefund,
+  WalletTransaction,
   SmartAccountVersion,
+  SignedTransaction,
   ChainId,
   SmartAccountContext,
   SmartWalletFactoryContract,
@@ -20,27 +24,25 @@ import {
   RawTransactionType,
   SmartAccountState,
   MetaTransactionData,
+  MetaTransaction,
   OperationType,
   FeeRefundData,
   TokenData,
   FeeQuote,
   FeeOptionsResponse,
-  ZERO_ADDRESS
+  ZERO_ADDRESS,
+  RelayResponse
 } from '@biconomy-sdk/core-types'
 import { JsonRpcSigner, TransactionResponse } from '@ethersproject/providers'
 import NodeClient, { ChainConfig, SupportedChainsResponse } from '@biconomy-sdk/node-client'
 import { Web3Provider } from '@ethersproject/providers'
 import { Relayer } from '@biconomy-sdk/relayer'
 import {
-  WalletTransaction,
-  ExecTransaction,
-  FeeRefund,
   SmartAccountTransaction,
   getSignatureParameters,
   EIP712_WALLET_TX_TYPE,
   buildSmartAccountTransaction,
   smartAccountSignMessage,
-  MetaTransaction,
   buildMultiSendSmartAccountTx,
   AddressZero
 } from '@biconomy-sdk/transactions'
@@ -370,6 +372,7 @@ class SmartAccount {
     }
 
     const refundInfo: FeeRefund = {
+      gasUsed: 0,
       baseGas: tx.baseGas,
       gasPrice: tx.gasPrice,
       tokenGasPriceFactor: tx.tokenGasPriceFactor,
@@ -394,7 +397,7 @@ class SmartAccount {
 
     const state = await this.getSmartAccountState(chainId)
 
-    const signedTx = {
+    const signedTx: SignedTransaction = {
       rawTx,
       tx
     }
@@ -496,7 +499,7 @@ class SmartAccount {
     batchId: number = 0, // may not be necessary
     chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<number> {
       // eth_call api method
-      let estimatedGasUsed = 500000;
+      let estimatedGasUsed = 435318;
       console.log('transactions ', transactions);
       console.log('batchId ', batchId);
       console.log('chainId ', chainId);
@@ -507,7 +510,7 @@ class SmartAccount {
     batchId: number = 0, // may not be necessary
     chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<number> {
       // eth_call api method
-      let estimatedGasUsed = 500000;
+      let estimatedGasUsed = 435318;
       console.log('transaction ', transaction);
       console.log('batchId ', batchId);
       console.log('chainId ', chainId);
@@ -709,7 +712,7 @@ class SmartAccount {
 
       console.log('wallet txn with refund ', walletTx);
 
-      const internalTx: MetaTransactionData = {
+      const internalTx: MetaTransaction = {
         to: walletTx.to,
         value: walletTx.value || 0,
         data: walletTx.data || '0x',
