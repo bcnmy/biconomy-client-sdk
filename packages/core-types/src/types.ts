@@ -37,6 +37,15 @@ export interface Eip3770Address {
   address: string
 }
 
+export interface RelayResponse {
+  code?: number;
+  message?: string;
+  transactionId?: string;
+  hash: string;
+  error?: string;
+  connectionUrl?: string;
+}
+
 export interface UserOperation {
   sender: string
   nonce: number

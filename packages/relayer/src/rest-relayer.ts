@@ -14,7 +14,8 @@ import {
   WalletTransaction,
   RawTransactionType,
   RestRelayerOptions,
-  FeeOptionsResponse
+  FeeOptionsResponse,
+  RelayResponse
 } from '@biconomy-sdk/core-types'
 import { MetaTransaction, encodeMultiSend } from './utils/multisend';
 import { HttpMethod, sendRequest } from './utils/httpRequests';
@@ -90,7 +91,7 @@ export class RestRelayer implements Relayer {
     // Add feeQuote later
     // Appending tx and rawTx may not be necessary
 
-    async relay(signedTx: SignedTransaction, config: SmartAccountState, context: SmartAccountContext) : Promise<TransactionResponse> {
+    async relay(signedTx: SignedTransaction, config: SmartAccountState, context: SmartAccountContext) : Promise<RelayResponse> {
       
       const { isDeployed, address } = config;
       const { multiSendCall } = context; // multisend has to be multiSendCallOnly here!
@@ -134,7 +135,7 @@ export class RestRelayer implements Relayer {
         return sendRequest({
             url: `${this.#relayServiceBaseUrl}`,
             method: HttpMethod.Post,
-            body: { ...finalRawRx, gasLimit: ethers.constants.Two.pow(24) }
+            body: { ...finalRawRx, /*gasLimit: ethers.constants.Two.pow(24)*/ }
         })
       }
       console.log('signedTx', signedTx);

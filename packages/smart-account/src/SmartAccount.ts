@@ -22,7 +22,8 @@ import {
   TokenData,
   FeeQuote,
   FeeOptionsResponse,
-  ZERO_ADDRESS
+  ZERO_ADDRESS,
+  RelayResponse
 } from '@biconomy-sdk/core-types'
 import { JsonRpcSigner, TransactionResponse } from '@ethersproject/providers'
 import NodeClient, { ChainConfig, SupportedChainsResponse } from '@biconomy-sdk/node-client'
@@ -287,7 +288,7 @@ class SmartAccount {
     tx: WalletTransaction,
     batchId: number = 0,
     chainId: ChainId = this.#smartAccountConfig.activeNetworkId
-  ): Promise<TransactionResponse> {
+  ): Promise<string> {
     let rawTx: RawTransactionType = {
       to: tx.to,
       data: tx.data,
@@ -333,8 +334,8 @@ class SmartAccount {
       tx
     }
 
-    const txn = await this.relayer.relay(signedTx, state, this.getSmartAccountContext(chainId))
-    return txn
+    const txn:RelayResponse = await this.relayer.relay(signedTx, state, this.getSmartAccountContext(chainId))
+    return txn.hash
   }
 
   // Get Fee Options from relayer and make it available for display
@@ -430,7 +431,7 @@ class SmartAccount {
     batchId: number = 0, // may not be necessary
     chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<number> {
       // eth_call api method
-      let estimatedGasUsed = 500000;
+      let estimatedGasUsed = 435318;
       console.log('transactions ', transactions);
       console.log('batchId ', batchId);
       console.log('chainId ', chainId);
@@ -441,7 +442,7 @@ class SmartAccount {
     batchId: number = 0, // may not be necessary
     chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<number> {
       // eth_call api method
-      let estimatedGasUsed = 500000;
+      let estimatedGasUsed = 435318;
       console.log('transaction ', transaction);
       console.log('batchId ', batchId);
       console.log('chainId ', chainId);
