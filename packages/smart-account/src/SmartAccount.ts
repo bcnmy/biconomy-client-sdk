@@ -10,6 +10,7 @@ import {
   findContractAddressesByVersion
 } from './utils/FetchContractsInfo'
 import {
+  SmartAccountVersion,
   ChainId,
   SmartAccountContext,
   SmartWalletFactoryContract,
@@ -348,12 +349,11 @@ class SmartAccount {
    * @param chainId optional chainId
    * @returns
    */
-  async sendTransaction(
-    // smartAccountVersion: SmartAccountVersion = this.DEFAULT_VERSION,
+   async sendTransaction(
     tx: WalletTransaction,
     batchId: number = 0,
     chainId: ChainId = this.#smartAccountConfig.activeNetworkId
-  ): Promise<TransactionResponse> {
+  ): Promise<string> {
     let rawTx: RawTransactionType = {
       to: tx.to,
       data: tx.data,
@@ -377,7 +377,7 @@ class SmartAccount {
       refundReceiver: tx.refundReceiver
     }
 
-    let walletContract = this.smartAccount(chainId).getContract()
+    let walletContract = this.smartWalletContract[chainId][this.DEFAULT_VERSION].getContract()
     walletContract = walletContract.attach(this.address)
 
     let signature = await this.signTransaction(tx)
@@ -399,8 +399,8 @@ class SmartAccount {
       tx
     }
 
-    const txn = await this.relayer.relay(signedTx, state, this.getSmartAccountContext(chainId))
-    return txn
+    const txn:RelayResponse = await this.relayer.relay(signedTx, state, this.getSmartAccountContext(chainId))
+    return txn.hash
   }
 
   // Get Fee Options from relayer and make it available for display
@@ -789,7 +789,7 @@ class SmartAccount {
    * @returns
    */
      async createTransactionBatch(transactions: Transaction[], batchId:number = 0,chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<WalletTransaction> {
-      let walletContract = this.smartAccount(chainId).getContract();
+      let walletContract = this.smartWalletContract[chainId][this.DEFAULT_VERSION].getContract();
       walletContract = walletContract.attach(this.address);
       
       // NOTE : If the wallet is not deployed yet then nonce would be zero
@@ -823,29 +823,6 @@ class SmartAccount {
   
       return walletTx
     }
-    console.log('nonce: ', nonce)
-
-    const txs: MetaTransaction[] = []
-
-    for (let i = 0; i < transactions.length; i++) {
-      const innerTx: WalletTransaction = buildSmartAccountTransaction({
-        to: transactions[i].to,
-        value: transactions[i].value,
-        data: transactions[i].data, // for token transfers use encodeTransfer
-        nonce: 0
-      })
-
-      txs.push(innerTx)
-    }
-
-    const walletTx: WalletTransaction = buildMultiSendSmartAccountTx(
-      this.multiSend(chainId).getContract(),
-      txs,
-      nonce
-    )
-
-    return walletTx
-  }
 
   /**
    *

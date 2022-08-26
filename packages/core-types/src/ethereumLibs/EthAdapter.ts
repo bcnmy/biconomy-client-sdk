@@ -1,5 +1,4 @@
 import { BigNumber } from '@ethersproject/bignumber'
-import { SingletonDeployment } from '@gnosis.pm/safe-deployments'
 import { SmartWalletContract } from 'contracts/SmartWalletContract'
 import { MultiSendContract } from '../contracts/MultiSendContract'
 import { MultiSendCallOnlyContract } from '../contracts/MultiSendCallOnlyContract'
@@ -13,11 +12,6 @@ export interface EthAdapterTransaction {
   value?: string
   gasPrice?: number
   gasLimit?: number
-}
-
-export interface GetContractProps {
-  chainId: number
-  singletonDeployment?: SingletonDeployment
 }
 
 export interface EthAdapter {

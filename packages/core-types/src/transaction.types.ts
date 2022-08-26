@@ -77,6 +77,7 @@ export interface WalletTransaction extends MetaTransaction{
   baseGas: string | number
   gasPrice: string | number
   gasToken: string
+  tokenGasPriceFactor: string
   refundReceiver: string
   nonce: number
 }
