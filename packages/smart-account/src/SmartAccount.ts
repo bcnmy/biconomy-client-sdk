@@ -11,6 +11,7 @@ import {
 } from './utils/FetchContractsInfo'
 import {
   ExecTransaction,
+  RelayTransaction,
   FeeRefund,
   WalletTransaction,
   SmartAccountVersion,
@@ -34,7 +35,7 @@ import {
   RelayResponse
 } from '@biconomy-sdk/core-types'
 import { JsonRpcSigner, TransactionResponse } from '@ethersproject/providers'
-import NodeClient, { ChainConfig, SupportedChainsResponse } from '@biconomy-sdk/node-client'
+import NodeClient, { ChainConfig, SupportedChainsResponse, EstimateExternalGasDto,  EstimateRequiredTxGasDto, EstimateHandlePaymentTxGasDto} from '@biconomy-sdk/node-client'
 import { Web3Provider } from '@ethersproject/providers'
 import { Relayer } from '@biconomy-sdk/relayer'
 import {
@@ -107,7 +108,7 @@ class SmartAccount {
   /**Constrcutor for the Smart Account. If config is not provided it makes Smart Contract available using default configuration
    * If you wish to use your own backend server and relayer service, pass the URLs here
    */
-  constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
+   constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
     if (config) {
       this.#smartAccountConfig = { ...this.#smartAccountConfig, ...config }
@@ -236,7 +237,6 @@ class SmartAccount {
    * @returns
    */
   private async getAddressForCounterfactualWallet(
-    // smartAccountVersion: SmartAccountVersion = this.DEFAULT_VERSION,
     index: number = 0,
     chainId: ChainId = this.#smartAccountConfig.activeNetworkId
   ): Promise<string> {
@@ -274,14 +274,14 @@ class SmartAccount {
     return this.nodeClient.getTotalBalanceInUsd(balancesDto)
   }
 
-  public async estimateExternalGas(chainId: number, encodedData: string): Promise<EstimateGasResponse> {
-    return this.nodeClient.estimateExternalGas(chainId, encodedData)
+  public async estimateExternalGas(estimateExternalGasDto: EstimateExternalGasDto): Promise<EstimateGasResponse>{
+    return this.nodeClient.estimateExternalGas(estimateExternalGasDto)
   }
-  public async estimateRequiredTxGas(chainId: number, walletAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse> {
-    return this.nodeClient.estimateRequiredTxGas(chainId, walletAddress, transaction)
+  public async estimateRequiredTxGas(estimateRequiredTxGasDto: EstimateRequiredTxGasDto): Promise<EstimateGasResponse>{
+    return this.nodeClient.estimateRequiredTxGas(estimateRequiredTxGasDto)
   }
-  public async estimateHandlePaymentGas(chainId: number, walletAddress: string, feeRefundData: FeeRefundData): Promise<EstimateGasResponse> {
-    return this.nodeClient.estimateHandlePaymentGas(chainId, walletAddress, feeRefundData)
+  public async estimateHandlePaymentGas(estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto): Promise<EstimateGasResponse>{
+    return this.nodeClient.estimateHandlePaymentGas(estimateHandlePaymentTxGasDto)
   }
 
 
@@ -329,7 +329,6 @@ class SmartAccount {
    * @returns:string Signature
    */
   async signTransaction(
-    // smartAccountVersion: SmartAccountVersion = this.DEFAULT_VERSION,
     tx: WalletTransaction,
     chainId: ChainId = this.#smartAccountConfig.activeNetworkId
   ): Promise<string> {
@@ -401,8 +400,12 @@ class SmartAccount {
       rawTx,
       tx
     }
-
-    const txn:RelayResponse = await this.relayer.relay(signedTx, state, this.getSmartAccountContext(chainId))
+    const relayTrx: RelayTransaction = {
+      signedTx, 
+      config: state, 
+      context: this.getSmartAccountContext(chainId)
+    }
+    const txn:RelayResponse = await this.relayer.relay(relayTrx)
     return txn.hash
   }
 
@@ -556,13 +559,18 @@ class SmartAccount {
       operation: OperationType.Call
     }
     console.log(internalTx);
-    const response = await this.estimateRequiredTxGas(chainId, this.address, internalTx);
+    const connectedWallet = this.address
+    const estimateRequiredTxGas: EstimateRequiredTxGasDto = {
+      chainId, 
+      walletAddress: connectedWallet, 
+      transaction: internalTx}
+    const response = await this.estimateRequiredTxGas(estimateRequiredTxGas);
     const gasEstimate1 = Number(response.data.gas) + 50000 // review // check safeServiceClient
     console.log('required txgas estimate ', gasEstimate1);
 
     // Depending on feeToken provide baseGas!
 
-    const refundDetails: FeeRefundData = {
+    const refundDetails: FeeRefund = {
       gasUsed: gasEstimate1,
       baseGas: gasEstimate1,
       gasPrice: feeQuote.tokenGasPrice,
@@ -571,7 +579,12 @@ class SmartAccount {
       refundReceiver: ZERO_ADDRESS
     }
 
-    const handlePaymentResponse = await this.estimateHandlePaymentGas(chainId, this.address, refundDetails);
+    const estimateHandlePaymentGas: EstimateHandlePaymentTxGasDto = {
+      chainId, 
+      walletAddress: connectedWallet, 
+      feeRefundData: refundDetails}
+
+    const handlePaymentResponse = await this.estimateHandlePaymentGas(estimateHandlePaymentGas);
     let handlePaymentEstimate = Number(handlePaymentResponse.data.gas)
 
     console.log('handle payment estimate ', handlePaymentEstimate);
@@ -651,7 +664,8 @@ class SmartAccount {
   batchId:number = 0,
   chainId: ChainId = this.#smartAccountConfig.activeNetworkId): Promise<WalletTransaction> {
     let walletContract = this.smartAccount(chainId).getContract();
-    walletContract = walletContract.attach(this.address);
+    const connectedWallet = this.address
+    walletContract = walletContract.attach(connectedWallet);
 
     let additionalBaseGas = 0;
        
@@ -677,7 +691,9 @@ class SmartAccount {
         ])
         console.log('encodedEstimate ', encodedEstimateData)
 
-        const deployCostresponse = await this.estimateExternalGas(chainId, encodedEstimateData);
+        const estimateExternalGas: EstimateExternalGasDto = {chainId, encodedData: encodedEstimateData}
+
+        const deployCostresponse = await this.estimateExternalGas(estimateExternalGas);
         const estimateWalletDeployment = Number(deployCostresponse.data.gas);
         console.log('estimateWalletDeployment ', estimateWalletDeployment);
         
@@ -721,7 +737,14 @@ class SmartAccount {
       console.log(internalTx);
       // TODO
       // Currently we can't do these estimations without wallet being deployed... 
-      const response = await this.estimateRequiredTxGas(chainId, this.address, internalTx);
+
+      const estimateRequiredTxGas: EstimateRequiredTxGasDto = {
+        chainId,
+        walletAddress: connectedWallet,
+        transaction: internalTx
+      }
+
+      const response = await this.estimateRequiredTxGas(estimateRequiredTxGas);
 
       // If we get this reponse zero, there has to be a way to estimate this fror undeployed wallet
       // i. use really high value 
@@ -735,7 +758,7 @@ class SmartAccount {
 
       console.log('feeQuote.offset ', feeQuote.offset);
   
-      const refundDetails: FeeRefundData = {
+      const refundDetails: FeeRefund = {
         gasUsed: gasEstimate1,
         baseGas: gasEstimate1,
         gasPrice: feeQuote.tokenGasPrice, // this would be token gas price // review
@@ -743,8 +766,14 @@ class SmartAccount {
         gasToken: feeQuote.address,
         refundReceiver: ZERO_ADDRESS
       }
+
+      const estimateHandlePaymentGas: EstimateHandlePaymentTxGasDto = {
+        chainId,
+        walletAddress: connectedWallet,
+        feeRefundData: refundDetails
+      }
   
-      const handlePaymentResponse = await this.estimateHandlePaymentGas(chainId, this.address, refundDetails);
+      const handlePaymentResponse = await this.estimateHandlePaymentGas(estimateHandlePaymentGas);
       // If we get this reponse zero, there has to be a way to estimate this for undeployed wallet
       // We could use constant value provided by the relayer
       let handlePaymentEstimate = Number(handlePaymentResponse.data.gas)

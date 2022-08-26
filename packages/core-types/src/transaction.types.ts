@@ -1,7 +1,8 @@
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
-import { OperationType } from './types'
+import { OperationType, SmartAccountContext, SmartAccountState } from './types'
 import { PromiEvent, TransactionReceipt } from 'web3-core/types'
 import { ContractTransaction } from '@ethersproject/contracts'
+
 
 export interface RawTransactionType {
   from?: string
@@ -119,4 +120,16 @@ export interface TransactionResult extends BaseTransactionResult {
   promiEvent?: PromiEvent<TransactionReceipt>
   transactionResponse?: ContractTransaction
   options?: TransactionOptions
+}
+
+export interface RelayTransaction {
+  signedTx: SignedTransaction,
+  config: SmartAccountState, 
+  context: SmartAccountContext
+}
+
+export interface DeployWallet {
+  config: SmartAccountState
+  context: SmartAccountContext
+  index:number
 }

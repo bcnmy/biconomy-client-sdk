@@ -8,6 +8,8 @@ import {
   MultiSendContract,
   MultiSendCallOnlyContract,
   TransactionResult,
+  RelayTransaction,
+  DeployWallet,
   SmartAccountContext,
   SmartAccountState, 
   SignedTransaction,
@@ -35,16 +37,17 @@ export class RestRelayer implements Relayer {
     // Review function arguments and return values
     // Could get smartAccount instance 
     // Defines a type that takes config, context for SCW in play along with other details
-    async deployWallet(config: SmartAccountState, context: SmartAccountContext, index:number = 0): Promise<TransactionResponse> {
+    async deployWallet(deployWallet: DeployWallet): Promise<TransactionResponse> {
       // Should check if already deployed
       //Review for index and ownership transfer case
+      const { config, context, index = 0 } = deployWallet
       const {address} = config;
       const {walletFactory} = context;
       const isExist = await walletFactory.isWalletExist(address);
       if(isExist) {
         throw new Error("Smart Account is Already Deployed")
       }
-      const walletDeployTxn = this.prepareWalletDeploy(config, context, index);
+      const walletDeployTxn = this.prepareWalletDeploy(deployWallet);
       // REST API call to relayer
       return sendRequest({
         url: `${this.#relayServiceBaseUrl}`,
@@ -54,11 +57,10 @@ export class RestRelayer implements Relayer {
     }
 
     prepareWalletDeploy( // owner, entryPoint, handler, index
-      config:SmartAccountState,
-      context: SmartAccountContext,
-      index: number = 0,
+      deployWallet: DeployWallet
       // context: WalletContext
     ): { to: string, data: string} {
+      const { config, context, index = 0 } = deployWallet
       const {walletFactory} = context;
       const {owner, entryPointAddress, fallbackHandlerAddress} = config;
       const factoryInterface = walletFactory.getInterface();
@@ -91,14 +93,21 @@ export class RestRelayer implements Relayer {
     // Add feeQuote later
     // Appending tx and rawTx may not be necessary
 
-    async relay(signedTx: SignedTransaction, config: SmartAccountState, context: SmartAccountContext) : Promise<RelayResponse> {
-      
+    async relay(
+      relayTransaction: RelayTransaction
+    ): Promise<RelayResponse> { 
+      const { config, signedTx, context } = relayTransaction   
       const { isDeployed, address } = config;
       const { multiSendCall } = context; // multisend has to be multiSendCallOnly here!
       if(!isDeployed) {
         // If not =>> preprendWalletDeploy
         console.log('here');
-        const {to, data} = this.prepareWalletDeploy(config,context);
+        const prepareWalletDeploy: DeployWallet = {
+          config,
+          context,
+          index: 0
+        }
+        const {to, data} = this.prepareWalletDeploy(prepareWalletDeploy);
         const originalTx:WalletTransaction = signedTx.tx;
 
         const txs: MetaTransaction[] = [
