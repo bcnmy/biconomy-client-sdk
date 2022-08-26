@@ -1,6 +1,11 @@
-import { FeeRefundData, MetaTransactionData } from '@biconomy-sdk/core-types'
+import { FeeRefund, MetaTransactionData } from '@biconomy-sdk/core-types'
 import { Signer } from '@ethersproject/abstract-signer'
 import {
+  EstimateExternalGasDto,
+  EstimateRequiredTxGasDto,
+  EstimateHandlePaymentTxGasDto,
+  SmartAccountByOwnerDto,
+  TokenByChainIdAndAddressDto,
   TokenPriceResponse,
   SupportedChainsResponse,
   individualChainResponse,
@@ -26,23 +31,22 @@ interface INodeClient {
   getAllTokens(): Promise<SupportedTokensResponse>
   getTokensByChainId(chainId: number): Promise<SupportedTokensResponse>
   getTokenByChainIdAndAddress(
-    chainId: number,
-    tokenAddress: string
+    tokenByChainIdAndAddressDto: TokenByChainIdAndAddressDto
   ): Promise<IndividualTokenResponse>
 
   // Smart Account Endpoints
 
-  getSmartAccountsByOwner(chainId: number, owner: string): Promise<SmartAccountsResponse>
+  getSmartAccountsByOwner(smartAccountByOwnerDto: SmartAccountByOwnerDto): Promise<SmartAccountsResponse>
 
   getAlltokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse>
 
   getTotalBalanceInUsd(balancesDto: BalancesDto): Promise<UsdBalanceResponse>
 
-  estimateExternalGas(chainId: number, encodedData: string): Promise<EstimateGasResponse>
+  estimateExternalGas(estimateExternalGasDto: EstimateExternalGasDto): Promise<EstimateGasResponse>
 
-  estimateRequiredTxGas(chainId: number, estimatorAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse>
+  estimateRequiredTxGas(estimateRequiredTxGasDto: EstimateRequiredTxGasDto): Promise<EstimateGasResponse>
 
-  estimateHandlePaymentGas(chainId: number, estimatorAddress: string, feeRefund: FeeRefundData): Promise<EstimateGasResponse>
+  estimateHandlePaymentGas(estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto): Promise<EstimateGasResponse>
 }
 
 export default INodeClient
