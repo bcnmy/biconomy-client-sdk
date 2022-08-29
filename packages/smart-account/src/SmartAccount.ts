@@ -390,7 +390,7 @@ class SmartAccount {
     let walletContract = this.smartWalletContract[chainId][this.DEFAULT_VERSION].getContract()
     walletContract = walletContract.attach(this.address)
 
-    let signature = await this.signTransaction(tx)
+    let signature = await this.signTransaction({tx, chainId})
 
     let execTransaction = await walletContract.populateTransaction.execTransaction(
       transaction,
@@ -474,7 +474,7 @@ class SmartAccount {
     prepareRefundTransactionDto: PrepareRefundTransactionDto
   ): Promise<FeeQuote[]> {
 
-    const { transactions, batchId = 0, chainId = this.#smartAccountConfig.activeNetworkId} = prepareRefundTransactionDto
+    const { transaction, batchId = 0, chainId = this.#smartAccountConfig.activeNetworkId} = prepareRefundTransactionDto
     const gasPriceQuotesResponse:FeeOptionsResponse = await this.relayer.getFeeOptions(chainId) 
     const feeOptionsAvailable: Array<TokenData> = gasPriceQuotesResponse.data.response;
     let feeQuotes: Array<FeeQuote> = [];
@@ -483,7 +483,7 @@ class SmartAccount {
     // 2. If wallet is not deployed (batch wallet deployment on multisend) 
     // actual estimation with dummy sig
     // eth_call to rescue : undeployed /deployed wallet with override bytecode SmartWalletNoAuth
-    const estimatedGasUsed: number = await this.estimateTransactionBatch({ transactions, batchId, chainId });
+    const estimatedGasUsed: number = await this.estimateTransactionBatch({ transaction, batchId, chainId });
 
     feeOptionsAvailable.forEach((feeOption) => {
       const tokenGasPrice = feeOption.tokenGasPrice || 0;

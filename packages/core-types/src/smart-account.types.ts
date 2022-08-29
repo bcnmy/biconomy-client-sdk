@@ -51,7 +51,7 @@ export type TransactionDto = {
 }
 
 export type TransactionBatchDto = {
-    transaction: Transaction
+    transactions: Transaction[]
     batchId: number
     chainId: ChainId
 }
