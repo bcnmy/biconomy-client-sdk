@@ -24,14 +24,6 @@ export interface SmartAccountState {
   entryPointAddress: string
   fallbackHandlerAddress: string
 }
-export interface FeeRefundData {
-  readonly gasUsed: number
-  readonly baseGas: number
-  readonly gasPrice: number
-  readonly tokenGasPriceFactor: string | number
-  readonly gasToken: string
-  readonly refundReceiver: string
-}
 export interface Eip3770Address {
   prefix: string
   address: string

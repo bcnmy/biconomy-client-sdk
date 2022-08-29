@@ -36,7 +36,6 @@ import {
   MetaTransactionData,
   MetaTransaction,
   OperationType,
-  FeeRefundData,
   TokenData,
   FeeQuote,
   FeeOptionsResponse,
@@ -474,7 +473,7 @@ class SmartAccount {
     prepareRefundTransactionDto: PrepareRefundTransactionDto
   ): Promise<FeeQuote[]> {
 
-    const { transaction, batchId = 0, chainId = this.#smartAccountConfig.activeNetworkId} = prepareRefundTransactionDto
+    const { transactions, batchId = 0, chainId = this.#smartAccountConfig.activeNetworkId} = prepareRefundTransactionDto
     const gasPriceQuotesResponse:FeeOptionsResponse = await this.relayer.getFeeOptions(chainId) 
     const feeOptionsAvailable: Array<TokenData> = gasPriceQuotesResponse.data.response;
     let feeQuotes: Array<FeeQuote> = [];
@@ -483,7 +482,7 @@ class SmartAccount {
     // 2. If wallet is not deployed (batch wallet deployment on multisend) 
     // actual estimation with dummy sig
     // eth_call to rescue : undeployed /deployed wallet with override bytecode SmartWalletNoAuth
-    const estimatedGasUsed: number = await this.estimateTransactionBatch({ transaction, batchId, chainId });
+    const estimatedGasUsed: number = await this.estimateTransactionBatch({ transactions, batchId, chainId });
 
     feeOptionsAvailable.forEach((feeOption) => {
       const tokenGasPrice = feeOption.tokenGasPrice || 0;
