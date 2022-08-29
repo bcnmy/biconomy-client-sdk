@@ -32,13 +32,21 @@ export interface ExecTransaction {
   targetTxGas: string | number
 }
 
+export interface SmartAccountSignature {
+  signer: string
+  data: string
+}
+
 export interface FeeRefund {
-  gasUsed: string | number
   baseGas: string | number
   gasPrice: string | number
   tokenGasPriceFactor: string | number
   gasToken: string
   refundReceiver: string
+}
+// extended from FeeRefund as we need this for handlePayment Estimate
+export interface FeeRefundHandlePayment extends FeeRefund {
+  gasUsed: string | number
 }
 
 export interface MetaTransactionData {

@@ -8,7 +8,7 @@ import {
   PopulatedTransaction
 } from 'ethers'
 
-import { ExecTransaction, FeeRefund, WalletTransaction } from '@biconomy-sdk/core-types'
+import { ExecTransaction, FeeRefund, WalletTransaction, SmartAccountSignature } from '@biconomy-sdk/core-types'
 
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import { AddressZero } from '@ethersproject/constants'
@@ -43,17 +43,7 @@ export const EIP712_SMART_ACCOUNT_MESSAGE_TYPE = {
   SmartAccountMessage: [{ type: 'bytes', name: 'message' }]
 }
 
-export interface SmartAccountTransaction {
-  _tx: ExecTransaction
-  refundInfo: FeeRefund
-  batchId: number
-  nonce: string | number
-}
 
-export interface SmartAccountSignature {
-  signer: string
-  data: string
-}
 
 export const calculateSmartAccountDomainSeparator = (
   wallet: Contract,
@@ -165,7 +155,6 @@ export const executeTx = async (
     targetTxGas: SmartAccountTx.targetTxGas
   }
   const refundInfo: FeeRefund = {
-    gasUsed: 0,
     baseGas: SmartAccountTx.baseGas,
     gasPrice: SmartAccountTx.gasPrice,
     tokenGasPriceFactor: SmartAccountTx.tokenGasPriceFactor,
@@ -196,7 +185,6 @@ export const populateExecuteTx = async (
     targetTxGas: SmartAccountTx.targetTxGas
   }
   const refundInfo: FeeRefund = {
-    gasUsed: 0,
     baseGas: SmartAccountTx.baseGas,
     gasPrice: SmartAccountTx.gasPrice,
     tokenGasPriceFactor: SmartAccountTx.tokenGasPriceFactor,

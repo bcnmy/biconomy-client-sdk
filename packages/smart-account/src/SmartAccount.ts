@@ -21,6 +21,7 @@ import {
   TransactionBatchDto,
   ExecTransaction,
   RelayTransaction,
+  FeeRefundHandlePayment,
   FeeRefund,
   WalletTransaction,
   SmartAccountVersion,
@@ -47,13 +48,9 @@ import NodeClient, { ChainConfig, SupportedChainsResponse, EstimateExternalGasDt
 import { Web3Provider } from '@ethersproject/providers'
 import { Relayer } from '@biconomy-sdk/relayer'
 import {
-  SmartAccountTransaction,
-  getSignatureParameters,
-  EIP712_WALLET_TX_TYPE,
   buildSmartAccountTransaction,
   smartAccountSignMessage,
-  buildMultiSendSmartAccountTx,
-  AddressZero
+  buildMultiSendSmartAccountTx
 } from '@biconomy-sdk/transactions'
 import { GasEstimator } from './assets'
 import { BalancesDto } from '@biconomy-sdk/node-client'
@@ -378,7 +375,6 @@ class SmartAccount {
     }
 
     const refundInfo: FeeRefund = {
-      gasUsed: 0,
       baseGas: tx.baseGas,
       gasPrice: tx.gasPrice,
       tokenGasPriceFactor: tx.tokenGasPriceFactor,
@@ -576,7 +572,6 @@ class SmartAccount {
     // Depending on feeToken provide baseGas!
 
     const refundDetails: FeeRefund = {
-      gasUsed: gasEstimate1,
       baseGas: gasEstimate1,
       gasPrice: feeQuote.tokenGasPrice,
       tokenGasPriceFactor: feeQuote.offset || 1, 
@@ -761,7 +756,7 @@ class SmartAccount {
 
       console.log('feeQuote.offset ', feeQuote.offset);
   
-      const refundDetails: FeeRefund = {
+      const refundDetails: FeeRefundHandlePayment = {
         gasUsed: gasEstimate1,
         baseGas: gasEstimate1,
         gasPrice: feeQuote.tokenGasPrice, // this would be token gas price // review

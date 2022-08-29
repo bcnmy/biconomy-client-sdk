@@ -18,7 +18,6 @@ import {
 } from './types/NodeClientTypes'
 import { getTxServiceBaseUrl } from './utils'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-import { MetaTransactionData, FeeRefund } from '@biconomy-sdk/core-types'
 export interface NodeClientConfig {
   /** txServiceUrl - Safe Transaction Service URL */
   txServiceUrl: string
