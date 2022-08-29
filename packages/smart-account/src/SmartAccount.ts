@@ -891,9 +891,6 @@ class SmartAccount {
   // TODO: get details from backend config
   // NOTE: Discuss about multichain aspect of relayer node url and clients
 
-  // more methods to fetch balance via backend -> indexer node
-  // getTokenBalances() @Talha
-
   /**
    * @param address Owner aka {EOA} address
    * @param index number of smart account deploy i.e {0, 1 ,2 ...}
