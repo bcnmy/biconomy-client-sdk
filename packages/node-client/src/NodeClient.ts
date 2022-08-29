@@ -147,6 +147,20 @@ class NodeClient implements INodeClient {
       }
     })
   }
+
+  async estimateUndeployedContractGas(chainId: number, walletAddress: string, transaction: MetaTransactionData, feeRefund: FeeRefundData, signature:string): Promise<EstimateGasResponse> {
+    return sendRequest({
+      url: `${this.#txServiceBaseUrl}/estimator/undeployed`,
+      method: HttpMethod.Post,
+      body: {
+        chainId,
+        walletAddress,
+        transaction,
+        feeRefund,
+        signature
+      }
+    })
+  }
 }
 
 export default NodeClient

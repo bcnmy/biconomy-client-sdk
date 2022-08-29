@@ -217,6 +217,9 @@ class SmartAccount {
   public async estimateHandlePaymentGas(chainId: number, walletAddress: string, feeRefundData: FeeRefundData): Promise<EstimateGasResponse> {
     return this.nodeClient.estimateHandlePaymentGas(chainId, walletAddress, feeRefundData)
   }
+  public async estimateUndeployedContractGas(chainId: number, walletAddress: string, transaction: MetaTransactionData,  feeRefundData: FeeRefundData, signature: string): Promise<EstimateGasResponse> {
+    return this.nodeClient.estimateUndeployedContractGas(chainId, walletAddress, transaction, feeRefundData, signature)
+  }
 
 
   // return adapter instance to be used for blockchain interactions
@@ -513,7 +516,7 @@ class SmartAccount {
       handlePaymentEstimate = 22900
     }
     console.log('handlePaymentEstimate ', handlePaymentEstimate);
-    const baseGas = 22900 + 4928 + 2360; // delegate call + event emission + state updates
+    const baseGas = handlePaymentEstimate + 4928 + 2360; // delegate call + event emission + state updates
   
     const walletTx: WalletTransaction = buildSmartAccountTransaction({
       to: transaction.to,
@@ -688,7 +691,7 @@ class SmartAccount {
       
       // If the wallet deployment has to be appended then baseGas would change
       const regularOffSet = 4928 + 2360;
-      const baseGas = 22900 + regularOffSet + additionalBaseGas; // delegate call + event emission + state updates + potential deployment
+      const baseGas = handlePaymentEstimate + regularOffSet + additionalBaseGas; // delegate call + event emission + state updates + potential deployment
 
       const finalWalletTx: WalletTransaction = buildSmartAccountTransaction({
         to: walletTx.to,
