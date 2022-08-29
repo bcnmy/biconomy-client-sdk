@@ -32,7 +32,7 @@ export interface ExecTransaction {
 }
 
 export interface FeeRefund {
-  gasUsed: string | number
+  // gasUsed: string | number
   baseGas: string | number
   gasPrice: string | number
   tokenGasPriceFactor: string | number
