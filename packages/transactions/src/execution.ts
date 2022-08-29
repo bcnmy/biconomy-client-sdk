@@ -8,7 +8,12 @@ import {
   PopulatedTransaction
 } from 'ethers'
 
-import { ExecTransaction, FeeRefund, WalletTransaction, SmartAccountSignature } from '@biconomy-sdk/core-types'
+import {
+  ExecTransaction,
+  FeeRefund,
+  WalletTransaction,
+  SmartAccountSignature
+} from '@biconomy-sdk/core-types'
 
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import { AddressZero } from '@ethersproject/constants'
@@ -42,8 +47,6 @@ export const EIP712_SMART_ACCOUNT_MESSAGE_TYPE = {
   // "SmartAccountMessage(bytes message)"
   SmartAccountMessage: [{ type: 'bytes', name: 'message' }]
 }
-
-
 
 export const calculateSmartAccountDomainSeparator = (
   wallet: Contract,

@@ -34,7 +34,9 @@ interface INodeClient {
 
   // Smart Account Endpoints
 
-  getSmartAccountsByOwner(smartAccountByOwnerDto: SmartAccountByOwnerDto): Promise<SmartAccountsResponse>
+  getSmartAccountsByOwner(
+    smartAccountByOwnerDto: SmartAccountByOwnerDto
+  ): Promise<SmartAccountsResponse>
 
   getAlltokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse>
 
@@ -42,9 +44,13 @@ interface INodeClient {
 
   estimateExternalGas(estimateExternalGasDto: EstimateExternalGasDto): Promise<EstimateGasResponse>
 
-  estimateRequiredTxGas(estimateRequiredTxGasDto: EstimateRequiredTxGasDto): Promise<EstimateGasResponse>
+  estimateRequiredTxGas(
+    estimateRequiredTxGasDto: EstimateRequiredTxGasDto
+  ): Promise<EstimateGasResponse>
 
-  estimateHandlePaymentGas(estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto): Promise<EstimateGasResponse>
+  estimateHandlePaymentGas(
+    estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto
+  ): Promise<EstimateGasResponse>
 }
 
 export default INodeClient

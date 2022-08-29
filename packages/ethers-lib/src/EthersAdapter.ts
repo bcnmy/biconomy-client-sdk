@@ -68,7 +68,10 @@ class EthersAdapter implements EthAdapter {
     return (await this.#provider.getNetwork()).chainId
   }
 
-  getSmartWalletContract(smartAccountVersion: SmartAccountVersion, address: string): SmartWalletContract {
+  getSmartWalletContract(
+    smartAccountVersion: SmartAccountVersion,
+    address: string
+  ): SmartWalletContract {
     if (!address) {
       throw new Error('Invalid Smart Wallet contract address')
     }

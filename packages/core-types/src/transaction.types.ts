@@ -3,7 +3,6 @@ import { OperationType, SmartAccountContext, SmartAccountState } from './types'
 import { PromiEvent, TransactionReceipt } from 'web3-core/types'
 import { ContractTransaction } from '@ethersproject/contracts'
 
-
 export interface RawTransactionType {
   from?: string
   gasPrice?: string | BigNumber
@@ -81,7 +80,7 @@ export interface MetaTransaction {
   operation: number
 }
 
-export interface WalletTransaction extends MetaTransaction{
+export interface WalletTransaction extends MetaTransaction {
   targetTxGas: string | number
   baseGas: string | number
   gasPrice: string | number
@@ -131,13 +130,13 @@ export interface TransactionResult extends BaseTransactionResult {
 }
 
 export interface RelayTransaction {
-  signedTx: SignedTransaction,
-  config: SmartAccountState, 
+  signedTx: SignedTransaction
+  config: SmartAccountState
   context: SmartAccountContext
 }
 
 export interface DeployWallet {
   config: SmartAccountState
   context: SmartAccountContext
-  index:number
+  index: number
 }
