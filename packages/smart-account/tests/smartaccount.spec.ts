@@ -17,8 +17,7 @@ const { expect } = chai.use(chaiAsPromised)
 import hardhat from 'hardhat'
 import { deployWalletContracts } from './utils/deploy'
 import { BytesLike, Interface } from 'ethers/lib/utils'
-import { Transaction } from '../src/types'
-import { WalletTransaction } from '@biconomy-sdk/core-types'
+import { WalletTransaction, Transaction } from '@biconomy-sdk/core-types'
 import { textSpanContainsPosition } from 'typescript'
 
 type EthereumInstance = {
@@ -72,520 +71,511 @@ describe('Wallet integration', function () {
         .persist()
         .get('/v1/chains/')
         .reply(200, {
-          message: 'Success',
-          code: 200,
-          data: [
-            {
-              chainId: 1,
-              name: 'Ethereum',
-              symbol: 'ETH',
-              isL2: false,
-              isMainnet: true,
-              description: '',
-              blockExplorerUriTemplate: {
-                address: 'https://etherscan.io/address/',
-                txHash: 'https://etherscan.io/address/',
-                api: 'https://api.etherscan.io/'
+          "message": "Success",
+          "code": 200,
+          "data": [
+              {
+                  "chainId": 1,
+                  "name": "Ethereum",
+                  "symbol": "ETH",
+                  "isL2": false,
+                  "isMainnet": true,
+                  "description": "",
+                  "blockExplorerUriTemplate": {
+                      "address": "https://etherscan.io/address/",
+                      "txHash": "https://etherscan.io/address/",
+                      "api": "https://api.etherscan.io/"
+                  },
+                  "ensRegistryAddress": "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
+                  "estimatorAddress": "",
+                  "walletFactory": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0x6CEdFEec52d852fdAcDC6aD4a80F58aab406a898",
+                          "abi": ""
+                      }
+                  ],
+                  "multiSend": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xF9DC4a9B8b551f693a10EcB5F931fE2E1a9156f0",
+                          "abi": ""
+                      }
+                  ],
+                  "multiSendCall": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xa72E2c9EC14DDee494F551AAe9885158105F809c",
+                          "abi": ""
+                      }
+                  ],
+                  "walletCreatedCallBackEndpoint": "https://sdk-backend.staging.biconomy.io/v1/smart-accounts",
+                  "walletCreatedEventHit": false,
+                  "EoaChangedCallBackEndpoint": "https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner",
+                  "EoaChangedEventHit": false,
+                  "wallet": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xeA6eEf40Eaa8A642022f1697D6ED2fFC0Ffe5DFB",
+                          "abi": ""
+                      }
+                  ],
+                  "entryPoint": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xF05217199F1C25604c67993F11a81461Bc97F3Ab",
+                          "abi": ""
+                      }
+                  ],
+                  "fallBackHandler": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xFc942E06c54d08502557FA40e1Aa23C5258132D5",
+                          "abi": ""
+                      }
+                  ],
+                  "relayerUrl": "",
+                  "providerUrl": "https://kovan.infura.io/v3/d126f392798444609246423b06116c77",
+                  "indexerUrl": "",
+                  "backendNodeUrl": "",
+                  "token": {
+                      "chainId": 1,
+                      "address": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                      "name": "Ether",
+                      "symbol": "ETH",
+                      "decimals": 18,
+                      "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
+                      "isNative": true
+                  }
               },
-              ensRegistryAddress: '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e',
-              walletFactory: [
-                {
-                  version: '0.0.1',
-                  address: '0x050bca32264195976Fe00BcA566B548413A9E658',
-                  abi: ''
-                }
-              ],
-              multiSend: [
-                {
-                  version: '0.0.1',
-                  address: '0xF9DC4a9B8b551f693a10EcB5F931fE2E1a9156f0',
-                  abi: ''
-                }
-              ],
-              multiSendCall: [
-                {
-                  version: '0.0.1',
-                  address: '0xa72E2c9EC14DDee494F551AAe9885158105F809c',
-                  abi: ''
-                }
-              ],
-              walletCreatedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
-              walletCreatedEventHit: false,
-              EoaChangedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
-              EoaChangedEventHit: false,
-              wallet: [
-                {
-                  version: '0.0.1',
-                  address: '0x056DcE811A2b695171274855E7246039Df298158',
-                  abi: ''
-                }
-              ],
-              entryPoint: [
-                {
-                  version: '0.0.1',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
-                  abi: ''
-                }
-              ],
-              fallBackHandler: [
-                {
-                  version: '0.0.1',
-                  address: '0xFc942E06c54d08502557FA40e1Aa23C5258132D5',
-                  abi: ''
-                }
-              ],
-              relayerUrl: '',
-              providerUrl: 'https://kovan.infura.io/v3/d126f392798444609246423b06116c77',
-              indexerUrl: '',
-              backendNodeUrl: '',
-              token: {
-                chainId: 1,
-                address: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
-                name: 'Ether',
-                symbol: 'ETH',
-                decimals: 18,
-                logoURI: 'https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png',
-                isNative: true
+              {
+                  "chainId": 137,
+                  "name": "Polygon",
+                  "symbol": "MATIC",
+                  "isL2": true,
+                  "isMainnet": true,
+                  "description": "",
+                  "blockExplorerUriTemplate": {
+                      "address": "https://polygonscan.com/address/",
+                      "txHash": "https://polygonscan.com/address/",
+                      "api": "https://api.polygonscan.com/"
+                  },
+                  "ensRegistryAddress": "",
+                  "estimatorAddress": "",
+                  "walletFactory": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0x6CEdFEec52d852fdAcDC6aD4a80F58aab406a898",
+                          "abi": ""
+                      }
+                  ],
+                  "multiSend": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xF9DC4a9B8b551f693a10EcB5F931fE2E1a9156f0",
+                          "abi": ""
+                      }
+                  ],
+                  "multiSendCall": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xa72E2c9EC14DDee494F551AAe9885158105F809c",
+                          "abi": ""
+                      }
+                  ],
+                  "walletCreatedCallBackEndpoint": "https://sdk-backend.staging.biconomy.io/v1/smart-accounts",
+                  "walletCreatedEventHit": false,
+                  "EoaChangedCallBackEndpoint": "https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner",
+                  "EoaChangedEventHit": false,
+                  "wallet": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xeA6eEf40Eaa8A642022f1697D6ED2fFC0Ffe5DFB",
+                          "abi": ""
+                      }
+                  ],
+                  "entryPoint": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xF05217199F1C25604c67993F11a81461Bc97F3Ab",
+                          "abi": ""
+                      }
+                  ],
+                  "fallBackHandler": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xFc942E06c54d08502557FA40e1Aa23C5258132D5",
+                          "abi": ""
+                      }
+                  ],
+                  "relayerUrl": "",
+                  "providerUrl": "https://polygon-mainnet.g.alchemy.com/v2/s6bOKN9QDGXpVbsqzJMl_AHeZHNOCTcM",
+                  "indexerUrl": "",
+                  "backendNodeUrl": "",
+                  "token": {
+                      "chainId": 137,
+                      "address": "0x0000000000000000000000000000000000001010",
+                      "name": "Polygon Matic",
+                      "symbol": "Matic",
+                      "decimals": 18,
+                      "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/3890.png",
+                      "isNative": true
+                  }
+              },
+              {
+                  "chainId": 56,
+                  "name": "BSC Mainnet",
+                  "symbol": "BNB",
+                  "isL2": true,
+                  "isMainnet": true,
+                  "description": "",
+                  "blockExplorerUriTemplate": {
+                      "address": "https://bscscan.com/address/",
+                      "txHash": "https://bscscan.com/address/",
+                      "api": "https://bscscan.com/"
+                  },
+                  "ensRegistryAddress": "",
+                  "estimatorAddress": "",
+                  "walletFactory": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0x6CEdFEec52d852fdAcDC6aD4a80F58aab406a898",
+                          "abi": ""
+                      }
+                  ],
+                  "multiSend": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xF9DC4a9B8b551f693a10EcB5F931fE2E1a9156f0",
+                          "abi": ""
+                      }
+                  ],
+                  "multiSendCall": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xa72E2c9EC14DDee494F551AAe9885158105F809c",
+                          "abi": ""
+                      }
+                  ],
+                  "walletCreatedCallBackEndpoint": "https://sdk-backend.staging.biconomy.io/v1/smart-accounts",
+                  "walletCreatedEventHit": false,
+                  "EoaChangedCallBackEndpoint": "https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner",
+                  "EoaChangedEventHit": false,
+                  "wallet": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xeA6eEf40Eaa8A642022f1697D6ED2fFC0Ffe5DFB",
+                          "abi": ""
+                      }
+                  ],
+                  "entryPoint": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xF05217199F1C25604c67993F11a81461Bc97F3Ab",
+                          "abi": ""
+                      }
+                  ],
+                  "fallBackHandler": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xFc942E06c54d08502557FA40e1Aa23C5258132D5",
+                          "abi": ""
+                      }
+                  ],
+                  "relayerUrl": "",
+                  "providerUrl": "https://bsc-dataseed2.binance.org/",
+                  "indexerUrl": "",
+                  "backendNodeUrl": "",
+                  "token": {
+                      "chainId": 56,
+                      "address": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                      "name": "BNB Coin",
+                      "symbol": "BNB",
+                      "decimals": 18,
+                      "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png",
+                      "isNative": true
+                  }
+              },
+              {
+                  "chainId": 5,
+                  "name": "Goerli",
+                  "symbol": "ETH",
+                  "isL2": false,
+                  "isMainnet": false,
+                  "description": "",
+                  "blockExplorerUriTemplate": {
+                      "address": "https://goerli.etherscan.io/address/",
+                      "txHash": "https://goerli.etherscan.io/address/",
+                      "api": "https://goerli.etherscan.io/"
+                  },
+                  "ensRegistryAddress": "",
+                  "estimatorAddress": "",
+                  "walletFactory": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0x6CEdFEec52d852fdAcDC6aD4a80F58aab406a898",
+                          "abi": ""
+                      }
+                  ],
+                  "multiSend": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xF9DC4a9B8b551f693a10EcB5F931fE2E1a9156f0",
+                          "abi": ""
+                      }
+                  ],
+                  "multiSendCall": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xa72E2c9EC14DDee494F551AAe9885158105F809c",
+                          "abi": ""
+                      }
+                  ],
+                  "walletCreatedCallBackEndpoint": "https://sdk-backend.staging.biconomy.io/v1/smart-accounts",
+                  "walletCreatedEventHit": false,
+                  "EoaChangedCallBackEndpoint": "https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner",
+                  "EoaChangedEventHit": false,
+                  "wallet": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xeA6eEf40Eaa8A642022f1697D6ED2fFC0Ffe5DFB",
+                          "abi": ""
+                      }
+                  ],
+                  "entryPoint": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xF05217199F1C25604c67993F11a81461Bc97F3Ab",
+                          "abi": ""
+                      }
+                  ],
+                  "fallBackHandler": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xFc942E06c54d08502557FA40e1Aa23C5258132D5",
+                          "abi": ""
+                      }
+                  ],
+                  "relayerUrl": "",
+                  "providerUrl": "https://eth-goerli.g.alchemy.com/v2/477qAVdmEssSZbEPaUMTZXqyetQx5fxg",
+                  "indexerUrl": "",
+                  "backendNodeUrl": "",
+                  "token": {
+                      "chainId": 5,
+                      "address": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                      "name": "Ether",
+                      "symbol": "ETH",
+                      "decimals": 18,
+                      "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
+                      "isNative": true
+                  }
+              },
+              {
+                  "chainId": 80001,
+                  "name": "Polygon Mumbai",
+                  "symbol": "MATIC",
+                  "isL2": true,
+                  "isMainnet": false,
+                  "description": "",
+                  "blockExplorerUriTemplate": {
+                      "address": "https://mumbai.polygonscan.com/address/",
+                      "txHash": "https://mumbai.polygonscan.com/address/",
+                      "api": "https://api.mumbai.polygonscan.com/"
+                  },
+                  "ensRegistryAddress": "",
+                  "estimatorAddress": "",
+                  "walletFactory": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0x6CEdFEec52d852fdAcDC6aD4a80F58aab406a898",
+                          "abi": ""
+                      }
+                  ],
+                  "multiSend": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xF9DC4a9B8b551f693a10EcB5F931fE2E1a9156f0",
+                          "abi": ""
+                      }
+                  ],
+                  "multiSendCall": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xa72E2c9EC14DDee494F551AAe9885158105F809c",
+                          "abi": ""
+                      }
+                  ],
+                  "walletCreatedCallBackEndpoint": "https://sdk-backend.staging.biconomy.io/v1/smart-accounts",
+                  "walletCreatedEventHit": false,
+                  "EoaChangedCallBackEndpoint": "https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner",
+                  "EoaChangedEventHit": false,
+                  "wallet": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xeA6eEf40Eaa8A642022f1697D6ED2fFC0Ffe5DFB",
+                          "abi": ""
+                      }
+                  ],
+                  "entryPoint": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xF05217199F1C25604c67993F11a81461Bc97F3Ab",
+                          "abi": ""
+                      }
+                  ],
+                  "fallBackHandler": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xFc942E06c54d08502557FA40e1Aa23C5258132D5",
+                          "abi": ""
+                      }
+                  ],
+                  "relayerUrl": "",
+                  "providerUrl": "https://polygon-mumbai.g.alchemy.com/v2/7JwWhWSG1vtw6ggm_o_GcYnyNw02oM8b",
+                  "indexerUrl": "",
+                  "backendNodeUrl": "",
+                  "token": {
+                      "chainId": 80001,
+                      "address": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+                      "name": "Polygon Matic",
+                      "symbol": "Matic",
+                      "decimals": 18,
+                      "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/3890.png",
+                      "isNative": true
+                  }
+              },
+              {
+                  "chainId": 97,
+                  "name": "BSC Testnet",
+                  "symbol": "BNB",
+                  "isL2": true,
+                  "isMainnet": false,
+                  "description": "",
+                  "blockExplorerUriTemplate": {
+                      "address": "https://bscscan.com//address/",
+                      "txHash": "https://bscscan.com/address/",
+                      "api": "https://bscscan.com/"
+                  },
+                  "ensRegistryAddress": "",
+                  "estimatorAddress": "",
+                  "walletFactory": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0x6CEdFEec52d852fdAcDC6aD4a80F58aab406a898",
+                          "abi": ""
+                      }
+                  ],
+                  "multiSend": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xF9DC4a9B8b551f693a10EcB5F931fE2E1a9156f0",
+                          "abi": ""
+                      }
+                  ],
+                  "multiSendCall": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xa72E2c9EC14DDee494F551AAe9885158105F809c",
+                          "abi": ""
+                      }
+                  ],
+                  "walletCreatedCallBackEndpoint": "https://sdk-backend.staging.biconomy.io/v1/smart-accounts",
+                  "walletCreatedEventHit": false,
+                  "EoaChangedCallBackEndpoint": "https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner",
+                  "EoaChangedEventHit": false,
+                  "wallet": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xeA6eEf40Eaa8A642022f1697D6ED2fFC0Ffe5DFB",
+                          "abi": ""
+                      }
+                  ],
+                  "entryPoint": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xF05217199F1C25604c67993F11a81461Bc97F3Ab",
+                          "abi": ""
+                      }
+                  ],
+                  "fallBackHandler": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xFc942E06c54d08502557FA40e1Aa23C5258132D5",
+                          "abi": ""
+                      }
+                  ],
+                  "relayerUrl": "",
+                  "providerUrl": "https://data-seed-prebsc-1-s1.binance.org:8545/",
+                  "indexerUrl": "",
+                  "backendNodeUrl": ""
+              },
+              {
+                  "chainId": 1337,
+                  "name": "Ganache",
+                  "symbol": "ETH",
+                  "isL2": true,
+                  "isMainnet": false,
+                  "description": "",
+                  "blockExplorerUriTemplate": {
+                      "address": "https://mumbai.polygonscan.com/address/",
+                      "txHash": "https://mumbai.polygonscan.com/address/",
+                      "api": "https://api.mumbai.polygonscan.com/"
+                  },
+                  "ensRegistryAddress": "",
+                  "estimatorAddress": "",
+                  "walletFactory": [
+                      {
+                          "version": "1.0.0",
+                          "address": walletFactory.address,
+                          "abi": ""
+                      }
+                  ],
+                  "multiSend": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xb1D112B7Ef6a1F0787943dee588127ED0dbD41A8",
+                          "abi": ""
+                      }
+                  ],
+                  "multiSendCall": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0x0Bc8A760B4a8a922A88b1C1773e3798641348508",
+                          "abi": ""
+                      }
+                  ],
+                  "walletCreatedCallBackEndpoint": "https://sdk-backend.staging.biconomy.io/v1/smart-accounts",
+                  "walletCreatedEventHit": false,
+                  "EoaChangedCallBackEndpoint": "https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner",
+                  "EoaChangedEventHit": false,
+                  "wallet": [
+                      {
+                          "version": "1.0.0",
+                          "address": smartWallet.address,
+                          "abi": ""
+                      }
+                  ],
+                  "entryPoint": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xDc7d491D694CB44d0Da0400E05F9650c5e0FB11d",
+                          "abi": ""
+                      }
+                  ],
+                  "fallBackHandler": [
+                      {
+                          "version": "1.0.0",
+                          "address": "0xa9939Cb3Ed4efaeA050f75A23fD8709cBE6181e4",
+                          "abi": ""
+                      }
+                  ],
+                  "relayerUrl": "",
+                  "providerUrl": "http://localhost:8545",
+                  "indexerUrl": "",
+                  "backendNodeUrl": ""
               }
-            },
-            {
-              chainId: 137,
-              name: 'Polygon',
-              symbol: 'MATIC',
-              isL2: true,
-              isMainnet: true,
-              description: '',
-              blockExplorerUriTemplate: {
-                address: 'https://polygonscan.com/address/',
-                txHash: 'https://polygonscan.com/address/',
-                api: 'https://api.polygonscan.com/'
-              },
-              ensRegistryAddress: '',
-              walletFactory: [
-                {
-                  version: '0.0.1',
-                  address: '0x050bca32264195976Fe00BcA566B548413A9E658',
-                  abi: ''
-                }
-              ],
-              multiSend: [
-                {
-                  version: '0.0.1',
-                  address: '0xF9DC4a9B8b551f693a10EcB5F931fE2E1a9156f0',
-                  abi: ''
-                }
-              ],
-              multiSendCall: [
-                {
-                  version: '0.0.1',
-                  address: '0xa72E2c9EC14DDee494F551AAe9885158105F809c',
-                  abi: ''
-                }
-              ],
-              walletCreatedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
-              walletCreatedEventHit: false,
-              EoaChangedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
-              EoaChangedEventHit: false,
-              wallet: [
-                {
-                  version: '0.0.1',
-                  address: '0x056DcE811A2b695171274855E7246039Df298158',
-                  abi: ''
-                }
-              ],
-              entryPoint: [
-                {
-                  version: '0.0.1',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
-                  abi: ''
-                }
-              ],
-              fallBackHandler: [
-                {
-                  version: '0.0.1',
-                  address: '0xFc942E06c54d08502557FA40e1Aa23C5258132D5',
-                  abi: ''
-                }
-              ],
-              relayerUrl: '',
-              providerUrl:
-                'https://polygon-mainnet.g.alchemy.com/v2/s6bOKN9QDGXpVbsqzJMl_AHeZHNOCTcM',
-              indexerUrl: '',
-              backendNodeUrl: '',
-              token: {
-                chainId: 137,
-                address: '0x0000000000000000000000000000000000001010',
-                name: 'Polygon Matic',
-                symbol: 'Matic',
-                decimals: 18,
-                logoURI: 'https://s2.coinmarketcap.com/static/img/coins/64x64/3890.png',
-                isNative: true
-              }
-            },
-            {
-              chainId: 56,
-              name: 'BSC Mainnet',
-              symbol: 'BNB',
-              isL2: true,
-              isMainnet: true,
-              description: '',
-              blockExplorerUriTemplate: {
-                address: 'https://bscscan.com/address/',
-                txHash: 'https://bscscan.com/address/',
-                api: 'https://bscscan.com/'
-              },
-              ensRegistryAddress: '',
-              walletFactory: [
-                {
-                  version: '0.0.1',
-                  address: '0x050bca32264195976Fe00BcA566B548413A9E658',
-                  abi: ''
-                }
-              ],
-              multiSend: [
-                {
-                  version: '0.0.1',
-                  address: '0xF9DC4a9B8b551f693a10EcB5F931fE2E1a9156f0',
-                  abi: ''
-                }
-              ],
-              multiSendCall: [
-                {
-                  version: '0.0.1',
-                  address: '0xa72E2c9EC14DDee494F551AAe9885158105F809c',
-                  abi: ''
-                }
-              ],
-              walletCreatedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
-              walletCreatedEventHit: false,
-              EoaChangedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
-              EoaChangedEventHit: false,
-              wallet: [
-                {
-                  version: '0.0.1',
-                  address: '0x056DcE811A2b695171274855E7246039Df298158',
-                  abi: ''
-                }
-              ],
-              entryPoint: [
-                {
-                  version: '0.0.1',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
-                  abi: ''
-                }
-              ],
-              fallBackHandler: [
-                {
-                  version: '0.0.1',
-                  address: '0xFc942E06c54d08502557FA40e1Aa23C5258132D5',
-                  abi: ''
-                }
-              ],
-              relayerUrl: '',
-              providerUrl: 'https://bsc-dataseed2.binance.org/',
-              indexerUrl: '',
-              backendNodeUrl: '',
-              token: {
-                chainId: 56,
-                address: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
-                name: 'BNB Coin',
-                symbol: 'BNB',
-                decimals: 18,
-                logoURI: 'https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png',
-                isNative: true
-              }
-            },
-            {
-              chainId: 5,
-              name: 'Goerli',
-              symbol: 'ETH',
-              isL2: false,
-              isMainnet: false,
-              description: '',
-              blockExplorerUriTemplate: {
-                address: 'https://goerli.etherscan.io/address/',
-                txHash: 'https://goerli.etherscan.io/address/',
-                api: 'https://goerli.etherscan.io/'
-              },
-              ensRegistryAddress: '',
-              walletFactory: [
-                {
-                  version: '0.0.1',
-                  address: '0x050bca32264195976Fe00BcA566B548413A9E658',
-                  abi: ''
-                }
-              ],
-              multiSend: [
-                {
-                  version: '0.0.1',
-                  address: '0xF9DC4a9B8b551f693a10EcB5F931fE2E1a9156f0',
-                  abi: ''
-                }
-              ],
-              multiSendCall: [
-                {
-                  version: '0.0.1',
-                  address: '0xa72E2c9EC14DDee494F551AAe9885158105F809c',
-                  abi: ''
-                }
-              ],
-              walletCreatedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
-              walletCreatedEventHit: false,
-              EoaChangedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
-              EoaChangedEventHit: false,
-              wallet: [
-                {
-                  version: '0.0.1',
-                  address: '0x056DcE811A2b695171274855E7246039Df298158',
-                  abi: ''
-                }
-              ],
-              entryPoint: [
-                {
-                  version: '0.0.1',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
-                  abi: ''
-                }
-              ],
-              fallBackHandler: [
-                {
-                  version: '0.0.1',
-                  address: '0xFc942E06c54d08502557FA40e1Aa23C5258132D5',
-                  abi: ''
-                }
-              ],
-              relayerUrl: '',
-              providerUrl: 'https://eth-goerli.g.alchemy.com/v2/477qAVdmEssSZbEPaUMTZXqyetQx5fxg',
-              indexerUrl: '',
-              backendNodeUrl: '',
-              token: {
-                chainId: 5,
-                address: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
-                name: 'Ether',
-                symbol: 'ETH',
-                decimals: 18,
-                logoURI: 'https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png',
-                isNative: true
-              }
-            },
-            {
-              chainId: 80001,
-              name: 'Polygon Mumbai',
-              symbol: 'MATIC',
-              isL2: true,
-              isMainnet: false,
-              description: '',
-              blockExplorerUriTemplate: {
-                address: 'https://mumbai.polygonscan.com/address/',
-                txHash: 'https://mumbai.polygonscan.com/address/',
-                api: 'https://api.mumbai.polygonscan.com/'
-              },
-              ensRegistryAddress: '',
-              walletFactory: [
-                {
-                  version: '0.0.1',
-                  address: '0x050bca32264195976Fe00BcA566B548413A9E658',
-                  abi: ''
-                }
-              ],
-              multiSend: [
-                {
-                  version: '0.0.1',
-                  address: '0xF9DC4a9B8b551f693a10EcB5F931fE2E1a9156f0',
-                  abi: ''
-                }
-              ],
-              multiSendCall: [
-                {
-                  version: '0.0.1',
-                  address: '0xa72E2c9EC14DDee494F551AAe9885158105F809c',
-                  abi: ''
-                }
-              ],
-              walletCreatedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
-              walletCreatedEventHit: false,
-              EoaChangedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
-              EoaChangedEventHit: false,
-              wallet: [
-                {
-                  version: '0.0.1',
-                  address: '0x056DcE811A2b695171274855E7246039Df298158',
-                  abi: ''
-                }
-              ],
-              entryPoint: [
-                {
-                  version: '0.0.1',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
-                  abi: ''
-                }
-              ],
-              fallBackHandler: [
-                {
-                  version: '0.0.1',
-                  address: '0xFc942E06c54d08502557FA40e1Aa23C5258132D5',
-                  abi: ''
-                }
-              ],
-              relayerUrl: '',
-              providerUrl:
-                'https://polygon-mumbai.g.alchemy.com/v2/7JwWhWSG1vtw6ggm_o_GcYnyNw02oM8b',
-              indexerUrl: '',
-              backendNodeUrl: '',
-              token: {
-                chainId: 80001,
-                address: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
-                name: 'Polygon Matic',
-                symbol: 'Matic',
-                decimals: 18,
-                logoURI: 'https://s2.coinmarketcap.com/static/img/coins/64x64/3890.png',
-                isNative: true
-              }
-            },
-            {
-              chainId: 97,
-              name: 'BSC Testnet',
-              symbol: 'BNB',
-              isL2: true,
-              isMainnet: false,
-              description: '',
-              blockExplorerUriTemplate: {
-                address: 'https://bscscan.com//address/',
-                txHash: 'https://bscscan.com/address/',
-                api: 'https://bscscan.com/'
-              },
-              ensRegistryAddress: '',
-              walletFactory: [
-                {
-                  version: '0.0.1',
-                  address: '0x050bca32264195976Fe00BcA566B548413A9E658',
-                  abi: ''
-                }
-              ],
-              multiSend: [
-                {
-                  version: '0.0.1',
-                  address: '0xF9DC4a9B8b551f693a10EcB5F931fE2E1a9156f0',
-                  abi: ''
-                }
-              ],
-              multiSendCall: [
-                {
-                  version: '0.0.1',
-                  address: '0xa72E2c9EC14DDee494F551AAe9885158105F809c',
-                  abi: ''
-                }
-              ],
-              walletCreatedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
-              walletCreatedEventHit: false,
-              EoaChangedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
-              EoaChangedEventHit: false,
-              wallet: [
-                {
-                  version: '0.0.1',
-                  address: '0x056DcE811A2b695171274855E7246039Df298158',
-                  abi: ''
-                }
-              ],
-              entryPoint: [
-                {
-                  version: '0.0.1',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
-                  abi: ''
-                }
-              ],
-              fallBackHandler: [
-                {
-                  version: '0.0.1',
-                  address: '0xFc942E06c54d08502557FA40e1Aa23C5258132D5',
-                  abi: ''
-                }
-              ],
-              relayerUrl: '',
-              providerUrl: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
-              indexerUrl: '',
-              backendNodeUrl: ''
-            },
-            {
-              chainId: 1337,
-              name: 'Ganache',
-              symbol: 'ETH',
-              isL2: true,
-              isMainnet: false,
-              description: '',
-              blockExplorerUriTemplate: {
-                address: 'https://mumbai.polygonscan.com/address/',
-                txHash: 'https://mumbai.polygonscan.com/address/',
-                api: 'https://api.mumbai.polygonscan.com/'
-              },
-              ensRegistryAddress: '',
-              walletFactory: [
-                {
-                  version: '0.0.1',
-                  address: '0x85c0995669f8a0173a5B5F6003DA060E8D17f0c3',
-                  abi: ''
-                }
-              ],
-              multiSend: [
-                {
-                  version: '0.0.1',
-                  address: '0xb1D112B7Ef6a1F0787943dee588127ED0dbD41A8',
-                  abi: ''
-                }
-              ],
-              multiSendCall: [
-                {
-                  version: '0.0.1',
-                  address: '0x0Bc8A760B4a8a922A88b1C1773e3798641348508',
-                  abi: ''
-                }
-              ],
-              walletCreatedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
-              walletCreatedEventHit: false,
-              EoaChangedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
-              EoaChangedEventHit: false,
-              wallet: [
-                {
-                  version: '0.0.1',
-                  address: '0x0ba464506a3D66C962121e3C25ed56678A2585B6',
-                  abi: ''
-                }
-              ],
-              entryPoint: [
-                {
-                  version: '0.0.1',
-                  address: '0xDc7d491D694CB44d0Da0400E05F9650c5e0FB11d',
-                  abi: ''
-                }
-              ],
-              fallBackHandler: [
-                {
-                  version: '0.0.1',
-                  address: '0xa9939Cb3Ed4efaeA050f75A23fD8709cBE6181e4',
-                  abi: ''
-                }
-              ],
-              relayerUrl: '',
-              providerUrl: 'http://localhost:8545',
-              indexerUrl: '',
-              backendNodeUrl: ''
-            }
           ]
-        })
+      })
     })
 
     it('Should init and return details of smart account', async () => {
@@ -646,7 +636,7 @@ describe('Wallet integration', function () {
         const relayer = new LocalRelayer(eoaSigner)
         const state = await smartAccount.getSmartAccountState()
         const context = smartAccount.getSmartAccountContext()
-        const deployment = await relayer.deployWallet(state, context) // index 0
+        const deployment = await relayer.deployWallet({config: state, context, index: 0})
         const receipt: TransactionReceipt = await deployment.wait(1)
         expect(receipt.status).to.be.equal(1)
       }
@@ -691,9 +681,9 @@ describe('Wallet integration', function () {
         value: ethers.utils.parseEther('1')
       }
 
-      const smartAccountTransaction: WalletTransaction = await smartAccount.createTransaction(tx)
+      const smartAccountTransaction: WalletTransaction = await smartAccount.createTransaction({transaction:tx})
 
-      const signature = await smartAccount.signTransaction(smartAccountTransaction)
+      const signature = await smartAccount.signTransaction({tx: smartAccountTransaction})
       console.log('signature is: ', signature)
     })
 
@@ -770,7 +760,7 @@ describe('Wallet integration', function () {
         value: ethers.utils.parseEther('0.5')
       }
 
-      const smartAccountTransaction: WalletTransaction = await smartAccount.createTransaction(tx)
+      const smartAccountTransaction: WalletTransaction = await smartAccount.createTransaction({transaction: tx})
 
       // Attach relayer before sending a transaction
 
@@ -780,7 +770,7 @@ describe('Wallet integration', function () {
         smartAccount.setRelayer(relayer)
         expect(smartAccount.relayer).to.be.equal(relayer)
         const hash: string = await smartAccount.sendTransaction(
-          smartAccountTransaction
+          {tx: smartAccountTransaction}
         )
 
         //const receipt: TransactionReceipt = await response.wait(1)
@@ -792,7 +782,7 @@ describe('Wallet integration', function () {
       }
     })
 
-    it('Should be able to send batch of transactions', async () => {
+    /*it('Should be able to send batch of transactions', async () => {
       const userAddress = (await ethnode.signer?.getAddress()) || ''
       const eoaSigner = ethnode.provider?.getSigner()
 
@@ -843,7 +833,7 @@ describe('Wallet integration', function () {
       txs.push(tx2)
 
       const smartAccountTransaction: WalletTransaction = await smartAccount.createTransactionBatch(
-        txs
+        {transactions: txs}
       )
 
       // Attach relayer before sending a transaction
@@ -854,7 +844,7 @@ describe('Wallet integration', function () {
         smartAccount.setRelayer(relayer)
         expect(smartAccount.relayer).to.be.equal(relayer)
         const txHash: string = await smartAccount.sendTransaction(
-          smartAccountTransaction
+          {tx: smartAccountTransaction}
         )
 
         // TODO : get receipt from hash using provider
@@ -865,6 +855,6 @@ describe('Wallet integration', function () {
           ethers.utils.parseEther('0.5').toString()
         )
       }
-    })
+    })*/
   })
 })

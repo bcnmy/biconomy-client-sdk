@@ -260,10 +260,6 @@ class SmartAccount {
     const { index = 0, chainId = this.#smartAccountConfig.activeNetworkId } =
       addressForCounterFactualWalletDto
     console.log('index and ChainId ', index, chainId, this.DEFAULT_VERSION)
-    console.log(
-      'Instance to this is ',
-      this.smartWalletFactoryContract[chainId][this.DEFAULT_VERSION]
-    )
     return this.smartWalletFactoryContract[chainId][
       this.DEFAULT_VERSION
     ].getAddressForCounterfactualWallet(this.owner, index)
