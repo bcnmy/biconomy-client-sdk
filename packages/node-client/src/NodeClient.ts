@@ -13,7 +13,7 @@ import {
 } from './types/NodeClientTypes'
 import { getTxServiceBaseUrl } from './utils'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-import { MetaTransactionData, FeeRefundData } from '@biconomy-sdk/core-types'
+import { MetaTransactionData, FeeRefund, FeeRefundData } from '@biconomy-sdk/core-types'
 export interface NodeClientConfig {
   /** txServiceUrl - Safe Transaction Service URL */
   txServiceUrl: string
@@ -148,7 +148,7 @@ class NodeClient implements INodeClient {
     })
   }
 
-  async estimateUndeployedContractGas(chainId: number, walletAddress: string, transaction: MetaTransactionData, feeRefund: FeeRefundData, signature:string): Promise<EstimateGasResponse> {
+  async estimateUndeployedContractGas(chainId: number, walletAddress: string, transaction: MetaTransactionData, feeRefund: FeeRefund, signature:string): Promise<EstimateGasResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/estimator/undeployed`,
       method: HttpMethod.Post,
