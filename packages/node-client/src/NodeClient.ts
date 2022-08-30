@@ -18,7 +18,6 @@ import {
 } from './types/NodeClientTypes'
 import { getTxServiceBaseUrl } from './utils'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-import { MetaTransactionData, FeeRefund } from '@biconomy-sdk/core-types'
 export interface NodeClientConfig {
   /** txServiceUrl - Safe Transaction Service URL */
   txServiceUrl: string
@@ -91,14 +90,16 @@ class NodeClient implements INodeClient {
   async getTokenByChainIdAndAddress(
     tokenByChainIdAndAddressDto: TokenByChainIdAndAddressDto
   ): Promise<IndividualTokenResponse> {
-    const { chainId, tokenAddress} = tokenByChainIdAndAddressDto
+    const { chainId, tokenAddress } = tokenByChainIdAndAddressDto
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/tokens/chainId/${chainId}/address/${tokenAddress}`,
       method: HttpMethod.Get
     })
   }
 
-  async getSmartAccountsByOwner(smartAccountByOwnerDto: SmartAccountByOwnerDto): Promise<SmartAccountsResponse> {
+  async getSmartAccountsByOwner(
+    smartAccountByOwnerDto: SmartAccountByOwnerDto
+  ): Promise<SmartAccountsResponse> {
     const { chainId, owner } = smartAccountByOwnerDto
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/smart-accounts/chainId/${chainId}/owner/${owner}`,
@@ -122,21 +123,27 @@ class NodeClient implements INodeClient {
     })
   }
 
-  async estimateExternalGas(estimateExternalGasDto: EstimateExternalGasDto): Promise<EstimateGasResponse>{
+  async estimateExternalGas(
+    estimateExternalGasDto: EstimateExternalGasDto
+  ): Promise<EstimateGasResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/estimator/external`,
       method: HttpMethod.Post,
       body: estimateExternalGasDto
     })
   }
-  async estimateRequiredTxGas(estimateRequiredTxGasDto: EstimateRequiredTxGasDto): Promise<EstimateGasResponse>{
+  async estimateRequiredTxGas(
+    estimateRequiredTxGasDto: EstimateRequiredTxGasDto
+  ): Promise<EstimateGasResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/estimator/required`,
       method: HttpMethod.Post,
       body: estimateRequiredTxGasDto
     })
   }
-  estimateHandlePaymentGas(estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto): Promise<EstimateGasResponse>{
+  estimateHandlePaymentGas(
+    estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto
+  ): Promise<EstimateGasResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/estimator/handle-payment`,
       method: HttpMethod.Post,

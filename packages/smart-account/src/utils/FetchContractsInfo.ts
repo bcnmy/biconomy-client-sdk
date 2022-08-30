@@ -75,7 +75,7 @@ export function findContractAddressesByVersion(
     return element.version === smartAccountVersion
   })?.address
 
-  if ( !chainInfo ){
+  if (!chainInfo) {
     throw new Error('Chain Not Found')
   }
   return {
@@ -85,6 +85,5 @@ export function findContractAddressesByVersion(
     multiSendCallAddress,
     entryPointAddress,
     fallBackHandlerAddress
-
   }
 }

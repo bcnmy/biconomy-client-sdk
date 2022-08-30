@@ -3,7 +3,7 @@ import { MultiSendContract } from './contracts/MultiSendContract'
 import { MultiSendCallOnlyContract } from './contracts/MultiSendCallOnlyContract'
 import { SmartWalletContract } from './contracts/SmartWalletContract'
 
-export type SmartAccountVersion =  '1.0.2' | '1.0.1' | '1.0.0'
+export type SmartAccountVersion = '1.0.2' | '1.0.1' | '1.0.0'
 
 export enum OperationType {
   Call, // 0
@@ -24,26 +24,18 @@ export interface SmartAccountState {
   entryPointAddress: string
   fallbackHandlerAddress: string
 }
-export interface FeeRefundData {
-  readonly gasUsed: number
-  readonly baseGas: number
-  readonly gasPrice: number
-  readonly tokenGasPriceFactor: string | number
-  readonly gasToken: string
-  readonly refundReceiver: string
-}
 export interface Eip3770Address {
   prefix: string
   address: string
 }
 
 export interface RelayResponse {
-  code?: number;
-  message?: string;
-  transactionId?: string;
-  hash: string;
-  error?: string;
-  connectionUrl?: string;
+  code?: number
+  message?: string
+  transactionId?: string
+  hash: string
+  error?: string
+  connectionUrl?: string
 }
 
 export interface UserOperation {
@@ -61,40 +53,40 @@ export interface UserOperation {
   signature: string
 }
 
-export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
+export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 export interface RestRelayerOptions {
   url: string
 }
 
 export interface TokenData {
-  tokenGasPrice: number, // review
-  offset?: number, // review
-  symbol: string,
-  address: string, 
-  decimal: number,
+  tokenGasPrice: number // review
+  offset?: number // review
+  symbol: string
+  address: string
+  decimal: number
   logoUrl: string
 }
 
 export interface FeeQuote {
-  symbol: string,
-  address: string, 
-  decimal: number,
-  logoUrl: string,
-  payment: number,
-  tokenGasPrice: number, //review
-  offset?: number,
+  symbol: string
+  address: string
+  decimal: number
+  logoUrl: string
+  payment: number
+  tokenGasPrice: number //review
+  offset?: number
 }
 
 export interface FeeOptionsResponse {
-  msg: string,
+  msg: string
   data: {
-    chainId: number,
+    chainId: number
     response: Array<TokenData>
   }
 }
 export interface FeeOption {
-  feeToken: string,
-  tokenGasPrice: number | string, //review
+  feeToken: string
+  tokenGasPrice: number | string //review
   offset: number | string // review
 }

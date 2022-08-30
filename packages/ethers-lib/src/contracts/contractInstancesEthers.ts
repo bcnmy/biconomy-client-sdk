@@ -86,7 +86,10 @@ export function getMultiSendCallOnlyContractInstance(
   contractAddress: string,
   // signer: Signer
   provider: JsonRpcProvider
-): MultiSendCallOnlyEthersContract_v1_0_0 | MultiSendCallOnlyEthersContract_v1_0_1 | MultiSendCallOnlyEthersContract_v1_0_2 {
+):
+  | MultiSendCallOnlyEthersContract_v1_0_0
+  | MultiSendCallOnlyEthersContract_v1_0_1
+  | MultiSendCallOnlyEthersContract_v1_0_2 {
   let multiSendCallContract
 
   switch (smartAccountVersion) {
@@ -97,8 +100,8 @@ export function getMultiSendCallOnlyContractInstance(
       multiSendCallContract = MultiSendCallOnlyContractV101.connect(contractAddress, provider)
       return new MultiSendCallOnlyEthersContract_v1_0_1(multiSendCallContract)
     case '1.0.2':
-        multiSendCallContract = MultiSendCallOnlyContractV102.connect(contractAddress, provider)
-        return new MultiSendCallOnlyEthersContract_v1_0_2(multiSendCallContract)
+      multiSendCallContract = MultiSendCallOnlyContractV102.connect(contractAddress, provider)
+      return new MultiSendCallOnlyEthersContract_v1_0_2(multiSendCallContract)
   }
 }
 
@@ -106,7 +109,10 @@ export function getSmartWalletFactoryContractInstance(
   smartAccountVersion: SmartAccountVersion,
   contractAddress: string,
   provider: JsonRpcProvider
-): SmartWalletFacoryContractEthers_v1_0_0 | SmartWalletFacoryContractEthers_v1_0_1 | SmartWalletFacoryContractEthers_v1_0_2 {
+):
+  | SmartWalletFacoryContractEthers_v1_0_0
+  | SmartWalletFacoryContractEthers_v1_0_1
+  | SmartWalletFacoryContractEthers_v1_0_2 {
   let walletFactoryContract
 
   switch (smartAccountVersion) {
@@ -117,7 +123,7 @@ export function getSmartWalletFactoryContractInstance(
       walletFactoryContract = SmartWalletFactoryContractV101.connect(contractAddress, provider)
       return new SmartWalletFacoryContractEthers_v1_0_1(walletFactoryContract)
     case '1.0.2':
-        walletFactoryContract = SmartWalletFactoryContractV102.connect(contractAddress, provider)
-        return new SmartWalletFacoryContractEthers_v1_0_2(walletFactoryContract)
+      walletFactoryContract = SmartWalletFactoryContractV102.connect(contractAddress, provider)
+      return new SmartWalletFacoryContractEthers_v1_0_2(walletFactoryContract)
   }
 }

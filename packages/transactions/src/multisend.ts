@@ -1,6 +1,6 @@
 import { Contract, utils } from 'ethers'
 import { buildContractCall } from './execution'
-import { MetaTransaction,MetaTransactionData, WalletTransaction } from '@biconomy-sdk/core-types'
+import { MetaTransaction, WalletTransaction } from '@biconomy-sdk/core-types'
 
 // TODO
 // Review all types

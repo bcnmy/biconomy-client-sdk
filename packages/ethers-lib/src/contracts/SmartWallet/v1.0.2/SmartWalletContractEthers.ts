@@ -4,7 +4,8 @@ import {
   SmartWalletContract,
   WalletTransaction,
   ExecTransaction,
-  FeeRefund,
+  FeeRefundV1_0_0, 
+  FeeRefundV1_0_2,
   TransactionResult
 } from '@biconomy-sdk/core-types'
 import { toTxResult } from '../../../utils'
@@ -61,7 +62,7 @@ class SmartWalletContractEthers implements SmartWalletContract {
   async execTransaction(
     _tx: ExecTransaction,
     batchId: number,
-    refundInfo: FeeRefund,
+    refundInfo: FeeRefundV1_0_2,
     signatures: string
   ): Promise<TransactionResult> {
     // TODO: estimate GAS before making the transaction

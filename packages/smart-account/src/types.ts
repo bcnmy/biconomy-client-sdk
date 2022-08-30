@@ -1,15 +1,12 @@
 import { BytesLike, Wallet, BigNumberish } from 'ethers'
-import {
-  ChainNames,
-  ChainId,
-} from '@biconomy-sdk/core-types'
+import { ChainNames, ChainId } from '@biconomy-sdk/core-types'
 import { Web3Provider } from '@ethersproject/providers'
 
 // walletProvider: WalletProviderLike
 // TODO : Ability to provide custom URLs for all supported networks
 export interface SmartAccountConfig {
   activeNetworkId: ChainId // same
-  supportedNetworksIds: ChainId[]  // Network[] chainId: CbainId, rpcUrl?: string 
+  supportedNetworksIds: ChainId[] // Network[] chainId: CbainId, rpcUrl?: string
   backend_url: string
 }
 // relayer_url

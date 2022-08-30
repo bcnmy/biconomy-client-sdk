@@ -25,9 +25,7 @@ export class LocalRelayer implements Relayer {
   // Review function arguments and return values
   // Could get smartAccount instance
   // Defines a type that takes config, context for SCW in play along with other details
-  async deployWallet(
-    deployWallet: DeployWallet
-  ): Promise<TransactionResponse> {
+  async deployWallet(deployWallet: DeployWallet): Promise<TransactionResponse> {
     // Should check if already deployed
     //Review for index and ownership transfer case
     const { config, context, index = 0 } = deployWallet
@@ -37,7 +35,7 @@ export class LocalRelayer implements Relayer {
     if (isExist) {
       throw new Error('Smart Account is Already Deployed')
     }
-    const walletDeployTxn = this.prepareWalletDeploy({config, context, index})
+    const walletDeployTxn = this.prepareWalletDeploy({ config, context, index })
     const tx = this.signer.sendTransaction({
       ...walletDeployTxn,
       gasLimit: ethers.constants.Two.pow(24)
@@ -84,9 +82,7 @@ export class LocalRelayer implements Relayer {
   // Add feeQuote later
   // Appending tx and rawTx may not be necessary
 
-  async relay(
-    relayTransaction: RelayTransaction
-  ): Promise<RelayResponse> {
+  async relay(relayTransaction: RelayTransaction): Promise<RelayResponse> {
     const { config, signedTx, context } = relayTransaction
     const { isDeployed, address } = config
     const { multiSendCall } = context // multisend has to be multiSendCallOnly here!
@@ -143,23 +139,25 @@ export class LocalRelayer implements Relayer {
     return tx
   }
 
-  async getFeeOptions(chainId: number) : Promise<FeeOptionsResponse> {
-    console.log('requested fee options for chain ', chainId);
+  async getFeeOptions(chainId: number): Promise<FeeOptionsResponse> {
+    console.log('requested fee options for chain ', chainId)
     const feeOptions: FeeOptionsResponse = {
-      "msg": "all ok",
-      "data": {
-          "chainId": 5,
-          "response": [
-            {
-              "tokenGasPrice": 157718,
-              "symbol": "USDC",
-              "address": "0xb5B640E6414b6DeF4FC9B3C1EeF373925effeCcF",
-              "decimal": 6,
-              "logoUrl": "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/usdc.png",
-              "offset": 1000000
-          }]
-            }
-        };
-    return feeOptions;
+      msg: 'all ok',
+      data: {
+        chainId: 5,
+        response: [
+          {
+            tokenGasPrice: 157718,
+            symbol: 'USDC',
+            address: '0xb5B640E6414b6DeF4FC9B3C1EeF373925effeCcF',
+            decimal: 6,
+            logoUrl:
+              'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/usdc.png',
+            offset: 1000000
+          }
+        ]
+      }
+    }
+    return feeOptions
   }
 }
