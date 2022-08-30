@@ -2,7 +2,8 @@ import {
   ChainId,
   SmartAccountVersion,
   MetaTransactionData,
-  FeeRefund
+  FeeRefundV1_0_0,
+  FeeRefundV1_0_2,
 } from '@biconomy-sdk/core-types'
 export type SmartAccountInfoResponse = {
   readonly name: string
@@ -42,7 +43,7 @@ export type EstimateRequiredTxGasDto = {
 export type EstimateHandlePaymentTxGasDto = {
   chainId: number
   walletAddress: string
-  feeRefundData: FeeRefund
+  feeRefundData: FeeRefundV1_0_0 | FeeRefundV1_0_2
 }
 
 export type SmartAccountByOwnerDto = {

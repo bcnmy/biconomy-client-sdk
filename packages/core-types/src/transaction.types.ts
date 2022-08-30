@@ -36,15 +36,19 @@ export interface SmartAccountSignature {
   data: string
 }
 
-export interface FeeRefund {
+export interface FeeRefundV1_0_0 {
   baseGas: string | number
   gasPrice: string | number
-  tokenGasPriceFactor: string | number
   gasToken: string
   refundReceiver: string
 }
+export interface FeeRefundV1_0_2 extends FeeRefundV1_0_0{
+  tokenGasPriceFactor: string | number
+}
+
+
 // extended from FeeRefund as we need this for handlePayment Estimate
-export interface FeeRefundHandlePayment extends FeeRefund {
+export interface FeeRefundHandlePayment extends FeeRefundV1_0_2 {
   gasUsed: string | number
 }
 
