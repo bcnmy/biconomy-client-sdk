@@ -14,15 +14,15 @@ export interface SmartAccountConfig {
 // TODO
 // Review location, usage and name of types @chirag
 // Should be kept in native types and the moment it needs to be shared by other package, move to core types and use from there
-export interface Transaction {
-  to: string
-  value?: BigNumberish
-  data?: string
-  nonce?: BigNumberish
-  gasLimit?: BigNumberish
-  // delegateCall?: boolean
-  // revertOnError?: boolean
-}
+// export interface MetaTransaction {
+//   to: string
+//   value?: BigNumberish
+//   data?: string
+//   nonce?: BigNumberish
+//   gasLimit?: BigNumberish
+//   // delegateCall?: boolean
+//   // revertOnError?: boolean
+// }
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 

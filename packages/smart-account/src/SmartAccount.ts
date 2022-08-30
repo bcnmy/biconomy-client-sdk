@@ -1,4 +1,4 @@
-import { SmartAccountConfig, Transaction } from './types'
+import { SmartAccountConfig } from './types'
 import EthersAdapter from '@biconomy-sdk/ethers-lib'
 import { ethers } from 'ethers'
 import {
@@ -42,6 +42,8 @@ import {
   FeeQuote,
   FeeOptionsResponse,
   ZERO_ADDRESS,
+  FAKE_SIGNATURE,
+  Transaction,
   RelayResponse
 } from '@biconomy-sdk/core-types'
 import { JsonRpcSigner, TransactionResponse } from '@ethersproject/providers'
@@ -306,6 +308,9 @@ class SmartAccount {
   ): Promise<EstimateGasResponse> {
     return this.nodeClient.estimateHandlePaymentGas(estimateHandlePaymentTxGasDto)
   }
+  // public async estimateUndeployedContractGas(chainId: number, walletAddress: string, transaction: MetaTransactionData,  feeRefundData: FeeRefund, signature: string): Promise<EstimateGasResponse> {
+  //   return this.nodeClient.estimateUndeployedContractGas(chainId, walletAddress, transaction, feeRefundData, signature)
+  // }
 
   // return adapter instance to be used for blockchain interactions
   /**
@@ -340,8 +345,6 @@ class SmartAccount {
     this.#smartAccountConfig.activeNetworkId = chainId
     return this
   }
-
-  // Can also add := sendSignedTransaction
 
   /**
    *
@@ -544,35 +547,139 @@ class SmartAccount {
     return feeQuotes
   }
 
-  async estimateTransactionBatch(
-    prepareRefundTransactionDto: PrepareRefundTransactionDto
-  ): Promise<number> {
-    const {
-      transactions,
-      batchId = 0,
-      chainId = this.#smartAccountConfig.activeNetworkId
-    } = prepareRefundTransactionDto
-    // eth_call api method
-    let estimatedGasUsed = 435318
-    console.log('transactions ', transactions)
-    console.log('batchId ', batchId)
-    console.log('chainId ', chainId)
-    return estimatedGasUsed
-  }
+  async estimateTransactionBatch( prepareRefundTransactionDto: PrepareRefundTransactionDto): Promise<number> {
+
+    const { transactions, batchId = 0, chainId = this.#smartAccountConfig.activeNetworkId } = prepareRefundTransactionDto
+      let estimatedGasUsed = 0;
+      // Check if available from current state
+      const isDeployed = await this.isDeployed(chainId);
+      if (!isDeployed) {
+        const estimatorInterface = new ethers.utils.Interface(GasEstimator.abi);
+        const walletFactoryInterface = this.factory().getInterface();
+        const state = await this.getSmartAccountState();
+
+
+        const encodedEstimateData = estimatorInterface.encodeFunctionData('estimate', [
+          this.factory().getAddress(),
+          walletFactoryInterface.encodeFunctionData('deployCounterFactualWallet', [
+            state.owner,
+            state.entryPointAddress,
+            state.fallbackHandlerAddress,
+            0
+          ])
+        ])
+        console.log('encodedEstimate ', encodedEstimateData)
+
+        const deployCostresponse = await this.estimateExternalGas({chainId, encodedData: encodedEstimateData});
+        const estimateWalletDeployment = Number(deployCostresponse.data.gas);
+        console.log('estimateWalletDeployment ', estimateWalletDeployment);
+
+        estimatedGasUsed += estimateWalletDeployment;
+        estimatedGasUsed -= 21000;
+      }
+
+      const tx = await this.createTransactionBatch({ transactions, batchId, chainId});
+
+      const txn: ExecTransaction = {
+        to: tx.to,
+        value: tx.value,
+        data: tx.data,
+        operation: tx.operation,
+        targetTxGas: tx.targetTxGas
+      }
+
+      // to avoid failing eth_call override with undeployed wallet
+      txn.targetTxGas = 500000;
+  
+      const refundInfo: FeeRefundV1_0_2 = {
+        baseGas: tx.baseGas,
+        gasPrice: tx.gasPrice,
+        tokenGasPriceFactor: tx.tokenGasPriceFactor,
+        gasToken: tx.gasToken,
+        refundReceiver: tx.refundReceiver
+      }
+      // TODO: required updates
+      // const ethCallOverrideResponse = await this.estimateUndeployedContractGas(chainId, this.address, txn, refundInfo, FAKE_SIGNATURE);
+      // let noAuthEstimate = Number(ethCallOverrideResponse.data.gas);
+      // console.log('no auth no refund estimate', noAuthEstimate);
+
+      // estimatedGasUsed += noAuthEstimate;
+
+      // TODO @review
+      // chat with Sachin
+      // For the refund we need to add estimation seperately 
+      estimatedGasUsed += 22900 // Might have to come from relayer along with quotes
+
+      return estimatedGasUsed;
+    }
 
   async estimateTransaction(prepareTransactionDto: PrepareTransactionDto): Promise<number> {
-    // eth_call api method
     const {
       transaction,
       batchId = 0,
       chainId = this.#smartAccountConfig.activeNetworkId
     } = prepareTransactionDto
-    let estimatedGasUsed = 435318
-    console.log('transaction ', transaction)
-    console.log('batchId ', batchId)
-    console.log('chainId ', chainId)
-    return estimatedGasUsed
-  }
+
+    let estimatedGasUsed = 0;
+      // Check if available from current state
+      const isDeployed = await this.isDeployed(chainId);
+      if (!isDeployed) {
+        const estimatorInterface = new ethers.utils.Interface(GasEstimator.abi);
+        const walletFactoryInterface = this.factory().getInterface();
+        const state = await this.getSmartAccountState();
+
+
+        const encodedEstimateData = estimatorInterface.encodeFunctionData('estimate', [
+          this.factory().getAddress(),
+          walletFactoryInterface.encodeFunctionData('deployCounterFactualWallet', [
+            state.owner,
+            state.entryPointAddress,
+            state.fallbackHandlerAddress,
+            0
+          ])
+        ])
+        console.log('encodedEstimate ', encodedEstimateData)
+
+        const deployCostresponse = await this.estimateExternalGas({chainId, encodedData: encodedEstimateData});
+        const estimateWalletDeployment = Number(deployCostresponse.data.gas);
+        console.log('estimateWalletDeployment ', estimateWalletDeployment);
+
+        estimatedGasUsed += estimateWalletDeployment;
+        estimatedGasUsed -= 21000;
+      }
+
+      const tx = await this.createTransaction({ transaction, batchId, chainId });
+
+      const txn: ExecTransaction = {
+        to: tx.to,
+        value: tx.value,
+        data: tx.data,
+        operation: tx.operation,
+        targetTxGas: tx.targetTxGas
+      }
+  
+      const refundInfo: FeeRefundV1_0_2 = {
+        baseGas: tx.baseGas,
+        gasPrice: tx.gasPrice,
+        tokenGasPriceFactor: tx.tokenGasPriceFactor,
+        gasToken: tx.gasToken,
+        refundReceiver: tx.refundReceiver
+      }
+
+      // TODO: required updates
+      // const ethCallOverrideResponse = await this.estimateUndeployedContractGas(chainId, this.address, txn, refundInfo, FAKE_SIGNATURE);
+      // let noAuthEstimate = Number(ethCallOverrideResponse.data.gas);
+      // console.log('no auth no refund estimate', noAuthEstimate);
+
+      // estimatedGasUsed += noAuthEstimate;
+
+      // TODO @review
+      // chat with Sachin
+      // For the refund we need to add estimation seperately 
+      estimatedGasUsed += 22900
+
+      return estimatedGasUsed;
+    }
 
   // Other helpers go here for pre build (feeOptions and quotes from relayer) , build and execution of refund type transactions
 
@@ -651,9 +758,9 @@ class SmartAccount {
     if (handlePaymentEstimate === 0) {
       handlePaymentEstimate = 22900
     }
-    console.log('handlePaymentEstimate ', handlePaymentEstimate)
-    const baseGas = 22900 + 4928 + 2360 // delegate call + event emission + state updates
-
+    console.log('handlePaymentEstimate ', handlePaymentEstimate);
+    const baseGas = handlePaymentEstimate + 4928 + 2360; // delegate call + event emission + state updates
+  
     const walletTx: WalletTransaction = buildSmartAccountTransaction({
       to: transaction.to,
       value: transaction.value,
@@ -780,96 +887,81 @@ class SmartAccount {
 
       txs.push(innerTx)
     }
+      // If we get this reponse zero, there has to be a way to estimate this fror undeployed wallet
+      // i. use really high value 
+      // ii. estimate using different wallet bytecode using eth_call [ not guaranteed as might depend on wallet state !]
 
-    const walletTx: WalletTransaction = buildMultiSendSmartAccountTx(
-      this.multiSend(chainId).getContract(),
-      txs,
-      nonce
-    )
+      // considerable offset ref gnosis safe service client safeTxGas
+      const walletTx: WalletTransaction = buildMultiSendSmartAccountTx(
+        this.multiSend(chainId).getContract(),
+        txs,
+        nonce
+      );
+      console.log('wallet txn with refund ', walletTx);
 
-    console.log('wallet txn with refund ', walletTx)
+      const internalTx: MetaTransactionData = {
+        to: walletTx.to,
+        value: walletTx.value || 0,
+        data: walletTx.data || '0x',
+        operation: walletTx.operation
+      }
+      console.log(internalTx);
+      // TODO
+      // Currently we can't do these estimations without wallet being deployed...
+      const response = await this.estimateRequiredTxGas({chainId, walletAddress: this.address, transaction: internalTx})
 
-    const internalTx: MetaTransaction = {
-      to: walletTx.to,
-      value: walletTx.value || 0,
-      data: walletTx.data || '0x',
-      operation: walletTx.operation
+      const gasEstimate1 = Number(response.data.gas) + 50000
+      console.log('required txgas estimate ', gasEstimate1);
+  
+      // Depending on feeToken provide baseGas!
+
+      console.log('feeQuote.offset ', feeQuote.offset);
+  
+      const refundDetails: FeeRefundHandlePayment = {
+        gasUsed: gasEstimate1,
+        baseGas: gasEstimate1,
+        gasPrice: feeQuote.tokenGasPrice, // this would be token gas price // review
+        tokenGasPriceFactor: feeQuote.offset || 1,
+        gasToken: feeQuote.address,
+        refundReceiver: ZERO_ADDRESS
+      }
+  
+      const handlePaymentResponse = await this.estimateHandlePaymentGas({chainId, walletAddress: this.address, feeRefundData: refundDetails});
+      // If we get this reponse zero, there has to be a way to estimate this for undeployed wallet
+      // We could use constant value provided by the relayer
+      let handlePaymentEstimate = Number(handlePaymentResponse.data.gas)
+
+      if(handlePaymentEstimate === 0){
+        handlePaymentEstimate = 22900
+      }
+      console.log('handlePaymentEstimate ', handlePaymentEstimate);
+      
+      // If the wallet deployment has to be appended then baseGas would change
+      const regularOffSet = 4928 + 2360;
+      const baseGas = handlePaymentEstimate + regularOffSet + additionalBaseGas; // delegate call + event emission + state updates + potential deployment
+
+      const finalWalletTx: WalletTransaction = buildSmartAccountTransaction({
+        to: walletTx.to,
+        value: walletTx.value,
+        data: walletTx.data, // for token transfers use encodeTransfer
+        operation: walletTx.operation,
+        targetTxGas: gasEstimate1,
+        baseGas: baseGas,
+        refundReceiver: ZERO_ADDRESS,
+        gasPrice: refundDetails.gasPrice.toString(), //review
+        tokenGasPriceFactor: refundDetails.tokenGasPriceFactor.toString(),
+        gasToken: refundDetails.gasToken,
+        nonce
+      })
+
+      // If wallet is not deployed revise targetTxGas and baseGas
+      // Temp...
+      if(!(await this.isDeployed(chainId))) {
+        finalWalletTx.targetTxGas = 500000
+        finalWalletTx.baseGas = baseGas + 22900
     }
-    console.log(internalTx)
-    // TODO
-    // Currently we can't do these estimations without wallet being deployed...
-
-    const estimateRequiredTxGas: EstimateRequiredTxGasDto = {
-      chainId,
-      walletAddress: connectedWallet,
-      transaction: internalTx
-    }
-
-    const response = await this.estimateRequiredTxGas(estimateRequiredTxGas)
-
-    // If we get this reponse zero, there has to be a way to estimate this fror undeployed wallet
-    // i. use really high value
-    // ii. estimate using different wallet bytecode using eth_call [ not guaranteed as might depend on wallet state !]
-
-    // considerable offset ref gnosis safe service client safeTxGas
-    const gasEstimate1 = Number(response.data.gas) + 50000
-    console.log('required txgas estimate ', gasEstimate1)
-
-    // Depending on feeToken provide baseGas!
-
-    console.log('feeQuote.offset ', feeQuote.offset)
-
-    const refundDetails: FeeRefundHandlePayment = {
-      gasUsed: gasEstimate1,
-      baseGas: gasEstimate1,
-      gasPrice: feeQuote.tokenGasPrice, // this would be token gas price // review
-      tokenGasPriceFactor: feeQuote.offset || 1,
-      gasToken: feeQuote.address,
-      refundReceiver: ZERO_ADDRESS
-    }
-
-    const estimateHandlePaymentGas: EstimateHandlePaymentTxGasDto = {
-      chainId,
-      walletAddress: connectedWallet,
-      feeRefundData: refundDetails
-    }
-
-    const handlePaymentResponse = await this.estimateHandlePaymentGas(estimateHandlePaymentGas)
-    // If we get this reponse zero, there has to be a way to estimate this for undeployed wallet
-    // We could use constant value provided by the relayer
-    let handlePaymentEstimate = Number(handlePaymentResponse.data.gas)
-
-    if (handlePaymentEstimate === 0) {
-      handlePaymentEstimate = 22900
-    }
-    console.log('handlePaymentEstimate ', handlePaymentEstimate)
-
-    // If the wallet deployment has to be appended then baseGas would change
-    const regularOffSet = 4928 + 2360
-    const baseGas = 22900 + regularOffSet + additionalBaseGas // delegate call + event emission + state updates + potential deployment
-
-    const finalWalletTx: WalletTransaction = buildSmartAccountTransaction({
-      to: walletTx.to,
-      value: walletTx.value,
-      data: walletTx.data, // for token transfers use encodeTransfer
-      operation: walletTx.operation,
-      targetTxGas: gasEstimate1,
-      baseGas: baseGas,
-      refundReceiver: ZERO_ADDRESS,
-      gasPrice: refundDetails.gasPrice.toString(), //review
-      tokenGasPriceFactor: refundDetails.tokenGasPriceFactor.toString(),
-      gasToken: refundDetails.gasToken,
-      nonce
-    })
-
-    // If wallet is not deployed revise targetTxGas and baseGas
-    // Temp...
-    if (!(await this.isDeployed(chainId))) {
-      finalWalletTx.targetTxGas = 500000
-      finalWalletTx.baseGas = baseGas + 22900
-    }
-
     return finalWalletTx
+
   }
 
   /**

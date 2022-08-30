@@ -18,6 +18,15 @@ export interface RawTransactionType {
   type?: number
 }
 
+export interface Transaction {
+  to: string
+  value?: BigNumberish
+  data?: string
+  nonce?: BigNumberish
+  gasLimit?: BigNumberish
+  // delegateCall?: boolean
+  // revertOnError?: boolean
+}
 export interface SignedTransaction {
   rawTx: RawTransactionType
   tx: WalletTransaction
@@ -37,6 +46,7 @@ export interface SmartAccountSignature {
 }
 
 export interface FeeRefundV1_0_0 {
+  // gasUsed: string | number
   baseGas: string | number
   gasPrice: string | number
   gasToken: string
@@ -59,24 +69,24 @@ export interface MetaTransactionData {
   readonly operation?: OperationType
 }
 
-export interface SmartAccountTrxData extends MetaTransactionData {
-  readonly operation: OperationType
-  readonly targetTxGas: number
-  readonly baseGas: number
-  readonly gasPrice: number
-  readonly gasToken: string
-  readonly refundReceiver: string
-  readonly nonce: number
-}
+// export interface SmartAccountTrxData extends MetaTransactionData {
+//   readonly operation: OperationType
+//   readonly targetTxGas: number
+//   readonly baseGas: number
+//   readonly gasPrice: number
+//   readonly gasToken: string
+//   readonly refundReceiver: string
+//   readonly nonce: number
+// }
 
-export interface SmartAccountTrxDataPartial extends MetaTransactionData {
-  readonly targetTxGas?: number
-  readonly baseGas?: number
-  readonly gasPrice?: number
-  readonly gasToken?: string
-  readonly refundReceiver?: string
-  readonly nonce?: number
-}
+// export interface SmartAccountTrxDataPartial extends MetaTransactionData {
+//   readonly targetTxGas?: number
+//   readonly baseGas?: number
+//   readonly gasPrice?: number
+//   readonly gasToken?: string
+//   readonly refundReceiver?: string
+//   readonly nonce?: number
+// }
 export interface MetaTransaction {
   to: string
   value: BigNumberish
@@ -101,20 +111,20 @@ export interface Signature {
   dynamicPart(): string
 }
 
-export interface SmartAccountTrx {
-  readonly data: Transaction
-  readonly signatures: Map<string, Signature>
-  addSignature(signature: Signature): void
-  encodedSignatures(): string
-}
+// export interface SmartAccountTrx {
+//   readonly data: Transaction
+//   readonly signatures: Map<string, Signature>
+//   addSignature(signature: Signature): void
+//   encodedSignatures(): string
+// }
 
-export interface Transaction {
-  readonly to: string
-  readonly value: string
-  readonly data: string
-  readonly operation: OperationType
-  readonly targetTxGas: number
-}
+// export interface Transaction {
+//   readonly to: string
+//   readonly value: string
+//   readonly data: string
+//   readonly operation: OperationType
+//   readonly targetTxGas: number
+// }
 
 export interface TransactionOptions {
   from?: string
