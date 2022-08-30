@@ -3,6 +3,7 @@ import {
   EstimateExternalGasDto,
   EstimateRequiredTxGasDto,
   EstimateHandlePaymentTxGasDto,
+  EstimateUndeployedContractGasDto,
   SmartAccountByOwnerDto,
   TokenByChainIdAndAddressDto,
   TokenPriceResponse,
@@ -151,19 +152,13 @@ class NodeClient implements INodeClient {
     })
   }
 
-  // async estimateUndeployedContractGas(chainId: number, walletAddress: string, transaction: MetaTransactionData, feeRefund: FeeRefund, signature:string): Promise<EstimateGasResponse> {
-  //   return sendRequest({
-  //     url: `${this.#txServiceBaseUrl}/estimator/undeployed`,
-  //     method: HttpMethod.Post,
-  //     body: {
-  //       chainId,
-  //       walletAddress,
-  //       transaction,
-  //       feeRefund,
-  //       signature
-  //     }
-  //   })
-  // }
+  async estimateUndeployedContractGas(estimateUndeployedContractGasDto: EstimateUndeployedContractGasDto): Promise<EstimateGasResponse> {
+     return sendRequest({
+       url: `${this.#txServiceBaseUrl}/estimator/undeployed`,
+      method: HttpMethod.Post,
+       body: estimateUndeployedContractGasDto
+     })
+   }
 }
 
 export default NodeClient

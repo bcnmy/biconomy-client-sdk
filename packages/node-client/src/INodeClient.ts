@@ -4,6 +4,7 @@ import {
   EstimateExternalGasDto,
   EstimateRequiredTxGasDto,
   EstimateHandlePaymentTxGasDto,
+  EstimateUndeployedContractGasDto,
   SmartAccountByOwnerDto,
   TokenByChainIdAndAddressDto,
   TokenPriceResponse,
@@ -54,7 +55,9 @@ interface INodeClient {
     estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto
   ): Promise<EstimateGasResponse>
 
-  // estimateUndeployedContractGas(chainId: number, estimatorAddress: string, transaction: MetaTransactionData, feeRefund: FeeRefund, signature: string): Promise<EstimateGasResponse>
+  estimateUndeployedContractGas(
+    estimateUndeployedContractGasDto: EstimateUndeployedContractGasDto
+  ): Promise<EstimateGasResponse>
 }
 
 export default INodeClient

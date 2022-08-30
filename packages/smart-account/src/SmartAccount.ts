@@ -52,7 +52,8 @@ import NodeClient, {
   SupportedChainsResponse,
   EstimateExternalGasDto,
   EstimateRequiredTxGasDto,
-  EstimateHandlePaymentTxGasDto
+  EstimateHandlePaymentTxGasDto,
+  EstimateUndeployedContractGasDto
 } from '@biconomy-sdk/node-client'
 import { Web3Provider } from '@ethersproject/providers'
 import { Relayer } from '@biconomy-sdk/relayer'
@@ -71,7 +72,8 @@ import {
 
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount {
-  DEFAULT_VERSION: SmartAccountVersion = '1.0.0'
+  // By default latest version
+  DEFAULT_VERSION: SmartAccountVersion = '1.0.2'
   // { ethAdapter } is a window that gives access to all the implemented functions of it
   // requires signer and read-only provider
   ethAdapter!: { [chainId: number]: EthersAdapter }
@@ -304,9 +306,10 @@ class SmartAccount {
   ): Promise<EstimateGasResponse> {
     return this.nodeClient.estimateHandlePaymentGas(estimateHandlePaymentTxGasDto)
   }
-  // public async estimateUndeployedContractGas(chainId: number, walletAddress: string, transaction: MetaTransactionData,  feeRefundData: FeeRefund, signature: string): Promise<EstimateGasResponse> {
-  //   return this.nodeClient.estimateUndeployedContractGas(chainId, walletAddress, transaction, feeRefundData, signature)
-  // }
+  public async estimateUndeployedContractGas(estimateUndeployedContractGasDto: EstimateUndeployedContractGasDto
+  ): Promise<EstimateGasResponse> {
+    return this.nodeClient.estimateUndeployedContractGas(estimateUndeployedContractGasDto)
+  }
 
   // return adapter instance to be used for blockchain interactions
   /**
@@ -594,12 +597,20 @@ class SmartAccount {
         gasToken: tx.gasToken,
         refundReceiver: tx.refundReceiver
       }
-      // TODO: required updates
-      // const ethCallOverrideResponse = await this.estimateUndeployedContractGas(chainId, this.address, txn, refundInfo, FAKE_SIGNATURE);
-      // let noAuthEstimate = Number(ethCallOverrideResponse.data.gas);
-      // console.log('no auth no refund estimate', noAuthEstimate);
 
-      // estimatedGasUsed += noAuthEstimate;
+      const estimateUndeployedContractGasDto: EstimateUndeployedContractGasDto = {
+        chainId,
+        transaction: txn,
+        walletAddress: this.address,
+        feeRefund: refundInfo,
+        signature: FAKE_SIGNATURE
+      }
+
+      const ethCallOverrideResponse = await this.estimateUndeployedContractGas(estimateUndeployedContractGasDto);
+      let noAuthEstimate = Number(ethCallOverrideResponse.data.gas);
+      console.log('no auth no refund estimate', noAuthEstimate);
+
+      estimatedGasUsed += noAuthEstimate;
 
       // TODO @review
       // chat with Sachin
@@ -662,12 +673,19 @@ class SmartAccount {
         refundReceiver: tx.refundReceiver
       }
 
-      // TODO: required updates
-      // const ethCallOverrideResponse = await this.estimateUndeployedContractGas(chainId, this.address, txn, refundInfo, FAKE_SIGNATURE);
-      // let noAuthEstimate = Number(ethCallOverrideResponse.data.gas);
-      // console.log('no auth no refund estimate', noAuthEstimate);
+      const estimateUndeployedContractGasDto: EstimateUndeployedContractGasDto = {
+        chainId,
+        transaction: txn,
+        walletAddress: this.address,
+        feeRefund: refundInfo,
+        signature: FAKE_SIGNATURE
+      }
 
-      // estimatedGasUsed += noAuthEstimate;
+      const ethCallOverrideResponse = await this.estimateUndeployedContractGas(estimateUndeployedContractGasDto);
+      let noAuthEstimate = Number(ethCallOverrideResponse.data.gas);
+      console.log('no auth no refund estimate', noAuthEstimate);
+
+      estimatedGasUsed += noAuthEstimate;
 
       // TODO @review
       // chat with Sachin

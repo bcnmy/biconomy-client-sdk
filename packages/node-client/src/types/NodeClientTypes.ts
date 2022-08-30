@@ -46,6 +46,14 @@ export type EstimateHandlePaymentTxGasDto = {
   feeRefund: FeeRefundV1_0_0 | FeeRefundV1_0_2
 }
 
+export type EstimateUndeployedContractGasDto = {
+  chainId: number
+  walletAddress: string
+  feeRefund: FeeRefundV1_0_0 | FeeRefundV1_0_2
+  transaction: MetaTransactionData
+  signature: string
+}
+
 export type SmartAccountByOwnerDto = {
   chainId: number
   owner: string
