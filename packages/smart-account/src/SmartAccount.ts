@@ -487,6 +487,8 @@ class SmartAccount {
 
       estimatedGasUsed += noAuthEstimate;
 
+      // TODO @review
+      // chat with Sachin
       // For the refund we need to add estimation seperately 
       estimatedGasUsed += 22900 // Might have to come from relayer along with quotes
 
@@ -548,6 +550,8 @@ class SmartAccount {
 
       estimatedGasUsed += noAuthEstimate;
 
+      // TODO @review
+      // chat with Sachin
       // For the refund we need to add estimation seperately 
       estimatedGasUsed += 22900
 
@@ -633,41 +637,6 @@ class SmartAccount {
       nonce
     })
 
-    return walletTx
-  }
-
-
-  /**
-   * Prepares compatible WalletTransaction object based on Transaction Request
-   * @todo Rename based on other variations to prepare transaction
-   * @notice This transaction is without fee refund (gasless)
-   * @param transaction
-   * @param batchId
-   * @param chainId
-   * @returns
-   */
-  async createTransaction(
-    transaction: Transaction,
-    batchId: number = 0,
-    chainId: ChainId = this.#smartAccountConfig.activeNetworkId
-  ): Promise<WalletTransaction> {
-    let walletContract = this.smartAccount(chainId).getContract()
-    walletContract = walletContract.attach(this.address)
-
-    // NOTE : If the wallet is not deployed yet then nonce would be zero
-    let nonce = 0
-    if (await this.isDeployed(chainId)) {
-      nonce = (await walletContract.getNonce(batchId)).toNumber()
-    }
-    console.log('nonce: ', nonce)
-
-    const walletTx: WalletTransaction = buildSmartAccountTransaction({
-      to: transaction.to,
-      value: transaction.value,
-      data: transaction.data, // for token transfers use encodeTransfer
-      nonce
-    })
-    
     return walletTx
   }
 
@@ -817,7 +786,41 @@ class SmartAccount {
       }
   
       return finalWalletTx
-  }  
+  }
+  
+    /**
+   * Prepares compatible WalletTransaction object based on Transaction Request
+   * @todo Rename based on other variations to prepare transaction
+   * @notice This transaction is without fee refund (gasless)
+   * @param transaction
+   * @param batchId
+   * @param chainId
+   * @returns
+   */
+     async createTransaction(
+      transaction: Transaction,
+      batchId: number = 0,
+      chainId: ChainId = this.#smartAccountConfig.activeNetworkId
+    ): Promise<WalletTransaction> {
+      let walletContract = this.smartAccount(chainId).getContract()
+      walletContract = walletContract.attach(this.address)
+  
+      // NOTE : If the wallet is not deployed yet then nonce would be zero
+      let nonce = 0
+      if (await this.isDeployed(chainId)) {
+        nonce = (await walletContract.getNonce(batchId)).toNumber()
+      }
+      console.log('nonce: ', nonce)
+  
+      const walletTx: WalletTransaction = buildSmartAccountTransaction({
+        to: transaction.to,
+        value: transaction.value,
+        data: transaction.data, // for token transfers use encodeTransfer
+        nonce
+      })
+      
+      return walletTx
+    }
 
     /**
    * Prepares compatible WalletTransaction object based on Transaction Request
