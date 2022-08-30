@@ -43,7 +43,7 @@ export type EstimateRequiredTxGasDto = {
 export type EstimateHandlePaymentTxGasDto = {
   chainId: number
   walletAddress: string
-  feeRefundData: FeeRefundV1_0_0 | FeeRefundV1_0_2
+  feeRefund: FeeRefundV1_0_0 | FeeRefundV1_0_2
 }
 
 export type SmartAccountByOwnerDto = {

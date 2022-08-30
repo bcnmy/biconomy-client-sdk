@@ -13,8 +13,8 @@ import {
   AddressForCounterFactualWalletDto,
   SignTransactionDto,
   SendTransactionDto,
-  PrepareTransactionDto,
   PrepareRefundTransactionDto,
+  PrepareRefundTransactionsDto,
   RefundTransactionDto,
   RefundTransactionBatchDto,
   TransactionDto,
@@ -449,13 +449,13 @@ class SmartAccount {
    * @param chainId
    */
   async prepareRefundTransaction(
-    prepareTransactionDto: PrepareTransactionDto
+    prepareRefundTransactionDto: PrepareRefundTransactionDto
   ): Promise<FeeQuote[]> {
     const {
       transaction,
       batchId = 0,
       chainId = this.#smartAccountConfig.activeNetworkId
-    } = prepareTransactionDto
+    } = prepareRefundTransactionDto
 
     const gasPriceQuotesResponse: FeeOptionsResponse = await this.relayer.getFeeOptions(chainId)
     const feeOptionsAvailable: Array<TokenData> = gasPriceQuotesResponse.data.response
@@ -501,13 +501,13 @@ class SmartAccount {
    * @param chainId
    */
   async prepareRefundTransactionBatch(
-    prepareRefundTransactionDto: PrepareRefundTransactionDto
+    prepareRefundTransactionsDto: PrepareRefundTransactionsDto
   ): Promise<FeeQuote[]> {
     const {
       transactions,
       batchId = 0,
       chainId = this.#smartAccountConfig.activeNetworkId
-    } = prepareRefundTransactionDto
+    } = prepareRefundTransactionsDto
     const gasPriceQuotesResponse: FeeOptionsResponse = await this.relayer.getFeeOptions(chainId)
     const feeOptionsAvailable: Array<TokenData> = gasPriceQuotesResponse.data.response
     let feeQuotes: Array<FeeQuote> = []
@@ -543,9 +543,9 @@ class SmartAccount {
     return feeQuotes
   }
 
-  async estimateTransactionBatch( prepareRefundTransactionDto: PrepareRefundTransactionDto): Promise<number> {
+  async estimateTransactionBatch( prepareRefundTransactionsDto: PrepareRefundTransactionsDto): Promise<number> {
 
-    const { transactions, batchId = 0, chainId = this.#smartAccountConfig.activeNetworkId } = prepareRefundTransactionDto
+    const { transactions, batchId = 0, chainId = this.#smartAccountConfig.activeNetworkId } = prepareRefundTransactionsDto
       let estimatedGasUsed = 0;
       // Check if available from current state
       const isDeployed = await this.isDeployed(chainId);
@@ -609,7 +609,7 @@ class SmartAccount {
       return estimatedGasUsed;
     }
 
-  async estimateTransaction(prepareTransactionDto: PrepareTransactionDto): Promise<number> {
+  async estimateTransaction(prepareTransactionDto: PrepareRefundTransactionDto): Promise<number> {
     const {
       transaction,
       batchId = 0,
@@ -742,7 +742,7 @@ class SmartAccount {
     const estimateHandlePaymentGas: EstimateHandlePaymentTxGasDto = {
       chainId,
       walletAddress: connectedWallet,
-      feeRefundData: refundDetails
+      feeRefund: refundDetails
     }
 
     const handlePaymentResponse = await this.estimateHandlePaymentGas(estimateHandlePaymentGas)
@@ -922,7 +922,7 @@ class SmartAccount {
         refundReceiver: ZERO_ADDRESS
       }
   
-      const handlePaymentResponse = await this.estimateHandlePaymentGas({chainId, walletAddress: this.address, feeRefundData: refundDetails});
+      const handlePaymentResponse = await this.estimateHandlePaymentGas({chainId, walletAddress: this.address, feeRefund: refundDetails});
       // If we get this reponse zero, there has to be a way to estimate this for undeployed wallet
       // We could use constant value provided by the relayer
       let handlePaymentEstimate = Number(handlePaymentResponse.data.gas)
