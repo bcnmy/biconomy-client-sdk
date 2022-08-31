@@ -153,8 +153,9 @@ class SmartAccount {
    * @param smartAccountVersion
    * @description // set wallet version to be able to interact with different deployed versions
    */
-  setSmartAccountVersion(smartAccountVersion: SmartAccountVersion) {
+  async setSmartAccountVersion(smartAccountVersion: SmartAccountVersion) {
     this.DEFAULT_VERSION = smartAccountVersion
+    this.address = await this.getAddress()
   }
 
   // TODO
@@ -261,7 +262,7 @@ class SmartAccount {
   ): Promise<string> {
     const { index = 0, chainId = this.#smartAccountConfig.activeNetworkId } =
       addressForCounterFactualWalletDto
-    console.log('index and ChainId ', index, chainId, this.DEFAULT_VERSION)
+    console.log('index and ChainId ', index, chainId, this.DEFAULT_VERSION)    
     return this.smartWalletFactoryContract[chainId][
       this.DEFAULT_VERSION
     ].getAddressForCounterfactualWallet(this.owner, index)
@@ -393,15 +394,13 @@ class SmartAccount {
       targetTxGas: tx.targetTxGas
     }
 
-    let refundInfo: FeeRefundV1_0_0 | FeeRefundV1_0_2 = {
+    const refundInfo: FeeRefundV1_0_0 | FeeRefundV1_0_2 = {
       baseGas: tx.baseGas,
       gasPrice: tx.gasPrice,
       tokenGasPriceFactor: tx.tokenGasPriceFactor,
       gasToken: tx.gasToken,
       refundReceiver: tx.refundReceiver
     }
-
-    refundInfo = this.transformRefundDto(this.DEFAULT_VERSION, refundInfo)
 
     let walletContract = this.smartWalletContract[chainId][this.DEFAULT_VERSION].getContract()
     walletContract = walletContract.attach(this.address)
@@ -431,16 +430,6 @@ class SmartAccount {
     }
     const txn: RelayResponse = await this.relayer.relay(relayTrx)
     return txn.hash
-  }
-
-  transformRefundDto(smartAccountVersion: SmartAccountVersion, refundDto: FeeRefundV1_0_0 | FeeRefundV1_0_2 ) {
-    let resultSet = {...refundDto}
-    switch(smartAccountVersion){
-      case '1.0.0':
-        if ( typeof(refundDto)  )
-        return resultSet
-      }
-      return resultSet
   }
 
   // Get Fee Options from relayer and make it available for display
