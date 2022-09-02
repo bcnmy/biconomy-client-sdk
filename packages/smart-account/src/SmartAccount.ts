@@ -50,6 +50,8 @@ import { JsonRpcSigner, TransactionResponse } from '@ethersproject/providers'
 import NodeClient, {
   ChainConfig,
   SupportedChainsResponse,
+  SmartAccountsResponse,
+  SmartAccountByOwnerDto,
   EstimateExternalGasDto,
   EstimateRequiredTxGasDto,
   EstimateHandlePaymentTxGasDto,
@@ -290,6 +292,12 @@ class SmartAccount {
   ): Promise<UsdBalanceResponse> {
     if (!balancesDto.chainId) balancesDto.chainId = chainId
     return this.nodeClient.getTotalBalanceInUsd(balancesDto)
+  }
+
+  public async getSmartAccountsByOwner(
+    smartAccountByOwnerDto: SmartAccountByOwnerDto
+  ): Promise<SmartAccountsResponse> {
+    return this.nodeClient.getSmartAccountsByOwner(smartAccountByOwnerDto)
   }
 
   public async estimateExternalGas(
