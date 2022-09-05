@@ -42,7 +42,13 @@ interface INodeClient {
 
   estimateRequiredTxGas(chainId: number, estimatorAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse>
 
+  // TODO
+  // rename estimatorAddress where it's needed
+  estimateRequiredTxGasOverride(chainId: number, estimatorAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse>
+
   estimateHandlePaymentGas(chainId: number, estimatorAddress: string, feeRefund: FeeRefundData): Promise<EstimateGasResponse>
+
+  estimateHandlePaymentGasOverride(chainId: number, estimatorAddress: string, feeRefund: FeeRefundData): Promise<EstimateGasResponse>
 
   estimateUndeployedContractGas(chainId: number, estimatorAddress: string, transaction: MetaTransactionData, feeRefund: FeeRefund, signature: string): Promise<EstimateGasResponse>
 }

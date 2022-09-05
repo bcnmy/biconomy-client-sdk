@@ -136,9 +136,32 @@ class NodeClient implements INodeClient {
       }
     })
   }
+  async estimateRequiredTxGasOverride(chainId: number, walletAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse> {
+    return sendRequest({
+      url: `${this.#txServiceBaseUrl}/estimator/required-override`,
+      method: HttpMethod.Post,
+      body: {
+        chainId,
+        walletAddress,
+        transaction
+      }
+    })
+  }
   async estimateHandlePaymentGas(chainId: number, walletAddress: string, feeRefund: FeeRefundData): Promise<EstimateGasResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/estimator/handle-payment`,
+      method: HttpMethod.Post,
+      body: {
+        chainId,
+        walletAddress,
+        feeRefund
+      }
+    })
+  }
+
+  async estimateHandlePaymentGasOverride(chainId: number, walletAddress: string, feeRefund: FeeRefundData): Promise<EstimateGasResponse> {
+    return sendRequest({
+      url: `${this.#txServiceBaseUrl}/estimator/handle-payment-override`,
       method: HttpMethod.Post,
       body: {
         chainId,

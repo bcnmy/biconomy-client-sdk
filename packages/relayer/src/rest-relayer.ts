@@ -71,33 +71,17 @@ export class RestRelayer implements Relayer {
       }
     }
 
-    /*async isWalletDeployed(walletAddress: string): Promise<boolean> {
-      // Check if wallet is deployed
-      return true;
-    }*/
 
-    /*async getFeeOptions(
-    ): Promise<{ options: FeeOption[] }> {
-      return { options: [] }
-    }*/
-  
-    /*async gasRefundOptions( 
-    ): Promise<FeeOption[]> {
-      const { options } = //await this.getFeeOptions()
-      return options
-    }*/
 
-    // Should make an object that takes config and context
-    // Add feeQuote later
-    // Appending tx and rawTx may not be necessary
 
+    // Make gas limit a param
+    // We would send manual gas limit with high targetTxGas (whenever targetTxGas can't be accurately estimated)
     async relay(signedTx: SignedTransaction, config: SmartAccountState, context: SmartAccountContext) : Promise<RelayResponse> {
       
       const { isDeployed, address } = config;
       const { multiSendCall } = context; // multisend has to be multiSendCallOnly here!
       if(!isDeployed) {
         // If not =>> preprendWalletDeploy
-        console.log('here');
         const {to, data} = this.prepareWalletDeploy(config,context);
         const originalTx:WalletTransaction = signedTx.tx;
 
@@ -135,7 +119,10 @@ export class RestRelayer implements Relayer {
         return sendRequest({
             url: `${this.#relayServiceBaseUrl}`,
             method: HttpMethod.Post,
-            body: { ...finalRawRx, /*gasLimit: ethers.constants.Two.pow(24)*/ }
+            body: { ...finalRawRx, /*gasLimit: {
+              hex: '0x1E8480',
+              type: 'hex'
+              },*/ }
         })
       }
       console.log('signedTx', signedTx);
@@ -144,7 +131,10 @@ export class RestRelayer implements Relayer {
       return sendRequest({
         url: `${this.#relayServiceBaseUrl}`,
         method: HttpMethod.Post,
-        body: { ...signedTx.rawTx, /*gasLimit: ethers.constants.Two.pow(24),*/ refundInfo: {
+        body: { ...signedTx.rawTx, /*gasLimit: {
+          hex: '0x1E8480',
+          type: 'hex'
+          },*/ refundInfo: {
           tokenGasPrice: signedTx.tx.gasPrice,
           gasToken: signedTx.tx.gasToken,
         } }

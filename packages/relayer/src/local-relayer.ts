@@ -155,7 +155,9 @@ export class LocalRelayer implements Relayer {
               "address": "0xb5B640E6414b6DeF4FC9B3C1EeF373925effeCcF",
               "decimal": 6,
               "logoUrl": "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/usdc.png",
-              "offset": 1000000
+              "offset": 1000000,
+              "feeTokenTransferGas": 22975,
+              "refundReceiver": "0xc1d3206324d806b6586cf15324178f8e8781a293"
           }]
             }
         };
