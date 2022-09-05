@@ -142,6 +142,7 @@ class NodeClient implements INodeClient {
       body: estimateRequiredTxGasDto
     })
   }
+
   estimateHandlePaymentGas(
     estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto
   ): Promise<EstimateGasResponse> {
@@ -152,9 +153,27 @@ class NodeClient implements INodeClient {
     })
   }
 
+  async estimateRequiredTxGasOverride(estimateRequiredTxGasDto: EstimateRequiredTxGasDto
+    ): Promise<EstimateGasResponse> {
+      return sendRequest({
+        url: `${this.#txServiceBaseUrl}/estimator/required-override`,
+        method: HttpMethod.Post,
+        body: estimateRequiredTxGasDto
+      })
+    }
+
+  async estimateHandlePaymentGasOverride(estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto
+    ): Promise<EstimateGasResponse> {
+    return sendRequest({
+      url: `${this.#txServiceBaseUrl}/estimator/handle-payment-override`,
+      method: HttpMethod.Post,
+      body: estimateHandlePaymentTxGasDto
+    })
+  }
+
   async estimateUndeployedContractGas(estimateUndeployedContractGasDto: EstimateUndeployedContractGasDto): Promise<EstimateGasResponse> {
-     return sendRequest({
-       url: `${this.#txServiceBaseUrl}/estimator/undeployed`,
+    return sendRequest({
+      url: `${this.#txServiceBaseUrl}/estimator/undeployed`,
       method: HttpMethod.Post,
        body: estimateUndeployedContractGasDto
      })

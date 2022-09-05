@@ -51,9 +51,13 @@ interface INodeClient {
     estimateRequiredTxGasDto: EstimateRequiredTxGasDto
   ): Promise<EstimateGasResponse>
 
+  estimateRequiredTxGasOverride(estimateRequiredTxGasDto: EstimateRequiredTxGasDto): Promise<EstimateGasResponse>
+
   estimateHandlePaymentGas(
     estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto
   ): Promise<EstimateGasResponse>
+
+  estimateHandlePaymentGasOverride(estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto): Promise<EstimateGasResponse>
 
   estimateUndeployedContractGas(
     estimateUndeployedContractGasDto: EstimateUndeployedContractGasDto

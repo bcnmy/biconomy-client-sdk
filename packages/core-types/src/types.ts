@@ -55,6 +55,13 @@ export interface UserOperation {
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
+// Review
+export const DEFAULT_FEE_RECEIVER = "0x7306aC7A32eb690232De81a9FFB44Bb346026faB"
+
+export const GAS_USAGE_OFFSET = 4928 + 2360
+
+// Few more constants can be added regarding token transfer / handle payments 
+
 export const FAKE_SIGNATURE = "0x39f5032f1cd30005aa1e35f04394cabfe7de3b6ae6d95b27edd8556064c287bf61f321fead0cf48ca4405d497cc8fc47fc7ff0b7f5c45baa14090a44f2307d8230"
 
 export interface RestRelayerOptions {
@@ -68,16 +75,19 @@ export interface TokenData {
   address: string
   decimal: number
   logoUrl: string
+  feeTokenTransferGas: number;
+  refundReceiver?: string
 }
 
 export interface FeeQuote {
-  symbol: string
-  address: string
-  decimal: number
-  logoUrl: string
-  payment: number
-  tokenGasPrice: number //review
-  offset?: number
+  symbol: string,
+  address: string, 
+  decimal: number,
+  logoUrl: string,
+  payment: number,
+  tokenGasPrice: number, //review
+  offset?: number,
+  refundReceiver?: string;
 }
 
 export interface FeeOptionsResponse {

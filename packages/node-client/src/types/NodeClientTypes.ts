@@ -213,6 +213,7 @@ export type EstimateGasResponse = {
   message: string
   code: number
   data: {
-    gas: number
+    gas: number,
+    txBaseGas?: number
   }
 }

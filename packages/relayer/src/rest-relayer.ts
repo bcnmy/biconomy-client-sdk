@@ -75,40 +75,20 @@ export class RestRelayer implements Relayer {
     }
   }
 
-  /*async isWalletDeployed(walletAddress: string): Promise<boolean> {
-      // Check if wallet is deployed
-      return true;
-    }*/
-
-  /*async getFeeOptions(
-    ): Promise<{ options: FeeOption[] }> {
-      return { options: [] }
-    }*/
-
-  /*async gasRefundOptions( 
-    ): Promise<FeeOption[]> {
-      const { options } = //await this.getFeeOptions()
-      return options
-    }*/
-
-  // Should make an object that takes config and context
-  // Add feeQuote later
-  // Appending tx and rawTx may not be necessary
+  // Make gas limit a param
+  // We would send manual gas limit with high targetTxGas (whenever targetTxGas can't be accurately estimated)
 
   async relay(relayTransaction: RelayTransaction): Promise<RelayResponse> {
     const { config, signedTx, context } = relayTransaction
     const { isDeployed, address } = config
     const { multiSendCall } = context // multisend has to be multiSendCallOnly here!
     if (!isDeployed) {
-      // If not =>> preprendWalletDeploy
-      console.log('here')
       const prepareWalletDeploy: DeployWallet = {
         config,
         context,
         index: 0
       }
       const { to, data } = this.prepareWalletDeploy(prepareWalletDeploy)
-      const originalTx: WalletTransaction = signedTx.tx
 
       const txs: MetaTransaction[] = [
         {
@@ -128,8 +108,7 @@ export class RestRelayer implements Relayer {
       const txnData = multiSendCall
         .getInterface()
         .encodeFunctionData('multiSend', [encodeMultiSend(txs)])
-      console
-
+      
       const finalRawRx = {
         to: multiSendCall.getAddress(),
         data: txnData,
@@ -140,26 +119,32 @@ export class RestRelayer implements Relayer {
       console.log(finalRawRx)
 
       // API call
-      // rawTx to becomes multiSend address and data gets prepared again
-      return sendRequest({
+       // rawTx to becomes multiSend address and data gets prepared again 
+       return sendRequest({
         url: `${this.#relayServiceBaseUrl}`,
         method: HttpMethod.Post,
-        body: { ...finalRawRx /*gasLimit: ethers.constants.Two.pow(24)*/ }
-      })
-    }
+        body: { ...finalRawRx, /*gasLimit: {
+          hex: '0x1E8480',
+          type: 'hex'
+          },*/ refundInfo: {
+        tokenGasPrice: signedTx.tx.gasPrice,
+        gasToken: signedTx.tx.gasToken } }
+    })
+   }
+  
     console.log('signedTx', signedTx)
     console.log('gasLimit', ethers.constants.Two.pow(24))
     // API call
     return sendRequest({
       url: `${this.#relayServiceBaseUrl}`,
       method: HttpMethod.Post,
-      body: {
-        ...signedTx.rawTx,
-        /*gasLimit: ethers.constants.Two.pow(24),*/ refundInfo: {
-          tokenGasPrice: signedTx.tx.gasPrice,
-          gasToken: signedTx.tx.gasToken
-        }
-      }
+      body: { ...signedTx.rawTx, /*gasLimit: {
+        hex: '0x1E8480',
+        type: 'hex'
+        },*/ refundInfo: {
+        tokenGasPrice: signedTx.tx.gasPrice,
+        gasToken: signedTx.tx.gasToken,
+      } }
     })
   }
 
