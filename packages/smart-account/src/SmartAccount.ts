@@ -781,7 +781,7 @@ class SmartAccount {
         walletAddress: this.address,	
         feeRefund: refundDetails	
       }	
-      const handlePaymentResponse = await this.estimateHandlePaymentGasOverride(estimateHandlePaymentGas)	
+      const handlePaymentResponse = await this.estimateHandlePaymentGas(estimateHandlePaymentGas)	
       let handlePaymentEstimate = Number(handlePaymentResponse.data.gas)
 
       console.log('handlePaymentEstimate ', handlePaymentEstimate);
@@ -809,9 +809,7 @@ class SmartAccount {
    * Prepares compatible WalletTransaction object based on Transaction Request
    * @todo Rename based on other variations to prepare transaction
    * @notice This transaction is without fee refund (gasless)
-   * @param transaction
-   * @param batchId
-   * @param chainId
+   * @param transactionDto
    * @returns
    */
   async createTransaction(transactionDto: TransactionDto): Promise<WalletTransaction> {
