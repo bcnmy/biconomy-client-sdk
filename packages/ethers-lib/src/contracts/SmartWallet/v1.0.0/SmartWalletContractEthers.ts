@@ -5,7 +5,7 @@ import {
   WalletTransaction,
   ExecTransaction,
   FeeRefundV1_0_0, 
-  FeeRefundV1_0_6,
+  FeeRefundV1_0_1,
   TransactionResult
 } from '@biconomy-sdk/core-types'
 import { toTxResult } from '../../../utils'

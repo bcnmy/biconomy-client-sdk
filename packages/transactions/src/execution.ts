@@ -11,7 +11,7 @@ import {
 import {
   ExecTransaction,
   FeeRefundV1_0_0,
-  FeeRefundV1_0_6,
+  FeeRefundV1_0_1,
   WalletTransaction,
   SmartAccountSignature
 } from '@biconomy-sdk/core-types'
@@ -158,7 +158,7 @@ export const executeTx = async (
     operation: SmartAccountTx.operation,
     targetTxGas: SmartAccountTx.targetTxGas
   }
-  const refundInfo: FeeRefundV1_0_0 | FeeRefundV1_0_6 = {
+  const refundInfo: FeeRefundV1_0_0 | FeeRefundV1_0_1 = {
     baseGas: SmartAccountTx.baseGas,
     gasPrice: SmartAccountTx.gasPrice,
     tokenGasPriceFactor: SmartAccountTx.tokenGasPriceFactor,
@@ -188,7 +188,7 @@ export const populateExecuteTx = async (
     operation: SmartAccountTx.operation,
     targetTxGas: SmartAccountTx.targetTxGas
   }
-  const refundInfo: FeeRefundV1_0_0 | FeeRefundV1_0_6 = {
+  const refundInfo: FeeRefundV1_0_0 | FeeRefundV1_0_1 = {
     baseGas: SmartAccountTx.baseGas,
     gasPrice: SmartAccountTx.gasPrice,
     tokenGasPriceFactor: SmartAccountTx.tokenGasPriceFactor,

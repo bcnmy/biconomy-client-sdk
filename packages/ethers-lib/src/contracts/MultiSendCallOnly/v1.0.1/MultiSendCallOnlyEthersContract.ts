@@ -1,8 +1,8 @@
 import { MultiSendCallOnlyContract } from '@biconomy-sdk/core-types'
 import {
-  MultiSendCallOnlyContractV106 as MultiSendCallOnly_TypeChain,
-  MultiSendCallOnlyContractV106Interface
-} from '../../../../typechain/src/ethers-v5/v1.0.6/MultiSendCallOnlyContractV106'
+  MultiSendCallOnlyContractV101 as MultiSendCallOnly_TypeChain,
+  MultiSendCallOnlyContractV101Interface
+} from '../../../../typechain/src/ethers-v5/v1.0.1/MultiSendCallOnlyContractV101'
 import { Contract } from '@ethersproject/contracts'
 import { Interface } from '@ethersproject/abi'
 
@@ -21,7 +21,7 @@ class MultiSendCallOnlyEthersContract implements MultiSendCallOnlyContract {
     return this.contract.interface
   }
 
-  encode: MultiSendCallOnlyContractV106Interface['encodeFunctionData'] = (
+  encode: MultiSendCallOnlyContractV101Interface['encodeFunctionData'] = (
     methodName: any,
     params: any
   ): string => {

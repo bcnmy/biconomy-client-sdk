@@ -3,7 +3,7 @@ import { MultiSendContract } from './contracts/MultiSendContract'
 import { MultiSendCallOnlyContract } from './contracts/MultiSendCallOnlyContract'
 import { SmartWalletContract } from './contracts/SmartWalletContract'
 
-export type SmartAccountVersion = '1.0.6' | '1.0.0'
+export type SmartAccountVersion = '1.0.1' | '1.0.0'
 
 export enum OperationType {
   Call, // 0

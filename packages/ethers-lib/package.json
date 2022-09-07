@@ -46,7 +46,7 @@
     "@gnosis.pm/safe-core-sdk-utils": "^1.1.0",
     "@openzeppelin/contracts": "^4.6.0",
     "scw-contracts-v1.0.0": "npm:scw-contracts@1.0.0",
-    "scw-contracts-v1.0.6": "npm:scw-contracts@1.0.6"
+    "scw-contracts-v1.0.1": "npm:scw-contracts@1.0.6"
   },
   "peerDependencies": {
     "ethers": "^5.5.3"

@@ -52,13 +52,13 @@ export interface FeeRefundV1_0_0 {
   gasToken: string
   refundReceiver: string
 }
-export interface FeeRefundV1_0_6 extends FeeRefundV1_0_0{
+export interface FeeRefundV1_0_1 extends FeeRefundV1_0_0{
   tokenGasPriceFactor: string | number
 }
 
 
 // extended from FeeRefund as we need this for handlePayment Estimate
-export interface FeeRefundHandlePayment extends FeeRefundV1_0_6 {
+export interface FeeRefundHandlePayment extends FeeRefundV1_0_1 {
   gasUsed: string | number
 }
 

@@ -5,12 +5,12 @@ import {
   WalletTransaction,
   ExecTransaction,
   FeeRefundV1_0_0, 
-  FeeRefundV1_0_6,
+  FeeRefundV1_0_1,
   TransactionResult
 } from '@biconomy-sdk/core-types'
 import { toTxResult } from '../../../utils'
-import { SmartWalletContractV106 as SmartWalletContract_TypeChain } from '../../../../typechain/src/ethers-v5/v1.0.6/SmartWalletContractV106'
-import { SmartWalletContractV106Interface } from '../../../../typechain/src/ethers-v5/v1.0.6/SmartWalletContractV106'
+import { SmartWalletContractV101 as SmartWalletContract_TypeChain } from '../../../../typechain/src/ethers-v5/v1.0.1/SmartWalletContractV101'
+import { SmartWalletContractV101Interface } from '../../../../typechain/src/ethers-v5/v1.0.1/SmartWalletContractV101'
 import { Interface } from 'ethers/lib/utils'
 import { Contract } from '@ethersproject/contracts'
 class SmartWalletContractEthers implements SmartWalletContract {
@@ -62,7 +62,7 @@ class SmartWalletContractEthers implements SmartWalletContract {
   async execTransaction(
     _tx: ExecTransaction,
     batchId: number,
-    refundInfo: FeeRefundV1_0_6,
+    refundInfo: FeeRefundV1_0_1,
     signatures: string
   ): Promise<TransactionResult> {
     // TODO: estimate GAS before making the transaction
@@ -70,7 +70,7 @@ class SmartWalletContractEthers implements SmartWalletContract {
     return toTxResult(txResponse)
   }
 
-  encode: SmartWalletContractV106Interface['encodeFunctionData'] = (
+  encode: SmartWalletContractV101Interface['encodeFunctionData'] = (
     methodName: any,
     params: any
   ): string => {

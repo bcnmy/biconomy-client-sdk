@@ -23,7 +23,7 @@ import {
   RelayTransaction,
   FeeRefundHandlePayment,
   FeeRefundV1_0_0,
-  FeeRefundV1_0_6,
+  FeeRefundV1_0_1,
   WalletTransaction,
   SmartAccountVersion,
   SignedTransaction,
@@ -81,7 +81,7 @@ import {
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount {
   // By default latest version
-  DEFAULT_VERSION: SmartAccountVersion = '1.0.6'
+  DEFAULT_VERSION: SmartAccountVersion = '1.0.1'
   // { ethAdapter } is a window that gives access to all the implemented functions of it
   // requires signer and read-only provider
   ethAdapter!: { [chainId: number]: EthersAdapter }
@@ -416,7 +416,7 @@ class SmartAccount {
       targetTxGas: tx.targetTxGas
     }
 
-    const refundInfo: FeeRefundV1_0_0 | FeeRefundV1_0_6 = {
+    const refundInfo: FeeRefundV1_0_0 | FeeRefundV1_0_1 = {
       baseGas: tx.baseGas,
       gasPrice: tx.gasPrice,
       tokenGasPriceFactor: tx.tokenGasPriceFactor,
@@ -593,7 +593,7 @@ class SmartAccount {
       // to avoid failing eth_call override with undeployed wallet
       txn.targetTxGas = 500000;
   
-      const refundInfo: FeeRefundV1_0_6 = {
+      const refundInfo: FeeRefundV1_0_1 = {
         baseGas: tx.baseGas,
         gasPrice: tx.gasPrice,
         tokenGasPriceFactor: tx.tokenGasPriceFactor,
@@ -648,7 +648,7 @@ class SmartAccount {
       // to avoid failing eth_call override with undeployed wallet
       txn.targetTxGas = 500000;
   
-      const refundInfo: FeeRefundV1_0_6 = {
+      const refundInfo: FeeRefundV1_0_1 = {
         baseGas: tx.baseGas,
         gasPrice: tx.gasPrice,
         tokenGasPriceFactor: tx.tokenGasPriceFactor,
