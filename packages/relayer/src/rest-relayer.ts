@@ -79,7 +79,7 @@ export class RestRelayer implements Relayer {
   // We would send manual gas limit with high targetTxGas (whenever targetTxGas can't be accurately estimated)
 
   async relay(relayTransaction: RelayTransaction): Promise<RelayResponse> {
-    const { config, signedTx, context } = relayTransaction
+    const { config, signedTx, context, gasLimit } = relayTransaction
     const { isDeployed, address } = config
     const { multiSendCall } = context // multisend has to be multiSendCallOnly here!
     if (!isDeployed) {
@@ -123,25 +123,18 @@ export class RestRelayer implements Relayer {
        return sendRequest({
         url: `${this.#relayServiceBaseUrl}`,
         method: HttpMethod.Post,
-        body: { ...finalRawRx, /*gasLimit: {
-          hex: '0x1E8480',
-          type: 'hex'
-          },*/ refundInfo: {
+        body: { ...finalRawRx, gasLimit: gasLimit, refundInfo: {
         tokenGasPrice: signedTx.tx.gasPrice,
         gasToken: signedTx.tx.gasToken } }
     })
    }
   
     console.log('signedTx', signedTx)
-    console.log('gasLimit', ethers.constants.Two.pow(24))
     // API call
     return sendRequest({
       url: `${this.#relayServiceBaseUrl}`,
       method: HttpMethod.Post,
-      body: { ...signedTx.rawTx, /*gasLimit: {
-        hex: '0x1E8480',
-        type: 'hex'
-        },*/ refundInfo: {
+      body: { ...signedTx.rawTx, gasLimit: gasLimit, refundInfo: {
         tokenGasPrice: signedTx.tx.gasPrice,
         gasToken: signedTx.tx.gasToken,
       } }

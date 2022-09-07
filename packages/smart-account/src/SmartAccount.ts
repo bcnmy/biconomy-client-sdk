@@ -23,7 +23,7 @@ import {
   RelayTransaction,
   FeeRefundHandlePayment,
   FeeRefundV1_0_0,
-  FeeRefundV1_0_2,
+  FeeRefundV1_0_6,
   WalletTransaction,
   SmartAccountVersion,
   SignedTransaction,
@@ -81,7 +81,7 @@ import {
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount {
   // By default latest version
-  DEFAULT_VERSION: SmartAccountVersion = '1.0.2'
+  DEFAULT_VERSION: SmartAccountVersion = '1.0.6'
   // { ethAdapter } is a window that gives access to all the implemented functions of it
   // requires signer and read-only provider
   ethAdapter!: { [chainId: number]: EthersAdapter }
@@ -399,6 +399,8 @@ class SmartAccount {
       batchId = 0,
       chainId = this.#smartAccountConfig.activeNetworkId
     } = sendTransactionDto
+    let gasLimit;
+    const isDeployed = await this.isDeployed(chainId);
     let rawTx: RawTransactionType = {
       to: tx.to,
       data: tx.data,
@@ -414,7 +416,7 @@ class SmartAccount {
       targetTxGas: tx.targetTxGas
     }
 
-    const refundInfo: FeeRefundV1_0_0 | FeeRefundV1_0_2 = {
+    const refundInfo: FeeRefundV1_0_0 | FeeRefundV1_0_6 = {
       baseGas: tx.baseGas,
       gasPrice: tx.gasPrice,
       tokenGasPriceFactor: tx.tokenGasPriceFactor,
@@ -447,6 +449,13 @@ class SmartAccount {
       signedTx,
       config: state,
       context: this.getSmartAccountContext(chainId)
+    }
+    if(!isDeployed) {
+      gasLimit = {
+        hex: '0x1E8480',
+        type: 'hex'
+      }
+      relayTrx.gasLimit = gasLimit;
     }
     const txn: RelayResponse = await this.relayer.relay(relayTrx)
     return txn.hash
@@ -584,7 +593,7 @@ class SmartAccount {
       // to avoid failing eth_call override with undeployed wallet
       txn.targetTxGas = 500000;
   
-      const refundInfo: FeeRefundV1_0_2 = {
+      const refundInfo: FeeRefundV1_0_6 = {
         baseGas: tx.baseGas,
         gasPrice: tx.gasPrice,
         tokenGasPriceFactor: tx.tokenGasPriceFactor,
@@ -639,7 +648,7 @@ class SmartAccount {
       // to avoid failing eth_call override with undeployed wallet
       txn.targetTxGas = 500000;
   
-      const refundInfo: FeeRefundV1_0_2 = {
+      const refundInfo: FeeRefundV1_0_6 = {
         baseGas: tx.baseGas,
         gasPrice: tx.gasPrice,
         tokenGasPriceFactor: tx.tokenGasPriceFactor,
@@ -727,7 +736,7 @@ class SmartAccount {
       const response = await this.estimateRequiredTxGasOverride(estimateRequiredTxGas)
       // TODO
       // Review
-      const requiredTxGasEstimate = Number(response.data.gas) + 330000
+      const requiredTxGasEstimate = Number(response.data.gas) + 700000
       console.log('required txgas estimate (with override) ', requiredTxGasEstimate);
       targetTxGas = requiredTxGasEstimate;
 
@@ -920,7 +929,7 @@ class SmartAccount {
       // not getting accurate value for undeployed wallet
       // TODO
       // Review
-      const requiredTxGasEstimate = Number(response.data.gas) + 330000
+      const requiredTxGasEstimate = Number(response.data.gas) + 700000
       console.log('required txgas estimate (with override) ', requiredTxGasEstimate);
       targetTxGas = requiredTxGasEstimate;
 

@@ -83,7 +83,7 @@ export class LocalRelayer implements Relayer {
   // Appending tx and rawTx may not be necessary
 
   async relay(relayTransaction: RelayTransaction): Promise<RelayResponse> {
-    const { config, signedTx, context } = relayTransaction
+    const { config, signedTx, context, gasLimit } = relayTransaction
     const { isDeployed, address } = config
     const { multiSendCall } = context // multisend has to be multiSendCallOnly here!
     if (!isDeployed) {

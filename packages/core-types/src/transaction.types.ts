@@ -52,13 +52,13 @@ export interface FeeRefundV1_0_0 {
   gasToken: string
   refundReceiver: string
 }
-export interface FeeRefundV1_0_2 extends FeeRefundV1_0_0{
+export interface FeeRefundV1_0_6 extends FeeRefundV1_0_0{
   tokenGasPriceFactor: string | number
 }
 
 
 // extended from FeeRefund as we need this for handlePayment Estimate
-export interface FeeRefundHandlePayment extends FeeRefundV1_0_2 {
+export interface FeeRefundHandlePayment extends FeeRefundV1_0_6 {
   gasUsed: string | number
 }
 
@@ -147,6 +147,12 @@ export interface RelayTransaction {
   signedTx: SignedTransaction
   config: SmartAccountState
   context: SmartAccountContext
+  gasLimit?: GasLimit
+}
+
+export interface GasLimit {
+  hex: string,
+  type: string
 }
 
 export interface DeployWallet {
