@@ -8,7 +8,7 @@ import {
   TokenByChainIdAndAddressDto,
   TokenPriceResponse,
   SupportedChainsResponse,
-  individualChainResponse,
+  IndividualChainResponse,
   SupportedTokensResponse,
   IndividualTokenResponse,
   SmartAccountsResponse,
@@ -54,7 +54,7 @@ class NodeClient implements INodeClient {
    * @description thie function will return the chain detail base on supplied { chainId }
    * @returns
    */
-  async getChainById(chainId: number): Promise<individualChainResponse> {
+  async getChainById(chainId: number): Promise<IndividualChainResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/chains/${chainId}`,
       method: HttpMethod.Get

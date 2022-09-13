@@ -27,7 +27,7 @@ export class LocalRelayer implements Relayer {
   // Defines a type that takes config, context for SCW in play along with other details
   async deployWallet(deployWallet: DeployWallet): Promise<TransactionResponse> {
     // Should check if already deployed
-    //Review for index and ownership transfer case
+    // Review for index and ownership transfer case
     const { config, context, index = 0 } = deployWallet
     const { address } = config
     const { walletFactory } = context
@@ -62,33 +62,11 @@ export class LocalRelayer implements Relayer {
     }
   }
 
-  /*async isWalletDeployed(walletAddress: string): Promise<boolean> {
-      // Check if wallet is deployed
-      return true;
-    }*/
-
-  /*async getFeeOptions(
-    ): Promise<{ options: FeeOption[] }> {
-      return { options: [] }
-    }*/
-
-  /*async gasRefundOptions( 
-    ): Promise<FeeOption[]> {
-      const { options } = //await this.getFeeOptions()
-      return options
-    }*/
-
-  // Should make an object that takes config and context
-  // Add feeQuote later
-  // Appending tx and rawTx may not be necessary
-
   async relay(relayTransaction: RelayTransaction): Promise<RelayResponse> {
     const { config, signedTx, context, gasLimit } = relayTransaction
     const { isDeployed, address } = config
     const { multiSendCall } = context // multisend has to be multiSendCallOnly here!
     if (!isDeployed) {
-      // If not =>> preprendWalletDeploy
-      console.log('here')
       const prepareWalletDeploy: DeployWallet = {
         config,
         context,

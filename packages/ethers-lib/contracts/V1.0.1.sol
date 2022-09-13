@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity >=0.4.0 <=0.8.15;
+// @review
+pragma solidity ^0.8.0;
 
 import { WalletFactory } from "scw-contracts-v1.0.1/contracts/smart-contract-wallet/WalletFactory.sol";
 import { SmartWallet } from "scw-contracts-v1.0.1/contracts/smart-contract-wallet/SmartWallet.sol";

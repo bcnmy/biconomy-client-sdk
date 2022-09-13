@@ -9,7 +9,7 @@ import {
   TokenByChainIdAndAddressDto,
   TokenPriceResponse,
   SupportedChainsResponse,
-  individualChainResponse,
+  IndividualChainResponse,
   SupportedTokensResponse,
   IndividualTokenResponse,
   SmartAccountsResponse,
@@ -23,7 +23,7 @@ interface INodeClient {
   // Chain Apis
   getAllSupportedChains(): Promise<SupportedChainsResponse>
 
-  getChainById(chainId: number): Promise<individualChainResponse>
+  getChainById(chainId: number): Promise<IndividualChainResponse>
 
   getTokenPricesByChainId(chainId: number): Promise<TokenPriceResponse>
 
@@ -46,6 +46,9 @@ interface INodeClient {
   getTotalBalanceInUsd(balancesDto: BalancesDto): Promise<UsdBalanceResponse>
 
   estimateExternalGas(estimateExternalGasDto: EstimateExternalGasDto): Promise<EstimateGasResponse>
+
+  // TODO
+  // Comment usage 
 
   estimateRequiredTxGas(
     estimateRequiredTxGasDto: EstimateRequiredTxGasDto

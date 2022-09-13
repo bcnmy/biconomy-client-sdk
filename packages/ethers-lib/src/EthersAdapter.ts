@@ -42,7 +42,6 @@ class EthersAdapter implements EthAdapter {
     }
     this.#signer = signer
     this.#provider = provider
-    //this.#provider = signer.provider
     this.#ethers = ethers
   }
 
@@ -87,7 +86,7 @@ class EthersAdapter implements EthAdapter {
 
   getMultiSendCallOnlyContract(smartAccountVersion: SmartAccountVersion, address: string) {
     if (!address) {
-      throw new Error('Invalid Multi Send contract address')
+      throw new Error('Invalid Multi Send Call Only contract address')
     }
     return getMultiSendCallOnlyContractInstance(smartAccountVersion, address, this.#provider)
   }

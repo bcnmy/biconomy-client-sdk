@@ -3,6 +3,26 @@
 import { ChainId } from './chains.types'
 import { WalletTransaction, Transaction } from './transaction.types'
 import { FeeQuote } from './types'
+import { SmartWalletFactoryContract } from './contracts/SmartWalletFactoryContract'
+import { MultiSendContract } from './contracts/MultiSendContract'
+import { MultiSendCallOnlyContract } from './contracts/MultiSendCallOnlyContract'
+import { SmartWalletContract } from './contracts/SmartWalletContract'
+
+export interface SmartAccountContext {
+  baseWallet: SmartWalletContract
+  walletFactory: SmartWalletFactoryContract
+  multiSend: MultiSendContract
+  multiSendCall: MultiSendCallOnlyContract
+}
+
+export interface SmartAccountState {
+  address: string
+  owner: string
+  isDeployed: boolean
+  entryPointAddress: string
+  fallbackHandlerAddress: string
+}
+
 export type AddressForCounterFactualWalletDto = {
   index: number
   chainId?: ChainId

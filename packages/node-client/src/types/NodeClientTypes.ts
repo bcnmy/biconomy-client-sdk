@@ -169,7 +169,7 @@ export type SupportedChainsResponse = {
   data: ChainConfig[]
 }
 
-export type individualChainResponse = {
+export type IndividualChainResponse = {
   message: string
   code: number
   data: ChainConfig
