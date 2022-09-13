@@ -3,7 +3,7 @@ import {
   SmartAccountVersion,
   MetaTransactionData,
   FeeRefundV1_0_0,
-  FeeRefundV1_0_1,
+  FeeRefundV1_0_1
 } from '@biconomy-sdk/core-types'
 export type SmartAccountInfoResponse = {
   readonly name: string
@@ -143,6 +143,7 @@ export type TokenInfo = {
 }
 
 export type ISmartAccount = {
+  version: string
   smartAccountAddress: string
   isDeployed: boolean
 }
@@ -193,7 +194,7 @@ export type IndividualTokenResponse = {
 export type SmartAccountsResponse = {
   message: string
   code: number
-  data: ISmartAccount
+  data: ISmartAccount[]
 }
 export type BalancesResponse = {
   message: string
@@ -213,7 +214,7 @@ export type EstimateGasResponse = {
   message: string
   code: number
   data: {
-    gas: number,
+    gas: number
     txBaseGas?: number
   }
 }
