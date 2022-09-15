@@ -21,11 +21,6 @@
       "bug": "Bug Fix"
     }
   },
-  "workspaces": {
-    "packages": [
-      "packages/*"
-    ]
-  },
   "author": "Biconomy (https://biconomy.io)",
   "devDependencies": {
     "@types/jest": "^28.1.7",
