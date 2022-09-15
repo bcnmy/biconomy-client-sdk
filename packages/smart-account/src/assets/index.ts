@@ -2,7 +2,7 @@ export const MultiSend = {
   defaultAddress: '0xF9DC4a9B8b551f693a10EcB5F931fE2E1a9156f0',
   released: true,
   contractName: 'MultiSend',
-  version: '1.0.4',
+  version: '1.0.5',
   networkAddresses: {
     '1': '0xF9DC4a9B8b551f693a10EcB5F931fE2E1a9156f0',
     '4': '0xF9DC4a9B8b551f693a10EcB5F931fE2E1a9156f0',
@@ -40,7 +40,7 @@ export const MultiSendCallOnly = {
   defaultAddress: '0xa72E2c9EC14DDee494F551AAe9885158105F809c',
   released: true,
   contractName: 'MultiSendCallOnly',
-  version: '1.0.4',
+  version: '1.0.5',
   networkAddresses: {
     '1': '0xa72E2c9EC14DDee494F551AAe9885158105F809c',
     '4': '0xa72E2c9EC14DDee494F551AAe9885158105F809c',
@@ -73,7 +73,7 @@ export const SmartWallet = {
   defaultAddress: '0x056DcE811A2b695171274855E7246039Df298158',
   released: true,
   contractName: 'SmartWallet',
-  version: '1.0.4',
+  version: '1.0.5',
   networkAddresses: {
     '1': '0x056DcE811A2b695171274855E7246039Df298158',
     '4': '0x056DcE811A2b695171274855E7246039Df298158',
@@ -1088,7 +1088,7 @@ export const WalletFactory = {
   defaultAddress: '0x050bca32264195976Fe00BcA566B548413A9E658',
   released: true,
   contractName: 'WalletFactory',
-  version: '1.0.4',
+  version: '1.0.5',
   networkAddresses: {
     '1': '0x050bca32264195976Fe00BcA566B548413A9E658',
     '4': '0x050bca32264195976Fe00BcA566B548413A9E658',
@@ -1250,7 +1250,7 @@ export const GasEstimator = {
   defaultAddress: '0xc6e8748a08e591250a3eed526e9455859633c6c4',
   released: true,
   contractName: 'WalletFactory',
-  version: '1.0.4',
+  version: '1.0.5',
   networkAddresses: {
     '5': '0xc6e8748a08e591250a3eed526e9455859633c6c4'
   },
