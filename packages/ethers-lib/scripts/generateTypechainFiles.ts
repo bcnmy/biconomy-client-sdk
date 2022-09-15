@@ -13,14 +13,21 @@ const outDirTests = 'typechain/tests/'
 
 // Contract list for which the Typechain files will be generated
 // Will be included in dist/ folder
-const smartAccountContractsPath = './artifacts/contracts/index.sol'
+const smartAccountContractsPath = './artifacts/contracts'
 
 const smartAccountContracts_V1_0_0 = [
-  `${smartAccountContractsPath}/SmartWalletContract.json`,
-  `${smartAccountContractsPath}/MultiSendContract.json`,
-  `${smartAccountContractsPath}/MultiSendCallOnlyContract.json`,
-  `${smartAccountContractsPath}/SmartWalletFactoryContract.json`,
-  `${smartAccountContractsPath}/EntryPointContract.json`
+  `${smartAccountContractsPath}/V1.0.0.sol/SmartWalletContract_v1_0_0.json`,
+  `${smartAccountContractsPath}/V1.0.0.sol//MultiSendContract_v1_0_0.json`,
+  `${smartAccountContractsPath}/V1.0.0.sol//MultiSendCallOnlyContract_v1_0_0.json`,
+  `${smartAccountContractsPath}/V1.0.0.sol//SmartWalletFactoryContract_v1_0_0.json`,
+  `${smartAccountContractsPath}/V1.0.0.sol//EntryPointContract_v1_0_0.json`
+].join(' ')
+const smartAccountContracts_V1_0_1 = [
+  `${smartAccountContractsPath}/V1.0.1.sol/SmartWalletContract_v1_0_1.json`,
+  `${smartAccountContractsPath}/V1.0.1.sol/MultiSendContract_v1_0_1.json`,
+  `${smartAccountContractsPath}/V1.0.1.sol/MultiSendCallOnlyContract_v1_0_1.json`,
+  `${smartAccountContractsPath}/V1.0.1.sol/SmartWalletFactoryContract_v1_0_1.json`,
+  `${smartAccountContractsPath}/V1.0.1.sol/EntryPointContract_v1_0_1.json`
 ].join(' ')
 
 // Remove existing Typechain files
@@ -59,7 +66,13 @@ const ethersV5 = 'ethers-v5'
 
 // Src: Ethers V5 types
 generateTypechainFiles(ethersV5, `${outDirSrc}${ethersV5}/v1.0.0`, smartAccountContracts_V1_0_0)
+generateTypechainFiles(ethersV5, `${outDirSrc}${ethersV5}/v1.0.1`, smartAccountContracts_V1_0_1)
+
 moveTypechainFiles(
   `${typeChainDirectorySrcPath}${ethersV5}/v1.0.0`,
   `${typeChainDirectoryBuildPath}${ethersV5}/v1.0.0`
+)
+moveTypechainFiles(
+  `${typeChainDirectorySrcPath}${ethersV5}/v1.0.1`,
+  `${typeChainDirectoryBuildPath}${ethersV5}/v1.0.1`
 )

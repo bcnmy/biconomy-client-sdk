@@ -6,7 +6,7 @@ import {
   Eip3770Address,
   EthAdapter,
   EthAdapterTransaction,
-  GetContractProps,
+  SmartAccountVersion,
   SmartWalletContract
 } from '@biconomy-sdk/core-types'
 import { validateEip3770Address } from '@gnosis.pm/safe-core-sdk-utils'
@@ -17,10 +17,6 @@ import {
   getSmartWalletContractInstance,
   getSmartWalletFactoryContractInstance
 } from './contracts/contractInstancesEthers'
-import SmartWalletProxyFactoryEthersContract from './contracts/SmartWalletFactory/SmartWalletProxyFactoryEthersContract'
-import MultiSendEthersContract from './contracts/MultiSend/MultiSendEthersContract'
-import MultiSendCallOnlyEthersContract from './contracts/MultiSendCallOnly/MultiSendCallOnlyEthersContract'
-
 type Ethers = typeof ethers
 
 export interface EthersAdapterConfig {
@@ -46,7 +42,6 @@ class EthersAdapter implements EthAdapter {
     }
     this.#signer = signer
     this.#provider = provider
-    //this.#provider = signer.provider
     this.#ethers = ethers
   }
 
@@ -72,32 +67,35 @@ class EthersAdapter implements EthAdapter {
     return (await this.#provider.getNetwork()).chainId
   }
 
-  getSmartWalletContract(address: string): SmartWalletContract {
+  getSmartWalletContract(
+    smartAccountVersion: SmartAccountVersion,
+    address: string
+  ): SmartWalletContract {
     if (!address) {
       throw new Error('Invalid Smart Wallet contract address')
     }
-    return getSmartWalletContractInstance(address, this.#provider)
+    return getSmartWalletContractInstance(smartAccountVersion, address, this.#provider)
   }
 
-  getMultiSendContract(address: string): MultiSendEthersContract {
+  getMultiSendContract(smartAccountVersion: SmartAccountVersion, address: string) {
     if (!address) {
       throw new Error('Invalid Multi Send contract address')
     }
-    return getMultiSendContractInstance(address, this.#provider)
+    return getMultiSendContractInstance(smartAccountVersion, address, this.#provider)
   }
 
-  getMultiSendCallOnlyContract(address: string): MultiSendCallOnlyEthersContract {
+  getMultiSendCallOnlyContract(smartAccountVersion: SmartAccountVersion, address: string) {
     if (!address) {
-      throw new Error('Invalid Multi Send contract address')
+      throw new Error('Invalid Multi Send Call Only contract address')
     }
-    return getMultiSendCallOnlyContractInstance(address, this.#provider)
+    return getMultiSendCallOnlyContractInstance(smartAccountVersion, address, this.#provider)
   }
 
-  getSmartWalletFactoryContract(address: string): SmartWalletProxyFactoryEthersContract {
+  getSmartWalletFactoryContract(smartAccountVersion: SmartAccountVersion, address: string) {
     if (!address) {
       throw new Error('Invalid Wallet Factory contract address')
     }
-    return getSmartWalletFactoryContractInstance(address, this.#provider)
+    return getSmartWalletFactoryContractInstance(smartAccountVersion, address, this.#provider)
   }
 
   async getContractCode(address: string): Promise<string> {

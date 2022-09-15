@@ -1,9 +1,15 @@
-import { FeeRefund, FeeRefundData, MetaTransactionData } from '@biconomy-sdk/core-types'
+// import { FeeRefund, FeeRefundData, MetaTransactionData } from '@biconomy-sdk/core-types'
 import { Signer } from '@ethersproject/abstract-signer'
 import {
+  EstimateExternalGasDto,
+  EstimateRequiredTxGasDto,
+  EstimateHandlePaymentTxGasDto,
+  EstimateUndeployedContractGasDto,
+  SmartAccountByOwnerDto,
+  TokenByChainIdAndAddressDto,
   TokenPriceResponse,
   SupportedChainsResponse,
-  individualChainResponse,
+  IndividualChainResponse,
   SupportedTokensResponse,
   IndividualTokenResponse,
   SmartAccountsResponse,
@@ -17,7 +23,7 @@ interface INodeClient {
   // Chain Apis
   getAllSupportedChains(): Promise<SupportedChainsResponse>
 
-  getChainById(chainId: number): Promise<individualChainResponse>
+  getChainById(chainId: number): Promise<IndividualChainResponse>
 
   getTokenPricesByChainId(chainId: number): Promise<TokenPriceResponse>
 
@@ -26,31 +32,39 @@ interface INodeClient {
   getAllTokens(): Promise<SupportedTokensResponse>
   getTokensByChainId(chainId: number): Promise<SupportedTokensResponse>
   getTokenByChainIdAndAddress(
-    chainId: number,
-    tokenAddress: string
+    tokenByChainIdAndAddressDto: TokenByChainIdAndAddressDto
   ): Promise<IndividualTokenResponse>
 
   // Smart Account Endpoints
 
-  getSmartAccountsByOwner(chainId: number, owner: string): Promise<SmartAccountsResponse>
+  getSmartAccountsByOwner(
+    smartAccountByOwnerDto: SmartAccountByOwnerDto
+  ): Promise<SmartAccountsResponse>
 
   getAlltokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse>
 
   getTotalBalanceInUsd(balancesDto: BalancesDto): Promise<UsdBalanceResponse>
 
-  estimateExternalGas(chainId: number, encodedData: string): Promise<EstimateGasResponse>
-
-  estimateRequiredTxGas(chainId: number, estimatorAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse>
+  estimateExternalGas(estimateExternalGasDto: EstimateExternalGasDto): Promise<EstimateGasResponse>
 
   // TODO
-  // rename estimatorAddress where it's needed
-  estimateRequiredTxGasOverride(chainId: number, estimatorAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse>
+  // Comment usage 
 
-  estimateHandlePaymentGas(chainId: number, estimatorAddress: string, feeRefund: FeeRefundData): Promise<EstimateGasResponse>
+  estimateRequiredTxGas(
+    estimateRequiredTxGasDto: EstimateRequiredTxGasDto
+  ): Promise<EstimateGasResponse>
 
-  estimateHandlePaymentGasOverride(chainId: number, estimatorAddress: string, feeRefund: FeeRefundData): Promise<EstimateGasResponse>
+  estimateRequiredTxGasOverride(estimateRequiredTxGasDto: EstimateRequiredTxGasDto): Promise<EstimateGasResponse>
 
-  estimateUndeployedContractGas(chainId: number, estimatorAddress: string, transaction: MetaTransactionData, feeRefund: FeeRefund, signature: string): Promise<EstimateGasResponse>
+  estimateHandlePaymentGas(
+    estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto
+  ): Promise<EstimateGasResponse>
+
+  estimateHandlePaymentGasOverride(estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto): Promise<EstimateGasResponse>
+
+  estimateUndeployedContractGas(
+    estimateUndeployedContractGasDto: EstimateUndeployedContractGasDto
+  ): Promise<EstimateGasResponse>
 }
 
 export default INodeClient

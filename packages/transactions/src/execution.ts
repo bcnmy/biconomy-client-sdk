@@ -8,6 +8,14 @@ import {
   PopulatedTransaction
 } from 'ethers'
 
+import {
+  ExecTransaction,
+  FeeRefundV1_0_0,
+  FeeRefundV1_0_1,
+  WalletTransaction,
+  SmartAccountSignature
+} from '@biconomy-sdk/core-types'
+
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import { AddressZero } from '@ethersproject/constants'
 
@@ -39,69 +47,6 @@ export const EIP712_WALLET_TX_TYPE = {
 export const EIP712_SMART_ACCOUNT_MESSAGE_TYPE = {
   // "SmartAccountMessage(bytes message)"
   SmartAccountMessage: [{ type: 'bytes', name: 'message' }]
-}
-
-export interface MetaTransaction {
-  to: string
-  value: BigNumberish
-  data: string
-  operation: number
-}
-
-// Marked for deletion
-export interface SmartaccountTransaction extends MetaTransaction {
-  targetTxGas: string | number
-  baseGas: string | number
-  gasPrice: string | number
-  gasToken: string
-  refundReceiver: string
-  nonce: string | number
-}
-
-export interface Transaction {
-  to: string
-  value: string | number | BigNumber
-  data: string
-  operation: number
-  targetTxGas: string | number
-}
-
-export interface FeeRefund {
-  baseGas: string | number
-  gasPrice: string | number
-  tokenGasPriceFactor:  string | number
-  gasToken: string
-  refundReceiver: string
-}
-
-export interface WalletTransaction extends MetaTransaction{
-  targetTxGas: string | number
-  baseGas: string | number
-  gasPrice: string | number
-  tokenGasPriceFactor: string | number
-  gasToken: string
-  refundReceiver: string
-  nonce: number
-}
-
-export interface ExecTransaction {
-  to: string
-  value: BigNumberish
-  data: string
-  operation: number
-  targetTxGas: string | number
-}
-
-export interface SmartAccountTransaction {
-  _tx: ExecTransaction
-  refundInfo: FeeRefund
-  batchId: number
-  nonce: string | number
-}
-
-export interface SmartAccountSignature {
-  signer: string
-  data: string
 }
 
 export const calculateSmartAccountDomainSeparator = (
@@ -213,7 +158,7 @@ export const executeTx = async (
     operation: SmartAccountTx.operation,
     targetTxGas: SmartAccountTx.targetTxGas
   }
-  const refundInfo: FeeRefund = {
+  const refundInfo: FeeRefundV1_0_0 | FeeRefundV1_0_1 = {
     baseGas: SmartAccountTx.baseGas,
     gasPrice: SmartAccountTx.gasPrice,
     tokenGasPriceFactor: SmartAccountTx.tokenGasPriceFactor,
@@ -243,7 +188,7 @@ export const populateExecuteTx = async (
     operation: SmartAccountTx.operation,
     targetTxGas: SmartAccountTx.targetTxGas
   }
-  const refundInfo: FeeRefund = {
+  const refundInfo: FeeRefundV1_0_0 | FeeRefundV1_0_1 = {
     baseGas: SmartAccountTx.baseGas,
     gasPrice: SmartAccountTx.gasPrice,
     tokenGasPriceFactor: SmartAccountTx.tokenGasPriceFactor,

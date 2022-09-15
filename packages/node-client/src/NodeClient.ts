@@ -1,8 +1,14 @@
 import INodeClient from './INodeClient'
 import {
+  EstimateExternalGasDto,
+  EstimateRequiredTxGasDto,
+  EstimateHandlePaymentTxGasDto,
+  EstimateUndeployedContractGasDto,
+  SmartAccountByOwnerDto,
+  TokenByChainIdAndAddressDto,
   TokenPriceResponse,
   SupportedChainsResponse,
-  individualChainResponse,
+  IndividualChainResponse,
   SupportedTokensResponse,
   IndividualTokenResponse,
   SmartAccountsResponse,
@@ -13,7 +19,6 @@ import {
 } from './types/NodeClientTypes'
 import { getTxServiceBaseUrl } from './utils'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-import { MetaTransactionData, FeeRefund, FeeRefundData } from '@biconomy-sdk/core-types'
 export interface NodeClientConfig {
   /** txServiceUrl - Safe Transaction Service URL */
   txServiceUrl: string
@@ -49,7 +54,7 @@ class NodeClient implements INodeClient {
    * @description thie function will return the chain detail base on supplied { chainId }
    * @returns
    */
-  async getChainById(chainId: number): Promise<individualChainResponse> {
+  async getChainById(chainId: number): Promise<IndividualChainResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/chains/${chainId}`,
       method: HttpMethod.Get
@@ -84,16 +89,19 @@ class NodeClient implements INodeClient {
   }
 
   async getTokenByChainIdAndAddress(
-    chainId: number,
-    tokenAddress: string
+    tokenByChainIdAndAddressDto: TokenByChainIdAndAddressDto
   ): Promise<IndividualTokenResponse> {
+    const { chainId, tokenAddress } = tokenByChainIdAndAddressDto
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/tokens/chainId/${chainId}/address/${tokenAddress}`,
       method: HttpMethod.Get
     })
   }
 
-  async getSmartAccountsByOwner(chainId: number, owner: string): Promise<SmartAccountsResponse> {
+  async getSmartAccountsByOwner(
+    smartAccountByOwnerDto: SmartAccountByOwnerDto
+  ): Promise<SmartAccountsResponse> {
+    const { chainId, owner } = smartAccountByOwnerDto
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/smart-accounts/chainId/${chainId}/owner/${owner}`,
       method: HttpMethod.Get
@@ -115,75 +123,61 @@ class NodeClient implements INodeClient {
       body: balancesDto
     })
   }
-  async estimateExternalGas(chainId: number, encodedData: string): Promise<EstimateGasResponse> {
+
+  async estimateExternalGas(
+    estimateExternalGasDto: EstimateExternalGasDto
+  ): Promise<EstimateGasResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/estimator/external`,
       method: HttpMethod.Post,
-      body: {
-        chainId,
-        encodedData
-      }
+      body: estimateExternalGasDto
     })
   }
-  async estimateRequiredTxGas(chainId: number, walletAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse> {
+  async estimateRequiredTxGas(
+    estimateRequiredTxGasDto: EstimateRequiredTxGasDto
+  ): Promise<EstimateGasResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/estimator/required`,
       method: HttpMethod.Post,
-      body: {
-        chainId,
-        walletAddress,
-        transaction
-      }
+      body: estimateRequiredTxGasDto
     })
   }
-  async estimateRequiredTxGasOverride(chainId: number, walletAddress: string, transaction: MetaTransactionData): Promise<EstimateGasResponse> {
-    return sendRequest({
-      url: `${this.#txServiceBaseUrl}/estimator/required-override`,
-      method: HttpMethod.Post,
-      body: {
-        chainId,
-        walletAddress,
-        transaction
-      }
-    })
-  }
-  async estimateHandlePaymentGas(chainId: number, walletAddress: string, feeRefund: FeeRefundData): Promise<EstimateGasResponse> {
+
+  estimateHandlePaymentGas(
+    estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto
+  ): Promise<EstimateGasResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/estimator/handle-payment`,
       method: HttpMethod.Post,
-      body: {
-        chainId,
-        walletAddress,
-        feeRefund
-      }
+      body: estimateHandlePaymentTxGasDto
     })
   }
 
-  async estimateHandlePaymentGasOverride(chainId: number, walletAddress: string, feeRefund: FeeRefundData): Promise<EstimateGasResponse> {
+  async estimateRequiredTxGasOverride(estimateRequiredTxGasDto: EstimateRequiredTxGasDto
+    ): Promise<EstimateGasResponse> {
+      return sendRequest({
+        url: `${this.#txServiceBaseUrl}/estimator/required-override`,
+        method: HttpMethod.Post,
+        body: estimateRequiredTxGasDto
+      })
+    }
+
+  async estimateHandlePaymentGasOverride(estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto
+    ): Promise<EstimateGasResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/estimator/handle-payment-override`,
       method: HttpMethod.Post,
-      body: {
-        chainId,
-        walletAddress,
-        feeRefund
-      }
+      body: estimateHandlePaymentTxGasDto
     })
   }
 
-  async estimateUndeployedContractGas(chainId: number, walletAddress: string, transaction: MetaTransactionData, feeRefund: FeeRefund, signature:string): Promise<EstimateGasResponse> {
+  async estimateUndeployedContractGas(estimateUndeployedContractGasDto: EstimateUndeployedContractGasDto): Promise<EstimateGasResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/estimator/undeployed`,
       method: HttpMethod.Post,
-      body: {
-        chainId,
-        walletAddress,
-        transaction,
-        feeRefund,
-        signature
-      }
-    })
-  }
+       body: estimateUndeployedContractGasDto
+     })
+   }
 }
 
 export default NodeClient
