@@ -772,6 +772,10 @@ class SmartAccount {
 
       const response = await this.estimateRequiredTxGas(estimateRequiredTxGas);
       // considerable offset ref gnosis safe service client safeTxGas
+      // @Talha
+      // TODO
+      // handle exception responses and when gas returned is 0 
+      // We could stop the further flow
       const requiredTxGasEstimate = Number(response.data.gas) + 30000
       console.log('required txgas estimate ', requiredTxGasEstimate);
       targetTxGas = requiredTxGasEstimate;
@@ -953,6 +957,10 @@ class SmartAccount {
 
       const response = await this.estimateRequiredTxGas({chainId, walletAddress: this.address, transaction: internalTx})	
       // considerable offset ref gnosis safe service client safeTxGas
+      // @Talha
+      // TODO
+      // handle exception responses and when gas returned is 0 
+      // We could stop the further flow
       const requiredTxGasEstimate = Number(response.data.gas) + 30000
       console.log('required txgas estimate ', requiredTxGasEstimate);
       targetTxGas = requiredTxGasEstimate;

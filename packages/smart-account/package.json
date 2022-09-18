@@ -31,10 +31,13 @@
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.1.0",
+    "@types/jest": "^28.1.7",
     "@types/mocha": "^9.1.1",
     "@types/node": "^17.0.23",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
+    "chai": "^4.3.6",
+    "chai-as-promised": "^7.1.1",
     "eslint": "^8.12.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
@@ -42,11 +45,8 @@
     "jest-cli": "^28.1.3",
     "nock": "^13.2.9",
     "prettier": "^2.6.2",
-    "@types/jest": "^28.1.7",
-    "web3-core": "^1.7.1",
-    "chai": "^4.3.6",
-    "chai-as-promised": "^7.1.1",
-    "typescript": "^4.7.4"
+    "typescript": "^4.7.4",
+    "web3-core": "^1.7.1"
   },
   "dependencies": {
     "@biconomy-sdk/core-types": "*",
@@ -59,6 +59,7 @@
     "@ethersproject/providers": "^5.6.8",
     "@gnosis.pm/safe-deployments": "^1.12.0",
     "@nomiclabs/hardhat-ethers": "^2.1.0",
-    "@types/mocha": "^9.1.1"
+    "@types/mocha": "^9.1.1",
+    "concurrently": "^7.4.0"
   }
 }
