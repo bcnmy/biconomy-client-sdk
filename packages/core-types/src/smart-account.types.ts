@@ -38,7 +38,7 @@ export type SendTransactionDto = {
   tx: WalletTransaction
   batchId?: number
   chainId?: ChainId
-  gasLimit?: GasLimit;
+  gasLimit?: GasLimit
 }
 
 export type PrepareRefundTransactionDto = {

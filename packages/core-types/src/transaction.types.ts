@@ -118,7 +118,7 @@ export interface RelayTransaction {
 }
 
 export interface GasLimit {
-  hex: string,
+  hex: string
   type: string
 }
 
