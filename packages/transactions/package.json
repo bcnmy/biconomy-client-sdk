@@ -1,6 +1,6 @@
 {
   "name": "@biconomy-sdk/transactions",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "utils for sending all transaction legos",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",

@@ -607,6 +607,7 @@ class SmartAccount {
 
       const estimateUndeployedContractGasDto: EstimateUndeployedContractGasDto = {
         chainId,
+        version: this.DEFAULT_VERSION,
         transaction: txn,
         walletAddress: this.address,
         feeRefund: refundInfo,
@@ -662,6 +663,7 @@ class SmartAccount {
 
       const estimateUndeployedContractGasDto: EstimateUndeployedContractGasDto = {
         chainId,
+        version: this.DEFAULT_VERSION,
         transaction: txn,
         walletAddress: this.address,
         feeRefund: refundInfo,
@@ -757,7 +759,8 @@ class SmartAccount {
         refundReceiver: feeQuote.refundReceiver || ZERO_ADDRESS
       }	
       const estimateHandlePaymentGas: EstimateHandlePaymentTxGasDto = {	
-        chainId,	
+        chainId,
+        version: this.DEFAULT_VERSION,
         walletAddress: this.address,	
         feeRefund: refundDetails	
       }	
@@ -794,7 +797,8 @@ class SmartAccount {
       }	
 
       const estimateHandlePaymentGas: EstimateHandlePaymentTxGasDto = {	
-        chainId,	
+        chainId,
+        version: this.DEFAULT_VERSION,
         walletAddress: this.address,	
         feeRefund: refundDetails	
       }	
@@ -953,7 +957,7 @@ class SmartAccount {
         refundReceiver: feeQuote.refundReceiver || ZERO_ADDRESS
       }
 
-      const handlePaymentResponse = await this.estimateHandlePaymentGasOverride({chainId, walletAddress: this.address, feeRefund: refundDetails});
+      const handlePaymentResponse = await this.estimateHandlePaymentGasOverride({chainId, version: this.DEFAULT_VERSION, walletAddress: this.address, feeRefund: refundDetails});
       handlePaymentEstimate = Number(handlePaymentResponse.data.gas)
       console.log('handlePaymentEstimate (with override) ', handlePaymentEstimate);
       baseGas = handlePaymentEstimate + regularOffSet + additionalBaseGas;
@@ -978,7 +982,7 @@ class SmartAccount {
         refundReceiver: feeQuote.refundReceiver || ZERO_ADDRESS
       }
 
-      const handlePaymentResponse = await this.estimateHandlePaymentGas({chainId, walletAddress: this.address, feeRefund: refundDetails});
+      const handlePaymentResponse = await this.estimateHandlePaymentGas({chainId, version: this.DEFAULT_VERSION, walletAddress: this.address, feeRefund: refundDetails});
       handlePaymentEstimate = Number(handlePaymentResponse.data.gas)
       console.log('handlePaymentEstimate ', handlePaymentEstimate);
       baseGas = handlePaymentEstimate + regularOffSet + additionalBaseGas; // delegate call + event emission + state updates + potential deployment

@@ -1,6 +1,6 @@
 {
   "name": "@biconomy-sdk/smart-account",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Biconomy Client SDK types",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
