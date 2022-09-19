@@ -399,7 +399,7 @@ class SmartAccount {
       batchId = 0,
       chainId = this.#smartAccountConfig.activeNetworkId
     } = sendTransactionDto
-    let gasLimit;
+    let  { gasLimit } = sendTransactionDto
     const isDeployed = await this.isDeployed(chainId);
     let rawTx: RawTransactionType = {
       to: tx.to,
@@ -450,12 +450,16 @@ class SmartAccount {
       config: state,
       context: this.getSmartAccountContext(chainId)
     }
+    // Must be in specified format
+    if(gasLimit) {
+      relayTrx.gasLimit = gasLimit;
+    }
     if(!isDeployed) {
       gasLimit = {
         hex: '0x1E8480',
         type: 'hex'
       }
-      relayTrx.gasLimit = gasLimit;
+    relayTrx.gasLimit = gasLimit;
     }
     const txn: RelayResponse = await this.relayer.relay(relayTrx)
     return txn.hash

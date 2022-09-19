@@ -7,6 +7,7 @@ import { SmartWalletFactoryContract } from './contracts/SmartWalletFactoryContra
 import { MultiSendContract } from './contracts/MultiSendContract'
 import { MultiSendCallOnlyContract } from './contracts/MultiSendCallOnlyContract'
 import { SmartWalletContract } from './contracts/SmartWalletContract'
+import { GasLimit } from './transaction.types'
 
 export interface SmartAccountContext {
   baseWallet: SmartWalletContract
@@ -37,6 +38,7 @@ export type SendTransactionDto = {
   tx: WalletTransaction
   batchId?: number
   chainId?: ChainId
+  gasLimit?: GasLimit;
 }
 
 export type PrepareRefundTransactionDto = {
