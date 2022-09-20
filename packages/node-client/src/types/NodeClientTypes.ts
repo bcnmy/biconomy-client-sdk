@@ -42,12 +42,14 @@ export type EstimateRequiredTxGasDto = {
 
 export type EstimateHandlePaymentTxGasDto = {
   chainId: number
+  version: string
   walletAddress: string
   feeRefund: FeeRefundV1_0_0 | FeeRefundV1_0_1
 }
 
 export type EstimateUndeployedContractGasDto = {
   chainId: number
+  version: string
   walletAddress: string
   feeRefund: FeeRefundV1_0_0 | FeeRefundV1_0_1
   transaction: MetaTransactionData
