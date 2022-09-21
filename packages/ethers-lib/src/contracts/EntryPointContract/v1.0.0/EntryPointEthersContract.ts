@@ -17,8 +17,8 @@ class EntryPointEthersContract implements EntryPointContract {
     return this.contract
   }
 
-  async simulateValidation(userOperation: UserOperation): Promise<TransactionResult> {
-    const resultSet = await this.contract.simulateValidation(userOperation)
+  async simulateValidation(userOperation: UserOperation, offChainSigCheck: boolean): Promise<TransactionResult> {
+    const resultSet = await this.contract.simulateValidation(userOperation, offChainSigCheck)
     return toTxResult(resultSet)
   }
 
@@ -32,10 +32,6 @@ class EntryPointEthersContract implements EntryPointContract {
   ): Promise<TransactionResult> {
     const resultSet = await this.contract.handleOps(userOperations, beneficiary)
     return toTxResult(resultSet)
-  }
-
-  async getSenderAddress(initCode: string, salt: number): Promise<string> {
-    return this.contract.getSenderAddress(initCode, salt)
   }
 }
 

@@ -20,19 +20,17 @@ export interface RelayResponse {
   error?: string
   connectionUrl?: string
 }
-
 export interface UserOperation {
   sender: string
   nonce: number
   initCode: string
   callData: string
-  callGas: number
-  verificationGas: number
+  callGasLimit: number
+  verificationGasLimit: number
   preVerificationGas: number
   maxFeePerGas: number
   maxPriorityFeePerGas: number
-  paymaster: string
-  paymasterData: string
+  paymasterAndData: string
   signature: string
 }
 

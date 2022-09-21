@@ -1,6 +1,6 @@
 {
   "name": "@biconomy-sdk/ethers-lib",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Ethers library adapter to be used by Biconomy SDK",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
@@ -47,7 +47,7 @@
     "@gnosis.pm/safe-core-sdk-utils": "^1.1.0",
     "@openzeppelin/contracts": "^4.6.0",
     "scw-contracts-v1.0.0": "npm:scw-contracts@1.0.0",
-    "scw-contracts-v1.0.1": "npm:scw-contracts@1.0.5"
+    "scw-contracts-v1.0.1": "npm:scw-contracts@1.0.7"
   },
   "peerDependencies": {
     "ethers": "^5.5.3"
