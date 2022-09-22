@@ -4,8 +4,6 @@ import { BigNumber } from '@ethersproject/bignumber'
 import { Interface } from '@ethersproject/abi'
 import { Contract } from '@ethersproject/contracts'
 
-// TODO
-// Rename
 export interface SmartWalletContract {
   getAddress(): string
   getContract(): Contract

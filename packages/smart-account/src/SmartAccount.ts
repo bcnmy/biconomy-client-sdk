@@ -157,9 +157,8 @@ class SmartAccount {
   /**
    *
    * @param smartAccountVersion
-   * @description // set wallet version to be able to interact with different deployed versions
+   * @description set Smart wallet contracts version to be able to interact with different deployed versions
    */
-  // TODO //@review @Talha
   async setSmartAccountVersion(smartAccountVersion: SmartAccountVersion) {
     this.DEFAULT_VERSION = smartAccountVersion
     this.address = await this.getAddress()
