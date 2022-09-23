@@ -49,6 +49,7 @@ import {
 } from '@biconomy-sdk/core-types'
 import { JsonRpcSigner, TransactionResponse } from '@ethersproject/providers'
 import NodeClient, {
+  ProviderUrlConfig,
   ChainConfig,
   SupportedChainsResponse,
   SmartAccountsResponse,
@@ -98,6 +99,8 @@ class SmartAccount {
   // Chain configurations fetched from backend
   chainConfig!: ChainConfig[]
 
+  providerUrlConfig!: ProviderUrlConfig[]
+
   // providers!:  Web3Provider[]
   provider!: Web3Provider
 
@@ -118,6 +121,8 @@ class SmartAccount {
   // Address of the smart contract wallet common between all chains
   // @review
   address!: string
+
+  dappAPIKey!: string
 
   // contract instances
   smartWalletContract!: { [chainId: number]: { [version: string]: SmartWalletContract } }
@@ -141,7 +146,10 @@ class SmartAccount {
     if (config) {
       this.#smartAccountConfig = { ...this.#smartAccountConfig, ...config }
     }
-
+    // Useful for AA flow. Check if it is valid key
+    this.dappAPIKey = this.#smartAccountConfig.dappAPIKey || ''
+    // Useful if Dapp needs custom RPC Urls. Check if valid. Fallback to public Urls
+    this.providerUrlConfig = this.#smartAccountConfig.providerUrlConfig || []
     this.ethAdapter = {}
     this.smartWalletContract = {}
     this.multiSendContract = {}
@@ -176,16 +184,19 @@ class SmartAccount {
     this.chainConfig = chainConfig
     // console.log("chain config: ", chainConfig);
 
+    const providerUrlConfig = this.providerUrlConfig
+
     const signer = this.signer
     // (check usage of getsignerByAddress from mexa/sdk and playground)
 
     for (let i = 0; i < this.supportedNetworkIds.length; i++) {
       const network = this.supportedNetworkIds[i]
+      const providerUrlFromConfig = providerUrlConfig.find((m) => m.chainId === network)?.providerUrl
       const providerUrl = chainConfig.find((n) => n.chainId === network)?.providerUrl
       // To keep it network agnostic
       // Note: think about events when signer needs to pay gas
 
-      const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
+      const readProvider = new ethers.providers.JsonRpcProvider(providerUrlFromConfig && providerUrlFromConfig!== '' ? providerUrlFromConfig : providerUrl)
       // Instantiating EthersAdapter instance and maintain it as above mentioned class level variable
       this.ethAdapter[network] = new EthersAdapter({
         ethers,
@@ -1273,7 +1284,16 @@ class SmartAccount {
 export const DefaultSmartAccountConfig: SmartAccountConfig = {
   activeNetworkId: ChainId.GOERLI, //Update later
   supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],
-  backend_url: 'https://sdk-backend.staging.biconomy.io/v1'
+  backend_url: 'https://sdk-backend.staging.biconomy.io/v1',
+  // dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
+  /*providerUrlConfig: [
+    { chainId: ChainId.GOERLI, 
+      providerUrl: "https://eth-goerli.alchemyapi.io/v2/lmW2og_aq-OXWKYRoRu-X6Yl6wDQYt_2"
+    },
+    { chainId: ChainId.POLYGON_MUMBAI, 
+      providerUrl: "https://polygon-mumbai.g.alchemy.com/v2/Q4WqQVxhEEmBYREX22xfsS2-s5EXWD31"
+    }
+  ]*/
 }
 
 export default SmartAccount

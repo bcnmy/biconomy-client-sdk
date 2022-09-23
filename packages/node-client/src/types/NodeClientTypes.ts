@@ -23,6 +23,9 @@ export type SmartAccountInfoResponse = {
   }
 }
 
+//TODO
+//Review types in this file
+
 export type BalancesDto = {
   chainId: number
   eoaAddress: string
@@ -96,6 +99,11 @@ export type ChainConfig = {
   createdAt: Date
   updatedAt: Date
   token: TokenInfo
+}
+
+export type ProviderUrlConfig = {
+  chainId: ChainId
+  providerUrl: string
 }
 
 export type MasterCopyResponse = {
