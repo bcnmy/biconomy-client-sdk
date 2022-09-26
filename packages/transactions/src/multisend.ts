@@ -2,8 +2,6 @@ import { Contract, utils } from 'ethers'
 import { buildContractCall } from './execution'
 import { MetaTransaction, WalletTransaction } from '@biconomy-sdk/core-types'
 
-// TODO
-// Review all types
 const encodeMetaTransaction = (tx: MetaTransaction): string => {
   const data = utils.arrayify(tx.data)
   const encoded = utils.solidityPack(
