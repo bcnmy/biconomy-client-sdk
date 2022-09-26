@@ -141,6 +141,10 @@ interface INodeClient {
   estimateUndeployedContractGas(
     estimateUndeployedContractGasDto: EstimateUndeployedContractGasDto
   ): Promise<EstimateGasResponse>
+
+  // 6. Conditional Gasless Endpoint
+
+  // 7. Signing Service Endpoint
 }
 
 export default INodeClient
