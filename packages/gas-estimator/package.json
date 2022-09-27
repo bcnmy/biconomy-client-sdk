@@ -10,13 +10,10 @@
   "author": "livingrockrises <chirag@biconomy.io>",
   "homepage": "https://github.com/bcnmy/biconomy-client-sdk#readme",
   "license": "MIT",
-  "main": "dist/src/index.js",
-  "directories": {
-    "lib": "lib",
-    "test": "__tests__"
-  },
+  "main": "./dist/src/index.js",
   "files": [
-    "lib"
+    "dist/*",
+    "README.md"
   ],
   "publishConfig": {
     "access": "public"

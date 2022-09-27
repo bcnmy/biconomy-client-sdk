@@ -2,8 +2,8 @@
   "name": "@biconomy-sdk/transactions",
   "version": "1.0.11",
   "description": "utils for sending all transaction legos",
-  "main": "dist/src/index.js",
-  "typings": "dist/src/index.d.ts",
+  "main": "./dist/src/index.js",
+  "typings": "./dist/src/index.d.ts",
   "keywords": [
     "legos",
     "batching",
@@ -14,7 +14,8 @@
   "homepage": "https://github.com/bcnmy/biconomy-client-sdk#readme",
   "license": "MIT",
   "files": [
-    "dist"
+    "dist/*",
+    "README.md"
   ],
   "repository": {
     "type": "git",
