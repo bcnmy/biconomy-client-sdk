@@ -9,11 +9,29 @@ import { MultiSendCallOnlyContract } from './contracts/MultiSendCallOnlyContract
 import { SmartWalletContract } from './contracts/SmartWalletContract'
 import { GasLimit } from './transaction.types'
 
+
+export interface Config {
+  owner: string,
+  version: string
+  activeNetworkId: ChainId // same
+  supportedNetworksIds: ChainId[] // Network[] chainId: CbainId, rpcUrl?: string
+  backend_url: string
+}
+
 export interface SmartAccountContext {
   baseWallet: SmartWalletContract
   walletFactory: SmartWalletFactoryContract
   multiSend: MultiSendContract
   multiSendCall: MultiSendCallOnlyContract
+}
+
+
+export type EstimateSmartAccountDeploymentDto = {
+  chainId: ChainId
+  version: string
+  owner: string,
+  entryPointAddress: string
+  fallbackHandlerAddress: string
 }
 
 export interface SmartAccountState {
@@ -26,7 +44,8 @@ export interface SmartAccountState {
 
 export type AddressForCounterFactualWalletDto = {
   index: number
-  chainId?: ChainId
+  chainId: ChainId
+  version: string
 }
 
 export type SignTransactionDto = {
@@ -42,9 +61,10 @@ export type SendTransactionDto = {
 }
 
 export type PrepareRefundTransactionDto = {
+  version: string
   transaction: Transaction
-  batchId?: number
-  chainId?: ChainId
+  batchId: number
+  chainId: ChainId
 }
 
 export type PrepareRefundTransactionsDto = {
@@ -54,10 +74,11 @@ export type PrepareRefundTransactionsDto = {
 }
 
 export type RefundTransactionDto = {
+  version: string
   transaction: Transaction
   feeQuote: FeeQuote
-  batchId?: number
-  chainId?: ChainId
+  batchId: number
+  chainId: ChainId
 }
 export type RefundTransactionBatchDto = {
   transactions: Transaction[]
@@ -67,13 +88,15 @@ export type RefundTransactionBatchDto = {
 }
 
 export type TransactionDto = {
+  version: string,
   transaction: Transaction
-  batchId?: number
-  chainId?: ChainId
+  batchId: number
+  chainId: ChainId
 }
 
 export type TransactionBatchDto = {
+  version: string
   transactions: Transaction[]
-  batchId?: number
-  chainId?: ChainId
+  batchId: number
+  chainId: ChainId
 }
