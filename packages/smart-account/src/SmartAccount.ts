@@ -78,6 +78,7 @@ import {
   UsdBalanceResponse,
   EstimateGasResponse
 } from '@biconomy-sdk/node-client'
+import { stringify } from 'querystring'
 
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount {
@@ -787,13 +788,21 @@ class SmartAccount {
         transaction: internalTx	
       }	
 
-      const response = await this.estimateRequiredTxGas(estimateRequiredTxGas);
+      let response, gas;
+      try {
+      response = await this.estimateRequiredTxGas(estimateRequiredTxGas);
+      gas = response.data.gas;
+      } catch(error: any) {
+      console.log('error in gas estimation ', stringify(error))
+      gas = 0
+      throw new Error('Failed gas estimation. Check assets in smart account for this transaction to go through')
+      }
       // considerable offset ref gnosis safe service client safeTxGas
       // @Talha
       // TODO
       // handle exception responses and when gas returned is 0 
       // We could stop the further flow
-      const requiredTxGasEstimate = Number(response.data.gas) + 30000
+      const requiredTxGasEstimate = Number(gas) + 30000
       console.log('required txgas estimate ', requiredTxGasEstimate);
       targetTxGas = requiredTxGasEstimate;
 
@@ -973,13 +982,21 @@ class SmartAccount {
       baseGas = handlePaymentEstimate + regularOffSet + additionalBaseGas;
     } else {
 
-      const response = await this.estimateRequiredTxGas({chainId, walletAddress: this.address, transaction: internalTx})	
+      let response, gas;
+      try {
+      response = await this.estimateRequiredTxGas({chainId, walletAddress: this.address, transaction: internalTx})	
+      gas = response.data.gas;
+      } catch(error: any) {
+      console.log('error in gas estimation ', stringify(error))
+      gas = 0
+      throw new Error('Failed gas estimation. Check assets in smart account for this transaction to go through')
+      }
       // considerable offset ref gnosis safe service client safeTxGas
       // @Talha
       // TODO
       // handle exception responses and when gas returned is 0 
       // We could stop the further flow
-      const requiredTxGasEstimate = Number(response.data.gas) + 30000
+      const requiredTxGasEstimate = Number(gas) + 30000
       console.log('required txgas estimate ', requiredTxGasEstimate);
       targetTxGas = requiredTxGasEstimate;
 

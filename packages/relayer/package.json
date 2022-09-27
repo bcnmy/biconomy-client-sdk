@@ -8,10 +8,11 @@
   "author": "livingrockrises <chirag@biconomy.io>",
   "homepage": "https://github.com/bcnmy/biconomy-client-sdk#readme",
   "license": "MIT",
-  "main": "dist/src/index.js",
-  "typings": "dist/src/index.d.ts",
+  "main": "./dist/src/index.js",
+  "typings": "./dist/src/index.d.ts",
   "files": [
-    "dist"
+    "dist/*",
+    "README.md"
   ],
   "repository": {
     "type": "git",

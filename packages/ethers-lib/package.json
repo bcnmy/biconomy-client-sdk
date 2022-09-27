@@ -2,8 +2,8 @@
   "name": "@biconomy-sdk/ethers-lib",
   "version": "1.0.11",
   "description": "Ethers library adapter to be used by Biconomy SDK",
-  "main": "dist/src/index.js",
-  "typings": "dist/src/index.d.ts",
+  "main": "./dist/src/index.js",
+  "typings": "./dist/src/index.d.ts",
   "keywords": [
     "Ethereum",
     "SDK",
@@ -19,7 +19,8 @@
   "author": "Biconomy (https://biconomy.io)",
   "license": "MIT",
   "files": [
-    "dist"
+    "dist/*",
+    "README.md"
   ],
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.1.0",
@@ -47,7 +48,7 @@
     "@gnosis.pm/safe-core-sdk-utils": "^1.1.0",
     "@openzeppelin/contracts": "^4.6.0",
     "scw-contracts-v1.0.0": "npm:scw-contracts@1.0.0",
-    "scw-contracts-v1.0.1": "npm:scw-contracts@1.0.7"
+    "scw-contracts-v1.0.1": "npm:scw-contracts@1.0.8"
   },
   "peerDependencies": {
     "ethers": "^5.5.3"
