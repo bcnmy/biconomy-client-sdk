@@ -76,7 +76,7 @@ class Transaction {
   //   this.nodeClient = new NodeClient({ txServiceUrl: config.backend_url })
   // }
 
-
+  constructor(){}
   async initialize(walletProvider: Web3Provider, config: Config){
     this.localConfig = { ...DefaultConfig }
 
@@ -84,7 +84,7 @@ class Transaction {
       this.localConfig = { ...this.localConfig, ...config }
     }
     const signer = walletProvider.getSigner()
-    this.owner = this.localConfig.owner
+    this.owner = await signer.getAddress()
     this.contractUtils = new ContractUtils()
     this.nodeClient = new NodeClient({ txServiceUrl: config.backend_url })
     await this.contractUtils.initialize(await this.nodeClient.getAllSupportedChains(), signer)
@@ -349,6 +349,8 @@ class Transaction {
     // TODO: Get from node client first from cache, if not found then query smart contract
     // we will hit smart account endpoint to fetch deployed smart account info
     const address = await this.getAddressForCounterfactualWallet(addressForCounterFactualWalletDto)
+    console.log('address is ', address);
+    
     this.address = address
     return address
   }

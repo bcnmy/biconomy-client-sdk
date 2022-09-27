@@ -50,9 +50,12 @@ class ContractUtils {
       const network = chainsInfo[i]
       const providerUrl = network.providerUrl
       // To keep it network agnostic
-      // Note: think about events when signer needs to pay gas
+      // Note: think about events when signer needs to pay gas      
 
       const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
+
+      console.log('chain id ', network.chainId, 'readProvider ', readProvider);
+
       // Instantiating EthersAdapter instance and maintain it as above mentioned class level variable
       this.ethAdapter[network.chainId] = new EthersAdapter({
         ethers,

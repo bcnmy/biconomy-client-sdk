@@ -59,16 +59,12 @@ import NodeClient, {
 } from '@biconomy-sdk/node-client'
 import { Web3Provider } from '@ethersproject/providers'
 import { Relayer } from '@biconomy-sdk/relayer'
-import {
+import Transaction, {
   buildSmartAccountTransaction,
   smartAccountSignMessage,
   buildMultiSendSmartAccountTx,
-  // WalletTransaction,
-  // ExecTransaction,
-  // MetaTransaction, 
-  // buildMultiSendSmartAccountTx
+  encodeTransfer
 } from '@biconomy-sdk/transactions'
-import { encodeTransfer } from '@biconomy-sdk/transactions'
 import { GasEstimator } from './assets'
 import { BalancesDto } from '@biconomy-sdk/node-client'
 import {
@@ -77,7 +73,9 @@ import {
   EstimateGasResponse
 } from '@biconomy-sdk/node-client'
 
-import { Transaction, ContractUtils } from '@biconomy-sdk/transactions'
+console.log('NodeClient ', NodeClient)
+console.log('Transaction ', Transaction)
+// import { ContractUtils } from '@biconomy-sdk/transactions'
 
 // Create an instance of Smart Account with multi-chain support.
 
@@ -153,9 +151,15 @@ class SmartAccount {
   }
 
   async init(){
+    this.owner = await this.signer.getAddress()
+    this.#smartAccountConfig.owner = this.owner
+    this.transactionInstance = new Transaction()
     await this.transactionInstance.initialize(this.provider, this.#smartAccountConfig)
     this.nodeClient = await this.transactionInstance.getNodeClient()
     this.contractUtils = await this.transactionInstance.getContractUtilInstance()
+    const chainConfig = (await this.nodeClient.getAllSupportedChains()).data
+    this.chainConfig = chainConfig
+    this.address = await this.transactionInstance.getAddress({index: 0, chainId: this.#smartAccountConfig.activeNetworkId, version: this.DEFAULT_VERSION})
     return this
   }
 
@@ -919,7 +923,7 @@ class SmartAccount {
     // return !!walletCode && walletCode !== '0x'
 
     // but below works
-    return await this.factory(chainId).isWalletExist(this.address)
+    return await this.contractUtils.smartWalletFactoryContract[chainId][this.DEFAULT_VERSION].isWalletExist(this.address)
   }
 
   /**
@@ -959,10 +963,10 @@ class SmartAccount {
     chainId: ChainId = this.#smartAccountConfig.activeNetworkId
   ): SmartAccountContext {
     const context: SmartAccountContext = {
-      baseWallet: this.smartAccount(chainId), //might as well do getContract and attach and return contract
-      walletFactory: this.factory(chainId),
-      multiSend: this.multiSend(chainId),
-      multiSendCall: this.multiSendCall(chainId)
+      baseWallet: this.contractUtils.smartWalletContract[chainId][this.DEFAULT_VERSION],
+      walletFactory: this.contractUtils.smartWalletFactoryContract[chainId][this.DEFAULT_VERSION],
+      multiSend: this.contractUtils.multiSendContract[chainId][this.DEFAULT_VERSION],
+      multiSendCall: this.contractUtils.multiSendCallOnlyContract[chainId][this.DEFAULT_VERSION],
       // Could be added dex router for chain in the future
     }
     return context
