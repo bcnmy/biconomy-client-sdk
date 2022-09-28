@@ -8,6 +8,7 @@ import { MultiSendContract } from './contracts/MultiSendContract'
 import { MultiSendCallOnlyContract } from './contracts/MultiSendCallOnlyContract'
 import { SmartWalletContract } from './contracts/SmartWalletContract'
 import { GasLimit } from './transaction.types'
+import { JsonRpcSigner } from '@ethersproject/providers'
 
 
 export interface Config {
@@ -49,8 +50,10 @@ export type AddressForCounterFactualWalletDto = {
 }
 
 export type SignTransactionDto = {
+  version: string
   tx: WalletTransaction
-  chainId?: ChainId
+  chainId: ChainId
+  signer: JsonRpcSigner
 }
 
 export type SendTransactionDto = {
@@ -68,9 +71,10 @@ export type PrepareRefundTransactionDto = {
 }
 
 export type PrepareRefundTransactionsDto = {
+  version: string
   transactions: Transaction[]
-  batchId?: number
-  chainId?: ChainId
+  batchId: number
+  chainId: ChainId
 }
 
 export type RefundTransactionDto = {
@@ -81,10 +85,11 @@ export type RefundTransactionDto = {
   chainId: ChainId
 }
 export type RefundTransactionBatchDto = {
+  version: string
   transactions: Transaction[]
   feeQuote: FeeQuote
-  batchId?: number
-  chainId?: ChainId
+  batchId: number
+  chainId: ChainId
 }
 
 export type TransactionDto = {
