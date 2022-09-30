@@ -5,7 +5,7 @@ import {
     utils
 } from 'ethers'
 
-import { MetaTransaction, WalletTransaction } from '@biconomy-sdk/core-types'
+import { MetaTransaction, WalletTransaction, Transaction } from '@biconomy-sdk/core-types'
 
 import { AddressZero } from '@ethersproject/constants'
 
@@ -41,6 +41,21 @@ export class Utils {
             refundReceiver: template.refundReceiver || AddressZero,
             nonce: template.nonce
         }
+    }
+
+    buildSmartAccountTransactions = (transactions: Transaction[]):MetaTransaction[] => {
+        const txs: MetaTransaction[] = []
+        for (let i = 0; i < transactions.length; i++) {
+            const innerTx: WalletTransaction = this.buildSmartAccountTransaction({
+              to: transactions[i].to,
+              value: transactions[i].value,
+              data: transactions[i].data, // for token transfers use encodeTransfer
+              nonce: 0
+            })
+      
+            txs.push(innerTx)
+          }
+        return txs
     }
 
     buildMultiSendSmartAccountTx = (

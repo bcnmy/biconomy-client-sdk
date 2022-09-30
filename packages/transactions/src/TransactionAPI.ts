@@ -7,10 +7,12 @@ MultiSendCallOnlyContract } from '@biconomy-sdk/core-types'
 import { Signer } from '@ethersproject/abstract-signer'
 import { Provider } from '@ethersproject/providers'
 
-export class TransactionAPI {
+class TransactionAPI {
   
 
   constructor() {    
   }
 
 }
+
+export default TransactionAPI

@@ -557,7 +557,10 @@ export class TransactionManager {
     const connectedWallet = this.smartAccountState.address
     walletContract = walletContract.attach(connectedWallet)
 
-    const isDeployed = await this.contractUtils.isDeployed(this.chainId, version, this.smartAccountState.address);
+    // TODO
+    // Review
+    const isDeployed = this.smartAccountState.isDeployed
+    // await this.contractUtils.isDeployed(this.chainId, version, this.smartAccountState.address);
     let additionalBaseGas = 0;
 
     // NOTE : If the wallet is not deployed yet then nonce would be zero
@@ -582,18 +585,7 @@ export class TransactionManager {
     }
     console.log('nonce: ', nonce)
 
-    const txs: MetaTransaction[] = []
-
-    for (let i = 0; i < transactions.length; i++) {
-      const innerTx: WalletTransaction = this.utils.buildSmartAccountTransaction({
-        to: transactions[i].to,
-        value: transactions[i].value,
-        data: transactions[i].data, // for token transfers use encodeTransfer
-        nonce: 0
-      })
-
-      txs.push(innerTx)
-    }
+    const txs: MetaTransaction[] = this.utils.buildSmartAccountTransactions(transactions)
 
     const walletTx: WalletTransaction = this.utils.buildMultiSendSmartAccountTx(
       this.contractUtils.multiSendContract[this.chainId][version].getContract(),
@@ -610,7 +602,7 @@ export class TransactionManager {
     }
     console.log(internalTx);
 
-    let targetTxGas, baseGas, handlePaymentEstimate;
+    let targetTxGas, baseGas;
     const regularOffSet = GAS_USAGE_OFFSET;
 
     if (!isDeployed) {
