@@ -1,6 +1,6 @@
 import { ChainConfig } from '@biconomy-sdk/node-client'
-import { ChainId } from '@biconomy-sdk/core-types'
 import {
+  ChainId,
   SmartWalletContract,
   SmartWalletFactoryContract,
   MultiSendContract,
@@ -55,23 +55,23 @@ export function findContractAddressesByVersion(
 ) {
   const chainInfo: ChainConfig = findChainById(chainId, chainConfig)
 
-  const entryPointAddress = chainInfo.entryPoint.find((element) => {
+  const entryPointAddress = chainInfo.entryPoint.find((element: any) => {
     return element.version === smartAccountVersion
   })?.address
-  const walletFactoryAddress = chainInfo.walletFactory.find((element) => {
+  const walletFactoryAddress = chainInfo.walletFactory.find((element: any) => {
     return element.version === smartAccountVersion
   })?.address
-  const walletAddress = chainInfo.wallet.find((element) => {
+  const walletAddress = chainInfo.wallet.find((element: any) => {
     return element.version === smartAccountVersion
   })?.address
-  const multiSendAddress = chainInfo.multiSend.find((element) => {
+  const multiSendAddress = chainInfo.multiSend.find((element: any) => {
     return element.version === smartAccountVersion
   })?.address
-  const multiSendCallAddress = chainInfo.multiSendCall.find((element) => {
+  const multiSendCallAddress = chainInfo.multiSendCall.find((element: any) => {
     return element.version === smartAccountVersion
   })?.address
 
-  const fallBackHandlerAddress = chainInfo.fallBackHandler.find((element) => {
+  const fallBackHandlerAddress = chainInfo.fallBackHandler.find((element: any) => {
     return element.version === smartAccountVersion
   })?.address
 

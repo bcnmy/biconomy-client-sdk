@@ -16,7 +16,8 @@ export interface Config {
   version: string
   activeNetworkId: ChainId // same
   supportedNetworksIds: ChainId[] // Network[] chainId: CbainId, rpcUrl?: string
-  backend_url: string
+  backend_url: string,
+  relayer_url: string
 }
 
 export interface SmartAccountContext {
@@ -36,11 +37,11 @@ export type EstimateSmartAccountDeploymentDto = {
 }
 
 export interface SmartAccountState {
-  address: string
-  owner: string
-  isDeployed: boolean
-  entryPointAddress: string
-  fallbackHandlerAddress: string
+  address: string // multichain (EVM)
+  owner: string // multichain (EVM)
+  isDeployed: boolean // chain specific
+  entryPointAddress: string // chain specific
+  fallbackHandlerAddress: string // chain specific
 }
 
 export type AddressForCounterFactualWalletDto = {

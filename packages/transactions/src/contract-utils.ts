@@ -4,6 +4,7 @@ import {
   SmartWalletFactoryContract,
   MultiSendContract,
   MultiSendCallOnlyContract,
+  SmartAccountContext,
   EstimateSmartAccountDeploymentDto
 } from '@biconomy-sdk/core-types'
 import{
@@ -15,15 +16,13 @@ import {
   getMultiSendContract,
   getMultiSendCallOnlyContract,
   getSmartWalletContract
-
 } from './utils/FetchContractsInfo'
-import { GasEstimator } from './assets'
 import { ethers } from 'ethers'
 import EthersAdapter from '@biconomy-sdk/ethers-lib'
 import { JsonRpcSigner } from '@ethersproject/providers'
-import { version } from 'typescript'
+import { SmartAccountVersion } from '@biconomy-sdk/core-types'
 
-class ContractUtils {
+export class ContractUtils {
   ethAdapter!: { [chainId: number]: EthersAdapter }
 
   smartWalletContract!: { [chainId: number]: { [version: string]: SmartWalletContract } }
@@ -35,6 +34,8 @@ class ContractUtils {
     [chainId: number]: { [version: string]: SmartWalletFactoryContract }
   }
 
+  // Note: Should DEFAULT_VERSION be moved here? 
+
   constructor(){
     this.ethAdapter = {}
     this.smartWalletContract = {}
@@ -43,8 +44,8 @@ class ContractUtils {
     this.smartWalletFactoryContract = {}
   }
 
-  public async initialize(supportedChains: SupportedChainsResponse, signer: JsonRpcSigner) {
-    const chainsInfo = supportedChains.data
+  public async initialize(supportedChains: ChainConfig[], signer: JsonRpcSigner) {
+    const chainsInfo = supportedChains;
 
     for (let i = 0; i < chainsInfo.length; i++) {
       const network = chainsInfo[i]
@@ -106,7 +107,9 @@ class ContractUtils {
       )
     }
   }
+
   // TODO: params as Object
+  // May not need it at all if we go provider route
   async isDeployed(chainId: ChainId, version: string, address: string): Promise<boolean> {
     // Other approach : needs review and might be coming wrong
     // const readProvider = new ethers.providers.JsonRpcProvider(networks[chainId].providerUrl);
@@ -117,6 +120,27 @@ class ContractUtils {
     return await this.smartWalletFactoryContract[chainId][version].isWalletExist(address)
   }
 
+   //
+  /**
+   * Serves smart contract instances associated with Smart Account for requested ChainId
+   * Context is useful when relayer is deploying a wallet
+   * @param chainId requested chain : default is active chain
+   * @returns object containing relevant contract instances
+   */
+   getSmartAccountContext(
+    // smartAccountVersion: SmartAccountVersion = this.DEFAULT_VERSION,
+    chainId: ChainId,
+    version: SmartAccountVersion
+  ): SmartAccountContext {
+    const context: SmartAccountContext = {
+      baseWallet: this.smartWalletContract[chainId][version],
+      walletFactory: this.smartWalletFactoryContract[chainId][version],
+      multiSend: this.multiSendContract[chainId][version],
+      multiSendCall: this.multiSendCallOnlyContract[chainId][version],
+      // Could be added dex router for chain in the future
+    }
+    return context
+  }
 }
 
-export default ContractUtils
+// export default ContractUtils

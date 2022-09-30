@@ -1,84 +1,91 @@
 import {
-  arrayify,
-  // defaultAbiCoder,
-  // hexConcat,
-  parseEther
-  // solidityKeccak256,
-} from 'ethers/lib/utils'
-import {
-  ethers,
-  BigNumber,
-  // BigNumberish,
-  // Contract,
-  // ContractReceipt,
-  Wallet
+    BigNumber,
+    BigNumberish,
+    Contract,
+    utils
 } from 'ethers'
-/* import {
-  IERC20,
-  EntryPoint,
-  EntryPoint__factory,
-  SimpleWallet__factory,
-} from "../typechain"; */
-// import { BytesLike } from "@ethersproject/bytes";
-// import { expect } from "chai";
-// import { debugTransaction } from "./debugTx";
-import { keccak256 } from 'ethereumjs-util'
 
-export const AddressZero = ethers.constants.AddressZero
-export const HashZero = ethers.constants.HashZero
-export const ONE_ETH = parseEther('1')
-export const TWO_ETH = parseEther('2')
-export const FIVE_ETH = parseEther('5')
+import { MetaTransaction, WalletTransaction } from '@biconomy-sdk/core-types'
 
-export const tostr = (x: any) => (x != null ? x.toString() : 'null')
+import { AddressZero } from '@ethersproject/constants'
 
-let counter = 0
-// create non-random account, so gas calculations are deterministic
-export function createWalletOwner(): Wallet {
-  const privateKey = keccak256(Buffer.from(arrayify(BigNumber.from(++counter))))
-  return new ethers.Wallet(privateKey, ethers.providers.getDefaultProvider())
-  // return new ethers.Wallet('0x'.padEnd(66, privkeyBase), ethers.provider);
-}
+export class Utils {
 
-export async function getBalance(address: string): Promise<number> {
-  const balance = await ethers.providers.getDefaultProvider().getBalance(address)
-  return parseInt(balance.toString())
-}
+    constructor() {
 
-export function getSignatureParameters(signature: string) {
-  if (!ethers.utils.isHexString(signature)) {
-    throw new Error('Given value "'.concat(signature, '" is not a valid hex string.'))
-  }
-  var r = signature.slice(0, 66)
-  var s = '0x'.concat(signature.slice(66, 130))
-  var v = ethers.BigNumber.from('0x'.concat(signature.slice(130, 132))).toNumber()
-  if (![27, 28].includes(v)) v += 27
-  return {
-    r: r,
-    s: s,
-    v: v
-  }
-}
+    }
 
-export const Erc20 = [
-  'function transfer(address _receiver, uint256 _value) public returns (bool success)',
-  'function transferFrom(address, address, uint) public returns (bool)',
-  'function approve(address _spender, uint256 _value) public returns (bool success)',
-  'function allowance(address _owner, address _spender) public view returns (uint256 remaining)',
-  'function balanceOf(address _owner) public view returns (uint256 balance)',
-  'event Approval(address indexed _owner, address indexed _spender, uint256 _value)'
-]
+    buildSmartAccountTransaction = (template: {
+        to: string
+        value?: BigNumberish
+        data?: string
+        operation?: number
+        targetTxGas?: number | string
+        baseGas?: number | string
+        gasPrice?: number | string
+        tokenGasPriceFactor?: number | string
+        gasToken?: string
+        refundReceiver?: string
+        nonce: number
+    }): WalletTransaction => {
+        return {
+            to: template.to,
+            value: template.value || 0,
+            data: template.data || '0x',
+            operation: template.operation || 0,
+            targetTxGas: template.targetTxGas || 0,
+            baseGas: template.baseGas || 0,
+            gasPrice: template.gasPrice || 0,
+            tokenGasPriceFactor: template.tokenGasPriceFactor || 1,
+            gasToken: template.gasToken || AddressZero,
+            refundReceiver: template.refundReceiver || AddressZero,
+            nonce: template.nonce
+        }
+    }
 
-export const Erc20Interface = new ethers.utils.Interface(Erc20)
+    buildMultiSendSmartAccountTx = (
+        multiSend: Contract,
+        txs: MetaTransaction[],
+        nonce: number,
+        overrides?: Partial<WalletTransaction>
+    ): WalletTransaction => {
+        return this.buildContractCall(multiSend, 'multiSend', [this.encodeMultiSend(txs)], nonce, true, overrides)
+    }
 
-export const encodeTransfer = (target: string, amount: string | number): string => {
-  return Erc20Interface.encodeFunctionData('transfer', [target, amount])
-}
+    encodeMultiSend = (txs: MetaTransaction[]): string => {
+        return '0x' + txs.map((tx) => this.encodeMetaTransaction(tx)).join('')
+    }
 
-export const encodeTransferFrom = (
-  from: string,
-  target: string,
-  amount: string | number
-): string => {
-  return Erc20Interface.encodeFunctionData('transferFrom', [from, target, amount])
+    encodeMetaTransaction = (tx: MetaTransaction): string => {
+        const data = utils.arrayify(tx.data)
+        const encoded = utils.solidityPack(
+            ['uint8', 'address', 'uint256', 'uint256', 'bytes'],
+            [tx.operation, tx.to, tx.value, data.length, data]
+        )
+        return encoded.slice(2)
+    }
+
+    buildContractCall = (
+        contract: Contract,
+        method: string,
+        params: any[],
+        nonce: number,
+        delegateCall?: boolean,
+        overrides?: Partial<WalletTransaction>
+      ): WalletTransaction => {
+        const data = contract.interface.encodeFunctionData(method, params)
+        return this.buildSmartAccountTransaction(
+          Object.assign(
+            {
+              to: contract.address,
+              data,
+              operation: delegateCall ? 1 : 0,
+              nonce
+            },
+            overrides
+          )
+        )
+      }
+
+
 }
