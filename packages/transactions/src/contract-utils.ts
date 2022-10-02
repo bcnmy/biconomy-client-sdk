@@ -22,7 +22,7 @@ import EthersAdapter from '@biconomy-sdk/ethers-lib'
 import { JsonRpcSigner } from '@ethersproject/providers'
 import { SmartAccountVersion } from '@biconomy-sdk/core-types'
 
-export class ContractUtils {
+class ContractUtils {
   ethAdapter!: { [chainId: number]: EthersAdapter }
 
   smartWalletContract!: { [chainId: number]: { [version: string]: SmartWalletContract } }
@@ -143,4 +143,4 @@ export class ContractUtils {
   }
 }
 
-// export default ContractUtils
+export default ContractUtils

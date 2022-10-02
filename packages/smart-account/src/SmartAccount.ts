@@ -27,7 +27,7 @@ import {
   SmartAccountState,
   FeeQuote,
   RelayResponse,
-  Config
+  SmartAccountConfig
 } from '@biconomy-sdk/core-types'
 import { JsonRpcSigner } from '@ethersproject/providers'
 import NodeClient, {
@@ -37,7 +37,7 @@ import NodeClient, {
 } from '@biconomy-sdk/node-client'
 import { Web3Provider } from '@ethersproject/providers'
 import { Relayer, RestRelayer } from '@biconomy-sdk/relayer'
-import { TransactionManager,  ContractUtils } from '@biconomy-sdk/transactions'
+import TransactionManager , { ContractUtils } from '@biconomy-sdk/transactions'
 import { BalancesDto } from '@biconomy-sdk/node-client'
 import {
   BalancesResponse,
@@ -58,7 +58,7 @@ class SmartAccount {
   context!: { [chainId: number]: SmartAccountContext }
 
   // Optional config to initialise instance of Smart Account. One can provide main active chain and only limited chains they need to be on.
-  #smartAccountConfig!: Config
+  #smartAccountConfig!: SmartAccountConfig
 
   // Array of chain ids that current multi-chain instance supports
   supportedNetworkIds!: ChainId[]
@@ -78,7 +78,7 @@ class SmartAccount {
   contractUtils!: ContractUtils
 
   // TBD : Do we keep manager for both SCW(forward) and Account Abstraction?
-  transactionManager!: { [chainId: number]: TransactionManager }
+  transactionManager!: TransactionManager
 
   // Instance of relayer (Relayer Service Client) connected with this Smart Account and always ready to dispatch transactions
   // relayer.relay => dispatch to blockchain
@@ -102,7 +102,7 @@ class SmartAccount {
    * If you wish to use your own backend server and relayer service, pass the URLs here
    */
   // review SmartAccountConfig
-  constructor(walletProvider: Web3Provider, config: Config) {
+  constructor(walletProvider: Web3Provider, config: SmartAccountConfig) {
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
     if (config) {
       this.#smartAccountConfig = { ...this.#smartAccountConfig, ...config }
@@ -121,6 +121,8 @@ class SmartAccount {
 
   async init(){
 
+    this.setActiveChain(this.#smartAccountConfig.activeNetworkId)
+
     this.owner = await this.signer.getAddress()
     this.#smartAccountConfig.owner = this.owner
 
@@ -131,12 +133,11 @@ class SmartAccount {
 
     this.address = await this.getAddress({index: 0, chainId: this.#smartAccountConfig.activeNetworkId, version: this.DEFAULT_VERSION})
 
-    await Promise.all(this.supportedNetworkIds.map(async(networkId) => {
-      this.transactionManager[networkId] = new TransactionManager(networkId)
-      const state = await this.getSmartAccountState(networkId)
-      // Note: Defualt relayer needs to set in constructor
-      await this.transactionManager[networkId].initialize(this.relayer, this.nodeClient, this.contractUtils, state)
-    }))
+    this.transactionManager = new TransactionManager()
+
+    const state = await this.getSmartAccountState(this.#smartAccountConfig.activeNetworkId)
+
+    await this.transactionManager.initialize(this.relayer, this.nodeClient, this.contractUtils, state)
 
     return this
   }
@@ -195,7 +196,7 @@ class SmartAccount {
     if (relayer === undefined) return this
     this.relayer = relayer
     //If we end up maintaining relayer instance on this then it should update all transaction managers
-    //await this.transactionManager[this.#smartAccountConfig.activeNetworkId].setRelayer(relayer)
+    //await this.transactionManager.setRelayer(relayer)
     return this
   }
 
@@ -321,7 +322,7 @@ class SmartAccount {
     prepareRefundTransactionDto.chainId = chainId
     prepareRefundTransactionDto.version = this.DEFAULT_VERSION
     prepareRefundTransactionDto.batchId = 0
-    return this.transactionManager[chainId].prepareRefundTransaction(prepareRefundTransactionDto)
+    return this.transactionManager.prepareRefundTransaction(prepareRefundTransactionDto)
   }
 
   // Get Fee Options from relayer and make it available for display
@@ -339,7 +340,7 @@ class SmartAccount {
     prepareRefundTransactionsDto.version = this.DEFAULT_VERSION
     prepareRefundTransactionsDto.batchId = 0
     console.log('prepareRefundTransactionsDto ', prepareRefundTransactionsDto);
-   return this.transactionManager[chainId].prepareRefundTransactionBatch(prepareRefundTransactionsDto)
+   return this.transactionManager.prepareRefundTransactionBatch(prepareRefundTransactionsDto)
   }
 
   // Other helpers go here for pre build (feeOptions and quotes from relayer) , build and execution of refund type transactions
@@ -358,7 +359,7 @@ class SmartAccount {
     refundTransactionDto.chainId = chainId
     refundTransactionDto.version = this.DEFAULT_VERSION
     refundTransactionDto.batchId = 0
-    return this.transactionManager[chainId].createRefundTransaction(refundTransactionDto)
+    return this.transactionManager.createRefundTransaction(refundTransactionDto)
   }
 
   /**
@@ -373,7 +374,7 @@ class SmartAccount {
     transactionDto.chainId = chainId
     transactionDto.version = this.DEFAULT_VERSION
     transactionDto.batchId = 0
-    return this.transactionManager[chainId].createTransaction(transactionDto)
+    return this.transactionManager.createTransaction(transactionDto)
   }
 
     /**
@@ -391,7 +392,7 @@ class SmartAccount {
       const chainId = this.#smartAccountConfig.activeNetworkId
       transactionBatchDto.chainId = chainId
       transactionBatchDto.version = this.DEFAULT_VERSION
-      return this.transactionManager[chainId].createTransactionBatch(transactionBatchDto)
+      return this.transactionManager.createTransactionBatch(transactionBatchDto)
     }
 
   /**
@@ -408,16 +409,16 @@ class SmartAccount {
     refundTransactionBatchDto.chainId = chainId
     refundTransactionBatchDto.version = this.DEFAULT_VERSION
     refundTransactionBatchDto.batchId = 0
-    return this.transactionManager[chainId].createRefundTransactionBatch(refundTransactionBatchDto)
+    return this.transactionManager.createRefundTransactionBatch(refundTransactionBatchDto)
   }
 
   async prepareDeployAndPayFees(chainId: ChainId = this.#smartAccountConfig.activeNetworkId) {
-    return this.transactionManager[chainId].prepareDeployAndPayFees(chainId, this.DEFAULT_VERSION)
+    return this.transactionManager.prepareDeployAndPayFees(chainId, this.DEFAULT_VERSION)
   }
  
   // Onboarding scenario where assets inside counterfactual smart account pays for it's deployment
   async deployAndPayFees(chainId: ChainId = this.#smartAccountConfig.activeNetworkId, feeQuote: FeeQuote): Promise<string> {
-    const transaction = await this.transactionManager[chainId].deployAndPayFees(chainId, this.DEFAULT_VERSION, feeQuote)
+    const transaction = await this.transactionManager.deployAndPayFees(chainId, this.DEFAULT_VERSION, feeQuote)
     const txHash = await this.sendTransaction({tx:transaction});
     return txHash;    
   }
@@ -546,7 +547,7 @@ class SmartAccount {
 
 // Temporary default config
 // TODO/NOTE : make Goerli and Mumbai as test networks and remove others
-export const DefaultSmartAccountConfig: Config = {
+export const DefaultSmartAccountConfig: SmartAccountConfig = {
   owner: '',
   version: '1.0.1',
   activeNetworkId: ChainId.GOERLI, //Update later

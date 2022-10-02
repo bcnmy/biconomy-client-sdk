@@ -11,9 +11,7 @@ import { GasLimit } from './transaction.types'
 import { JsonRpcSigner } from '@ethersproject/providers'
 
 
-export interface Config {
-  owner: string,
-  version: string
+export interface SmartAccountConfig {
   activeNetworkId: ChainId // same
   supportedNetworksIds: ChainId[] // Network[] chainId: CbainId, rpcUrl?: string
   backend_url: string,

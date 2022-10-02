@@ -1,1 +1,0 @@
-import { ChainId } from './chains.types'
