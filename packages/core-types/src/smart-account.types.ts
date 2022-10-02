@@ -12,6 +12,8 @@ import { JsonRpcSigner } from '@ethersproject/providers'
 
 
 export interface SmartAccountConfig {
+  owner: string
+  version: string
   activeNetworkId: ChainId // same
   supportedNetworksIds: ChainId[] // Network[] chainId: CbainId, rpcUrl?: string
   backend_url: string,

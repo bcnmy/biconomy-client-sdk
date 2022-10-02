@@ -34,8 +34,6 @@ import NodeClient, {
 import { Relayer } from '@biconomy-sdk/relayer'
 import ContractUtils from './contract-utils'
 import { Utils } from './utils'
-
-
 class TransactionManager {
 
   // chainId: ChainId
@@ -136,7 +134,6 @@ class TransactionManager {
     const offset = feeQuote.offset || 1;
     const feeReceiver = feeQuote.refundReceiver || DEFAULT_FEE_RECEIVER;
 
-    const self = this
     const estimateWalletDeployment = await this.estimateSmartAccountDeployment({
       chainId: chainId,
       version,

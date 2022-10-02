@@ -37,7 +37,7 @@ import NodeClient, {
 } from '@biconomy-sdk/node-client'
 import { Web3Provider } from '@ethersproject/providers'
 import { Relayer, RestRelayer } from '@biconomy-sdk/relayer'
-import TransactionManager , { ContractUtils } from '@biconomy-sdk/transactions'
+import TransactionManager, { ContractUtils, smartAccountSignMessage } from '@biconomy-sdk/transactions'
 import { BalancesDto } from '@biconomy-sdk/node-client'
 import {
   BalancesResponse,
@@ -219,11 +219,16 @@ class SmartAccount {
    * @param chainId optional chainId
    * @returns:string Signature
    */
-  async signTransaction(signTransactionDto: SignTransactionDto): Promise<string> {
-    signTransactionDto.chainId = this.#smartAccountConfig.activeNetworkId
-    signTransactionDto.version = this.DEFAULT_VERSION
-    signTransactionDto.signer = this.signer
-    return this.signer.signTransaction(signTransactionDto)
+   async signTransaction(signTransactionDto: SignTransactionDto): Promise<string> {
+    const { chainId = this.#smartAccountConfig.activeNetworkId, tx } = signTransactionDto
+    let walletContract = this.smartAccount(chainId).getContract()
+    walletContract = walletContract.attach(this.address)
+    // TODO - rename and organize utils
+    const { signer, data } = await smartAccountSignMessage(this.signer, walletContract, tx, chainId)
+    let signature = '0x'
+    signature += data.slice(2)
+    return signature
+    // return this.signer.signTransaction(signTransactionDto)
   }
 
   // This would be a implementation on user sponsorship provider
@@ -444,14 +449,6 @@ class SmartAccount {
     return this.contractUtils.smartWalletFactoryContract[chainId][this.DEFAULT_VERSION]
   }
 
-  multiSend(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): SmartWalletContract {
-    return this.contractUtils.multiSendContract[chainId][this.DEFAULT_VERSION]
-  }
-
-  multiSendCall(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): SmartWalletContract {
-    return this.contractUtils.multiSendCallOnlyContract[chainId][this.DEFAULT_VERSION]
-  }
-
   // Note: expose getMultiSend(), getMultiSendCall() 
   
 
@@ -540,7 +537,7 @@ class SmartAccount {
     // smartAccountVersion: SmartAccountVersion = this.DEFAULT_VERSION,
     chainId: ChainId = this.#smartAccountConfig.activeNetworkId
   ): SmartAccountContext {
-    const context: SmartAccountContext = this.contractUtils.getSmartAccountContext(chainId)
+    const context: SmartAccountContext = this.contractUtils.getSmartAccountContext(chainId, this.DEFAULT_VERSION)
     return context
   }
 }
