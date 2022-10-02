@@ -10,7 +10,7 @@ import NodeClient, {
     EstimateHandlePaymentTxGasDto,
     EstimateUndeployedContractGasDto,
 } from '@biconomy-sdk/node-client'
-import { ContractUtils } from './contract-utils'
+import ContractUtils from './contract-utils'
 import {
     PrepareRefundTransactionDto,
     PrepareRefundTransactionsDto,

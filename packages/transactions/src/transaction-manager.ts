@@ -33,11 +33,11 @@ import NodeClient, {
 } from '@biconomy-sdk/node-client'
 
 import { Relayer } from '@biconomy-sdk/relayer'
-import { ContractUtils } from './contract-utils'
-import { Utils } from './Utils'
+import ContractUtils from './contract-utils'
+import { Utils } from './utils'
 
 // export class
-export class TransactionManager {
+class TransactionManager {
 
   chainId: ChainId
 
@@ -725,4 +725,4 @@ export class TransactionManager {
 }
 
 // Review
-// export default TransactionManager
+export default TransactionManager

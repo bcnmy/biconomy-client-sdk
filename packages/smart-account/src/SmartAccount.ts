@@ -37,7 +37,7 @@ import NodeClient, {
 } from '@biconomy-sdk/node-client'
 import { Web3Provider } from '@ethersproject/providers'
 import { Relayer, RestRelayer } from '@biconomy-sdk/relayer'
-import { TransactionManager,  ContractUtils } from '@biconomy-sdk/transactions'
+import TransactionManager, { ContractUtils } from '@biconomy-sdk/transactions'
 import { BalancesDto } from '@biconomy-sdk/node-client'
 import {
   BalancesResponse,
@@ -443,14 +443,6 @@ class SmartAccount {
     return this.contractUtils.smartWalletFactoryContract[chainId][this.DEFAULT_VERSION]
   }
 
-  multiSend(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): SmartWalletContract {
-    return this.contractUtils.multiSendContract[chainId][this.DEFAULT_VERSION]
-  }
-
-  multiSendCall(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): SmartWalletContract {
-    return this.contractUtils.multiSendCallOnlyContract[chainId][this.DEFAULT_VERSION]
-  }
-
   // Note: expose getMultiSend(), getMultiSendCall() 
   
 
@@ -539,7 +531,7 @@ class SmartAccount {
     // smartAccountVersion: SmartAccountVersion = this.DEFAULT_VERSION,
     chainId: ChainId = this.#smartAccountConfig.activeNetworkId
   ): SmartAccountContext {
-    const context: SmartAccountContext = this.contractUtils.getSmartAccountContext(chainId)
+    const context: SmartAccountContext = this.contractUtils.getSmartAccountContext(chainId, this.DEFAULT_VERSION)
     return context
   }
 }
