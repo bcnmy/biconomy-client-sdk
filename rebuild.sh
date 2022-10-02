@@ -1,5 +1,5 @@
 #!/bin/sh
-
+rm -rf package-lock.json
 rm -rf node_modules
 rm -rf packages/core-types/node_modules
 rm -rf packages/core-types/package-lock.json
@@ -24,6 +24,6 @@ rm -rf packages/transactions/node_modules
 rm -rf packages/transactions/package-lock.json
 rm -rf packages/transactions/dist
 
-# npx lerna bootstrap --force-local
-# npm run build
-# npm link
+npx lerna bootstrap --force-local
+npm run build
+npm link
