@@ -21,7 +21,6 @@ import { GasEstimator } from './assets'
 import { ethers } from 'ethers'
 import EthersAdapter from '@biconomy-sdk/ethers-lib'
 import { JsonRpcSigner } from '@ethersproject/providers'
-import { version } from 'typescript'
 
 class ContractUtils {
   ethAdapter!: { [chainId: number]: EthersAdapter }

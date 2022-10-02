@@ -1,9 +1,10 @@
 #!/bin/sh
-
+rm -rf package-lock.json
 rm -rf node_modules
 rm -rf packages/core-types/node_modules
 rm -rf packages/core-types/package-lock.json
 rm -rf packages/core-types/dist
+
 rm -rf packages/ethers-lib/node_modules
 rm -rf packages/ethers-lib/package-lock.json
 rm -rf packages/ethers-lib/dist

@@ -1,5 +1,5 @@
 import { smartAccountSignMessage } from './execution'
-import { encodeTransfer } from './utils'
+import { encodeTransfer } from './transactionUtils'
 import {
   SendTransactionDto,
   DEFAULT_FEE_RECEIVER,
