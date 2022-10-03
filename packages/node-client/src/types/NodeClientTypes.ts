@@ -23,6 +23,7 @@ export type SmartAccountInfoResponse = {
   }
 }
 
+// Review
 export type TransactionResponse = {
   symbol: string
   tokenAddress: string
@@ -116,6 +117,11 @@ export type ChainConfig = {
   createdAt: Date
   updatedAt: Date
   token: TokenInfo
+}
+
+export type ProviderUrlConfig = {
+  chainId: ChainId
+  providerUrl: string
 }
 
 export type MasterCopyResponse = {

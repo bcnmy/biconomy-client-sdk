@@ -63,7 +63,7 @@ class SmartWalletContractEthers implements SmartWalletContract {
     refundInfo: IFeeRefundV1_0_0,
     signatures: string
   ): Promise<ITransactionResult> {
-    // TODO: estimate GAS before making the transaction
+    // review: Gas estimation could come in here
     const txResponse = await this.contract.execTransaction(_tx, batchId, refundInfo, signatures)
     return toTxResult(txResponse)
   }

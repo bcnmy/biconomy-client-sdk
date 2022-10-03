@@ -31,6 +31,7 @@ import {
 } from '@biconomy-sdk/core-types'
 import { JsonRpcSigner } from '@ethersproject/providers'
 import NodeClient, {
+  ProviderUrlConfig,
   ChainConfig,
   SmartAccountsResponse,
   SmartAccountByOwnerDto,
@@ -44,6 +45,7 @@ import {
   BalancesResponse,
   UsdBalanceResponse,
 } from '@biconomy-sdk/node-client'
+import { stringify } from 'querystring'
 
 
 // Create an instance of Smart Account with multi-chain support.
@@ -66,8 +68,10 @@ class SmartAccount {
 
   // Chain configurations fetched from backend
   chainConfig!: ChainConfig[]
-  
-  // Can maintain it's own version of provider / providers
+
+  providerUrlConfig!: ProviderUrlConfig[]
+
+  // providers!:  Web3Provider[]
   provider!: Web3Provider
 
   // Ideally not JsonRpcSigner but extended signer // Also the original EOA signer
@@ -95,6 +99,9 @@ class SmartAccount {
   // @review
   address!: string
 
+  dappAPIKey!: string
+
+  // TODO
   // Review provider type WalletProviderLike / ExternalProvider
   // Can expose recommended provider classes through the SDK
 
@@ -108,7 +115,10 @@ class SmartAccount {
     if (config) {
       this.#smartAccountConfig = { ...this.#smartAccountConfig, ...config }
     }
-
+    // Useful for AA flow. Check if it is valid key
+    this.dappAPIKey = this.#smartAccountConfig.dappAPIKey || ''
+    // Useful if Dapp needs custom RPC Urls. Check if valid. Fallback to public Urls
+    this.providerUrlConfig = this.#smartAccountConfig.providerUrlConfig || []
     this.ethAdapter = {}
     this.supportedNetworkIds = this.#smartAccountConfig.supportedNetworksIds
 
@@ -120,13 +130,13 @@ class SmartAccount {
     this.relayer = new RestRelayer({url: this.#smartAccountConfig.relayer_url});
   }
 
+
   async init(){
 
     this.setActiveChain(this.#smartAccountConfig.activeNetworkId)
 
     this.owner = await this.signer.getAddress()
-    this.#smartAccountConfig.owner = this.owner
-
+    
     const chainConfig = (await this.nodeClient.getAllSupportedChains()).data
     this.chainConfig = chainConfig
 
@@ -559,12 +569,19 @@ class SmartAccount {
 // Temporary default config
 // TODO/NOTE : make Goerli and Mumbai as test networks and remove others
 export const DefaultSmartAccountConfig: SmartAccountConfig = {
-  owner: '',
-  version: '1.0.1',
   activeNetworkId: ChainId.GOERLI, //Update later
   supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],
   backend_url: 'https://sdk-backend.staging.biconomy.io/v1',
   relayer_url: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay'
+  // dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
+  /*providerUrlConfig: [
+    { chainId: ChainId.GOERLI, 
+      providerUrl: "https://eth-goerli.alchemyapi.io/v2/lmW2og_aq-OXWKYRoRu-X6Yl6wDQYt_2"
+    },
+    { chainId: ChainId.POLYGON_MUMBAI, 
+      providerUrl: "https://polygon-mumbai.g.alchemy.com/v2/Q4WqQVxhEEmBYREX22xfsS2-s5EXWD31"
+    }
+  ]*/
 }
 
 export default SmartAccount

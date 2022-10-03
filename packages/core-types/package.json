@@ -2,8 +2,8 @@
   "name": "@biconomy-sdk/core-types",
   "version": "1.0.11",
   "description": "Biconomy Client SDK types",
-  "main": "dist/src/index.js",
-  "typings": "dist/src/index.d.ts",
+  "main": "./dist/src/index.js",
+  "typings": "./dist/src/index.d.ts",
   "keywords": [
     "Ethereum",
     "Gnosis",
@@ -19,7 +19,8 @@
   "author": "Biconomy (https://biconomy.io)",
   "license": "MIT",
   "files": [
-    "dist"
+    "dist/*",
+    "README.md"
   ],
   "devDependencies": {
     "@types/node": "^17.0.23",
