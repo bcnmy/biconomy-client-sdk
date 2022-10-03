@@ -4,7 +4,7 @@ import { SmartAccountContext, SmartAccountState } from './smart-account.types'
 import { PromiEvent, TransactionReceipt } from 'web3-core/types'
 import { ContractTransaction } from '@ethersproject/contracts'
 
-export interface RawTransactionType {
+export type RawTransactionType = {
   from?: string
   gasPrice?: string | BigNumber
   maxFeePerGas?: string | BigNumber
@@ -19,7 +19,7 @@ export interface RawTransactionType {
   type?: number
 }
 
-export interface Transaction {
+export type Transaction = {
   to: string
   value?: BigNumberish
   data?: string
@@ -28,12 +28,12 @@ export interface Transaction {
   // delegateCall?: boolean
   // revertOnError?: boolean
 }
-export interface SignedTransaction {
+export type SignedTransaction = {
   rawTx: RawTransactionType
-  tx: WalletTransaction
+  tx: IWalletTransaction
 }
 
-export interface ExecTransaction {
+export type ExecTransaction = {
   to: string
   value: BigNumberish
   data: string
@@ -41,42 +41,42 @@ export interface ExecTransaction {
   targetTxGas: string | number
 }
 
-export interface SmartAccountSignature {
+export type SmartAccountSignature =  {
   signer: string
   data: string
 }
 
-export interface FeeRefundV1_0_0 {
+export interface IFeeRefundV1_0_0 {
   // gasUsed: string | number
   baseGas: string | number
   gasPrice: string | number
   gasToken: string
   refundReceiver: string
 }
-export interface FeeRefundV1_0_1 extends FeeRefundV1_0_0{
+export interface IFeeRefundV1_0_1 extends IFeeRefundV1_0_0{
   tokenGasPriceFactor: string | number
 }
 
 
 // extended from FeeRefund as we need this for handlePayment Estimate
-export interface FeeRefundHandlePayment extends FeeRefundV1_0_1 {
+export interface IFeeRefundHandlePayment extends IFeeRefundV1_0_1 {
   gasUsed: string | number
 }
 
-export interface MetaTransactionData {
+export type MetaTransactionData = {
   readonly to: string
   readonly value: BigNumberish
   readonly data: string
   readonly operation?: OperationType
 }
-export interface MetaTransaction {
+export interface IMetaTransaction {
   to: string
   value: BigNumberish
   data: string
   operation: number
 }
 
-export interface WalletTransaction extends MetaTransaction {
+export interface IWalletTransaction extends IMetaTransaction {
   targetTxGas: string | number
   baseGas: string | number
   gasPrice: string | number
@@ -86,43 +86,43 @@ export interface WalletTransaction extends MetaTransaction {
   nonce: number
 }
 
-export interface Signature {
+export type Signature = {
   readonly signer: string
   readonly data: string
   staticPart(): string
   dynamicPart(): string
 }
 
-export interface TransactionOptions {
+export type TransactionOptions = {
   from?: string
   gas?: number | string
   gasLimit?: number | string
   gasPrice?: number | string
 }
 
-export interface BaseTransactionResult {
+export interface IBaseTransactionResult {
   hash: string
 }
 
-export interface TransactionResult extends BaseTransactionResult {
+export interface ITransactionResult extends IBaseTransactionResult {
   promiEvent?: PromiEvent<TransactionReceipt>
   transactionResponse?: ContractTransaction
   options?: TransactionOptions
 }
 
-export interface RelayTransaction {
+export type RelayTransaction = {
   signedTx: SignedTransaction
   config: SmartAccountState
   context: SmartAccountContext
   gasLimit?: GasLimit
 }
 
-export interface GasLimit {
+export type GasLimit = {
   hex: string
   type: string
 }
 
-export interface DeployWallet {
+export type DeployWallet = {
   config: SmartAccountState
   context: SmartAccountContext
   index: number

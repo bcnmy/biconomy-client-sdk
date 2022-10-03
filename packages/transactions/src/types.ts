@@ -8,6 +8,9 @@ import {
   PopulatedTransaction,
   BytesLike
 } from 'ethers'
+import {
+  EstimateSmartAccountDeploymentDto
+} from '@biconomy-sdk/core-types'
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import { AddressZero } from '@ethersproject/constants'
 

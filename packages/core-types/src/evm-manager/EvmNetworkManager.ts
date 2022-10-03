@@ -5,7 +5,7 @@ import { MultiSendCallOnlyContract } from '../contracts/MultiSendCallOnlyContrac
 import { SmartWalletFactoryContract } from '../contracts/SmartWalletFactoryContract'
 import { Eip3770Address, SmartAccountVersion } from '../types'
 
-export interface EthAdapterTransaction {
+export interface IEvmNetworkManagerTransaction {
   to: string
   from: string
   data: string
@@ -14,7 +14,7 @@ export interface EthAdapterTransaction {
   gasLimit?: number
 }
 
-export interface EthAdapter {
+export interface IEvmNetworkManager {
   getEip3770Address(fullAddress: string): Promise<Eip3770Address>
   getBalance(address: string): Promise<BigNumber>
   getChainId(): Promise<number>
@@ -37,8 +37,8 @@ export interface EthAdapter {
   getSignerAddress(): Promise<string>
   signMessage(message: string): Promise<string>
   estimateGas(
-    transaction: EthAdapterTransaction,
+    transaction: IEvmNetworkManagerTransaction,
     callback?: (error: Error, gas: number) => void
   ): Promise<number>
-  call(transaction: EthAdapterTransaction): Promise<string>
+  call(transaction: IEvmNetworkManagerTransaction): Promise<string>
 }
