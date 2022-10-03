@@ -79,10 +79,10 @@ export type PrepareRefundTransactionDto = {
 }
 
 export type PrepareRefundTransactionsDto = {
-  version: string
+  version?: string
   transactions: Transaction[]
-  batchId: number
-  chainId: ChainId
+  batchId?: number
+  chainId?: ChainId
 }
 
 export type RefundTransactionDto = {
@@ -93,11 +93,11 @@ export type RefundTransactionDto = {
   chainId: ChainId
 }
 export type RefundTransactionBatchDto = {
-  version: string
+  version?: string
   transactions: Transaction[]
   feeQuote: FeeQuote
-  batchId: number
-  chainId: ChainId
+  batchId?: number
+  chainId?: ChainId
 }
 
 export type TransactionDto = {

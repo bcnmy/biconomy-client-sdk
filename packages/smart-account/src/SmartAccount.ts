@@ -110,7 +110,7 @@ class SmartAccount {
    * If you wish to use your own backend server and relayer service, pass the URLs here
    */
   // review SmartAccountConfig
-  constructor(walletProvider: Web3Provider, config: SmartAccountConfig) {
+  constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
     if (config) {
       this.#smartAccountConfig = { ...this.#smartAccountConfig, ...config }
