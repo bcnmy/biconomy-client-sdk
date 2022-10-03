@@ -124,8 +124,7 @@ class SmartAccount {
     this.setActiveChain(this.#smartAccountConfig.activeNetworkId)
 
     this.owner = await this.signer.getAddress()
-    this.#smartAccountConfig.owner = this.owner
-
+    
     const chainConfig = (await this.nodeClient.getAllSupportedChains()).data
     this.chainConfig = chainConfig
 
@@ -545,8 +544,6 @@ class SmartAccount {
 // Temporary default config
 // TODO/NOTE : make Goerli and Mumbai as test networks and remove others
 export const DefaultSmartAccountConfig: SmartAccountConfig = {
-  owner: '',
-  version: '1.0.1',
   activeNetworkId: ChainId.GOERLI, //Update later
   supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],
   backend_url: 'https://sdk-backend.staging.biconomy.io/v1',

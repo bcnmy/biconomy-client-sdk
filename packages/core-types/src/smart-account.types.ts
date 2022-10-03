@@ -12,8 +12,8 @@ import { JsonRpcSigner } from '@ethersproject/providers'
 
 
 export interface SmartAccountConfig {
-  owner: string
-  version: string
+  // owner: string
+  // version: string
   activeNetworkId: ChainId // same
   supportedNetworksIds: ChainId[] // Network[] chainId: CbainId, rpcUrl?: string
   backend_url: string,
@@ -40,8 +40,8 @@ export interface SmartAccountState {
   address: string // multichain (EVM)
   owner: string // multichain (EVM)
   isDeployed: boolean // chain specific
-  entryPointAddress: string // chain specific
-  fallbackHandlerAddress: string // chain specific
+  entryPointAddress: string // chain specific?
+  fallbackHandlerAddress: string // chain specific?
 }
 
 export type AddressForCounterFactualWalletDto = {
