@@ -18,12 +18,12 @@ import {
   getSmartWalletContract
 } from './utils/FetchContractsInfo'
 import { ethers } from 'ethers'
-import EthersAdapter from '@biconomy-sdk/ethers-lib'
+import EvmNetworkManager from '@biconomy-sdk/ethers-lib'
 import { JsonRpcSigner } from '@ethersproject/providers'
 import { SmartAccountVersion } from '@biconomy-sdk/core-types'
 
 class ContractUtils {
-  ethAdapter!: { [chainId: number]: EthersAdapter }
+  ethAdapter!: { [chainId: number]: EvmNetworkManager }
 
   smartWalletContract!: { [chainId: number]: { [version: string]: SmartWalletContract } }
   multiSendContract!: { [chainId: number]: { [version: string]: MultiSendContract } }
@@ -58,7 +58,7 @@ class ContractUtils {
       console.log('chain id ', network.chainId, 'readProvider ', readProvider);
 
       // Instantiating EthersAdapter instance and maintain it as above mentioned class level variable
-      this.ethAdapter[network.chainId] = new EthersAdapter({
+      this.ethAdapter[network.chainId] = new EvmNetworkManager({
         ethers,
         signer,
         provider: readProvider

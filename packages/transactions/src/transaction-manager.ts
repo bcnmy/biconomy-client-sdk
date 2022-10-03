@@ -6,10 +6,10 @@ import {
   TransactionDto,
   TransactionBatchDto,
   RefundTransactionBatchDto,
-  MetaTransaction,
+  IMetaTransaction,
   MetaTransactionData,
   RefundTransactionDto,
-  WalletTransaction,
+  IWalletTransaction,
   OperationType,
   ZERO_ADDRESS,
   ChainId,
@@ -17,7 +17,7 @@ import {
   FeeOptionsResponse,
   TokenData,
   GAS_USAGE_OFFSET,
-  FeeRefundHandlePayment,
+  IFeeRefundHandlePayment,
   EstimateSmartAccountDeploymentDto,
   SmartAccountState
 } from '@biconomy-sdk/core-types'
@@ -129,7 +129,7 @@ class TransactionManager {
   }
 
   // Onboarding scenario where assets inside counterfactual smart account pays for it's deployment
-  async deployAndPayFees(chainId: ChainId, version: string, feeQuote: FeeQuote): Promise<WalletTransaction> {
+  async deployAndPayFees(chainId: ChainId, version: string, feeQuote: FeeQuote): Promise<IWalletTransaction> {
     const token = feeQuote.address;
     const offset = feeQuote.offset || 1;
     const feeReceiver = feeQuote.refundReceiver || DEFAULT_FEE_RECEIVER;
@@ -155,13 +155,13 @@ class TransactionManager {
   }
 
   /**
-   * Prepares compatible WalletTransaction object based on Transaction Request
+   * Prepares compatible IWalletTransaction object based on Transaction Request
    * @todo Rename based on other variations to prepare transaction
    * @notice This transaction is without fee refund (gasless)
    * @param transactionDto
    * @returns
    */
-  async createTransaction(transactionDto: TransactionDto): Promise<WalletTransaction> {
+  async createTransaction(transactionDto: TransactionDto): Promise<IWalletTransaction> {
     const { transaction, batchId = 0, chainId, version } = transactionDto
 
     // NOTE : If the wallet is not deployed yet then nonce would be zero
@@ -174,7 +174,7 @@ class TransactionManager {
     }
     console.log('nonce: ', nonce)
 
-    const walletTx: WalletTransaction = this.utils.buildSmartAccountTransaction({
+    const walletTx: IWalletTransaction = this.utils.buildSmartAccountTransaction({
       to: transaction.to,
       value: transaction.value,
       data: transaction.data, // for token transfers use encodeTransfer
@@ -185,7 +185,7 @@ class TransactionManager {
   }
 
   /**
-   * Prepares compatible WalletTransaction object based on Transaction Request
+   * Prepares compatible IWalletTransaction object based on Transaction Request
    * @todo Write test case and limit batch size based on test results in scw-contracts
    * @notice This transaction is without fee refund (gasless)
    * @param transaction
@@ -196,7 +196,7 @@ class TransactionManager {
   // TODO: Merge this method with createTransaction, both batch and single transactions can be batched in same transactions
   async createTransactionBatch(
     transactionBatchDto: TransactionBatchDto
-  ): Promise<WalletTransaction> {
+  ): Promise<IWalletTransaction> {
     const { transactions, batchId, chainId, version } = transactionBatchDto
     // NOTE : If the wallet is not deployed yet then nonce would be zero
     let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()
@@ -209,10 +209,10 @@ class TransactionManager {
     }
     console.log('nonce: ', nonce)
 
-    const txs: MetaTransaction[] = []
+    const txs: IMetaTransaction[] = []
 
     for (let i = 0; i < transactions.length; i++) {
-      const innerTx: WalletTransaction = this.utils.buildSmartAccountTransaction({
+      const innerTx: IWalletTransaction = this.utils.buildSmartAccountTransaction({
         to: transactions[i].to,
         value: transactions[i].value,
         data: transactions[i].data, // for token transfers use encodeTransfer
@@ -222,7 +222,7 @@ class TransactionManager {
       txs.push(innerTx)
     }
 
-    const walletTx: WalletTransaction = this.utils.buildMultiSendSmartAccountTx(
+    const walletTx: IWalletTransaction = this.utils.buildMultiSendSmartAccountTx(
       this.contractUtils.multiSendContract[chainId][version].getContract(),
       txs,
       nonce
@@ -387,7 +387,7 @@ class TransactionManager {
 
 
   /**
-   * Prepares compatible WalletTransaction object based on Transaction Request
+   * Prepares compatible IWalletTransaction object based on Transaction Request
    * @todo Rename based on other variations to prepare transaction
    * @notice This transaction is with fee refund (smart account pays using it's own assets accepted by relayers)
    * @param refundTransactionDto
@@ -395,7 +395,7 @@ class TransactionManager {
    */
   async createRefundTransaction(
     refundTransactionDto: RefundTransactionDto
-  ): Promise<WalletTransaction> {
+  ): Promise<IWalletTransaction> {
     const { transaction, feeQuote, batchId, chainId, version } = refundTransactionDto
     let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()
     walletContract = walletContract.attach(this.smartAccountState.address)
@@ -455,7 +455,7 @@ class TransactionManager {
       // baseGas?
       // Depending on feeToken provide baseGas! We could use constant value provided by the relayer
 
-      const refundDetails: FeeRefundHandlePayment = {
+      const refundDetails: IFeeRefundHandlePayment = {
         gasUsed: requiredTxGasEstimate,
         baseGas: requiredTxGasEstimate,
         gasPrice: feeQuote.tokenGasPrice,
@@ -493,7 +493,7 @@ class TransactionManager {
       console.log('required txgas estimate ', requiredTxGasEstimate)
       targetTxGas = requiredTxGasEstimate
 
-      const refundDetails: FeeRefundHandlePayment = {
+      const refundDetails: IFeeRefundHandlePayment = {
         gasUsed: requiredTxGasEstimate,
         baseGas: requiredTxGasEstimate,
         gasPrice: feeQuote.tokenGasPrice,
@@ -516,7 +516,7 @@ class TransactionManager {
       baseGas = handlePaymentEstimate + regularOffSet + additionalBaseGas // delegate call + event emission + state updates + potential deployment
     }
 
-    const walletTx: WalletTransaction = this.utils.buildSmartAccountTransaction({
+    const walletTx: IWalletTransaction = this.utils.buildSmartAccountTransaction({
       to: transaction.to,
       value: transaction.value,
       data: transaction.data, // for token transfers use encodeTransfer
@@ -533,7 +533,7 @@ class TransactionManager {
   }
 
   /**
- * Prepares compatible WalletTransaction object based on Transaction Request
+ * Prepares compatible IWalletTransaction object based on Transaction Request
  * @todo Rename based on other variations to prepare transaction
  * @notice This transaction is with fee refund (smart account pays using it's own assets accepted by relayers)
  * @param refundTransactionBatchDto
@@ -541,7 +541,7 @@ class TransactionManager {
  */
   async createRefundTransactionBatch(
     refundTransactionBatchDto: RefundTransactionBatchDto
-  ): Promise<WalletTransaction> {
+  ): Promise<IWalletTransaction> {
     const {
       transactions,
       feeQuote,
@@ -581,9 +581,9 @@ class TransactionManager {
     }
     console.log('nonce: ', nonce)
 
-    const txs: MetaTransaction[] = this.utils.buildSmartAccountTransactions(transactions)
+    const txs: IMetaTransaction[] = this.utils.buildSmartAccountTransactions(transactions)
 
-    const walletTx: WalletTransaction = this.utils.buildMultiSendSmartAccountTx(
+    const walletTx: IWalletTransaction = this.utils.buildMultiSendSmartAccountTx(
       this.contractUtils.multiSendContract[chainId][version].getContract(),
       txs,
       nonce
@@ -623,7 +623,7 @@ class TransactionManager {
       // baseGas?
       // Depending on feeToken provide baseGas! We could use constant value provided by the relayer
 
-      const refundDetails: FeeRefundHandlePayment = {
+      const refundDetails: IFeeRefundHandlePayment = {
         gasUsed: requiredTxGasEstimate,
         baseGas: requiredTxGasEstimate,
         gasPrice: feeQuote.tokenGasPrice, // this would be token gas price // review	
@@ -663,7 +663,7 @@ class TransactionManager {
       console.log('required txgas estimate ', requiredTxGasEstimate);
       targetTxGas = requiredTxGasEstimate;
 
-      const refundDetails: FeeRefundHandlePayment = {
+      const refundDetails: IFeeRefundHandlePayment = {
         gasUsed: requiredTxGasEstimate,
         baseGas: requiredTxGasEstimate,
         gasPrice: feeQuote.tokenGasPrice, // this would be token gas price // review	
@@ -684,7 +684,7 @@ class TransactionManager {
       baseGas = handlePaymentEstimate + regularOffSet + additionalBaseGas; // delegate call + event emission + state updates + potential deployment
     }
 
-    const finalWalletTx: WalletTransaction = this.utils.buildSmartAccountTransaction({
+    const finalWalletTx: IWalletTransaction = this.utils.buildSmartAccountTransaction({
       to: walletTx.to,
       value: walletTx.value,
       data: walletTx.data, // for token transfers use encodeTransfer

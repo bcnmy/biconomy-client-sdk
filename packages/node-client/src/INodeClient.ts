@@ -1,5 +1,4 @@
 // import { FeeRefund, FeeRefundData, MetaTransactionData } from '@biconomy-sdk/core-types'
-import { Signer } from '@ethersproject/abstract-signer'
 import {
   EstimateExternalGasDto,
   EstimateRequiredTxGasDto,
@@ -16,7 +15,8 @@ import {
   BalancesResponse,
   BalancesDto,
   UsdBalanceResponse,
-  EstimateGasResponse
+  EstimateGasResponse,
+  TransactionResponse
 } from './types/NodeClientTypes'
 
 interface INodeClient {
@@ -142,6 +142,16 @@ interface INodeClient {
     estimateUndeployedContractGasDto: EstimateUndeployedContractGasDto
   ): Promise<EstimateGasResponse>
 
+  getTransactionByHash(
+    txHash: string
+  ): Promise<TransactionResponse>
+
+  getTransactionByAddress(
+    chainId: number,
+    address: string
+  ): Promise<TransactionResponse[]>
+
+  
   // 6. Conditional Gasless Endpoint
 
   // 7. Signing Service Endpoint

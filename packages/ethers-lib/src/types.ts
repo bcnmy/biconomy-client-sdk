@@ -1,13 +1,13 @@
 import { ContractTransaction } from '@ethersproject/contracts'
-import { BaseTransactionResult } from '@gnosis.pm/safe-core-sdk-types'
+import { IBaseTransactionResult } from '@biconomy-sdk/core-types'
 
-export interface EthersTransactionOptions {
+export interface IEthersTransactionOptions {
   from?: string
   gasLimit?: number | string
   gasPrice?: number | string
 }
 
-export interface EthersTransactionResult extends BaseTransactionResult {
+export interface IEthersTransactionResult extends IBaseTransactionResult {
   transactionResponse: ContractTransaction
-  options?: EthersTransactionOptions
+  options?: IEthersTransactionOptions
 }

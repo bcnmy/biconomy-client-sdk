@@ -13,9 +13,9 @@ import {
   TransactionBatchDto,
   ExecTransaction,
   RelayTransaction,
-  FeeRefundV1_0_0,
-  FeeRefundV1_0_1,
-  WalletTransaction,
+  IFeeRefundV1_0_0,
+  IFeeRefundV1_0_1,
+  IWalletTransaction,
   SmartAccountVersion,
   SignedTransaction,
   ChainId,
@@ -41,6 +41,7 @@ import { Relayer, RestRelayer } from '@biconomy-sdk/relayer'
 import TransactionManager, { ContractUtils, smartAccountSignMessage } from '@biconomy-sdk/transactions'
 import { BalancesDto } from '@biconomy-sdk/node-client'
 import {
+  TransactionResponse,
   BalancesResponse,
   UsdBalanceResponse,
 } from '@biconomy-sdk/node-client'
@@ -184,6 +185,19 @@ class SmartAccount {
   ): Promise<SmartAccountsResponse> {
     return this.nodeClient.getSmartAccountsByOwner(smartAccountByOwnerDto)
   }
+  
+  public async getTransactionByAddress(
+    chainId: number,
+    address: string  ): Promise<TransactionResponse[]> {
+    return this.nodeClient.getTransactionByAddress(chainId, address)
+  }
+  
+  public async getTransactionByHash(
+    txHash: string ): Promise<TransactionResponse> {
+    return this.nodeClient.getTransactionByHash(txHash)
+  }
+
+
 
   // return adapter instance to be used for blockchain interactions
   /**
@@ -225,7 +239,7 @@ class SmartAccount {
   /**
    *
    * @notice personal sign is used currently (// @todo Signer should be able to use _typedSignData)
-   * @param tx WalletTransaction Smart Account Transaction object prepared
+   * @param tx IWalletTransaction Smart Account Transaction object prepared
    * @param chainId optional chainId
    * @returns:string Signature
    */
@@ -244,7 +258,7 @@ class SmartAccount {
   // This would be a implementation on user sponsorship provider
   /**
    * Prepares encoded wallet transaction, gets signature from the signer and dispatches to the blockchain using relayer
-   * @param tx WalletTransaction Smart Account Transaction object prepared
+   * @param tx IWalletTransaction Smart Account Transaction object prepared
    * @param batchId optional nonce space for parallel processing
    * @param chainId optional chainId
    * @returns
@@ -272,7 +286,7 @@ class SmartAccount {
       targetTxGas: tx.targetTxGas
     }
 
-    const refundInfo: FeeRefundV1_0_0 | FeeRefundV1_0_1 = {
+    const refundInfo: IFeeRefundV1_0_0 | IFeeRefundV1_0_1 = {
       baseGas: tx.baseGas,
       gasPrice: tx.gasPrice,
       tokenGasPriceFactor: tx.tokenGasPriceFactor,
@@ -361,7 +375,7 @@ class SmartAccount {
   // Other helpers go here for pre build (feeOptions and quotes from relayer) , build and execution of refund type transactions
 
   /**
-   * Prepares compatible WalletTransaction object based on Transaction Request
+   * Prepares compatible IWalletTransaction object based on Transaction Request
    * @todo Rename based on other variations to prepare transaction
    * @notice This transaction is with fee refund (smart account pays using it's own assets accepted by relayers)
    * @param refundTransactionDto
@@ -369,7 +383,7 @@ class SmartAccount {
    */
   async createRefundTransaction(
     refundTransactionDto: RefundTransactionDto
-  ): Promise<WalletTransaction> {
+  ): Promise<IWalletTransaction> {
     const chainId = this.#smartAccountConfig.activeNetworkId
     refundTransactionDto.chainId = chainId
     refundTransactionDto.version = this.DEFAULT_VERSION
@@ -378,13 +392,13 @@ class SmartAccount {
   }
 
   /**
-   * Prepares compatible WalletTransaction object based on Transaction Request
+   * Prepares compatible IWalletTransaction object based on Transaction Request
    * @todo Rename based on other variations to prepare transaction
    * @notice This transaction is without fee refund (gasless)
    * @param transactionDto
    * @returns
    */
-  async createTransaction(transactionDto: TransactionDto): Promise<WalletTransaction> {
+  async createTransaction(transactionDto: TransactionDto): Promise<IWalletTransaction> {
     const chainId = this.#smartAccountConfig.activeNetworkId
     transactionDto.chainId = chainId
     transactionDto.version = this.DEFAULT_VERSION
@@ -393,7 +407,7 @@ class SmartAccount {
   }
 
     /**
-   * Prepares compatible WalletTransaction object based on Transaction Request
+   * Prepares compatible IWalletTransaction object based on Transaction Request
    * @todo Write test case and limit batch size based on test results in scw-contracts
    * @notice This transaction is without fee refund (gasless)
    * @param transaction
@@ -403,7 +417,7 @@ class SmartAccount {
    */
      async createTransactionBatch(
       transactionBatchDto: TransactionBatchDto
-    ): Promise<WalletTransaction> {
+    ): Promise<IWalletTransaction> {
       const chainId = this.#smartAccountConfig.activeNetworkId
       transactionBatchDto.chainId = chainId
       transactionBatchDto.version = this.DEFAULT_VERSION
@@ -411,7 +425,7 @@ class SmartAccount {
     }
 
   /**
-   * Prepares compatible WalletTransaction object based on Transaction Request
+   * Prepares compatible IWalletTransaction object based on Transaction Request
    * @todo Rename based on other variations to prepare transaction
    * @notice This transaction is with fee refund (smart account pays using it's own assets accepted by relayers)
    * @param refundTransactionBatchDto
@@ -419,7 +433,7 @@ class SmartAccount {
    */
   async createRefundTransactionBatch(
     refundTransactionBatchDto: RefundTransactionBatchDto
-  ): Promise<WalletTransaction> {
+  ): Promise<IWalletTransaction> {
     const chainId = this.#smartAccountConfig.activeNetworkId
     refundTransactionBatchDto.chainId = chainId
     refundTransactionBatchDto.version = this.DEFAULT_VERSION

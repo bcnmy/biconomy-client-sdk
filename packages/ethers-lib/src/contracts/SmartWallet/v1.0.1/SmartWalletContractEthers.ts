@@ -2,11 +2,10 @@ import { BigNumber } from '@ethersproject/bignumber'
 import {
   SmartAccountVersion,
   SmartWalletContract,
-  WalletTransaction,
+  IWalletTransaction,
   ExecTransaction,
-  FeeRefundV1_0_0, 
-  FeeRefundV1_0_1,
-  TransactionResult
+  IFeeRefundV1_0_1,
+  ITransactionResult
 } from '@biconomy-sdk/core-types'
 import { toTxResult } from '../../../utils'
 import { SmartWalletContractV101 as SmartWalletContract_TypeChain } from '../../../../typechain/src/ethers-v5/v1.0.1/SmartWalletContractV101'
@@ -43,7 +42,7 @@ class SmartWalletContractEthers implements SmartWalletContract {
   async getNonce(batchId: number): Promise<BigNumber> {
     return await this.contract.getNonce(batchId)
   }
-  async getTransactionHash(smartAccountTrxData: WalletTransaction): Promise<string> {
+  async getTransactionHash(smartAccountTrxData: IWalletTransaction): Promise<string> {
     return this.contract.getTransactionHash(
       smartAccountTrxData.to,
       smartAccountTrxData.value,
@@ -62,9 +61,10 @@ class SmartWalletContractEthers implements SmartWalletContract {
   async execTransaction(
     _tx: ExecTransaction,
     batchId: number,
-    refundInfo: FeeRefundV1_0_1,
+    refundInfo: IFeeRefundV1_0_1,
     signatures: string
-  ): Promise<TransactionResult> {
+  ): Promise<ITransactionResult> {
+    // TODO: estimate GAS before making the transaction
     const txResponse = await this.contract.execTransaction(_tx, batchId, refundInfo, signatures)
     return toTxResult(txResponse)
   }

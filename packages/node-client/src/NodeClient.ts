@@ -15,20 +15,18 @@ import {
   BalancesDto,
   BalancesResponse,
   UsdBalanceResponse,
-  EstimateGasResponse
+  EstimateGasResponse,
+  TransactionResponse
 } from './types/NodeClientTypes'
 import { getTxServiceBaseUrl } from './utils'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
 export interface NodeClientConfig {
   /** txServiceUrl - Safe Transaction Service URL */
   txServiceUrl: string
-  /** ethAdapter - Ethereum adapter */
-  // ethAdapter: EthAdapter
 }
 
 class NodeClient implements INodeClient {
   #txServiceBaseUrl: string
-  // #ethAdapter: EthAdapter
 
   // Review
   // Removed ethAdapter
@@ -178,6 +176,25 @@ class NodeClient implements INodeClient {
        body: estimateUndeployedContractGasDto
      })
    }
+
+   getTransactionByAddress(
+     chainId: number,
+     address: string
+  ): Promise<TransactionResponse[]>{
+    return sendRequest({
+      url: `${this.#txServiceBaseUrl}/transactions/chainId/${chainId}/address/${address}`,
+      method: HttpMethod.Get
+     })
+  }
+
+  getTransactionByHash(
+    txHash: string
+  ): Promise<TransactionResponse>{
+    return sendRequest({
+      url: `${this.#txServiceBaseUrl}/transactions/txHash/${txHash}`,
+      method: HttpMethod.Get
+     })
+  }
 }
 
 export default NodeClient

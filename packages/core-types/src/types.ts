@@ -7,12 +7,12 @@ export enum OperationType {
 }
 
 
-export interface Eip3770Address {
+export type Eip3770Address = {
   prefix: string
   address: string
 }
 
-export interface RelayResponse {
+export type RelayResponse = {
   code?: number
   message?: string
   transactionId?: string
@@ -20,7 +20,7 @@ export interface RelayResponse {
   error?: string
   connectionUrl?: string
 }
-export interface UserOperation {
+export type UserOperation = {
   sender: string
   nonce: number
   initCode: string
@@ -45,11 +45,11 @@ export const GAS_USAGE_OFFSET = 4928 + 2360
 
 export const FAKE_SIGNATURE = "0x39f5032f1cd30005aa1e35f04394cabfe7de3b6ae6d95b27edd8556064c287bf61f321fead0cf48ca4405d497cc8fc47fc7ff0b7f5c45baa14090a44f2307d8230"
 
-export interface RestRelayerOptions {
+export type RestRelayerOptions = {
   url: string
 }
 
-export interface TokenData {
+export type TokenData = {
   tokenGasPrice: number // review
   offset?: number // review
   symbol: string
@@ -60,7 +60,7 @@ export interface TokenData {
   refundReceiver?: string
 }
 
-export interface FeeQuote {
+export type FeeQuote = {
   symbol: string,
   address: string, 
   decimal: number,
@@ -71,14 +71,14 @@ export interface FeeQuote {
   refundReceiver?: string;
 }
 
-export interface FeeOptionsResponse {
+export type FeeOptionsResponse = {
   msg: string
   data: {
     chainId: number
     response: Array<TokenData>
   }
 }
-export interface FeeOption {
+export type FeeOption = {
   feeToken: string
   tokenGasPrice: number | string //review
   offset: number | string // review

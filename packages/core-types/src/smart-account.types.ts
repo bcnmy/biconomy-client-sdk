@@ -1,7 +1,7 @@
 // Smart Account Detail Param Types
 
 import { ChainId } from './chains.types'
-import { WalletTransaction, Transaction } from './transaction.types'
+import { IWalletTransaction, Transaction } from './transaction.types'
 import { FeeQuote } from './types'
 import { SmartWalletFactoryContract } from './contracts/SmartWalletFactoryContract'
 import { MultiSendContract } from './contracts/MultiSendContract'
@@ -27,7 +27,7 @@ export type ProviderUrlConfig = {
   providerUrl: string
 }
 
-export interface SmartAccountContext {
+export type SmartAccountContext = {
   baseWallet: SmartWalletContract
   walletFactory: SmartWalletFactoryContract
   multiSend: MultiSendContract
@@ -43,7 +43,7 @@ export type EstimateSmartAccountDeploymentDto = {
   fallbackHandlerAddress: string
 }
 
-export interface SmartAccountState {
+export type SmartAccountState = {
   address: string // multichain (EVM)
   owner: string // multichain (EVM)
   isDeployed: boolean // chain specific
@@ -59,13 +59,13 @@ export type AddressForCounterFactualWalletDto = {
 
 export type SignTransactionDto = {
   version: string
-  tx: WalletTransaction
+  tx: IWalletTransaction
   chainId: ChainId
   signer: JsonRpcSigner
 }
 
 export type SendTransactionDto = {
-  tx: WalletTransaction
+  tx: IWalletTransaction
   batchId?: number
   chainId?: ChainId
   gasLimit?: GasLimit
