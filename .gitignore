@@ -45,6 +45,7 @@ node_modules/
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+yarn.lock
 
 # macOS
 .DS_Store
@@ -54,8 +55,12 @@ cache
 artifacts
 deployments
 
+packages/common/src/types/
+
 # lockfiles
 packages/core-types/package-lock.json
+packages/account-abstraction/package-lock.json
+packages/common/package-lock.json
 packages/ethers-lib/package-lock.json
 packages/node-client/package-lock.json
 packages/relayer/package-lock.json

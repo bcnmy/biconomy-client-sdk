@@ -2,8 +2,8 @@
   "name": "@biconomy-sdk/smart-account",
   "version": "1.0.11",
   "description": "Biconomy Client SDK types",
-  "main": "dist/src/index.js",
-  "typings": "dist/src/index.d.ts",
+  "main": "./dist/src/index.js",
+  "typings": "./dist/src/index.d.ts",
   "keywords": [
     "Ethereum",
     "Gnosis",
@@ -24,7 +24,8 @@
   "author": "Biconomy (https://biconomy.io)",
   "license": "MIT",
   "files": [
-    "dist"
+    "dist/*",
+    "README.md"
   ],
   "publishConfig": {
     "access": "public"

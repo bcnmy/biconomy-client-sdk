@@ -2,8 +2,8 @@
   "name": "@biconomy-sdk/node-client",
   "version": "1.0.11",
   "description": "Node Client that comminucates with indexer service to fetch necessary details for the Smart Account",
-  "main": "dist/src/index.js",
-  "typings": "dist/src/index.d.ts",
+  "main": "./dist/src/index.js",
+  "typings": "./dist/src/index.d.ts",
   "keywords": [
     "Ethereum",
     "Gnosis",
@@ -19,7 +19,8 @@
   "author": "Biconomy (https://biconomy.io)",
   "license": "MIT",
   "files": [
-    "dist"
+    "dist/*",
+    "README.md"
   ],
   "devDependencies": {
     "@gnosis.pm/safe-core-sdk": "^2.1.0",

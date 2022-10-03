@@ -1,0 +1,33 @@
+{
+  "name": "@biconomy-sdk/gas-estimator",
+  "version": "1.0.11",
+  "description": "library for estimating gas for generic actions and smart account methods under different conditions. ",
+  "keywords": [
+    "gas-estimation",
+    "gas-usage",
+    "estimateGas"
+  ],
+  "author": "livingrockrises <chirag@biconomy.io>",
+  "homepage": "https://github.com/bcnmy/biconomy-client-sdk#readme",
+  "license": "MIT",
+  "main": "./dist/src/index.js",
+  "files": [
+    "dist/*",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bcnmy/biconomy-client-sdk.git"
+  },
+  "scripts": {
+  },
+  "bugs": {
+    "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"
+  },
+  "dependencies": {
+    "ethers": "^5.7.1"
+  }
+}

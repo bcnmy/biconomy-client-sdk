@@ -19,8 +19,6 @@ import {
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import { AddressZero } from '@ethersproject/constants'
 
-// TODO
-// Review all types and their placement and dependency
 export const EIP_DOMAIN = {
   EIP712Domain: [
     { type: 'uint256', name: 'chainId' },

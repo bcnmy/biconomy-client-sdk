@@ -17,7 +17,14 @@ export interface SmartAccountConfig {
   activeNetworkId: ChainId // same
   supportedNetworksIds: ChainId[] // Network[] chainId: CbainId, rpcUrl?: string
   backend_url: string,
-  relayer_url: string
+  relayer_url: string,
+  dappAPIKey?: string
+  providerUrlConfig?: ProviderUrlConfig[]
+}
+
+export type ProviderUrlConfig = {
+  chainId: ChainId
+  providerUrl: string
 }
 
 export interface SmartAccountContext {
