@@ -13,6 +13,15 @@
     "include": [
       "./src/**/*",
       "./tests/**/*"
+    ],
+    "references": [
+      { "path": "core-types" },
+      { "path": "ethers-lib" },
+      { "path": "gas-estimator" },
+      { "path": "node-client" },
+      { "path": "relayer" },
+      { "path": "smart-account" },
+      { "path": "transactions" }
     ]
   }
   

@@ -8,6 +8,24 @@ import { MultiSendContract } from './contracts/MultiSendContract'
 import { MultiSendCallOnlyContract } from './contracts/MultiSendCallOnlyContract'
 import { SmartWalletContract } from './contracts/SmartWalletContract'
 import { GasLimit } from './transaction.types'
+import { JsonRpcSigner } from '@ethersproject/providers'
+
+
+export interface SmartAccountConfig {
+  // owner: string
+  // version: string
+  activeNetworkId: ChainId // same
+  supportedNetworksIds: ChainId[] // Network[] chainId: CbainId, rpcUrl?: string
+  backend_url: string,
+  relayer_url: string,
+  dappAPIKey?: string
+  providerUrlConfig?: ProviderUrlConfig[]
+}
+
+export type ProviderUrlConfig = {
+  chainId: ChainId
+  providerUrl: string
+}
 
 export interface SmartAccountContext {
   baseWallet: SmartWalletContract
@@ -16,22 +34,34 @@ export interface SmartAccountContext {
   multiSendCall: MultiSendCallOnlyContract
 }
 
-export interface SmartAccountState {
-  address: string
-  owner: string
-  isDeployed: boolean
+
+export type EstimateSmartAccountDeploymentDto = {
+  chainId: ChainId
+  version: string
+  owner: string,
   entryPointAddress: string
   fallbackHandlerAddress: string
 }
 
+export interface SmartAccountState {
+  address: string // multichain (EVM)
+  owner: string // multichain (EVM)
+  isDeployed: boolean // chain specific
+  entryPointAddress: string // chain specific?
+  fallbackHandlerAddress: string // chain specific?
+}
+
 export type AddressForCounterFactualWalletDto = {
   index: number
-  chainId?: ChainId
+  chainId: ChainId
+  version: string
 }
 
 export type SignTransactionDto = {
+  version: string
   tx: WalletTransaction
-  chainId?: ChainId
+  chainId: ChainId
+  signer: JsonRpcSigner
 }
 
 export type SendTransactionDto = {
@@ -42,38 +72,44 @@ export type SendTransactionDto = {
 }
 
 export type PrepareRefundTransactionDto = {
+  version: string
   transaction: Transaction
-  batchId?: number
-  chainId?: ChainId
+  batchId: number
+  chainId: ChainId
 }
 
 export type PrepareRefundTransactionsDto = {
+  version: string
   transactions: Transaction[]
-  batchId?: number
-  chainId?: ChainId
+  batchId: number
+  chainId: ChainId
 }
 
 export type RefundTransactionDto = {
+  version: string
   transaction: Transaction
   feeQuote: FeeQuote
-  batchId?: number
-  chainId?: ChainId
+  batchId: number
+  chainId: ChainId
 }
 export type RefundTransactionBatchDto = {
+  version: string
   transactions: Transaction[]
   feeQuote: FeeQuote
-  batchId?: number
-  chainId?: ChainId
+  batchId: number
+  chainId: ChainId
 }
 
 export type TransactionDto = {
+  version: string,
   transaction: Transaction
-  batchId?: number
-  chainId?: ChainId
+  batchId: number
+  chainId: ChainId
 }
 
 export type TransactionBatchDto = {
+  version: string
   transactions: Transaction[]
-  batchId?: number
-  chainId?: ChainId
+  batchId: number
+  chainId: ChainId
 }

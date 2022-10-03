@@ -36,6 +36,7 @@
     "access": "public"
   },
   "dependencies": {
+    "@ethersproject/providers": "^5.6.8",
     "@ethersproject/bignumber": "^5.6.0",
     "@ethersproject/contracts": "^5.6.0",
     "@gnosis.pm/safe-deployments": "^1.16.0",
