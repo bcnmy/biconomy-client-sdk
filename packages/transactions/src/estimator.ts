@@ -1,13 +1,6 @@
 import { ethers } from 'ethers'
 import { GasEstimator } from './assets'
 import NodeClient, {
-    ChainConfig,
-    SupportedChainsResponse,
-    SmartAccountsResponse,
-    SmartAccountByOwnerDto,
-    EstimateExternalGasDto,
-    EstimateRequiredTxGasDto,
-    EstimateHandlePaymentTxGasDto,
     EstimateUndeployedContractGasDto,
 } from '@biconomy-sdk/node-client'
 import ContractUtils from './contract-utils'
@@ -15,10 +8,10 @@ import {
     PrepareRefundTransactionDto,
     PrepareRefundTransactionsDto,
     EstimateSmartAccountDeploymentDto,
-    WalletTransaction,
+    IWalletTransaction,
     FAKE_SIGNATURE,
     ExecTransaction,
-    FeeRefundV1_0_1,
+    IFeeRefundV1_0_1,
     SmartAccountState,
   } from '@biconomy-sdk/core-types'
 
@@ -34,7 +27,7 @@ export class Estimator {
         this.contractUtils = contractUtils
     }
 
-    async estimateTransaction(prepareTransactionDto: PrepareRefundTransactionDto, createdTransaction: WalletTransaction, smartAccountState: SmartAccountState): Promise<number> {
+    async estimateTransaction(prepareTransactionDto: PrepareRefundTransactionDto, createdTransaction: IWalletTransaction, smartAccountState: SmartAccountState): Promise<number> {
         const {
             transaction,
             batchId,
@@ -73,7 +66,7 @@ export class Estimator {
         // to avoid failing eth_call override with undeployed wallet
         txn.targetTxGas = 500000;
 
-        const refundInfo: FeeRefundV1_0_1 = {
+        const refundInfo: IFeeRefundV1_0_1 = {
             baseGas: createdTransaction.baseGas,
             gasPrice: createdTransaction.gasPrice,
             tokenGasPriceFactor: createdTransaction.tokenGasPriceFactor,
@@ -99,7 +92,7 @@ export class Estimator {
         return estimatedGasUsed;
     }
 
-    async estimateTransactionBatch(prepareRefundTransactionsDto: PrepareRefundTransactionsDto, createdTransaction: WalletTransaction, smartAccountState: SmartAccountState): Promise<number> {
+    async estimateTransactionBatch(prepareRefundTransactionsDto: PrepareRefundTransactionsDto, createdTransaction: IWalletTransaction, smartAccountState: SmartAccountState): Promise<number> {
 
         const { transactions, batchId, chainId, version } = prepareRefundTransactionsDto
         let estimatedGasUsed = 0;
@@ -128,7 +121,7 @@ export class Estimator {
         // to avoid failing eth_call override with undeployed wallet
         txn.targetTxGas = 500000;
 
-        const refundInfo: FeeRefundV1_0_1 = {
+        const refundInfo: IFeeRefundV1_0_1 = {
             baseGas: createdTransaction.baseGas,
             gasPrice: createdTransaction.gasPrice,
             tokenGasPriceFactor: createdTransaction.tokenGasPriceFactor,

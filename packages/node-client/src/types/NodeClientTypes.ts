@@ -2,8 +2,8 @@ import {
   ChainId,
   SmartAccountVersion,
   MetaTransactionData,
-  FeeRefundV1_0_0,
-  FeeRefundV1_0_1
+  IFeeRefundV1_0_0,
+  IFeeRefundV1_0_1
 } from '@biconomy-sdk/core-types'
 export type SmartAccountInfoResponse = {
   readonly name: string
@@ -21,6 +21,26 @@ export type SmartAccountInfoResponse = {
     readonly TOKENS_LOGO_BASE_URI: string
     readonly TOKENS_LOGO_EXTENSION: string
   }
+}
+
+export type TransactionResponse = {
+  symbol: string
+  tokenAddress: string
+  scwAddress: string
+  txHash: string
+  blockNumber: number
+  payment: number
+  gasLimit: number
+  gasUsage: number
+  gasPrice: number
+  chainId: number
+  fromAddress: string
+  toAddress: string
+  amount: number
+  type: string
+  txStatus: string
+  createdAt: number
+  updatedAt: number
 }
 
 export type BalancesDto = {
@@ -44,14 +64,14 @@ export type EstimateHandlePaymentTxGasDto = {
   chainId: number
   version: string
   walletAddress: string
-  feeRefund: FeeRefundV1_0_0 | FeeRefundV1_0_1
+  feeRefund: IFeeRefundV1_0_0 | IFeeRefundV1_0_1
 }
 
 export type EstimateUndeployedContractGasDto = {
   chainId: number
   version: string
   walletAddress: string
-  feeRefund: FeeRefundV1_0_0 | FeeRefundV1_0_1
+  feeRefund: IFeeRefundV1_0_0 | IFeeRefundV1_0_1
   transaction: MetaTransactionData
   signature: string
 }

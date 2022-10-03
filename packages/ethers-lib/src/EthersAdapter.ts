@@ -4,8 +4,8 @@ import { BigNumber } from '@ethersproject/bignumber'
 import { Provider, JsonRpcProvider } from '@ethersproject/providers'
 import {
   Eip3770Address,
-  EthAdapter,
-  EthAdapterTransaction,
+  IEvmNetworkManager,
+  IEvmNetworkManagerTransaction,
   SmartAccountVersion,
   SmartWalletContract
 } from '@biconomy-sdk/core-types'
@@ -28,7 +28,7 @@ export interface EthersAdapterConfig {
   provider: JsonRpcProvider
 }
 
-class EthersAdapter implements EthAdapter {
+class EvmNetworkManager implements IEvmNetworkManager {
   #ethers: Ethers
   #signer: Signer
   #provider: JsonRpcProvider
@@ -121,13 +121,13 @@ class EthersAdapter implements EthAdapter {
   }
 
   // Review
-  async estimateGas(transaction: EthAdapterTransaction): Promise<number> {
+  async estimateGas(transaction: IEvmNetworkManagerTransaction): Promise<number> {
     return (await this.#provider.estimateGas(transaction)).toNumber()
   }
 
-  call(transaction: EthAdapterTransaction): Promise<string> {
+  call(transaction: IEvmNetworkManagerTransaction): Promise<string> {
     return this.#provider.call(transaction)
   }
 }
 
-export default EthersAdapter
+export default EvmNetworkManager

@@ -3,18 +3,8 @@ import { Signer as AbstractSigner, ethers } from 'ethers'
 import { Relayer } from '.'
 
 import {
-  SmartWalletFactoryContract,
-  SmartWalletContract,
-  MultiSendContract,
-  MultiSendCallOnlyContract,
-  TransactionResult,
   RelayTransaction,
   DeployWallet,
-  SmartAccountContext,
-  SmartAccountState,
-  SignedTransaction,
-  WalletTransaction,
-  RawTransactionType,
   RestRelayerOptions,
   FeeOptionsResponse,
   RelayResponse

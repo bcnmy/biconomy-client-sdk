@@ -4,7 +4,7 @@ import { Relayer } from '.'
 
 import {
   DeployWallet,
-  WalletTransaction,
+  IWalletTransaction,
   FeeOptionsResponse,
   RelayTransaction,
   RelayResponse
@@ -73,7 +73,7 @@ export class LocalRelayer implements Relayer {
         index: 0
       }
       const { to, data } = this.prepareWalletDeploy(prepareWalletDeploy)
-      const originalTx: WalletTransaction = signedTx.tx
+      const originalTx: IWalletTransaction = signedTx.tx
 
       const txs: MetaTransaction[] = [
         {

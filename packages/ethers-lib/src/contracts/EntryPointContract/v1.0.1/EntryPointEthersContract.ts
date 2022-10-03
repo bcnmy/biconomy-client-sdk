@@ -1,4 +1,4 @@
-import { EntryPointContract, UserOperation, TransactionResult } from '@biconomy-sdk/core-types'
+import { EntryPointContract, UserOperation, ITransactionResult } from '@biconomy-sdk/core-types'
 import {
   EntryPointContractV101 as EntryPointContract_TypeChain,
   EntryPointContractV101Interface
@@ -17,7 +17,7 @@ class EntryPointEthersContract implements EntryPointContract {
     return this.contract
   }
 
-  async simulateValidation(userOperation: UserOperation, offChainSigCheck: boolean): Promise<TransactionResult> {
+  async simulateValidation(userOperation: UserOperation, offChainSigCheck: boolean): Promise<ITransactionResult> {
     const resultSet = await this.contract.simulateValidation(userOperation, offChainSigCheck)
     return toTxResult(resultSet)
   }
@@ -29,7 +29,7 @@ class EntryPointEthersContract implements EntryPointContract {
   async handleOps(
     userOperations: UserOperation[],
     beneficiary: string
-  ): Promise<TransactionResult> {
+  ): Promise<ITransactionResult> {
     const resultSet = await this.contract.handleOps(userOperations, beneficiary)
     return toTxResult(resultSet)
   }

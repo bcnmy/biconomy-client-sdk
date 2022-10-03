@@ -5,7 +5,7 @@ import {
     utils
 } from 'ethers'
 
-import { MetaTransaction, WalletTransaction, Transaction } from '@biconomy-sdk/core-types'
+import { IMetaTransaction, IWalletTransaction, Transaction } from '@biconomy-sdk/core-types'
 
 import { AddressZero } from '@ethersproject/constants'
 
@@ -27,7 +27,7 @@ export class Utils {
         gasToken?: string
         refundReceiver?: string
         nonce: number
-    }): WalletTransaction => {
+    }): IWalletTransaction => {
         return {
             to: template.to,
             value: template.value || 0,
@@ -43,10 +43,10 @@ export class Utils {
         }
     }
 
-    buildSmartAccountTransactions = (transactions: Transaction[]):MetaTransaction[] => {
-        const txs: MetaTransaction[] = []
+    buildSmartAccountTransactions = (transactions: Transaction[]):IMetaTransaction[] => {
+        const txs: IMetaTransaction[] = []
         for (let i = 0; i < transactions.length; i++) {
-            const innerTx: WalletTransaction = this.buildSmartAccountTransaction({
+            const innerTx: IWalletTransaction = this.buildSmartAccountTransaction({
               to: transactions[i].to,
               value: transactions[i].value,
               data: transactions[i].data, // for token transfers use encodeTransfer
@@ -60,18 +60,18 @@ export class Utils {
 
     buildMultiSendSmartAccountTx = (
         multiSend: Contract,
-        txs: MetaTransaction[],
+        txs: IMetaTransaction[],
         nonce: number,
-        overrides?: Partial<WalletTransaction>
-    ): WalletTransaction => {
+        overrides?: Partial<IWalletTransaction>
+    ): IWalletTransaction => {
         return this.buildContractCall(multiSend, 'multiSend', [this.encodeMultiSend(txs)], nonce, true, overrides)
     }
 
-    encodeMultiSend = (txs: MetaTransaction[]): string => {
+    encodeMultiSend = (txs: IMetaTransaction[]): string => {
         return '0x' + txs.map((tx) => this.encodeMetaTransaction(tx)).join('')
     }
 
-    encodeMetaTransaction = (tx: MetaTransaction): string => {
+    encodeMetaTransaction = (tx: IMetaTransaction): string => {
         const data = utils.arrayify(tx.data)
         const encoded = utils.solidityPack(
             ['uint8', 'address', 'uint256', 'uint256', 'bytes'],
@@ -86,8 +86,8 @@ export class Utils {
         params: any[],
         nonce: number,
         delegateCall?: boolean,
-        overrides?: Partial<WalletTransaction>
-      ): WalletTransaction => {
+        overrides?: Partial<IWalletTransaction>
+      ): IWalletTransaction => {
         const data = contract.interface.encodeFunctionData(method, params)
         return this.buildSmartAccountTransaction(
           Object.assign(

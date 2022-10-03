@@ -1,4 +1,4 @@
-import { SmartWalletFactoryContract, TransactionResult } from '@biconomy-sdk/core-types'
+import { SmartWalletFactoryContract, ITransactionResult } from '@biconomy-sdk/core-types'
 import { toTxResult } from '../../../utils'
 import { SmartWalletFactoryContractV100 as SmartWalletFactoryContract_TypeChain } from '../../../../typechain/src/ethers-v5/v1.0.0/SmartWalletFactoryContractV100'
 import { Interface } from '@ethersproject/abi'
@@ -33,7 +33,7 @@ class SmartWalletFactoryContractEthers implements SmartWalletFactoryContract {
     entryPoint: string,
     handler: string,
     index: number
-  ): Promise<TransactionResult> {
+  ): Promise<ITransactionResult> {
     const resultSet = await this.contract.deployCounterFactualWallet(
       owner,
       entryPoint,
@@ -47,7 +47,7 @@ class SmartWalletFactoryContractEthers implements SmartWalletFactoryContract {
     owner: string,
     entryPoint: string,
     handler: string
-  ): Promise<TransactionResult> {
+  ): Promise<ITransactionResult> {
     const resultSet = await this.contract.deployWallet(owner, entryPoint, handler)
     return toTxResult(resultSet)
   }
