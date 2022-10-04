@@ -73,6 +73,8 @@ class SmartAccount {
 
   // providers!:  Web3Provider[]
   provider!: Web3Provider
+  // 4337Signer
+  // 4337Provider
 
   // Ideally not JsonRpcSigner but extended signer // Also the original EOA signer
   signer!: JsonRpcSigner
@@ -84,6 +86,7 @@ class SmartAccount {
 
   // TBD : Do we keep manager for both SCW(forward) and Account Abstraction?
   transactionManager!: TransactionManager
+  // aaTransactionManager
 
   // Instance of relayer (Relayer Service Client) connected with this Smart Account and always ready to dispatch transactions
   // relayer.relay => dispatch to blockchain

@@ -11,12 +11,9 @@
   "homepage": "https://github.com/bcnmy/biconomy-client-sdk#readme",
   "license": "MIT",
   "main": "dist/src/index.js",
-  "directories": {
-    "lib": "lib",
-    "test": "__tests__"
-  },
   "files": [
-    "lib"
+    "dist/*",
+    "README.md"
   ],
   "publishConfig": {
     "access": "public"
@@ -26,8 +23,39 @@
     "url": "git+https://github.com/bcnmy/biconomy-client-sdk.git"
   },
   "scripts": {
+    "clear": "rm -rf dist artifacts cache",
+    "lint": "eslint -f unix .",
+    "lint-fix": "eslint -f unix . --fix",
+    "test": "hardhat test",
+    "build": "hardhat compile && yarn typechain && tsc",
+    "hardhat-test": "hardhat test",
+    "tsc": "tsc",
+    "watch-tsc": "tsc -w --preserveWatchOutput"
   },
   "bugs": {
     "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"
+  },
+  "dependencies": {
+    "@account-abstraction/contracts": "^0.2.0",
+    "@biconomy-sdk/common": "*",
+    "@ethersproject/abstract-provider": "^5.7.0",
+    "@ethersproject/abstract-signer": "^5.7.0",
+    "@ethersproject/networks": "^5.7.0",
+    "@ethersproject/properties": "^5.7.0",
+    "@ethersproject/providers": "^5.7.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.6",
+    "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "ethers": "^5.7.0",
+    "hardhat": "^2.9.7",
+    "solidity-coverage": "^0.7.22"
+  },
+  "devDependencies": {
+    "@biconomy-sdk/common": "*",
+    "@biconomy-sdk/core-types": "1.0.11",
+    "@nomicfoundation/hardhat-chai-matchers": "^1.0.3",
+    "@nomicfoundation/hardhat-toolbox": "^1.0.2",
+    "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "chai": "^4.3.6",
+    "hardhat": "^2.9.7"
   }
 }

@@ -15,6 +15,8 @@
       "./tests/**/*"
     ],
     "references": [
+      { "path": "account-abstraction" },
+      { "path": "common" },
       { "path": "core-types" },
       { "path": "ethers-lib" },
       { "path": "gas-estimator" },
