@@ -18,6 +18,8 @@ export class HttpRpcClient {
     })
   }
 
+  // TODO : add version of HttpRpcClient || interface in RPC relayer to sendSCWTransactionToRelayer
+
   async sendUserOpToBundler (userOp1: UserOperationStruct): Promise<any> {
     const userOp = await resolveProperties(userOp1)
     const hexifiedUserOp: any =

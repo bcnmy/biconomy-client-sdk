@@ -23,6 +23,10 @@ import { getRequestId } from '@biconomy-sdk/common'
  * - createUnsignedUserOp - given "target" and "calldata", fill userOp to perform that operation from the wallet.
  * - createSignedUserOp - helper to call the above createUnsignedUserOp, and then extract the requestId and sign it
  */
+
+
+// Note: Resembles SmartAccount methods itself. Could be sperated out across smart-account & || transactions || new package and reclaim 
+
 export abstract class BaseWalletAPI {
   private senderAddress!: string
   private isPhantom = true

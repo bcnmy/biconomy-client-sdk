@@ -45,8 +45,12 @@ import {
   BalancesResponse,
   UsdBalanceResponse,
 } from '@biconomy-sdk/node-client'
-import { stringify } from 'querystring'
 
+// SmartAccount User Refund
+import { JsonRpcSender } from '@0xsequence/network'
+
+// AA
+import { newProvider, ERC4337EthersProvider } from '@biconomy-sdk/account-abstraction'
 
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount {
@@ -71,11 +75,11 @@ class SmartAccount {
 
   providerUrlConfig!: ProviderUrlConfig[]
 
-  // providers!:  Web3Provider[]
   provider!: Web3Provider
-  // 4337Signer
-  // 4337Provider
 
+  // 4337Provider
+  aaProvider!: ERC4337EthersProvider
+  
   // Ideally not JsonRpcSigner but extended signer // Also the original EOA signer
   signer!: JsonRpcSigner
   // We may have different signer for ERC4337
@@ -124,9 +128,13 @@ class SmartAccount {
     this.providerUrlConfig = this.#smartAccountConfig.providerUrlConfig || []
     this.ethAdapter = {}
     this.supportedNetworkIds = this.#smartAccountConfig.supportedNetworksIds
-
+    
+    // Should not break if we make this wallet connected provider optional (We'd have JsonRpcProvider / JsonRpcSender)
     this.provider = walletProvider
+
+    // TODO:: Allow original signer to be passed and preserve
     this.signer = walletProvider.getSigner()
+    // Meaning : EOASigner? / SmartAccountSigner?
 
     this.contractUtils = new ContractUtils()
     this.nodeClient = new NodeClient({ txServiceUrl: this.#smartAccountConfig.backend_url })
@@ -152,6 +160,10 @@ class SmartAccount {
     const state = await this.getSmartAccountState(this.#smartAccountConfig.activeNetworkId)
 
     await this.transactionManager.initialize(this.relayer, this.nodeClient, this.contractUtils, state)
+
+    // TODO : Init aaProvider
+
+    // TODO: Define and init SmartAccountProvider
 
     return this
   }

@@ -9,6 +9,10 @@ import { HttpRpcClient } from './HttpRpcClient'
 import { DeterministicDeployer } from './DeterministicDeployer'
 import { Signer } from '@ethersproject/abstract-signer'
 
+// TODO: Update in the context of SmartAccount and WalletFactory aka deployer
+// Might need smart account state for contract addresses
+
+// To be used in SmartAccount to init 4337 provider
 export async function newProvider (
   originalProvider: JsonRpcProvider,
   config: ClientConfig,

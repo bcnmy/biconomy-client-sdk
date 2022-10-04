@@ -17,6 +17,9 @@ import { Provider } from '@ethersproject/providers'
  * - nonce method is "nonce()"
  * - execute method is "execFromEntryPoint()"
  */
+
+// Should be maintain SmartAccountAPI 
+// Review
 export class SimpleWalletAPI extends BaseWalletAPI {
   /**
    * base constructor.

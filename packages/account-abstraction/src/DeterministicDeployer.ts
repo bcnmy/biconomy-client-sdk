@@ -7,6 +7,8 @@ import { TransactionRequest } from '@ethersproject/abstract-provider'
  * wrapper class for Arachnid's deterministic deployer
  * (deterministic deployer used by 'hardhat-deployer'. generates the same addresses as "hardhat-deploy")
  */
+
+// TODO :: Updates based on https://github.com/bcnmy/account-abstraction/tree/develop-chirag
 export class DeterministicDeployer {
   /**
    * return the address this code will get deployed to.
