@@ -5,15 +5,17 @@ import NodeClient, {
 } from '@biconomy-sdk/node-client'
 import ContractUtils from './contract-utils'
 import {
-    PrepareRefundTransactionDto,
-    PrepareRefundTransactionsDto,
     EstimateSmartAccountDeploymentDto,
     IWalletTransaction,
     FAKE_SIGNATURE,
     ExecTransaction,
     IFeeRefundV1_0_1,
-    SmartAccountState,
+    SmartAccountState
   } from '@biconomy-sdk/core-types'
+import {
+    PrepareRefundTransactionsDto,
+    PrepareRefundTransactionDto
+  } from './types'
 
 export class Estimator {
 

@@ -113,7 +113,7 @@ class SmartAccount {
    * If you wish to use your own backend server and relayer service, pass the URLs here
    */
   // review SmartAccountConfig
-  constructor(walletProvider: Web3Provider, config: SmartAccountConfig) {
+  constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
     if (config) {
       this.#smartAccountConfig = { ...this.#smartAccountConfig, ...config }
@@ -347,14 +347,16 @@ class SmartAccount {
   async prepareRefundTransaction(
     prepareRefundTransactionDto: PrepareRefundTransactionDto
   ): Promise<FeeQuote[]> {
-    // TODO
-    // Review @Talha
-    // Note : If you have provided a chainId in dto then that should be used and fallback to activer chain Id
-    const chainId = this.#smartAccountConfig.activeNetworkId
-    prepareRefundTransactionDto.chainId = chainId
-    prepareRefundTransactionDto.version = this.DEFAULT_VERSION
-    prepareRefundTransactionDto.batchId = 0
-    return this.transactionManager.prepareRefundTransaction(prepareRefundTransactionDto)
+    let {
+      version,
+      transaction,
+      batchId,
+      chainId
+    } = prepareRefundTransactionDto
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+    version = version ? version : this.DEFAULT_VERSION
+    batchId = batchId ? batchId: 0
+    return this.transactionManager.prepareRefundTransaction({chainId, version, transaction, batchId})
   }
 
   // Get Fee Options from relayer and make it available for display
@@ -367,12 +369,17 @@ class SmartAccount {
   async prepareRefundTransactionBatch(
     prepareRefundTransactionsDto: PrepareRefundTransactionsDto
   ): Promise<FeeQuote[]> {
-    const chainId = this.#smartAccountConfig.activeNetworkId
-    prepareRefundTransactionsDto.chainId = chainId
-    prepareRefundTransactionsDto.version = this.DEFAULT_VERSION
-    prepareRefundTransactionsDto.batchId = 0
-    console.log('prepareRefundTransactionsDto ', prepareRefundTransactionsDto);
-   return this.transactionManager.prepareRefundTransactionBatch(prepareRefundTransactionsDto)
+    let {
+      version,
+      transactions,
+      batchId,
+      chainId
+    } = prepareRefundTransactionsDto
+
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+    version = version ? version : this.DEFAULT_VERSION
+    batchId = batchId ? batchId: 0
+   return this.transactionManager.prepareRefundTransactionBatch({version, chainId, batchId, transactions})
   }
 
   // Other helpers go here for pre build (feeOptions and quotes from relayer) , build and execution of refund type transactions
@@ -387,11 +394,17 @@ class SmartAccount {
   async createRefundTransaction(
     refundTransactionDto: RefundTransactionDto
   ): Promise<IWalletTransaction> {
-    const chainId = this.#smartAccountConfig.activeNetworkId
-    refundTransactionDto.chainId = chainId
-    refundTransactionDto.version = this.DEFAULT_VERSION
-    refundTransactionDto.batchId = 0
-    return this.transactionManager.createRefundTransaction(refundTransactionDto)
+    let {
+      version,
+      transaction,
+      batchId,
+      feeQuote,
+      chainId
+    } = refundTransactionDto
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+    version = version ? version : this.DEFAULT_VERSION
+    batchId = batchId ? batchId: 0
+    return this.transactionManager.createRefundTransaction({version, transaction, batchId, chainId, feeQuote})
   }
 
   /**
@@ -402,11 +415,17 @@ class SmartAccount {
    * @returns
    */
   async createTransaction(transactionDto: TransactionDto): Promise<IWalletTransaction> {
-    const chainId = this.#smartAccountConfig.activeNetworkId
-    transactionDto.chainId = chainId
-    transactionDto.version = this.DEFAULT_VERSION
-    transactionDto.batchId = 0
-    return this.transactionManager.createTransaction(transactionDto)
+    let {
+      version,
+      transaction,
+      batchId,
+      chainId
+    } = transactionDto
+   
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+    version = version ? version : this.DEFAULT_VERSION
+    batchId = batchId ? batchId: 0
+    return this.transactionManager.createTransaction({chainId, version, batchId, transaction})
   }
 
     /**
@@ -421,10 +440,17 @@ class SmartAccount {
      async createTransactionBatch(
       transactionBatchDto: TransactionBatchDto
     ): Promise<IWalletTransaction> {
-      const chainId = this.#smartAccountConfig.activeNetworkId
-      transactionBatchDto.chainId = chainId
-      transactionBatchDto.version = this.DEFAULT_VERSION
-      return this.transactionManager.createTransactionBatch(transactionBatchDto)
+      let {
+        version,
+        transactions,
+        batchId,
+        chainId
+      } = transactionBatchDto
+      
+      chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+      version = version ? version : this.DEFAULT_VERSION
+      batchId = batchId ? batchId: 0
+      return this.transactionManager.createTransactionBatch({version, transactions, chainId, batchId})
     }
 
   /**
@@ -437,11 +463,17 @@ class SmartAccount {
   async createRefundTransactionBatch(
     refundTransactionBatchDto: RefundTransactionBatchDto
   ): Promise<IWalletTransaction> {
-    const chainId = this.#smartAccountConfig.activeNetworkId
-    refundTransactionBatchDto.chainId = chainId
-    refundTransactionBatchDto.version = this.DEFAULT_VERSION
-    refundTransactionBatchDto.batchId = 0
-    return this.transactionManager.createRefundTransactionBatch(refundTransactionBatchDto)
+    let {
+      version,
+      transactions,
+      batchId,
+      feeQuote,
+      chainId
+    } = refundTransactionBatchDto
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+    version = version ? version : this.DEFAULT_VERSION
+    batchId = batchId ? batchId: 0
+    return this.transactionManager.createRefundTransactionBatch({version, transactions, chainId, batchId, feeQuote})
   }
 
   async prepareDeployAndPayFees(chainId: ChainId = this.#smartAccountConfig.activeNetworkId) {
