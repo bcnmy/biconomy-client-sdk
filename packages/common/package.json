@@ -27,7 +27,11 @@
     "hardhat-node": "hardhat node",
     "lint-fix": "eslint -f unix . --fix",
     "watch-tsc": "tsc -w --preserveWatchOutput",
-    "tsc": "tsc"
+    "tsc": "tsc",
+    "unbuild": "rimraf dist *.tsbuildinfo",
+    "build": "rimraf dist && tsc",
+    "format": "prettier --write \"{src,tests}/**/*.ts\"",
+    "lint": "tslint -p tsconfig.json"
   },
   "bugs": {
     "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"
