@@ -1,6 +1,6 @@
 {
   "name": "@biconomy-sdk/account-abstraction",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Account abstraction APIs to prepare user operations ",
   "keywords": [
     "account-abstraction",
@@ -51,7 +51,7 @@
   },
   "devDependencies": {
     "@biconomy-sdk/common": "*",
-    "@biconomy-sdk/core-types": "1.0.11",
+    "@biconomy-sdk/core-types": "*",
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.3",
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",
     "@nomiclabs/hardhat-ethers": "^2.0.0",
