@@ -1,14 +1,8 @@
 import { encodeTransfer } from './account-utils'
 import {
   DEFAULT_FEE_RECEIVER,
-  PrepareRefundTransactionsDto,
-  PrepareRefundTransactionDto,
-  TransactionDto,
-  TransactionBatchDto,
-  RefundTransactionBatchDto,
   IMetaTransaction,
   MetaTransactionData,
-  RefundTransactionDto,
   IWalletTransaction,
   OperationType,
   ZERO_ADDRESS,
@@ -21,6 +15,14 @@ import {
   EstimateSmartAccountDeploymentDto,
   SmartAccountState
 } from '@biconomy-sdk/core-types'
+import {
+  PrepareRefundTransactionsDto,
+  PrepareRefundTransactionDto,
+  TransactionDto,
+  TransactionBatchDto,
+  RefundTransactionBatchDto,
+  RefundTransactionDto,
+} from './types'
 import { ethers } from 'ethers'
 import EthersAdapter from '@biconomy-sdk/ethers-lib'
 import { GasEstimator } from './assets'
@@ -333,10 +335,7 @@ class TransactionManager {
       chainId,
       version
     } = prepareRefundTransactionsDto
-    console.log('calling getFeeOptions');
-
     const gasPriceQuotesResponse: FeeOptionsResponse = await this.relayer.getFeeOptions(chainId)
-    console.log('gasPriceQuotesResponse ');
 
     const feeOptionsAvailable: Array<TokenData> = gasPriceQuotesResponse.data.response
     let feeQuotes: Array<FeeQuote> = []
