@@ -1,0 +1,39 @@
+{
+  "name": "@biconomy-sdk/web3-auth",
+  "version": "1.0.12",
+  "description": "web3-auth for biconomy sdk",
+  "main": "./dist/src/index.js",
+  "typings": "./dist/src/index.d.ts",
+  "keywords": [
+    "legos",
+    "batching",
+    "one-click",
+    "cross-chain"
+  ],
+  "author": "livingrockrises <chirag@biconomy.io>",
+  "homepage": "https://github.com/bcnmy/biconomy-client-sdk#readme",
+  "license": "MIT",
+  "files": [
+    "dist/*",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bcnmy/biconomy-client-sdk.git"
+  },
+  "scripts": {
+    "unbuild": "rimraf dist *.tsbuildinfo",
+    "build": "rimraf dist && tsc",
+    "format": "prettier --write \"{src,tests}/**/*.ts\"",
+    "lint": "tslint -p tsconfig.json"
+  },
+  "bugs": {
+    "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@toruslabs/torus-embed": "^1.36.2"
+  }
+}
