@@ -1,4 +1,4 @@
-export { SimpleWalletAPI } from './SimpleWalletAPI'
+export { SmartAccountAPI } from './SmartAccountAPI'
 export { PaymasterAPI } from './PaymasterAPI'
 export { newProvider } from './Provider'
 export { ERC4337EthersSigner } from './ERC4337EthersSigner'

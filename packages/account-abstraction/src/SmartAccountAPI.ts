@@ -1,14 +1,14 @@
 import { BigNumber, BigNumberish } from 'ethers'
 import {
   SimpleWallet,
-  SimpleWallet__factory, SimpleWalletDeployer,
-  SimpleWalletDeployer__factory
+  SimpleWallet__factory,  
 } from '@account-abstraction/contracts'
 
 import { arrayify, hexConcat } from 'ethers/lib/utils'
 import { Signer } from '@ethersproject/abstract-signer'
 import { BaseWalletAPI } from './BaseWalletAPI'
 import { Provider } from '@ethersproject/providers'
+import { WalletFactoryAPI } from './WalletFactoryAPI'
 
 /**
  * An implementation of the BaseWalletAPI using the SimpleWallet contract.
@@ -20,7 +20,7 @@ import { Provider } from '@ethersproject/providers'
 
 // Should be maintain SmartAccountAPI 
 // Review
-export class SimpleWalletAPI extends BaseWalletAPI {
+export class SmartAccountAPI extends BaseWalletAPI {
   /**
    * base constructor.
    * subclass SHOULD add parameters that define the owner (signer) of this wallet
@@ -32,12 +32,12 @@ export class SimpleWalletAPI extends BaseWalletAPI {
    * @param index nonce value used when creating multiple wallets for the same owner
    */
   constructor (
-    provider: Provider,
+    provider: Provider, // may be removed in further development
     entryPointAddress: string,
     walletAddress: string | undefined,
     readonly owner: Signer,
-    readonly factoryAddress?: string,
-    // index is "salt" used to distinguish multiple wallets of the same signer.
+    readonly handlerAddress: string,
+    readonly factoryAddress: string,
     readonly index = 0
   ) {
     super(provider, entryPointAddress, walletAddress)
@@ -49,7 +49,7 @@ export class SimpleWalletAPI extends BaseWalletAPI {
    */
   walletContract?: SimpleWallet
 
-  factory?: SimpleWalletDeployer
+  factory?: string
 
   async _getWalletContract (): Promise<SimpleWallet> {
     if (this.walletContract == null) {
@@ -63,16 +63,10 @@ export class SimpleWalletAPI extends BaseWalletAPI {
    * this value holds the "factory" address, followed by this wallet's information
    */
   async getWalletInitCode (): Promise<string> {
-    if (this.factory == null) {
-      if (this.factoryAddress != null && this.factoryAddress !== '') {
-        this.factory = SimpleWalletDeployer__factory.connect(this.factoryAddress, this.provider)
-      } else {
-        throw new Error('no factory to get initCode')
-      }
-    }
+    const deployWalletCallData = WalletFactoryAPI.deployWalletTransactionCallData(this.factoryAddress, await this.owner.getAddress(), this.entryPointAddress, this.handlerAddress, 0)
     return hexConcat([
-      this.factory.address,
-      this.factory.interface.encodeFunctionData('deployWallet', [this.entryPointAddress, await this.owner.getAddress(), this.index])
+      this.factoryAddress,
+      deployWalletCallData
     ])
   }
 
@@ -83,24 +77,23 @@ export class SimpleWalletAPI extends BaseWalletAPI {
     const walletContract = await this._getWalletContract()
     return await walletContract.nonce()
   }
-
-  /**
+    /**
    * encode a method call from entryPoint to our contract
    * @param target
    * @param value
    * @param data
    */
-  async encodeExecute (target: string, value: BigNumberish, data: string): Promise<string> {
-    const walletContract = await this._getWalletContract()
-    return walletContract.interface.encodeFunctionData(
-      'execFromEntryPoint',
-      [
-        target,
-        value,
-        data
-      ])
-  }
-
+     async encodeExecute (target: string, value: BigNumberish, data: string): Promise<string> {
+      const walletContract = await this._getWalletContract()
+      return walletContract.interface.encodeFunctionData(
+        'execFromEntryPoint',
+        [
+          target,
+          value,
+          data
+        ])
+    }
+  // TODO: May be need to move this to ERC4337EthersPrivider
   async signRequestId (requestId: string): Promise<string> {
     return await this.owner.signMessage(arrayify(requestId))
   }
