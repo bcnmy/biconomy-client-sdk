@@ -21,7 +21,7 @@ export class ERC4337EthersProvider extends BaseProvider {
     readonly originalProvider: BaseProvider,
     readonly httpRpcClient: HttpRpcClient,
     readonly entryPoint: EntryPoint,
-    readonly smartWalletAPI: BaseWalletAPI
+    readonly smartWalletAPI: BaseWalletAPI // instead of here we could actually make one in SmartAccount.ts and provide
   ) {
     super({
       name: 'ERC-4337 Custom Network',
