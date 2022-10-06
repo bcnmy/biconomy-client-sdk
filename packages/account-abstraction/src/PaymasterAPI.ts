@@ -11,7 +11,7 @@ export class PaymasterAPI {
 
   async getPaymasterAndData (userOp: Partial<UserOperationStruct>): Promise<string> {
     console.log(userOp)
-    userOp = await resolveProperties(userOp)
+    /*userOp = await resolveProperties(userOp)
     // this.nodeClient.paymasterVerify()
     // Note: Might be different service that bypass SDK backend node
     const result = await axios.post('/signPaymaster', {
@@ -19,7 +19,8 @@ export class PaymasterAPI {
       userOp,
     })
 
-    return result.data.paymasterAndData
+    return result.data.paymasterAndData*/
     // Fallback : return '0x'
+    return '0x'
   }
 }

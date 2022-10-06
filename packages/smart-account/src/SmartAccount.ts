@@ -186,7 +186,7 @@ class SmartAccount {
     // TODO : Init aaProvider
 
     // TODO: Define and init SmartAccountProvider
-    const entryPointAddress = this.#smartAccountConfig.entryPoint ? this.#smartAccountConfig.entryPoint: state.entryPointAddress
+    const entryPointAddress = this.#smartAccountConfig.entryPointAddress ? this.#smartAccountConfig.entryPointAddress: state.entryPointAddress
     const factoryAddress = this.contractUtils.smartWalletFactoryContract[this.#smartAccountConfig.activeNetworkId][this.DEFAULT_VERSION].getAddress()
     this.aaProvider = await newProvider(this.jsonProvider, this.contractUtils, {
       paymasterAddress: this.#smartAccountConfig.paymasterAddress,
@@ -198,27 +198,19 @@ class SmartAccount {
     return this
   }
 
-  // public async sendGasLessTransactions(transactionBatchDto: TransactionBatchDto){
-  //   let {
-  //     version,
-  //     transactions,
-  //     chainId
-  //   } = transactionBatchDto
+  public async sendGasLessTransaction(transactionDto: TransactionDto){
+     let {
+       version,
+       transaction,
+       chainId
+    } = transactionDto
    
-  //   chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
-  //   version = version ? version : this.DEFAULT_VERSION
-  //   const aaSigner = this.aaProvider.getSigner()
+     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+     version = version ? version : this.DEFAULT_VERSION
+     const aaSigner = this.aaProvider.getSigner()
     
-  //   for (let index = 0; index < transactions.length; index++) {
-  //     const element = transactions[index];
-      
-  //   }
-  //   const abi: any = []
-  //   // const multiSend = await this.multiSend()
-  //   const multiSendAddress = this.contractUtils.multiSendContract[chainId][version].getAddress()
-  //   const greeter = new ethers.Contract(multiSendAddress, abi, aaSigner)
-
-  // }
+     const response = await aaSigner.sendTransaction(transaction)
+  }
 
   /**
    *
@@ -675,16 +667,17 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
   activeNetworkId: ChainId.GOERLI, //Update later
   supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],
   backend_url: 'https://sdk-backend.staging.biconomy.io/v1',
-  relayer_url: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay'
-  // dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
-  /*providerUrlConfig: [
+  relayer_url: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
+  dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
+  bundlerUrl: 'http://localhost:3000/rpc',
+  providerUrlConfig: [
     { chainId: ChainId.GOERLI, 
       providerUrl: "https://eth-goerli.alchemyapi.io/v2/lmW2og_aq-OXWKYRoRu-X6Yl6wDQYt_2"
     },
     { chainId: ChainId.POLYGON_MUMBAI, 
       providerUrl: "https://polygon-mumbai.g.alchemy.com/v2/Q4WqQVxhEEmBYREX22xfsS2-s5EXWD31"
     }
-  ]*/
+  ]
 }
 
 export default SmartAccount

@@ -20,7 +20,7 @@ export interface SmartAccountConfig {
   relayer_url: string,
   dappAPIKey?: string
   providerUrlConfig?: ProviderUrlConfig[]
-  entryPoint?: string
+  entryPointAddress?: string
   bundlerUrl?: string
   paymasterAddress?: string
 }
