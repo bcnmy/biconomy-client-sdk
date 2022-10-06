@@ -1,5 +1,6 @@
 {
   "name": "biconomy-sdk",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/bcnmy/biconomy-client-sdk"
@@ -11,7 +12,7 @@
     "build": "npm install -D nx@latest && lerna run build --stream --npm-client=yarn",
     "test:ci": "FORCE_COLOR=1 lerna run test:ci --stream --npm-client=yarn",
     "format": "lerna run format --npm-client=yarn",
-    "postinstall": "cd packages/ethers-lib; hardhat compile",
+    "postinstall": "cd packages/ethers-lib",
     "prettier": "lerna run prettier --npm-client=npm",
     "diff": "lerna diff",
     "new-version": "lerna version --conventional-commits --yes"

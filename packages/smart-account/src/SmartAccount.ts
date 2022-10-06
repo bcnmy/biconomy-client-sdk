@@ -29,7 +29,6 @@ import {
   RelayResponse,
   SmartAccountConfig
 } from '@biconomy-sdk/core-types'
-import { JsonRpcSigner } from '@ethersproject/providers'
 import NodeClient, {
   ProviderUrlConfig,
   ChainConfig,
@@ -46,6 +45,7 @@ import {
   UsdBalanceResponse,
 } from '@biconomy-sdk/node-client'
 import { stringify } from 'querystring'
+import { Signer } from 'ethers'
 
 
 // Create an instance of Smart Account with multi-chain support.
@@ -77,7 +77,7 @@ class SmartAccount {
   // 4337Provider
 
   // Ideally not JsonRpcSigner but extended signer // Also the original EOA signer
-  signer!: JsonRpcSigner
+  signer!: Signer
   // We may have different signer for ERC4337
 
   nodeClient!: NodeClient
@@ -113,7 +113,7 @@ class SmartAccount {
    * If you wish to use your own backend server and relayer service, pass the URLs here
    */
   // review SmartAccountConfig
-  constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
+  constructor(walletSigner: Signer, config?: Partial<SmartAccountConfig>) {
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
     if (config) {
       this.#smartAccountConfig = { ...this.#smartAccountConfig, ...config }
@@ -125,8 +125,8 @@ class SmartAccount {
     this.ethAdapter = {}
     this.supportedNetworkIds = this.#smartAccountConfig.supportedNetworksIds
 
-    this.provider = walletProvider
-    this.signer = walletProvider.getSigner()
+    // this.provider = walletProvider
+    this.signer = walletSigner;
 
     this.contractUtils = new ContractUtils()
     this.nodeClient = new NodeClient({ txServiceUrl: this.#smartAccountConfig.backend_url })
@@ -607,7 +607,7 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
   activeNetworkId: ChainId.GOERLI, //Update later
   supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],
   backend_url: 'https://sdk-backend.staging.biconomy.io/v1',
-  relayer_url: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay'
+  relayer_url: 'http://localhost:3000/api/v1/relay'
   // dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
   /*providerUrlConfig: [
     { chainId: ChainId.GOERLI, 

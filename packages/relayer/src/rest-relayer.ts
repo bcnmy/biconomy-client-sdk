@@ -21,6 +21,7 @@ export class RestRelayer implements Relayer {
   constructor(options: RestRelayerOptions) {
     const { url } = options
     this.#relayServiceBaseUrl = url
+    console.log('restRelayerUrl', url);
   }
 
   // TODO
@@ -109,13 +110,21 @@ export class RestRelayer implements Relayer {
 
       // API call
        // rawTx to becomes multiSend address and data gets prepared again 
+       console.log('isDeployed', isDeployed);
        return sendRequest({
         url: `${this.#relayServiceBaseUrl}`,
         method: HttpMethod.Post,
-        body: { ...finalRawRx, gasLimit: gasLimit, refundInfo: {
-        tokenGasPrice: signedTx.tx.gasPrice,
-        gasToken: signedTx.tx.gasToken } }
-    })
+        body: {
+          method: 'eth_sendSmartContractWalletTransaction',
+          params: { ...signedTx.rawTx, gasLimit: '0x1E8480', refundInfo: {
+            tokenGasPrice: signedTx.tx.gasPrice,
+            gasToken: signedTx.tx.gasToken,
+            } 
+          },
+          jsonrpc: '2.0',
+          id: 1
+        } 
+      })
    }
   
     console.log('signedTx', signedTx)
@@ -123,10 +132,16 @@ export class RestRelayer implements Relayer {
     return sendRequest({
       url: `${this.#relayServiceBaseUrl}`,
       method: HttpMethod.Post,
-      body: { ...signedTx.rawTx, gasLimit: gasLimit, refundInfo: {
-        tokenGasPrice: signedTx.tx.gasPrice,
-        gasToken: signedTx.tx.gasToken,
-      } }
+      body: {
+        method: 'eth_sendSmartContractWalletTransaction',
+        params: { ...signedTx.rawTx, gasLimit: '0x1E8480', refundInfo: {
+          tokenGasPrice: signedTx.tx.gasPrice,
+          gasToken: signedTx.tx.gasToken,
+          } 
+        },
+        jsonrpc: '2.0',
+        id: 1
+      } 
     })
   }
 
