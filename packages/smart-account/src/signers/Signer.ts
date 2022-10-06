@@ -20,6 +20,8 @@ export abstract class Signer extends AbstractSigner {
     // Review
     abstract getRelayer(chainId?: number): Promise<Relayer | undefined>
 
+    abstract _signTypedData(domain: TypedDataDomain, types: Record<string, Array<TypedDataField>>, value: Record<string, any>): Promise<string>;
+
     // signMessage .....
     // Review
     abstract signMessage(message: BytesLike, chainId?: ChainId): Promise<string>
