@@ -107,7 +107,12 @@ export class SmartAccountSigner extends EthersSigner implements TypedDataSigner 
     message: Record<string, any>,
     chainId?: ChainId
   ): Promise<string> {
-    console.log(chainId)
+    const activeChainId = chainId ? chainId : this.getChainId()
+    const domainChainId = domain.chainId ? BigNumber.from(domain.chainId).toNumber() : undefined
+    if (domainChainId && domainChainId !== activeChainId) {
+      throw new Error('Domain chainId is different from active chainId.')
+    }
+
     return await this.provider.send('eth_signTypedData_v4', [
       await this.getAddress(),
       ethers.utils._TypedDataEncoder.getPayload(domain, types, message)
@@ -120,16 +125,7 @@ export class SmartAccountSigner extends EthersSigner implements TypedDataSigner 
     message: Record<string, any>,
     chainId?: ChainId
   ): Promise<string> {
-    const activeChainId = chainId ? chainId : this.getChainId()
-    const domainChainId = domain.chainId ? BigNumber.from(domain.chainId).toNumber() : undefined
-    if (domainChainId && domainChainId !== activeChainId) {
-      throw new Error("Domain chainId is ")
-    }
-
-    return await this.provider.send('eth_signTypedData_v4', [
-      await this.getAddress(),
-      ethers.utils._TypedDataEncoder.getPayload(domain, types, message)
-    ])
+    return this.signTypedData(domain, types, message, chainId)
   }
 
   connectUnchecked(): ethers.providers.JsonRpcSigner {
