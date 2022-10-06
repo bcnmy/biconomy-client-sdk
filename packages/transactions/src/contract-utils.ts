@@ -36,13 +36,19 @@ class ContractUtils {
 
   // Note: Should DEFAULT_VERSION be moved here? 
 
-  constructor(){
+  constructor(readonly version: string){
     this.ethAdapter = {}
     this.smartWalletContract = {}
     this.multiSendContract = {}
     this.multiSendCallOnlyContract = {}
     this.smartWalletFactoryContract = {}
   }
+
+  public getSmartWalletContract(chainId: number): SmartWalletContract{
+    return this.smartWalletContract[chainId][this.version]
+  }
+
+
 
   public async initialize(supportedChains: ChainConfig[], signer: JsonRpcSigner) {
     const chainsInfo = supportedChains;

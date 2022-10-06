@@ -1,17 +1,16 @@
 import { BigNumber, BigNumberish } from 'ethers'
-import {
-  SimpleWallet,
-  SimpleWallet__factory,  
-} from '@account-abstraction/contracts'
+import { EntryPointContractV101 } from '@biconomy-sdk/ethers-lib'
+
 
 import { arrayify, hexConcat } from 'ethers/lib/utils'
 import { Signer } from '@ethersproject/abstract-signer'
 import { BaseWalletAPI } from './BaseWalletAPI'
 import { Provider } from '@ethersproject/providers'
 import { WalletFactoryAPI } from './WalletFactoryAPI'
+import { ContractUtils } from '@biconomy-sdk/transactions'
 
 /**
- * An implementation of the BaseWalletAPI using the SimpleWallet contract.
+ * An implementation of the BaseWalletAPI using the SmartWalletContract contract.
  * - contract deployer gets "entrypoint", "owner" addresses and "index" nonce
  * - owner signs requests using normal "Ethereum Signed Message" (ether's signer.signMessage())
  * - nonce method is "nonce()"
@@ -32,50 +31,39 @@ export class SmartAccountAPI extends BaseWalletAPI {
    * @param index nonce value used when creating multiple wallets for the same owner
    */
   constructor (
-    provider: Provider, // may be removed in further development
-    entryPointAddress: string,
+    provider: Provider,
+    readonly contractUtils: ContractUtils,
+    readonly entryPoint: EntryPointContractV101,
     walletAddress: string | undefined,
     readonly owner: Signer,
     readonly handlerAddress: string,
     readonly factoryAddress: string,
     readonly index = 0
   ) {
-    super(provider, entryPointAddress, walletAddress)
+    super(provider, contractUtils, entryPoint, walletAddress)
   }
-
-  /**
-   * our wallet contract.
-   * should support the "execFromSingleton" and "nonce" methods
-   */
-  walletContract?: SimpleWallet
 
   factory?: string
-
-  async _getWalletContract (): Promise<SimpleWallet> {
-    if (this.walletContract == null) {
-      this.walletContract = SimpleWallet__factory.connect(await this.getWalletAddress(), this.provider)
-    }
-    return this.walletContract
-  }
 
   /**
    * return the value to put into the "initCode" field, if the wallet is not yet deployed.
    * this value holds the "factory" address, followed by this wallet's information
    */
   async getWalletInitCode (): Promise<string> {
-    const deployWalletCallData = WalletFactoryAPI.deployWalletTransactionCallData(this.factoryAddress, await this.owner.getAddress(), this.entryPointAddress, this.handlerAddress, 0)
+    const deployWalletCallData = WalletFactoryAPI.deployWalletTransactionCallData(this.factoryAddress, await this.owner.getAddress(), this.entryPoint.address, this.handlerAddress, 0)
     return hexConcat([
       this.factoryAddress,
       deployWalletCallData
     ])
   }
 
-  async getNonce (): Promise<BigNumber> {
+  
+  async getNonce (batchId: number): Promise<BigNumber> {
     if (await this.checkWalletPhantom()) {
       return BigNumber.from(0)
     }
     const walletContract = await this._getWalletContract()
-    return await walletContract.nonce()
+    return await walletContract.getNonce(batchId)
   }
     /**
    * encode a method call from entryPoint to our contract
@@ -85,7 +73,7 @@ export class SmartAccountAPI extends BaseWalletAPI {
    */
      async encodeExecute (target: string, value: BigNumberish, data: string): Promise<string> {
       const walletContract = await this._getWalletContract()
-      return walletContract.interface.encodeFunctionData(
+      return walletContract.getInterface().encodeFunctionData(
         'execFromEntryPoint',
         [
           target,

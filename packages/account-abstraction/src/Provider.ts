@@ -1,13 +1,15 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
 
-import { EntryPoint__factory, SimpleWalletDeployer__factory } from '@account-abstraction/contracts'
+// import { EntryPoint__factory } from '@account-abstraction/contracts'
+
+import { EntryPointFactoryContractV101 } from '@biconomy-sdk/ethers-lib'
 
 import { ClientConfig } from './ClientConfig'
 import { SmartAccountAPI } from './SmartAccountAPI'
 import { ERC4337EthersProvider } from './ERC4337EthersProvider'
 import { HttpRpcClient } from './HttpRpcClient'
-import { DeterministicDeployer } from './DeterministicDeployer'
 import { Signer } from '@ethersproject/abstract-signer'
+import { ContractUtils } from '@biconomy-sdk/transactions'
 
 // TODO: Update in the context of SmartAccount and WalletFactory aka deployer
 // Might need smart account state for contract addresses
@@ -15,14 +17,18 @@ import { Signer } from '@ethersproject/abstract-signer'
 // To be used in SmartAccount to init 4337 provider
 export async function newProvider (
   originalProvider: JsonRpcProvider,
+  contractUtils: ContractUtils, 
   config: ClientConfig,
-  originalSigner: Signer = originalProvider.getSigner()
+  originalSigner: Signer = originalProvider.getSigner(),
+  walletAddress: string,
+  fallbackHandlerAddress: string,
+  factoryAddress: string
 
 ): Promise<ERC4337EthersProvider> {
-  const entryPoint = new EntryPoint__factory().attach(config.entryPointAddress).connect(originalProvider)
+  const entryPoint = EntryPointFactoryContractV101.connect(config.entryPointAddress, originalProvider)
   // Initial SimpleWallet instance is not deployed and exists just for the interface
   // const simpleWalletDeployer = await DeterministicDeployer.deploy(SimpleWalletDeployer__factory.bytecode)
-  const smartWalletAPI = new SmartAccountAPI(originalProvider, entryPoint.address, '', originalSigner, '', '', 0)
+  const smartWalletAPI = new SmartAccountAPI(originalProvider, contractUtils, entryPoint, walletAddress, originalSigner, fallbackHandlerAddress, factoryAddress, 0)
   const httpRpcClient = new HttpRpcClient(config.bundlerUrl, config.entryPointAddress, 31337)
   return await new ERC4337EthersProvider(
     config,

@@ -20,7 +20,9 @@ export { EntryPointContractV101__factory as EntryPointFactoryContractV101 } from
 export { EntryPointContractV100 } from '../typechain/src/ethers-v5/v1.0.0/EntryPointContractV100'
 export { EntryPointContractV101 } from '../typechain/src/ethers-v5/v1.0.1/EntryPointContractV101'
 
+import EntryPointEthersContract_v1_0_0 from './contracts/EntryPointContract/v1.0.0/EntryPointEthersContract'
+import EntryPointEthersContract_v1_0_1 from './contracts/EntryPointContract/v1.0.1/EntryPointEthersContract'
 
 
 export default EthersAdapter
-export { EthersAdapterConfig, IEthersTransactionOptions, IEthersTransactionResult }
+export { EthersAdapterConfig, IEthersTransactionOptions, IEthersTransactionResult, EntryPointEthersContract_v1_0_0, EntryPointEthersContract_v1_0_1  }

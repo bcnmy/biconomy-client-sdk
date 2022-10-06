@@ -21,6 +21,7 @@ import {
   ChainId,
   SmartAccountContext,
   SmartWalletFactoryContract,
+  MultiSendContract,
   SmartWalletContract,
   AddressForCounterFactualWalletDto,
   RawTransactionType,
@@ -48,9 +49,11 @@ import {
 
 // SmartAccount User Refund
 import { JsonRpcSender } from '@0xsequence/network'
+import { JsonRpcProvider } from '@ethersproject/providers'
 
 // AA
 import { newProvider, ERC4337EthersProvider } from '@biconomy-sdk/account-abstraction'
+import { ethers } from 'ethers'
 
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount {
@@ -76,6 +79,8 @@ class SmartAccount {
   providerUrlConfig!: ProviderUrlConfig[]
 
   provider!: Web3Provider
+
+  jsonProvider!: JsonRpcProvider
 
   // 4337Provider
   aaProvider!: ERC4337EthersProvider
@@ -147,12 +152,13 @@ class SmartAccount {
     
     // Should not break if we make this wallet connected provider optional (We'd have JsonRpcProvider / JsonRpcSender)
     this.provider = walletProvider
+    this.jsonProvider = new ethers.providers.JsonRpcProvider(walletProvider.provider.host)
 
     // TODO:: Allow original signer to be passed and preserve
     this.signer = walletProvider.getSigner()
     // Meaning : EOASigner? / SmartAccountSigner?
 
-    this.contractUtils = new ContractUtils()
+    this.contractUtils = new ContractUtils(this.DEFAULT_VERSION)
     this.nodeClient = new NodeClient({ txServiceUrl: this.#smartAccountConfig.backend_url })
     this.relayer = new RestRelayer({url: this.#smartAccountConfig.relayer_url});
   }
@@ -180,9 +186,39 @@ class SmartAccount {
     // TODO : Init aaProvider
 
     // TODO: Define and init SmartAccountProvider
+    const entryPointAddress = this.#smartAccountConfig.entryPoint ? this.#smartAccountConfig.entryPoint: state.entryPointAddress
+    const factoryAddress = this.contractUtils.smartWalletFactoryContract[this.#smartAccountConfig.activeNetworkId][this.DEFAULT_VERSION].getAddress()
+    this.aaProvider = await newProvider(this.jsonProvider, this.contractUtils, {
+      paymasterAddress: this.#smartAccountConfig.paymasterAddress,
+      entryPointAddress,
+      bundlerUrl: this.#smartAccountConfig.bundlerUrl || '',
+      chainId: this.#smartAccountConfig.activeNetworkId
+    }, this.signer, this.address, state.fallbackHandlerAddress, factoryAddress)
 
     return this
   }
+
+  // public async sendGasLessTransactions(transactionBatchDto: TransactionBatchDto){
+  //   let {
+  //     version,
+  //     transactions,
+  //     chainId
+  //   } = transactionBatchDto
+   
+  //   chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+  //   version = version ? version : this.DEFAULT_VERSION
+  //   const aaSigner = this.aaProvider.getSigner()
+    
+  //   for (let index = 0; index < transactions.length; index++) {
+  //     const element = transactions[index];
+      
+  //   }
+  //   const abi: any = []
+  //   // const multiSend = await this.multiSend()
+  //   const multiSendAddress = this.contractUtils.multiSendContract[chainId][version].getAddress()
+  //   const greeter = new ethers.Contract(multiSendAddress, abi, aaSigner)
+
+  // }
 
   /**
    *
@@ -534,6 +570,10 @@ class SmartAccount {
    */
   factory(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): SmartWalletFactoryContract {
     return this.contractUtils.smartWalletFactoryContract[chainId][this.DEFAULT_VERSION]
+  }
+
+  multiSend(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): MultiSendContract {
+    return this.contractUtils.multiSendContract[chainId][this.DEFAULT_VERSION]
   }
 
   // Note: expose getMultiSend(), getMultiSendCall() 

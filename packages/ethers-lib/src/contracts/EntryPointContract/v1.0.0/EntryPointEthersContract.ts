@@ -5,12 +5,19 @@ import {
 } from '../../../../typechain/src/ethers-v5/v1.0.0/EntryPointContractV100'
 import { toTxResult } from '../../../utils'
 import { Contract } from '@ethersproject/contracts'
-
+import {
+  BytesLike
+} from "ethers";
 class EntryPointEthersContract implements EntryPointContract {
   constructor(public contract: EntryPointContract_TypeChain) {}
 
   getAddress(): string {
     return this.contract.address
+  }
+
+  async getSenderAddress(initCode: BytesLike): Promise<ITransactionResult> {
+    const resultSet = await this.contract.getSenderAddress(initCode)
+    return toTxResult(resultSet)
   }
 
   getContract(): Contract {
