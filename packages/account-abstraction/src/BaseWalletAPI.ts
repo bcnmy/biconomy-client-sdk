@@ -64,6 +64,15 @@ export abstract class BaseWalletAPI {
 
   async _getWalletContract(): Promise<SmartWalletContract> {
     if (this.walletContract == null) {
+      // console.log('this.contractUtils, ' this.contractUtils)
+
+      console.log('issue, ')
+
+      console.log('chainId ', (await this.provider.getNetwork()).chainId)
+
+      console.log(this.contractUtils
+        .getSmartWalletContract((await this.provider.getNetwork()).chainId).getContract())
+
       let walletContract = this.contractUtils
         .getSmartWalletContract((await this.provider.getNetwork()).chainId)
         .getContract()
@@ -170,11 +179,16 @@ export abstract class BaseWalletAPI {
     }
 
     const value = parseNumber(detailsForUserOp.value) ?? BigNumber.from(0)
-    const callData = (await this._getWalletContract()).encode('execFromEntryPoint', [
+    console.log('here')
+    console.log((await this._getWalletContract()))
+    const callData = await this.encodeExecute(detailsForUserOp.target, value, detailsForUserOp.data)
+    /*const callData = (await this._getWalletContract()).encodeFunctionData('execFromEntryPoint', [
       detailsForUserOp.target,
       value,
-      detailsForUserOp.data
-    ])
+      detailsForUserOp.data,
+      0,
+      300000
+    ])*/
 
     const callGasLimit =
       parseNumber(detailsForUserOp.gasLimit) ??
@@ -213,6 +227,7 @@ export abstract class BaseWalletAPI {
         this.senderAddress = await this.getCounterFactualAddress()
       }
     }
+    console.log('this.senderAddress ', this.senderAddress)
     return this.senderAddress
   }
 

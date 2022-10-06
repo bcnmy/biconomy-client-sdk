@@ -152,7 +152,9 @@ class SmartAccount {
     
     // Should not break if we make this wallet connected provider optional (We'd have JsonRpcProvider / JsonRpcSender)
     this.provider = walletProvider
-    this.jsonProvider = new ethers.providers.JsonRpcProvider(walletProvider.provider.host)
+    // find by activ / corresponding eNetworkId
+    console.log('this.providerUrlConfig[0].providerUrl ', this.providerUrlConfig[0].providerUrl)
+    this.jsonProvider = new ethers.providers.JsonRpcProvider(this.providerUrlConfig[0].providerUrl)
 
     // TODO:: Allow original signer to be passed and preserve
     this.signer = walletProvider.getSigner()
@@ -194,6 +196,8 @@ class SmartAccount {
       bundlerUrl: this.#smartAccountConfig.bundlerUrl || '',
       chainId: this.#smartAccountConfig.activeNetworkId
     }, this.signer, this.address, state.fallbackHandlerAddress, factoryAddress)
+
+    console.log('aa provider ', this.aaProvider)
 
     return this
   }

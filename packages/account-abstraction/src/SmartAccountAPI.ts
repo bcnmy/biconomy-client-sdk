@@ -73,12 +73,16 @@ export class SmartAccountAPI extends BaseWalletAPI {
    */
      async encodeExecute (target: string, value: BigNumberish, data: string): Promise<string> {
       const walletContract = await this._getWalletContract()
+      // Review Talha
+      console.log(walletContract)
       return walletContract.getInterface().encodeFunctionData(
         'execFromEntryPoint',
         [
           target,
           value,
-          data
+          data,
+          0, //temp
+          200000, //temp
         ])
     }
   // TODO: May be need to move this to ERC4337EthersPrivider
