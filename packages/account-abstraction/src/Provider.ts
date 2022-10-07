@@ -29,7 +29,7 @@ export async function newProvider (
   // Initial SimpleWallet instance is not deployed and exists just for the interface
   // const simpleWalletDeployer = await DeterministicDeployer.deploy(SimpleWalletDeployer__factory.bytecode)
   const smartWalletAPI = new SmartAccountAPI(originalProvider, contractUtils, entryPoint, walletAddress, originalSigner, fallbackHandlerAddress, factoryAddress, 0)
-  const httpRpcClient = new HttpRpcClient(config.bundlerUrl, config.entryPointAddress, 31337)
+  const httpRpcClient = new HttpRpcClient(config.bundlerUrl, config.entryPointAddress, config.chainId)
   return await new ERC4337EthersProvider(
     config,
     originalSigner,

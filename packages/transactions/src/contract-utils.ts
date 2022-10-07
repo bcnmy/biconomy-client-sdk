@@ -5,7 +5,7 @@ import {
   MultiSendContract,
   MultiSendCallOnlyContract,
   SmartAccountContext,
-  EstimateSmartAccountDeploymentDto
+  SmartAccountConfig
 } from '@biconomy-sdk/core-types'
 import{
   ChainConfig,
@@ -50,14 +50,19 @@ class ContractUtils {
 
 
 
-  public async initialize(supportedChains: ChainConfig[], signer: JsonRpcSigner) {
+  public async initialize(supportedChains: ChainConfig[], config: SmartAccountConfig, signer: JsonRpcSigner) {
     const chainsInfo = supportedChains;
 
     for (let i = 0; i < chainsInfo.length; i++) {
       const network = chainsInfo[i]
-      const providerUrl = network.providerUrl
       // To keep it network agnostic
-      // Note: think about events when signer needs to pay gas      
+      // Note: think about events when signer needs to pay gas
+
+      let providerUrl = config.providerUrlConfig?.find(element=> element.chainId === network.chainId)?.providerUrl || ''
+      console.log('Used provider from config ', providerUrl)
+
+      if (!providerUrl)
+      providerUrl = network.providerUrl
 
       const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
 
