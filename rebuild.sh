@@ -36,6 +36,11 @@ rm -rf packages/transactions/yarn.lock
 rm -rf packages/transactions/package-lock.json
 rm -rf packages/transactions/dist
 
+rm -rf packages/web3-auth/node_modules
+rm -rf packages/web3-auth/yarn.lock
+rm -rf packages/web3-auth/package-lock.json
+rm -rf packages/web3-auth/dist
+
 #npx lerna bootstrap --force-local
 #npm run build
 #npm link

@@ -17,7 +17,7 @@ import {
   getMultiSendCallOnlyContract,
   getSmartWalletContract
 } from './utils/FetchContractsInfo'
-import { ethers } from 'ethers'
+import { ethers, Signer } from 'ethers'
 import EvmNetworkManager from '@biconomy-sdk/ethers-lib'
 import { JsonRpcSigner } from '@ethersproject/providers'
 import { SmartAccountVersion } from '@biconomy-sdk/core-types'
