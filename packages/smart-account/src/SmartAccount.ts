@@ -37,10 +37,12 @@ import NodeClient, {
 } from '@biconomy-sdk/node-client'
 import { Web3Provider } from '@ethersproject/providers'
 import { Relayer, RestRelayer } from '@biconomy-sdk/relayer'
+
 import TransactionManager, {
   ContractUtils,
   smartAccountSignMessage
 } from '@biconomy-sdk/transactions'
+
 import { BalancesDto } from '@biconomy-sdk/node-client'
 import {
   TransactionResponse,
@@ -53,8 +55,8 @@ import { JsonRpcSender } from '@0xsequence/network'
 import { JsonRpcProvider } from '@ethersproject/providers'
 
 // AA
-import { newProvider, ERC4337EthersProvider } from '@biconomy-sdk/account-abstraction'
-import { ethers } from 'ethers'
+import { newProvider, ERC4337EthersProvider, ClientConfig } from '@biconomy-sdk/account-abstraction'
+import { ethers, Signer } from 'ethers'
 
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount {
@@ -87,7 +89,7 @@ class SmartAccount {
   aaProvider!: { [chainId: number]: ERC4337EthersProvider }
 
   // Ideally not JsonRpcSigner but extended signer // Also the original EOA signer
-  signer!: JsonRpcSigner
+  signer!: Signer
   // We may have different signer for ERC4337
 
   nodeClient!: NodeClient
@@ -202,8 +204,6 @@ class SmartAccount {
       this.contractUtils,
       state
     )
-
-    // TODO : Init aaProvider
 
     // TODO: Define and init SmartAccountProvider
     const entryPointAddress = this.#smartAccountConfig.entryPointAddress

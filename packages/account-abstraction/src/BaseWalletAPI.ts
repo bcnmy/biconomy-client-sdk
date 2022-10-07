@@ -62,14 +62,9 @@ export abstract class BaseWalletAPI {
     // this.entryPointView = EntryPoint__factory.connect(entryPointAddress, provider).connect(ethers.constants.AddressZero)
   }
 
+  // based on provider chainId we maintain smartWalletContract..
   async _getWalletContract(): Promise<SmartWalletContract> {
     if (this.walletContract == null) {
-      // console.log('this.contractUtils, ' this.contractUtils)
-
-      console.log('issue, ')
-
-      console.log('chainId ', (await this.provider.getNetwork()).chainId)
-
       this.walletContract = this.contractUtils
         .getSmartWalletContract((await this.provider.getNetwork()).chainId)
       this.walletContract.getContract().attach(await this.getWalletAddress())

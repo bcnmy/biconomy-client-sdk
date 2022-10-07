@@ -23,7 +23,8 @@
       { "path": "node-client" },
       { "path": "relayer" },
       { "path": "smart-account" },
-      { "path": "transactions" }
+      { "path": "transactions" },
+      { "path": "web3-auth" }
     ]
   }
   

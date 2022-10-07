@@ -17,9 +17,8 @@ import {
   getMultiSendCallOnlyContract,
   getSmartWalletContract
 } from './utils/FetchContractsInfo'
-import { ethers } from 'ethers'
+import { ethers, Signer } from 'ethers'
 import EvmNetworkManager from '@biconomy-sdk/ethers-lib'
-import { JsonRpcSigner } from '@ethersproject/providers'
 import { SmartAccountVersion } from '@biconomy-sdk/core-types'
 
 class ContractUtils {
@@ -50,7 +49,9 @@ class ContractUtils {
 
 
 
-  public async initialize(supportedChains: ChainConfig[], config: SmartAccountConfig, signer: JsonRpcSigner) {
+
+  public async initialize(supportedChains: ChainConfig[], config: SmartAccountConfig, signer: Signer) {
+
     const chainsInfo = supportedChains;
 
     for (let i = 0; i < chainsInfo.length; i++) {
