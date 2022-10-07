@@ -52,8 +52,8 @@ import { JsonRpcSender } from '@0xsequence/network'
 import { JsonRpcProvider } from '@ethersproject/providers'
 
 // AA
-import { newProvider, ERC4337EthersProvider } from '@biconomy-sdk/account-abstraction'
-import { ethers } from 'ethers'
+import { newProvider, ERC4337EthersProvider, ClientConfig } from '@biconomy-sdk/account-abstraction'
+import { ethers, Signer } from 'ethers'
 
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount {
@@ -184,13 +184,6 @@ class SmartAccount {
     const state = await this.getSmartAccountState(this.#smartAccountConfig.activeNetworkId)
 
     await this.transactionManager.initialize(this.relayer, this.nodeClient, this.contractUtils, state)
-
-    // TODO : Init aaProvider
-    const clientConfig: ClientConfig = {
-      bundlerUrl: '', // merge with default config
-      entryPointAddress: '', // merge with default config
-    }
-    this.aaProvider = await newProvider(this.provider, clientConfig, this.signer)
 
     // TODO: Define and init SmartAccountProvider
     const entryPointAddress = this.#smartAccountConfig.entryPointAddress ? this.#smartAccountConfig.entryPointAddress: state.entryPointAddress

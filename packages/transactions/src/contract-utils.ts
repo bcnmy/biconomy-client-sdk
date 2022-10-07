@@ -19,7 +19,6 @@ import {
 } from './utils/FetchContractsInfo'
 import { ethers, Signer } from 'ethers'
 import EvmNetworkManager from '@biconomy-sdk/ethers-lib'
-import { JsonRpcSigner } from '@ethersproject/providers'
 import { SmartAccountVersion } from '@biconomy-sdk/core-types'
 
 class ContractUtils {
@@ -50,7 +49,7 @@ class ContractUtils {
 
 
 
-  public async initialize(supportedChains: ChainConfig[], signer: JsonRpcSigner) {
+  public async initialize(supportedChains: ChainConfig[], signer: Signer) {
     const chainsInfo = supportedChains;
 
     for (let i = 0; i < chainsInfo.length; i++) {
