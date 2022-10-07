@@ -64,12 +64,6 @@ export abstract class BaseWalletAPI {
 
   async _getWalletContract(): Promise<SmartWalletContract> {
     if (this.walletContract == null) {
-      // console.log('this.contractUtils, ' this.contractUtils)
-
-      console.log('issue, ')
-
-      console.log('chainId ', (await this.provider.getNetwork()).chainId)
-
       this.walletContract = this.contractUtils
         .getSmartWalletContract((await this.provider.getNetwork()).chainId)
       this.walletContract.getContract().attach(await this.getWalletAddress())
