@@ -43,7 +43,7 @@ export abstract class BaseWalletAPI {
    * our wallet contract.
    * should support the "execFromSingleton" and "nonce" methods
    */
-  walletContract?: any
+  walletContract!: SmartWalletContract
 
   /**
    * base constructor.
@@ -70,13 +70,11 @@ export abstract class BaseWalletAPI {
 
       console.log('chainId ', (await this.provider.getNetwork()).chainId)
 
-      console.log(this.contractUtils
-        .getSmartWalletContract((await this.provider.getNetwork()).chainId).getContract())
-
-      let walletContract = this.contractUtils
+      this.walletContract = this.contractUtils
         .getSmartWalletContract((await this.provider.getNetwork()).chainId)
-        .getContract()
-      walletContract = walletContract.attach(await this.getWalletAddress())
+      this.walletContract.getContract().attach(await this.getWalletAddress())
+      // this.walletContract = wallet.attach(await this.getWalletAddress())
+      // console.log(this.walletContract.getInterface())
     }
     return this.walletContract
   }
@@ -227,7 +225,6 @@ export abstract class BaseWalletAPI {
         this.senderAddress = await this.getCounterFactualAddress()
       }
     }
-    console.log('this.senderAddress ', this.senderAddress)
     return this.senderAddress
   }
 
