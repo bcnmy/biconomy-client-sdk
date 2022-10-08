@@ -8,7 +8,8 @@ import { MultiSendContract } from './contracts/MultiSendContract'
 import { MultiSendCallOnlyContract } from './contracts/MultiSendCallOnlyContract'
 import { SmartWalletContract } from './contracts/SmartWalletContract'
 import { GasLimit } from './transaction.types'
-import { JsonRpcSigner } from '@ethersproject/providers'
+import { Signer } from 'ethers'
+
 
 
 export interface SmartAccountConfig {
@@ -61,7 +62,7 @@ export type SignTransactionDto = {
   version: string
   tx: IWalletTransaction
   chainId: ChainId
-  signer: JsonRpcSigner
+  signer: Signer
 }
 
 export type SendTransactionDto = {

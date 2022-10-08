@@ -1,4 +1,5 @@
 import EthersAdapter from '@biconomy-sdk/ethers-lib'
+import { ethers, Signer } from 'ethers'
 import {
   findContractAddressesByVersion
 } from './utils/FetchContractsInfo'
@@ -29,7 +30,6 @@ import {
   RelayResponse,
   SmartAccountConfig
 } from '@biconomy-sdk/core-types'
-import { JsonRpcSigner } from '@ethersproject/providers'
 import NodeClient, {
   ProviderUrlConfig,
   ChainConfig,
@@ -45,7 +45,10 @@ import {
   BalancesResponse,
   UsdBalanceResponse,
 } from '@biconomy-sdk/node-client'
-import { stringify } from 'querystring'
+import { MetaMaskInpageProvider } from '@metamask/providers'
+import { SmartAccountSigner } from './signers/SmartAccountSigner'
+
+
 
 
 // Create an instance of Smart Account with multi-chain support.
@@ -72,12 +75,12 @@ class SmartAccount {
   providerUrlConfig!: ProviderUrlConfig[]
 
   // providers!:  Web3Provider[]
-  provider!: Web3Provider
+  provider!: MetaMaskInpageProvider
   // 4337Signer
   // 4337Provider
 
   // Ideally not JsonRpcSigner but extended signer // Also the original EOA signer
-  signer!: JsonRpcSigner
+  signer!: Signer
   // We may have different signer for ERC4337
 
   nodeClient!: NodeClient
@@ -113,7 +116,7 @@ class SmartAccount {
    * If you wish to use your own backend server and relayer service, pass the URLs here
    */
   // review SmartAccountConfig
-  constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
+  constructor(walletProvider: MetaMaskInpageProvider, config?: Partial<SmartAccountConfig>) {
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
     if (config) {
       this.#smartAccountConfig = { ...this.#smartAccountConfig, ...config }
@@ -126,7 +129,9 @@ class SmartAccount {
     this.supportedNetworkIds = this.#smartAccountConfig.supportedNetworksIds
 
     this.provider = walletProvider
-    this.signer = walletProvider.getSigner()
+
+    this.signer = new SmartAccountSigner(this.provider)
+    // this.signer.connect(ethers.getDefaultProvider("ethereum"))
 
     this.contractUtils = new ContractUtils()
     this.nodeClient = new NodeClient({ txServiceUrl: this.#smartAccountConfig.backend_url })
@@ -138,20 +143,31 @@ class SmartAccount {
 
     this.setActiveChain(this.#smartAccountConfig.activeNetworkId)
 
-    this.owner = await this.signer.getAddress()
+    // this.owner = await this.signer.getAddress()
+    const accounts: any = await this.provider.request({method: 'eth_requestAccounts'})
+    console.log('accounts ', accounts)
+    const owner = accounts[0]
+    this.owner = owner
+    console.log('owner is,..', owner)
+
     
     const chainConfig = (await this.nodeClient.getAllSupportedChains()).data
     this.chainConfig = chainConfig
 
     await this.contractUtils.initialize(chainConfig, this.signer)
+    console.log('contract utils initialized')
+    console.log(this.contractUtils)
 
     this.address = await this.getAddress({index: 0, chainId: this.#smartAccountConfig.activeNetworkId, version: this.DEFAULT_VERSION})
+    console.log('smart account address ', this.address)
 
     this.transactionManager = new TransactionManager()
 
     const state = await this.getSmartAccountState(this.#smartAccountConfig.activeNetworkId)
+    console.log('smart account state ', state)
 
     await this.transactionManager.initialize(this.relayer, this.nodeClient, this.contractUtils, state)
+    console.log('transaction instancew init done')
 
     return this
   }
@@ -557,6 +573,7 @@ class SmartAccount {
     return isPhantom;*/
 
     //Below works
+    console.log('isDeployed,,,, ', this.address)
     return await this.contractUtils.smartWalletFactoryContract[chainId][this.DEFAULT_VERSION].isWalletExist(this.address)
   }
 

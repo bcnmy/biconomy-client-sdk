@@ -18,7 +18,7 @@ export class LocalRelayer implements Relayer {
   constructor(signer: AbstractSigner) {
     if (!AbstractSigner.isSigner(signer)) throw new Error('Signer must have a provider')
     this.signer = signer
-    if (!this.signer.provider) throw new Error('Signer must have a provider')
+    // if (!this.signer.provider) throw new Error('Signer must have a provider')
   }
 
   // TODO

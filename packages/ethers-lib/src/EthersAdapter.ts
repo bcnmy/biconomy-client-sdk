@@ -37,9 +37,9 @@ class EvmNetworkManager implements IEvmNetworkManager {
     if (!ethers) {
       throw new Error('ethers property missing from options')
     }
-    if (!signer.provider) {
+    /*if (!signer.provider) {
       throw new Error('Signer must be connected to a provider')
-    }
+    }*/
     this.#signer = signer
     this.#provider = provider
     this.#ethers = ethers
