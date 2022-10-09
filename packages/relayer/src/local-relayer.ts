@@ -7,6 +7,7 @@ import {
   IWalletTransaction,
   FeeOptionsResponse,
   RelayTransaction,
+  RawTransactionType,
   RelayResponse
 } from '@biconomy-sdk/core-types'
 import { MetaTransaction, encodeMultiSend } from './utils/multisend'
@@ -115,6 +116,16 @@ export class LocalRelayer implements Relayer {
     })
     return tx
   }
+
+  async relayAny(transactionRequest: RawTransactionType): Promise<RelayResponse> {
+    const tx = this.signer.sendTransaction({
+      ...transactionRequest,
+      gasLimit: ethers.constants.Two.pow(24)
+    })
+    return tx
+  }
+
+
 
   async getFeeOptions(chainId: number): Promise<FeeOptionsResponse> {
     console.log('requested fee options for chain ', chainId)
