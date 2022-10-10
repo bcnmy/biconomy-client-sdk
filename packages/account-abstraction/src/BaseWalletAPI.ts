@@ -60,6 +60,7 @@ export abstract class BaseWalletAPI {
   ) {
     // factory "connect" define the contract address. the contract "connect" defines the "from" address.
     // this.entryPointView = EntryPoint__factory.connect(entryPointAddress, provider).connect(ethers.constants.AddressZero)
+    this.paymasterAPI = new PaymasterAPI('https://us-central1-biconomy-staging.cloudfunctions.net', '')
   }
 
   // based on provider chainId we maintain smartWalletContract..
