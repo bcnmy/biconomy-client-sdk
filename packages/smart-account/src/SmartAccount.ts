@@ -36,9 +36,9 @@ import NodeClient, {
   SmartAccountsResponse,
   SmartAccountByOwnerDto,
 } from '@biconomy-sdk/node-client'
-import { Web3Provider } from '@ethersproject/providers'
+import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import { Relayer, RestRelayer } from '@biconomy-sdk/relayer'
-import TransactionManager, { ContractUtils, smartAccountSignMessage } from '@biconomy-sdk/transactions'
+import TransactionManager, { ContractUtils, smartAccountSignMessage, smartAccountSignTypedData } from '@biconomy-sdk/transactions'
 import { BalancesDto } from '@biconomy-sdk/node-client'
 import {
   TransactionResponse,
@@ -80,7 +80,7 @@ class SmartAccount {
   // 4337Provider
 
   // Ideally not JsonRpcSigner but extended signer // Also the original EOA signer
-  signer!: Signer
+  signer!: Signer & TypedDataSigner
   // We may have different signer for ERC4337
 
   nodeClient!: NodeClient
@@ -267,7 +267,7 @@ class SmartAccount {
     let walletContract = this.smartAccount(chainId).getContract()
     walletContract = walletContract.attach(this.address)
     // TODO - rename and organize utils
-    const { signer, data } = await smartAccountSignMessage(this.signer, walletContract, tx, chainId)
+    const { signer, data } = await smartAccountSignTypedData(this.signer, walletContract, tx, chainId)
     let signature = '0x'
     signature += data.slice(2)
     return signature
