@@ -159,13 +159,13 @@ class SmartAccount {
     this.owner = owner
     console.log('owner is,..', owner)
 
-    // this.chainConfig = []
+    this.chainConfig = []
 
     
-    const chainConfig = (await this.nodeClient.getAllSupportedChains()).data
-    this.chainConfig = chainConfig
+    // const chainConfig = (await this.nodeClient.getAllSupportedChains()).data
+    // this.chainConfig = chainConfig
 
-    /*const chainConfig = (await this.nodeClient.getAllSupportedChains()).data
+    const chainConfig = (await this.nodeClient.getAllSupportedChains()).data
     for (let index = 0; index < this.#smartAccountConfig.supportedNetworksIds.length; index++) {
       const network = chainConfig.find(
         (element) => element.chainId === this.#smartAccountConfig.supportedNetworksIds[index]
@@ -173,7 +173,7 @@ class SmartAccount {
       if (network) this.chainConfig.push(network)
     }
     console.log('supported chains length is ', this.chainConfig.length)
-    console.log('supported chains list is ', this.chainConfig)*/
+    console.log('supported chains list is ', this.chainConfig)
 
     await this.contractUtils.initialize(chainConfig, this.#smartAccountConfig, this.signer)
     console.log('contract utils initialized')
@@ -213,7 +213,7 @@ class SmartAccount {
           ' this.#smartAccountConfig.paymasterAddress ',
           this.#smartAccountConfig.paymasterAddress
         )
-        console.log('providerUrl ', factoryAddress)
+        console.log('providerUrl ', providerUrl)
         console.log(' entryPointAddress ', entryPointAddress)
         console.log('this.#smartAccountConfig.bundlerUrl ', this.#smartAccountConfig.bundlerUrl)
         console.log('network.chainId ', network.chainId)
