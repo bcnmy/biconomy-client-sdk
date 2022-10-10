@@ -96,10 +96,10 @@ export const smartAccountSignTypedData = async (
   signer: Signer & TypedDataSigner,
   wallet: Contract,
   SmartAccountTx: IWalletTransaction,
-  chainId?: BigNumberish
+  chainId?: number
 ): Promise<SmartAccountSignature> => {
   if (!chainId && !signer.provider) throw Error('Provider required to retrieve chainId')
-  const cid = chainId || (await signer.provider!!.getNetwork()).chainId
+  const cid = chainId
   const signerAddress = await signer.getAddress()
   return {
     signer: signerAddress,

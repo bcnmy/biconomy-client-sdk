@@ -222,7 +222,7 @@ class SmartAccount {
         console.log('state.fallbackHandlerAddress ', state.fallbackHandlerAddress)
         console.log('factoryAddress ', factoryAddress)
   
-        this.aaProvider[network.chainId] = await newProvider(
+        /*this.aaProvider[network.chainId] = await newProvider(
           new ethers.providers.JsonRpcProvider(providerUrl),
           this.contractUtils,
           {
@@ -235,7 +235,7 @@ class SmartAccount {
           this.address,
           state.fallbackHandlerAddress,
           factoryAddress
-        )
+        )*/
         console.log('round completed for chainid ', network.chainId)
       }
   

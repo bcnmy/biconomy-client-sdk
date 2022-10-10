@@ -68,7 +68,7 @@ export class SmartAccountSigner extends Signer implements TypedDataSigner {
     message: Record<string, any>,
     chainId?: ChainId
   ): Promise<string> {
-    const activeChainId = chainId ? chainId : this.getChainId()
+    const activeChainId = chainId ? chainId : await this.getChainId()
     const domainChainId = domain.chainId ? BigNumber.from(domain.chainId).toNumber() : undefined
     if (domainChainId && domainChainId !== activeChainId) {
       throw new Error('Domain chainId is different from active chainId.')
@@ -76,7 +76,7 @@ export class SmartAccountSigner extends Signer implements TypedDataSigner {
 
     const signature: any = this.metamaskProvider.request({method: 'eth_signTypedData_v4', params: [
       await this.getAddress(),
-      ethers.utils._TypedDataEncoder.getPayload(domain, types, message)
+      JSON.stringify(ethers.utils._TypedDataEncoder.getPayload(domain, types, message))
     ]})
 
     return signature
