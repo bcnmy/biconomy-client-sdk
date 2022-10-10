@@ -5,12 +5,9 @@ import {
   MultiSendContract,
   MultiSendCallOnlyContract,
   SmartAccountContext,
-  EstimateSmartAccountDeploymentDto
+  SmartAccountConfig
 } from '@biconomy-sdk/core-types'
-import{
-  ChainConfig,
-  SupportedChainsResponse
-} from '@biconomy-sdk/node-client'
+import { ChainConfig, SupportedChainsResponse } from '@biconomy-sdk/node-client'
 import {
   getSmartWalletFactoryContract,
   getMultiSendContract,
@@ -33,9 +30,9 @@ class ContractUtils {
     [chainId: number]: { [version: string]: SmartWalletFactoryContract }
   }
 
-  // Note: Should DEFAULT_VERSION be moved here? 
+  // Note: Should DEFAULT_VERSION be moved here?
 
-  constructor(){
+  constructor(readonly version: string) {
     this.ethAdapter = {}
     this.smartWalletContract = {}
     this.multiSendContract = {}
@@ -43,18 +40,32 @@ class ContractUtils {
     this.smartWalletFactoryContract = {}
   }
 
-  public async initialize(supportedChains: ChainConfig[], signer: Signer) {
-    const chainsInfo = supportedChains;
+  public getSmartWalletContract(chainId: number): SmartWalletContract {
+    return this.smartWalletContract[chainId][this.version]
+  }
+
+  public async initialize(
+    supportedChains: ChainConfig[],
+    config: SmartAccountConfig,
+    signer: Signer
+  ) {
+    const chainsInfo = supportedChains
 
     for (let i = 0; i < chainsInfo.length; i++) {
       const network = chainsInfo[i]
-      const providerUrl = network.providerUrl
       // To keep it network agnostic
-      // Note: think about events when signer needs to pay gas      
+      // Note: think about events when signer needs to pay gas
+
+      let providerUrl =
+        config.providerUrlConfig?.find((element) => element.chainId === network.chainId)
+          ?.providerUrl || ''
+      console.log('Used provider from config ', providerUrl)
+
+      if (!providerUrl) providerUrl = network.providerUrl
 
       const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
 
-      console.log('chain id ', network.chainId, 'readProvider ', readProvider);
+      console.log('chain id ', network.chainId, 'readProvider ', readProvider)
 
       // Instantiating EthersAdapter instance and maintain it as above mentioned class level variable
       this.ethAdapter[network.chainId] = new EvmNetworkManager({
@@ -119,14 +130,14 @@ class ContractUtils {
     return await this.smartWalletFactoryContract[chainId][version].isWalletExist(address)
   }
 
-   //
+  //
   /**
    * Serves smart contract instances associated with Smart Account for requested ChainId
    * Context is useful when relayer is deploying a wallet
    * @param chainId requested chain : default is active chain
    * @returns object containing relevant contract instances
    */
-   getSmartAccountContext(
+  getSmartAccountContext(
     // smartAccountVersion: SmartAccountVersion = this.DEFAULT_VERSION,
     chainId: ChainId,
     version: SmartAccountVersion
@@ -135,7 +146,7 @@ class ContractUtils {
       baseWallet: this.smartWalletContract[chainId][version],
       walletFactory: this.smartWalletFactoryContract[chainId][version],
       multiSend: this.multiSendContract[chainId][version],
-      multiSendCall: this.multiSendCallOnlyContract[chainId][version],
+      multiSendCall: this.multiSendCallOnlyContract[chainId][version]
       // Could be added dex router for chain in the future
     }
     return context

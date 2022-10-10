@@ -13,14 +13,15 @@ import { Signer } from 'ethers'
 
 
 export interface SmartAccountConfig {
-  // owner: string
-  // version: string
   activeNetworkId: ChainId // same
   supportedNetworksIds: ChainId[] // Network[] chainId: CbainId, rpcUrl?: string
-  backend_url: string,
-  relayer_url: string,
+  backend_url: string
+  relayer_url: string
   dappAPIKey?: string
   providerUrlConfig?: ProviderUrlConfig[]
+  entryPointAddress?: string
+  bundlerUrl?: string
+  paymasterAddress?: string
 }
 
 export type ProviderUrlConfig = {
