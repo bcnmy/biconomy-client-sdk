@@ -3,20 +3,24 @@ import { UserOperationStruct } from '@account-abstraction/contracts'
 import { abi as entryPointAbi } from '@account-abstraction/contracts/artifacts/IEntryPoint.json'
 
 // UserOperation is the first parameter of simulateValidation
-const UserOpType = entryPointAbi.find(entry => entry.name === 'simulateValidation')?.inputs[0]
+const UserOpType = entryPointAbi.find((entry) => entry.name === 'simulateValidation')?.inputs[0]
 
 // reverse "Deferrable" or "PromiseOrValue" fields
 export type NotPromise<T> = {
   [P in keyof T]: Exclude<T[P], Promise<any>>
 }
 
-function encode (typevalues: Array<{ type: string, val: any }>, forSignature: boolean): string {
-  const types = typevalues.map(typevalue => typevalue.type === 'bytes' && forSignature ? 'bytes32' : typevalue.type)
-  const values = typevalues.map((typevalue) => typevalue.type === 'bytes' && forSignature ? keccak256(typevalue.val) : typevalue.val)
+function encode(typevalues: Array<{ type: string; val: any }>, forSignature: boolean): string {
+  const types = typevalues.map((typevalue) =>
+    typevalue.type === 'bytes' && forSignature ? 'bytes32' : typevalue.type
+  )
+  const values = typevalues.map((typevalue) =>
+    typevalue.type === 'bytes' && forSignature ? keccak256(typevalue.val) : typevalue.val
+  )
   return defaultAbiCoder.encode(types, values)
 }
 
-export function packUserOp (op: NotPromise<UserOperationStruct>, forSignature = true): string {
+export function packUserOp(op: NotPromise<UserOperationStruct>, forSignature = true): string {
   if (forSignature) {
     // lighter signature scheme (must match UserOperation#pack): do encode a zero-length signature, but strip afterwards the appended zero-length value
     const userOpType = {
@@ -43,10 +47,12 @@ export function packUserOp (op: NotPromise<UserOperationStruct>, forSignature = 
     encoded = '0x' + encoded.slice(66, encoded.length - 64)
     return encoded
   }
-  const typedValues = (UserOpType as any).components.map((c: {name: keyof typeof op, type: string}) => ({
-    type: c.type,
-    val: op[c.name]
-  }))
+  const typedValues = (UserOpType as any).components.map(
+    (c: { name: keyof typeof op; type: string }) => ({
+      type: c.type,
+      val: op[c.name]
+    })
+  )
   const typevalues = [
     { type: 'address', val: op.sender },
     { type: 'uint256', val: op.nonce },
@@ -68,14 +74,23 @@ export function packUserOp (op: NotPromise<UserOperationStruct>, forSignature = 
   return encode(typevalues, forSignature)
 }
 
-export function getRequestId (op: NotPromise<UserOperationStruct>, entryPoint: string, chainId: number): string {
+export function getRequestId(
+  op: NotPromise<UserOperationStruct>,
+  entryPoint: string,
+  chainId: number
+): string {
   const userOpHash = keccak256(packUserOp(op, true))
   const enc = defaultAbiCoder.encode(
     ['bytes32', 'address', 'uint256'],
-    [userOpHash, entryPoint, chainId])
+    [userOpHash, entryPoint, chainId]
+  )
   return keccak256(enc)
 }
 
-export function getRequestIdForSigning (op: NotPromise<UserOperationStruct>, entryPoint: string, chainId: number): Uint8Array {
+export function getRequestIdForSigning(
+  op: NotPromise<UserOperationStruct>,
+  entryPoint: string,
+  chainId: number
+): Uint8Array {
   return arrayify(getRequestId(op, entryPoint, chainId))
 }

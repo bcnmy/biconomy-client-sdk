@@ -25,11 +25,8 @@ import SmartWalletFacoryContractEthers_v1_0_1 from './SmartWalletFactory/v1.0.1/
 import { EntryPointContractV100__factory as EntryPointFactoryContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/EntryPointContractV100__factory'
 import { EntryPointContractV101__factory as EntryPointFactoryContractV101 } from '../../typechain/src/ethers-v5/v1.0.1/factories/EntryPointContractV101__factory'
 
-
 import EntryPointEthersContract_v1_0_0 from './EntryPointContract/v1.0.0/EntryPointEthersContract'
 import EntryPointEthersContract_v1_0_1 from './EntryPointContract/v1.0.1/EntryPointEthersContract'
-
-
 
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { SmartAccountVersion } from '@biconomy-sdk/core-types'
@@ -39,9 +36,7 @@ export function getSmartWalletContractInstance(
   contractAddress: string,
   // signer: Signer
   provider: JsonRpcProvider
-):
-  | SmartWalletContractEthers_v1_0_0
-  | SmartWalletContractEthers_v1_0_1 {
+): SmartWalletContractEthers_v1_0_0 | SmartWalletContractEthers_v1_0_1 {
   let walletContract
   switch (smartAccountVersion) {
     case '1.0.0':
@@ -59,9 +54,7 @@ export function getMultiSendContractInstance(
   contractAddress: string,
   // signer: Signer
   provider: JsonRpcProvider
-):
-  | MultiSendEthersContract_v1_0_0
-  | MultiSendEthersContract_v1_0_1 {
+): MultiSendEthersContract_v1_0_0 | MultiSendEthersContract_v1_0_1 {
   let multiSendContract
 
   switch (smartAccountVersion) {
@@ -79,9 +72,7 @@ export function getMultiSendCallOnlyContractInstance(
   contractAddress: string,
   // signer: Signer
   provider: JsonRpcProvider
-):
-  | MultiSendCallOnlyEthersContract_v1_0_0
-  | MultiSendCallOnlyEthersContract_v1_0_1 {
+): MultiSendCallOnlyEthersContract_v1_0_0 | MultiSendCallOnlyEthersContract_v1_0_1 {
   let multiSendCallContract
 
   switch (smartAccountVersion) {
@@ -98,9 +89,7 @@ export function getSmartWalletFactoryContractInstance(
   smartAccountVersion: SmartAccountVersion,
   contractAddress: string,
   provider: JsonRpcProvider
-):
-  | SmartWalletFacoryContractEthers_v1_0_0
-  | SmartWalletFacoryContractEthers_v1_0_1 {
+): SmartWalletFacoryContractEthers_v1_0_0 | SmartWalletFacoryContractEthers_v1_0_1 {
   let walletFactoryContract
 
   switch (smartAccountVersion) {
@@ -117,8 +106,7 @@ export function getEntryPointFactoryContractInstance(
   smartAccountVersion: SmartAccountVersion,
   contractAddress: string,
   provider: JsonRpcProvider
-):  | EntryPointEthersContract_v1_0_0
-  | EntryPointEthersContract_v1_0_1 {
+): EntryPointEthersContract_v1_0_0 | EntryPointEthersContract_v1_0_1 {
   let walletFactoryContract
 
   switch (smartAccountVersion) {

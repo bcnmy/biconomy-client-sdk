@@ -10,12 +10,11 @@ import { SmartWalletContract } from './contracts/SmartWalletContract'
 import { GasLimit } from './transaction.types'
 import { Signer } from 'ethers'
 
-
 export interface SmartAccountConfig {
   activeNetworkId: ChainId // same
   supportedNetworksIds: ChainId[] // Network[] chainId: CbainId, rpcUrl?: string
-  backend_url: string,
-  relayer_url: string,
+  backend_url: string
+  relayer_url: string
   dappAPIKey?: string
   providerUrlConfig?: ProviderUrlConfig[]
   entryPointAddress?: string
@@ -35,11 +34,10 @@ export type SmartAccountContext = {
   multiSendCall: MultiSendCallOnlyContract
 }
 
-
 export type EstimateSmartAccountDeploymentDto = {
   chainId: ChainId
   version: string
-  owner: string,
+  owner: string
   entryPointAddress: string
   fallbackHandlerAddress: string
 }
@@ -102,7 +100,7 @@ export type RefundTransactionBatchDto = {
 }
 
 export type TransactionDto = {
-  version?: string,
+  version?: string
   transaction: Transaction
   batchId?: number
   chainId?: ChainId

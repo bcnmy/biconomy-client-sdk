@@ -97,7 +97,7 @@ export class RestRelayer implements Relayer {
       const txnData = multiSendCall
         .getInterface()
         .encodeFunctionData('multiSend', [encodeMultiSend(txs)])
-      
+
       const finalRawRx = {
         to: multiSendCall.getAddress(),
         data: txnData,
@@ -108,25 +108,34 @@ export class RestRelayer implements Relayer {
       console.log(finalRawRx)
 
       // API call
-       // rawTx to becomes multiSend address and data gets prepared again 
-       return sendRequest({
+      // rawTx to becomes multiSend address and data gets prepared again
+      return sendRequest({
         url: `${this.#relayServiceBaseUrl}`,
         method: HttpMethod.Post,
-        body: { ...finalRawRx, gasLimit: gasLimit, refundInfo: {
-        tokenGasPrice: signedTx.tx.gasPrice,
-        gasToken: signedTx.tx.gasToken } }
-    })
-   }
-  
+        body: {
+          ...finalRawRx,
+          gasLimit: gasLimit,
+          refundInfo: {
+            tokenGasPrice: signedTx.tx.gasPrice,
+            gasToken: signedTx.tx.gasToken
+          }
+        }
+      })
+    }
+
     console.log('signedTx', signedTx)
     // API call
     return sendRequest({
       url: `${this.#relayServiceBaseUrl}`,
       method: HttpMethod.Post,
-      body: { ...signedTx.rawTx, gasLimit: gasLimit, refundInfo: {
-        tokenGasPrice: signedTx.tx.gasPrice,
-        gasToken: signedTx.tx.gasToken,
-      } }
+      body: {
+        ...signedTx.rawTx,
+        gasLimit: gasLimit,
+        refundInfo: {
+          tokenGasPrice: signedTx.tx.gasPrice,
+          gasToken: signedTx.tx.gasToken
+        }
+      }
     })
   }
 

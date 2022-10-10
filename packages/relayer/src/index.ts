@@ -7,7 +7,6 @@ import {
 } from '@biconomy-sdk/core-types'
 import { RelayTransaction, RelayResponse } from '@biconomy-sdk/core-types'
 
-
 // JsonRpcRequest
 export interface Relayer {
   // relayer will submit the transaction(s) to the network and return the transaction response.

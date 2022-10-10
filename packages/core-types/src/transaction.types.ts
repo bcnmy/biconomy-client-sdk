@@ -41,7 +41,7 @@ export type ExecTransaction = {
   targetTxGas: string | number
 }
 
-export type SmartAccountSignature =  {
+export type SmartAccountSignature = {
   signer: string
   data: string
 }
@@ -53,10 +53,9 @@ export interface IFeeRefundV1_0_0 {
   gasToken: string
   refundReceiver: string
 }
-export interface IFeeRefundV1_0_1 extends IFeeRefundV1_0_0{
+export interface IFeeRefundV1_0_1 extends IFeeRefundV1_0_0 {
   tokenGasPriceFactor: string | number
 }
-
 
 // extended from FeeRefund as we need this for handlePayment Estimate
 export interface IFeeRefundHandlePayment extends IFeeRefundV1_0_1 {

@@ -165,6 +165,7 @@ class SmartAccount {
     this.contractUtils = new ContractUtils(this.DEFAULT_VERSION)
     this.nodeClient = new NodeClient({ txServiceUrl: this.#smartAccountConfig.backend_url })
     this.relayer = new RestRelayer({ url: this.#smartAccountConfig.relayer_url })
+    this.aaProvider = {}
   }
 
   async init() {
@@ -175,18 +176,15 @@ class SmartAccount {
 
     const chainConfig = (await this.nodeClient.getAllSupportedChains()).data
     for (let index = 0; index < this.#smartAccountConfig.supportedNetworksIds.length; index++) {
-      const network = chainConfig.find(element => element.chainId === this.#smartAccountConfig.supportedNetworksIds[index])
-      if ( network )
-      this.chainConfig.push(network)
+      const network = chainConfig.find(
+        (element) => element.chainId === this.#smartAccountConfig.supportedNetworksIds[index]
+      )
+      if (network) this.chainConfig.push(network)
     }
     console.log('supported chains length is ', this.chainConfig.length)
     console.log('supported chains list is ', this.chainConfig)
 
-    await this.contractUtils.initialize(
-      chainConfig,
-      this.#smartAccountConfig,
-      this.signer
-    )
+    await this.contractUtils.initialize(chainConfig, this.#smartAccountConfig, this.signer)
 
     this.address = await this.getAddress({
       index: 0,
@@ -217,11 +215,25 @@ class SmartAccount {
     for (let index = 0; index < this.chainConfig.length; index++) {
       const network = this.chainConfig[index]
       console.log('initialising for chain ', network.chainId)
-      let providerUrl = this.#smartAccountConfig.providerUrlConfig?.find(element=> element.chainId === network.chainId)?.providerUrl || ''
+      let providerUrl =
+        this.#smartAccountConfig.providerUrlConfig?.find(
+          (element) => element.chainId === network.chainId
+        )?.providerUrl || ''
       console.log('Used provider from config ', providerUrl)
 
-      if (!providerUrl)
-      providerUrl = network.providerUrl
+      if (!providerUrl) providerUrl = network.providerUrl
+
+      console.log(
+        ' this.#smartAccountConfig.paymasterAddress ',
+        this.#smartAccountConfig.paymasterAddress
+      )
+      console.log(' entryPointAddress ', entryPointAddress)
+      console.log('this.#smartAccountConfig.bundlerUrl ', this.#smartAccountConfig.bundlerUrl)
+      console.log('network.chainId ', network.chainId)
+      console.log('this.signer ', this.signer)
+      console.log('this.address ', this.address)
+      console.log('state.fallbackHandlerAddress ', state.fallbackHandlerAddress)
+      console.log('factoryAddress ', factoryAddress)
 
       this.aaProvider[network.chainId] = await newProvider(
         new ethers.providers.JsonRpcProvider(providerUrl),
@@ -237,6 +249,7 @@ class SmartAccount {
         state.fallbackHandlerAddress,
         factoryAddress
       )
+      console.log('round completed for chainid ', network.chainId)
     }
 
     console.log('aa provider ', this.aaProvider)
@@ -721,6 +734,7 @@ class SmartAccount {
 // TODO/NOTE : make Goerli and Mumbai as test networks and remove others
 export const DefaultSmartAccountConfig: SmartAccountConfig = {
   activeNetworkId: ChainId.GOERLI, //Update later
+  // paymasterAddress: '0x50e8996670759E1FAA315eeaCcEfe0c0A043aA51',
   supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],
   backend_url: 'https://sdk-backend.staging.biconomy.io/v1',
   relayer_url: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
@@ -730,6 +744,10 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
     {
       chainId: ChainId.GOERLI,
       providerUrl: 'https://eth-goerli.alchemyapi.io/v2/lmW2og_aq-OXWKYRoRu-X6Yl6wDQYt_2'
+    },
+    {
+      chainId: ChainId.POLYGON_MUMBAI,
+      providerUrl: 'https://polygon-mumbai.g.alchemy.com/v2/Q4WqQVxhEEmBYREX22xfsS2-s5EXWD31'
     }
   ]
 }

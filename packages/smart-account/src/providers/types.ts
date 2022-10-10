@@ -15,16 +15,20 @@ export interface JsonRpcResponse {
 }
 
 export interface ProviderRpcError extends Error {
-    message: string;
-    code?: number;
-    data?: {
-        [key: string]: any;
-    };
+  message: string
+  code?: number
+  data?: {
+    [key: string]: any
+  }
 }
 
 export type JsonRpcResponseCallback = (error?: ProviderRpcError, response?: JsonRpcResponse) => void
 
-export type JsonRpcHandlerFunc = (request: JsonRpcRequest, callback: JsonRpcResponseCallback, chainId?: number) => void
+export type JsonRpcHandlerFunc = (
+  request: JsonRpcRequest,
+  callback: JsonRpcResponseCallback,
+  chainId?: number
+) => void
 
 export interface JsonRpcHandler {
   sendAsync: JsonRpcHandlerFunc
@@ -33,7 +37,10 @@ export interface JsonRpcHandler {
 export type JsonRpcFetchFunc = (method: string, params?: any[], chainId?: number) => Promise<any>
 
 // EIP-1193 function signature
-export type JsonRpcRequestFunc = (request: { method: string; params?: any[] }, chainId?: number) => Promise<any>
+export type JsonRpcRequestFunc = (
+  request: { method: string; params?: any[] },
+  chainId?: number
+) => Promise<any>
 
 export type JsonRpcMiddleware = (next: JsonRpcHandlerFunc) => JsonRpcHandlerFunc
 

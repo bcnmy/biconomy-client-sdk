@@ -30,7 +30,7 @@ export async function newProvider (
   // const simpleWalletDeployer = await DeterministicDeployer.deploy(SimpleWalletDeployer__factory.bytecode)
   const smartWalletAPI = new SmartAccountAPI(originalProvider, contractUtils, entryPoint, walletAddress, originalSigner, fallbackHandlerAddress, factoryAddress, 0)
   const httpRpcClient = new HttpRpcClient(config.bundlerUrl, config.entryPointAddress, config.chainId)
-  return await new ERC4337EthersProvider(
+  const ethProvider = await new ERC4337EthersProvider(
     config,
     originalSigner,
     originalProvider,
@@ -38,4 +38,6 @@ export async function newProvider (
     entryPoint,
     smartWalletAPI
   ).init()
+  console.log('initialisation completed in provider')
+  return ethProvider
 }

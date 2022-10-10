@@ -299,7 +299,7 @@
     "babel-plugin-polyfill-regenerator" "^0.4.1"
     "semver" "^6.3.0"
 
-"@babel/runtime@^7.5.5":
+"@babel/runtime@^7.5.5", "@babel/runtime@^7.x", "@babel/runtime@7.x":
   "integrity" "sha512-eR8Lo9hnDS7tqkO7NsV+mKvCmv5boaXFSZ70DnfhcgiEne8hv9oCEd36Klw74EtizEqLsy4YnW8UWwpBVolHZA=="
   "resolved" "https://registry.npmjs.org/@babel/runtime/-/runtime-7.19.0.tgz"
   "version" "7.19.0"
@@ -448,6 +448,12 @@
     "@ethersproject/constants" "^5.6.1"
     "ethereumjs-util" "^7.1.5"
     "ethers" "^5.6.9"
+
+"@biconomy-sdk/web3-auth@file:/Users/talha/Documents/Biconomy/biconomy-client-sdk/packages/web3-auth":
+  "resolved" "file:packages/web3-auth"
+  "version" "1.0.13"
+  dependencies:
+    "@toruslabs/torus-embed" "^1.36.2"
 
 "@chainlink/contracts@^0.4.1":
   "integrity" "sha512-wVI/KZ9nIH0iqoebVxYrZfNVWO23vwds1UrHdbF+S0JwyixtT+54xYGlot723jCrAeBeQHsDRQXnEhhbUEHpgQ=="
@@ -1925,6 +1931,14 @@
     "tweetnacl" "^1.0.3"
     "tweetnacl-util" "^0.15.1"
 
+"@metamask/obs-store@^7.0.0":
+  "integrity" "sha512-Tr61Uu9CGXkCg5CZwOYRMQERd+y6fbtrtLd/PzDTPHO5UJpmSbU+7MPcQK7d1DwZCOCeCIvhmZSUCvYliC8uGw=="
+  "resolved" "https://registry.npmjs.org/@metamask/obs-store/-/obs-store-7.0.0.tgz"
+  "version" "7.0.0"
+  dependencies:
+    "@metamask/safe-event-emitter" "^2.0.0"
+    "through2" "^2.0.3"
+
 "@metamask/safe-event-emitter@^2.0.0":
   "integrity" "sha512-/kSXhY692qiV1MXu6EeOZvg5nECLclxNXcKCxJ3cXQgYuRymRHpdx/t7JXfsK+JLjwA1e1c1/SBrlQYpusC29Q=="
   "resolved" "https://registry.npmjs.org/@metamask/safe-event-emitter/-/safe-event-emitter-2.0.0.tgz"
@@ -2525,6 +2539,11 @@
     "@sentry/utils" "5.30.0"
     "tslib" "^1.9.3"
 
+"@sentry/types@^7.x":
+  "integrity" "sha512-JzkOtenArOXmJBAk/FBbxKKX7XC650HqkhGL4ugT/f+RyxfiDZ0X1TAYMrvKIe+qpn5Nh7JUBfR+BARKAiu2wQ=="
+  "resolved" "https://registry.npmjs.org/@sentry/types/-/types-7.14.2.tgz"
+  "version" "7.14.2"
+
 "@sentry/types@5.30.0":
   "integrity" "sha512-R8xOqlSTZ+htqrfteCWU5Nk0CDN5ApUTvrlvBuiH1DyP6czDZ4ktbZB0hAgBlVcK0U+qpD3ag3Tqqpa5Q67rPw=="
   "resolved" "https://registry.npmjs.org/@sentry/types/-/types-5.30.0.tgz"
@@ -2599,6 +2618,56 @@
   "integrity" "sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A=="
   "resolved" "https://registry.npmjs.org/@tootallnate/once/-/once-2.0.0.tgz"
   "version" "2.0.0"
+
+"@toruslabs/http-helpers@^3.2.0":
+  "integrity" "sha512-fCfvBHfYzd7AyOYlBo7wihh5nj6+4Ik6V5+nI7H63oiKICjMlByTXSauTUa/qm2mjZJn/OmVYeV5guPIgxoW1w=="
+  "resolved" "https://registry.npmjs.org/@toruslabs/http-helpers/-/http-helpers-3.2.0.tgz"
+  "version" "3.2.0"
+  dependencies:
+    "lodash.merge" "^4.6.2"
+    "loglevel" "^1.8.0"
+
+"@toruslabs/openlogin-jrpc@^2.6.0":
+  "integrity" "sha512-hX2b1HSBvC6jSVlXuhgdH8qyE83cj6SEiHjQ5VsHfRUv15wBgzj+x2Yjw5pjvbrnYXzUlFvFySs10EU7na1cuA=="
+  "resolved" "https://registry.npmjs.org/@toruslabs/openlogin-jrpc/-/openlogin-jrpc-2.6.0.tgz"
+  "version" "2.6.0"
+  dependencies:
+    "@toruslabs/openlogin-utils" "^2.1.0"
+    "end-of-stream" "^1.4.4"
+    "eth-rpc-errors" "^4.0.3"
+    "events" "^3.3.0"
+    "fast-safe-stringify" "^2.1.1"
+    "once" "^1.4.0"
+    "pump" "^3.0.0"
+    "readable-stream" "^3.6.0"
+
+"@toruslabs/openlogin-utils@^2.1.0":
+  "integrity" "sha512-UVgjco4winOn4Gj0VRTvjSZgBA84h2OIkKuxrBFjS+yWhgxQBF4hXGp83uicSgx1MujtjyUOdhJrpV2joRHt9w=="
+  "resolved" "https://registry.npmjs.org/@toruslabs/openlogin-utils/-/openlogin-utils-2.1.0.tgz"
+  "version" "2.1.0"
+  dependencies:
+    "base64url" "^3.0.1"
+    "keccak" "^3.0.2"
+    "randombytes" "^2.1.0"
+
+"@toruslabs/torus-embed@^1.36.2":
+  "integrity" "sha512-5PfgjhM+jobgbU2X5bz+Hb2qbf3Ljt/SFk5hXJ7YohZgX23CUiDqZL+zPOVOwX3BVJHBshqhMX9sOPOBMlfXMg=="
+  "resolved" "https://registry.npmjs.org/@toruslabs/torus-embed/-/torus-embed-1.36.4.tgz"
+  "version" "1.36.4"
+  dependencies:
+    "@metamask/obs-store" "^7.0.0"
+    "@toruslabs/http-helpers" "^3.2.0"
+    "@toruslabs/openlogin-jrpc" "^2.6.0"
+    "create-hash" "^1.2.0"
+    "end-of-stream" "^1.4.4"
+    "eth-rpc-errors" "^4.0.3"
+    "events" "^3.3.0"
+    "fast-deep-equal" "^3.1.3"
+    "is-stream" "^2.0.1"
+    "lodash.merge" "^4.6.2"
+    "loglevel" "^1.8.0"
+    "once" "^1.4.0"
+    "pump" "^3.0.0"
 
 "@truffle/error@^0.1.1":
   "integrity" "sha512-sE7c9IHIGdbK4YayH4BC8i8qMjoAOeg6nUXUDZZp8wlU21/EMpaG+CLx+KqcIPyR+GSWIW3Dm0PXkr2nlggFDA=="
@@ -3668,6 +3737,11 @@
   "integrity" "sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA=="
   "resolved" "https://registry.npmjs.org/base64-js/-/base64-js-1.5.1.tgz"
   "version" "1.5.1"
+
+"base64url@^3.0.1":
+  "integrity" "sha512-ir1UPr3dkwexU7FdV8qBBbNDRUhMmIekYMFZfi+C/sLNnRESKPl23nB9b2pltqfOQNnGzsDdId90AEtG5tCx4A=="
+  "resolved" "https://registry.npmjs.org/base64url/-/base64url-3.0.1.tgz"
+  "version" "3.0.1"
 
 "bcrypt-pbkdf@^1.0.0":
   "integrity" "sha512-qeFIXtP4MSoi6NLqO12WfqARWWuCKi2Rn/9hJLEmtB5yTNr9DqFWkJRCf2qShWzPeAMRnOgCrq0sg/KLv5ES9w=="
@@ -5270,7 +5344,7 @@
   dependencies:
     "iconv-lite" "^0.6.2"
 
-"end-of-stream@^1.1.0", "end-of-stream@^1.4.1":
+"end-of-stream@^1.1.0", "end-of-stream@^1.4.1", "end-of-stream@^1.4.4":
   "integrity" "sha512-+uw1inIHVPQoaVuHzRyXd21icM+cnt4CzD5rW+NC1wjOUSTOs+Te7FOv7AhN7vS9x/oIyhLP5PR1H+phQAHu5Q=="
   "resolved" "https://registry.npmjs.org/end-of-stream/-/end-of-stream-1.4.4.tgz"
   "version" "1.4.4"
@@ -5701,6 +5775,13 @@
   dependencies:
     "fast-safe-stringify" "^2.0.6"
 
+"eth-rpc-errors@^4.0.3":
+  "integrity" "sha512-Z3ymjopaoft7JDoxZcEb3pwdGh7yiYMhOwm2doUt6ASXlMavpNlK6Cre0+IMl2VSGyEU9rkiperQhp5iRxn5Pg=="
+  "resolved" "https://registry.npmjs.org/eth-rpc-errors/-/eth-rpc-errors-4.0.3.tgz"
+  "version" "4.0.3"
+  dependencies:
+    "fast-safe-stringify" "^2.0.6"
+
 "eth-sig-util@^1.4.2":
   "integrity" "sha512-iNZ576iTOGcfllftB73cPB5AN+XUQAT/T8xzsILsghXC1o8gJUqe3RHlcDqagu+biFpYQ61KQrZZJza8eRSYqw=="
   "resolved" "https://registry.npmjs.org/eth-sig-util/-/eth-sig-util-1.4.2.tgz"
@@ -6068,7 +6149,7 @@
   "resolved" "https://registry.npmjs.org/eventemitter3/-/eventemitter3-4.0.4.tgz"
   "version" "4.0.4"
 
-"events@^3.0.0":
+"events@^3.0.0", "events@^3.3.0":
   "integrity" "sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q=="
   "resolved" "https://registry.npmjs.org/events/-/events-3.3.0.tgz"
   "version" "3.3.0"
@@ -6242,7 +6323,7 @@
   "resolved" "https://registry.npmjs.org/fast-levenshtein/-/fast-levenshtein-2.0.6.tgz"
   "version" "2.0.6"
 
-"fast-safe-stringify@^2.0.6":
+"fast-safe-stringify@^2.0.6", "fast-safe-stringify@^2.1.1":
   "integrity" "sha512-W+KJc2dmILlPplD/H4K9l9LcAHAfPtP6BY84uVLXQ6Evcz9Lcg33Y2z1IVblT6xdY54PXYVHEv+0Wpq8Io6zkA=="
   "resolved" "https://registry.npmjs.org/fast-safe-stringify/-/fast-safe-stringify-2.1.1.tgz"
   "version" "2.1.1"
@@ -7741,7 +7822,7 @@
   "resolved" "https://registry.npmjs.org/is-stream/-/is-stream-1.1.0.tgz"
   "version" "1.1.0"
 
-"is-stream@^2.0.0":
+"is-stream@^2.0.0", "is-stream@^2.0.1":
   "integrity" "sha512-hFoiJiTl63nn+kstHGBtewWSKnQLpyb155KHheA1l39uvtO9nWIop1p3udqPcUd/xbF1VLMO4n7OI6p7RbngDg=="
   "resolved" "https://registry.npmjs.org/is-stream/-/is-stream-2.0.1.tgz"
   "version" "2.0.1"
@@ -8811,6 +8892,11 @@
     "cli-cursor" "^3.1.0"
     "slice-ansi" "^4.0.0"
     "wrap-ansi" "^6.2.0"
+
+"loglevel@^1.8.0":
+  "integrity" "sha512-G6A/nJLRgWOuuwdNuA6koovfEV1YpqqAG4pRUlFaz3jj2QNZ8M4vBqnVA+HBTmU/AMNUtlOsMmSpF6NyOjztbA=="
+  "resolved" "https://registry.npmjs.org/loglevel/-/loglevel-1.8.0.tgz"
+  "version" "1.8.0"
 
 "loupe@^2.3.1":
   "integrity" "sha512-OvKfgCC2Ndby6aSTREl5aCCPTNIzlDfQZvZxNUrBrihDhL3xcrYegTblhmEiCrg2kKQz4XsFIaemE5BF4ybSaQ=="
@@ -12112,6 +12198,14 @@
   "version" "2.3.8"
 
 "through2@^2.0.0":
+  "integrity" "sha512-/mrRod8xqpA+IHSLyGCQ2s8SPHiCDEeQJSep1jqLYeEUClOFG2Qsh+4FU6G9VeqpZnGW/Su8LQGc4YKni5rYSQ=="
+  "resolved" "https://registry.npmjs.org/through2/-/through2-2.0.5.tgz"
+  "version" "2.0.5"
+  dependencies:
+    "readable-stream" "~2.3.6"
+    "xtend" "~4.0.1"
+
+"through2@^2.0.3":
   "integrity" "sha512-/mrRod8xqpA+IHSLyGCQ2s8SPHiCDEeQJSep1jqLYeEUClOFG2Qsh+4FU6G9VeqpZnGW/Su8LQGc4YKni5rYSQ=="
   "resolved" "https://registry.npmjs.org/through2/-/through2-2.0.5.tgz"
   "version" "2.0.5"
