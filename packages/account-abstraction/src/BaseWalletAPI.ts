@@ -173,8 +173,6 @@ export abstract class BaseWalletAPI {
     }
 
     const value = parseNumber(detailsForUserOp.value) ?? BigNumber.from(0)
-    console.log('here')
-    console.log((await this._getWalletContract()))
     const callData = await this.encodeExecute(detailsForUserOp.target, value, detailsForUserOp.data)
     /*const callData = (await this._getWalletContract()).encodeFunctionData('execFromEntryPoint', [
       detailsForUserOp.target,
@@ -253,8 +251,8 @@ export abstract class BaseWalletAPI {
     }
 
     const partialUserOp: any = {
-      sender: this.getWalletAddress(),
-      nonce: this.getNonce(0), // TODO: add batchid as param
+      sender: await this.getWalletAddress(),
+      nonce: await this.getNonce(0), // TODO: add batchid as param
       initCode,
       callData,
       callGasLimit,
