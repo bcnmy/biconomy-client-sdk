@@ -1,6 +1,7 @@
 import { resolveProperties } from '@ethersproject/properties'
 import axios from 'axios' // httpSendRequest or through NodeClient
 import { UserOperation } from '@biconomy-sdk/core-types'
+import { hexConcat } from 'ethers/lib/utils'
 export class PaymasterAPI {
 
   // Might maintain API key at smart account level
@@ -28,7 +29,10 @@ export class PaymasterAPI {
     console.log('******** ||||| *********')
     console.log('signing service response', result)
 
-    return result.data.paymasterAndData
+    // ToDo: Get paymaster addr from dapp id / smart account config
+    const paymasterAndData = hexConcat(['0x50e8996670759E1FAA315eeaCcEfe0c0A043aA51', result.data.signedMessage])
+
+    return  paymasterAndData
     // return '0x'
   }
 }
