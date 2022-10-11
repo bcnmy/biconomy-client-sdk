@@ -607,6 +607,10 @@ class SmartAccount {
     return txHash
   }
 
+  // async deployWalletWithPayMaster(chainId: ChainId = this.#smartAccountConfig.activeNetworkId){
+
+  // }
+
   /**
    *
    * @param chainId optional chainId

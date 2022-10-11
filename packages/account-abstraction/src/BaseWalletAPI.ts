@@ -1,6 +1,6 @@
 import { BigNumber, BigNumberish } from 'ethers'
 import { Provider } from '@ethersproject/providers'
-import { UserOperationStruct } from '@account-abstraction/contracts'
+import { UserOperation } from '@biconomy-sdk/core-types'
 
 import { EntryPointContractV101, SmartWalletFactoryContract101, SmartWalletContractV101 } from '@biconomy-sdk/ethers-lib'
 import { TransactionDetailsForUserOp } from './TransactionDetailsForUserOp'
@@ -59,7 +59,7 @@ export abstract class BaseWalletAPI {
   ) {
     // factory "connect" define the contract address. the contract "connect" defines the "from" address.
     // this.entryPointView = EntryPoint__factory.connect(entryPointAddress, provider).connect(ethers.constants.AddressZero)
-    // this.paymasterAPI = new PaymasterAPI('https://us-central1-biconomy-staging.cloudfunctions.net', '')
+    this.paymasterAPI = new PaymasterAPI('https://us-central1-biconomy-staging.cloudfunctions.net', '')
   }
 
   // based on provider chainId we maintain smartWalletContract..
@@ -151,12 +151,15 @@ export abstract class BaseWalletAPI {
    * should cover cost of putting calldata on-chain, and some overhead.
    * actual overhead depends on the expected bundle size
    */
-  async getPreVerificationGas(userOp: Partial<UserOperationStruct>): Promise<number> {
-    console.log(userOp)
-    const bundleSize = 1
-    const cost = 21000
-    // TODO: calculate calldata cost
-    return Math.floor(cost / bundleSize)
+  async getPreVerificationGas(userOp: Partial<UserOperation>): Promise<number> {
+    console.log(userOp);
+        const bundleSize = 1;
+        const cost = 21000;
+        // TODO: calculate calldata cost
+        const preVerificationGas = Math.floor(cost / bundleSize)
+        console.log('preVerificationGas ', preVerificationGas);
+        console.log('preVerificationGas ', Math.floor(preVerificationGas));
+        return Math.floor(preVerificationGas);
   }
 
   async encodeUserOpCallDataAndGasLimit(
@@ -196,7 +199,7 @@ export abstract class BaseWalletAPI {
    * This value matches entryPoint.getRequestId (calculated off-chain, to avoid a view call)
    * @param userOp userOperation, (signature field ignored)
    */
-  async getRequestId(userOp: UserOperationStruct): Promise<string> {
+  async getRequestId(userOp: UserOperation): Promise<string> {
     const op = await resolveProperties(userOp)
     const chainId = await this.provider.getNetwork().then((net) => net.chainId)
     return getRequestId(op, this.entryPoint.address, chainId)
@@ -223,9 +226,10 @@ export abstract class BaseWalletAPI {
    * - if gas or nonce are missing, read them from the chain (note that we can't fill gaslimit before the wallet is created)
    * @param info
    */
-  async createUnsignedUserOp(info: TransactionDetailsForUserOp): Promise<UserOperationStruct> {
+  async createUnsignedUserOp(info: TransactionDetailsForUserOp): Promise<UserOperation> {
     const { callData, callGasLimit } = await this.encodeUserOpCallDataAndGasLimit(info)
     const initCode = await this.getInitCode()
+    console.log('initCode ', initCode)
 
     let verificationGasLimit = BigNumber.from(await this.getVerificationGasLimit())
     if (initCode.length > 2) {
@@ -269,9 +273,9 @@ export abstract class BaseWalletAPI {
    * Sign the filled userOp.
    * @param userOp the UserOperation to sign (with signature field ignored)
    */
-  async signUserOp(userOp: UserOperationStruct): Promise<UserOperationStruct> {
+  async signUserOp(userOp: UserOperation): Promise<UserOperation> {
     const requestId = await this.getRequestId(userOp)
-    const signature = this.signRequestId(requestId)
+    const signature = await this.signRequestId(requestId)
     return {
       ...userOp,
       signature
@@ -282,7 +286,7 @@ export abstract class BaseWalletAPI {
    * helper method: create and sign a user operation.
    * @param info transaction details for the userOp
    */
-  async createSignedUserOp(info: TransactionDetailsForUserOp): Promise<UserOperationStruct> {
+  async createSignedUserOp(info: TransactionDetailsForUserOp): Promise<UserOperation> {
     return await this.signUserOp(await this.createUnsignedUserOp(info))
   }
 }
