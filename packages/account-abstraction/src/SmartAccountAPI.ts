@@ -80,7 +80,7 @@ export class SmartAccountAPI extends BaseWalletAPI {
       const walletContract = await this._getWalletContract()
       // Review Talha
       console.log(walletContract)
-      return walletContract.getInterface().encodeFunctionData(
+      return walletContract.interface.encodeFunctionData(
         'execFromEntryPoint',
         [
           target,

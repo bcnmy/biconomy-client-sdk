@@ -55,7 +55,7 @@ import { JsonRpcSender } from '@0xsequence/network'
 import { JsonRpcProvider } from '@ethersproject/providers'
 
 // AA
-import { newProvider, ERC4337EthersProvider, ClientConfig } from '@biconomy-sdk/account-abstraction'
+import { newProvider, ERC4337EthersProvider } from '@biconomy-sdk/account-abstraction'
 import { ethers, Signer } from 'ethers'
 
 // Create an instance of Smart Account with multi-chain support.

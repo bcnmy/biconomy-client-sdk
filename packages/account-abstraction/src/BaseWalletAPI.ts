@@ -2,8 +2,7 @@ import { BigNumber, BigNumberish } from 'ethers'
 import { Provider } from '@ethersproject/providers'
 import { UserOperationStruct } from '@account-abstraction/contracts'
 
-import { EntryPointContractV101 } from '@biconomy-sdk/ethers-lib'
-
+import { EntryPointContractV101, SmartWalletFactoryContract101, SmartWalletContractV101 } from '@biconomy-sdk/ethers-lib'
 import { TransactionDetailsForUserOp } from './TransactionDetailsForUserOp'
 import { resolveProperties } from 'ethers/lib/utils'
 import { PaymasterAPI } from './PaymasterAPI'
@@ -43,7 +42,7 @@ export abstract class BaseWalletAPI {
    * our wallet contract.
    * should support the "execFromSingleton" and "nonce" methods
    */
-  walletContract!: SmartWalletContract
+  walletContract!: SmartWalletContractV101
 
   /**
    * base constructor.
@@ -60,17 +59,13 @@ export abstract class BaseWalletAPI {
   ) {
     // factory "connect" define the contract address. the contract "connect" defines the "from" address.
     // this.entryPointView = EntryPoint__factory.connect(entryPointAddress, provider).connect(ethers.constants.AddressZero)
-    this.paymasterAPI = new PaymasterAPI('https://us-central1-biconomy-staging.cloudfunctions.net', '')
+    // this.paymasterAPI = new PaymasterAPI('https://us-central1-biconomy-staging.cloudfunctions.net', '')
   }
 
   // based on provider chainId we maintain smartWalletContract..
-  async _getWalletContract(): Promise<SmartWalletContract> {
+  async _getWalletContract(): Promise<SmartWalletContractV101> {
     if (this.walletContract == null) {
-      this.walletContract = this.contractUtils
-        .getSmartWalletContract((await this.provider.getNetwork()).chainId)
-      this.walletContract.getContract().attach(await this.getWalletAddress())
-      // this.walletContract = wallet.attach(await this.getWalletAddress())
-      // console.log(this.walletContract.getInterface())
+      this.walletContract = SmartWalletFactoryContract101.connect(await this.getWalletAddress(), this.provider)
     }
     return this.walletContract
   }
