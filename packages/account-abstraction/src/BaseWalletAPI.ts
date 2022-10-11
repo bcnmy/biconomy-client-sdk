@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish } from 'ethers'
+import { BigNumber, BigNumberish, ethers } from 'ethers'
 import { Provider } from '@ethersproject/providers'
 import { UserOperation } from '@biconomy-sdk/core-types'
 
@@ -9,7 +9,7 @@ import { PaymasterAPI } from './PaymasterAPI'
 import { getRequestId } from '@biconomy-sdk/common'
 import { ContractUtils } from '@biconomy-sdk/transactions'
 import {
-  SmartWalletContract,
+  SmartWalletContract, ZERO_ADDRESS
 } from '@biconomy-sdk/core-types'
 /**
  * Base class for all Smart Wallet ERC-4337 Clients to implement.
@@ -168,6 +168,13 @@ export abstract class BaseWalletAPI {
     function parseNumber(a: any): BigNumber | null {
       if (a == null || a === '') return null
       return BigNumber.from(a.toString())
+    }
+
+    if(detailsForUserOp && detailsForUserOp.target === ZERO_ADDRESS && detailsForUserOp.data === ZERO_ADDRESS) {
+      return {
+        callData: '0x',
+        callGasLimit: BigNumber.from("21000")
+      }
     }
 
     const value = parseNumber(detailsForUserOp.value) ?? BigNumber.from(0)

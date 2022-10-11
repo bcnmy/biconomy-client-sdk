@@ -66,6 +66,26 @@ export class Utils {
     )
   }
 
+  buildMultiSendTx = (
+    multiSend: Contract,
+    txs: IMetaTransaction[],
+    nonce: number,
+    delegateCall?: boolean,
+  ): IMetaTransaction => {
+
+    const data = multiSend.interface.encodeFunctionData('multiSend', [this.encodeMultiSend(txs)])
+    return this.buildSmartAccountTransaction(
+      Object.assign(
+        {
+          to: multiSend.address,
+          data,
+          operation: delegateCall ? 1 : 0,
+          nonce
+        },
+      )
+    )
+  }
+
   encodeMultiSend = (txs: IMetaTransaction[]): string => {
     return '0x' + txs.map((tx) => this.encodeMetaTransaction(tx)).join('')
   }

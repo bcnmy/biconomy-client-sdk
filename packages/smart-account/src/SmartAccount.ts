@@ -26,9 +26,10 @@ import {
   SmartAccountState,
   FeeQuote,
   RelayResponse,
-  SmartAccountConfig
+  SmartAccountConfig,
+  ZERO_ADDRESS,
+  IMetaTransaction
 } from '@biconomy-sdk/core-types'
-import { JsonRpcSigner } from '@ethersproject/providers'
 import NodeClient, {
   ProviderUrlConfig,
   ChainConfig,
@@ -50,8 +51,6 @@ import {
   UsdBalanceResponse
 } from '@biconomy-sdk/node-client'
 
-// SmartAccount User Refund
-import { JsonRpcSender } from '@0xsequence/network'
 import { JsonRpcProvider } from '@ethersproject/providers'
 
 // AA
@@ -82,8 +81,6 @@ class SmartAccount {
   providerUrlConfig!: ProviderUrlConfig[]
 
   provider!: Web3Provider
-
-  jsonProvider!: JsonRpcProvider
 
   // 4337Provider
   aaProvider!: { [chainId: number]: ERC4337EthersProvider }
@@ -156,12 +153,12 @@ class SmartAccount {
     this.provider = walletProvider
     // TODO: fix hardhcoded
     console.log('this.providerUrlConfig[0].providerUrl ', this.providerUrlConfig[0].providerUrl)
-    // this.jsonProvider = new ethers.providers.JsonRpcProvider(this.providerUrlConfig[0].providerUrl)
 
     // TODO:: Allow original signer to be passed and preserve
     this.signer = walletProvider.getSigner()
-    // Meaning : EOASigner? / SmartAccountSigner?
+    // Refer to SmartAccountSigner from eth-bogota branch
 
+    // TODO // Review
     this.contractUtils = new ContractUtils(this.DEFAULT_VERSION)
     this.nodeClient = new NodeClient({ txServiceUrl: this.#smartAccountConfig.backend_url })
     this.relayer = new RestRelayer({ url: this.#smartAccountConfig.relayer_url })
@@ -227,13 +224,13 @@ class SmartAccount {
         ' this.#smartAccountConfig.paymasterAddress ',
         this.#smartAccountConfig.paymasterAddress
       )
-      console.log(' entryPointAddress ', entryPointAddress)
-      console.log('this.#smartAccountConfig.bundlerUrl ', this.#smartAccountConfig.bundlerUrl)
-      console.log('network.chainId ', network.chainId)
-      console.log('this.signer ', this.signer)
-      console.log('this.address ', this.address)
-      console.log('state.fallbackHandlerAddress ', state.fallbackHandlerAddress)
-      console.log('factoryAddress ', factoryAddress)
+      // console.log(' entryPointAddress ', entryPointAddress)
+      // console.log('this.#smartAccountConfig.bundlerUrl ', this.#smartAccountConfig.bundlerUrl)
+      // console.log('network.chainId ', network.chainId)
+      // console.log('this.signer ', this.signer)
+      // console.log('this.address ', this.address)
+      // console.log('state.fallbackHandlerAddress ', state.fallbackHandlerAddress)
+      // console.log('factoryAddress ', factoryAddress)
 
       this.aaProvider[network.chainId] = await newProvider(
         new ethers.providers.JsonRpcProvider(providerUrl),
@@ -257,6 +254,11 @@ class SmartAccount {
     return this
   }
 
+  // TODO
+  // Optional methods for connecting paymaster
+  // Optional methods for connecting another bundler
+
+  // Could be implemented at aaSigner level. Move some implementation to transactionManager
   public async sendGasLessTransaction(transactionDto: TransactionDto) {
     let { version, transaction, chainId } = transactionDto
 
@@ -265,7 +267,72 @@ class SmartAccount {
     const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
 
     const response = await aaSigner.sendTransaction(transaction)
+    // todo: make sense of this response and return hash to the user
   }
+
+  public async sendGaslessTransactionBatch(transactionBatchDto: TransactionBatchDto) {
+    let { version, transactions, batchId, chainId } = transactionBatchDto
+
+    // Might get optional operation for tx
+
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+    version = version ? version : this.DEFAULT_VERSION
+    batchId = batchId ? batchId : 0
+
+    // NOTE : If the wallet is not deployed yet then nonce would be zero
+    let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()
+    walletContract = walletContract.attach(this.address)
+
+    // NOTE : If the wallet is not deployed yet then nonce would be zero
+    let nonce = 0
+    if (await this.contractUtils.isDeployed(chainId, version, this.address)) {
+      nonce = (await walletContract.getNonce(batchId)).toNumber()
+    }
+    console.log('nonce: ', nonce)
+
+    const txs: IMetaTransaction[] = []
+
+    for (let i = 0; i < transactions.length; i++) {
+      if (transactions[i]) {
+        const innerTx: IMetaTransaction = {
+          to: transactions[i].to,
+          value: transactions[i].value || 0,
+          operation: 0, // review
+          data: transactions[i].data || '0x', // for token transfers use encodeTransfer
+        }
+
+        txs.push(innerTx)
+      }
+    }
+
+    const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract();
+
+    const finalTx = this.transactionManager.utils.buildMultiSendTx(multiSendContract, txs, nonce, true);
+
+    const gaslessTx = {
+        to: finalTx.to,
+        data: finalTx.data,
+        value: finalTx.value
+    }
+
+    const response = await this.sendGasLessTransaction({version, transaction: gaslessTx, chainId})
+  }
+
+
+  // Only to deploy wallet using connected paymaster (or the one corresponding to dapp api key)
+  public async deployWalletUsingPaymaster() { // can pass chainId
+    const version = this.DEFAULT_VERSION;
+    const chainId = this.#smartAccountConfig.activeNetworkId;
+    const transaction = {
+        to: ZERO_ADDRESS,
+        data: ZERO_ADDRESS,
+        value: 0
+    }
+    const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
+    const response = await aaSigner.sendTransaction(transaction)
+    // todo: make sense of this response and return hash to the user
+  }
+
 
   /**
    *
