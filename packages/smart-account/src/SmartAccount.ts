@@ -54,7 +54,7 @@ import {
 import { JsonRpcProvider } from '@ethersproject/providers'
 
 // AA
-import { newProvider, ERC4337EthersProvider, ClientConfig } from '@biconomy-sdk/account-abstraction'
+import { newProvider, ERC4337EthersProvider } from '@biconomy-sdk/account-abstraction'
 import { ethers, Signer } from 'ethers'
 
 // Create an instance of Smart Account with multi-chain support.
@@ -801,7 +801,7 @@ class SmartAccount {
 // TODO/NOTE : make Goerli and Mumbai as test networks and remove others
 export const DefaultSmartAccountConfig: SmartAccountConfig = {
   activeNetworkId: ChainId.GOERLI, //Update later
-  // paymasterAddress: '0x50e8996670759E1FAA315eeaCcEfe0c0A043aA51',
+  paymasterAddress: '0x50e8996670759E1FAA315eeaCcEfe0c0A043aA51',
   supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],
   backend_url: 'https://sdk-backend.staging.biconomy.io/v1',
   relayer_url: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
