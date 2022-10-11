@@ -201,7 +201,9 @@ export abstract class BaseWalletAPI {
    */
   async getRequestId(userOp: UserOperation): Promise<string> {
     const op = await resolveProperties(userOp)
+    console.log('op ', op)
     const chainId = await this.provider.getNetwork().then((net) => net.chainId)
+    console.log('chainId ', chainId)
     return getRequestId(op, this.entryPoint.address, chainId)
   }
 
@@ -274,6 +276,7 @@ export abstract class BaseWalletAPI {
    * @param userOp the UserOperation to sign (with signature field ignored)
    */
   async signUserOp(userOp: UserOperation): Promise<UserOperation> {
+    console.log('inside signUserOp')
     const requestId = await this.getRequestId(userOp)
     const signature = await this.signRequestId(requestId)
     return {

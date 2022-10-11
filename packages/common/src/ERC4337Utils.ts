@@ -1,5 +1,5 @@
 import { arrayify, defaultAbiCoder, keccak256 } from 'ethers/lib/utils'
-import { UserOperationStruct } from '@account-abstraction/contracts'
+import { UserOperation } from '@biconomy-sdk/core-types'
 import { abi as entryPointAbi } from '@account-abstraction/contracts/artifacts/IEntryPoint.json'
 
 // UserOperation is the first parameter of simulateValidation
@@ -20,7 +20,7 @@ function encode(typevalues: Array<{ type: string; val: any }>, forSignature: boo
   return defaultAbiCoder.encode(types, values)
 }
 
-export function packUserOp(op: NotPromise<UserOperationStruct>, forSignature = true): string {
+export function packUserOp(op: NotPromise<UserOperation>, forSignature = true): string {
   if (forSignature) {
     // lighter signature scheme (must match UserOperation#pack): do encode a zero-length signature, but strip afterwards the appended zero-length value
     const userOpType = {
@@ -42,6 +42,7 @@ export function packUserOp(op: NotPromise<UserOperationStruct>, forSignature = t
     }
     // console.log('hard-coded userOpType', userOpType)
     // console.log('from ABI userOpType', UserOpType)
+    console.log('op is ', op)
     let encoded = defaultAbiCoder.encode([userOpType as any], [{ ...op, signature: '0x' }])
     // remove leading word (total length) and trailing word (zero-length signature)
     encoded = '0x' + encoded.slice(66, encoded.length - 64)
@@ -75,20 +76,24 @@ export function packUserOp(op: NotPromise<UserOperationStruct>, forSignature = t
 }
 
 export function getRequestId(
-  op: NotPromise<UserOperationStruct>,
+  op: NotPromise<UserOperation>,
   entryPoint: string,
   chainId: number
 ): string {
+  console.log(' inside getRequestId')
   const userOpHash = keccak256(packUserOp(op, true))
+  console.log('userOpHash ', userOpHash);
+  
   const enc = defaultAbiCoder.encode(
     ['bytes32', 'address', 'uint256'],
     [userOpHash, entryPoint, chainId]
   )
+  console.log('enc ', enc);
   return keccak256(enc)
 }
 
 export function getRequestIdForSigning(
-  op: NotPromise<UserOperationStruct>,
+  op: NotPromise<UserOperation>,
   entryPoint: string,
   chainId: number
 ): Uint8Array {

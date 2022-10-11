@@ -18,7 +18,10 @@ export class PaymasterAPI {
     userOp.verificationGasLimit = Number(userOp.verificationGasLimit)
     userOp.maxFeePerGas = Number(userOp.maxFeePerGas)
     userOp.maxPriorityFeePerGas = Number(userOp.maxPriorityFeePerGas)
-    userOp.preVerificationGas = Number(userOp.preVerificationGas)
+    userOp.preVerificationGas = 21000;
+    userOp.signature = '0x'
+    userOp.paymasterAndData = '0x'
+
     const result = await axios.post('/signing-service', {
       userOp
     })

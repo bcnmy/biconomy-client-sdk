@@ -37,6 +37,7 @@
     "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"
   },
   "dependencies": {
+    "@biconomy-sdk/core-types": "*",
     "@account-abstraction/contracts": "^0.2.0",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/bytes": "^5.7.0",

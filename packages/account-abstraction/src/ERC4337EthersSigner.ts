@@ -30,7 +30,10 @@ export class ERC4337EthersSigner extends Signer {
       value: tx.value,
       gasLimit: tx.gasLimit
     })
+    console.log('signed userOp ', userOperation)
     const transactionResponse = await this.erc4337provider.constructUserOpTransactionResponse(userOperation)
+    console.log('transactionResponse ', transactionResponse)
+
     try {
       await this.httpRpcClient.sendUserOpToBundler(userOperation)
     } catch (error: any) {
