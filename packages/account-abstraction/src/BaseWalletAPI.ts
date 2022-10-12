@@ -92,7 +92,7 @@ export abstract class BaseWalletAPI {
    * @param value
    * @param data
    */
-  abstract encodeExecute(target: string, value: BigNumberish, data: string): Promise<string>
+  abstract encodeExecute(target: string, value: BigNumberish, data: string, isDelegateCall: boolean): Promise<string>
 
   /**
    * sign a userOp's hash (requestId).
@@ -178,7 +178,8 @@ export abstract class BaseWalletAPI {
     }
 
     const value = parseNumber(detailsForUserOp.value) ?? BigNumber.from(0)
-    const callData = await this.encodeExecute(detailsForUserOp.target, value, detailsForUserOp.data)
+    const callData = await this.encodeExecute(detailsForUserOp.target, value, detailsForUserOp.data, detailsForUserOp.isDelegateCall || false)
+    
     /*const callData = (await this._getWalletContract()).encodeFunctionData('execFromEntryPoint', [
       detailsForUserOp.target,
       value,

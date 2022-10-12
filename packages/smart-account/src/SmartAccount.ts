@@ -248,7 +248,6 @@ class SmartAccount {
   // Optional methods for connecting paymaster
   // Optional methods for connecting another bundler
 
-  // Could be implemented at aaSigner level. Move some implementation to transactionManager
   public async sendGasLessTransaction(transactionDto: TransactionDto): Promise<TransactionResponse> {
     let { version, transaction, chainId } = transactionDto
 
@@ -256,7 +255,22 @@ class SmartAccount {
     version = version ? version : this.DEFAULT_VERSION
     const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
 
-    const response = await aaSigner.sendTransaction(transaction)
+    const state = await this.getSmartAccountState(chainId);
+
+    let customData : Record<string, any> = {
+      isDeployed : state.isDeployed,
+      skipGasLimit: false,
+      isBatchedToMultiSend: false,
+      appliedGasLimit: 500000 // could come from params or local mock estimation..
+    }
+
+    const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract();
+    if(ethers.utils.getAddress(transaction.to) === ethers.utils.getAddress(multiSendContract.address)) {
+      customData.skipGasLimit = true
+      customData.isBatchedToMultiSend = true
+    }
+
+    const response = await aaSigner.sendTransaction({...transaction, customData: customData})
     return response
     // todo: make sense of this response and return hash to the user
   }
@@ -299,13 +313,18 @@ class SmartAccount {
     const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract();
 
     const finalTx = this.transactionManager.utils.buildMultiSendTx(multiSendContract, txs, nonce, true);
+    console.log('final gasless batch tx ');
+    console.log(finalTx)
 
     const gaslessTx = {
         to: finalTx.to,
         data: finalTx.data,
-        value: finalTx.value
+        value: finalTx.value,
     }
 
+    // Multisend is tricky because populateTransaction expects delegateCall and we must override  
+
+    // Review : Stuff before this can be moved to TransactionManager
     const response = await this.sendGasLessTransaction({version, transaction: gaslessTx, chainId})
     return response
   }

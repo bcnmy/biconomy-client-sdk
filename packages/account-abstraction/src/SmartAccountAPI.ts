@@ -75,7 +75,7 @@ export class SmartAccountAPI extends BaseWalletAPI {
    * @param value
    * @param data
    */
-     async encodeExecute (target: string, value: BigNumberish, data: string): Promise<string> {
+     async encodeExecute (target: string, value: BigNumberish, data: string, isDelegateCall: boolean): Promise<string> {
       const walletContract = await this._getWalletContract()
       // Review Talha
       console.log(walletContract)
@@ -85,8 +85,8 @@ export class SmartAccountAPI extends BaseWalletAPI {
           target,
           value,
           data,
-          0, //temp
-          200000, //temp
+          isDelegateCall ? 1 : 0, //temp // TODO // if multisend then delegatecall (take flag...)
+          500000, //temp // TODO
         ])
     }
   // TODO: May be need to move this to ERC4337EthersPrivider

@@ -52,6 +52,15 @@ export class ERC4337EthersSigner extends Signer {
   // This one is called by Contract. It signs the request and passes in to Provider to be sent.
   async sendTransaction (transaction: Deferrable<TransactionRequest>): Promise<TransactionResponse> {
     console.log('received transaction ', transaction)
+    const customData : any = transaction.customData
+    console.log(customData)
+    let gasLimit = customData.appliedGasLimit;
+
+    // temp
+    transaction.gasLimit = gasLimit
+
+    // TODO : if isDeployed = false || skipGasLimit = true then use provided gas limit => transaction.gasLimit = gasLimit
+    delete transaction.customData
     const tx: TransactionRequest = await this.populateTransaction(transaction)
     console.log('populate trx ', tx)
     await this.verifyAllNecessaryFields(tx)
@@ -59,7 +68,8 @@ export class ERC4337EthersSigner extends Signer {
       target: tx.to ?? '',
       data: tx.data?.toString() ?? '',
       value: tx.value,
-      // gasLimit: tx.gasLimit
+      gasLimit: tx.gasLimit,
+      isDelegateCall: true // get from customData.isBatchedToMultiSend
     })
     console.log('signed userOp ', userOperation)
     const transactionResponse = await this.erc4337provider.constructUserOpTransactionResponse(userOperation)

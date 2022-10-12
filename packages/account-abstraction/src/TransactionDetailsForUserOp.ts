@@ -7,4 +7,5 @@ export interface TransactionDetailsForUserOp {
   gasLimit?: BigNumberish
   maxFeePerGas?: BigNumberish
   maxPriorityFeePerGas?: BigNumberish
+  isDelegateCall?: boolean
 }
