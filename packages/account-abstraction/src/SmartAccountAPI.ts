@@ -1,13 +1,12 @@
 import { BigNumber, BigNumberish } from 'ethers'
 import { EntryPointContractV101 } from '@biconomy-sdk/ethers-lib'
 
-
+import { ClientConfig } from './ClientConfig'
 import { arrayify, hexConcat } from 'ethers/lib/utils'
 import { Signer } from '@ethersproject/abstract-signer'
 import { BaseWalletAPI } from './BaseWalletAPI'
 import { Provider } from '@ethersproject/providers'
 import { WalletFactoryAPI } from './WalletFactoryAPI'
-import { ContractUtils } from '@biconomy-sdk/transactions'
 
 /**
  * An implementation of the BaseWalletAPI using the SmartWalletContract contract.
@@ -32,15 +31,15 @@ export class SmartAccountAPI extends BaseWalletAPI {
    */
   constructor (
     provider: Provider,
-    readonly contractUtils: ContractUtils,
     readonly entryPoint: EntryPointContractV101,
+    readonly clientConfig: ClientConfig,
     walletAddress: string | undefined,
     readonly owner: Signer,
     readonly handlerAddress: string,
     readonly factoryAddress: string,
     readonly index = 0
   ) {
-    super(provider, contractUtils, entryPoint, walletAddress)
+    super(provider, entryPoint, clientConfig, walletAddress)
   }
 
   factory?: string

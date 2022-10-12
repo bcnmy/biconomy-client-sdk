@@ -5,7 +5,7 @@ import { HttpMethod, sendRequest } from './utils/httpRequests'
 export class PaymasterAPI {
 
   // Might maintain API key at smart account level
-  constructor(readonly apiUrl: string, readonly dappAPIKey: string) {
+  constructor(readonly apiUrl: string, readonly dappAPIKey: string, readonly payMasterAddress: string) {
     this.apiUrl = apiUrl
   }
 
@@ -34,7 +34,7 @@ export class PaymasterAPI {
 
     // ToDo: Get paymaster addr from dapp id / smart account config
     if(result) {
-    return hexConcat(['0x50e8996670759E1FAA315eeaCcEfe0c0A043aA51', result.signedMessage])
+    return hexConcat([this.payMasterAddress, result.signedMessage])
     }
 
     return '0x'

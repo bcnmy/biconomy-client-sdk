@@ -9,7 +9,6 @@ import { SmartAccountAPI } from './SmartAccountAPI'
 import { ERC4337EthersProvider } from './ERC4337EthersProvider'
 import { HttpRpcClient } from './HttpRpcClient'
 import { Signer } from '@ethersproject/abstract-signer'
-import { ContractUtils } from '@biconomy-sdk/transactions'
 
 // TODO: Update in the context of SmartAccount and WalletFactory aka deployer
 // Might need smart account state for contract addresses
@@ -17,7 +16,6 @@ import { ContractUtils } from '@biconomy-sdk/transactions'
 // To be used in SmartAccount to init 4337 provider
 export async function newProvider (
   originalProvider: JsonRpcProvider,
-  contractUtils: ContractUtils, 
   config: ClientConfig,
   originalSigner: Signer = originalProvider.getSigner(),
   walletAddress: string,
@@ -28,7 +26,7 @@ export async function newProvider (
   const entryPoint = EntryPointFactoryContractV101.connect(config.entryPointAddress, originalProvider)
   // Initial SimpleWallet instance is not deployed and exists just for the interface
   // const simpleWalletDeployer = await DeterministicDeployer.deploy(SimpleWalletDeployer__factory.bytecode)
-  const smartWalletAPI = new SmartAccountAPI(originalProvider, contractUtils, entryPoint, walletAddress, originalSigner, fallbackHandlerAddress, factoryAddress, 0)
+  const smartWalletAPI = new SmartAccountAPI(originalProvider, entryPoint, config, walletAddress, originalSigner, fallbackHandlerAddress, factoryAddress, 0)
   const httpRpcClient = new HttpRpcClient(config.bundlerUrl, config.entryPointAddress, config.chainId)
   const ethProvider = await new ERC4337EthersProvider(
     config,

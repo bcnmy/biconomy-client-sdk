@@ -51,7 +51,9 @@ export class ERC4337EthersSigner extends Signer {
   }
   // This one is called by Contract. It signs the request and passes in to Provider to be sent.
   async sendTransaction (transaction: Deferrable<TransactionRequest>): Promise<TransactionResponse> {
+    console.log('received transaction ', transaction)
     const tx: TransactionRequest = await this.populateTransaction(transaction)
+    console.log('populate trx ', tx)
     await this.verifyAllNecessaryFields(tx)
     const userOperation = await this.smartWalletAPI.createSignedUserOp({
       target: tx.to ?? '',
