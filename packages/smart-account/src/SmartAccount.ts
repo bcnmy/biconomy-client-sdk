@@ -46,10 +46,12 @@ import TransactionManager, {
 
 import { BalancesDto } from '@biconomy-sdk/node-client'
 import {
-  TransactionResponse,
+  SCWTransactionResponse,
   BalancesResponse,
   UsdBalanceResponse
 } from '@biconomy-sdk/node-client'
+
+import { TransactionResponse } from '@ethersproject/providers'
 
 import { JsonRpcProvider } from '@ethersproject/providers'
 
@@ -259,7 +261,7 @@ class SmartAccount {
   // Optional methods for connecting another bundler
 
   // Could be implemented at aaSigner level. Move some implementation to transactionManager
-  public async sendGasLessTransaction(transactionDto: TransactionDto) {
+  public async sendGasLessTransaction(transactionDto: TransactionDto): Promise<TransactionResponse> {
     let { version, transaction, chainId } = transactionDto
 
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
@@ -267,6 +269,7 @@ class SmartAccount {
     const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
 
     const response = await aaSigner.sendTransaction(transaction)
+    return response
     // todo: make sense of this response and return hash to the user
   }
 
@@ -316,23 +319,16 @@ class SmartAccount {
     }
 
     const response = await this.sendGasLessTransaction({version, transaction: gaslessTx, chainId})
+    return response
   }
 
 
   // Only to deploy wallet using connected paymaster (or the one corresponding to dapp api key)
   public async deployWalletUsingPaymaster() { // can pass chainId
-    const version = this.DEFAULT_VERSION;
-    const chainId = this.#smartAccountConfig.activeNetworkId;
-    const transaction = {
-        to: ZERO_ADDRESS,
-        data: ZERO_ADDRESS,
-        value: 0
-    }
     const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
-    const response = await aaSigner.sendTransaction(transaction)
+    const response = await aaSigner.deployWalletOnly()
     // todo: make sense of this response and return hash to the user
   }
-
 
   /**
    *
@@ -374,11 +370,11 @@ class SmartAccount {
   public async getTransactionByAddress(
     chainId: number,
     address: string
-  ): Promise<TransactionResponse[]> {
+  ): Promise<SCWTransactionResponse[]> {
     return this.nodeClient.getTransactionByAddress(chainId, address)
   }
 
-  public async getTransactionByHash(txHash: string): Promise<TransactionResponse> {
+  public async getTransactionByHash(txHash: string): Promise<SCWTransactionResponse> {
     return this.nodeClient.getTransactionByHash(txHash)
   }
 

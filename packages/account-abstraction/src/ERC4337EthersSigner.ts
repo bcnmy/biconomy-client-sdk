@@ -20,6 +20,35 @@ export class ERC4337EthersSigner extends Signer {
     defineReadOnly(this, 'provider', erc4337provider)
   }
 
+  async deployWalletOnly(): Promise<TransactionResponse | undefined> {
+    const userOperation = await this.smartWalletAPI.createSignedUserOp({
+      target: '',
+      data: '',
+      value: 0,
+      gasLimit: 21000
+    })
+
+    console.log('signed userOp ', userOperation)
+    let transactionResponse;
+
+    try{
+    transactionResponse = await this.erc4337provider.constructUserOpTransactionResponse(userOperation)
+    console.log('transactionResponse ', transactionResponse)
+    }
+    catch(err) {
+      console.log('error when making transaction for only deployment')
+      console.log(err)
+    }
+
+    try {
+      await this.httpRpcClient.sendUserOpToBundler(userOperation)
+    } catch (error: any) {
+      // console.error('sendUserOpToBundler failed', error)
+      throw this.unwrapError(error)
+    }
+    // TODO: handle errors - transaction that is "rejected" by bundler is _not likely_ to ever resolve its "wait()"
+    return transactionResponse
+  }
   // This one is called by Contract. It signs the request and passes in to Provider to be sent.
   async sendTransaction (transaction: Deferrable<TransactionRequest>): Promise<TransactionResponse> {
     const tx: TransactionRequest = await this.populateTransaction(transaction)
@@ -28,7 +57,7 @@ export class ERC4337EthersSigner extends Signer {
       target: tx.to ?? '',
       data: tx.data?.toString() ?? '',
       value: tx.value,
-      gasLimit: tx.gasLimit
+      // gasLimit: tx.gasLimit
     })
     console.log('signed userOp ', userOperation)
     const transactionResponse = await this.erc4337provider.constructUserOpTransactionResponse(userOperation)

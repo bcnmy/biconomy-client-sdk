@@ -14,8 +14,6 @@ export class PaymasterAPI {
     userOp = await resolveProperties(userOp)
     console.log('userOp')
     console.log(userOp)
-    // this.nodeClient.paymasterVerify()
-    // Note: Might be different service that bypass SDK backend node
     userOp.nonce = Number(userOp.nonce)
     userOp.callGasLimit = Number(userOp.callGasLimit)
     userOp.verificationGasLimit = Number(userOp.verificationGasLimit)

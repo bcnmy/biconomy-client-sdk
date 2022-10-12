@@ -16,7 +16,7 @@ import {
   BalancesDto,
   UsdBalanceResponse,
   EstimateGasResponse,
-  TransactionResponse
+  SCWTransactionResponse
 } from './types/NodeClientTypes'
 
 interface INodeClient {
@@ -146,9 +146,9 @@ interface INodeClient {
     estimateUndeployedContractGasDto: EstimateUndeployedContractGasDto
   ): Promise<EstimateGasResponse>
 
-  getTransactionByHash(txHash: string): Promise<TransactionResponse>
+  getTransactionByHash(txHash: string): Promise<SCWTransactionResponse>
 
-  getTransactionByAddress(chainId: number, address: string): Promise<TransactionResponse[]>
+  getTransactionByAddress(chainId: number, address: string): Promise<SCWTransactionResponse[]>
 
   // 6. Conditional Gasless Endpoint
 

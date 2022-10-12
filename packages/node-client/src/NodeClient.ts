@@ -16,7 +16,7 @@ import {
   BalancesResponse,
   UsdBalanceResponse,
   EstimateGasResponse,
-  TransactionResponse
+  SCWTransactionResponse
 } from './types/NodeClientTypes'
 import { getTxServiceBaseUrl } from './utils'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
@@ -181,14 +181,14 @@ class NodeClient implements INodeClient {
     })
   }
 
-  getTransactionByAddress(chainId: number, address: string): Promise<TransactionResponse[]> {
+  getTransactionByAddress(chainId: number, address: string): Promise<SCWTransactionResponse[]> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/transactions/chainId/${chainId}/address/${address}`,
       method: HttpMethod.Get
     })
   }
 
-  getTransactionByHash(txHash: string): Promise<TransactionResponse> {
+  getTransactionByHash(txHash: string): Promise<SCWTransactionResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/transactions/txHash/${txHash}`,
       method: HttpMethod.Get

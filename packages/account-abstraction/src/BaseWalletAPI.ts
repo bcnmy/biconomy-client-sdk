@@ -170,7 +170,7 @@ export abstract class BaseWalletAPI {
       return BigNumber.from(a.toString())
     }
 
-    if(detailsForUserOp && detailsForUserOp.target === ZERO_ADDRESS && detailsForUserOp.data === ZERO_ADDRESS) {
+    if(detailsForUserOp && detailsForUserOp.target === '' && detailsForUserOp.data === '') {
       return {
         callData: '0x',
         callGasLimit: BigNumber.from("21000")
