@@ -1,15 +1,15 @@
 import { BigNumber, BigNumberish, ethers } from 'ethers'
 import { Provider } from '@ethersproject/providers'
 import { UserOperation } from '@biconomy-sdk/core-types'
+import { ClientConfig } from './ClientConfig'
 
 import { EntryPointContractV101, SmartWalletFactoryContract101, SmartWalletContractV101 } from '@biconomy-sdk/ethers-lib'
 import { TransactionDetailsForUserOp } from './TransactionDetailsForUserOp'
 import { resolveProperties } from 'ethers/lib/utils'
 import { PaymasterAPI } from './PaymasterAPI'
 import { getRequestId } from '@biconomy-sdk/common'
-import { ContractUtils } from '@biconomy-sdk/transactions'
 import {
-  SmartWalletContract, ZERO_ADDRESS
+  ZERO_ADDRESS
 } from '@biconomy-sdk/core-types'
 /**
  * Base class for all Smart Wallet ERC-4337 Clients to implement.
@@ -53,13 +53,13 @@ export abstract class BaseWalletAPI {
    */
   protected constructor(
     readonly provider: Provider,
-    readonly contractUtils: ContractUtils,
     readonly entryPoint: EntryPointContractV101,
+    readonly clientConfig: ClientConfig,
     readonly walletAddress?: string
   ) {
     // factory "connect" define the contract address. the contract "connect" defines the "from" address.
     // this.entryPointView = EntryPoint__factory.connect(entryPointAddress, provider).connect(ethers.constants.AddressZero)
-    this.paymasterAPI = new PaymasterAPI('https://us-central1-biconomy-staging.cloudfunctions.net', '')
+    this.paymasterAPI = new PaymasterAPI(clientConfig.signingServiceUrl, clientConfig.dappId, clientConfig.paymasterAddress)
   }
 
   // based on provider chainId we maintain smartWalletContract..

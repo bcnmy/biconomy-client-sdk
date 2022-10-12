@@ -216,27 +216,15 @@ class SmartAccount {
         this.#smartAccountConfig.providerUrlConfig?.find(
           (element) => element.chainId === network.chainId
         )?.providerUrl || ''
-      console.log('Used provider from config ', providerUrl)
 
       if (!providerUrl) providerUrl = network.providerUrl
 
-      console.log(
-        ' this.#smartAccountConfig.paymasterAddress ',
-        this.#smartAccountConfig.paymasterAddress
-      )
-      // console.log(' entryPointAddress ', entryPointAddress)
-      // console.log('this.#smartAccountConfig.bundlerUrl ', this.#smartAccountConfig.bundlerUrl)
-      // console.log('network.chainId ', network.chainId)
-      // console.log('this.signer ', this.signer)
-      // console.log('this.address ', this.address)
-      // console.log('state.fallbackHandlerAddress ', state.fallbackHandlerAddress)
-      // console.log('factoryAddress ', factoryAddress)
-
       this.aaProvider[network.chainId] = await newProvider(
         new ethers.providers.JsonRpcProvider(providerUrl),
-        this.contractUtils,
         {
-          paymasterAddress: this.#smartAccountConfig.paymasterAddress,
+          dappId: this.dappAPIKey,
+          signingServiceUrl: this.#smartAccountConfig.signingServiceUrl,
+          paymasterAddress: this.#smartAccountConfig.paymasterAddress || '',
           entryPointAddress,
           bundlerUrl: this.#smartAccountConfig.bundlerUrl || '',
           chainId: network.chainId
@@ -806,6 +794,7 @@ class SmartAccount {
 export const DefaultSmartAccountConfig: SmartAccountConfig = {
   activeNetworkId: ChainId.GOERLI, //Update later
   paymasterAddress: '0x50e8996670759E1FAA315eeaCcEfe0c0A043aA51',
+  signingServiceUrl: '',
   supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],
   backend_url: 'https://sdk-backend.staging.biconomy.io/v1',
   relayer_url: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',

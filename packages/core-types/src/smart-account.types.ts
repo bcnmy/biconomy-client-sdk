@@ -20,6 +20,7 @@ export interface SmartAccountConfig {
   entryPointAddress?: string
   bundlerUrl?: string
   paymasterAddress?: string
+  signingServiceUrl: string
 }
 
 export type ProviderUrlConfig = {
