@@ -44,51 +44,64 @@ class ContractUtils {
     return this.smartWalletContract[chainId][this.version]
   }
 
-  public async initialize(
-    supportedChains: ChainConfig[],
-    config: SmartAccountConfig,
-    signer: Signer
-  ) {
-    const chainsInfo = supportedChains
+  // public async initialize(
+  //   supportedChains: ChainConfig[],
+  //   config: SmartAccountConfig,
+  //   signer: Signer
+  // ) {
+  //   const chainsInfo = supportedChains
 
-    for (let i = 0; i < chainsInfo.length; i++) {
-      const network = chainsInfo[i]
-      // To keep it network agnostic
-      // Note: think about events when signer needs to pay gas
+  //   for (let i = 0; i < chainsInfo.length; i++) {
+  //     const network = chainsInfo[i]
+  //     // To keep it network agnostic
+  //     // Note: think about events when signer needs to pay gas
 
-      let providerUrl =
-        config.providerUrlConfig?.find((element) => element.chainId === network.chainId)
-          ?.providerUrl || ''
-      console.log('Used provider from config ', providerUrl)
+  //     let providerUrl =
+  //       config.providerUrlConfig?.find((element) => element.chainId === network.chainId)
+  //         ?.providerUrl || ''
+  //     console.log('Used provider from config ', providerUrl)
 
-      if (!providerUrl) providerUrl = network.providerUrl
+  //     if (!providerUrl) providerUrl = network.providerUrl
 
-      const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
+  //     const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
 
-      console.log('chain id ', network.chainId, 'readProvider ', readProvider)
+  //     console.log('chain id ', network.chainId, 'readProvider ', readProvider)
 
-      // Instantiating EthersAdapter instance and maintain it as above mentioned class level variable
-      this.ethAdapter[network.chainId] = new EvmNetworkManager({
-        ethers,
-        signer,
-        provider: readProvider
-      })
+  //     // Instantiating EthersAdapter instance and maintain it as above mentioned class level variable
+  //     this.ethAdapter[network.chainId] = new EvmNetworkManager({
+  //       ethers,
+  //       signer,
+  //       provider: readProvider
+  //     })
 
-      this.smartWalletFactoryContract[network.chainId] = {}
-      this.smartWalletContract[network.chainId] = {}
-      this.multiSendContract[network.chainId] = {}
-      this.multiSendCallOnlyContract[network.chainId] = {}
-      this.initializeContracts(network)
-    }
-  }
-  initializeContracts(chaininfo: ChainConfig) {
+  //     this.smartWalletFactoryContract[network.chainId] = {}
+  //     this.smartWalletContract[network.chainId] = {}
+  //     this.multiSendContract[network.chainId] = {}
+  //     this.multiSendCallOnlyContract[network.chainId] = {}
+  //     this.initializeContracts(network)
+  //   }
+  // }
+  initializeContracts(signer: Signer, readProvider: ethers.providers.JsonRpcProvider, chaininfo: ChainConfig) {
     // We get the addresses using chainConfig fetched from backend node
 
     const smartWallet = chaininfo.wallet
     const smartWalletFactoryAddress = chaininfo.walletFactory
     const multiSend = chaininfo.multiSend
     const multiSendCall = chaininfo.multiSendCall
+    this.ethAdapter[chaininfo.chainId] = new EvmNetworkManager({
+      ethers,
+      signer,
+      provider: readProvider
+    })
+
+      this.smartWalletFactoryContract[chaininfo.chainId] = {}
+      this.smartWalletContract[chaininfo.chainId] = {}
+      this.multiSendContract[chaininfo.chainId] = {}
+      this.multiSendCallOnlyContract[chaininfo.chainId] = {}
+
     for (let index = 0; index < smartWallet.length; index++) {
+
+      
       const version = smartWallet[index].version
       console.log(smartWallet[index])
 
