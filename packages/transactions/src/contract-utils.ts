@@ -5,14 +5,15 @@ import {
   MultiSendContract,
   MultiSendCallOnlyContract,
   SmartAccountContext,
-  SmartAccountConfig
+  SmartAccountState
 } from '@biconomy-sdk/core-types'
 import { ChainConfig, SupportedChainsResponse } from '@biconomy-sdk/node-client'
 import {
   getSmartWalletFactoryContract,
   getMultiSendContract,
   getMultiSendCallOnlyContract,
-  getSmartWalletContract
+  getSmartWalletContract,
+  findContractAddressesByVersion
 } from './utils/FetchContractsInfo'
 import { ethers, Signer } from 'ethers'
 import EvmNetworkManager from '@biconomy-sdk/ethers-lib'
@@ -30,9 +31,11 @@ class ContractUtils {
     [chainId: number]: { [version: string]: SmartWalletFactoryContract }
   }
 
+  smartAccountState!: SmartAccountState
+
   // Note: Should DEFAULT_VERSION be moved here?
 
-  constructor(readonly version: string) {
+  constructor(readonly version: string, readonly chainConfig: ChainConfig[]) {
     this.ethAdapter = {}
     this.smartWalletContract = {}
     this.multiSendContract = {}
@@ -163,6 +166,37 @@ class ContractUtils {
       // Could be added dex router for chain in the future
     }
     return context
+  }
+  
+
+  async getSmartAccountState(
+    smartAccountState: SmartAccountState
+  ): Promise<SmartAccountState> {
+
+    let {address, owner, chainId, version} = smartAccountState
+
+    version = version ? version : this.version
+
+
+    if (this.version !== version) {
+      this.smartAccountState.address = await this.smartWalletFactoryContract[chainId][
+        version
+      ].getAddressForCounterfactualWallet(owner, 0)
+      this.smartAccountState.isDeployed = await this.isDeployed(chainId, version, address) // could be set as state in init
+      const contractsByVersion = findContractAddressesByVersion(
+        version,
+        chainId,
+        this.chainConfig
+      )
+      this.smartAccountState.entryPointAddress = contractsByVersion.entryPointAddress || '',
+      this.smartAccountState.fallbackHandlerAddress = contractsByVersion.fallBackHandlerAddress || ''
+    }
+
+    if (!this.smartAccountState){
+      this.smartAccountState = smartAccountState
+    }
+
+    return this.smartAccountState
   }
 }
 

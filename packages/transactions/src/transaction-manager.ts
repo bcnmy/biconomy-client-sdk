@@ -47,9 +47,8 @@ class TransactionManager {
 
   utils!: Utils
 
-  smartAccountState!: SmartAccountState
 
-  constructor() {
+  constructor(readonly smartAccountState: SmartAccountState) {
     this.utils = new Utils()
   }
 
@@ -57,12 +56,9 @@ class TransactionManager {
   async initialize(
     relayer: Relayer,
     nodeClient: NodeClient,
-    contractUtils: ContractUtils,
-    smartAccountState: SmartAccountState
+    contractUtils: ContractUtils
   ) {
     // Note: smart account is state specific so we may end up using chain specific transaction managers as discussed.
-
-    this.smartAccountState = smartAccountState
 
     this.nodeClient = nodeClient
     // this.nodeClient = new NodeClient({ txServiceUrl: config.backend_url })
@@ -96,13 +92,16 @@ class TransactionManager {
     const gasPriceQuotesResponse: FeeOptionsResponse = await this.relayer.getFeeOptions(chainId)
     const feeOptionsAvailable: Array<TokenData> = gasPriceQuotesResponse.data.response
     let feeQuotes: Array<FeeQuote> = []
+    
+    const smartAccountState = await this.contractUtils.getSmartAccountState(this.smartAccountState)
+
 
     const estimateWalletDeployment = await this.estimateSmartAccountDeployment({
       chainId: chainId,
       version,
-      owner: this.smartAccountState.owner,
-      entryPointAddress: this.smartAccountState.entryPointAddress,
-      fallbackHandlerAddress: this.smartAccountState.fallbackHandlerAddress
+      owner: smartAccountState.owner,
+      entryPointAddress: smartAccountState.entryPointAddress,
+      fallbackHandlerAddress: smartAccountState.fallbackHandlerAddress
     })
 
     feeOptionsAvailable.forEach((feeOption) => {
@@ -142,12 +141,15 @@ class TransactionManager {
     const offset = feeQuote.offset || 1
     const feeReceiver = feeQuote.refundReceiver || DEFAULT_FEE_RECEIVER
 
+    const smartAccountState = await this.contractUtils.getSmartAccountState(this.smartAccountState)
+
+
     const estimateWalletDeployment = await this.estimateSmartAccountDeployment({
       chainId: chainId,
       version,
-      owner: this.smartAccountState.owner,
-      entryPointAddress: this.smartAccountState.entryPointAddress,
-      fallbackHandlerAddress: this.smartAccountState.fallbackHandlerAddress
+      owner: smartAccountState.owner,
+      entryPointAddress: smartAccountState.entryPointAddress,
+      fallbackHandlerAddress: smartAccountState.fallbackHandlerAddress
     })
     // do estimations here or pass on payment and use feeQuote fully!
     let feesToPay = (feeQuote.tokenGasPrice * (estimateWalletDeployment + 77369)) / offset
@@ -177,12 +179,14 @@ class TransactionManager {
   async createTransaction(transactionDto: TransactionDto): Promise<IWalletTransaction> {
     const { transaction, batchId = 0, chainId, version } = transactionDto
 
+    const smartAccountState = await this.contractUtils.getSmartAccountState(this.smartAccountState)
+
     // NOTE : If the wallet is not deployed yet then nonce would be zero
     let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()
-    walletContract = walletContract.attach(this.smartAccountState.address)
+    walletContract = walletContract.attach(smartAccountState.address)
 
     let nonce = 0
-    if (await this.contractUtils.isDeployed(chainId, version, this.smartAccountState.address)) {
+    if (await this.contractUtils.isDeployed(chainId, version, smartAccountState.address)) {
       nonce = (await walletContract.getNonce(batchId)).toNumber()
     }
     console.log('nonce: ', nonce)
@@ -212,12 +216,14 @@ class TransactionManager {
   ): Promise<IWalletTransaction> {
     const { transactions, batchId, chainId, version } = transactionBatchDto
     // NOTE : If the wallet is not deployed yet then nonce would be zero
+
+    const smartAccountState = await this.contractUtils.getSmartAccountState(this.smartAccountState)
     let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()
-    walletContract = walletContract.attach(this.smartAccountState.address)
+    walletContract = walletContract.attach(smartAccountState.address)
 
     // NOTE : If the wallet is not deployed yet then nonce would be zero
     let nonce = 0
-    if (await this.contractUtils.isDeployed(chainId, version, this.smartAccountState.address)) {
+    if (await this.contractUtils.isDeployed(chainId, version, smartAccountState.address)) {
       nonce = (await walletContract.getNonce(batchId)).toNumber()
     }
     console.log('nonce: ', nonce)
@@ -247,6 +253,9 @@ class TransactionManager {
 
   async estimateTransaction(prepareTransactionDto: PrepareRefundTransactionDto): Promise<number> {
     const { transaction, batchId, chainId, version } = prepareTransactionDto
+
+    const smartAccountState = await this.contractUtils.getSmartAccountState(this.smartAccountState)
+
     // OR just like contractUtils manages context, this class manages state getState(chainId) method
     // const state = await this.getSmartAccountState(chainId);
 
@@ -257,7 +266,7 @@ class TransactionManager {
     let estimatedGasUsed = await this.estimator.estimateTransaction(
       prepareTransactionDto,
       tx,
-      this.smartAccountState
+      smartAccountState
     )
     return estimatedGasUsed
   }
@@ -319,6 +328,8 @@ class TransactionManager {
     prepareRefundTransactionsDto: PrepareRefundTransactionsDto
   ): Promise<number> {
     const { transactions, batchId, chainId, version } = prepareRefundTransactionsDto
+
+    const smartAccountState = await this.contractUtils.getSmartAccountState(this.smartAccountState)
     const tx = await this.createTransactionBatch({
       version,
       transactions,
@@ -329,7 +340,7 @@ class TransactionManager {
     let estimatedGasUsed = await this.estimator.estimateTransactionBatch(
       prepareRefundTransactionsDto,
       tx,
-      this.smartAccountState
+      smartAccountState
     )
     return estimatedGasUsed
   }
@@ -409,8 +420,10 @@ class TransactionManager {
     refundTransactionDto: RefundTransactionDto
   ): Promise<IWalletTransaction> {
     const { transaction, feeQuote, batchId, chainId, version } = refundTransactionDto
+
+    const smartAccountState = await this.contractUtils.getSmartAccountState(this.smartAccountState)
     let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()
-    walletContract = walletContract.attach(this.smartAccountState.address)
+    walletContract = walletContract.attach(smartAccountState.address)
 
     let additionalBaseGas = 0
 
@@ -419,7 +432,7 @@ class TransactionManager {
     const isDeployed = await this.contractUtils.isDeployed(
       chainId,
       version,
-      this.smartAccountState.address
+      smartAccountState.address
     )
     if (isDeployed) {
       nonce = (await walletContract.getNonce(batchId)).toNumber()
@@ -427,9 +440,9 @@ class TransactionManager {
       const estimateWalletDeployment = await this.estimateSmartAccountDeployment({
         chainId: chainId,
         version,
-        owner: this.smartAccountState.owner,
-        entryPointAddress: this.smartAccountState.entryPointAddress,
-        fallbackHandlerAddress: this.smartAccountState.fallbackHandlerAddress
+        owner: smartAccountState.owner,
+        entryPointAddress: smartAccountState.entryPointAddress,
+        fallbackHandlerAddress: smartAccountState.fallbackHandlerAddress
       })
       // We know it's going to get deployed by Relayer but we handle refund cost here..
       additionalBaseGas += estimateWalletDeployment // wallet deployment gas
@@ -458,7 +471,7 @@ class TransactionManager {
 
       const estimateRequiredTxGas: EstimateRequiredTxGasDto = {
         chainId: chainId,
-        walletAddress: this.smartAccountState.address,
+        walletAddress: smartAccountState.address,
         transaction: internalTx
       }
       const response = await this.nodeClient.estimateRequiredTxGasOverride(estimateRequiredTxGas)
@@ -482,7 +495,7 @@ class TransactionManager {
       const estimateHandlePaymentGas: EstimateHandlePaymentTxGasDto = {
         chainId: chainId,
         version: version,
-        walletAddress: this.smartAccountState.address,
+        walletAddress: smartAccountState.address,
         feeRefund: refundDetails
       }
       const handlePaymentResponse = await this.nodeClient.estimateHandlePaymentGasOverride(
@@ -495,7 +508,7 @@ class TransactionManager {
     } else {
       const estimateRequiredTxGas: EstimateRequiredTxGasDto = {
         chainId: chainId,
-        walletAddress: this.smartAccountState.address,
+        walletAddress: smartAccountState.address,
         transaction: internalTx
       }
 
@@ -521,7 +534,7 @@ class TransactionManager {
       const estimateHandlePaymentGas: EstimateHandlePaymentTxGasDto = {
         chainId: chainId,
         version: version,
-        walletAddress: this.smartAccountState.address,
+        walletAddress: smartAccountState.address,
         feeRefund: refundDetails
       }
       const handlePaymentResponse = await this.nodeClient.estimateHandlePaymentGas(
@@ -561,14 +574,15 @@ class TransactionManager {
     refundTransactionBatchDto: RefundTransactionBatchDto
   ): Promise<IWalletTransaction> {
     const { transactions, feeQuote, batchId, chainId, version } = refundTransactionBatchDto
+    const smartAccountState = await this.contractUtils.getSmartAccountState(this.smartAccountState)
     let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()
-    const connectedWallet = this.smartAccountState.address
+    const connectedWallet = smartAccountState.address
     walletContract = walletContract.attach(connectedWallet)
 
     // TODO
     // Review
-    const isDeployed = this.smartAccountState.isDeployed
-    // await this.contractUtils.isDeployed(chainId, version, this.smartAccountState.address);
+    const isDeployed = smartAccountState.isDeployed
+    // await this.contractUtils.isDeployed(chainId, version, smartAccountState.address);
     let additionalBaseGas = 0
 
     // NOTE : If the wallet is not deployed yet then nonce would be zero
@@ -580,9 +594,9 @@ class TransactionManager {
       const estimateWalletDeployment = await this.estimateSmartAccountDeployment({
         chainId: chainId,
         version,
-        owner: this.smartAccountState.owner,
-        entryPointAddress: this.smartAccountState.entryPointAddress,
-        fallbackHandlerAddress: this.smartAccountState.fallbackHandlerAddress
+        owner: smartAccountState.owner,
+        entryPointAddress: smartAccountState.entryPointAddress,
+        fallbackHandlerAddress: smartAccountState.fallbackHandlerAddress
       })
       // We know it's going to get deployed by Relayer but we handle refund cost here..
       console.log('estimateWalletDeployment ', estimateWalletDeployment)
@@ -620,7 +634,7 @@ class TransactionManager {
       // ii. estimate using different wallet bytecode using eth_call [ not guaranteed as might depend on wallet state !]
       const estimateRequiredTxGas: EstimateRequiredTxGasDto = {
         chainId: chainId,
-        walletAddress: this.smartAccountState.address,
+        walletAddress: smartAccountState.address,
         transaction: internalTx
       }
       const response = await this.nodeClient.estimateRequiredTxGasOverride(estimateRequiredTxGas)
@@ -647,7 +661,7 @@ class TransactionManager {
       const estimateHandlePaymentGas: EstimateHandlePaymentTxGasDto = {
         chainId: chainId,
         version: version,
-        walletAddress: this.smartAccountState.address,
+        walletAddress: smartAccountState.address,
         feeRefund: refundDetails
       }
 
@@ -660,7 +674,7 @@ class TransactionManager {
     } else {
       const estimateRequiredTxGas: EstimateRequiredTxGasDto = {
         chainId: chainId,
-        walletAddress: this.smartAccountState.address,
+        walletAddress: smartAccountState.address,
         transaction: internalTx
       }
 
@@ -686,7 +700,7 @@ class TransactionManager {
       const estimateHandlePaymentGas: EstimateHandlePaymentTxGasDto = {
         chainId: chainId,
         version: version,
-        walletAddress: this.smartAccountState.address,
+        walletAddress: smartAccountState.address,
         feeRefund: refundDetails
       }
       const handlePaymentResponse = await this.nodeClient.estimateHandlePaymentGas(
