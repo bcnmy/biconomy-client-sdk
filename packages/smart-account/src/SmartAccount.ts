@@ -30,6 +30,7 @@ import {
   ZERO_ADDRESS,
   IMetaTransaction
 } from '@biconomy-sdk/core-types'
+import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import NodeClient, {
   ProviderUrlConfig,
   ChainConfig,
@@ -53,7 +54,7 @@ import {
 
 import { TransactionResponse } from '@ethersproject/providers'
 
-import { JsonRpcProvider } from '@ethersproject/providers'
+// import { JsonRpcProvider } from '@ethersproject/providers'
 
 // AA
 import { newProvider, ERC4337EthersProvider } from '@biconomy-sdk/account-abstraction'
@@ -88,7 +89,7 @@ class SmartAccount {
   aaProvider!: { [chainId: number]: ERC4337EthersProvider }
 
   // Ideally not JsonRpcSigner but extended signer // Also the original EOA signer
-  signer!: Signer
+  signer!: Signer & TypedDataSigner
   // We may have different signer for ERC4337
 
   nodeClient!: NodeClient
@@ -139,7 +140,7 @@ class SmartAccount {
    GassLess Flow -- config
    sendGaslessTransaction
    */
-  constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
+   constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
     if (config) {
       this.#smartAccountConfig = { ...this.#smartAccountConfig, ...config }
@@ -150,15 +151,12 @@ class SmartAccount {
     this.providerUrlConfig = this.#smartAccountConfig.providerUrlConfig || []
     this.ethAdapter = {}
     this.supportedNetworkIds = this.#smartAccountConfig.supportedNetworksIds
-
+    
     // Should not break if we make this wallet connected provider optional (We'd have JsonRpcProvider / JsonRpcSender)
     this.provider = walletProvider
-    // TODO: fix hardhcoded
-    console.log('this.providerUrlConfig[0].providerUrl ', this.providerUrlConfig[0].providerUrl)
 
     // TODO:: Allow original signer to be passed and preserve
-    this.signer = walletProvider.getSigner()
-    // Refer to SmartAccountSigner from eth-bogota branch
+    this.signer = new SmartAccountSigner(this.provider)
 
     // TODO // Review
     this.contractUtils = new ContractUtils(this.DEFAULT_VERSION)

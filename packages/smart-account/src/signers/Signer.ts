@@ -1,4 +1,4 @@
-import { ethers, Signer as AbstractSigner } from 'ethers'
+import { ethers, Signer as EthersSigner } from 'ethers'
 import { TypedDataDomain, TypedDataField } from '@ethersproject/abstract-signer'
 
 // ChainId , SmartAccountContext, SmartAccountConfig, SmartAccountState from @biconomy-sdk/core-types
@@ -11,7 +11,7 @@ import { BytesLike } from '@ethersproject/bytes'
 import { Deferrable } from 'ethers/lib/utils'
 import { TransactionRequest } from '@ethersproject/providers'
 
-export abstract class Signer extends AbstractSigner {
+export abstract class Signer extends EthersSigner {
   abstract getProvider(chainId?: number): Promise<JsonRpcProvider | undefined>
   // Review
   abstract getRelayer(chainId?: number): Promise<Relayer | undefined>
