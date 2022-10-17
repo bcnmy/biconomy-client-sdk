@@ -52,6 +52,8 @@
   "devDependencies": {
     "@biconomy-sdk/common": "*",
     "@biconomy-sdk/core-types": "*",
+    "@biconomy-sdk/ethers-lib": "*",
+    "@biconomy-sdk/transactions": "*",
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.3",
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",
     "@nomiclabs/hardhat-ethers": "^2.0.0",

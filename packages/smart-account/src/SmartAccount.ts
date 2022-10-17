@@ -1,7 +1,5 @@
 import EthersAdapter from '@biconomy-sdk/ethers-lib'
-import {
-  findContractAddressesByVersion
-} from './utils/FetchContractsInfo'
+import { findContractAddressesByVersion } from './utils/FetchContractsInfo'
 import {
   SignTransactionDto,
   SendTransactionDto,
@@ -21,32 +19,45 @@ import {
   ChainId,
   SmartAccountContext,
   SmartWalletFactoryContract,
+  MultiSendContract,
   SmartWalletContract,
   AddressForCounterFactualWalletDto,
   RawTransactionType,
   SmartAccountState,
   FeeQuote,
   RelayResponse,
-  SmartAccountConfig
+  SmartAccountConfig,
+  ZERO_ADDRESS,
+  IMetaTransaction
 } from '@biconomy-sdk/core-types'
 import NodeClient, {
   ProviderUrlConfig,
   ChainConfig,
   SmartAccountsResponse,
-  SmartAccountByOwnerDto,
+  SmartAccountByOwnerDto
 } from '@biconomy-sdk/node-client'
 import { Web3Provider } from '@ethersproject/providers'
 import { Relayer, RestRelayer } from '@biconomy-sdk/relayer'
-import TransactionManager, { ContractUtils, smartAccountSignMessage } from '@biconomy-sdk/transactions'
+
+import TransactionManager, {
+  ContractUtils,
+  smartAccountSignMessage
+} from '@biconomy-sdk/transactions'
+
 import { BalancesDto } from '@biconomy-sdk/node-client'
 import {
-  TransactionResponse,
+  SCWTransactionResponse,
   BalancesResponse,
-  UsdBalanceResponse,
+  UsdBalanceResponse
 } from '@biconomy-sdk/node-client'
-import { stringify } from 'querystring'
-import { Signer } from 'ethers'
 
+import { TransactionResponse } from '@ethersproject/providers'
+
+import { JsonRpcProvider } from '@ethersproject/providers'
+
+// AA
+import { newProvider, ERC4337EthersProvider } from '@biconomy-sdk/account-abstraction'
+import { ethers, Signer } from 'ethers'
 
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount {
@@ -71,10 +82,10 @@ class SmartAccount {
 
   providerUrlConfig!: ProviderUrlConfig[]
 
-  // providers!:  Web3Provider[]
   provider!: Web3Provider
-  // 4337Signer
+
   // 4337Provider
+  aaProvider!: { [chainId: number]: ERC4337EthersProvider }
 
   // Ideally not JsonRpcSigner but extended signer // Also the original EOA signer
   signer!: Signer
@@ -113,6 +124,21 @@ class SmartAccount {
    * If you wish to use your own backend server and relayer service, pass the URLs here
    */
   // review SmartAccountConfig
+  // TODO : EOA signer instead of { walletProvider }
+  // TODO : We Need to take EntryPoint | Paymaster | bundlerUrl address as optional ?
+  // TODO: May be need to manage separate config for Forward and gasless Flow
+
+  /**
+    Scw-Refund-Flow -- config
+  prepareRefundTransactionBatch
+  createRefundTransactionBatch
+  sendTransaction
+   */
+
+  /**
+   GassLess Flow -- config
+   sendGaslessTransaction
+   */
   constructor(walletSigner: Signer, config?: Partial<SmartAccountConfig>) {
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
     if (config) {
@@ -125,35 +151,171 @@ class SmartAccount {
     this.ethAdapter = {}
     this.supportedNetworkIds = this.#smartAccountConfig.supportedNetworksIds
 
+    // Should not break if we make this wallet connected provider optional (We'd have JsonRpcProvider / JsonRpcSender)
     // this.provider = walletProvider
-    this.signer = walletSigner;
+    // TODO: fix hardhcoded
+    console.log('this.providerUrlConfig[0].providerUrl ', this.providerUrlConfig[0].providerUrl)
 
-    this.contractUtils = new ContractUtils()
+    // TODO:: Allow original signer to be passed and preserve
+    this.signer = walletSigner;
+    // Refer to SmartAccountSigner from eth-bogota branch
+
+    // TODO // Review
+    this.contractUtils = new ContractUtils(this.DEFAULT_VERSION)
     this.nodeClient = new NodeClient({ txServiceUrl: this.#smartAccountConfig.backend_url })
-    this.relayer = new RestRelayer({url: this.#smartAccountConfig.relayer_url});
+    this.relayer = new RestRelayer({ url: this.#smartAccountConfig.relayer_url })
+    this.aaProvider = {}
   }
 
-
-  async init(){
-
+  async init() {
     this.setActiveChain(this.#smartAccountConfig.activeNetworkId)
 
     this.owner = await this.signer.getAddress()
-    
+    this.chainConfig = []
+
     const chainConfig = (await this.nodeClient.getAllSupportedChains()).data
-    this.chainConfig = chainConfig
+    for (let index = 0; index < this.#smartAccountConfig.supportedNetworksIds.length; index++) {
+      const network = chainConfig.find(
+        (element) => element.chainId === this.#smartAccountConfig.supportedNetworksIds[index]
+      )
+      if (network) this.chainConfig.push(network)
+    }
+    console.log('supported chains length is ', this.chainConfig.length)
+    console.log('supported chains list is ', this.chainConfig)
 
-    await this.contractUtils.initialize(chainConfig, this.signer)
+    await this.contractUtils.initialize(chainConfig, this.#smartAccountConfig, this.signer)
 
-    this.address = await this.getAddress({index: 0, chainId: this.#smartAccountConfig.activeNetworkId, version: this.DEFAULT_VERSION})
+    this.address = await this.getAddress({
+      index: 0,
+      chainId: this.#smartAccountConfig.activeNetworkId,
+      version: this.DEFAULT_VERSION
+    })
 
     this.transactionManager = new TransactionManager()
 
     const state = await this.getSmartAccountState(this.#smartAccountConfig.activeNetworkId)
 
-    await this.transactionManager.initialize(this.relayer, this.nodeClient, this.contractUtils, state)
+    await this.transactionManager.initialize(
+      this.relayer,
+      this.nodeClient,
+      this.contractUtils,
+      state
+    )
+
+    // TODO: Define and init SmartAccountProvider
+    const entryPointAddress = this.#smartAccountConfig.entryPointAddress
+      ? this.#smartAccountConfig.entryPointAddress
+      : state.entryPointAddress
+    const factoryAddress =
+      this.contractUtils.smartWalletFactoryContract[this.#smartAccountConfig.activeNetworkId][
+        this.DEFAULT_VERSION
+      ].getAddress()
+
+    for (let index = 0; index < this.chainConfig.length; index++) {
+      const network = this.chainConfig[index]
+      console.log('initialising for chain ', network.chainId)
+      let providerUrl =
+        this.#smartAccountConfig.providerUrlConfig?.find(
+          (element) => element.chainId === network.chainId
+        )?.providerUrl || ''
+
+      if (!providerUrl) providerUrl = network.providerUrl
+
+      this.aaProvider[network.chainId] = await newProvider(
+        new ethers.providers.JsonRpcProvider(providerUrl),
+        {
+          dappId: this.dappAPIKey,
+          signingServiceUrl: this.#smartAccountConfig.signingServiceUrl,
+          paymasterAddress: this.#smartAccountConfig.paymasterAddress || '',
+          entryPointAddress,
+          bundlerUrl: this.#smartAccountConfig.bundlerUrl || '',
+          chainId: network.chainId
+        },
+        this.signer,
+        this.address,
+        state.fallbackHandlerAddress,
+        factoryAddress
+      )
+      console.log('round completed for chainid ', network.chainId)
+    }
+
+    console.log('aa provider ', this.aaProvider)
 
     return this
+  }
+
+  // TODO
+  // Optional methods for connecting paymaster
+  // Optional methods for connecting another bundler
+
+  // Could be implemented at aaSigner level. Move some implementation to transactionManager
+  public async sendGasLessTransaction(transactionDto: TransactionDto): Promise<TransactionResponse> {
+    let { version, transaction, chainId } = transactionDto
+
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+    version = version ? version : this.DEFAULT_VERSION
+    const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
+
+    const response = await aaSigner.sendTransaction(transaction)
+    return response
+    // todo: make sense of this response and return hash to the user
+  }
+
+  public async sendGaslessTransactionBatch(transactionBatchDto: TransactionBatchDto) {
+    let { version, transactions, batchId, chainId } = transactionBatchDto
+
+    // Might get optional operation for tx
+
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+    version = version ? version : this.DEFAULT_VERSION
+    batchId = batchId ? batchId : 0
+
+    // NOTE : If the wallet is not deployed yet then nonce would be zero
+    let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()
+    walletContract = walletContract.attach(this.address)
+
+    // NOTE : If the wallet is not deployed yet then nonce would be zero
+    let nonce = 0
+    if (await this.contractUtils.isDeployed(chainId, version, this.address)) {
+      nonce = (await walletContract.getNonce(batchId)).toNumber()
+    }
+    console.log('nonce: ', nonce)
+
+    const txs: IMetaTransaction[] = []
+
+    for (let i = 0; i < transactions.length; i++) {
+      if (transactions[i]) {
+        const innerTx: IMetaTransaction = {
+          to: transactions[i].to,
+          value: transactions[i].value || 0,
+          operation: 0, // review
+          data: transactions[i].data || '0x', // for token transfers use encodeTransfer
+        }
+
+        txs.push(innerTx)
+      }
+    }
+
+    const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract();
+
+    const finalTx = this.transactionManager.utils.buildMultiSendTx(multiSendContract, txs, nonce, true);
+
+    const gaslessTx = {
+        to: finalTx.to,
+        data: finalTx.data,
+        value: finalTx.value
+    }
+
+    const response = await this.sendGasLessTransaction({version, transaction: gaslessTx, chainId})
+    return response
+  }
+
+
+  // Only to deploy wallet using connected paymaster (or the one corresponding to dapp api key)
+  public async deployWalletUsingPaymaster() { // can pass chainId
+    const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
+    const response = await aaSigner.deployWalletOnly()
+    // todo: make sense of this response and return hash to the user
   }
 
   /**
@@ -164,7 +326,11 @@ class SmartAccount {
   // TODO //@review @Talha
   async setSmartAccountVersion(smartAccountVersion: SmartAccountVersion) {
     this.DEFAULT_VERSION = smartAccountVersion
-    this.address = await this.getAddress({index: 0, chainId: this.#smartAccountConfig.activeNetworkId, version: this.DEFAULT_VERSION})
+    this.address = await this.getAddress({
+      index: 0,
+      chainId: this.#smartAccountConfig.activeNetworkId,
+      version: this.DEFAULT_VERSION
+    })
   }
 
   public async getAlltokenBalances(
@@ -188,19 +354,17 @@ class SmartAccount {
   ): Promise<SmartAccountsResponse> {
     return this.nodeClient.getSmartAccountsByOwner(smartAccountByOwnerDto)
   }
-  
+
   public async getTransactionByAddress(
     chainId: number,
-    address: string  ): Promise<TransactionResponse[]> {
+    address: string
+  ): Promise<SCWTransactionResponse[]> {
     return this.nodeClient.getTransactionByAddress(chainId, address)
   }
-  
-  public async getTransactionByHash(
-    txHash: string ): Promise<TransactionResponse> {
+
+  public async getTransactionByHash(txHash: string): Promise<SCWTransactionResponse> {
     return this.nodeClient.getTransactionByHash(txHash)
   }
-
-
 
   // return adapter instance to be used for blockchain interactions
   /**
@@ -238,7 +402,6 @@ class SmartAccount {
     return this
   }
 
-
   /**
    *
    * @notice personal sign is used currently (// @todo Signer should be able to use _typedSignData)
@@ -246,7 +409,7 @@ class SmartAccount {
    * @param chainId optional chainId
    * @returns:string Signature
    */
-   async signTransaction(signTransactionDto: SignTransactionDto): Promise<string> {
+  async signTransaction(signTransactionDto: SignTransactionDto): Promise<string> {
     const { chainId = this.#smartAccountConfig.activeNetworkId, tx } = signTransactionDto
     let walletContract = this.smartAccount(chainId).getContract()
     walletContract = walletContract.attach(this.address)
@@ -266,14 +429,14 @@ class SmartAccount {
    * @param chainId optional chainId
    * @returns
    */
-   async sendTransaction(sendTransactionDto: SendTransactionDto): Promise<string> {
+  async sendTransaction(sendTransactionDto: SendTransactionDto): Promise<string> {
     const {
       tx,
       batchId = 0,
       chainId = this.#smartAccountConfig.activeNetworkId
     } = sendTransactionDto
-    let  { gasLimit } = sendTransactionDto
-    const isDeployed = await this.isDeployed(chainId);
+    let { gasLimit } = sendTransactionDto
+    const isDeployed = await this.isDeployed(chainId)
     let rawTx: RawTransactionType = {
       to: tx.to,
       data: tx.data,
@@ -297,10 +460,16 @@ class SmartAccount {
       refundReceiver: tx.refundReceiver
     }
 
-    let walletContract = this.contractUtils.smartWalletContract[chainId][this.DEFAULT_VERSION].getContract()
+    let walletContract =
+      this.contractUtils.smartWalletContract[chainId][this.DEFAULT_VERSION].getContract()
     walletContract = walletContract.attach(this.address)
 
-    let signature = await this.signTransaction({ version: this.DEFAULT_VERSION, tx, chainId, signer: this.signer })
+    let signature = await this.signTransaction({
+      version: this.DEFAULT_VERSION,
+      tx,
+      chainId,
+      signer: this.signer
+    })
 
     let execTransaction = await walletContract.populateTransaction.execTransaction(
       transaction,
@@ -324,15 +493,15 @@ class SmartAccount {
       context: this.getSmartAccountContext(chainId)
     }
     // Must be in specified format
-    if(gasLimit) {
-      relayTrx.gasLimit = gasLimit;
+    if (gasLimit) {
+      relayTrx.gasLimit = gasLimit
     }
-    if(!isDeployed) {
+    if (!isDeployed) {
       gasLimit = {
         hex: '0x1E8480',
         type: 'hex'
       }
-    relayTrx.gasLimit = gasLimit;
+      relayTrx.gasLimit = gasLimit
     }
     const txn: RelayResponse = await this.relayer.relay(relayTrx)
     return txn.hash
@@ -347,16 +516,16 @@ class SmartAccount {
   async prepareRefundTransaction(
     prepareRefundTransactionDto: PrepareRefundTransactionDto
   ): Promise<FeeQuote[]> {
-    let {
-      version,
-      transaction,
-      batchId,
-      chainId
-    } = prepareRefundTransactionDto
+    let { version, transaction, batchId, chainId } = prepareRefundTransactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
-    batchId = batchId ? batchId: 0
-    return this.transactionManager.prepareRefundTransaction({chainId, version, transaction, batchId})
+    batchId = batchId ? batchId : 0
+    return this.transactionManager.prepareRefundTransaction({
+      chainId,
+      version,
+      transaction,
+      batchId
+    })
   }
 
   // Get Fee Options from relayer and make it available for display
@@ -369,17 +538,17 @@ class SmartAccount {
   async prepareRefundTransactionBatch(
     prepareRefundTransactionsDto: PrepareRefundTransactionsDto
   ): Promise<FeeQuote[]> {
-    let {
-      version,
-      transactions,
-      batchId,
-      chainId
-    } = prepareRefundTransactionsDto
+    let { version, transactions, batchId, chainId } = prepareRefundTransactionsDto
 
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
-    batchId = batchId ? batchId: 0
-   return this.transactionManager.prepareRefundTransactionBatch({version, chainId, batchId, transactions})
+    batchId = batchId ? batchId : 0
+    return this.transactionManager.prepareRefundTransactionBatch({
+      version,
+      chainId,
+      batchId,
+      transactions
+    })
   }
 
   // Other helpers go here for pre build (feeOptions and quotes from relayer) , build and execution of refund type transactions
@@ -394,17 +563,17 @@ class SmartAccount {
   async createRefundTransaction(
     refundTransactionDto: RefundTransactionDto
   ): Promise<IWalletTransaction> {
-    let {
+    let { version, transaction, batchId, feeQuote, chainId } = refundTransactionDto
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+    version = version ? version : this.DEFAULT_VERSION
+    batchId = batchId ? batchId : 0
+    return this.transactionManager.createRefundTransaction({
       version,
       transaction,
       batchId,
-      feeQuote,
-      chainId
-    } = refundTransactionDto
-    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
-    version = version ? version : this.DEFAULT_VERSION
-    batchId = batchId ? batchId: 0
-    return this.transactionManager.createRefundTransaction({version, transaction, batchId, chainId, feeQuote})
+      chainId,
+      feeQuote
+    })
   }
 
   /**
@@ -415,20 +584,15 @@ class SmartAccount {
    * @returns
    */
   async createTransaction(transactionDto: TransactionDto): Promise<IWalletTransaction> {
-    let {
-      version,
-      transaction,
-      batchId,
-      chainId
-    } = transactionDto
-   
+    let { version, transaction, batchId, chainId } = transactionDto
+
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
-    batchId = batchId ? batchId: 0
-    return this.transactionManager.createTransaction({chainId, version, batchId, transaction})
+    batchId = batchId ? batchId : 0
+    return this.transactionManager.createTransaction({ chainId, version, batchId, transaction })
   }
 
-    /**
+  /**
    * Prepares compatible IWalletTransaction object based on Transaction Request
    * @todo Write test case and limit batch size based on test results in scw-contracts
    * @notice This transaction is without fee refund (gasless)
@@ -437,21 +601,21 @@ class SmartAccount {
    * @param chainId
    * @returns
    */
-     async createTransactionBatch(
-      transactionBatchDto: TransactionBatchDto
-    ): Promise<IWalletTransaction> {
-      let {
-        version,
-        transactions,
-        batchId,
-        chainId
-      } = transactionBatchDto
-      
-      chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
-      version = version ? version : this.DEFAULT_VERSION
-      batchId = batchId ? batchId: 0
-      return this.transactionManager.createTransactionBatch({version, transactions, chainId, batchId})
-    }
+  async createTransactionBatch(
+    transactionBatchDto: TransactionBatchDto
+  ): Promise<IWalletTransaction> {
+    let { version, transactions, batchId, chainId } = transactionBatchDto
+
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+    version = version ? version : this.DEFAULT_VERSION
+    batchId = batchId ? batchId : 0
+    return this.transactionManager.createTransactionBatch({
+      version,
+      transactions,
+      chainId,
+      batchId
+    })
+  }
 
   /**
    * Prepares compatible IWalletTransaction object based on Transaction Request
@@ -463,29 +627,40 @@ class SmartAccount {
   async createRefundTransactionBatch(
     refundTransactionBatchDto: RefundTransactionBatchDto
   ): Promise<IWalletTransaction> {
-    let {
-      version,
-      transactions,
-      batchId,
-      feeQuote,
-      chainId
-    } = refundTransactionBatchDto
+    let { version, transactions, batchId, feeQuote, chainId } = refundTransactionBatchDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
-    batchId = batchId ? batchId: 0
-    return this.transactionManager.createRefundTransactionBatch({version, transactions, chainId, batchId, feeQuote})
+    batchId = batchId ? batchId : 0
+    return this.transactionManager.createRefundTransactionBatch({
+      version,
+      transactions,
+      chainId,
+      batchId,
+      feeQuote
+    })
   }
 
   async prepareDeployAndPayFees(chainId: ChainId = this.#smartAccountConfig.activeNetworkId) {
     return this.transactionManager.prepareDeployAndPayFees(chainId, this.DEFAULT_VERSION)
   }
- 
+
   // Onboarding scenario where assets inside counterfactual smart account pays for it's deployment
-  async deployAndPayFees(chainId: ChainId = this.#smartAccountConfig.activeNetworkId, feeQuote: FeeQuote): Promise<string> {
-    const transaction = await this.transactionManager.deployAndPayFees(chainId, this.DEFAULT_VERSION, feeQuote)
-    const txHash = await this.sendTransaction({tx:transaction});
-    return txHash;    
+  async deployAndPayFees(
+    chainId: ChainId = this.#smartAccountConfig.activeNetworkId,
+    feeQuote: FeeQuote
+  ): Promise<string> {
+    const transaction = await this.transactionManager.deployAndPayFees(
+      chainId,
+      this.DEFAULT_VERSION,
+      feeQuote
+    )
+    const txHash = await this.sendTransaction({ tx: transaction })
+    return txHash
   }
+
+  // async deployWalletWithPayMaster(chainId: ChainId = this.#smartAccountConfig.activeNetworkId){
+
+  // }
 
   /**
    *
@@ -508,10 +683,13 @@ class SmartAccount {
     return this.contractUtils.smartWalletFactoryContract[chainId][this.DEFAULT_VERSION]
   }
 
-  // Note: expose getMultiSend(), getMultiSendCall() 
-  
+  multiSend(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): MultiSendContract {
+    return this.contractUtils.multiSendContract[chainId][this.DEFAULT_VERSION]
+  }
 
-  // TODO  
+  // Note: expose getMultiSend(), getMultiSendCall()
+
+  // TODO
   // Note: get Address method should not be here as we are passing smart account state
   // Marked for deletion
   async getAddress(
@@ -522,13 +700,15 @@ class SmartAccount {
     this.contractUtils.smartWalletFactoryContract[chainId][
       version
     ].getAddressForCounterfactualWallet(this.owner, index)
-    const address = await this.contractUtils.smartWalletFactoryContract[chainId][version].getAddressForCounterfactualWallet(this.owner, index)
+    const address = await this.contractUtils.smartWalletFactoryContract[chainId][
+      version
+    ].getAddressForCounterfactualWallet(this.owner, index)
     this.address = address
     return address
   }
 
-    // Could be part of SmartAccountAPI for AA 
-    /*async getAddressForCounterfactualWallet(
+  // Could be part of SmartAccountAPI for AA
+  /*async getAddressForCounterfactualWallet(
       addressForCounterFactualWalletDto: AddressForCounterFactualWalletDto
     ): Promise<string> {
       const { index, chainId, version } = addressForCounterFactualWalletDto
@@ -537,7 +717,6 @@ class SmartAccount {
         version
       ].getAddressForCounterfactualWallet(this.owner, index)
     }*/
-
 
   /**
    * Allows one to check if the smart account is already deployed on requested chainOd
@@ -557,7 +736,9 @@ class SmartAccount {
     return isPhantom;*/
 
     //Below works
-    return await this.contractUtils.smartWalletFactoryContract[chainId][this.DEFAULT_VERSION].isWalletExist(this.address)
+    return await this.contractUtils.smartWalletFactoryContract[chainId][
+      this.DEFAULT_VERSION
+    ].isWalletExist(this.address)
   }
 
   /**
@@ -596,7 +777,10 @@ class SmartAccount {
     // smartAccountVersion: SmartAccountVersion = this.DEFAULT_VERSION,
     chainId: ChainId = this.#smartAccountConfig.activeNetworkId
   ): SmartAccountContext {
-    const context: SmartAccountContext = this.contractUtils.getSmartAccountContext(chainId, this.DEFAULT_VERSION)
+    const context: SmartAccountContext = this.contractUtils.getSmartAccountContext(
+      chainId,
+      this.DEFAULT_VERSION
+    )
     return context
   }
 }
@@ -605,18 +789,23 @@ class SmartAccount {
 // TODO/NOTE : make Goerli and Mumbai as test networks and remove others
 export const DefaultSmartAccountConfig: SmartAccountConfig = {
   activeNetworkId: ChainId.GOERLI, //Update later
+  paymasterAddress: '0x50e8996670759E1FAA315eeaCcEfe0c0A043aA51',
+  signingServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
   supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],
   backend_url: 'https://sdk-backend.staging.biconomy.io/v1',
-  relayer_url: 'http://localhost:3000/api/v1/relay'
-  // dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
-  /*providerUrlConfig: [
-    { chainId: ChainId.GOERLI, 
-      providerUrl: "https://eth-goerli.alchemyapi.io/v2/lmW2og_aq-OXWKYRoRu-X6Yl6wDQYt_2"
+  relayer_url: 'http://localhost:3000/api/v1/relay',
+  dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
+  bundlerUrl: 'http://localhost:3000/api/v1/relay',
+  providerUrlConfig: [
+    {
+      chainId: ChainId.GOERLI,
+      providerUrl: 'https://eth-goerli.alchemyapi.io/v2/lmW2og_aq-OXWKYRoRu-X6Yl6wDQYt_2'
     },
-    { chainId: ChainId.POLYGON_MUMBAI, 
-      providerUrl: "https://polygon-mumbai.g.alchemy.com/v2/Q4WqQVxhEEmBYREX22xfsS2-s5EXWD31"
+    {
+      chainId: ChainId.POLYGON_MUMBAI,
+      providerUrl: 'https://polygon-mumbai.g.alchemy.com/v2/Q4WqQVxhEEmBYREX22xfsS2-s5EXWD31'
     }
-  ]*/
+  ]
 }
 
 export default SmartAccount

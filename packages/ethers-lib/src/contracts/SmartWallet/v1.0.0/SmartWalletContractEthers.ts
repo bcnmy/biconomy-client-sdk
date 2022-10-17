@@ -4,7 +4,7 @@ import {
   SmartWalletContract,
   IWalletTransaction,
   ExecTransaction,
-  IFeeRefundV1_0_0, 
+  IFeeRefundV1_0_0,
   ITransactionResult
 } from '@biconomy-sdk/core-types'
 import { toTxResult } from '../../../utils'

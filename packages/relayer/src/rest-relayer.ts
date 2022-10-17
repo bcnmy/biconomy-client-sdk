@@ -98,7 +98,7 @@ export class RestRelayer implements Relayer {
       const txnData = multiSendCall
         .getInterface()
         .encodeFunctionData('multiSend', [encodeMultiSend(txs)])
-      
+
       const finalRawRx = {
         to: multiSendCall.getAddress(),
         data: txnData,

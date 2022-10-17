@@ -7,7 +7,8 @@ import { ClientConfig } from './ClientConfig'
 import { ERC4337EthersSigner } from './ERC4337EthersSigner'
 import { UserOperationEventListener } from './UserOperationEventListener'
 import { HttpRpcClient } from './HttpRpcClient'
-import { EntryPoint, UserOperationStruct } from '@account-abstraction/contracts'
+import { EntryPoint } from '@account-abstraction/contracts'
+import { UserOperation } from '@biconomy-sdk/core-types'
 import { BaseWalletAPI } from './BaseWalletAPI'
 
 export class ERC4337EthersProvider extends BaseProvider {
@@ -21,7 +22,7 @@ export class ERC4337EthersProvider extends BaseProvider {
     readonly originalProvider: BaseProvider,
     readonly httpRpcClient: HttpRpcClient,
     readonly entryPoint: EntryPoint,
-    readonly smartWalletAPI: BaseWalletAPI
+    readonly smartWalletAPI: BaseWalletAPI // instead of here we could actually make one in SmartAccount.ts and provide
   ) {
     super({
       name: 'ERC-4337 Custom Network',
@@ -80,7 +81,7 @@ export class ERC4337EthersProvider extends BaseProvider {
   }
 
   // fabricate a response in a format usable by ethers users...
-  async constructUserOpTransactionResponse (userOp1: UserOperationStruct): Promise<TransactionResponse> {
+  async constructUserOpTransactionResponse (userOp1: UserOperation): Promise<TransactionResponse> {
     const userOp = await resolveProperties(userOp1)
     const requestId = getRequestId(userOp, this.config.entryPointAddress, this.config.chainId)
     const waitPromise = new Promise<TransactionReceipt>((resolve, reject) => {

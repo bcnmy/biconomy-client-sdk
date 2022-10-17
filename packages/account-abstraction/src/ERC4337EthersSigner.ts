@@ -2,13 +2,12 @@ import { Deferrable, defineReadOnly } from '@ethersproject/properties'
 import { Provider, TransactionRequest, TransactionResponse } from '@ethersproject/providers'
 import { Signer } from '@ethersproject/abstract-signer'
 
-import { Bytes } from 'ethers'
+import { Bytes, ethers } from 'ethers'
 import { ERC4337EthersProvider } from './ERC4337EthersProvider'
 import { ClientConfig } from './ClientConfig'
 import { HttpRpcClient } from './HttpRpcClient'
-import { UserOperationStruct } from '@account-abstraction/contracts'
+import { UserOperation } from '@biconomy-sdk/core-types'
 import { BaseWalletAPI } from './BaseWalletAPI'
-
 export class ERC4337EthersSigner extends Signer {
   // TODO: we have 'erc4337provider', remove shared dependencies or avoid two-way reference
   constructor (
@@ -21,17 +20,51 @@ export class ERC4337EthersSigner extends Signer {
     defineReadOnly(this, 'provider', erc4337provider)
   }
 
+  async deployWalletOnly(): Promise<TransactionResponse | undefined> {
+    const userOperation = await this.smartWalletAPI.createSignedUserOp({
+      target: '',
+      data: '',
+      value: 0,
+      gasLimit: 21000
+    })
+
+    console.log('signed userOp ', userOperation)
+    let transactionResponse;
+
+    try{
+    transactionResponse = await this.erc4337provider.constructUserOpTransactionResponse(userOperation)
+    console.log('transactionResponse ', transactionResponse)
+    }
+    catch(err) {
+      console.log('error when making transaction for only deployment')
+      console.log(err)
+    }
+
+    try {
+      await this.httpRpcClient.sendUserOpToBundler(userOperation)
+    } catch (error: any) {
+      // console.error('sendUserOpToBundler failed', error)
+      throw this.unwrapError(error)
+    }
+    // TODO: handle errors - transaction that is "rejected" by bundler is _not likely_ to ever resolve its "wait()"
+    return transactionResponse
+  }
   // This one is called by Contract. It signs the request and passes in to Provider to be sent.
   async sendTransaction (transaction: Deferrable<TransactionRequest>): Promise<TransactionResponse> {
+    console.log('received transaction ', transaction)
     const tx: TransactionRequest = await this.populateTransaction(transaction)
+    console.log('populate trx ', tx)
     await this.verifyAllNecessaryFields(tx)
     const userOperation = await this.smartWalletAPI.createSignedUserOp({
       target: tx.to ?? '',
       data: tx.data?.toString() ?? '',
       value: tx.value,
-      gasLimit: tx.gasLimit
+      // gasLimit: tx.gasLimit
     })
+    console.log('signed userOp ', userOperation)
     const transactionResponse = await this.erc4337provider.constructUserOpTransactionResponse(userOperation)
+    console.log('transactionResponse ', transactionResponse)
+
     try {
       await this.httpRpcClient.sendUserOpToBundler(userOperation)
     } catch (error: any) {
@@ -91,7 +124,7 @@ export class ERC4337EthersSigner extends Signer {
     throw new Error('not implemented')
   }
 
-  async signUserOperation (userOperation: UserOperationStruct): Promise<string> {
+  async signUserOperation (userOperation: UserOperation): Promise<string> {
     const message = await this.smartWalletAPI.getRequestId(userOperation)
     return await this.originalSigner.signMessage(message)
   }

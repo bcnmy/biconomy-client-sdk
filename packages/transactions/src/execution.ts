@@ -1,11 +1,4 @@
-import {
-  Contract,
-  Wallet,
-  utils,
-  BigNumberish,
-  Signer,
-  PopulatedTransaction
-} from 'ethers'
+import { Contract, Wallet, utils, BigNumberish, Signer, PopulatedTransaction } from 'ethers'
 
 import {
   ExecTransaction,
