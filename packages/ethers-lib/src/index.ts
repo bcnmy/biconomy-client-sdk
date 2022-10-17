@@ -1,4 +1,4 @@
-import EthersAdapter, { EthersAdapterConfig } from './EthersAdapter'
+import EvmNetworkManager, { EthersAdapterConfig } from './EvmNetworkManager'
 import { IEthersTransactionOptions, IEthersTransactionResult } from './types'
 
 export { SmartWalletContractV100__factory as SmartWalletFactoryContract100 } from '../typechain/src/ethers-v5/v1.0.0/factories/SmartWalletContractV100__factory'
@@ -24,7 +24,7 @@ export { SmartWalletContractV101 } from '../typechain/src/ethers-v5/v1.0.1/Smart
 import EntryPointEthersContract_v1_0_0 from './contracts/EntryPointContract/v1.0.0/EntryPointEthersContract'
 import EntryPointEthersContract_v1_0_1 from './contracts/EntryPointContract/v1.0.1/EntryPointEthersContract'
 
-export default EthersAdapter
+export default EvmNetworkManager
 export {
   EthersAdapterConfig,
   IEthersTransactionOptions,

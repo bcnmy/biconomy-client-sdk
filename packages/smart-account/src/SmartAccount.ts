@@ -295,31 +295,31 @@ class SmartAccount {
     version = version ? version : this.DEFAULT_VERSION
     const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
 
-    await this.initializeContractsAtChain(chainId)
+    // await this.initializeContractsAtChain(chainId)
 
-    const state = await this.contractUtils.getSmartAccountState(this.smartAccountState)
+    // const state = await this.contractUtils.getSmartAccountState(this.smartAccountState)
 
-    let customData: Record<string, any> = {
-      isDeployed: state.isDeployed,
-      skipGasLimit: false,
-      isBatchedToMultiSend: false,
-      appliedGasLimit: 500000 // could come from params or local mock estimation..
-    }
+    // let customData: Record<string, any> = {
+    //   isDeployed: state.isDeployed,
+    //   skipGasLimit: false,
+    //   isBatchedToMultiSend: false,
+    //   appliedGasLimit: 500000 // could come from params or local mock estimation..
+    // }
 
-    const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract()
-    if (
-      ethers.utils.getAddress(transaction.to) === ethers.utils.getAddress(multiSendContract.address)
-    ) {
-      customData.skipGasLimit = true
-      customData.isBatchedToMultiSend = true
-    }
+    // const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract()
+    // if (
+    //   ethers.utils.getAddress(transaction.to) === ethers.utils.getAddress(multiSendContract.address)
+    // ) {
+    //   customData.skipGasLimit = true
+    //   customData.isBatchedToMultiSend = true
+    // }
 
-    const response = await aaSigner.sendTransaction({ ...transaction, customData: customData })
+    const response = await aaSigner.sendTransaction(transaction)
     return response
     // todo: make sense of this response and return hash to the user
   }
 
-  public async sendGaslessTransactionBatch(transactionBatchDto: TransactionBatchDto) {
+  public async sendGaslessTransactionBatch(transactionBatchDto: TransactionBatchDto): Promise<TransactionResponse> {
     let { version, transactions, batchId, chainId } = transactionBatchDto
 
     // Might get optional operation for tx
@@ -379,6 +379,9 @@ class SmartAccount {
   }
 
   // Only to deploy wallet using connected paymaster (or the one corresponding to dapp api key)
+  // Todo Chirag 
+  // Add return type
+  // Review involvement of Dapp API Key
   public async deployWalletUsingPaymaster() {
     // can pass chainId
     const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
@@ -391,15 +394,18 @@ class SmartAccount {
    * @param smartAccountVersion
    * @description // set wallet version to be able to interact with different deployed versions
    */
-  async setSmartAccountVersion(smartAccountVersion: SmartAccountVersion) {
+  async setSmartAccountVersion(smartAccountVersion: SmartAccountVersion): Promise<SmartAccount> {
     this.DEFAULT_VERSION = smartAccountVersion
     this.address = await this.getAddress({
       index: 0,
       chainId: this.#smartAccountConfig.activeNetworkId,
       version: this.DEFAULT_VERSION
     })
+    return this
   }
 
+  // Todo Chirag 
+  // Review inputs as chainId is already part of Dto
   public async getAlltokenBalances(
     balancesDto: BalancesDto,
     chainId: ChainId = this.#smartAccountConfig.activeNetworkId
@@ -408,6 +414,8 @@ class SmartAccount {
     return this.nodeClient.getAlltokenBalances(balancesDto)
   }
 
+  // Todo Chirag 
+  // Review inputs as chainId is already part of Dto
   public async getTotalBalanceInUsd(
     balancesDto: BalancesDto,
     chainId: ChainId = this.#smartAccountConfig.activeNetworkId
@@ -422,6 +430,7 @@ class SmartAccount {
     return this.nodeClient.getSmartAccountsByOwner(smartAccountByOwnerDto)
   }
 
+  // @Talha to add description for this
   public async getTransactionByAddress(
     chainId: number,
     address: string
@@ -699,6 +708,7 @@ class SmartAccount {
     })
   }
 
+  // todo : chirag missing return type
   async prepareDeployAndPayFees(chainId: ChainId = this.#smartAccountConfig.activeNetworkId) {
     return this.transactionManager.prepareDeployAndPayFees(chainId, this.DEFAULT_VERSION)
   }
