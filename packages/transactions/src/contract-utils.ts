@@ -84,6 +84,7 @@ class ContractUtils {
   //     this.initializeContracts(network)
   //   }
   // }
+  // todo chirag review/add return type
   initializeContracts(signer: Signer, readProvider: ethers.providers.JsonRpcProvider, chaininfo: ChainConfig) {
     // We get the addresses using chainConfig fetched from backend node
 
