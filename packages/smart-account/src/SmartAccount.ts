@@ -29,6 +29,7 @@ import {
   SmartAccountConfig,
   IMetaTransaction
 } from '@biconomy-sdk/core-types'
+import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import NodeClient, {
   ProviderUrlConfig,
   ChainConfig,
@@ -41,7 +42,7 @@ import EvmNetworkManager from '@biconomy-sdk/ethers-lib'
 
 import TransactionManager, {
   ContractUtils,
-  smartAccountSignMessage
+  smartAccountSignTypedData
 } from '@biconomy-sdk/transactions'
 
 import { BalancesDto } from '@biconomy-sdk/node-client'
@@ -52,8 +53,7 @@ import {
 } from '@biconomy-sdk/node-client'
 
 import { TransactionResponse } from '@ethersproject/providers'
-
-import { JsonRpcProvider } from '@ethersproject/providers'
+import { SmartAccountSigner } from './signers/SmartAccountSigner'
 
 // AA
 import { newProvider, ERC4337EthersProvider } from '@biconomy-sdk/account-abstraction'
@@ -103,7 +103,7 @@ class SmartAccount {
   aaProvider!: { [chainId: number]: ERC4337EthersProvider }
 
   // Ideally not JsonRpcSigner but extended signer // Also the original EOA signer
-  signer!: Signer
+  signer!: Signer & TypedDataSigner
   // We may have different signer for ERC4337
 
   nodeClient!: NodeClient
@@ -177,8 +177,8 @@ class SmartAccount {
 
     // Should not break if we make this wallet connected provider optional (We'd have JsonRpcProvider / JsonRpcSender)
     this.provider = walletProvider
-    this.signer = walletProvider.getSigner()
-    // Refer to SmartAccountSigner from eth-bogota branch
+    // TODO:: Allow original signer to be passed and preserve
+    this.signer = new SmartAccountSigner(this.provider)
 
     this.nodeClient = new NodeClient({ txServiceUrl: this.#smartAccountConfig.backend_url })
     this.relayer = new RestRelayer({ url: this.#smartAccountConfig.relayer_url })
@@ -210,7 +210,7 @@ class SmartAccount {
       const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
       await this.contractUtils.initializeContracts(this.signer, readProvider, network)
 
-      if (!this.address){
+      if (!this.address) {
         this.address = await this.getAddress({
           index: 0,
           chainId: network.chainId,
@@ -481,7 +481,7 @@ class SmartAccount {
     let walletContract = this.smartAccount(chainId).getContract()
     walletContract = walletContract.attach(this.address)
     // TODO - rename and organize utils
-    const { signer, data } = await smartAccountSignMessage(this.signer, walletContract, tx, chainId)
+    const { signer, data } = await smartAccountSignTypedData(this.signer, walletContract, tx, chainId)
     let signature = '0x'
     signature += data.slice(2)
     return signature
@@ -787,18 +787,18 @@ class SmartAccount {
     ].isWalletExist(this.address)
   }
 
-    /**
-   * @review for owner
-   * @param chainId requested chain : default is active chain
-   * @returns object containing infromation (owner, relevant contract addresses, isDeployed) about Smart Account for requested chain
-   */
-     async getSmartAccountState(
-      chainId: ChainId
-    ): Promise<SmartAccountState> {
+  /**
+ * @review for owner
+ * @param chainId requested chain : default is active chain
+ * @returns object containing infromation (owner, relevant contract addresses, isDeployed) about Smart Account for requested chain
+ */
+  async getSmartAccountState(
+    chainId: ChainId
+  ): Promise<SmartAccountState> {
 
-      chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
-      return this.contractUtils.getSmartAccountState(this.smartAccountState)
-    }
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+    return this.contractUtils.getSmartAccountState(this.smartAccountState)
+  }
 
   //
   /**
