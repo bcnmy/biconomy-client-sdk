@@ -42,7 +42,7 @@ import { Relayer, RestRelayer } from '@biconomy-sdk/relayer'
 
 import TransactionManager, {
   ContractUtils,
-  smartAccountSignMessage
+  smartAccountSignTypedData
 } from '@biconomy-sdk/transactions'
 
 import { BalancesDto } from '@biconomy-sdk/node-client'
@@ -430,7 +430,7 @@ class SmartAccount {
     let walletContract = this.smartAccount(chainId).getContract()
     walletContract = walletContract.attach(this.address)
     // TODO - rename and organize utils
-    const { signer, data } = await smartAccountSignMessage(this.signer, walletContract, tx, chainId)
+    const { signer, data } = await smartAccountSignTypedData(this.signer, walletContract, tx, chainId)
     let signature = '0x'
     signature += data.slice(2)
     return signature

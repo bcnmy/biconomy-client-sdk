@@ -111,7 +111,7 @@ export class SmartAccountSigner extends EthersSigner implements TypedDataSigner 
     }
 
     return await this.provider.send('eth_signTypedData_v4', [
-      await this.getAddress(),
+      await (await this.getAddress()).toLowerCase,
       JSON.stringify(ethers.utils._TypedDataEncoder.getPayload(domain, types, message))
     ])
   }
