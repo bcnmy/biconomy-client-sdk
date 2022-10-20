@@ -62,6 +62,7 @@ export class ERC4337EthersSigner extends Signer {
 
     // TODO : if isDeployed = false || skipGasLimit = true then use provided gas limit => transaction.gasLimit = gasLimit
     delete transaction.customData
+    // transaction.from = await this.smartWalletAPI.getWalletAddress()
     const tx: TransactionRequest = await this.populateTransaction(transaction)
     console.log('populate trx ', tx)
     await this.verifyAllNecessaryFields(tx)

@@ -23,6 +23,10 @@ export class PaymasterAPI {
     userOp.signature = '0x'
     userOp.paymasterAndData = '0x'
 
+    // TODO
+    // decode infromation about userop.callData (in case of batch or single tx) in verification service
+
+    // add dappAPIKey in headers
     const result: any = await  sendRequest({
       url: `${this.apiUrl}/signing-service`,
       method: HttpMethod.Post,
