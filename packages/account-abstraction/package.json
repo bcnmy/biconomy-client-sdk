@@ -26,8 +26,8 @@
     "clear": "rm -rf dist artifacts cache",
     "lint": "eslint -f unix .",
     "lint-fix": "eslint -f unix . --fix",
-    "test": "hardhat test",
     "build": "hardhat compile && yarn typechain && tsc",
+    "test": "hardhat test",
     "hardhat-test": "hardhat test",
     "tsc": "tsc",
     "watch-tsc": "tsc -w --preserveWatchOutput"

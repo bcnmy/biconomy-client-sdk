@@ -12,7 +12,6 @@ import { UserOperation } from '@biconomy-sdk/core-types'
 import { BaseWalletAPI } from './BaseWalletAPI'
 
 export class ERC4337EthersProvider extends BaseProvider {
-  initializedBlockNumber!: number
 
   readonly signer: ERC4337EthersSigner
 
@@ -32,9 +31,7 @@ export class ERC4337EthersProvider extends BaseProvider {
   }
 
   async init (): Promise<this> {
-    this.initializedBlockNumber = await this.originalProvider.getBlockNumber()
     await this.smartWalletAPI.init()
-    // await this.signer.init()
     return this
   }
 
