@@ -8,7 +8,6 @@ import { ChainId, SignTransactionDto } from '@biconomy-sdk/core-types'
 // import { Relayer, RestRelayer } from '@biconomy-sdk/relayer'
 import { Deferrable } from 'ethers/lib/utils'
 import { TransactionRequest, TransactionResponse } from '@ethersproject/providers'
-import { isJsonRpcProvider } from './json-rpc/utils'
 
 export class SmartAccountSigner extends EthersSigner implements TypedDataSigner {
   readonly provider: JsonRpcProvider
@@ -130,9 +129,9 @@ export class SmartAccountSigner extends EthersSigner implements TypedDataSigner 
   }
 
   connect(provider: JsonRpcProvider): SmartAccountSigner {
-    if (isJsonRpcProvider(provider)) {
-      return new SmartAccountSigner(provider)
-    }
+    // if (provider) {
+    //   return new SmartAccountSigner(provider)
+    // }
     throw new Error('unsupported: cannot get JSON-RPC Signer connection')
   }
 }

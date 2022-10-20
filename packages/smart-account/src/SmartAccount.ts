@@ -53,7 +53,7 @@ import {
 } from '@biconomy-sdk/node-client'
 
 import { TransactionResponse } from '@ethersproject/providers'
-import { SmartAccountSigner  } from './signers/SmartAccountSigner'
+import { SmartAccountSigner } from './signers/SmartAccountSigner'
 
 // AA
 import { newProvider, ERC4337EthersProvider } from '@biconomy-sdk/account-abstraction'
@@ -156,7 +156,7 @@ class SmartAccount {
    GassLess Flow -- config
    sendGaslessTransaction
    */
-   constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
+  constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
 
     // if ( !this.#smartAccountConfig.activeNetworkId ){
@@ -174,7 +174,7 @@ class SmartAccount {
     // Useful if Dapp needs custom RPC Urls. Check if valid. Fallback to public Urls
     this.providerUrlConfig = this.#smartAccountConfig.providerUrlConfig || []
     this.supportedNetworkIds = this.#smartAccountConfig.supportedNetworksIds
-    
+
     // Should not break if we make this wallet connected provider optional (We'd have JsonRpcProvider / JsonRpcSender)
     this.provider = walletProvider
     // TODO:: Allow original signer to be passed and preserve
@@ -210,7 +210,7 @@ class SmartAccount {
       const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
       await this.contractUtils.initializeContracts(this.signer, readProvider, network)
 
-      if (!this.address){
+      if (!this.address) {
         this.address = await this.getAddress({
           index: 0,
           chainId: network.chainId,
@@ -787,18 +787,18 @@ class SmartAccount {
     ].isWalletExist(this.address)
   }
 
-    /**
-   * @review for owner
-   * @param chainId requested chain : default is active chain
-   * @returns object containing infromation (owner, relevant contract addresses, isDeployed) about Smart Account for requested chain
-   */
-     async getSmartAccountState(
-      chainId: ChainId
-    ): Promise<SmartAccountState> {
+  /**
+ * @review for owner
+ * @param chainId requested chain : default is active chain
+ * @returns object containing infromation (owner, relevant contract addresses, isDeployed) about Smart Account for requested chain
+ */
+  async getSmartAccountState(
+    chainId: ChainId
+  ): Promise<SmartAccountState> {
 
-      chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
-      return this.contractUtils.getSmartAccountState(this.smartAccountState)
-    }
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+    return this.contractUtils.getSmartAccountState(this.smartAccountState)
+  }
 
   //
   /**
