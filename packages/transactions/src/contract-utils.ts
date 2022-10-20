@@ -7,7 +7,7 @@ import {
   SmartAccountContext,
   SmartAccountState
 } from '@biconomy-sdk/core-types'
-import { ChainConfig, SupportedChainsResponse } from '@biconomy-sdk/node-client'
+import { ChainConfig } from '@biconomy-sdk/node-client'
 import {
   getSmartWalletFactoryContract,
   getMultiSendContract,
@@ -35,7 +35,7 @@ class ContractUtils {
 
   // Note: Should DEFAULT_VERSION be moved here?
 
-  constructor(readonly version: string, readonly chainConfig: ChainConfig[]) {
+  constructor(readonly chainConfig: ChainConfig[]) {
     this.ethAdapter = {}
     this.smartWalletContract = {}
     this.multiSendContract = {}
@@ -43,47 +43,6 @@ class ContractUtils {
     this.smartWalletFactoryContract = {}
   }
 
-  public getSmartWalletContract(chainId: number): SmartWalletContract {
-    return this.smartWalletContract[chainId][this.version]
-  }
-
-  // public async initialize(
-  //   supportedChains: ChainConfig[],
-  //   config: SmartAccountConfig,
-  //   signer: Signer
-  // ) {
-  //   const chainsInfo = supportedChains
-
-  //   for (let i = 0; i < chainsInfo.length; i++) {
-  //     const network = chainsInfo[i]
-  //     // To keep it network agnostic
-  //     // Note: think about events when signer needs to pay gas
-
-  //     let providerUrl =
-  //       config.providerUrlConfig?.find((element) => element.chainId === network.chainId)
-  //         ?.providerUrl || ''
-  //     console.log('Used provider from config ', providerUrl)
-
-  //     if (!providerUrl) providerUrl = network.providerUrl
-
-  //     const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
-
-  //     console.log('chain id ', network.chainId, 'readProvider ', readProvider)
-
-  //     // Instantiating EthersAdapter instance and maintain it as above mentioned class level variable
-  //     this.ethAdapter[network.chainId] = new EvmNetworkManager({
-  //       ethers,
-  //       signer,
-  //       provider: readProvider
-  //     })
-
-  //     this.smartWalletFactoryContract[network.chainId] = {}
-  //     this.smartWalletContract[network.chainId] = {}
-  //     this.multiSendContract[network.chainId] = {}
-  //     this.multiSendCallOnlyContract[network.chainId] = {}
-  //     this.initializeContracts(network)
-  //   }
-  // }
   initializeContracts(signer: Signer, readProvider: ethers.providers.JsonRpcProvider, chaininfo: ChainConfig) {
     // We get the addresses using chainConfig fetched from backend node
 
@@ -134,15 +93,7 @@ class ContractUtils {
     }
   }
 
-  // TODO: params as Object
-  // May not need it at all if we go provider route
   async isDeployed(chainId: ChainId, version: string, address: string): Promise<boolean> {
-    // Other approach : needs review and might be coming wrong
-    // const readProvider = new ethers.providers.JsonRpcProvider(networks[chainId].providerUrl);
-    // const walletCode = await readProvider.getCode(await this.getAddress(chainId));
-    // return !!walletCode && walletCode !== '0x'
-
-    // but below works
     return await this.smartWalletFactoryContract[chainId][version].isWalletExist(address)
   }
 
@@ -170,30 +121,39 @@ class ContractUtils {
   
 
   async getSmartAccountState(
-    smartAccountState: SmartAccountState
+    smartAccountState: SmartAccountState,
+    currentVersion?: string,
+    currentChainId?: ChainId
   ): Promise<SmartAccountState> {
 
     let {address, owner, chainId, version} = smartAccountState
 
-    version = version ? version : this.version
+    if (!currentVersion){
+      currentVersion = version
+    }
 
-
-    if (this.version !== version) {
-      this.smartAccountState.address = await this.smartWalletFactoryContract[chainId][
-        version
-      ].getAddressForCounterfactualWallet(owner, 0)
-      this.smartAccountState.isDeployed = await this.isDeployed(chainId, version, address) // could be set as state in init
-      const contractsByVersion = findContractAddressesByVersion(
-        version,
-        chainId,
-        this.chainConfig
-      )
-      this.smartAccountState.entryPointAddress = contractsByVersion.entryPointAddress || '',
-      this.smartAccountState.fallbackHandlerAddress = contractsByVersion.fallBackHandlerAddress || ''
+    if (!currentChainId){
+      currentChainId = chainId
     }
 
     if (!this.smartAccountState){
       this.smartAccountState = smartAccountState
+    }
+    else if(this.smartAccountState.version !== currentVersion || this.smartAccountState.chainId !== currentChainId) {
+      this.smartAccountState.address = await this.smartWalletFactoryContract[chainId][
+        version
+      ].getAddressForCounterfactualWallet(owner, 0)
+      this.smartAccountState.version = currentVersion
+      this.smartAccountState.chainId = currentChainId
+
+      this.smartAccountState.isDeployed = await this.isDeployed(this.smartAccountState.chainId, this.smartAccountState.version, address) // could be set as state in init
+      const contractsByVersion = findContractAddressesByVersion(
+        this.smartAccountState.version,
+        this.smartAccountState.chainId,
+        this.chainConfig
+      )
+      this.smartAccountState.entryPointAddress = contractsByVersion.entryPointAddress || '',
+      this.smartAccountState.fallbackHandlerAddress = contractsByVersion.fallBackHandlerAddress || ''
     }
 
     return this.smartAccountState
