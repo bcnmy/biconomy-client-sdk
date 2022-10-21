@@ -10,8 +10,8 @@ export { MultiSendContractV101__factory as MultiSendContractV101 } from '../type
 export { MultiSendCallOnlyContractV100__factory as MultiSendCallOnlyContractV100 } from '../typechain/src/ethers-v5/v1.0.0/factories/MultiSendCallOnlyContractV100__factory'
 export { MultiSendCallOnlyContractV101__factory as MultiSendCallOnlyContractV101 } from '../typechain/src/ethers-v5/v1.0.1/factories/MultiSendCallOnlyContractV101__factory'
 
-export { SmartWalletFactoryContractV100__factory as SmartWalletFactoryContractV100 } from '../typechain/src/ethers-v5/v1.0.0/factories/SmartWalletFactoryContractV100__factory'
-export { SmartWalletFactoryContractV101__factory as SmartWalletFactoryContractV101 } from '../typechain/src/ethers-v5/v1.0.1/factories/SmartWalletFactoryContractV101__factory'
+export { SmartWalletFactoryContractV100__factory as SmartWalletFactoryFactoryContractV100 } from '../typechain/src/ethers-v5/v1.0.0/factories/SmartWalletFactoryContractV100__factory'
+export { SmartWalletFactoryContractV101__factory as SmartWalletFactoryFactoryContractV101 } from '../typechain/src/ethers-v5/v1.0.1/factories/SmartWalletFactoryContractV101__factory'
 
 export { EntryPointContractV100__factory as EntryPointFactoryContractV100 } from '../typechain/src/ethers-v5/v1.0.0/factories/EntryPointContractV100__factory'
 export { EntryPointContractV101__factory as EntryPointFactoryContractV101 } from '../typechain/src/ethers-v5/v1.0.1/factories/EntryPointContractV101__factory'
@@ -20,6 +20,7 @@ export { EntryPointContractV100 } from '../typechain/src/ethers-v5/v1.0.0/EntryP
 export { EntryPointContractV101 } from '../typechain/src/ethers-v5/v1.0.1/EntryPointContractV101'
 
 export { SmartWalletContractV101 } from '../typechain/src/ethers-v5/v1.0.1/SmartWalletContractV101'
+export { SmartWalletContractV100 } from '../typechain/src/ethers-v5/v1.0.0/SmartWalletContractV100'
 
 import EntryPointEthersContract_v1_0_0 from './contracts/EntryPointContract/v1.0.0/EntryPointEthersContract'
 import EntryPointEthersContract_v1_0_1 from './contracts/EntryPointContract/v1.0.1/EntryPointEthersContract'
