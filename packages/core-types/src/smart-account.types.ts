@@ -11,22 +11,25 @@ import { GasLimit } from './transaction.types'
 import { Signer } from 'ethers'
 
 export interface SmartAccountConfig {
-  activeNetworkId: ChainId // same
-  supportedNetworksIds: ChainId[] // Network[] chainId: CbainId, rpcUrl?: string
-  backend_url: string
-  relayer_url: string
-  dappAPIKey?: string
-  providerUrlConfig?: ProviderUrlConfig[]
-  entryPointAddress?: string
-  bundlerUrl?: string
-  paymasterAddress?: string
-  signingServiceUrl: string
+  activeNetworkId: ChainId;
+  supportedNetworksIds: ChainId[];
+  backend_url: string;
+  relayer_url: string;
+  // dappAPIKey?: string;
+  networkConfig: NetworkConfig[];
+  entryPointAddress?: string;
+  // bundlerUrl?: string;
+  // paymasterAddress?: string;
+  // signingServiceUrl: string;
 }
-
-export type ProviderUrlConfig = {
-  chainId: ChainId
-  providerUrl: string
-}
+export declare type NetworkConfig = {
+  chainId: ChainId;
+  providerUrl: string;
+  bundlerUrl?: string;
+  paymasterAddress?: string;
+  signingServiceUrl?: string;
+  dappAPIKey?: string;
+};
 
 export type SmartAccountContext = {
   baseWallet: SmartWalletContract

@@ -165,14 +165,19 @@ class SmartAccount {
 
     // if ( this.#smartAccountConfig.supportedNetworksIds.length == 0 )
     // this.#smartAccountConfig.supportedNetworksIds = [this.#smartAccountConfig.activeNetworkId]
-
+    let networkConfig = this.#smartAccountConfig.networkConfig;
+    
     if (config) {
+      networkConfig = {...networkConfig , ...config.networkConfig}
       this.#smartAccountConfig = { ...this.#smartAccountConfig, ...config }
+      this.#smartAccountConfig.networkConfig = networkConfig
     }
+    
     // Useful for AA flow. Check if it is valid key
-    this.dappAPIKey = this.#smartAccountConfig.dappAPIKey || ''
+    // this.dappAPIKey = this.#smartAccountConfig!.networkConfig[this.#smartAccountConfig.activeNetworkId].dappAPIKey || ''
+    
     // Useful if Dapp needs custom RPC Urls. Check if valid. Fallback to public Urls
-    this.providerUrlConfig = this.#smartAccountConfig.providerUrlConfig || []
+    this.providerUrlConfig = this.#smartAccountConfig.networkConfig || []
     this.supportedNetworkIds = this.#smartAccountConfig.supportedNetworksIds
 
     // Should not break if we make this wallet connected provider optional (We'd have JsonRpcProvider / JsonRpcSender)
@@ -188,7 +193,7 @@ class SmartAccount {
 
   getProviderUrl(network: ChainConfig): string {
     let providerUrl =
-      this.#smartAccountConfig.providerUrlConfig?.find(
+      this.#smartAccountConfig.networkConfig?.find(
         (element) => element.chainId === network.chainId
       )?.providerUrl || ''
 
@@ -232,13 +237,14 @@ class SmartAccount {
       this.aaProvider[network.chainId] = await newProvider(
         new ethers.providers.JsonRpcProvider(providerUrl),
         {
-          dappId: this.dappAPIKey,
-          signingServiceUrl: this.#smartAccountConfig.signingServiceUrl,
-          paymasterAddress: this.#smartAccountConfig.paymasterAddress || '',
+          // review dappAPIKey naming convention vs dappId
+          dappId: this.#smartAccountConfig!.networkConfig[network.chainId].dappAPIKey || '',
+          signingServiceUrl: this.#smartAccountConfig!.networkConfig[network.chainId].signingServiceUrl || '',
+          paymasterAddress: this.#smartAccountConfig!.networkConfig[network.chainId].paymasterAddress || '',
           entryPointAddress: this.#smartAccountConfig.entryPointAddress
             ? this.#smartAccountConfig.entryPointAddress
             : network.entryPoint[network.entryPoint.length - 1].address,
-          bundlerUrl: this.#smartAccountConfig.bundlerUrl || '',
+          bundlerUrl: this.#smartAccountConfig!.networkConfig[network.chainId].bundlerUrl || '',
           chainId: network.chainId
         },
         this.signer,
@@ -825,21 +831,27 @@ class SmartAccount {
 // TODO/NOTE : make Goerli and Mumbai as test networks and remove others
 export const DefaultSmartAccountConfig: SmartAccountConfig = {
   activeNetworkId: ChainId.GOERLI, //Update later
-  paymasterAddress: '0x50e8996670759E1FAA315eeaCcEfe0c0A043aA51',
-  signingServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
+  // paymasterAddress: '0x50e8996670759E1FAA315eeaCcEfe0c0A043aA51',
+  // signingServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
   supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],
   backend_url: 'https://sdk-backend.staging.biconomy.io/v1',
   relayer_url: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
-  dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
-  bundlerUrl: 'http://localhost:3000/rpc',
-  providerUrlConfig: [   // TODO: Define Type For It
+  // dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
+  // bundlerUrl: 'http://localhost:3000/rpc',
+  networkConfig: [   // TODO: Define Type For It, rename to networkConfig
     {
       chainId: ChainId.GOERLI,
-      providerUrl: 'https://eth-goerli.alchemyapi.io/v2/lmW2og_aq-OXWKYRoRu-X6Yl6wDQYt_2'
+      providerUrl: 'https://eth-goerli.alchemyapi.io/v2/lmW2og_aq-OXWKYRoRu-X6Yl6wDQYt_2',
+      dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
+      paymasterAddress: '0x50e8996670759E1FAA315eeaCcEfe0c0A043aA51',
+      signingServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net'
     },
     {
       chainId: ChainId.POLYGON_MUMBAI,
-      providerUrl: 'https://polygon-mumbai.g.alchemy.com/v2/Q4WqQVxhEEmBYREX22xfsS2-s5EXWD31'
+      providerUrl: 'https://polygon-mumbai.g.alchemy.com/v2/Q4WqQVxhEEmBYREX22xfsS2-s5EXWD31',
+      dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
+      paymasterAddress: '0x50e8996670759E1FAA315eeaCcEfe0c0A043aA51',
+      signingServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net'
     }
   ]
 }
