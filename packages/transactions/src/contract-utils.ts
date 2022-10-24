@@ -43,7 +43,11 @@ class ContractUtils {
     this.smartWalletFactoryContract = {}
   }
 
-  initializeContracts(signer: Signer, readProvider: ethers.providers.JsonRpcProvider, chaininfo: ChainConfig) {
+  initializeContracts(
+    signer: Signer,
+    readProvider: ethers.providers.JsonRpcProvider,
+    chaininfo: ChainConfig
+  ) {
     // We get the addresses using chainConfig fetched from backend node
 
     const smartWallet = chaininfo.wallet
@@ -56,14 +60,12 @@ class ContractUtils {
       provider: readProvider
     })
 
-      this.smartWalletFactoryContract[chaininfo.chainId] = {}
-      this.smartWalletContract[chaininfo.chainId] = {}
-      this.multiSendContract[chaininfo.chainId] = {}
-      this.multiSendCallOnlyContract[chaininfo.chainId] = {}
+    this.smartWalletFactoryContract[chaininfo.chainId] = {}
+    this.smartWalletContract[chaininfo.chainId] = {}
+    this.multiSendContract[chaininfo.chainId] = {}
+    this.multiSendCallOnlyContract[chaininfo.chainId] = {}
 
     for (let index = 0; index < smartWallet.length; index++) {
-
-      
       const version = smartWallet[index].version
       console.log(smartWallet[index])
 
@@ -118,42 +120,47 @@ class ContractUtils {
     }
     return context
   }
-  
 
   async getSmartAccountState(
     smartAccountState: SmartAccountState,
     currentVersion?: string,
     currentChainId?: ChainId
   ): Promise<SmartAccountState> {
+    const { address, owner, chainId, version } = smartAccountState
 
-    let {address, owner, chainId, version} = smartAccountState
-
-    if (!currentVersion){
+    if (!currentVersion) {
       currentVersion = version
     }
 
-    if (!currentChainId){
+    if (!currentChainId) {
       currentChainId = chainId
     }
 
-    if (!this.smartAccountState){
+    if (!this.smartAccountState) {
       this.smartAccountState = smartAccountState
-    }
-    else if(this.smartAccountState.version !== currentVersion || this.smartAccountState.chainId !== currentChainId) {
+    } else if (
+      this.smartAccountState.version !== currentVersion ||
+      this.smartAccountState.chainId !== currentChainId
+    ) {
       this.smartAccountState.address = await this.smartWalletFactoryContract[chainId][
         version
       ].getAddressForCounterfactualWallet(owner, 0)
       this.smartAccountState.version = currentVersion
       this.smartAccountState.chainId = currentChainId
 
-      this.smartAccountState.isDeployed = await this.isDeployed(this.smartAccountState.chainId, this.smartAccountState.version, address) // could be set as state in init
+      this.smartAccountState.isDeployed = await this.isDeployed(
+        this.smartAccountState.chainId,
+        this.smartAccountState.version,
+        address
+      ) // could be set as state in init
       const contractsByVersion = findContractAddressesByVersion(
         this.smartAccountState.version,
         this.smartAccountState.chainId,
         this.chainConfig
       )
-      this.smartAccountState.entryPointAddress = contractsByVersion.entryPointAddress || '',
-      this.smartAccountState.fallbackHandlerAddress = contractsByVersion.fallBackHandlerAddress || ''
+      ;(this.smartAccountState.entryPointAddress = contractsByVersion.entryPointAddress || ''),
+        (this.smartAccountState.fallbackHandlerAddress =
+          contractsByVersion.fallBackHandlerAddress || '')
     }
 
     return this.smartAccountState

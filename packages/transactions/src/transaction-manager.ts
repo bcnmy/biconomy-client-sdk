@@ -23,9 +23,7 @@ import {
   RefundTransactionBatchDto,
   RefundTransactionDto
 } from './types'
-import { ethers } from 'ethers'
 import EthersAdapter from '@biconomy-sdk/ethers-lib'
-import { GasEstimator } from './assets'
 import { Estimator } from './estimator'
 
 import NodeClient, {
@@ -47,17 +45,12 @@ class TransactionManager {
 
   utils!: Utils
 
-
   constructor(readonly smartAccountState: SmartAccountState) {
     this.utils = new Utils()
   }
 
   // smart account config and context
-  async initialize(
-    relayer: Relayer,
-    nodeClient: NodeClient,
-    contractUtils: ContractUtils
-  ) {
+  async initialize(relayer: Relayer, nodeClient: NodeClient, contractUtils: ContractUtils) {
     // Note: smart account is state specific so we may end up using chain specific transaction managers as discussed.
 
     this.nodeClient = nodeClient
@@ -91,10 +84,9 @@ class TransactionManager {
   async prepareDeployAndPayFees(chainId: ChainId, version: string) {
     const gasPriceQuotesResponse: FeeOptionsResponse = await this.relayer.getFeeOptions(chainId)
     const feeOptionsAvailable: Array<TokenData> = gasPriceQuotesResponse.data.response
-    let feeQuotes: Array<FeeQuote> = []
-    
-    const smartAccountState = await this.contractUtils.getSmartAccountState(this.smartAccountState)
+    const feeQuotes: Array<FeeQuote> = []
 
+    const smartAccountState = await this.contractUtils.getSmartAccountState(this.smartAccountState)
 
     const estimateWalletDeployment = await this.estimateSmartAccountDeployment({
       chainId: chainId,
@@ -112,9 +104,9 @@ class TransactionManager {
       // const feeTokenTransferGas = feeOption.feeTokenTransferGas
       const tokenGasPrice = feeOption.tokenGasPrice || 0
       const offset = feeOption.offset || 1
-      let payment = (tokenGasPrice * estimatedGasUsed) / offset
+      const payment = (tokenGasPrice * estimatedGasUsed) / offset
 
-      let feeQuote = {
+      const feeQuote = {
         symbol: feeOption.symbol,
         address: feeOption.address,
         decimal: feeOption.decimal,
@@ -142,7 +134,6 @@ class TransactionManager {
     const feeReceiver = feeQuote.refundReceiver || DEFAULT_FEE_RECEIVER
 
     const smartAccountState = await this.contractUtils.getSmartAccountState(this.smartAccountState)
-
 
     const estimateWalletDeployment = await this.estimateSmartAccountDeployment({
       chainId: chainId,
@@ -263,7 +254,7 @@ class TransactionManager {
     const tx = await this.createTransaction({ version, transaction, batchId, chainId: chainId })
 
     // try catch
-    let estimatedGasUsed = await this.estimator.estimateTransaction(
+    const estimatedGasUsed = await this.estimator.estimateTransaction(
       prepareTransactionDto,
       tx,
       smartAccountState
@@ -286,7 +277,7 @@ class TransactionManager {
 
     const gasPriceQuotesResponse: FeeOptionsResponse = await this.relayer.getFeeOptions(chainId)
     const feeOptionsAvailable: Array<TokenData> = gasPriceQuotesResponse.data.response
-    let feeQuotes: Array<FeeQuote> = []
+    const feeQuotes: Array<FeeQuote> = []
 
     // 1. If wallet is deployed
     // 2. If wallet is not deployed (batch wallet deployment on multisend)
@@ -305,9 +296,9 @@ class TransactionManager {
       const feeTokenTransferGas = feeOption.feeTokenTransferGas
       const tokenGasPrice = feeOption.tokenGasPrice || 0
       const offset = feeOption.offset || 1
-      let payment = (tokenGasPrice * (estimatedGasUsed + feeTokenTransferGas)) / offset
+      const payment = (tokenGasPrice * (estimatedGasUsed + feeTokenTransferGas)) / offset
 
-      let feeQuote = {
+      const feeQuote = {
         symbol: feeOption.symbol,
         address: feeOption.address,
         decimal: feeOption.decimal,
@@ -337,7 +328,7 @@ class TransactionManager {
       chainId: chainId
     })
     // try catch
-    let estimatedGasUsed = await this.estimator.estimateTransactionBatch(
+    const estimatedGasUsed = await this.estimator.estimateTransactionBatch(
       prepareRefundTransactionsDto,
       tx,
       smartAccountState
@@ -359,7 +350,7 @@ class TransactionManager {
     const gasPriceQuotesResponse: FeeOptionsResponse = await this.relayer.getFeeOptions(chainId)
 
     const feeOptionsAvailable: Array<TokenData> = gasPriceQuotesResponse.data.response
-    let feeQuotes: Array<FeeQuote> = []
+    const feeQuotes: Array<FeeQuote> = []
 
     // 1. If wallet is deployed
     // 2. If wallet is not deployed (batch wallet deployment on multisend)
@@ -379,9 +370,9 @@ class TransactionManager {
       const feeTokenTransferGas = feeOption.feeTokenTransferGas
       const tokenGasPrice = feeOption.tokenGasPrice || 0
       const offset = feeOption.offset || 1
-      let payment = (tokenGasPrice * (estimatedGasUsed + feeTokenTransferGas)) / offset
+      const payment = (tokenGasPrice * (estimatedGasUsed + feeTokenTransferGas)) / offset
 
-      let feeQuote = {
+      const feeQuote = {
         symbol: feeOption.symbol,
         address: feeOption.address,
         decimal: feeOption.decimal,
@@ -401,7 +392,6 @@ class TransactionManager {
   async estimateSmartAccountDeployment(
     estimateSmartAccountDeploymentDto: EstimateSmartAccountDeploymentDto
   ): Promise<number> {
-    const estimatorInterface = new ethers.utils.Interface(GasEstimator.abi)
     // Try catch
     const estimateWalletDeployment = await this.estimator.estimateSmartAccountDeployment(
       estimateSmartAccountDeploymentDto
@@ -668,7 +658,7 @@ class TransactionManager {
       const handlePaymentResponse = await this.nodeClient.estimateHandlePaymentGasOverride(
         estimateHandlePaymentGas
       )
-      let handlePaymentEstimate = Number(handlePaymentResponse.data.gas)
+      const handlePaymentEstimate = Number(handlePaymentResponse.data.gas)
       console.log('handlePaymentEstimate (with override) ', handlePaymentEstimate)
       baseGas = handlePaymentEstimate + regularOffSet + additionalBaseGas
     } else {
@@ -706,7 +696,7 @@ class TransactionManager {
       const handlePaymentResponse = await this.nodeClient.estimateHandlePaymentGas(
         estimateHandlePaymentGas
       )
-      let handlePaymentEstimate = Number(handlePaymentResponse.data.gas)
+      const handlePaymentEstimate = Number(handlePaymentResponse.data.gas)
       console.log('handlePaymentEstimate ', handlePaymentEstimate)
       baseGas = handlePaymentEstimate + regularOffSet + additionalBaseGas // delegate call + event emission + state updates + potential deployment
     }

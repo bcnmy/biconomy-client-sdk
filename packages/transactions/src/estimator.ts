@@ -28,8 +28,7 @@ export class Estimator {
     createdTransaction: IWalletTransaction,
     smartAccountState: SmartAccountState
   ): Promise<number> {
-    const { transaction, batchId, chainId, version } = prepareTransactionDto
-
+    const { chainId, version } = prepareTransactionDto
     let estimatedGasUsed = 0
     // Check if available from current state
     const isDeployed = await this.contractUtils.isDeployed(
@@ -81,7 +80,7 @@ export class Estimator {
     const ethCallOverrideResponse = await this.nodeClient.estimateUndeployedContractGas(
       estimateUndeployedContractGasDto
     )
-    let noAuthEstimate =
+    const noAuthEstimate =
       Number(ethCallOverrideResponse.data.gas) + Number(ethCallOverrideResponse.data.txBaseGas)
     console.log('no auth no refund estimate', noAuthEstimate)
 
@@ -95,7 +94,7 @@ export class Estimator {
     createdTransaction: IWalletTransaction,
     smartAccountState: SmartAccountState
   ): Promise<number> {
-    const { transactions, batchId, chainId, version } = prepareRefundTransactionsDto
+    const { chainId, version } = prepareRefundTransactionsDto
     let estimatedGasUsed = 0
     // Check if available from current state
     const isDeployed = await this.contractUtils.isDeployed(
@@ -146,7 +145,7 @@ export class Estimator {
     const ethCallOverrideResponse = await this.nodeClient.estimateUndeployedContractGas(
       estimateUndeployedContractGasDto
     )
-    let noAuthEstimate =
+    const noAuthEstimate =
       Number(ethCallOverrideResponse.data.gas) + Number(ethCallOverrideResponse.data.txBaseGas)
     console.log('no auth no refund estimate', noAuthEstimate)
 

@@ -30,8 +30,6 @@ export const ONE_ETH = parseEther('1')
 export const TWO_ETH = parseEther('2')
 export const FIVE_ETH = parseEther('5')
 
-export const tostr = (x: any) => (x != null ? x.toString() : 'null')
-
 let counter = 0
 // create non-random account, so gas calculations are deterministic
 export function createWalletOwner(): Wallet {
@@ -49,9 +47,9 @@ export function getSignatureParameters(signature: string) {
   if (!ethers.utils.isHexString(signature)) {
     throw new Error('Given value "'.concat(signature, '" is not a valid hex string.'))
   }
-  var r = signature.slice(0, 66)
-  var s = '0x'.concat(signature.slice(66, 130))
-  var v = ethers.BigNumber.from('0x'.concat(signature.slice(130, 132))).toNumber()
+  const r = signature.slice(0, 66)
+  const s = '0x'.concat(signature.slice(66, 130))
+  let v = ethers.BigNumber.from('0x'.concat(signature.slice(130, 132))).toNumber()
   if (![27, 28].includes(v)) v += 27
   return {
     r: r,
