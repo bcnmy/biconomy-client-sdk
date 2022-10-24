@@ -1,0 +1,12 @@
+{
+    "extends": "../../tsconfig.settings.json",
+    "compilerOptions": {
+      "composite": true,
+      "outDir": "dist",
+      "baseUrl": "src"
+    },
+    "exclude": ["dist", "node_modules"],
+    "include": ["src"],
+    "files": ["./hardhat.config.ts"]
+  }
+  

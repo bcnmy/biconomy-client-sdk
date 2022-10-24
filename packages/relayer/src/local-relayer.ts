@@ -3,10 +3,11 @@ import { Signer as AbstractSigner, ethers } from 'ethers'
 import { Relayer } from '.'
 
 import {
-  SmartAccountContext,
-  SmartAccountState,
-  SignedTransaction,
-  WalletTransaction
+  DeployWallet,
+  IWalletTransaction,
+  FeeOptionsResponse,
+  RelayTransaction,
+  RelayResponse
 } from '@biconomy-sdk/core-types'
 import { MetaTransaction, encodeMultiSend } from './utils/multisend'
 
@@ -22,22 +23,18 @@ export class LocalRelayer implements Relayer {
 
   // TODO
   // Review function arguments and return values
-  // Could get smartAccount instance
   // Defines a type that takes config, context for SCW in play along with other details
-  async deployWallet(
-    config: SmartAccountState,
-    context: SmartAccountContext,
-    index: number = 0
-  ): Promise<TransactionResponse> {
+  async deployWallet(deployWallet: DeployWallet): Promise<TransactionResponse> {
     // Should check if already deployed
-    //Review for index and ownership transfer case
+    // Review for index and ownership transfer case
+    const { config, context, index = 0 } = deployWallet
     const { address } = config
     const { walletFactory } = context
     const isExist = await walletFactory.isWalletExist(address)
     if (isExist) {
       throw new Error('Smart Account is Already Deployed')
     }
-    const walletDeployTxn = this.prepareWalletDeploy(config, context, index)
+    const walletDeployTxn = this.prepareWalletDeploy({ config, context, index })
     const tx = this.signer.sendTransaction({
       ...walletDeployTxn,
       gasLimit: ethers.constants.Two.pow(24)
@@ -46,12 +43,11 @@ export class LocalRelayer implements Relayer {
   }
 
   prepareWalletDeploy(
-    // owner, entryPoint, handler, index
-    config: SmartAccountState,
-    context: SmartAccountContext,
-    index: number = 0
+    deployWallet: DeployWallet
     // context: WalletContext
   ): { to: string; data: string } {
+    const { config, context, index = 0 } = deployWallet
+
     const { walletFactory } = context
     const { owner, entryPointAddress, fallbackHandlerAddress } = config
     const factoryInterface = walletFactory.getInterface()
@@ -65,38 +61,18 @@ export class LocalRelayer implements Relayer {
     }
   }
 
-  /*async isWalletDeployed(walletAddress: string): Promise<boolean> {
-      // Check if wallet is deployed
-      return true;
-    }*/
-
-  /*async getFeeOptions(
-    ): Promise<{ options: FeeOption[] }> {
-      return { options: [] }
-    }*/
-
-  /*async gasRefundOptions( 
-    ): Promise<FeeOption[]> {
-      const { options } = //await this.getFeeOptions()
-      return options
-    }*/
-
-  // Should make an object that takes config and context
-  // Add feeQuote later
-  // Appending tx and rawTx may not be necessary
-
-  async relay(
-    signedTx: SignedTransaction,
-    config: SmartAccountState,
-    context: SmartAccountContext
-  ): Promise<TransactionResponse> {
+  async relay(relayTransaction: RelayTransaction): Promise<RelayResponse> {
+    const { config, signedTx, context, gasLimit } = relayTransaction
     const { isDeployed, address } = config
     const { multiSendCall } = context // multisend has to be multiSendCallOnly here!
     if (!isDeployed) {
-      // If not =>> preprendWalletDeploy
-      console.log('here')
-      const { to, data } = this.prepareWalletDeploy(config, context)
-      const originalTx: WalletTransaction = signedTx.tx
+      const prepareWalletDeploy: DeployWallet = {
+        config,
+        context,
+        index: 0
+      }
+      const { to, data } = this.prepareWalletDeploy(prepareWalletDeploy)
+      const originalTx: IWalletTransaction = signedTx.tx
 
       const txs: MetaTransaction[] = [
         {
@@ -138,5 +114,27 @@ export class LocalRelayer implements Relayer {
       gasLimit: ethers.constants.Two.pow(24)
     })
     return tx
+  }
+
+  async getFeeOptions(chainId: number): Promise<FeeOptionsResponse> {
+    console.log('requested fee options for chain ', chainId)
+    const feeOptions: FeeOptionsResponse = {
+      "msg": "all ok",
+      "data": {
+          "chainId": 5,
+          "response": [
+            {
+              "tokenGasPrice": 157718,
+              "symbol": "USDC",
+              "address": "0xb5B640E6414b6DeF4FC9B3C1EeF373925effeCcF",
+              "decimal": 6,
+              "logoUrl": "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/usdc.png",
+              "offset": 1000000,
+              "feeTokenTransferGas": 22975,
+              "refundReceiver": "0xc1d3206324d806b6586cf15324178f8e8781a293"
+          }]
+            }
+        };
+    return feeOptions;
   }
 }

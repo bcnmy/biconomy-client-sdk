@@ -1,21 +1,48 @@
 import {
-  Contract,
-  Wallet,
-  utils,
-  BigNumber,
-  BigNumberish,
-  Signer,
-  PopulatedTransaction,
-  BytesLike
-} from 'ethers'
-import { TypedDataSigner } from '@ethersproject/abstract-signer'
-import { AddressZero } from '@ethersproject/constants'
+  Transaction,
+  ChainId,
+  FeeQuote,
+} from '@biconomy-sdk/core-types'
 
-/*export interface SmartAccountTransaction extends MetaTransaction {
-    targetTxGas: string | number;
-    baseGas: string | number;
-    gasPrice: string | number;
-    gasToken: string;
-    refundReceiver: string;
-    nonce: string | number;
-};*/
+export type PrepareRefundTransactionDto = {
+  version: string
+  transaction: Transaction
+  batchId: number
+  chainId: ChainId
+}
+
+export type PrepareRefundTransactionsDto = {
+  version: string
+  transactions: Transaction[]
+  batchId: number
+  chainId: ChainId
+}
+
+export type RefundTransactionDto = {
+  version: string
+  transaction: Transaction
+  feeQuote: FeeQuote
+  batchId: number
+  chainId: ChainId
+}
+export type RefundTransactionBatchDto = {
+  version: string
+  transactions: Transaction[]
+  feeQuote: FeeQuote
+  batchId: number
+  chainId: ChainId
+}
+
+export type TransactionDto = {
+  version: string,
+  transaction: Transaction
+  batchId: number
+  chainId: ChainId
+}
+
+export type TransactionBatchDto = {
+  version: string
+  transactions: Transaction[]
+  batchId: number
+  chainId: ChainId
+}

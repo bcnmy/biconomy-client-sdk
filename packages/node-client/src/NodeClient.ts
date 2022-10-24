@@ -1,28 +1,32 @@
 import INodeClient from './INodeClient'
 import {
+  EstimateExternalGasDto,
+  EstimateRequiredTxGasDto,
+  EstimateHandlePaymentTxGasDto,
+  EstimateUndeployedContractGasDto,
+  SmartAccountByOwnerDto,
+  TokenByChainIdAndAddressDto,
   TokenPriceResponse,
   SupportedChainsResponse,
-  individualChainResponse,
+  IndividualChainResponse,
   SupportedTokensResponse,
   IndividualTokenResponse,
   SmartAccountsResponse,
   BalancesDto,
   BalancesResponse,
-  UsdBalanceResponse
+  UsdBalanceResponse,
+  EstimateGasResponse,
+  TransactionResponse
 } from './types/NodeClientTypes'
 import { getTxServiceBaseUrl } from './utils'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-
 export interface NodeClientConfig {
   /** txServiceUrl - Safe Transaction Service URL */
   txServiceUrl: string
-  /** ethAdapter - Ethereum adapter */
-  // ethAdapter: EthAdapter
 }
 
 class NodeClient implements INodeClient {
   #txServiceBaseUrl: string
-  // #ethAdapter: EthAdapter
 
   // Review
   // Removed ethAdapter
@@ -48,7 +52,7 @@ class NodeClient implements INodeClient {
    * @description thie function will return the chain detail base on supplied { chainId }
    * @returns
    */
-  async getChainById(chainId: number): Promise<individualChainResponse> {
+  async getChainById(chainId: number): Promise<IndividualChainResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/chains/${chainId}`,
       method: HttpMethod.Get
@@ -83,16 +87,19 @@ class NodeClient implements INodeClient {
   }
 
   async getTokenByChainIdAndAddress(
-    chainId: number,
-    tokenAddress: string
+    tokenByChainIdAndAddressDto: TokenByChainIdAndAddressDto
   ): Promise<IndividualTokenResponse> {
+    const { chainId, tokenAddress } = tokenByChainIdAndAddressDto
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/tokens/chainId/${chainId}/address/${tokenAddress}`,
       method: HttpMethod.Get
     })
   }
 
-  async getSmartAccountsByOwner(chainId: number, owner: string): Promise<SmartAccountsResponse> {
+  async getSmartAccountsByOwner(
+    smartAccountByOwnerDto: SmartAccountByOwnerDto
+  ): Promise<SmartAccountsResponse> {
+    const { chainId, owner } = smartAccountByOwnerDto
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/smart-accounts/chainId/${chainId}/owner/${owner}`,
       method: HttpMethod.Get
@@ -113,6 +120,80 @@ class NodeClient implements INodeClient {
       method: HttpMethod.Post,
       body: balancesDto
     })
+  }
+
+  async estimateExternalGas(
+    estimateExternalGasDto: EstimateExternalGasDto
+  ): Promise<EstimateGasResponse> {
+    return sendRequest({
+      url: `${this.#txServiceBaseUrl}/estimator/external`,
+      method: HttpMethod.Post,
+      body: estimateExternalGasDto
+    })
+  }
+  async estimateRequiredTxGas(
+    estimateRequiredTxGasDto: EstimateRequiredTxGasDto
+  ): Promise<EstimateGasResponse> {
+    return sendRequest({
+      url: `${this.#txServiceBaseUrl}/estimator/required`,
+      method: HttpMethod.Post,
+      body: estimateRequiredTxGasDto
+    })
+  }
+
+  estimateHandlePaymentGas(
+    estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto
+  ): Promise<EstimateGasResponse> {
+    return sendRequest({
+      url: `${this.#txServiceBaseUrl}/estimator/handle-payment`,
+      method: HttpMethod.Post,
+      body: estimateHandlePaymentTxGasDto
+    })
+  }
+
+  async estimateRequiredTxGasOverride(estimateRequiredTxGasDto: EstimateRequiredTxGasDto
+    ): Promise<EstimateGasResponse> {
+      return sendRequest({
+        url: `${this.#txServiceBaseUrl}/estimator/required-override`,
+        method: HttpMethod.Post,
+        body: estimateRequiredTxGasDto
+      })
+    }
+
+  async estimateHandlePaymentGasOverride(estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto
+    ): Promise<EstimateGasResponse> {
+    return sendRequest({
+      url: `${this.#txServiceBaseUrl}/estimator/handle-payment-override`,
+      method: HttpMethod.Post,
+      body: estimateHandlePaymentTxGasDto
+    })
+  }
+
+  async estimateUndeployedContractGas(estimateUndeployedContractGasDto: EstimateUndeployedContractGasDto): Promise<EstimateGasResponse> {
+    return sendRequest({
+      url: `${this.#txServiceBaseUrl}/estimator/undeployed`,
+      method: HttpMethod.Post,
+       body: estimateUndeployedContractGasDto
+     })
+   }
+
+   getTransactionByAddress(
+     chainId: number,
+     address: string
+  ): Promise<TransactionResponse[]>{
+    return sendRequest({
+      url: `${this.#txServiceBaseUrl}/transactions/chainId/${chainId}/address/${address}`,
+      method: HttpMethod.Get
+     })
+  }
+
+  getTransactionByHash(
+    txHash: string
+  ): Promise<TransactionResponse>{
+    return sendRequest({
+      url: `${this.#txServiceBaseUrl}/transactions/txHash/${txHash}`,
+      method: HttpMethod.Get
+     })
   }
 }
 

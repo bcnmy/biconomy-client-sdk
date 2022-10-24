@@ -1,5 +1,5 @@
 import EthersAdapter, { EthersAdapterConfig } from './EthersAdapter'
-import { EthersTransactionOptions, EthersTransactionResult } from './types'
+import { IEthersTransactionOptions, IEthersTransactionResult } from './types'
 
 export default EthersAdapter
-export { EthersAdapterConfig, EthersTransactionOptions, EthersTransactionResult }
+export { EthersAdapterConfig, IEthersTransactionOptions, IEthersTransactionResult }

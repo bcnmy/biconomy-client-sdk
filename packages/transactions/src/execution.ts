@@ -2,17 +2,22 @@ import {
   Contract,
   Wallet,
   utils,
-  BigNumber,
   BigNumberish,
   Signer,
   PopulatedTransaction
 } from 'ethers'
 
+import {
+  ExecTransaction,
+  IFeeRefundV1_0_0,
+  IFeeRefundV1_0_1,
+  IWalletTransaction,
+  SmartAccountSignature
+} from '@biconomy-sdk/core-types'
+
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import { AddressZero } from '@ethersproject/constants'
 
-// TODO
-// Review all types and their placement and dependency
 export const EIP_DOMAIN = {
   EIP712Domain: [
     { type: 'uint256', name: 'chainId' },
@@ -41,67 +46,6 @@ export const EIP712_SMART_ACCOUNT_MESSAGE_TYPE = {
   SmartAccountMessage: [{ type: 'bytes', name: 'message' }]
 }
 
-export interface MetaTransaction {
-  to: string
-  value: BigNumberish
-  data: string
-  operation: number
-}
-
-// Marked for deletion
-export interface SmartaccountTransaction extends MetaTransaction {
-  targetTxGas: string | number
-  baseGas: string | number
-  gasPrice: string | number
-  gasToken: string
-  refundReceiver: string
-  nonce: string | number
-}
-
-export interface Transaction {
-  to: string
-  value: string | number | BigNumber
-  data: string
-  operation: number
-  targetTxGas: string | number
-}
-
-export interface FeeRefund {
-  baseGas: string | number
-  gasPrice: string | number
-  gasToken: string
-  refundReceiver: string
-}
-
-export interface WalletTransaction extends MetaTransaction{
-  targetTxGas: string | number
-  baseGas: string | number
-  gasPrice: string | number
-  gasToken: string
-  refundReceiver: string
-  nonce: number
-}
-
-export interface ExecTransaction {
-  to: string
-  value: BigNumberish
-  data: string
-  operation: number
-  targetTxGas: string | number
-}
-
-export interface SmartAccountTransaction {
-  _tx: ExecTransaction
-  refundInfo: FeeRefund
-  batchId: number
-  nonce: string | number
-}
-
-export interface SmartAccountSignature {
-  signer: string
-  data: string
-}
-
 export const calculateSmartAccountDomainSeparator = (
   wallet: Contract,
   chainId: BigNumberish
@@ -114,7 +58,7 @@ export const calculateSmartAccountDomainSeparator = (
 
 export const preimageWalletTransactionHash = (
   wallet: Contract,
-  SmartAccountTx: WalletTransaction,
+  SmartAccountTx: IWalletTransaction,
   chainId: BigNumberish
 ): string => {
   return utils._TypedDataEncoder.encode(
@@ -126,7 +70,7 @@ export const preimageWalletTransactionHash = (
 
 export const calculateSmartAccountTransactionHash = (
   wallet: Contract,
-  SmartAccountTx: WalletTransaction,
+  SmartAccountTx: IWalletTransaction,
   chainId: BigNumberish
 ): string => {
   return utils._TypedDataEncoder.hash(
@@ -151,7 +95,7 @@ export const calculateSmartAccountMessageHash = (
 export const smartAccountSignTypedData = async (
   signer: Signer & TypedDataSigner,
   wallet: Contract,
-  SmartAccountTx: WalletTransaction,
+  SmartAccountTx: IWalletTransaction,
   chainId?: BigNumberish
 ): Promise<SmartAccountSignature> => {
   if (!chainId && !signer.provider) throw Error('Provider required to retrieve chainId')
@@ -179,7 +123,7 @@ export const signHash = async (signer: Signer, hash: string): Promise<SmartAccou
 export const smartAccountSignMessage = async (
   signer: Signer,
   wallet: Contract,
-  SmartAccountTx: WalletTransaction,
+  SmartAccountTx: IWalletTransaction,
   chainId?: BigNumberish
 ): Promise<SmartAccountSignature> => {
   const cid = chainId || (await signer.provider!!.getNetwork()).chainId
@@ -199,7 +143,7 @@ export const buildSignatureBytes = (signatures: SmartAccountSignature[]): string
 
 export const executeTx = async (
   wallet: Contract,
-  SmartAccountTx: WalletTransaction,
+  SmartAccountTx: IWalletTransaction,
   signatures: SmartAccountSignature[],
   overrides?: any
 ): Promise<any> => {
@@ -211,9 +155,10 @@ export const executeTx = async (
     operation: SmartAccountTx.operation,
     targetTxGas: SmartAccountTx.targetTxGas
   }
-  const refundInfo: FeeRefund = {
+  const refundInfo: IFeeRefundV1_0_0 | IFeeRefundV1_0_1 = {
     baseGas: SmartAccountTx.baseGas,
     gasPrice: SmartAccountTx.gasPrice,
+    tokenGasPriceFactor: SmartAccountTx.tokenGasPriceFactor,
     gasToken: SmartAccountTx.gasToken,
     refundReceiver: SmartAccountTx.refundReceiver
   }
@@ -228,7 +173,7 @@ export const executeTx = async (
 
 export const populateExecuteTx = async (
   wallet: Contract,
-  SmartAccountTx: WalletTransaction,
+  SmartAccountTx: IWalletTransaction,
   signatures: SmartAccountSignature[],
   overrides?: any
 ): Promise<PopulatedTransaction> => {
@@ -240,9 +185,10 @@ export const populateExecuteTx = async (
     operation: SmartAccountTx.operation,
     targetTxGas: SmartAccountTx.targetTxGas
   }
-  const refundInfo: FeeRefund = {
+  const refundInfo: IFeeRefundV1_0_0 | IFeeRefundV1_0_1 = {
     baseGas: SmartAccountTx.baseGas,
     gasPrice: SmartAccountTx.gasPrice,
+    tokenGasPriceFactor: SmartAccountTx.tokenGasPriceFactor,
     gasToken: SmartAccountTx.gasToken,
     refundReceiver: SmartAccountTx.refundReceiver
   }
@@ -261,8 +207,8 @@ export const buildContractCall = (
   params: any[],
   nonce: number,
   delegateCall?: boolean,
-  overrides?: Partial<WalletTransaction>
-): WalletTransaction => {
+  overrides?: Partial<IWalletTransaction>
+): IWalletTransaction => {
   const data = contract.interface.encodeFunctionData(method, params)
   return buildSmartAccountTransaction(
     Object.assign(
@@ -279,7 +225,7 @@ export const buildContractCall = (
 
 export const executeTxWithSigners = async (
   wallet: Contract,
-  tx: WalletTransaction,
+  tx: IWalletTransaction,
   signers: Wallet[],
   overrides?: any
 ) => {
@@ -296,7 +242,7 @@ export const executeContractCallWithSigners = async (
   params: any[],
   signers: Wallet[],
   delegateCall?: boolean,
-  overrides?: Partial<WalletTransaction>
+  overrides?: Partial<IWalletTransaction>
 ) => {
   const tx = buildContractCall(
     contract,
@@ -317,10 +263,11 @@ export const buildSmartAccountTransaction = (template: {
   targetTxGas?: number | string
   baseGas?: number | string
   gasPrice?: number | string
+  tokenGasPriceFactor?: number | string
   gasToken?: string
   refundReceiver?: string
   nonce: number
-}): WalletTransaction => {
+}): IWalletTransaction => {
   return {
     to: template.to,
     value: template.value || 0,
@@ -329,6 +276,7 @@ export const buildSmartAccountTransaction = (template: {
     targetTxGas: template.targetTxGas || 0,
     baseGas: template.baseGas || 0,
     gasPrice: template.gasPrice || 0,
+    tokenGasPriceFactor: template.tokenGasPriceFactor || 1,
     gasToken: template.gasToken || AddressZero,
     refundReceiver: template.refundReceiver || AddressZero,
     nonce: template.nonce

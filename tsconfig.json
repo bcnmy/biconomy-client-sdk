@@ -1,0 +1,30 @@
+{
+    "compilerOptions": {
+      "target": "es2020",
+      "module": "commonjs",
+      "declaration": true,
+      "sourceMap": true,
+      "allowSyntheticDefaultImports": true,
+      "strictNullChecks": false,
+      "esModuleInterop": true,
+      "lib": ["dom.iterable", "dom", "es2020"],
+      "types": ["node", "mocha", "puppeteer"]
+    },
+    "include": [
+      "./src/**/*",
+      "./tests/**/*"
+    ],
+    "references": [
+      { "path": "account-abstraction" },
+      { "path": "common" },
+      { "path": "core-types" },
+      { "path": "ethers-lib" },
+      { "path": "gas-estimator" },
+      { "path": "node-client" },
+      { "path": "relayer" },
+      { "path": "smart-account" },
+      { "path": "transactions" },
+      { "path": "web3-auth" }
+    ]
+  }
+  

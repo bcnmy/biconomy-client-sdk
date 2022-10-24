@@ -1,9 +1,8 @@
 import { Contract, utils } from 'ethers'
-import { buildContractCall, MetaTransaction, WalletTransaction } from './execution'
+import { buildContractCall } from './execution'
+import { IMetaTransaction, IWalletTransaction } from '@biconomy-sdk/core-types'
 
-// TODO
-// Review all types
-const encodeMetaTransaction = (tx: MetaTransaction): string => {
+const encodeMetaTransaction = (tx: IMetaTransaction): string => {
   const data = utils.arrayify(tx.data)
   const encoded = utils.solidityPack(
     ['uint8', 'address', 'uint256', 'uint256', 'bytes'],
@@ -12,15 +11,15 @@ const encodeMetaTransaction = (tx: MetaTransaction): string => {
   return encoded.slice(2)
 }
 
-export const encodeMultiSend = (txs: MetaTransaction[]): string => {
+export const encodeMultiSend = (txs: IMetaTransaction[]): string => {
   return '0x' + txs.map((tx) => encodeMetaTransaction(tx)).join('')
 }
 
 export const buildMultiSendSmartAccountTx = (
   multiSend: Contract,
-  txs: MetaTransaction[],
+  txs: IMetaTransaction[],
   nonce: number,
-  overrides?: Partial<WalletTransaction>
-): WalletTransaction => {
+  overrides?: Partial<IWalletTransaction>
+): IWalletTransaction => {
   return buildContractCall(multiSend, 'multiSend', [encodeMultiSend(txs)], nonce, true, overrides)
 }

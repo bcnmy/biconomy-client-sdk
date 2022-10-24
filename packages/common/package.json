@@ -1,0 +1,52 @@
+{
+  "name": "@biconomy-sdk/common",
+  "version": "1.0.13",
+  "description": "common utils to be used for aa transactions",
+  "keywords": [
+    "utils"
+  ],
+  "author": "livingrockrises <chirag@biconomy.io>",
+  "homepage": "https://github.com/bcnmy/biconomy-client-sdk#readme",
+  "license": "MIT",
+  "main": "dist/src/index.js",
+  "files": [
+    "dist/*",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bcnmy/biconomy-client-sdk.git"
+  },
+  "scripts": {
+    "clear": "rm -rf dist artifacts cache src/types",
+    "hardhat-compile": "yarn clear && hardhat compile",
+    "hardhat-deploy": "hardhat deploy",
+    "hardhat-node": "hardhat node",
+    "lint-fix": "eslint -f unix . --fix",
+    "watch-tsc": "tsc -w --preserveWatchOutput",
+    "tsc": "tsc",
+    "unbuild": "rimraf dist *.tsbuildinfo",
+    "build": "rimraf dist && tsc",
+    "format": "prettier --write \"{src,tests}/**/*.ts\"",
+    "lint": "tslint -p tsconfig.json"
+  },
+  "bugs": {
+    "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"
+  },
+  "dependencies": {
+    "@account-abstraction/contracts": "^0.2.0",
+    "@ethersproject/abi": "^5.7.0",
+    "@ethersproject/bytes": "^5.7.0",
+    "@ethersproject/providers": "^5.7.0",
+    "@openzeppelin/contracts": "^4.7.3",
+    "ethers": "^5.7.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^1.0.2",
+    "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "hardhat": "^2.11.0"
+  }
+}

@@ -1,3 +1,10 @@
+import {
+  ChainId,
+  SmartAccountVersion,
+  MetaTransactionData,
+  IFeeRefundV1_0_0,
+  IFeeRefundV1_0_1
+} from '@biconomy-sdk/core-types'
 export type SmartAccountInfoResponse = {
   readonly name: string
   readonly version: string
@@ -16,14 +23,80 @@ export type SmartAccountInfoResponse = {
   }
 }
 
+// Review
+export type TransactionResponse = {
+  symbol: string
+  tokenAddress: string
+  scwAddress: string
+  txHash: string
+  blockNumber: number
+  payment: number
+  gasLimit: number
+  gasUsage: number
+  gasPrice: number
+  chainId: number
+  fromAddress: string
+  toAddress: string
+  amount: number
+  type: string
+  txStatus: string
+  createdAt: number
+  updatedAt: number
+}
+
 export type BalancesDto = {
   chainId: number
   eoaAddress: string
   tokenAddresses: string[]
 }
 
-export type ChainConfig = {
+export type EstimateExternalGasDto = {
   chainId: number
+  encodedData: string
+}
+
+export type EstimateRequiredTxGasDto = {
+  chainId: number
+  walletAddress: string
+  transaction: MetaTransactionData
+}
+
+export type EstimateHandlePaymentTxGasDto = {
+  chainId: number
+  version: string
+  walletAddress: string
+  feeRefund: IFeeRefundV1_0_0 | IFeeRefundV1_0_1
+}
+
+export type EstimateUndeployedContractGasDto = {
+  chainId: number
+  version: string
+  walletAddress: string
+  feeRefund: IFeeRefundV1_0_0 | IFeeRefundV1_0_1
+  transaction: MetaTransactionData
+  signature: string
+}
+
+export type SmartAccountByOwnerDto = {
+  chainId: number
+  owner: string
+}
+
+export type TokenByChainIdAndAddressDto = {
+  chainId: number
+  tokenAddress: string
+}
+
+export type ContractDetails = {
+  version: SmartAccountVersion
+
+  address: string
+
+  abi: string
+}
+
+export type ChainConfig = {
+  chainId: ChainId
   name: string
   symbol: string
   isL2: boolean
@@ -31,12 +104,12 @@ export type ChainConfig = {
   description: string
   blockExplorerUriTemplate: BlockExplorerConfig
   ensRegistryAddress: string
-  walletFactoryAddress: string
-  multiSendAddress: string
-  multiSendCallAddress: string
-  walletAddress: string // base wallet
-  entryPoint: string //should make this address var
-  fallBackHandler: string //should make this address var
+  walletFactory: ContractDetails[]
+  multiSend: ContractDetails[]
+  multiSendCall: ContractDetails[]
+  wallet: ContractDetails[] // base wallet
+  entryPoint: ContractDetails[] //should make this address var
+  fallBackHandler: ContractDetails[] //should make this address var
   relayerURL: string
   providerUrl: string
   indexerUrl: string
@@ -44,6 +117,11 @@ export type ChainConfig = {
   createdAt: Date
   updatedAt: Date
   token: TokenInfo
+}
+
+export type ProviderUrlConfig = {
+  chainId: ChainId
+  providerUrl: string
 }
 
 export type MasterCopyResponse = {
@@ -93,6 +171,7 @@ export type TokenInfo = {
 }
 
 export type ISmartAccount = {
+  version: string
   smartAccountAddress: string
   isDeployed: boolean
 }
@@ -119,7 +198,7 @@ export type SupportedChainsResponse = {
   data: ChainConfig[]
 }
 
-export type individualChainResponse = {
+export type IndividualChainResponse = {
   message: string
   code: number
   data: ChainConfig
@@ -143,7 +222,7 @@ export type IndividualTokenResponse = {
 export type SmartAccountsResponse = {
   message: string
   code: number
-  data: ISmartAccount
+  data: ISmartAccount[]
 }
 export type BalancesResponse = {
   message: string
@@ -156,5 +235,14 @@ export type UsdBalanceResponse = {
   code: number
   data: {
     totalBalance: number
+  }
+}
+
+export type EstimateGasResponse = {
+  message: string
+  code: number
+  data: {
+    gas: number
+    txBaseGas?: number
   }
 }

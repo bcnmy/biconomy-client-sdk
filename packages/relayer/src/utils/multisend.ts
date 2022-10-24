@@ -9,7 +9,7 @@ export interface MetaTransaction {
   operation: number
 }
 
-export interface WalletTransaction extends MetaTransaction{
+export interface WalletTransaction extends MetaTransaction {
   targetTxGas: string | number
   baseGas: string | number
   gasPrice: string | number

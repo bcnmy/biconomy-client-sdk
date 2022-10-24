@@ -1,9 +1,9 @@
 {
   "name": "@biconomy-sdk/transactions",
-  "version": "1.0.0",
+  "version": "1.0.13",
   "description": "utils for sending all transaction legos",
-  "main": "dist/src/index.js",
-  "typings": "dist/src/index.d.ts",
+  "main": "./dist/src/index.js",
+  "typings": "./dist/src/index.d.ts",
   "keywords": [
     "legos",
     "batching",
@@ -14,7 +14,8 @@
   "homepage": "https://github.com/bcnmy/biconomy-client-sdk#readme",
   "license": "MIT",
   "files": [
-    "dist"
+    "dist/*",
+    "README.md"
   ],
   "repository": {
     "type": "git",
@@ -33,8 +34,13 @@
     "access": "public"
   },
   "dependencies": {
+    "@biconomy-sdk/core-types": "*",
+    "@biconomy-sdk/ethers-lib": "*",
+    "@biconomy-sdk/node-client": "*",
+    "@biconomy-sdk/relayer": "*",
     "@ethersproject/abstract-signer": "^5.6.2",
     "@ethersproject/constants": "^5.6.1",
+    "ethereumjs-util": "^7.1.5",
     "ethers": "^5.6.9"
   }
 }
