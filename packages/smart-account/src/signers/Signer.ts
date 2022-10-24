@@ -1,12 +1,12 @@
-import { ethers, Signer as AbstractSigner } from 'ethers'
+import { Signer as AbstractSigner } from 'ethers'
 import { TypedDataDomain, TypedDataField } from '@ethersproject/abstract-signer'
 
 // ChainId , SmartAccountContext, SmartAccountConfig, SmartAccountState from @biconomy-sdk/core-types
-import { ChainId, SendTransactionDto, SignTransactionDto } from '@biconomy-sdk/core-types'
+import { ChainId, SignTransactionDto } from '@biconomy-sdk/core-types'
 
 import { JsonRpcProvider, TransactionResponse } from '@ethersproject/providers'
 // Might as well be RpcRelayer
-import { Relayer, RestRelayer } from '@biconomy-sdk/relayer'
+import { Relayer } from '@biconomy-sdk/relayer'
 import { BytesLike } from '@ethersproject/bytes'
 import { Deferrable } from 'ethers/lib/utils'
 import { TransactionRequest } from '@ethersproject/providers'
@@ -21,6 +21,7 @@ export abstract class Signer extends AbstractSigner {
   abstract signMessage(message: BytesLike, chainId?: ChainId): Promise<string>
 
   // signTypedData ..
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   abstract signTypedData(
     domain: TypedDataDomain,
     types: Record<string, Array<TypedDataField>>,

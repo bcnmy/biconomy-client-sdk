@@ -1,22 +1,14 @@
 import { ethers } from 'ethers'
-import { BytesLike, Bytes } from '@ethersproject/bytes'
-import {
-  Web3Provider,
-  ExternalProvider,
-  JsonRpcProvider,
-  Networkish
-} from '@ethersproject/providers'
+import { BytesLike } from '@ethersproject/bytes'
+import { Web3Provider } from '@ethersproject/providers'
 import { TypedDataDomain, TypedDataField, TypedDataSigner } from '@ethersproject/abstract-signer'
 import { Signer } from './Signer'
 
-import { Signer as EthersSigner } from '@ethersproject/abstract-signer'
-
 // ChainId , SmartAccountContext, SmartAccountConfig, SmartAccountState from @biconomy-sdk/core-types
-import { ChainId, SendTransactionDto, SignTransactionDto } from '@biconomy-sdk/core-types'
+import { ChainId, SignTransactionDto } from '@biconomy-sdk/core-types'
 
 // Might as well be RpcRelayer
-import { Relayer, RestRelayer } from '@biconomy-sdk/relayer'
-
+import { Relayer } from '@biconomy-sdk/relayer'
 import { Deferrable } from 'ethers/lib/utils'
 import { TransactionRequest, TransactionResponse } from '@ethersproject/providers'
 
@@ -53,7 +45,7 @@ export class SmartAccountSigner extends Signer implements TypedDataSigner {
     return ethers.utils.getAddress(this._address)
   }
 
-  async signTransaction(signTransactionDto: SignTransactionDto): Promise<string> {
+  async signTransaction(signTransactionDto: Deferrable<TransactionRequest>): Promise<string> {
     console.log(signTransactionDto)
     const signature = ''
     return signature
@@ -86,10 +78,10 @@ export class SmartAccountSigner extends Signer implements TypedDataSigner {
   // handle compatibility with smart account's intent
   async sendTransaction(transaction: Deferrable<TransactionRequest>): Promise<TransactionResponse> {
     console.log(transaction)
-    const txHash = ''
-
-    // @ts-ignore
-    return txHash
+    // dummy code
+    const signedTx = await this.signTransaction(transaction)
+    const txDetails = this.provider.getTransaction(signedTx)
+    return txDetails
   }
 
   // signMessage matches implementation from ethers JsonRpcSigner for compatibility, but with
@@ -102,12 +94,16 @@ export class SmartAccountSigner extends Signer implements TypedDataSigner {
 
     const data = typeof message === 'string' ? ethers.utils.toUtf8Bytes(message) : message
     const address = await this.getAddress()
+
+    /* eslint-disable  @typescript-eslint/no-non-null-assertion */
     return await this.provider!.send('personal_sign', [ethers.utils.hexlify(data), address])
   }
 
   // signTypedData matches implementation from ethers JsonRpcSigner for compatibility, but with
   // multi-chain support.
   // Review
+
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   async signTypedData(
     domain: TypedDataDomain,
     types: Record<string, Array<TypedDataField>>,
@@ -121,6 +117,7 @@ export class SmartAccountSigner extends Signer implements TypedDataSigner {
     ])
   }
 
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   async _signTypedData(
     domain: TypedDataDomain,
     types: Record<string, Array<TypedDataField>>,

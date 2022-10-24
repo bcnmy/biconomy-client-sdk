@@ -1,24 +1,9 @@
-import { ethers } from 'ethers'
-import { BytesLike, Bytes } from '@ethersproject/bytes'
-import {
-  Web3Provider,
-  ExternalProvider,
-  BaseProvider,
-  JsonRpcProvider,
-  Networkish
-} from '@ethersproject/providers'
-import { TypedDataDomain, TypedDataField, TypedDataSigner } from '@ethersproject/abstract-signer'
+import { Web3Provider, BaseProvider } from '@ethersproject/providers'
 import { SmartAccountSigner } from '../signers/SmartAccountSigner'
-import { JsonRpcHandler } from './types'
-import { BigNumber, Signer } from 'ethers'
+import { Signer } from 'ethers'
 import { TransactionResponse } from '@ethersproject/providers'
 
-import {
-  ChainId,
-  SendTransactionDto,
-  SignTransactionDto,
-  IWalletTransaction
-} from '@biconomy-sdk/core-types'
+import { ChainId, IWalletTransaction } from '@biconomy-sdk/core-types'
 
 // import { JsonRpcSender } from '@0xsequence/network'
 
@@ -51,9 +36,8 @@ export class SmartAccountProvider extends BaseProvider {
     tempProvider: Web3Provider,
     chainId: ChainId,
     readonly originalSigner: Signer, // EOASigner
-    readonly originalProvider: BaseProvider // could be Web3Provider // optional? cc @sachin // readonly httpRpcClient: HttpRpcClient, // Required for relaying to rpc-relayer
-  ) // readonly smartAccountAPI: SmartAccountAPI ? // Could be useful/needful
-  {
+    readonly originalProvider: BaseProvider // could be Web3Provider // optional? cc @sachin // readonly httpRpcClient: HttpRpcClient, // Required for relaying to rpc-relayer // readonly smartAccountAPI: SmartAccountAPI ? // Could be useful/needful
+  ) {
     super({
       name: 'Smart Account User Refund Provider',
       chainId: chainId

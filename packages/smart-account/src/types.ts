@@ -1,7 +1,5 @@
-import { BytesLike, Wallet, BigNumberish } from 'ethers'
-import { ChainNames, ChainId } from '@biconomy-sdk/core-types'
-import { Web3Provider } from '@ethersproject/providers'
-import { ProviderUrlConfig } from '@biconomy-sdk/node-client'
+import { BytesLike, Wallet } from 'ethers'
+import { ChainNames } from '@biconomy-sdk/core-types'
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 

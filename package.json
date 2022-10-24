@@ -14,7 +14,8 @@
     "postinstall": "cd packages/ethers-lib; hardhat compile",
     "prettier": "lerna run prettier --npm-client=npm",
     "diff": "lerna diff",
-    "new-version": "lerna version --conventional-commits --yes"
+    "new-version": "lerna version --conventional-commits --yes",
+    "lint": "eslint -c .eslintrc.js 'packages/smart-account/src/**/*.{ts,tsx}'"
   },
   "changelog": {
     "labels": {
@@ -31,9 +32,10 @@
   "devDependencies": {
     "@types/jest": "^28.1.7",
     "@types/mocha": "^9.1.1",
+    "eslint-plugin-import": "^2.26.0",
     "hardhat": "^2.9.9",
     "lerna": "^5.5.4",
-    "nx": "^14.8.4",
+    "nx": "^15.0.1",
     "prettier": "2.7.1",
     "rimraf": "^3.0.2",
     "ts-node": "^10.9.1"
