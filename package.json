@@ -15,7 +15,8 @@
     "prettier": "lerna run prettier --npm-client=npm",
     "diff": "lerna diff",
     "new-version": "lerna version --conventional-commits --yes",
-    "lint": "eslint -c .eslintrc.js 'packages/smart-account/src/**/*.{ts,tsx}'"
+    "lint": "eslint -c .eslintrc.js 'packages/*/src/**/*.{ts,tsx}'",
+    "lint:fix": "eslint -c .eslintrc.js 'packages/*/src/**/*.{ts,tsx}' --fix"
   },
   "changelog": {
     "labels": {

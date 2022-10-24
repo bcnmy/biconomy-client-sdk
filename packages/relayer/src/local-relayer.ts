@@ -4,7 +4,6 @@ import { Relayer } from '.'
 
 import {
   DeployWallet,
-  IWalletTransaction,
   FeeOptionsResponse,
   RelayTransaction,
   RelayResponse
@@ -62,7 +61,7 @@ export class LocalRelayer implements Relayer {
   }
 
   async relay(relayTransaction: RelayTransaction): Promise<RelayResponse> {
-    const { config, signedTx, context, gasLimit } = relayTransaction
+    const { config, signedTx, context } = relayTransaction
     const { isDeployed, address } = config
     const { multiSendCall } = context // multisend has to be multiSendCallOnly here!
     if (!isDeployed) {
@@ -72,8 +71,6 @@ export class LocalRelayer implements Relayer {
         index: 0
       }
       const { to, data } = this.prepareWalletDeploy(prepareWalletDeploy)
-      const originalTx: IWalletTransaction = signedTx.tx
-
       const txs: MetaTransaction[] = [
         {
           to,

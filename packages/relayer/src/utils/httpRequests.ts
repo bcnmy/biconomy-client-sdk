@@ -5,11 +5,11 @@ export enum HttpMethod {
   Post = 'post',
   Delete = 'delete'
 }
-
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 interface HttpRequest {
   url: string
   method: HttpMethod
-  body?: Object
+  body?: Record<string, any>
 }
 
 export async function sendRequest<T>({ url, method, body }: HttpRequest): Promise<T> {

@@ -6,7 +6,7 @@ import { UserOperation } from '@biconomy-sdk/core-types'
 export class HttpRpcClient {
   private readonly userOpJsonRpcProvider: JsonRpcProvider
 
-  constructor (
+  constructor(
     readonly bundlerUrl: string,
     readonly entryPointAddress: string,
     readonly chainId: number
@@ -19,31 +19,40 @@ export class HttpRpcClient {
 
   // TODO : add version of HttpRpcClient || interface in RPC relayer to sendSCWTransactionToRelayer
 
-  async sendUserOpToBundler (userOp1: UserOperation): Promise<any> {
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
+  async sendUserOpToBundler(userOp1: UserOperation): Promise<any> {
     const userOp = await resolveProperties(userOp1)
-    const hexifiedUserOp: any =
-      Object.keys(userOp)
-        .map(key => {
-          let val = (userOp as any)[key]
-          if (typeof val !== 'string' || !val.startsWith('0x')) {
-            val = hexValue(val)
-          }
-          return [key, val]
-        })
-        .reduce((set, [k, v]) => ({ ...set, [k]: v }), {})
+    const hexifiedUserOp: any = Object.keys(userOp)
+      .map((key) => {
+        let val = (userOp as any)[key]
+        if (typeof val !== 'string' || !val.startsWith('0x')) {
+          val = hexValue(val)
+        }
+        return [key, val]
+      })
+      .reduce((set, [k, v]) => ({ ...set, [k]: v }), {})
 
     const jsonRequestData: [UserOperation, string] = [hexifiedUserOp, this.entryPointAddress]
     await this.printUserOperation(jsonRequestData)
-    return await this.userOpJsonRpcProvider
-      .send('eth_sendUserOperation', [hexifiedUserOp, this.entryPointAddress])
+    return await this.userOpJsonRpcProvider.send('eth_sendUserOperation', [
+      hexifiedUserOp,
+      this.entryPointAddress
+    ])
   }
 
-  private async printUserOperation ([userOp1, entryPointAddress]: [UserOperation, string]): Promise<void> {
+  private async printUserOperation([userOp1, entryPointAddress]: [
+    UserOperation,
+    string
+  ]): Promise<void> {
     const userOp = await resolveProperties(userOp1)
-    console.log('sending eth_sendUserOperation', {
-      ...userOp,
-      initCode: (userOp.initCode ?? '').length,
-      callData: (userOp.callData ?? '').length
-    }, entryPointAddress)
+    console.log(
+      'sending eth_sendUserOperation',
+      {
+        ...userOp,
+        initCode: (userOp.initCode ?? '').length,
+        callData: (userOp.callData ?? '').length
+      },
+      entryPointAddress
+    )
   }
 }

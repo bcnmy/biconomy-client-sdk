@@ -1,5 +1,5 @@
-import { TransactionRequest, TransactionResponse } from '@ethersproject/providers'
-import { Signer as AbstractSigner, ethers } from 'ethers'
+import { TransactionResponse } from '@ethersproject/providers'
+import { ethers } from 'ethers'
 import { Relayer } from '.'
 
 import {
@@ -29,7 +29,7 @@ export class RestRelayer implements Relayer {
   async deployWallet(deployWallet: DeployWallet): Promise<TransactionResponse> {
     // Should check if already deployed
     //Review for index and ownership transfer case
-    const { config, context, index = 0 } = deployWallet
+    const { config, context } = deployWallet
     const { address } = config
     const { walletFactory } = context
     const isExist = await walletFactory.isWalletExist(address)

@@ -16,7 +16,7 @@ import { WalletFactoryAPI } from './WalletFactoryAPI'
  * - execute method is "execFromEntryPoint()"
  */
 
-// Should be maintain SmartAccountAPI 
+// Should be maintain SmartAccountAPI
 // Review
 export class SmartAccountAPI extends BaseWalletAPI {
   /**
@@ -29,7 +29,7 @@ export class SmartAccountAPI extends BaseWalletAPI {
    * @param factoryAddress address of contract "factory" to deploy new contracts
    * @param index nonce value used when creating multiple wallets for the same owner
    */
-  constructor (
+  constructor(
     provider: Provider,
     readonly entryPoint: EntryPointContractV101,
     readonly clientConfig: ClientConfig,
@@ -48,16 +48,18 @@ export class SmartAccountAPI extends BaseWalletAPI {
    * return the value to put into the "initCode" field, if the wallet is not yet deployed.
    * this value holds the "factory" address, followed by this wallet's information
    */
-  async getWalletInitCode (): Promise<string> {
-    const deployWalletCallData = WalletFactoryAPI.deployWalletTransactionCallData(this.factoryAddress, await this.owner.getAddress(), this.entryPoint.address, this.handlerAddress, 0)
-    return hexConcat([
+  async getWalletInitCode(): Promise<string> {
+    const deployWalletCallData = WalletFactoryAPI.deployWalletTransactionCallData(
       this.factoryAddress,
-      deployWalletCallData
-    ])
+      await this.owner.getAddress(),
+      this.entryPoint.address,
+      this.handlerAddress,
+      0
+    )
+    return hexConcat([this.factoryAddress, deployWalletCallData])
   }
 
-  
-  async getNonce (batchId: number): Promise<BigNumber> {
+  async getNonce(batchId: number): Promise<BigNumber> {
     console.log('checking nonce')
     if (await this.checkWalletPhantom()) {
       return BigNumber.from(0)
@@ -69,28 +71,31 @@ export class SmartAccountAPI extends BaseWalletAPI {
     console.log(nonce)
     return nonce
   }
-    /**
+  /**
    * encode a method call from entryPoint to our contract
    * @param target
    * @param value
    * @param data
    */
-     async encodeExecute (target: string, value: BigNumberish, data: string, isDelegateCall: boolean): Promise<string> {
-      const walletContract = await this._getWalletContract()
-      // Review Talha
-      console.log(walletContract)
-      return walletContract.interface.encodeFunctionData(
-        'execFromEntryPoint',
-        [
-          target,
-          value,
-          data,
-          isDelegateCall ? 1 : 0, //temp // TODO // if multisend then delegatecall (take flag...)
-          500000, //temp // TODO
-        ])
-    }
+  async encodeExecute(
+    target: string,
+    value: BigNumberish,
+    data: string,
+    isDelegateCall: boolean
+  ): Promise<string> {
+    const walletContract = await this._getWalletContract()
+    // Review Talha
+    console.log(walletContract)
+    return walletContract.interface.encodeFunctionData('execFromEntryPoint', [
+      target,
+      value,
+      data,
+      isDelegateCall ? 1 : 0, //temp // TODO // if multisend then delegatecall (take flag...)
+      500000 //temp // TODO
+    ])
+  }
   // TODO: May be need to move this to ERC4337EthersPrivider
-  async signRequestId (requestId: string): Promise<string> {
+  async signRequestId(requestId: string): Promise<string> {
     return await this.owner.signMessage(arrayify(requestId))
   }
 }

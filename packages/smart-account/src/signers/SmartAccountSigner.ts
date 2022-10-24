@@ -5,7 +5,7 @@ import { TypedDataDomain, TypedDataField, TypedDataSigner } from '@ethersproject
 import { Signer } from './Signer'
 
 // ChainId , SmartAccountContext, SmartAccountConfig, SmartAccountState from @biconomy-sdk/core-types
-import { ChainId, SignTransactionDto } from '@biconomy-sdk/core-types'
+import { ChainId } from '@biconomy-sdk/core-types'
 
 // Might as well be RpcRelayer
 import { Relayer } from '@biconomy-sdk/relayer'

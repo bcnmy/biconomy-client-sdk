@@ -1,10 +1,4 @@
-import { TransactionResponse } from '@ethersproject/providers'
-import {
-  SignedTransaction,
-  SmartAccountState,
-  SmartAccountContext,
-  FeeOptionsResponse
-} from '@biconomy-sdk/core-types'
+import { FeeOptionsResponse } from '@biconomy-sdk/core-types'
 import { RelayTransaction, RelayResponse } from '@biconomy-sdk/core-types'
 
 // JsonRpcRequest
