@@ -27,6 +27,7 @@ import { DeterministicDeployer } from '../src/DeterministicDeployer'
 const provider = ethers.provider
 const signer = provider.getSigner()
 const originalSigner = provider.getSigner(1)
+const fallBackHandlerAddress = "0xF05217199F1C25604c67993F11a81461Bc97F3Ab"; // temp
 
 describe('SmartAccountAPI', async () => {
 
@@ -40,13 +41,13 @@ describe('SmartAccountAPI', async () => {
   let walletFactoryContract: SmartWalletFactoryContractV101
   let walletDeployed = false
   let userSCW: SmartWalletContractV101
+  let expected: string
+  let chainId: number
 
   before('init', async () => {
 
-    const chainId = (await provider.getNetwork()).chainId;
+    chainId = (await provider.getNetwork()).chainId;
     console.log(chainId)
-
-    const fallBackHandlerAddress = "0xF05217199F1C25604c67993F11a81461Bc97F3Ab"; // temp
 
     entryPoint = await new EntryPointFactoryContractV101(signer).deploy(1, 1)
     console.log('entryPoint ', entryPoint.address)
@@ -62,7 +63,7 @@ describe('SmartAccountAPI', async () => {
     walletFactoryContract = await new SmartWalletFactoryFactoryContractV101(signer).deploy(baseWalletContract.address)
     console.log('wallet factory deployed at ', walletFactoryContract.address)
 
-    const expected = await walletFactoryContract.getAddressForCounterfactualWallet(owner.address, 0);
+    expected = await walletFactoryContract.getAddressForCounterfactualWallet(owner.address, 0);
     console.log('expected address ', expected)
 
     // deploy wallet
@@ -152,8 +153,36 @@ describe('SmartAccountAPI', async () => {
 
   })
 
-  /*it('should use wallet API after creation without a factory', async function () {
+  it('should use wallet API after creation without a factory', async function () {
 
-  })*/
+    if (!walletDeployed) {
+      this.skip()
+    }
+    const clientConfig = {
+      dappId: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
+      signingServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
+      paymasterAddress: '',
+      entryPointAddress: entryPoint.address,
+      bundlerUrl: 'http://localhost:3000/rpc',
+      chainId: chainId
+    }
 
+    const api1 = new SmartAccountAPI(
+      provider, // can do json rpc provider
+      entryPoint,
+      clientConfig,
+      expected,
+      owner,
+      fallBackHandlerAddress,
+      walletFactoryContract.address,
+      0
+    )
+
+    const op1 = await api1.createSignedUserOp({
+      target: recipient.address,
+      data: recipient.interface.encodeFunctionData('something', ['world'])
+    })
+    await expect(entryPoint.handleOps([op1], beneficiary)).to.emit(recipient, 'Sender')
+      .withArgs(anyValue, walletAddress, 'world')
+  })
 })
