@@ -12,7 +12,7 @@
     "build": "npm install -D nx@latest && lerna run build --stream --npm-client=yarn",
     "test:ci": "FORCE_COLOR=1 lerna run test:ci --stream --npm-client=yarn",
     "format": "lerna run format --npm-client=yarn",
-    "postinstall": "cd packages/ethers-lib",
+    "postinstall": "cd packages/ethers-lib; hardhat compile",
     "prettier": "lerna run prettier --npm-client=npm",
     "diff": "lerna diff",
     "new-version": "lerna version --conventional-commits --yes"
