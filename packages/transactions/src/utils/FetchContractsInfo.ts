@@ -48,7 +48,7 @@ export function findChainById(chainId: ChainId, chainConfig: ChainConfig[]): Cha
 }
 
 export function findContractAddressesByVersion(
-  smartAccountVersion: SmartAccountVersion,
+  smartAccountVersion: string,
   chainId: ChainId,
   chainConfig: ChainConfig[]
 ) {

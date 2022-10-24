@@ -3,7 +3,7 @@ import { Provider } from '@ethersproject/providers'
 import { UserOperation } from '@biconomy-sdk/core-types'
 import { ClientConfig } from './ClientConfig'
 
-import { EntryPointContractV101, SmartWalletFactoryContract101, SmartWalletContractV101 } from '@biconomy-sdk/ethers-lib'
+import { EntryPointContractV101, SmartWalletFactoryV101, SmartWalletContractV101 } from '@biconomy-sdk/ethers-lib'
 import { TransactionDetailsForUserOp } from './TransactionDetailsForUserOp'
 import { resolveProperties } from 'ethers/lib/utils'
 import { PaymasterAPI } from './PaymasterAPI'
@@ -65,7 +65,7 @@ export abstract class BaseWalletAPI {
   // based on provider chainId we maintain smartWalletContract..
   async _getWalletContract(): Promise<SmartWalletContractV101> {
     if (this.walletContract == null) {
-      this.walletContract = SmartWalletFactoryContract101.connect(await this.getWalletAddress(), this.provider)
+      this.walletContract = SmartWalletFactoryV101.connect(await this.getWalletAddress(), this.provider)
     }
     return this.walletContract
   }
@@ -92,7 +92,7 @@ export abstract class BaseWalletAPI {
    * @param value
    * @param data
    */
-  abstract encodeExecute(target: string, value: BigNumberish, data: string): Promise<string>
+  abstract encodeExecute(target: string, value: BigNumberish, data: string, isDelegateCall: boolean): Promise<string>
 
   /**
    * sign a userOp's hash (requestId).
@@ -152,12 +152,11 @@ export abstract class BaseWalletAPI {
    * actual overhead depends on the expected bundle size
    */
   async getPreVerificationGas(userOp: Partial<UserOperation>): Promise<number> {
-    console.log(userOp);
+        console.log(userOp);
         const bundleSize = 1;
         const cost = 21000;
         // TODO: calculate calldata cost
         const preVerificationGas = Math.floor(cost / bundleSize)
-        console.log('preVerificationGas ', preVerificationGas);
         console.log('preVerificationGas ', Math.floor(preVerificationGas));
         return Math.floor(preVerificationGas);
   }
@@ -178,7 +177,8 @@ export abstract class BaseWalletAPI {
     }
 
     const value = parseNumber(detailsForUserOp.value) ?? BigNumber.from(0)
-    const callData = await this.encodeExecute(detailsForUserOp.target, value, detailsForUserOp.data)
+    const callData = await this.encodeExecute(detailsForUserOp.target, value, detailsForUserOp.data, detailsForUserOp.isDelegateCall || false)
+    
     /*const callData = (await this._getWalletContract()).encodeFunctionData('execFromEntryPoint', [
       detailsForUserOp.target,
       value,
@@ -243,7 +243,9 @@ export abstract class BaseWalletAPI {
     let verificationGasLimit = BigNumber.from(await this.getVerificationGasLimit())
     if (initCode.length > 2) {
       // add creation to required verification gas
-      const initGas = await this.entryPoint.estimateGas.getSenderAddress(initCode)
+      // using entry point static for gas estimation
+      const entryPointStatic = this.entryPoint.connect(ZERO_ADDRESS)
+      const initGas = await entryPointStatic.estimateGas.getSenderAddress(initCode, { from: ZERO_ADDRESS} )
       verificationGasLimit = verificationGasLimit.add(initGas)
     }
 

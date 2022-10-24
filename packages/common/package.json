@@ -29,7 +29,7 @@
     "watch-tsc": "tsc -w --preserveWatchOutput",
     "tsc": "tsc",
     "unbuild": "rimraf dist *.tsbuildinfo",
-    "build": "rimraf dist && tsc",
+    "build": "rimraf dist && tsc && hardhat compile",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
     "lint": "tslint -p tsconfig.json"
   },

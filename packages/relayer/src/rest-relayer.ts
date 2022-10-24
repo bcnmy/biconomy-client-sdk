@@ -7,7 +7,8 @@ import {
   DeployWallet,
   RestRelayerOptions,
   FeeOptionsResponse,
-  RelayResponse
+  RelayResponse,
+  GasLimit
 } from '@biconomy-sdk/core-types'
 import { MetaTransaction, encodeMultiSend } from './utils/multisend'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
@@ -18,33 +19,35 @@ import { HttpMethod, sendRequest } from './utils/httpRequests'
 export class RestRelayer implements Relayer {
   #relayServiceBaseUrl: string
 
+  relayerNodeEthersProvider: ethers.providers.JsonRpcProvider;
+
   constructor(options: RestRelayerOptions) {
     const { url } = options
     this.#relayServiceBaseUrl = url
-    console.log('restRelayerUrl', url);
+    this.relayerNodeEthersProvider = new ethers.providers.JsonRpcProvider(url);
   }
 
   // TODO
   // Review function arguments and return values
   // Defines a type that takes config, context for SCW in play along with other details
-  async deployWallet(deployWallet: DeployWallet): Promise<TransactionResponse> {
-    // Should check if already deployed
-    //Review for index and ownership transfer case
-    const { config, context, index = 0 } = deployWallet
-    const { address } = config
-    const { walletFactory } = context
-    const isExist = await walletFactory.isWalletExist(address)
-    if (isExist) {
-      throw new Error('Smart Account is Already Deployed')
-    }
-    const walletDeployTxn = this.prepareWalletDeploy(deployWallet)
-    // REST API call to relayer
-    return sendRequest({
-      url: `${this.#relayServiceBaseUrl}`,
-      method: HttpMethod.Post,
-      body: { ...walletDeployTxn, gasLimit: ethers.constants.Two.pow(24) }
-    })
-  }
+  // async deployWallet(deployWallet: DeployWallet): Promise<TransactionResponse> {
+  //   // Should check if already deployed
+  //   //Review for index and ownership transfer case
+  //   const { config, context, index = 0 } = deployWallet
+  //   const { address } = config
+  //   const { walletFactory } = context
+  //   const isExist = await walletFactory.isWalletExist(address)
+  //   if (isExist) {
+  //     throw new Error('Smart Account is Already Deployed')
+  //   }
+  //   const walletDeployTxn = this.prepareWalletDeploy(deployWallet)
+  //   // REST API call to relayer
+  //   return sendRequest({
+  //     url: `${this.#relayServiceBaseUrl}`,
+  //     method: HttpMethod.Post,
+  //     body: { ...walletDeployTxn, gasLimit: ethers.constants.Two.pow(24) }
+  //   })
+  // }
 
   prepareWalletDeploy(
     // owner, entryPoint, handler, index
@@ -108,41 +111,24 @@ export class RestRelayer implements Relayer {
       console.log('finaRawTx')
       console.log(finalRawRx)
 
-      // API call
-       // rawTx to becomes multiSend address and data gets prepared again 
-       console.log('isDeployed', isDeployed);
-       return sendRequest({
-        url: `${this.#relayServiceBaseUrl}`,
-        method: HttpMethod.Post,
-        body: {
-          method: 'eth_sendSmartContractWalletTransaction',
-          params: { ...signedTx.rawTx, gasLimit: '0x1E8480', refundInfo: {
-            tokenGasPrice: signedTx.tx.gasPrice,
-            gasToken: signedTx.tx.gasToken,
-            } 
-          },
-          jsonrpc: '2.0',
-          id: 1
+      // JSON RPC Call
+      // rawTx to becomes multiSend address and data gets prepared again 
+      return await this.relayerNodeEthersProvider
+      .send('eth_sendSmartContractWalletTransaction', [{ ...signedTx.rawTx, gasLimit: (gasLimit as GasLimit).hex, refundInfo: {
+        tokenGasPrice: signedTx.tx.gasPrice,
+        gasToken: signedTx.tx.gasToken,
         } 
-      })
+      }])
    }
   
     console.log('signedTx', signedTx)
-    // API call
-    return sendRequest({
-      url: `${this.#relayServiceBaseUrl}`,
-      method: HttpMethod.Post,
-      body: {
-        method: 'eth_sendSmartContractWalletTransaction',
-        params: { ...signedTx.rawTx, gasLimit: '0x1E8480', refundInfo: {
-          tokenGasPrice: signedTx.tx.gasPrice,
-          gasToken: signedTx.tx.gasToken,
-          } 
-        },
-        jsonrpc: '2.0',
-        id: 1
+    // JSON RPC Call
+    return await this.relayerNodeEthersProvider
+    .send('eth_sendSmartContractWalletTransaction', [{ ...signedTx.rawTx, gasLimit: '0x1E8480', refundInfo: {
+      tokenGasPrice: signedTx.tx.gasPrice,
+      gasToken: signedTx.tx.gasToken,
       } 
-    })
+    }])
   }
 
   async getFeeOptions(chainId: number): Promise<FeeOptionsResponse> {

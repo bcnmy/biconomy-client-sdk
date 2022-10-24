@@ -44,6 +44,8 @@ export type EstimateSmartAccountDeploymentDto = {
 }
 
 export type SmartAccountState = {
+  chainId: ChainId
+  version: string,
   address: string // multichain (EVM)
   owner: string // multichain (EVM)
   isDeployed: boolean // chain specific

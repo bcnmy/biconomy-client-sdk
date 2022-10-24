@@ -65,7 +65,7 @@ export type FeeQuote = {
   decimal: number
   logoUrl: string
   payment: number
-  tokenGasPrice: number //review
+  tokenGasPrice: number 
   offset?: number
   refundReceiver?: string
 }
