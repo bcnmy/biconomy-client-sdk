@@ -710,7 +710,7 @@ const state = await this.contractUtils.getSmartAccountState(
     })
   }
 
-  async prepareDeployAndPayFees(chainId: ChainId) {
+  async prepareDeployAndPayFees(chainId?: ChainId) {
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     return this.transactionManager.prepareDeployAndPayFees(chainId, this.DEFAULT_VERSION)
   }
@@ -800,7 +800,7 @@ const state = await this.contractUtils.getSmartAccountState(
    * @returns object containing infromation (owner, relevant contract addresses, isDeployed) about Smart Account for requested chain
    */
      async getSmartAccountState(
-      chainId: ChainId
+      chainId?: ChainId
     ): Promise<SmartAccountState> {
 
       chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
@@ -816,7 +816,7 @@ const state = await this.contractUtils.getSmartAccountState(
    */
   getSmartAccountContext(
     // smartAccountVersion: SmartAccountVersion = this.DEFAULT_VERSION,
-    chainId: ChainId
+    chainId?: ChainId
   ): SmartAccountContext {
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
 
