@@ -20,6 +20,7 @@ export class ERC4337EthersSigner extends Signer {
     defineReadOnly(this, 'provider', erc4337provider)
   }
 
+  // todo chirag review response
   async deployWalletOnly(): Promise<TransactionResponse | undefined> {
     const userOperation = await this.smartWalletAPI.createSignedUserOp({
       target: '',
@@ -54,13 +55,18 @@ export class ERC4337EthersSigner extends Signer {
     console.log('received transaction ', transaction)
     const customData : any = transaction.customData
     console.log(customData)
-    let gasLimit = customData.appliedGasLimit;
+    let gasLimit;
+
+    if(customData && customData.appliedGasLimit) {
+      gasLimit = customData.appliedGasLimit
+    }
 
     // temp
     transaction.gasLimit = gasLimit
 
     // TODO : if isDeployed = false || skipGasLimit = true then use provided gas limit => transaction.gasLimit = gasLimit
     delete transaction.customData
+    // transaction.from = await this.smartWalletAPI.getWalletAddress()
     const tx: TransactionRequest = await this.populateTransaction(transaction)
     console.log('populate trx ', tx)
     await this.verifyAllNecessaryFields(tx)

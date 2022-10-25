@@ -24,7 +24,7 @@ import {
   RefundTransactionDto
 } from './types'
 import { ethers } from 'ethers'
-import EthersAdapter from '@biconomy-sdk/ethers-lib'
+import EvmNetworkManager from '@biconomy-sdk/ethers-lib'
 import { GasEstimator } from './assets'
 import { Estimator } from './estimator'
 
@@ -40,6 +40,7 @@ class TransactionManager {
   // chainId: ChainId
 
   // Need setters
+  // todo chirag // make it INodeClient
   nodeClient!: NodeClient
   estimator!: Estimator
   contractUtils!: ContractUtils
@@ -71,23 +72,25 @@ class TransactionManager {
     this.estimator = new Estimator(this.nodeClient, this.contractUtils)
   }
 
-  setRelayer(relayer: Relayer) {
+  setRelayer(relayer: Relayer): TransactionManager {
     this.relayer = relayer
     return this
   }
 
-  async getContractUtilInstance(): Promise<ContractUtils> {
+  getContractUtilInstance(): ContractUtils {
     return this.contractUtils
   }
 
-  async getEstimatorInstance(): Promise<Estimator> {
+  getEstimatorInstance(): Estimator {
     return this.estimator
   }
 
-  async getNodeClient(): Promise<NodeClient> {
+  // review return type
+  getNodeClient(): NodeClient {
     return this.nodeClient
   }
 
+  // todo chirag add return type
   async prepareDeployAndPayFees(chainId: ChainId, version: string) {
     const gasPriceQuotesResponse: FeeOptionsResponse = await this.relayer.getFeeOptions(chainId)
     const feeOptionsAvailable: Array<TokenData> = gasPriceQuotesResponse.data.response
@@ -728,7 +731,7 @@ class TransactionManager {
     return finalWalletTx
   }
 
-  ethersAdapter(chainId: ChainId): EthersAdapter {
+  ethersAdapter(chainId: ChainId): EvmNetworkManager {
     return this.contractUtils.ethAdapter[chainId]
   }
 }

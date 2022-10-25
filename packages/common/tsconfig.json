@@ -5,6 +5,6 @@
       "outDir": "dist",
       "baseUrl": "src"
     },
-    "include": ["src"]
+    "include": ["./**/*.ts"]
 }
   
