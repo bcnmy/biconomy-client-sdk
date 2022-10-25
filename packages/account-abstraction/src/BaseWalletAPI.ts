@@ -278,7 +278,7 @@ export abstract class BaseWalletAPI {
       }
     }
 
-    const partialUserOp: UserOperation = {
+    const partialUserOp: any = {
       sender: await this.getWalletAddress(),
       nonce: await this.getNonce(0), // TODO: add batchid as param
       initCode,

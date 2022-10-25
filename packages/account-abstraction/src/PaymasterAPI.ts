@@ -26,7 +26,8 @@ export class PaymasterAPI {
     userOp.signature = '0x'
     userOp.paymasterAndData = '0x'
 
-    const result = await sendRequest({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result: any = await sendRequest({
       url: `${this.apiUrl}/signing-service`,
       method: HttpMethod.Post,
       body: { userOp: userOp }

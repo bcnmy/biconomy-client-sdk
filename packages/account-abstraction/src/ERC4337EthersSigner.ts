@@ -54,7 +54,8 @@ export class ERC4337EthersSigner extends Signer {
   // This one is called by Contract. It signs the request and passes in to Provider to be sent.
   async sendTransaction(transaction: Deferrable<TransactionRequest>): Promise<TransactionResponse> {
     console.log('received transaction ', transaction)
-    const customData = transaction.customData
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const customData: any = transaction.customData
     console.log(customData)
     const gasLimit = customData.appliedGasLimit
 
@@ -88,8 +89,8 @@ export class ERC4337EthersSigner extends Signer {
     // TODO: handle errors - transaction that is "rejected" by bundler is _not likely_ to ever resolve its "wait()"
     return transactionResponse
   }
-
-  unwrapError(errorIn): Error {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  unwrapError(errorIn: any): Error {
     if (errorIn.body != null) {
       const errorBody = JSON.parse(errorIn.body)
       let paymasterInfo = ''
