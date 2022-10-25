@@ -277,8 +277,6 @@ class SmartAccount {
       this.nodeClient,
       this.contractUtils
     )
-    console.log('aa provider ', this.aaProvider)
-    console.log('hurrahhh ----- initilization completed')
     return this
   }
 
@@ -739,7 +737,8 @@ const state = await this.contractUtils.getSmartAccountState(
    * @param chainId optional chainId
    * @returns Smart Wallet Contract instance attached with current smart account address (proxy)
    */
-  smartAccount(chainId: ChainId = this.#smartAccountConfig.activeNetworkId): SmartWalletContract {
+  smartAccount(chainId?: ChainId): SmartWalletContract {
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     const smartWallet = this.contractUtils.smartWalletContract[chainId][this.DEFAULT_VERSION]
     const address = this.address
     smartWallet.getContract().attach(address)
@@ -751,12 +750,12 @@ const state = await this.contractUtils.getSmartAccountState(
    * @param chainId optional chainId
    * @returns Smart Wallet Factory instance for requested chainId
    */
-  factory(chainId: ChainId): SmartWalletFactoryContract {
+  factory(chainId?: ChainId): SmartWalletFactoryContract {
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     return this.contractUtils.smartWalletFactoryContract[chainId][this.DEFAULT_VERSION]
   }
 
-  multiSend(chainId: ChainId): MultiSendContract {
+  multiSend(chainId?: ChainId): MultiSendContract {
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     return this.contractUtils.multiSendContract[chainId][this.DEFAULT_VERSION]
   }
