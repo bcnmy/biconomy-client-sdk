@@ -222,8 +222,8 @@ class SmartAccount {
           address: this.address,
           owner: this.owner,
           isDeployed: await this.contractUtils.isDeployed(network.chainId, this.DEFAULT_VERSION, this.address), // could be set as state in init
-          entryPointAddress: network.fallBackHandler[network.fallBackHandler.length - 1].address,
-          fallbackHandlerAddress: network.walletFactory[network.walletFactory.length - 1].address
+          entryPointAddress: network.entryPoint[network.entryPoint.length - 1].address,
+          fallbackHandlerAddress: network.fallBackHandler[network.fallBackHandler.length - 1].address
         }
       }else if(this.DEFAULT_VERSION !== this.smartAccountState.version){
         this.smartAccountState = await this.contractUtils.getSmartAccountState(this.smartAccountState)
@@ -293,13 +293,13 @@ class SmartAccount {
     version = version ? version : this.DEFAULT_VERSION
     const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
 
-    // await this.initializeContractsAtChain(chainId)
+    await this.initializeContractsAtChain(chainId)
 
-const state = await this.contractUtils.getSmartAccountState(
-      this.smartAccountState,
-      this.DEFAULT_VERSION,
-      this.#smartAccountConfig.activeNetworkId
-    )
+    // const state = await this.contractUtils.getSmartAccountState(
+    //   this.smartAccountState,
+    //   this.DEFAULT_VERSION,
+    //   this.#smartAccountConfig.activeNetworkId
+    // )
 
     // let customData: Record<string, any> = {
     //   isDeployed: state.isDeployed,

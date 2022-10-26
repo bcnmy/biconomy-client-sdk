@@ -62,7 +62,7 @@ export class ERC4337EthersSigner extends Signer {
     }
 
     // temp
-    transaction.gasLimit = gasLimit
+    // transaction.gasLimit = 500000
 
     // TODO : if isDeployed = false || skipGasLimit = true then use provided gas limit => transaction.gasLimit = gasLimit
     delete transaction.customData
