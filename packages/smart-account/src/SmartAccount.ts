@@ -836,7 +836,7 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
   signingServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
   supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],
   backend_url: 'https://sdk-backend.staging.biconomy.io/v1',
-  relayer_url: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
+  relayer_url: 'https://sdk-relayer-preview.staging.biconomy.io/',
   dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
   bundlerUrl: 'http://localhost:3000/rpc',
   providerUrlConfig: [   // TODO: Define Type For It
