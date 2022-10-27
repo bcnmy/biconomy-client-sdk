@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { SmartWalletFactoryContractV101 } from '@biconomy-sdk/ethers-lib'
+import { SmartWalletFactoryFactoryContractV101 } from '@biconomy-sdk/ethers-lib'
 import hardhat from 'hardhat'
 import { hexValue } from 'ethers/lib/utils'
 import { DeterministicDeployer } from '../src/DeterministicDeployer'
@@ -39,7 +39,7 @@ describe('#deterministicDeployer', () => {
   })
   it('should deploy at given address', async () => {
     const baseWallet = "0x548c6B8acf4f1396E915ffdC521F37D152DFB5A4"
-    const ctr = hexValue(new SmartWalletFactoryContractV101().getDeployTransaction(baseWallet).data!)
+    const ctr = hexValue(new SmartWalletFactoryFactoryContractV101().getDeployTransaction(baseWallet).data!)
     const addr = await DeterministicDeployer.getAddress(ctr)
     expect(await deployer.isContractDeployed(addr)).to.equal(false)
     await DeterministicDeployer.deploy(ctr)

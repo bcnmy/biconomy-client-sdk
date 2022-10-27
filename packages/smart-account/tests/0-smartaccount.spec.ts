@@ -1119,7 +1119,7 @@ describe('Wallet integration', function () {
       expect(isDeployed).to.be.equal(false)
     })
 
-    it('Should deploy smart and return correct state and context', async () => {
+    it('Should deploy smart account and return correct state and context', async () => {
       const userAddress = (await ethnode.signer?.getAddress()) || ''
       const eoaSigner = ethnode.provider?.getSigner()
 
@@ -1376,5 +1376,14 @@ describe('Wallet integration', function () {
     // deployAndPayFees
     // createRefundTransaction (+Batch)
     // estimateDeployments etc while mocking response form backend client
+
+    // AA Spec
+    // sendGaslessTransaction
+    // deployWalletOnly
+    // sendGaslessTransactionBatch
+    // connectPaymaster?
+    // disconnectPaymaster?
+    // connectBundler?
+
   })
 })

@@ -55,10 +55,14 @@ export class ERC4337EthersSigner extends Signer {
     console.log('received transaction ', transaction)
     const customData : any = transaction.customData
     console.log(customData)
-    let gasLimit = customData.appliedGasLimit;
+    let gasLimit;
+
+    if(customData && customData.appliedGasLimit) {
+      gasLimit = customData.appliedGasLimit
+    }
 
     // temp
-    transaction.gasLimit = gasLimit
+    // transaction.gasLimit = 500000
 
     // TODO : if isDeployed = false || skipGasLimit = true then use provided gas limit => transaction.gasLimit = gasLimit
     delete transaction.customData

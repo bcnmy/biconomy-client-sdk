@@ -7,8 +7,8 @@ import { MultiSendContractV101__factory as MultiSendContractV101 } from '../../t
 import { MultiSendCallOnlyContractV100__factory as MultiSendCallOnlyContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/MultiSendCallOnlyContractV100__factory'
 import { MultiSendCallOnlyContractV101__factory as MultiSendCallOnlyContractV101 } from '../../typechain/src/ethers-v5/v1.0.1/factories/MultiSendCallOnlyContractV101__factory'
 
-import { SmartWalletFactoryContractV100__factory as SmartWalletFactoryContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/SmartWalletFactoryContractV100__factory'
-import { SmartWalletFactoryContractV101__factory as SmartWalletFactoryContractV101 } from '../../typechain/src/ethers-v5/v1.0.1/factories/SmartWalletFactoryContractV101__factory'
+import { SmartWalletFactoryContractV100__factory as SmartWalletFactoryFactoryContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/SmartWalletFactoryContractV100__factory'
+import { SmartWalletFactoryContractV101__factory as SmartWalletFactoryFactoryContractV101 } from '../../typechain/src/ethers-v5/v1.0.1/factories/SmartWalletFactoryContractV101__factory'
 
 import SmartWalletContractEthers_v1_0_0 from './SmartWallet/v1.0.0/SmartWalletContractEthers'
 import SmartWalletContractEthers_v1_0_1 from './SmartWallet/v1.0.1/SmartWalletContractEthers'
@@ -94,10 +94,10 @@ export function getSmartWalletFactoryContractInstance(
 
   switch (smartAccountVersion) {
     case '1.0.0':
-      walletFactoryContract = SmartWalletFactoryContractV100.connect(contractAddress, provider)
+      walletFactoryContract = SmartWalletFactoryFactoryContractV100.connect(contractAddress, provider)
       return new SmartWalletFacoryContractEthers_v1_0_0(walletFactoryContract)
     case '1.0.1':
-      walletFactoryContract = SmartWalletFactoryContractV101.connect(contractAddress, provider)
+      walletFactoryContract = SmartWalletFactoryFactoryContractV101.connect(contractAddress, provider)
       return new SmartWalletFacoryContractEthers_v1_0_1(walletFactoryContract)
   }
 }

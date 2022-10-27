@@ -23,6 +23,14 @@ export class PaymasterAPI {
     userOp.signature = '0x'
     userOp.paymasterAndData = '0x'
 
+    // temp
+    // for test case until mocking and control flow return '0x'
+    // return '0x'
+
+    if(this.payMasterAddress === '' || this.payMasterAddress === null) {
+      return '0x'
+    }
+
     // TODO
     // decode infromation about userop.callData (in case of batch or single tx) in verification service
 
