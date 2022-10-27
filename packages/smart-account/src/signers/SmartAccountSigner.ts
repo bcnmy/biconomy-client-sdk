@@ -1,8 +1,13 @@
-import { BigNumber, ethers, Signer as EthersSigner } from 'ethers'
+import { BigNumber, ethers } from 'ethers'
 import { BytesLike } from '@ethersproject/bytes'
 import { JsonRpcProvider } from '@ethersproject/providers'
-import { TypedDataDomain, TypedDataField, TypedDataSigner } from '@ethersproject/abstract-signer'
-import { ChainId, SignTransactionDto } from '@biconomy-sdk/core-types'
+import {
+  TypedDataDomain,
+  TypedDataField,
+  TypedDataSigner,
+  Signer as EthersSigner
+} from '@ethersproject/abstract-signer'
+import { ChainId } from '@biconomy-sdk/core-types'
 
 // Might as well be RpcRelayer
 // import { Relayer, RestRelayer } from '@biconomy-sdk/relayer'
@@ -26,9 +31,6 @@ export class SmartAccountSigner extends EthersSigner implements TypedDataSigner 
 
   // Might have
   // _context: not smartAccountContext but the addresses of contracts from SmartAccountState
-
-  // TBD
-  // private _providers: { [key: number]: JsonRpcProvider } = {}
 
   /**
    * Note: When you do getAddress it could use provider.getAddress / provider.getSmartAccountAddress or directly access SmartAccountAPI
@@ -74,7 +76,7 @@ export class SmartAccountSigner extends EthersSigner implements TypedDataSigner 
   }
 
   // handle compatibility with smart account's intent
-  // this should send the tx to relayers which will relay to network. 
+  // this should send the tx to relayers which will relay to network.
   async sendTransaction(transaction: Deferrable<TransactionRequest>): Promise<TransactionResponse> {
     console.log(transaction)
     const txHash = ''
@@ -128,7 +130,7 @@ export class SmartAccountSigner extends EthersSigner implements TypedDataSigner 
     throw new Error('connectUnchecked is unsupported')
   }
 
-  connect(provider: JsonRpcProvider): SmartAccountSigner {
+  connect(_provider: JsonRpcProvider): SmartAccountSigner {
     // if (provider) {
     //   return new SmartAccountSigner(provider)
     // }
