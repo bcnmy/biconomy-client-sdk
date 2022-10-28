@@ -16,7 +16,6 @@ export class HttpRpcClient {
       name: 'Not actually connected to network, only talking to the Bundler!',
       chainId
     })
-    // this.chainId = chainId;
   }
 
   // TODO : add version of HttpRpcClient || interface in RPC relayer to sendSCWTransactionToRelayer

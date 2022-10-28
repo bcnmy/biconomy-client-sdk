@@ -858,7 +858,7 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
   backend_url: 'https://sdk-backend.staging.biconomy.io/v1',
   relayer_url: 'https://sdk-relayer-preview.staging.biconomy.io/api/v1/relay',
   dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
-  bundlerUrl: 'http://localhost:3000/rpc',
+  bundlerUrl: 'https://sdk-relayer-preview.staging.biconomy.io/api/v1/relay',
   providerUrlConfig: [
     // TODO: Define Type For It
     {

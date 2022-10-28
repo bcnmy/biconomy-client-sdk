@@ -19,12 +19,18 @@ import { HttpMethod, sendRequest } from './utils/httpRequests'
 export class RestRelayer implements Relayer {
   #relayServiceBaseUrl: string
 
+  // #chainId: number
+
   relayerNodeEthersProvider: ethers.providers.JsonRpcProvider;
 
   constructor(options: RestRelayerOptions) {
-    const { url } = options
+    const { url, chainId } = options
     this.#relayServiceBaseUrl = url
-    this.relayerNodeEthersProvider = new ethers.providers.JsonRpcProvider(url);
+    // this.#chainId = chainId
+    this.relayerNodeEthersProvider = new ethers.providers.JsonRpcProvider(url /*, {
+      name: 'Not actually connected to network, only talking to the Relayer!',
+      chainId
+    }*/);
   }
 
   prepareWalletDeploy(
@@ -92,7 +98,7 @@ export class RestRelayer implements Relayer {
       // JSON RPC Call
       // rawTx to becomes multiSend address and data gets prepared again 
       return await this.relayerNodeEthersProvider
-      .send('eth_sendSmartContractWalletTransaction', [{ ...signedTx.rawTx, gasLimit: (gasLimit as GasLimit).hex, refundInfo: {
+      .send('eth_sendSmartContractWalletTransaction', [{ ...finalRawRx, gasLimit: (gasLimit as GasLimit).hex, refundInfo: {
         tokenGasPrice: signedTx.tx.gasPrice,
         gasToken: signedTx.tx.gasToken,
         } 
@@ -100,19 +106,16 @@ export class RestRelayer implements Relayer {
     }
 
     console.log('signedTx', signedTx)
-    // API call
-    return sendRequest({
-      url: `${this.#relayServiceBaseUrl}`,
-      method: HttpMethod.Post,
-      body: {
-        ...signedTx.rawTx,
-        gasLimit: gasLimit,
-        refundInfo: {
+
+    // JSON RPC Call
+    // rawTx to becomes multiSend address and data gets prepared again 
+    return await this.relayerNodeEthersProvider
+      .send('eth_sendSmartContractWalletTransaction', [{
+        ...signedTx.rawTx, gasLimit: (gasLimit as GasLimit).hex, refundInfo: {
           tokenGasPrice: signedTx.tx.gasPrice,
-          gasToken: signedTx.tx.gasToken
+          gasToken: signedTx.tx.gasToken,
         }
-      }
-    })
+      }])
   }
 
   async getFeeOptions(chainId: number): Promise<FeeOptionsResponse> {
