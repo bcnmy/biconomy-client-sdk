@@ -16,22 +16,27 @@ import { TransactionRequest, TransactionResponse } from '@ethersproject/provider
 
 export class SmartAccountSigner extends EthersSigner implements TypedDataSigner {
   readonly provider: JsonRpcProvider
-  // readonly sender: JsonRpcSender
+  // todo : later
+  //readonly sender: JsonRpcSender
   readonly defaultChainId: number | undefined
 
   constructor(provider: JsonRpcProvider, defaultChainId?: number) {
     super()
     this.provider = provider
     this.defaultChainId = defaultChainId
-    // this.sender = new JsonRpcSender(provider)
+    // todo : later
+    //this.sender = new JsonRpcSender(provider)
   }
 
   _address!: string
-  // relayer: Relayer
+
+  // May have
+  // _relayer
 
   // Might have
   // _context: not smartAccountContext but the addresses of contracts from SmartAccountState
 
+  // todo : later
   /**
    * Note: When you do getAddress it could use provider.getAddress / provider.getSmartAccountAddress or directly access SmartAccountAPI
    */
@@ -54,39 +59,12 @@ export class SmartAccountSigner extends EthersSigner implements TypedDataSigner 
     return signature
   }
 
-  // getRelayer(chainId?: number): Promise<Relayer | undefined> {
-  //   console.log(chainId)
-  //   throw new Error('TODO')
-  // }
-
+  
   // Review getProvider
-  // getProvider returns a JsonRpcProvider instance for the current chain.
-  // Note that this method is bound to a particular chain
-  // Review for the provider we want here
-  async getProvider(chainId?: number): Promise<JsonRpcProvider | undefined> {
-    if (chainId) {
-      const currentChainId = await this.getChainId()
-      if (currentChainId !== chainId) {
-        throw new Error(
-          `signer is attempting to access chain ${chainId}, but is already bound to chain ${currentChainId}`
-        )
-      }
-    }
-    return this.provider
-  }
 
-  // handle compatibility with smart account's intent
-  // this should send the tx to relayers which will relay to network.
-  async sendTransaction(transaction: Deferrable<TransactionRequest>): Promise<TransactionResponse> {
-    console.log(transaction)
-    const txHash = ''
+  // todo : implement sendTransaction
 
-    // @ts-ignore
-    return txHash
-  }
-
-  // signMessage matches implementation from ethers JsonRpcSigner for compatibility, but with
-  // multi-chain support.
+  // signMessage matches implementation from ethers JsonRpcSigner for compatibility
   async signMessage(message: BytesLike): Promise<string> {
     if (!this.provider) {
       throw new Error('missing provider')
@@ -96,9 +74,7 @@ export class SmartAccountSigner extends EthersSigner implements TypedDataSigner 
     return await this.provider.send('personal_sign', [ethers.utils.hexlify(data), address])
   }
 
-  // signTypedData matches implementation from ethers JsonRpcSigner for compatibility, but with
-  // multi-chain support.
-  // Review
+  // signTypedData matches implementation from ethers JsonRpcSigner for compatibility
   async signTypedData(
     domain: TypedDataDomain,
     types: Record<string, Array<TypedDataField>>,

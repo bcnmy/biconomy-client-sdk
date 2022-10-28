@@ -15,6 +15,7 @@ import {
   SmartAccountVersion,
   SignedTransaction,
   ChainId,
+  SignTypeMethod,
   SmartAccountContext,
   SmartWalletFactoryContract,
   MultiSendContract,
@@ -39,6 +40,7 @@ import { Relayer, RestRelayer } from '@biconomy-sdk/relayer'
 
 import TransactionManager, {
   ContractUtils,
+  smartAccountSignMessage,
   smartAccountSignTypedData
 } from '@biconomy-sdk/transactions'
 
@@ -173,12 +175,7 @@ class SmartAccount {
 
     // Should not break if we make this wallet connected provider optional (We'd have JsonRpcProvider / JsonRpcSender)
     this.provider = walletProvider
-    if (this.#smartAccountConfig.signType === 'PERSONAL_SIGN') {
-      this.signer = walletProvider.getSigner()
-    } else {
-      this.signer = new SmartAccountSigner(this.provider)
-    }
-
+    this.signer = new SmartAccountSigner(this.provider)
     this.nodeClient = new NodeClient({ txServiceUrl: this.#smartAccountConfig.backend_url })
     this.relayer = new RestRelayer({ url: this.#smartAccountConfig.relayer_url })
     this.aaProvider = {}
@@ -487,17 +484,28 @@ class SmartAccount {
    */
   async signTransaction(signTransactionDto: SignTransactionDto): Promise<string> {
     const { chainId = this.#smartAccountConfig.activeNetworkId, tx } = signTransactionDto
+    const signatureType = this.#smartAccountConfig.signType;
     let walletContract = this.smartAccount(chainId).getContract()
     walletContract = walletContract.attach(this.address)
-    // TODO - rename and organize utils
-    const { signer, data } = await smartAccountSignTypedData(
-      this.signer,
-      walletContract,
-      tx,
-      chainId
-    )
-    let signature = '0x'
-    signature += data.slice(2)
+    let signature = '0x';
+    if (signatureType === SignTypeMethod.PERSONAL_SIGN) {
+      const { signer, data } = await smartAccountSignMessage(
+        this.signer,
+        walletContract,
+        tx,
+        chainId
+      )
+      signature += data.slice(2)
+    } else {
+      const { signer, data } = await smartAccountSignTypedData(
+        this.signer,
+        walletContract,
+        tx,
+        chainId
+      )
+      signature += data.slice(2)
+
+    }
     return signature
     // return this.signer.signTransaction(signTransactionDto)
   }
@@ -844,10 +852,11 @@ class SmartAccount {
 export const DefaultSmartAccountConfig: SmartAccountConfig = {
   activeNetworkId: ChainId.GOERLI, //Update later
   paymasterAddress: '0x50e8996670759E1FAA315eeaCcEfe0c0A043aA51',
+  signType: SignTypeMethod.EIP712_SIGN,
   signingServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
   supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],
   backend_url: 'https://sdk-backend.staging.biconomy.io/v1',
-  relayer_url: 'https://sdk-relayer-preview.staging.biconomy.io/v1/relay',
+  relayer_url: 'https://sdk-relayer-preview.staging.biconomy.io/api/v1/relay',
   dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
   bundlerUrl: 'http://localhost:3000/rpc',
   providerUrlConfig: [
