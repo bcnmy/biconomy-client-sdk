@@ -1,40 +1,42 @@
-import { ethers } from 'ethers'
+import { BigNumber, ethers } from 'ethers'
 import { BytesLike } from '@ethersproject/bytes'
-import { Web3Provider } from '@ethersproject/providers'
-import { TypedDataDomain, TypedDataField, TypedDataSigner } from '@ethersproject/abstract-signer'
-import { Signer } from './Signer'
-
-// ChainId , SmartAccountContext, SmartAccountConfig, SmartAccountState from @biconomy-sdk/core-types
+import { JsonRpcProvider } from '@ethersproject/providers'
+import {
+  TypedDataDomain,
+  TypedDataField,
+  TypedDataSigner,
+  Signer as EthersSigner
+} from '@ethersproject/abstract-signer'
 import { ChainId } from '@biconomy-sdk/core-types'
 
 // Might as well be RpcRelayer
-import { Relayer } from '@biconomy-sdk/relayer'
+// import { Relayer, RestRelayer } from '@biconomy-sdk/relayer'
 import { Deferrable } from 'ethers/lib/utils'
 import { TransactionRequest, TransactionResponse } from '@ethersproject/providers'
 
-// Other ways : // Signer needs config, originalSigner, way to dispatch to rpc-relayer, smart-account-apis
+export class SmartAccountSigner extends EthersSigner implements TypedDataSigner {
+  readonly provider: JsonRpcProvider
+  // todo : later
+  //readonly sender: JsonRpcSender
+  readonly defaultChainId: number | undefined
 
-export class SmartAccountSigner extends Signer implements TypedDataSigner {
-  // Should be SmartAccountProvider (which makes me want to merge SmartAccountSigner in SmartAccountProvider file)
-  readonly provider: Web3Provider
-  // Review
-  readonly defaultChainId?: number
-
-  constructor(provider: Web3Provider, defaultChainId?: number) {
+  constructor(provider: JsonRpcProvider, defaultChainId?: number) {
     super()
     this.provider = provider
     this.defaultChainId = defaultChainId
+    // todo : later
+    //this.sender = new JsonRpcSender(provider)
   }
 
   _address!: string
 
+  // May have
+  // _relayer
+
   // Might have
   // _context: not smartAccountContext but the addresses of contracts from SmartAccountState
-  //
 
-  // TBD
-  private _providers: { [key: number]: Web3Provider } = {}
-
+  // todo : later
   /**
    * Note: When you do getAddress it could use provider.getAddress / provider.getSmartAccountAddress or directly access SmartAccountAPI
    */
@@ -45,75 +47,48 @@ export class SmartAccountSigner extends Signer implements TypedDataSigner {
     return ethers.utils.getAddress(this._address)
   }
 
-  async signTransaction(signTransactionDto: Deferrable<TransactionRequest>): Promise<string> {
-    console.log(signTransactionDto)
-    const signature = ''
+  async getChainId(): Promise<number> {
+    return (await this.provider.getNetwork()).chainId
+  }
+
+  async signTransaction(transaction: Deferrable<TransactionRequest>): Promise<string> {
+    if (!this.provider) {
+      throw new Error('missing provider')
+    }
+    const signature: any = await this.provider.send('eth_signTransaction', [transaction])
     return signature
   }
 
-  // getProvider
+  // Review getProvider
 
-  getRelayer(chainId?: number): Promise<Relayer | undefined> {
-    console.log(chainId)
-    throw new Error('TODO')
-  }
+  // todo : implement sendTransaction
 
-  // Review
-  // getProvider returns a Web3Provider instance for the current chain.
-  // Note that this method is bound to a particular chain
-
-  // Review for the provider we want here
-  async getProvider(chainId?: number): Promise<Web3Provider | undefined> {
-    if (chainId) {
-      const currentChainId = await this.getChainId()
-      if (currentChainId !== chainId) {
-        throw new Error(
-          `signer is attempting to access chain ${chainId}, but is already bound to chain ${currentChainId}`
-        )
-      }
+  // signMessage matches implementation from ethers JsonRpcSigner for compatibility
+  async signMessage(message: BytesLike): Promise<string> {
+    if (!this.provider) {
+      throw new Error('missing provider')
     }
-    return this.provider
-  }
-
-  // handle compatibility with smart account's intent
-  async sendTransaction(transaction: Deferrable<TransactionRequest>): Promise<TransactionResponse> {
-    console.log(transaction)
-    // dummy code
-    const signedTx = await this.signTransaction(transaction)
-    const txDetails = this.provider.getTransaction(signedTx)
-    return txDetails
-  }
-
-  // signMessage matches implementation from ethers JsonRpcSigner for compatibility, but with
-  // multi-chain support.
-  async signMessage(message: BytesLike, chainId?: ChainId): Promise<string> {
-    console.log(chainId)
-
-    // TODO: study. sender JsonRpcRouter sender
-    // const provider = await this.getSender(Number(chainId) || this.defaultChainId)
-
     const data = typeof message === 'string' ? ethers.utils.toUtf8Bytes(message) : message
     const address = await this.getAddress()
-
-    /* eslint-disable  @typescript-eslint/no-non-null-assertion */
-    return await this.provider!.send('personal_sign', [ethers.utils.hexlify(data), address])
+    return await this.provider.send('personal_sign', [ethers.utils.hexlify(data), address])
   }
 
-  // signTypedData matches implementation from ethers JsonRpcSigner for compatibility, but with
-  // multi-chain support.
-  // Review
-
-  /* eslint-disable  @typescript-eslint/no-explicit-any */
+  // signTypedData matches implementation from ethers JsonRpcSigner for compatibility
   async signTypedData(
     domain: TypedDataDomain,
     types: Record<string, Array<TypedDataField>>,
     message: Record<string, any>,
     chainId?: ChainId
   ): Promise<string> {
-    console.log(chainId)
+    const activeChainId = chainId ? chainId : await this.getChainId()
+    const domainChainId = domain.chainId ? BigNumber.from(domain.chainId).toNumber() : undefined
+    if (domainChainId && domainChainId !== activeChainId) {
+      throw new Error('Domain chainId is different from active chainId.')
+    }
+
     return await this.provider.send('eth_signTypedData_v4', [
       await this.getAddress(),
-      ethers.utils._TypedDataEncoder.getPayload(domain, types, message)
+      JSON.stringify(ethers.utils._TypedDataEncoder.getPayload(domain, types, message))
     ])
   }
 
@@ -131,22 +106,10 @@ export class SmartAccountSigner extends Signer implements TypedDataSigner {
     throw new Error('connectUnchecked is unsupported')
   }
 
-  connect(provider: ethers.providers.Provider): ethers.providers.JsonRpcSigner {
-    console.log(provider)
-    throw new Error('unsupported: cannot alter JSON-RPC Signer connection')
+  connect(_provider: JsonRpcProvider): SmartAccountSigner {
+    // if (provider) {
+    //   return new SmartAccountSigner(provider)
+    // }
+    throw new Error('unsupported: cannot get JSON-RPC Signer connection')
   }
 }
-
-// Other ways...
-/*export class SmartAccountSigner extends EthersSigner {
-
-  // Needs httpRpcClient to sendSCWTransactionToRelayer
-  constructor() {
-
-  }
-
-  // Note: Since we're following this interface I feel createTransaction (from TransactionManager) should be part of this 
-  async sendTransaction (transaction: Deferrable<TransactionRequest>): Promise<TransactionResponse> {
-
-  }
-}*/

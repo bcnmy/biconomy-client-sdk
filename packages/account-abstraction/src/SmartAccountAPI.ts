@@ -65,10 +65,7 @@ export class SmartAccountAPI extends BaseWalletAPI {
       return BigNumber.from(0)
     }
     const walletContract = await this._getWalletContract()
-    console.log('walletContract before nonce (attached?)')
-    console.log(walletContract)
     const nonce = await walletContract.getNonce(batchId)
-    console.log(nonce)
     return nonce
   }
   /**
@@ -84,8 +81,7 @@ export class SmartAccountAPI extends BaseWalletAPI {
     isDelegateCall: boolean
   ): Promise<string> {
     const walletContract = await this._getWalletContract()
-    // Review Talha
-    console.log(walletContract)
+
     return walletContract.interface.encodeFunctionData('execFromEntryPoint', [
       target,
       value,

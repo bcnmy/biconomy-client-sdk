@@ -1,5 +1,8 @@
-import { Signer as AbstractSigner } from 'ethers'
-import { TypedDataDomain, TypedDataField } from '@ethersproject/abstract-signer'
+import {
+  TypedDataDomain,
+  TypedDataField,
+  Signer as AbstractSigner
+} from '@ethersproject/abstract-signer'
 
 // ChainId , SmartAccountContext, SmartAccountConfig, SmartAccountState from @biconomy-sdk/core-types
 import { ChainId, SignTransactionDto } from '@biconomy-sdk/core-types'

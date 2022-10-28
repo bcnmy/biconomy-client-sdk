@@ -3,6 +3,7 @@ import { ethers } from 'ethers'
 import { hexValue, resolveProperties } from 'ethers/lib/utils'
 
 import { UserOperation } from '@biconomy-sdk/core-types'
+import { HttpMethod, sendRequest } from './utils/httpRequests'
 export class HttpRpcClient {
   private readonly userOpJsonRpcProvider: JsonRpcProvider
 
@@ -36,7 +37,8 @@ export class HttpRpcClient {
     await this.printUserOperation(jsonRequestData)
     return await this.userOpJsonRpcProvider.send('eth_sendUserOperation', [
       hexifiedUserOp,
-      this.entryPointAddress
+      this.entryPointAddress,
+      this.chainId
     ])
   }
 

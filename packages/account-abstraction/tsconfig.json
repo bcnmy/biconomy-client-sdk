@@ -6,7 +6,7 @@
       "baseUrl": "src"
     },
     "exclude": ["dist", "node_modules"],
-    "include": ["src"],
+    "include": ["./test", "./src", "./scripts"],//only the "scripts" part.
     "files": ["./hardhat.config.ts"]
   }
   

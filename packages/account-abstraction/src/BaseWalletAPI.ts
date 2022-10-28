@@ -5,13 +5,14 @@ import { ClientConfig } from './ClientConfig'
 
 import {
   EntryPointContractV101,
-  SmartWalletFactoryContract101,
+  SmartWalletFactoryV101,
   SmartWalletContractV101
 } from '@biconomy-sdk/ethers-lib'
 import { TransactionDetailsForUserOp } from './TransactionDetailsForUserOp'
 import { resolveProperties } from 'ethers/lib/utils'
 import { PaymasterAPI } from './PaymasterAPI'
 import { getRequestId } from '@biconomy-sdk/common'
+import { ZERO_ADDRESS } from '@biconomy-sdk/core-types'
 /**
  * Base class for all Smart Wallet ERC-4337 Clients to implement.
  * Subclass should inherit 5 methods to support a specific wallet contract:
@@ -70,7 +71,7 @@ export abstract class BaseWalletAPI {
   // based on provider chainId we maintain smartWalletContract..
   async _getWalletContract(): Promise<SmartWalletContractV101> {
     if (this.walletContract == null) {
-      this.walletContract = SmartWalletFactoryContract101.connect(
+      this.walletContract = SmartWalletFactoryV101.connect(
         await this.getWalletAddress(),
         this.provider
       )
@@ -170,7 +171,6 @@ export abstract class BaseWalletAPI {
     const cost = 21000
     // TODO: calculate calldata cost
     const preVerificationGas = Math.floor(cost / bundleSize)
-    console.log('preVerificationGas ', preVerificationGas)
     console.log('preVerificationGas ', Math.floor(preVerificationGas))
     return Math.floor(preVerificationGas)
   }
@@ -263,7 +263,11 @@ export abstract class BaseWalletAPI {
     let verificationGasLimit = BigNumber.from(await this.getVerificationGasLimit())
     if (initCode.length > 2) {
       // add creation to required verification gas
-      const initGas = await this.entryPoint.estimateGas.getSenderAddress(initCode)
+      // using entry point static for gas estimation
+      const entryPointStatic = this.entryPoint.connect(ZERO_ADDRESS)
+      const initGas = await entryPointStatic.estimateGas.getSenderAddress(initCode, {
+        from: ZERO_ADDRESS
+      })
       verificationGasLimit = verificationGasLimit.add(initGas)
     }
 

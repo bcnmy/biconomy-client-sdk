@@ -16,11 +16,17 @@ export interface SmartAccountConfig {
   backend_url: string
   relayer_url: string
   dappAPIKey?: string
+  signType: SignTypeMethod
   providerUrlConfig?: ProviderUrlConfig[]
   entryPointAddress?: string
   bundlerUrl?: string
   paymasterAddress?: string
   signingServiceUrl: string
+}
+
+export enum SignTypeMethod {
+  PERSONAL_SIGN = 'PERSONAL_SIGN',
+  EIP712_SIGN = 'EIP712_SIGN'
 }
 
 export type ProviderUrlConfig = {

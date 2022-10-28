@@ -1,27 +1,12 @@
 import {
   arrayify,
-  // defaultAbiCoder,
-  // hexConcat,
   parseEther
-  // solidityKeccak256,
 } from 'ethers/lib/utils'
 import {
   ethers,
   BigNumber,
-  // BigNumberish,
-  // Contract,
-  // ContractReceipt,
   Wallet
 } from 'ethers'
-/* import {
-  IERC20,
-  EntryPoint,
-  EntryPoint__factory,
-  SimpleWallet__factory,
-} from "../typechain"; */
-// import { BytesLike } from "@ethersproject/bytes";
-// import { expect } from "chai";
-// import { debugTransaction } from "./debugTx";
 import { keccak256 } from 'ethereumjs-util'
 
 export const AddressZero = ethers.constants.AddressZero
