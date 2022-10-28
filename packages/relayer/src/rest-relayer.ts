@@ -24,7 +24,7 @@ export class RestRelayer implements Relayer {
   relayerNodeEthersProvider: ethers.providers.JsonRpcProvider;
 
   constructor(options: RestRelayerOptions) {
-    const { url, chainId } = options
+    const { url /*, chainId*/ } = options
     this.#relayServiceBaseUrl = url
     // this.#chainId = chainId
     this.relayerNodeEthersProvider = new ethers.providers.JsonRpcProvider(url /*, {
