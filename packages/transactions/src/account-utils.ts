@@ -1,12 +1,5 @@
-import {
-  arrayify,
-  parseEther
-} from 'ethers/lib/utils'
-import {
-  ethers,
-  BigNumber,
-  Wallet
-} from 'ethers'
+import { arrayify, parseEther } from 'ethers/lib/utils'
+import { ethers, BigNumber, Wallet } from 'ethers'
 import { keccak256 } from 'ethereumjs-util'
 
 export const AddressZero = ethers.constants.AddressZero

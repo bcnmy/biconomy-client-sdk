@@ -1,4 +1,4 @@
-import { ChainId } from "./chains.types"
+import { ChainId } from './chains.types'
 
 export type SmartAccountVersion = '1.0.1' | '1.0.0'
 
@@ -47,7 +47,7 @@ export const FAKE_SIGNATURE =
   '0x39f5032f1cd30005aa1e35f04394cabfe7de3b6ae6d95b27edd8556064c287bf61f321fead0cf48ca4405d497cc8fc47fc7ff0b7f5c45baa14090a44f2307d8230'
 
 export type RestRelayerOptions = {
-  url: string,
+  url: string
   // chainId: ChainId
 }
 
@@ -68,7 +68,7 @@ export type FeeQuote = {
   decimal: number
   logoUrl: string
   payment: number
-  tokenGasPrice: number 
+  tokenGasPrice: number
   offset?: number
   refundReceiver?: string
 }

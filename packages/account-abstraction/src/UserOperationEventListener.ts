@@ -53,6 +53,7 @@ export class UserOperationEventListener {
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   async listenerCallback(this: any, ...param: any): Promise<void> {
     console.log(param)
+    // eslint-disable-next-line prefer-rest-params
     const event = arguments[arguments.length - 1] as Event
     if (event.args == null) {
       console.error('got event without args', event)
