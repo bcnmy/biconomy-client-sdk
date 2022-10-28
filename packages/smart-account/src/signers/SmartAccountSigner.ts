@@ -59,7 +59,6 @@ export class SmartAccountSigner extends EthersSigner implements TypedDataSigner 
     return signature
   }
 
-  
   // Review getProvider
 
   // todo : implement sendTransaction
@@ -93,6 +92,7 @@ export class SmartAccountSigner extends EthersSigner implements TypedDataSigner 
     ])
   }
 
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   async _signTypedData(
     domain: TypedDataDomain,
     types: Record<string, Array<TypedDataField>>,

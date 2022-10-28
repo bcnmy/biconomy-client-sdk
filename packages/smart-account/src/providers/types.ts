@@ -1,5 +1,6 @@
 export const JsonRpcVersion = '2.0'
 
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 export interface JsonRpcRequest {
   jsonrpc?: string
   id?: number

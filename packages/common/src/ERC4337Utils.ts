@@ -6,10 +6,11 @@ import { abi as entryPointAbi } from '@account-abstraction/contracts/artifacts/I
 const UserOpType = entryPointAbi.find((entry) => entry.name === 'simulateValidation')?.inputs[0]
 
 // reverse "Deferrable" or "PromiseOrValue" fields
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 export type NotPromise<T> = {
   [P in keyof T]: Exclude<T[P], Promise<any>>
 }
-
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 function encode(typevalues: Array<{ type: string; val: any }>, forSignature: boolean): string {
   const types = typevalues.map((typevalue) =>
     typevalue.type === 'bytes' && forSignature ? 'bytes32' : typevalue.type
@@ -82,13 +83,13 @@ export function getRequestId(
 ): string {
   console.log(' inside getRequestId')
   const userOpHash = keccak256(packUserOp(op, true))
-  console.log('userOpHash ', userOpHash);
-  
+  console.log('userOpHash ', userOpHash)
+
   const enc = defaultAbiCoder.encode(
     ['bytes32', 'address', 'uint256'],
     [userOpHash, entryPoint, chainId]
   )
-  console.log('enc ', enc);
+  console.log('enc ', enc)
   return keccak256(enc)
 }
 

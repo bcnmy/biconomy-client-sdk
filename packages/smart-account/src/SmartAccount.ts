@@ -37,7 +37,7 @@ import NodeClient, {
   SCWTransactionResponse,
   BalancesResponse,
   BalancesDto,
-  UsdBalanceResponse,
+  UsdBalanceResponse
 } from '@biconomy-sdk/node-client'
 import { Web3Provider } from '@ethersproject/providers'
 import { Relayer, RestRelayer } from '@biconomy-sdk/relayer'
@@ -256,7 +256,8 @@ class SmartAccount {
   public async sendGasLessTransaction(
     transactionDto: TransactionDto
   ): Promise<TransactionResponse> {
-    let { version, transaction, chainId } = transactionDto
+    let { version, chainId } = transactionDto
+    const { transaction } = transactionDto
 
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
@@ -293,7 +294,8 @@ class SmartAccount {
   public async sendGaslessTransactionBatch(
     transactionBatchDto: TransactionBatchDto
   ): Promise<TransactionResponse> {
-    let { version, transactions, batchId, chainId } = transactionBatchDto
+    let { version, batchId, chainId } = transactionBatchDto
+    const { transactions } = transactionBatchDto
 
     // Might get optional operation for tx
 
@@ -358,7 +360,7 @@ class SmartAccount {
   public async deployWalletUsingPaymaster() {
     // can pass chainId
     const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
-    const response = await aaSigner.deployWalletOnly()
+    await aaSigner.deployWalletOnly()
     // todo: make sense of this response and return hash to the user
   }
 
@@ -451,10 +453,10 @@ class SmartAccount {
    */
   async signTransaction(signTransactionDto: SignTransactionDto): Promise<string> {
     const { chainId = this.#smartAccountConfig.activeNetworkId, tx } = signTransactionDto
-    const signatureType = this.#smartAccountConfig.signType;
+    const signatureType = this.#smartAccountConfig.signType
     let walletContract = this.smartAccount(chainId).getContract()
     walletContract = walletContract.attach(this.address)
-    let signature = '0x';
+    let signature = '0x'
     if (signatureType === SignTypeMethod.PERSONAL_SIGN) {
       const { signer, data } = await smartAccountSignMessage(
         this.signer,
@@ -471,7 +473,6 @@ class SmartAccount {
         chainId
       )
       signature += data.slice(2)
-
     }
     return signature
     // return this.signer.signTransaction(signTransactionDto)
@@ -486,7 +487,8 @@ class SmartAccount {
    * @returns
    */
   async sendTransaction(sendTransactionDto: SendTransactionDto): Promise<string> {
-    let { tx, batchId = 0, chainId } = sendTransactionDto
+    let { chainId } = sendTransactionDto
+    const { tx, batchId = 0 } = sendTransactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     let { gasLimit } = sendTransactionDto
     const isDeployed = await this.contractUtils.isDeployed(
@@ -494,7 +496,7 @@ class SmartAccount {
       this.DEFAULT_VERSION,
       this.address
     )
-    let rawTx: RawTransactionType = {
+    const rawTx: RawTransactionType = {
       to: tx.to,
       data: tx.data,
       value: 0,
@@ -521,14 +523,14 @@ class SmartAccount {
       this.contractUtils.smartWalletContract[chainId][this.DEFAULT_VERSION].getContract()
     walletContract = walletContract.attach(this.address)
 
-    let signature = await this.signTransaction({
+    const signature = await this.signTransaction({
       version: this.DEFAULT_VERSION,
       tx,
       chainId,
       signer: this.signer
     })
 
-    let execTransaction = await walletContract.populateTransaction.execTransaction(
+    const execTransaction = await walletContract.populateTransaction.execTransaction(
       transaction,
       batchId,
       refundInfo,
@@ -577,7 +579,8 @@ class SmartAccount {
   async prepareRefundTransaction(
     prepareRefundTransactionDto: PrepareRefundTransactionDto
   ): Promise<FeeQuote[]> {
-    let { version, transaction, batchId, chainId } = prepareRefundTransactionDto
+    let { version, batchId, chainId } = prepareRefundTransactionDto
+    const { transaction } = prepareRefundTransactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
     batchId = batchId ? batchId : 0
@@ -599,7 +602,8 @@ class SmartAccount {
   async prepareRefundTransactionBatch(
     prepareRefundTransactionsDto: PrepareRefundTransactionsDto
   ): Promise<FeeQuote[]> {
-    let { version, transactions, batchId, chainId } = prepareRefundTransactionsDto
+    let { version, batchId, chainId } = prepareRefundTransactionsDto
+    const { transactions } = prepareRefundTransactionsDto
 
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
@@ -624,7 +628,8 @@ class SmartAccount {
   async createRefundTransaction(
     refundTransactionDto: RefundTransactionDto
   ): Promise<IWalletTransaction> {
-    let { version, transaction, batchId, feeQuote, chainId } = refundTransactionDto
+    let { version, batchId, chainId } = refundTransactionDto
+    const { transaction, feeQuote } = refundTransactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
     batchId = batchId ? batchId : 0
@@ -645,7 +650,8 @@ class SmartAccount {
    * @returns
    */
   async createTransaction(transactionDto: TransactionDto): Promise<IWalletTransaction> {
-    let { version, transaction, batchId, chainId } = transactionDto
+    let { version, batchId, chainId } = transactionDto
+    const { transaction } = transactionDto
 
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
@@ -665,7 +671,8 @@ class SmartAccount {
   async createTransactionBatch(
     transactionBatchDto: TransactionBatchDto
   ): Promise<IWalletTransaction> {
-    let { version, transactions, batchId, chainId } = transactionBatchDto
+    let { version, batchId, chainId } = transactionBatchDto
+    const { transactions } = transactionBatchDto
 
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
@@ -688,7 +695,8 @@ class SmartAccount {
   async createRefundTransactionBatch(
     refundTransactionBatchDto: RefundTransactionBatchDto
   ): Promise<IWalletTransaction> {
-    let { version, transactions, batchId, feeQuote, chainId } = refundTransactionBatchDto
+    let { version, batchId, chainId } = refundTransactionBatchDto
+    const { transactions, feeQuote } = refundTransactionBatchDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
     batchId = batchId ? batchId : 0

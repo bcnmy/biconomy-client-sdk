@@ -68,7 +68,7 @@ class SmartWalletContractEthers implements SmartWalletContract {
     const txResponse = await this.contract.execTransaction(_tx, batchId, refundInfo, signatures)
     return toTxResult(txResponse)
   }
-
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   encode: SmartWalletContractV101Interface['encodeFunctionData'] = (
     methodName: any,
     params: any

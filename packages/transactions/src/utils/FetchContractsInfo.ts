@@ -53,23 +53,27 @@ export function findContractAddressesByVersion(
   chainConfig: ChainConfig[]
 ) {
   const chainInfo: ChainConfig = findChainById(chainId, chainConfig)
-
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   const entryPointAddress = chainInfo.entryPoint.find((element: any) => {
     return element.version === smartAccountVersion
   })?.address
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   const walletFactoryAddress = chainInfo.walletFactory.find((element: any) => {
     return element.version === smartAccountVersion
   })?.address
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   const walletAddress = chainInfo.wallet.find((element: any) => {
     return element.version === smartAccountVersion
   })?.address
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   const multiSendAddress = chainInfo.multiSend.find((element: any) => {
     return element.version === smartAccountVersion
   })?.address
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   const multiSendCallAddress = chainInfo.multiSendCall.find((element: any) => {
     return element.version === smartAccountVersion
   })?.address
-
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   const fallBackHandlerAddress = chainInfo.fallBackHandler.find((element: any) => {
     return element.version === smartAccountVersion
   })?.address

@@ -1,16 +1,18 @@
-import { BigNumber, BigNumberish, ethers } from 'ethers'
+import { BigNumber, BigNumberish } from 'ethers'
 import { Provider } from '@ethersproject/providers'
 import { UserOperation } from '@biconomy-sdk/core-types'
 import { ClientConfig } from './ClientConfig'
 
-import { EntryPointContractV101, SmartWalletFactoryV101, SmartWalletContractV101 } from '@biconomy-sdk/ethers-lib'
+import {
+  EntryPointContractV101,
+  SmartWalletFactoryV101,
+  SmartWalletContractV101
+} from '@biconomy-sdk/ethers-lib'
 import { TransactionDetailsForUserOp } from './TransactionDetailsForUserOp'
 import { resolveProperties } from 'ethers/lib/utils'
 import { PaymasterAPI } from './PaymasterAPI'
 import { getRequestId } from '@biconomy-sdk/common'
-import {
-  ZERO_ADDRESS
-} from '@biconomy-sdk/core-types'
+import { ZERO_ADDRESS } from '@biconomy-sdk/core-types'
 /**
  * Base class for all Smart Wallet ERC-4337 Clients to implement.
  * Subclass should inherit 5 methods to support a specific wallet contract:
@@ -59,13 +61,20 @@ export abstract class BaseWalletAPI {
   ) {
     // factory "connect" define the contract address. the contract "connect" defines the "from" address.
     // this.entryPointView = EntryPoint__factory.connect(entryPointAddress, provider).connect(ethers.constants.AddressZero)
-    this.paymasterAPI = new PaymasterAPI(clientConfig.signingServiceUrl, clientConfig.dappId, clientConfig.paymasterAddress)
+    this.paymasterAPI = new PaymasterAPI(
+      clientConfig.signingServiceUrl,
+      clientConfig.dappId,
+      clientConfig.paymasterAddress
+    )
   }
 
   // based on provider chainId we maintain smartWalletContract..
   async _getWalletContract(): Promise<SmartWalletContractV101> {
     if (this.walletContract == null) {
-      this.walletContract = SmartWalletFactoryV101.connect(await this.getWalletAddress(), this.provider)
+      this.walletContract = SmartWalletFactoryV101.connect(
+        await this.getWalletAddress(),
+        this.provider
+      )
     }
     return this.walletContract
   }
@@ -92,7 +101,12 @@ export abstract class BaseWalletAPI {
    * @param value
    * @param data
    */
-  abstract encodeExecute(target: string, value: BigNumberish, data: string, isDelegateCall: boolean): Promise<string>
+  abstract encodeExecute(
+    target: string,
+    value: BigNumberish,
+    data: string,
+    isDelegateCall: boolean
+  ): Promise<string>
 
   /**
    * sign a userOp's hash (requestId).
@@ -152,33 +166,39 @@ export abstract class BaseWalletAPI {
    * actual overhead depends on the expected bundle size
    */
   async getPreVerificationGas(userOp: Partial<UserOperation>): Promise<number> {
-        console.log(userOp);
-        const bundleSize = 1;
-        const cost = 21000;
-        // TODO: calculate calldata cost
-        const preVerificationGas = Math.floor(cost / bundleSize)
-        console.log('preVerificationGas ', Math.floor(preVerificationGas));
-        return Math.floor(preVerificationGas);
+    console.log(userOp)
+    const bundleSize = 1
+    const cost = 21000
+    // TODO: calculate calldata cost
+    const preVerificationGas = Math.floor(cost / bundleSize)
+    console.log('preVerificationGas ', Math.floor(preVerificationGas))
+    return Math.floor(preVerificationGas)
   }
 
   async encodeUserOpCallDataAndGasLimit(
     detailsForUserOp: TransactionDetailsForUserOp
   ): Promise<{ callData: string; callGasLimit: BigNumber }> {
+    /* eslint-disable  @typescript-eslint/no-explicit-any */
     function parseNumber(a: any): BigNumber | null {
       if (a == null || a === '') return null
       return BigNumber.from(a.toString())
     }
 
-    if(detailsForUserOp && detailsForUserOp.target === '' && detailsForUserOp.data === '') {
+    if (detailsForUserOp && detailsForUserOp.target === '' && detailsForUserOp.data === '') {
       return {
         callData: '0x',
-        callGasLimit: BigNumber.from("21000")
+        callGasLimit: BigNumber.from('21000')
       }
     }
 
     const value = parseNumber(detailsForUserOp.value) ?? BigNumber.from(0)
-    const callData = await this.encodeExecute(detailsForUserOp.target, value, detailsForUserOp.data, detailsForUserOp.isDelegateCall || false)
-    
+    const callData = await this.encodeExecute(
+      detailsForUserOp.target,
+      value,
+      detailsForUserOp.data,
+      detailsForUserOp.isDelegateCall || false
+    )
+
     /*const callData = (await this._getWalletContract()).encodeFunctionData('execFromEntryPoint', [
       detailsForUserOp.target,
       value,
@@ -245,7 +265,9 @@ export abstract class BaseWalletAPI {
       // add creation to required verification gas
       // using entry point static for gas estimation
       const entryPointStatic = this.entryPoint.connect(ZERO_ADDRESS)
-      const initGas = await entryPointStatic.estimateGas.getSenderAddress(initCode, { from: ZERO_ADDRESS} )
+      const initGas = await entryPointStatic.estimateGas.getSenderAddress(initCode, {
+        from: ZERO_ADDRESS
+      })
       verificationGasLimit = verificationGasLimit.add(initGas)
     }
 

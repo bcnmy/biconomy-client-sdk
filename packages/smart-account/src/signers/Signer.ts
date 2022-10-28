@@ -24,6 +24,7 @@ export abstract class Signer extends AbstractSigner {
   abstract signMessage(message: BytesLike, chainId?: ChainId): Promise<string>
 
   // signTypedData ..
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   abstract signTypedData(
     domain: TypedDataDomain,
     types: Record<string, Array<TypedDataField>>,

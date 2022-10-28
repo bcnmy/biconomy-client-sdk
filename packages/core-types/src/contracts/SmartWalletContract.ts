@@ -13,17 +13,20 @@ export interface SmartWalletContract {
   getAddress(): string
   getContract(): Contract
   getInterface(): Interface
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   setAddress(address: string): any
   getOwner(): Promise<string>
   getVersion(): Promise<SmartAccountVersion>
   getNonce(batchId: number): Promise<BigNumber>
   getTransactionHash(smartAccountTrxData: IWalletTransaction): Promise<string>
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   execTransaction(
     transaction: ExecTransaction,
     batchId: number,
     feeRefundData: IFeeRefundV1_0_0,
     signatures: string
   ): any
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   execTransaction(
     transaction: ExecTransaction,
     batchId: number,

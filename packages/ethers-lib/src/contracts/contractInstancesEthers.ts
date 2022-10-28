@@ -94,10 +94,16 @@ export function getSmartWalletFactoryContractInstance(
 
   switch (smartAccountVersion) {
     case '1.0.0':
-      walletFactoryContract = SmartWalletFactoryFactoryContractV100.connect(contractAddress, provider)
+      walletFactoryContract = SmartWalletFactoryFactoryContractV100.connect(
+        contractAddress,
+        provider
+      )
       return new SmartWalletFacoryContractEthers_v1_0_0(walletFactoryContract)
     case '1.0.1':
-      walletFactoryContract = SmartWalletFactoryFactoryContractV101.connect(contractAddress, provider)
+      walletFactoryContract = SmartWalletFactoryFactoryContractV101.connect(
+        contractAddress,
+        provider
+      )
       return new SmartWalletFacoryContractEthers_v1_0_1(walletFactoryContract)
   }
 }

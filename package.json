@@ -14,7 +14,9 @@
     "postinstall": "cd packages/ethers-lib; hardhat compile",
     "prettier": "lerna run prettier --npm-client=npm",
     "diff": "lerna diff",
-    "new-version": "lerna version --conventional-commits --yes"
+    "new-version": "lerna version --conventional-commits --yes",
+    "lint": "eslint -c .eslintrc.js 'packages/*/src/**/*.{ts,tsx}'",
+    "lint:fix": "eslint -c .eslintrc.js 'packages/*/src/**/*.{ts,tsx}' --fix"
   },
   "changelog": {
     "labels": {
@@ -31,6 +33,7 @@
   "devDependencies": {
     "@types/jest": "^28.1.7",
     "@types/mocha": "^9.1.1",
+    "eslint-plugin-import": "^2.26.0",
     "hardhat": "^2.9.9",
     "lerna": "^5.5.4",
     "nx": "^15.0.4",

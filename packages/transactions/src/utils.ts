@@ -1,11 +1,13 @@
-import { BigNumber, BigNumberish, Contract, utils } from 'ethers'
+import { BigNumberish, Contract, utils } from 'ethers'
 
 import { IMetaTransaction, IWalletTransaction, Transaction } from '@biconomy-sdk/core-types'
 
 import { AddressZero } from '@ethersproject/constants'
 
 export class Utils {
-  constructor() {}
+  constructor() {
+    console.log('Utils Class Initialized')
+  }
 
   buildSmartAccountTransaction = (template: {
     to: string
@@ -70,19 +72,16 @@ export class Utils {
     multiSend: Contract,
     txs: IMetaTransaction[],
     nonce: number,
-    delegateCall?: boolean,
+    delegateCall?: boolean
   ): IMetaTransaction => {
-
     const data = multiSend.interface.encodeFunctionData('multiSend', [this.encodeMultiSend(txs)])
     return this.buildSmartAccountTransaction(
-      Object.assign(
-        {
-          to: multiSend.address,
-          data,
-          operation: delegateCall ? 1 : 0,
-          nonce
-        },
-      )
+      Object.assign({
+        to: multiSend.address,
+        data,
+        operation: delegateCall ? 1 : 0,
+        nonce
+      })
     )
   }
 
@@ -99,6 +98,7 @@ export class Utils {
     return encoded.slice(2)
   }
 
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   buildContractCall = (
     contract: Contract,
     method: string,

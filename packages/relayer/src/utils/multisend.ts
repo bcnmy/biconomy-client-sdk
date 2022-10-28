@@ -1,5 +1,4 @@
-import { Contract, BigNumber, BigNumberish, utils } from 'ethers'
-import { TypedDataSigner } from '@ethersproject/abstract-signer'
+import { Contract, BigNumberish, utils } from 'ethers'
 import { AddressZero } from '@ethersproject/constants'
 
 export interface MetaTransaction {
@@ -18,6 +17,7 @@ export interface WalletTransaction extends MetaTransaction {
   nonce: number
 }
 
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 export const buildContractCall = (
   contract: Contract,
   method: string,

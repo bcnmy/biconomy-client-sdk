@@ -12,10 +12,9 @@ import { UserOperation } from '@biconomy-sdk/core-types'
 import { BaseWalletAPI } from './BaseWalletAPI'
 
 export class ERC4337EthersProvider extends BaseProvider {
-
   readonly signer: ERC4337EthersSigner
 
-  constructor (
+  constructor(
     readonly config: ClientConfig,
     readonly originalSigner: Signer,
     readonly originalProvider: BaseProvider,
@@ -27,19 +26,26 @@ export class ERC4337EthersProvider extends BaseProvider {
       name: 'ERC-4337 Custom Network',
       chainId: config.chainId
     })
-    this.signer = new ERC4337EthersSigner(config, originalSigner, this, httpRpcClient, smartWalletAPI)
+    this.signer = new ERC4337EthersSigner(
+      config,
+      originalSigner,
+      this,
+      httpRpcClient,
+      smartWalletAPI
+    )
   }
 
-  async init (): Promise<this> {
+  async init(): Promise<this> {
     await this.smartWalletAPI.init()
     return this
   }
 
-  getSigner (): ERC4337EthersSigner {
+  getSigner(): ERC4337EthersSigner {
     return this.signer
   }
 
-  async perform (method: string, params: any): Promise<any> {
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
+  async perform(method: string, params: any): Promise<any> {
     if (method === 'sendTransaction' || method === 'getTransactionReceipt') {
       // TODO: do we need 'perform' method to be available at all?
       // there is nobody out there to use it for ERC-4337 methods yet, we have nothing to override in fact.
@@ -48,42 +54,59 @@ export class ERC4337EthersProvider extends BaseProvider {
     return await this.originalProvider.perform(method, params)
   }
 
-  async getTransaction (transactionHash: string | Promise<string>): Promise<TransactionResponse> {
+  async getTransaction(transactionHash: string | Promise<string>): Promise<TransactionResponse> {
     // TODO
     return await super.getTransaction(transactionHash)
   }
 
-  async getTransactionReceipt (transactionHash: string | Promise<string>): Promise<TransactionReceipt> {
+  async getTransactionReceipt(
+    transactionHash: string | Promise<string>
+  ): Promise<TransactionReceipt> {
     const requestId = await transactionHash
     const sender = await this.getSenderWalletAddress()
     return await new Promise<TransactionReceipt>((resolve, reject) => {
-      new UserOperationEventListener(
-        resolve, reject, this.entryPoint, sender, requestId
-      ).start()
+      new UserOperationEventListener(resolve, reject, this.entryPoint, sender, requestId).start()
     })
   }
 
-  async getSenderWalletAddress (): Promise<string> {
+  async getSenderWalletAddress(): Promise<string> {
     return await this.smartWalletAPI.getWalletAddress()
   }
 
-  async waitForTransaction (transactionHash: string, confirmations?: number, timeout?: number): Promise<TransactionReceipt> {
+  async waitForTransaction(
+    transactionHash: string,
+    confirmations?: number,
+    timeout?: number
+  ): Promise<TransactionReceipt> {
     console.log(confirmations)
     const sender = await this.getSenderWalletAddress()
 
     return await new Promise<TransactionReceipt>((resolve, reject) => {
-      const listener = new UserOperationEventListener(resolve, reject, this.entryPoint, sender, transactionHash, undefined, timeout)
+      const listener = new UserOperationEventListener(
+        resolve,
+        reject,
+        this.entryPoint,
+        sender,
+        transactionHash,
+        undefined,
+        timeout
+      )
       listener.start()
     })
   }
 
   // fabricate a response in a format usable by ethers users...
-  async constructUserOpTransactionResponse (userOp1: UserOperation): Promise<TransactionResponse> {
+  async constructUserOpTransactionResponse(userOp1: UserOperation): Promise<TransactionResponse> {
     const userOp = await resolveProperties(userOp1)
     const requestId = getRequestId(userOp, this.config.entryPointAddress, this.config.chainId)
     const waitPromise = new Promise<TransactionReceipt>((resolve, reject) => {
       new UserOperationEventListener(
-        resolve, reject, this.entryPoint, userOp.sender, requestId, userOp.nonce
+        resolve,
+        reject,
+        this.entryPoint,
+        userOp.sender,
+        requestId,
+        userOp.nonce
       ).start()
     })
     return {
@@ -107,7 +130,8 @@ export class ERC4337EthersProvider extends BaseProvider {
     }
   }
 
-  async detectNetwork (): Promise<Network> {
+  async detectNetwork(): Promise<Network> {
+    /* eslint-disable  @typescript-eslint/no-explicit-any */
     return (this.originalProvider as any).detectNetwork()
   }
 }

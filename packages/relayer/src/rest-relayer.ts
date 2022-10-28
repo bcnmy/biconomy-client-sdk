@@ -1,5 +1,5 @@
-import { TransactionRequest, TransactionResponse } from '@ethersproject/providers'
-import { Signer as AbstractSigner, ethers } from 'ethers'
+import { TransactionResponse } from '@ethersproject/providers'
+import { ethers } from 'ethers'
 import { Relayer } from '.'
 
 import {
@@ -21,16 +21,18 @@ export class RestRelayer implements Relayer {
 
   // #chainId: number
 
-  relayerNodeEthersProvider: ethers.providers.JsonRpcProvider;
+  relayerNodeEthersProvider: ethers.providers.JsonRpcProvider
 
   constructor(options: RestRelayerOptions) {
     const { url /*, chainId*/ } = options
     this.#relayServiceBaseUrl = url
     // this.#chainId = chainId
-    this.relayerNodeEthersProvider = new ethers.providers.JsonRpcProvider(url /*, {
+    this.relayerNodeEthersProvider = new ethers.providers.JsonRpcProvider(
+      url /*, {
       name: 'Not actually connected to network, only talking to the Relayer!',
       chainId
-    }*/);
+    }*/
+    )
   }
 
   prepareWalletDeploy(
@@ -96,26 +98,33 @@ export class RestRelayer implements Relayer {
       console.log(finalRawRx)
 
       // JSON RPC Call
-      // rawTx to becomes multiSend address and data gets prepared again 
-      return await this.relayerNodeEthersProvider
-      .send('eth_sendSmartContractWalletTransaction', [{ ...finalRawRx, gasLimit: (gasLimit as GasLimit).hex, refundInfo: {
-        tokenGasPrice: signedTx.tx.gasPrice,
-        gasToken: signedTx.tx.gasToken,
-        } 
-      }])
+      // rawTx to becomes multiSend address and data gets prepared again
+      return await this.relayerNodeEthersProvider.send('eth_sendSmartContractWalletTransaction', [
+        {
+          ...finalRawRx,
+          gasLimit: (gasLimit as GasLimit).hex,
+          refundInfo: {
+            tokenGasPrice: signedTx.tx.gasPrice,
+            gasToken: signedTx.tx.gasToken
+          }
+        }
+      ])
     }
 
     console.log('signedTx', signedTx)
 
     // JSON RPC Call
-    // rawTx to becomes multiSend address and data gets prepared again 
-    return await this.relayerNodeEthersProvider
-      .send('eth_sendSmartContractWalletTransaction', [{
-        ...signedTx.rawTx, gasLimit: (gasLimit as GasLimit).hex, refundInfo: {
+    // rawTx to becomes multiSend address and data gets prepared again
+    return await this.relayerNodeEthersProvider.send('eth_sendSmartContractWalletTransaction', [
+      {
+        ...signedTx.rawTx,
+        gasLimit: (gasLimit as GasLimit).hex,
+        refundInfo: {
           tokenGasPrice: signedTx.tx.gasPrice,
-          gasToken: signedTx.tx.gasToken,
+          gasToken: signedTx.tx.gasToken
         }
-      }])
+      }
+    ])
   }
 
   async getFeeOptions(chainId: number): Promise<FeeOptionsResponse> {

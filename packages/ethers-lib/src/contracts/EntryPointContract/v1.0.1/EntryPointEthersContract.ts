@@ -1,11 +1,8 @@
 import { EntryPointContract, UserOperation, ITransactionResult } from '@biconomy-sdk/core-types'
-import {
-  EntryPointContractV101 as EntryPointContract_TypeChain,
-  EntryPointContractV101Interface
-} from '../../../../typechain/src/ethers-v5/v1.0.1/EntryPointContractV101'
+import { EntryPointContractV101 as EntryPointContract_TypeChain } from '../../../../typechain/src/ethers-v5/v1.0.1/EntryPointContractV101'
 import { toTxResult } from '../../../utils'
 import { Contract } from '@ethersproject/contracts'
-import { BytesLike, ContractTransaction } from 'ethers'
+import { BytesLike } from 'ethers'
 class EntryPointEthersContract implements EntryPointContract {
   constructor(public contract: EntryPointContract_TypeChain) {}
 
