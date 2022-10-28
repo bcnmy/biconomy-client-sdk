@@ -33,7 +33,11 @@ import NodeClient, {
   ProviderUrlConfig,
   ChainConfig,
   SmartAccountsResponse,
-  SmartAccountByOwnerDto
+  SmartAccountByOwnerDto,
+  SCWTransactionResponse,
+  BalancesResponse,
+  BalancesDto,
+  UsdBalanceResponse,
 } from '@biconomy-sdk/node-client'
 import { Web3Provider } from '@ethersproject/providers'
 import { Relayer, RestRelayer } from '@biconomy-sdk/relayer'
@@ -44,37 +48,13 @@ import TransactionManager, {
   smartAccountSignTypedData
 } from '@biconomy-sdk/transactions'
 
-import { BalancesDto } from '@biconomy-sdk/node-client'
-import {
-  SCWTransactionResponse,
-  BalancesResponse,
-  UsdBalanceResponse
-} from '@biconomy-sdk/node-client'
-
 import { TransactionResponse } from '@ethersproject/providers'
 import { SmartAccountSigner } from './signers/SmartAccountSigner'
 
 // AA
 import { newProvider, ERC4337EthersProvider } from '@biconomy-sdk/account-abstraction'
+
 import { ethers, Signer } from 'ethers'
-
-// function Confirmable() {
-//   return function (target: Object, key: string | symbol, descriptor: PropertyDescriptor) {
-//     console.log('target ', target)
-//     console.log('key ', key)
-//     console.log('descriptor ', descriptor)
-//     const original = descriptor.value;
-
-//       descriptor.value = function( ... args: any[]) {
-//         console.log('args ', args)
-//         args[0].chainId = 1
-//         const result = original.apply(this, args);
-//         return result;
-//     };
-
-//     return descriptor;
-//   };
-// }
 
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount {
@@ -100,17 +80,13 @@ class SmartAccount {
   // 4337Provider
   aaProvider!: { [chainId: number]: ERC4337EthersProvider }
 
-  // Ideally not JsonRpcSigner but extended signer // Also the original EOA signer
   signer!: Signer & TypedDataSigner
-  // We may have different signer for ERC4337
 
   nodeClient!: NodeClient
 
   contractUtils!: ContractUtils
 
-  // TBD : Do we keep manager for both SCW(forward) and Account Abstraction?
   transactionManager!: TransactionManager
-  // aaTransactionManager
 
   // Instance of relayer (Relayer Service Client) connected with this Smart Account and always ready to dispatch transactions
   // relayer.relay => dispatch to blockchain
@@ -126,33 +102,24 @@ class SmartAccount {
   // @review
   address!: string
 
+  // TODO : move to network config
   dappAPIKey!: string
 
+  // TODO : review from contractUtils
   smartAccountState!: SmartAccountState
 
   // TODO
   // Review provider type WalletProviderLike / ExternalProvider
   // Can expose recommended provider classes through the SDK
 
-  /**
-   * Constrcutor for the Smart Account. If config is not provided it makes Smart Account available using default configuration
-   * If you wish to use your own backend server and relayer service, pass the URLs here
-   */
   // review SmartAccountConfig
   // TODO : EOA signer instead of { walletProvider }
   // TODO : We Need to take EntryPoint | Paymaster | bundlerUrl address as optional ?
   // TODO: May be need to manage separate config for Forward and gasless Flow
 
   /**
-    Scw-Refund-Flow -- config
-  prepareRefundTransactionBatch
-  createRefundTransactionBatch
-  sendTransaction
-   */
-
-  /**
-   GassLess Flow -- config
-   sendGaslessTransaction
+   * Constrcutor for the Smart Account. If config is not provided it makes Smart Account available using default configuration
+   * If you wish to use your own backend server and relayer service, pass the URLs here
    */
   constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }

@@ -33,8 +33,6 @@ class ContractUtils {
 
   smartAccountState!: SmartAccountState
 
-  // Note: Should DEFAULT_VERSION be moved here?
-
   constructor(readonly chainConfig: ChainConfig[]) {
     this.ethAdapter = {}
     this.smartWalletContract = {}
