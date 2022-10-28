@@ -3,6 +3,7 @@ import { ethers } from 'ethers'
 import { hexValue, resolveProperties } from 'ethers/lib/utils'
 
 import { UserOperation } from '@biconomy-sdk/core-types'
+import { HttpMethod, sendRequest } from './utils/httpRequests'
 export class HttpRpcClient {
   private readonly userOpJsonRpcProvider: JsonRpcProvider
 
@@ -15,6 +16,7 @@ export class HttpRpcClient {
       name: 'Not actually connected to network, only talking to the Bundler!',
       chainId
     })
+    // this.chainId = chainId;
   }
 
   // TODO : add version of HttpRpcClient || interface in RPC relayer to sendSCWTransactionToRelayer
@@ -35,7 +37,7 @@ export class HttpRpcClient {
     const jsonRequestData: [UserOperation, string] = [hexifiedUserOp, this.entryPointAddress]
     await this.printUserOperation(jsonRequestData)
     return await this.userOpJsonRpcProvider
-      .send('eth_sendUserOperation', [hexifiedUserOp, this.entryPointAddress])
+      .send('eth_sendUserOperation', [hexifiedUserOp, this.entryPointAddress, this.chainId])
   }
 
   private async printUserOperation ([userOp1, entryPointAddress]: [UserOperation, string]): Promise<void> {
