@@ -114,13 +114,12 @@ class SmartAccount {
 
   // review SmartAccountConfig
   // TODO : EOA signer instead of { walletProvider }
-  // TODO : We Need to take EntryPoint | Paymaster | bundlerUrl address as optional ?
-  // TODO: May be need to manage separate config for Forward and gasless Flow
 
   /**
    * Constrcutor for the Smart Account. If config is not provided it makes Smart Account available using default configuration
    * If you wish to use your own backend server and relayer service, pass the URLs here
    */
+  // todo : could remove WalletProvider
   constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
 
