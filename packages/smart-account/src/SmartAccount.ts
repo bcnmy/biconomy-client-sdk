@@ -173,8 +173,11 @@ class SmartAccount {
 
     // Should not break if we make this wallet connected provider optional (We'd have JsonRpcProvider / JsonRpcSender)
     this.provider = walletProvider
-    // TODO:: Allow original signer to be passed and preserve
-    this.signer = new SmartAccountSigner(this.provider)
+    if (this.#smartAccountConfig.signType === 'PERSONAL_SIGN') {
+      this.signer = walletProvider.getSigner()
+    } else {
+      this.signer = new SmartAccountSigner(this.provider)
+    }
 
     this.nodeClient = new NodeClient({ txServiceUrl: this.#smartAccountConfig.backend_url })
     this.relayer = new RestRelayer({ url: this.#smartAccountConfig.relayer_url })

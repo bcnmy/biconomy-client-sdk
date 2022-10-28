@@ -16,11 +16,17 @@ export interface SmartAccountConfig {
   backend_url: string
   relayer_url: string
   dappAPIKey?: string
+  signType?: SignTypeMethod
   providerUrlConfig?: ProviderUrlConfig[]
   entryPointAddress?: string
   bundlerUrl?: string
   paymasterAddress?: string
   signingServiceUrl: string
+}
+
+enum SignTypeMethod {
+  PERSONAL_SIGN = 'PERSONAL_SIGN',
+  EIP712_SIGN = 'EIP712_SIGN'
 }
 
 export type ProviderUrlConfig = {
@@ -45,7 +51,7 @@ export type EstimateSmartAccountDeploymentDto = {
 
 export type SmartAccountState = {
   chainId: ChainId
-  version: string,
+  version: string
   address: string // multichain (EVM)
   owner: string // multichain (EVM)
   isDeployed: boolean // chain specific
