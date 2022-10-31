@@ -13,6 +13,7 @@ import {
 } from '@biconomy-sdk/core-types'
 import { MetaTransaction, encodeMultiSend } from './utils/multisend'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
+import { ClientMessenger } from 'gasless-messaging-sdk'
 
 /**
  * Relayer class that would be used via REST API to execute transactions
@@ -71,6 +72,7 @@ export class RestRelayer implements Relayer {
     this.setRelayerNodeEthersProvider(chainId)
 
     const { multiSendCall } = context // multisend has to be multiSendCallOnly here!
+    let finalRawRx
     if (!isDeployed) {
       const prepareWalletDeploy: DeployWallet = {
         config,
@@ -98,41 +100,27 @@ export class RestRelayer implements Relayer {
         .getInterface()
         .encodeFunctionData('multiSend', [encodeMultiSend(txs)])
 
-      const finalRawRx = {
+      finalRawRx = {
         to: multiSendCall.getAddress(),
         data: txnData,
         chainId: signedTx.rawTx.chainId,
         value: 0
       }
-      console.log('finaRawTx')
-      console.log(finalRawRx)
 
       // JSON RPC Call
       // rawTx to becomes multiSend address and data gets prepared again
-      return await this.relayerNodeEthersProvider[chainId].send(
-        'eth_sendSmartContractWalletTransaction',
-        [
-          {
-            ...finalRawRx,
-            gasLimit: (gasLimit as GasLimit).hex,
-            refundInfo: {
-              tokenGasPrice: signedTx.tx.gasPrice,
-              gasToken: signedTx.tx.gasToken
-            }
-          }
-        ]
-      )
+    } else {
+      finalRawRx = signedTx.rawTx
     }
 
-    console.log('signedTx', signedTx)
+    console.log('finaRawTx')
+    console.log(finalRawRx)
 
-    // JSON RPC Call
-    // rawTx to becomes multiSend address and data gets prepared again
-    return await this.relayerNodeEthersProvider[chainId].send(
+    const response = await this.relayerNodeEthersProvider[chainId].send(
       'eth_sendSmartContractWalletTransaction',
       [
         {
-          ...signedTx.rawTx,
+          ...finalRawRx,
           gasLimit: (gasLimit as GasLimit).hex,
           refundInfo: {
             tokenGasPrice: signedTx.tx.gasPrice,
@@ -141,6 +129,57 @@ export class RestRelayer implements Relayer {
         }
       ]
     )
+    if (response.transactionId && response.connectionUrl) {
+      const clientMessenger = new ClientMessenger(response.connectionUrl)
+      if (!clientMessenger.socketClient.isConnected()) {
+        await clientMessenger.connect()
+      }
+
+      clientMessenger.createTransactionNotifier(response.transactionId, {
+        onMined: (tx: any) => {
+          const txId = tx.transactionId
+          clientMessenger.unsubscribe(txId)
+          console.log(
+            `Tx Hash mined message received at client ${JSON.stringify({
+              transactionId: txId,
+              hash: tx.transactionHash,
+              receipt: tx.receipt
+            })}`
+          )
+        },
+        onHashGenerated: async (tx: any) => {
+          const txHash = tx.transactionHash
+          const txId = tx.transactionId
+          console.log(
+            `Tx Hash generated message received at client ${JSON.stringify({
+              transactionId: txId,
+              hash: txHash
+            })}`
+          )
+
+          console.log(`Receive time for transaction id ${txId}: ${Date.now()}`)
+          return {
+            transactionId: txId,
+            hash: txHash
+          }
+        },
+        onError: async (tx: any) => {
+          const err = tx.error
+          const txId = tx.transactionId
+          console.log(`Error message received at client is ${err}`)
+          clientMessenger.unsubscribe(txId)
+
+          return {
+            transactionId: txId,
+            error: err
+          }
+        }
+      })
+    }
+    return {
+      transactionId: response.transactionId,
+      error: response.error || 'transaction failed'
+    }
   }
 
   async getFeeOptions(chainId: number): Promise<FeeOptionsResponse> {
