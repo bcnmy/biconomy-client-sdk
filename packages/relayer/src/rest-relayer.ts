@@ -129,13 +129,15 @@ export class RestRelayer implements Relayer {
         }
       ]
     )
-    if (response.transactionId && response.connectionUrl) {
-      const clientMessenger = new ClientMessenger(response.connectionUrl)
+    if (response.data) {
+      const transactionId = response.data.transactionId
+      const connectionUrl = response.data.connectionUrl
+      const clientMessenger = new ClientMessenger(connectionUrl)
       if (!clientMessenger.socketClient.isConnected()) {
         await clientMessenger.connect()
       }
 
-      clientMessenger.createTransactionNotifier(response.transactionId, {
+      clientMessenger.createTransactionNotifier(transactionId, {
         onMined: (tx: any) => {
           const txId = tx.transactionId
           clientMessenger.unsubscribe(txId)
@@ -177,7 +179,6 @@ export class RestRelayer implements Relayer {
       })
     }
     return {
-      transactionId: response.transactionId,
       error: response.error || 'transaction failed'
     }
   }
