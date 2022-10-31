@@ -170,7 +170,7 @@ class SmartAccount {
       if (!network) return
       const providerUrl = this.getProviderUrl(network)
       const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
-      await this.contractUtils.initializeContracts(this.signer, readProvider, network)
+      this.contractUtils.initializeContracts(this.signer, readProvider, network)
 
       if (!this.address) {
         this.address = await this.getAddress({
