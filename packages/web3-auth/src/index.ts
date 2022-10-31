@@ -1,3 +1,3 @@
-import Torus from '@toruslabs/torus-embed'
+import SocialLogin from './SocialLogin'
 
-export default Torus
+export default SocialLogin
