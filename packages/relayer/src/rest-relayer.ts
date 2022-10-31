@@ -1,4 +1,4 @@
-import { TransactionResponse } from '@ethersproject/providers'
+import { JsonRpcProvider, TransactionResponse } from '@ethersproject/providers'
 import { ethers } from 'ethers'
 import { Relayer } from '.'
 
@@ -8,7 +8,8 @@ import {
   RestRelayerOptions,
   FeeOptionsResponse,
   RelayResponse,
-  GasLimit
+  GasLimit,
+  ChainId
 } from '@biconomy-sdk/core-types'
 import { MetaTransaction, encodeMultiSend } from './utils/multisend'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
@@ -19,20 +20,24 @@ import { HttpMethod, sendRequest } from './utils/httpRequests'
 export class RestRelayer implements Relayer {
   #relayServiceBaseUrl: string
 
-  // #chainId: number
-
-  relayerNodeEthersProvider: ethers.providers.JsonRpcProvider
+  relayerNodeEthersProvider!: { [chainId: number]: JsonRpcProvider }
 
   constructor(options: RestRelayerOptions) {
-    const { url /*, chainId*/ } = options
+    const { url } = options
+    this.relayerNodeEthersProvider = {}
     this.#relayServiceBaseUrl = url
-    // this.#chainId = chainId
-    this.relayerNodeEthersProvider = new ethers.providers.JsonRpcProvider(
-      url /*, {
-      name: 'Not actually connected to network, only talking to the Relayer!',
-      chainId
-    }*/
-    )
+  }
+
+  setRelayerNodeEthersProvider(chainId: ChainId) {
+    if (!this.relayerNodeEthersProvider[chainId]) {
+      this.relayerNodeEthersProvider[chainId] = new ethers.providers.JsonRpcProvider(
+        this.#relayServiceBaseUrl,
+        {
+          name: 'Not actually connected to network, only talking to the Relayer!',
+          chainId: chainId
+        }
+      )
+    }
   }
 
   prepareWalletDeploy(
@@ -60,6 +65,11 @@ export class RestRelayer implements Relayer {
   async relay(relayTransaction: RelayTransaction): Promise<RelayResponse> {
     const { config, signedTx, context, gasLimit } = relayTransaction
     const { isDeployed, address } = config
+    const chainId = signedTx.rawTx.chainId
+
+    // Creates an instance of relayer node ethers provider for chain not already discovered
+    this.setRelayerNodeEthersProvider(chainId)
+
     const { multiSendCall } = context // multisend has to be multiSendCallOnly here!
     if (!isDeployed) {
       const prepareWalletDeploy: DeployWallet = {
@@ -99,32 +109,38 @@ export class RestRelayer implements Relayer {
 
       // JSON RPC Call
       // rawTx to becomes multiSend address and data gets prepared again
-      return await this.relayerNodeEthersProvider.send('eth_sendSmartContractWalletTransaction', [
-        {
-          ...finalRawRx,
-          gasLimit: (gasLimit as GasLimit).hex,
-          refundInfo: {
-            tokenGasPrice: signedTx.tx.gasPrice,
-            gasToken: signedTx.tx.gasToken
+      return await this.relayerNodeEthersProvider[chainId].send(
+        'eth_sendSmartContractWalletTransaction',
+        [
+          {
+            ...finalRawRx,
+            gasLimit: (gasLimit as GasLimit).hex,
+            refundInfo: {
+              tokenGasPrice: signedTx.tx.gasPrice,
+              gasToken: signedTx.tx.gasToken
+            }
           }
-        }
-      ])
+        ]
+      )
     }
 
     console.log('signedTx', signedTx)
 
     // JSON RPC Call
     // rawTx to becomes multiSend address and data gets prepared again
-    return await this.relayerNodeEthersProvider.send('eth_sendSmartContractWalletTransaction', [
-      {
-        ...signedTx.rawTx,
-        gasLimit: (gasLimit as GasLimit).hex,
-        refundInfo: {
-          tokenGasPrice: signedTx.tx.gasPrice,
-          gasToken: signedTx.tx.gasToken
+    return await this.relayerNodeEthersProvider[chainId].send(
+      'eth_sendSmartContractWalletTransaction',
+      [
+        {
+          ...signedTx.rawTx,
+          gasLimit: (gasLimit as GasLimit).hex,
+          refundInfo: {
+            tokenGasPrice: signedTx.tx.gasPrice,
+            gasToken: signedTx.tx.gasToken
+          }
         }
-      }
-    ])
+      ]
+    )
   }
 
   async getFeeOptions(chainId: number): Promise<FeeOptionsResponse> {
