@@ -566,7 +566,12 @@ class SmartAccount {
       relayTrx.gasLimit = gasLimit
     }
     const txn: RelayResponse = await this.relayer.relay(relayTrx)
-    return txn.hash
+    console.log('txn')
+    console.log(txn)
+    if (txn.hash) {
+      return txn.hash
+    }
+    return ''
   }
 
   // Get Fee Options from relayer and make it available for display
