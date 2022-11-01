@@ -166,9 +166,9 @@ export class RestRelayer implements Relayer {
           }
         },
         onError: async (tx: any) => {
+          console.log(`Error message received at client is ${tx}`)
           const err = tx.error
           const txId = tx.transactionId
-          console.log(`Error message received at client is ${err}`)
           clientMessenger.unsubscribe(txId)
 
           return {

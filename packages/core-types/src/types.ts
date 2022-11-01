@@ -15,7 +15,7 @@ export type Eip3770Address = {
 export type RelayResponse = {
   code?: number
   message?: string
-  transactionId: string
+  transactionId?: string
   hash?: string
   error?: string
   connectionUrl?: string
