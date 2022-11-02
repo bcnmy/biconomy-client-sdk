@@ -28,7 +28,7 @@
     "@biconomy-sdk/core-types": "*",
     "@ethersproject/providers": "^5.6.8",
     "ethers": "^5.6.9",
-    "gasless-messaging-sdk": "^0.0.9"
+    "messaging-sdk": "^0.0.3"
   },
   "publishConfig": {
     "access": "public"

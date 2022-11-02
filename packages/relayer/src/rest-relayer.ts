@@ -13,7 +13,7 @@ import {
 } from '@biconomy-sdk/core-types'
 import { MetaTransaction, encodeMultiSend } from './utils/multisend'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-import { ClientMessenger } from 'gasless-messaging-sdk'
+import { ClientMessenger } from 'messaging-sdk'
 
 /**
  * Relayer class that would be used via REST API to execute transactions
@@ -116,7 +116,7 @@ export class RestRelayer implements Relayer {
     console.log('finaRawTx')
     console.log(finalRawRx)
 
-    const response = await this.relayerNodeEthersProvider[chainId].send(
+    const response: any = await this.relayerNodeEthersProvider[chainId].send(
       'eth_sendSmartContractWalletTransaction',
       [
         {
@@ -129,6 +129,8 @@ export class RestRelayer implements Relayer {
         }
       ]
     )
+    console.log('rest relayer : response')
+    console.log(response)
     if (response.data) {
       const transactionId = response.data.transactionId
       const connectionUrl = response.data.connectionUrl
