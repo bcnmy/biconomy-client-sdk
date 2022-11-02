@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 
 const googleCardStyle = {
   display: 'flex',
@@ -14,7 +14,6 @@ const googleCardStyle = {
 } as React.CSSProperties
 
 const buttonTextSpan = {
-  fontFamily: 'Chakra Petch',
   fontStyle: 'normal',
   fontWeight: 600,
   fontSize: '18px',
@@ -25,19 +24,15 @@ const buttonTextSpan = {
   color: '#FFFFFF'
 } as React.CSSProperties
 
-const grid = {
-  display: 'flex',
-  alignItems: 'center',
-  flexDirection: 'column'
-} as React.CSSProperties
-
 const container = {
   position: 'fixed',
   float: 'left',
-  left: '0%',
-  top: '0%',
-  // transform: 'translate(0%, 50%)',
+  left: '50%',
+  top: '50%',
+  transform: 'translate(-50%, -50%)',
   transition: 'opacity 400ms ease-in',
+  border: '1px solid #181818',
+  boxShadow: '5px 5px 0px #181818',
   borderRadius: 10,
   padding: 30,
   zIndex: 100,
@@ -52,7 +47,6 @@ const footer = {
 } as React.CSSProperties
 
 const footerNormalText = {
-  fontFamily: 'Chakra Petch',
   fontStyle: 'normal',
   fontWeight: '600',
   fontSize: '14.109px',
@@ -61,7 +55,6 @@ const footerNormalText = {
 } as React.CSSProperties
 
 const footerBigText = {
-  fontFamily: 'Chakra Petch',
   fontStyle: 'normal',
   fontWeight: '700',
   fontSize: '16.1351px',
@@ -70,54 +63,47 @@ const footerBigText = {
 } as React.CSSProperties
 
 const UI = (props: any) => {
-  const [show, setShow] = useState(true)
-
-  useEffect(() => {
-    document.addEventListener('show-modal', (_e: unknown) => {
-      setShow(true)
-    })
-    document.addEventListener('hide-modal', () => {
-      setShow(false)
-    })
-  }, [])
-
-  if (!show) {
-    return <></>
-  }
-
   return (
     <div style={container}>
       <img
         src={'https://live-nft-hosted-assets.s3.ap-south-1.amazonaws.com/cancel_icon.svg'}
         style={{ position: 'absolute', right: 18, cursor: 'pointer' }}
-        onClick={props.socialLogin.hideWallet}
+        onClick={() => props.socialLogin.hideWallet()}
       />
       <div
         style={{
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          position: 'relative'
+          position: 'relative',
+          color: '#FFFFFF',
+          flexDirection: 'column'
         }}
       >
         <h1
           style={{
-            fontFamily: 'Chakra Petch',
             fontStyle: 'normal',
             fontWeight: '700',
             fontSize: '28px',
             lineHeight: '110%',
+            margin: '15px',
             display: 'flex',
             alignItems: 'center',
             textAlign: 'center',
-            color: '#FFFFFF',
             border: '1px solid #000000',
             textShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)'
           }}
         >
-          Create a wallet <br />
-          to continue
+          Biconomy Social Login
         </h1>
+        <p
+          style={{
+            fontSize: '18px',
+            marginBottom: 35
+          }}
+        >
+          Create a wallet to continue
+        </p>
       </div>
       <div>
         <button onClick={() => props.socialLogin.login()} style={googleCardStyle}>
