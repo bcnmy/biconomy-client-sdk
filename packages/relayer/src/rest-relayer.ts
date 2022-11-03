@@ -1,5 +1,5 @@
 import { JsonRpcProvider, TransactionResponse } from '@ethersproject/providers'
-import { ethers } from 'ethers'
+import { constants, ethers } from 'ethers'
 import { Relayer } from '.'
 
 import {
@@ -14,6 +14,7 @@ import {
 import { MetaTransaction, encodeMultiSend } from './utils/multisend'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
 import { ClientMessenger } from 'messaging-sdk'
+import WebSocket from 'isomorphic-ws'
 
 /**
  * Relayer class that would be used via REST API to execute transactions
@@ -63,10 +64,23 @@ export class RestRelayer implements Relayer {
   // Make gas limit a param
   // We would send manual gas limit with high targetTxGas (whenever targetTxGas can't be accurately estimated)
 
-  async relay(relayTransaction: RelayTransaction): Promise<RelayResponse> {
+  // TODO: return transactionId, connectionUrl
+  async relay(relayTransaction: RelayTransaction): Promise<any> {
+    // TODO comes from own config
+    const socketServerUrl = 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket'
+
+    const clientMessenger = new ClientMessenger(socketServerUrl, WebSocket)
+
+    if (!clientMessenger.socketClient.isConnected()) {
+      await clientMessenger.connect()
+      console.log('connect success')
+    }
+
     const { config, signedTx, context, gasLimit } = relayTransaction
     const { isDeployed, address } = config
     const chainId = signedTx.rawTx.chainId
+
+    //
 
     // Creates an instance of relayer node ethers provider for chain not already discovered
     this.setRelayerNodeEthersProvider(chainId)
@@ -116,7 +130,7 @@ export class RestRelayer implements Relayer {
     console.log('finaRawTx')
     console.log(finalRawRx)
 
-    const response: any = await this.relayerNodeEthersProvider[chainId].send(
+    /*const response: any = await this.relayerNodeEthersProvider[chainId].send(
       'eth_sendSmartContractWalletTransaction',
       [
         {
@@ -128,16 +142,33 @@ export class RestRelayer implements Relayer {
           }
         }
       ]
-    )
+    )*/
+
+    const response: any = await sendRequest({
+      url: `${this.#relayServiceBaseUrl}`,
+      method: HttpMethod.Post,
+      body: {
+        method: 'eth_sendSmartContractWalletTransaction',
+        params: [
+          {
+            ...finalRawRx,
+            gasLimit: (gasLimit as GasLimit).hex,
+            refundInfo: {
+              tokenGasPrice: signedTx.tx.gasPrice,
+              gasToken: signedTx.tx.gasToken
+            }
+          }
+        ],
+        id: 1234,
+        jsonrpc: '2.0'
+      }
+    })
+
     console.log('rest relayer : response')
     console.log(response)
     if (response.data) {
       const transactionId = response.data.transactionId
       const connectionUrl = response.data.connectionUrl
-      const clientMessenger = new ClientMessenger(connectionUrl)
-      if (!clientMessenger.socketClient.isConnected()) {
-        await clientMessenger.connect()
-      }
 
       clientMessenger.createTransactionNotifier(transactionId, {
         onMined: (tx: any) => {
@@ -150,6 +181,10 @@ export class RestRelayer implements Relayer {
               receipt: tx.receipt
             })}`
           )
+          return {
+            transactionId: txId,
+            hash: tx.transactionHash
+          }
         },
         onHashGenerated: async (tx: any) => {
           const txHash = tx.transactionHash
@@ -179,9 +214,16 @@ export class RestRelayer implements Relayer {
           }
         }
       })
-    }
-    return {
-      error: response.error || 'transaction failed'
+
+      return {
+        hash: transactionId,
+        connectionUrl: connectionUrl,
+        transactionId: transactionId
+      }
+    } else {
+      return {
+        error: response.error || 'transaction failed'
+      }
     }
   }
 
