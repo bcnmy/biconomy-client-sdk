@@ -26,7 +26,8 @@ import {
   FeeQuote,
   RelayResponse,
   SmartAccountConfig,
-  IMetaTransaction
+  IMetaTransaction,
+  NetworkConfig
 } from '@biconomy-sdk/core-types'
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import NodeClient, {
@@ -102,9 +103,6 @@ class SmartAccount {
   // @review
   address!: string
 
-  // TODO : move to network config
-  dappAPIKey!: string
-
   // TODO : review from contractUtils
   smartAccountState!: SmartAccountState
 
@@ -130,13 +128,19 @@ class SmartAccount {
     if (this.#smartAccountConfig.supportedNetworksIds.length == 0)
       this.#smartAccountConfig.supportedNetworksIds = [this.#smartAccountConfig.activeNetworkId]
 
+    let networkConfig = this.#smartAccountConfig.networkConfig
+
     if (config) {
+      networkConfig = { ...networkConfig, ...config.networkConfig }
       this.#smartAccountConfig = { ...this.#smartAccountConfig, ...config }
+      this.#smartAccountConfig.networkConfig = networkConfig
     }
     // Useful for AA flow. Check if it is valid key
-    this.dappAPIKey = this.#smartAccountConfig.dappAPIKey || ''
+    // this.dappAPIKey = this.#smartAccountConfig.dappAPIKey || ''
     // Useful if Dapp needs custom RPC Urls. Check if valid. Fallback to public Urls
-    this.providerUrlConfig = this.#smartAccountConfig.providerUrlConfig || []
+
+    // review
+    // this.providerUrlConfig = this.#smartAccountConfig.networkConfig || []
     this.supportedNetworkIds = this.#smartAccountConfig.supportedNetworksIds
 
     // Should not break if we make this wallet connected provider optional (We'd have JsonRpcProvider / JsonRpcSender)
@@ -150,12 +154,21 @@ class SmartAccount {
 
   getProviderUrl(network: ChainConfig): string {
     let providerUrl =
-      this.#smartAccountConfig.providerUrlConfig?.find(
-        (element: ProviderUrlConfig) => element.chainId === network.chainId
+      this.#smartAccountConfig.networkConfig?.find(
+        (element: NetworkConfig) => element.chainId === network.chainId
       )?.providerUrl || ''
 
     if (!providerUrl) providerUrl = network.providerUrl
     return providerUrl
+  }
+
+  getNetworkConfigValues(chainId: ChainId): NetworkConfig {
+    const networkConfigValues = this.#smartAccountConfig.networkConfig?.find(
+      (element: NetworkConfig) => element.chainId === chainId
+    )
+    if (!networkConfigValues) throw new Error('Could not get network config values')
+
+    return networkConfigValues
   }
 
   async initializeContractsAtChain(chainId: ChainId) {
@@ -170,7 +183,7 @@ class SmartAccount {
       if (!network) return
       const providerUrl = this.getProviderUrl(network)
       const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
-      await this.contractUtils.initializeContracts(this.signer, readProvider, network)
+      this.contractUtils.initializeContracts(this.signer, readProvider, network)
 
       if (!this.address) {
         this.address = await this.getAddress({
@@ -202,17 +215,19 @@ class SmartAccount {
         )
       }
 
+      const clientConfig = this.getNetworkConfigValues(network.chainId)
+
       this.aaProvider[network.chainId] = await newProvider(
         new ethers.providers.JsonRpcProvider(providerUrl),
         {
-          dappId: this.dappAPIKey,
-          signingServiceUrl: this.#smartAccountConfig.signingServiceUrl,
-          paymasterAddress: this.#smartAccountConfig.paymasterAddress || '',
+          dappAPIKey: clientConfig.dappAPIKey || '',
+          biconomySigningServiceUrl: this.#smartAccountConfig.biconomySigningServiceUrl || '',
           entryPointAddress: this.#smartAccountConfig.entryPointAddress
             ? this.#smartAccountConfig.entryPointAddress
             : network.entryPoint[network.entryPoint.length - 1].address,
-          bundlerUrl: this.#smartAccountConfig.bundlerUrl || '',
-          chainId: network.chainId
+          bundlerUrl: clientConfig.bundlerUrl || '',
+          chainId: network.chainId,
+          customPaymasterAPI: clientConfig.customPaymasterAPI
         },
         this.signer,
         this.address,
@@ -825,31 +840,23 @@ class SmartAccount {
 // TODO/NOTE : make Goerli and Mumbai as test networks and remove others
 export const DefaultSmartAccountConfig: SmartAccountConfig = {
   activeNetworkId: ChainId.GOERLI, //Update later
-  paymasterAddress: '0x50e8996670759E1FAA315eeaCcEfe0c0A043aA51',
-  signType: SignTypeMethod.EIP712_SIGN,
-  signingServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
   supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],
+  signType: SignTypeMethod.EIP712_SIGN,
   backend_url: 'https://sdk-backend.staging.biconomy.io/v1',
   relayer_url: 'https://sdk-relayer-preview.staging.biconomy.io/api/v1/relay',
-  dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
-  bundlerUrl: 'https://sdk-relayer-preview.staging.biconomy.io/api/v1/relay',
-  providerUrlConfig: [
-    // TODO: Define Type For It
+  biconomySigningServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
+  networkConfig: [
     {
       chainId: ChainId.GOERLI,
-      providerUrl: 'https://eth-goerli.alchemyapi.io/v2/lmW2og_aq-OXWKYRoRu-X6Yl6wDQYt_2'
+      providerUrl: 'https://eth-goerli.alchemyapi.io/v2/lmW2og_aq-OXWKYRoRu-X6Yl6wDQYt_2',
+      bundlerUrl: 'https://sdk-relayer-preview.staging.biconomy.io/api/v1/relay'
     },
     {
       chainId: ChainId.POLYGON_MUMBAI,
-      providerUrl: 'https://polygon-mumbai.g.alchemy.com/v2/Q4WqQVxhEEmBYREX22xfsS2-s5EXWD31'
+      providerUrl: 'https://polygon-mumbai.g.alchemy.com/v2/Q4WqQVxhEEmBYREX22xfsS2-s5EXWD31',
+      bundlerUrl: 'https://sdk-relayer-preview.staging.biconomy.io/api/v1/relay'
     }
   ]
 }
-
-// paymaster for mumbai
-// 0xE7ec51f075e9BDca7dFF9c9C47b14C2147e931f1
-
-// paymaster for goerli
-// 0x50e8996670759E1FAA315eeaCcEfe0c0A043aA51
 
 export default SmartAccount

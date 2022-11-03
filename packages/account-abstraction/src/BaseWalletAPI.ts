@@ -10,9 +10,8 @@ import {
 } from '@biconomy-sdk/ethers-lib'
 import { TransactionDetailsForUserOp } from './TransactionDetailsForUserOp'
 import { resolveProperties } from 'ethers/lib/utils'
-import { PaymasterAPI } from './PaymasterAPI'
+import { IPaymasterAPI } from '@biconomy-sdk/core-types'
 import { getRequestId } from '@biconomy-sdk/common'
-import { ZERO_ADDRESS } from '@biconomy-sdk/core-types'
 /**
  * Base class for all Smart Wallet ERC-4337 Clients to implement.
  * Subclass should inherit 5 methods to support a specific wallet contract:
@@ -38,7 +37,7 @@ export abstract class BaseWalletAPI {
   /**
    * subclass MAY initialize to support custom paymaster
    */
-  paymasterAPI?: PaymasterAPI
+  paymasterAPI?: IPaymasterAPI
 
   /**
    * our wallet contract.
@@ -61,11 +60,12 @@ export abstract class BaseWalletAPI {
   ) {
     // factory "connect" define the contract address. the contract "connect" defines the "from" address.
     // this.entryPointView = EntryPoint__factory.connect(entryPointAddress, provider).connect(ethers.constants.AddressZero)
-    this.paymasterAPI = new PaymasterAPI(
-      clientConfig.signingServiceUrl,
-      clientConfig.dappId,
-      clientConfig.paymasterAddress
-    )
+  }
+
+  // temp placeholder
+  connectPaymaster(newPaymasterAPI: IPaymasterAPI): BaseWalletAPI {
+    this.paymasterAPI = newPaymasterAPI
+    return this
   }
 
   // based on provider chainId we maintain smartWalletContract..
@@ -94,6 +94,8 @@ export abstract class BaseWalletAPI {
    * return current wallet's nonce.
    */
   abstract getNonce(batchId: number): Promise<BigNumber>
+
+  abstract createUnsignedUserOp(info: TransactionDetailsForUserOp): Promise<UserOperation>
 
   /**
    * encode the call from entryPoint through our wallet to the target contract.
@@ -247,59 +249,6 @@ export abstract class BaseWalletAPI {
       }
     }
     return this.senderAddress
-  }
-
-  /**
-   * create a UserOperation, filling all details (except signature)
-   * - if wallet is not yet created, add initCode to deploy it.
-   * - if gas or nonce are missing, read them from the chain (note that we can't fill gaslimit before the wallet is created)
-   * @param info
-   */
-  async createUnsignedUserOp(info: TransactionDetailsForUserOp): Promise<UserOperation> {
-    const { callData, callGasLimit } = await this.encodeUserOpCallDataAndGasLimit(info)
-    const initCode = await this.getInitCode()
-    console.log('initCode ', initCode)
-
-    let verificationGasLimit = BigNumber.from(await this.getVerificationGasLimit())
-    if (initCode.length > 2) {
-      // add creation to required verification gas
-      // using entry point static for gas estimation
-      const entryPointStatic = this.entryPoint.connect(ZERO_ADDRESS)
-      const initGas = await entryPointStatic.estimateGas.getSenderAddress(initCode, {
-        from: ZERO_ADDRESS
-      })
-      verificationGasLimit = verificationGasLimit.add(initGas)
-    }
-
-    let { maxFeePerGas, maxPriorityFeePerGas } = info
-    if (maxFeePerGas == null || maxPriorityFeePerGas == null) {
-      const feeData = await this.provider.getFeeData()
-      if (maxFeePerGas == null) {
-        maxFeePerGas = feeData.maxFeePerGas ?? undefined
-      }
-      if (maxPriorityFeePerGas == null) {
-        maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? undefined
-      }
-    }
-
-    const partialUserOp: any = {
-      sender: await this.getWalletAddress(),
-      nonce: await this.getNonce(0), // TODO: add batchid as param
-      initCode,
-      callData,
-      callGasLimit,
-      verificationGasLimit,
-      maxFeePerGas,
-      maxPriorityFeePerGas
-    }
-
-    partialUserOp.paymasterAndData =
-      this.paymasterAPI == null ? '0x' : await this.paymasterAPI.getPaymasterAndData(partialUserOp)
-    return {
-      ...partialUserOp,
-      preVerificationGas: this.getPreVerificationGas(partialUserOp),
-      signature: ''
-    }
   }
 
   /**

@@ -9,19 +9,21 @@ import { MultiSendCallOnlyContract } from './contracts/MultiSendCallOnlyContract
 import { SmartWalletContract } from './contracts/SmartWalletContract'
 import { GasLimit } from './transaction.types'
 import { Signer } from 'ethers'
+import { IPaymasterAPI } from 'account-abstraction-types'
 
 export interface SmartAccountConfig {
   activeNetworkId: ChainId // same
   supportedNetworksIds: ChainId[] // Network[] chainId: CbainId, rpcUrl?: string
   backend_url: string
   relayer_url: string
-  dappAPIKey?: string
   signType: SignTypeMethod
-  providerUrlConfig?: ProviderUrlConfig[]
+  // dappAPIKey?: string
+  networkConfig: NetworkConfig[]
   entryPointAddress?: string
-  bundlerUrl?: string
-  paymasterAddress?: string
-  signingServiceUrl: string
+  biconomySigningServiceUrl?: string
+  // bundlerUrl?: string
+  // paymasterAddress?: string
+  // signingServiceUrl: string
 }
 
 export enum SignTypeMethod {
@@ -32,6 +34,14 @@ export enum SignTypeMethod {
 export type ProviderUrlConfig = {
   chainId: ChainId
   providerUrl: string
+}
+
+export type NetworkConfig = {
+  chainId: ChainId
+  providerUrl: string
+  bundlerUrl?: string
+  customPaymasterAPI?: IPaymasterAPI
+  dappAPIKey?: string
 }
 
 export type SmartAccountContext = {

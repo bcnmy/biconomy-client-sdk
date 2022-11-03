@@ -75,8 +75,8 @@ describe('SmartAccountAPI', async () => {
     // const factoryAddress = await DeterministicDeployer.deploy(SimpleWalletDeployer__factory.bytecode)
 
     const clientConfig = {
-      dappId: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
-      signingServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
+      dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
+      biconomySigningServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
       paymasterAddress: '',
       entryPointAddress: entryPoint.address,
       bundlerUrl: 'http://localhost:3000/rpc',
@@ -159,8 +159,8 @@ describe('SmartAccountAPI', async () => {
       this.skip()
     }
     const clientConfig = {
-      dappId: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
-      signingServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
+      dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
+      biconomySigningServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
       paymasterAddress: '',
       entryPointAddress: entryPoint.address,
       bundlerUrl: 'http://localhost:3000/rpc',
