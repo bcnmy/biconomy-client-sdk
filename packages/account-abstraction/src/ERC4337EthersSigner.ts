@@ -8,6 +8,8 @@ import { ClientConfig } from './ClientConfig'
 import { HttpRpcClient } from './HttpRpcClient'
 import { UserOperation } from '@biconomy-sdk/core-types'
 import { BaseWalletAPI } from './BaseWalletAPI'
+import { ClientMessenger } from 'messaging-sdk'
+import WebSocket from 'isomorphic-ws'
 export class ERC4337EthersSigner extends Signer {
   // TODO: we have 'erc4337provider', remove shared dependencies or avoid two-way reference
   constructor(
@@ -31,29 +33,37 @@ export class ERC4337EthersSigner extends Signer {
     })
 
     console.log('signed userOp ', userOperation)
-    let transactionResponse
+
+    let bundlerServiceResponse: any
 
     try {
-      transactionResponse = await this.erc4337provider.constructUserOpTransactionResponse(
-        userOperation
-      )
-      console.log('transactionResponse ', transactionResponse)
-    } catch (err) {
-      console.log('error when making transaction for only deployment')
-      console.log(err)
-    }
-
-    try {
-      await this.httpRpcClient.sendUserOpToBundler(userOperation)
+      bundlerServiceResponse = await this.httpRpcClient.sendUserOpToBundler(userOperation)
+      console.log(bundlerServiceResponse)
     } catch (error) {
       // console.error('sendUserOpToBundler failed', error)
       throw this.unwrapError(error)
     }
+
+    const transactionResponse = await this.erc4337provider.constructUserOpTransactionResponse(
+      userOperation,
+      bundlerServiceResponse.transactionId
+    )
+    console.log('transactionResponse ', transactionResponse)
+
     // TODO: handle errors - transaction that is "rejected" by bundler is _not likely_ to ever resolve its "wait()"
     return transactionResponse
   }
   // This one is called by Contract. It signs the request and passes in to Provider to be sent.
   async sendTransaction(transaction: Deferrable<TransactionRequest>): Promise<TransactionResponse> {
+    const socketServerUrl = 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket'
+
+    const clientMessenger = new ClientMessenger(socketServerUrl, WebSocket)
+
+    if (!clientMessenger.socketClient.isConnected()) {
+      await clientMessenger.connect()
+      console.log('connect success')
+    }
+
     console.log('received transaction ', transaction)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const customData: any = transaction.customData
@@ -84,17 +94,44 @@ export class ERC4337EthersSigner extends Signer {
       isDelegateCall: true // get from customData.isBatchedToMultiSend
     })
     console.log('signed userOp ', userOperation)
-    const transactionResponse = await this.erc4337provider.constructUserOpTransactionResponse(
-      userOperation
-    )
-    console.log('transactionResponse ', transactionResponse)
+
+    let bundlerServiceResponse: any
 
     try {
-      await this.httpRpcClient.sendUserOpToBundler(userOperation)
+      bundlerServiceResponse = await this.httpRpcClient.sendUserOpToBundler(userOperation)
+      console.log(bundlerServiceResponse)
     } catch (error) {
       // console.error('sendUserOpToBundler failed', error)
       throw this.unwrapError(error)
     }
+
+    clientMessenger.createTransactionNotifier(bundlerServiceResponse.transactionId, {
+      onHashGenerated: async (tx: any) => {
+        const txHash = tx.transactionHash
+        const txId = tx.transactionId
+        console.log(
+          `Tx Hash generated message received at client ${JSON.stringify({
+            transactionId: txId,
+            hash: txHash
+          })}`
+        )
+        // todo event emitter
+      },
+      onError: async (tx: any) => {
+        console.log(`Error message received at client is ${tx}`)
+        const err = tx.error
+        const txId = tx.transactionId
+        clientMessenger.unsubscribe(txId)
+        // event emitter
+      }
+    })
+
+    const transactionResponse = await this.erc4337provider.constructUserOpTransactionResponse(
+      userOperation,
+      bundlerServiceResponse.transactionId
+    )
+    console.log('transactionResponse ', transactionResponse)
+
     // TODO: handle errors - transaction that is "rejected" by bundler is _not likely_ to ever resolve its "wait()"
     return transactionResponse
   }
