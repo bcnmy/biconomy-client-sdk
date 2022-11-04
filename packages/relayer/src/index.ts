@@ -7,7 +7,7 @@ export interface IRelayer {
   // The quote should be the one returned from getFeeOptions, if any.
   /*quote?: FeeQuote*/
   getFeeOptions(chainId: number): Promise<FeeOptionsResponse>
-  relay(relayTransaction: RelayTransaction): Promise<RelayResponse>
+  relay(relayTransaction: RelayTransaction, engine: any): Promise<RelayResponse>
   // wait for transaction confirmation
   // wait(metaTxnId: string | SignedTransactions, timeout: number): Promise<TransactionResponse>
 }

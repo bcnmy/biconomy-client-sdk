@@ -134,7 +134,7 @@ export class ERC4337EthersSigner extends Signer {
         // event emitter
         engine.emit('error', {
           id: tx.transactionId,
-          hash: tx.transactionHash,
+          error: err,
           msg: 'txn hash generated'
         })
       }

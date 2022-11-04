@@ -65,7 +65,7 @@ export class RestRelayer implements IRelayer {
   // We would send manual gas limit with high targetTxGas (whenever targetTxGas can't be accurately estimated)
 
   // TODO: return transactionId, connectionUrl
-  async relay(relayTransaction: RelayTransaction): Promise<any> {
+  async relay(relayTransaction: RelayTransaction, engine: any): Promise<any> {
     // TODO comes from own config
     const socketServerUrl = 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket'
 
@@ -181,10 +181,12 @@ export class RestRelayer implements IRelayer {
               receipt: tx.receipt
             })}`
           )
-          return {
-            transactionId: txId,
-            hash: tx.transactionHash
-          }
+          engine.emit('txMined', {
+            msg: 'txn mined',
+            id: txId,
+            hash: tx.transactionHash,
+            receipt: tx.receipt
+          })
         },
         onHashGenerated: async (tx: any) => {
           const txHash = tx.transactionHash
@@ -197,10 +199,11 @@ export class RestRelayer implements IRelayer {
           )
 
           console.log(`Receive time for transaction id ${txId}: ${Date.now()}`)
-          return {
-            transactionId: txId,
-            hash: txHash
-          }
+          engine.emit('txHashGenerated', {
+            id: tx.transactionId,
+            hash: tx.transactionHash,
+            msg: 'txn hash generated'
+          })
         },
         onError: async (tx: any) => {
           console.log(`Error message received at client is ${tx}`)
@@ -208,10 +211,11 @@ export class RestRelayer implements IRelayer {
           const txId = tx.transactionId
           clientMessenger.unsubscribe(txId)
 
-          return {
-            transactionId: txId,
-            error: err
-          }
+          engine.emit('error', {
+            id: tx.transactionId,
+            error: err,
+            msg: 'error in txn'
+          })
         }
       })
 
