@@ -135,7 +135,8 @@ export class ERC4337EthersProvider extends BaseProvider {
   // fabricate a response in a format usable by ethers users...
   async constructUserOpTransactionResponse(
     userOp1: UserOperation,
-    transactionId: string
+    transactionId: string,
+    engine?: any
   ): Promise<TransactionResponse> {
     const socketServerUrl = 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket'
 
@@ -162,6 +163,12 @@ export class ERC4337EthersProvider extends BaseProvider {
             })}`
           )
           const receipt: TransactionReceipt = tx.receipt
+          engine.emit('txMined', {
+            msg: 'txn mined',
+            id: txId,
+            hash: tx.transactionHash,
+            receipt: tx.receipt
+          })
           resolve(receipt)
         },
         onError: async (tx: any) => {
@@ -169,6 +176,10 @@ export class ERC4337EthersProvider extends BaseProvider {
           const err = tx.error
           const txId = tx.transactionId
           clientMessenger.unsubscribe(txId)
+          engine.emit('onError', {
+            error: err,
+            transactionId: txId
+          })
           reject(err)
         }
       })

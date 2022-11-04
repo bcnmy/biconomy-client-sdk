@@ -55,7 +55,10 @@ export class ERC4337EthersSigner extends Signer {
     return transactionResponse
   }
   // This one is called by Contract. It signs the request and passes in to Provider to be sent.
-  async sendTransaction(transaction: Deferrable<TransactionRequest>): Promise<TransactionResponse> {
+  async sendTransaction(
+    transaction: Deferrable<TransactionRequest>,
+    engine?: any
+  ): Promise<TransactionResponse> {
     const socketServerUrl = 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket'
 
     const clientMessenger = new ClientMessenger(socketServerUrl, WebSocket)
@@ -117,6 +120,11 @@ export class ERC4337EthersSigner extends Signer {
           })}`
         )
         // todo event emitter
+        engine.emit('txHashGenerated', {
+          id: tx.transactionId,
+          hash: tx.transactionHash,
+          msg: 'txn hash generated'
+        })
       },
       onError: async (tx: any) => {
         console.log(`Error message received at client is ${tx}`)
@@ -124,12 +132,18 @@ export class ERC4337EthersSigner extends Signer {
         const txId = tx.transactionId
         clientMessenger.unsubscribe(txId)
         // event emitter
+        engine.emit('error', {
+          id: tx.transactionId,
+          hash: tx.transactionHash,
+          msg: 'txn hash generated'
+        })
       }
     })
 
     const transactionResponse = await this.erc4337provider.constructUserOpTransactionResponse(
       userOperation,
-      bundlerServiceResponse.transactionId
+      bundlerServiceResponse.transactionId,
+      engine
     )
     const receipt = await transactionResponse.wait()
     console.log('transactionResponse in sendTransaction', receipt)

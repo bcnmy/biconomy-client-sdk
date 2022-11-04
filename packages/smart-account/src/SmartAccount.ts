@@ -286,7 +286,7 @@ class SmartAccount extends EventEmitter {
     //   customData.isBatchedToMultiSend = true
     // }
 
-    const response = await aaSigner.sendTransaction(transaction)
+    const response = await aaSigner.sendTransaction(transaction, this)
     return response
     // todo: make sense of this response and return hash to the user
   }
