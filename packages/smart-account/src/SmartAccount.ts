@@ -844,6 +844,7 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
   signType: SignTypeMethod.EIP712_SIGN,
   backend_url: 'https://sdk-backend.staging.biconomy.io/v1',
   relayer_url: 'https://sdk-relayer-preview.staging.biconomy.io/api/v1/relay',
+  bundlerUrl: 'https://sdk-relayer-preview.staging.biconomy.io/api/v1/relay',
   biconomySigningServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
   networkConfig: [
     {
