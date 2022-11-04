@@ -249,7 +249,7 @@ class SmartAccount extends EventEmitter {
     return this
   }
 
-  // TODO
+  // Nice to have
   // Optional methods for connecting paymaster
   // Optional methods for connecting another bundler
 
@@ -264,29 +264,8 @@ class SmartAccount extends EventEmitter {
     const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
 
     await this.initializeContractsAtChain(chainId)
-
-    // const state = await this.contractUtils.getSmartAccountState(
-    //   this.smartAccountState,
-    //   this.DEFAULT_VERSION,
-    //   this.#smartAccountConfig.activeNetworkId
-    // )
-
-    // let customData: Record<string, any> = {
-    //   isDeployed: state.isDeployed,
-    //   skipGasLimit: false,
-    //   isBatchedToMultiSend: false,
-    //   appliedGasLimit: 500000 // could come from params or local mock estimation..
-    // }
-
-    // const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract()
-    // if (
-    //   ethers.utils.getAddress(transaction.to) === ethers.utils.getAddress(multiSendContract.address)
-    // ) {
-    //   customData.skipGasLimit = true
-    //   customData.isBatchedToMultiSend = true
-    // }
-
     const response = await aaSigner.sendTransaction(transaction, this)
+
     return response
     // todo: make sense of this response and return hash to the user
   }
@@ -484,7 +463,7 @@ class SmartAccount extends EventEmitter {
    * @param tx IWalletTransaction Smart Account Transaction object prepared
    * @param batchId optional nonce space for parallel processing
    * @param chainId optional chainId
-   * @returns
+   * @returns transactionId : transaction identifier
    */
   async sendTransaction(sendTransactionDto: SendTransactionDto): Promise<string> {
     let { chainId } = sendTransactionDto
@@ -555,7 +534,6 @@ class SmartAccount extends EventEmitter {
       config: state,
       context: this.getSmartAccountContext(chainId)
     }
-    // Must be in specified format
     if (gasLimit) {
       relayTrx.gasLimit = gasLimit
     }
@@ -566,11 +544,11 @@ class SmartAccount extends EventEmitter {
       }
       relayTrx.gasLimit = gasLimit
     }
-    const txn: RelayResponse = await this.relayer.relay(relayTrx, this)
-    console.log('txn')
-    console.log(txn)
-    if (txn.hash) {
-      return txn.hash
+    const relayResponse: RelayResponse = await this.relayer.relay(relayTrx, this)
+    console.log('relayResponse')
+    console.log(relayResponse)
+    if (relayResponse.transactionId) {
+      return relayResponse.transactionId
     }
     return ''
   }

@@ -14,7 +14,7 @@ import {
 import { MetaTransaction, encodeMultiSend } from './utils/multisend'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
 import { ClientMessenger } from 'messaging-sdk'
-import WebSocket from 'isomorphic-ws'
+import WebSocket, { EventEmitter } from 'isomorphic-ws'
 
 /**
  * Relayer class that would be used via REST API to execute transactions
@@ -64,8 +64,7 @@ export class RestRelayer implements IRelayer {
   // Make gas limit a param
   // We would send manual gas limit with high targetTxGas (whenever targetTxGas can't be accurately estimated)
 
-  // TODO: return transactionId, connectionUrl
-  async relay(relayTransaction: RelayTransaction, engine: any): Promise<any> {
+  async relay(relayTransaction: RelayTransaction, engine: EventEmitter): Promise<RelayResponse> {
     // TODO comes from own config
     const socketServerUrl = 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket'
 
@@ -130,6 +129,7 @@ export class RestRelayer implements IRelayer {
     console.log('finaRawTx')
     console.log(finalRawRx)
 
+    // reason : can not capture repsonse from jsonRpcProvider.send()
     /*const response: any = await this.relayerNodeEthersProvider[chainId].send(
       'eth_sendSmartContractWalletTransaction',
       [
@@ -220,7 +220,6 @@ export class RestRelayer implements IRelayer {
       })
 
       return {
-        hash: transactionId,
         connectionUrl: connectionUrl,
         transactionId: transactionId
       }

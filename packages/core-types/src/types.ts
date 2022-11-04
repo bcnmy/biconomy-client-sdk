@@ -12,6 +12,7 @@ export type Eip3770Address = {
   address: string
 }
 
+// review
 export type RelayResponse = {
   code?: number
   message?: string

@@ -11,6 +11,7 @@ import { EntryPoint } from '@account-abstraction/contracts'
 import { UserOperation } from '@biconomy-sdk/core-types'
 import { BaseWalletAPI } from './BaseWalletAPI'
 import { ClientMessenger } from 'messaging-sdk'
+import EventEmitter from 'events'
 import WebSocket from 'isomorphic-ws'
 
 export class ERC4337EthersProvider extends BaseProvider {
@@ -136,7 +137,7 @@ export class ERC4337EthersProvider extends BaseProvider {
   async constructUserOpTransactionResponse(
     userOp1: UserOperation,
     transactionId: string,
-    engine?: any
+    engine?: any // EventEmitter
   ): Promise<TransactionResponse> {
     const socketServerUrl = 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket'
 

@@ -1,14 +1,13 @@
 import { FeeOptionsResponse } from '@biconomy-sdk/core-types'
 import { RelayTransaction, RelayResponse } from '@biconomy-sdk/core-types'
-
-// JsonRpcRequest
+import { EventEmitter } from 'isomorphic-ws'
 export interface IRelayer {
   // relayer will submit the transaction(s) to the network and return the transaction response.
-  // The quote should be the one returned from getFeeOptions, if any.
-  /*quote?: FeeQuote*/
+
   getFeeOptions(chainId: number): Promise<FeeOptionsResponse>
-  relay(relayTransaction: RelayTransaction, engine: any): Promise<RelayResponse>
-  // wait for transaction confirmation
+  relay(relayTransaction: RelayTransaction, engine: EventEmitter): Promise<RelayResponse>
+
+  // Tackled using messaging sdk
   // wait(metaTxnId: string | SignedTransactions, timeout: number): Promise<TransactionResponse>
 }
 
