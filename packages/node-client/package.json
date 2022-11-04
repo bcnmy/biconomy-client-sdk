@@ -1,6 +1,6 @@
 {
   "name": "@biconomy-sdk/node-client",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "Node Client that comminucates with indexer service to fetch necessary details for the Smart Account",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
