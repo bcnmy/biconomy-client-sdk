@@ -9,15 +9,16 @@ import { ChainId, SignTransactionDto } from '@biconomy-sdk/core-types'
 
 import { JsonRpcProvider, TransactionResponse } from '@ethersproject/providers'
 // Might as well be RpcRelayer
-import { Relayer } from '@biconomy-sdk/relayer'
+import { IRelayer } from '@biconomy-sdk/relayer'
 import { BytesLike } from '@ethersproject/bytes'
 import { Deferrable } from 'ethers/lib/utils'
 import { TransactionRequest } from '@ethersproject/providers'
+import SmartAccount from '../SmartAccount'
 
 export abstract class Signer extends AbstractSigner {
   abstract getProvider(chainId?: number): Promise<JsonRpcProvider | undefined>
   // Review
-  abstract getRelayer(chainId?: number): Promise<Relayer | undefined>
+  abstract getRelayer(chainId?: number): Promise<IRelayer | undefined>
 
   // signMessage .....
   // Review
@@ -36,7 +37,8 @@ export abstract class Signer extends AbstractSigner {
   // sendTransaction takes an prepared transaction dto, and then has it signed by
   // the signer, and finally sends it to the rpc-relayer for submission to an Ethereum network.
   abstract sendTransaction(
-    transaction: Deferrable<TransactionRequest>
+    transaction: Deferrable<TransactionRequest>,
+    engine?: SmartAccount
   ): // sendTransactionDto: SendTransactionDto
   Promise<TransactionResponse> // Could be transaction hash or receipt // TBD but it must follow AbstractSigner
 

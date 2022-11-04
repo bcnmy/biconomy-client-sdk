@@ -41,14 +41,14 @@ import NodeClient, {
   UsdBalanceResponse
 } from '@biconomy-sdk/node-client'
 import { Web3Provider } from '@ethersproject/providers'
-import { Relayer, RestRelayer } from '@biconomy-sdk/relayer'
+import { IRelayer, RestRelayer } from '@biconomy-sdk/relayer'
 
 import TransactionManager, {
   ContractUtils,
   smartAccountSignMessage,
   smartAccountSignTypedData
 } from '@biconomy-sdk/transactions'
-
+import EventEmitter from 'events'
 import { TransactionResponse } from '@ethersproject/providers'
 import { SmartAccountSigner } from './signers/SmartAccountSigner'
 
@@ -58,7 +58,7 @@ import { newProvider, ERC4337EthersProvider } from '@biconomy-sdk/account-abstra
 import { ethers, Signer } from 'ethers'
 
 // Create an instance of Smart Account with multi-chain support.
-class SmartAccount {
+class SmartAccount extends EventEmitter {
   // By default latest version
   DEFAULT_VERSION: SmartAccountVersion = '1.0.1'
 
@@ -92,7 +92,7 @@ class SmartAccount {
   // Instance of relayer (Relayer Service Client) connected with this Smart Account and always ready to dispatch transactions
   // relayer.relay => dispatch to blockchain
   // other methods are useful for the widget
-  relayer!: Relayer
+  relayer!: IRelayer
 
   // Owner of the Smart Account common between all chains
   // Could be part of Smart Account state / config
@@ -119,6 +119,7 @@ class SmartAccount {
    */
   // todo : could remove WalletProvider
   constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
+    super()
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
 
     if (!this.#smartAccountConfig.activeNetworkId) {
@@ -263,7 +264,7 @@ class SmartAccount {
     return this
   }
 
-  // TODO
+  // Nice to have
   // Optional methods for connecting paymaster
   // Optional methods for connecting another bundler
 
@@ -278,29 +279,8 @@ class SmartAccount {
     const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
 
     await this.initializeContractsAtChain(chainId)
+    const response = await aaSigner.sendTransaction(transaction, this)
 
-    // const state = await this.contractUtils.getSmartAccountState(
-    //   this.smartAccountState,
-    //   this.DEFAULT_VERSION,
-    //   this.#smartAccountConfig.activeNetworkId
-    // )
-
-    // let customData: Record<string, any> = {
-    //   isDeployed: state.isDeployed,
-    //   skipGasLimit: false,
-    //   isBatchedToMultiSend: false,
-    //   appliedGasLimit: 500000 // could come from params or local mock estimation..
-    // }
-
-    // const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract()
-    // if (
-    //   ethers.utils.getAddress(transaction.to) === ethers.utils.getAddress(multiSendContract.address)
-    // ) {
-    //   customData.skipGasLimit = true
-    //   customData.isBatchedToMultiSend = true
-    // }
-
-    const response = await aaSigner.sendTransaction(transaction)
     return response
     // todo: make sense of this response and return hash to the user
   }
@@ -368,7 +348,7 @@ class SmartAccount {
   }
 
   // Only to deploy wallet using connected paymaster (or the one corresponding to dapp api key)
-  // Todo Chirag
+  // Todo
   // Add return type
   // Review involvement of Dapp API Key
   public async deployWalletUsingPaymaster() {
@@ -393,7 +373,7 @@ class SmartAccount {
     return this
   }
 
-  // Todo Chirag
+  // Todo
   // Review inputs as chainId is already part of Dto
   public async getAlltokenBalances(
     balancesDto: BalancesDto,
@@ -403,7 +383,7 @@ class SmartAccount {
     return this.nodeClient.getAlltokenBalances(balancesDto)
   }
 
-  // Todo Chirag
+  // Todo
   // Review inputs as chainId is already part of Dto
   public async getTotalBalanceInUsd(
     balancesDto: BalancesDto,
@@ -419,7 +399,7 @@ class SmartAccount {
     return this.nodeClient.getSmartAccountsByOwner(smartAccountByOwnerDto)
   }
 
-  // @Talha to add description for this
+  //Todo add description
   public async getTransactionByAddress(
     chainId: number,
     address: string
@@ -438,7 +418,7 @@ class SmartAccount {
    * @param relayer Relayer client to be associated with this smart account
    * @returns this/self
    */
-  async setRelayer(relayer: Relayer): Promise<SmartAccount> {
+  async setRelayer(relayer: IRelayer): Promise<SmartAccount> {
     if (relayer === undefined) return this
     this.relayer = relayer
     //If we end up maintaining relayer instance on this then it should update all transaction managers
@@ -498,7 +478,7 @@ class SmartAccount {
    * @param tx IWalletTransaction Smart Account Transaction object prepared
    * @param batchId optional nonce space for parallel processing
    * @param chainId optional chainId
-   * @returns
+   * @returns transactionId : transaction identifier
    */
   async sendTransaction(sendTransactionDto: SendTransactionDto): Promise<string> {
     let { chainId } = sendTransactionDto
@@ -569,7 +549,6 @@ class SmartAccount {
       config: state,
       context: this.getSmartAccountContext(chainId)
     }
-    // Must be in specified format
     if (gasLimit) {
       relayTrx.gasLimit = gasLimit
     }
@@ -580,8 +559,13 @@ class SmartAccount {
       }
       relayTrx.gasLimit = gasLimit
     }
-    const txn: RelayResponse = await this.relayer.relay(relayTrx)
-    return txn.hash
+    const relayResponse: RelayResponse = await this.relayer.relay(relayTrx, this)
+    console.log('relayResponse')
+    console.log(relayResponse)
+    if (relayResponse.transactionId) {
+      return relayResponse.transactionId
+    }
+    return ''
   }
 
   // Get Fee Options from relayer and make it available for display
