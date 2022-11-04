@@ -354,7 +354,7 @@ class SmartAccount extends EventEmitter {
   }
 
   // Only to deploy wallet using connected paymaster (or the one corresponding to dapp api key)
-  // Todo Chirag
+  // Todo
   // Add return type
   // Review involvement of Dapp API Key
   public async deployWalletUsingPaymaster() {
@@ -379,7 +379,7 @@ class SmartAccount extends EventEmitter {
     return this
   }
 
-  // Todo Chirag
+  // Todo
   // Review inputs as chainId is already part of Dto
   public async getAlltokenBalances(
     balancesDto: BalancesDto,
@@ -389,7 +389,7 @@ class SmartAccount extends EventEmitter {
     return this.nodeClient.getAlltokenBalances(balancesDto)
   }
 
-  // Todo Chirag
+  // Todo
   // Review inputs as chainId is already part of Dto
   public async getTotalBalanceInUsd(
     balancesDto: BalancesDto,
@@ -405,7 +405,7 @@ class SmartAccount extends EventEmitter {
     return this.nodeClient.getSmartAccountsByOwner(smartAccountByOwnerDto)
   }
 
-  // @Talha to add description for this
+  //Todo add description
   public async getTransactionByAddress(
     chainId: number,
     address: string

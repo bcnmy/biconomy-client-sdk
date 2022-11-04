@@ -38,7 +38,7 @@ class TransactionManager {
   // chainId: ChainId
 
   // Need setters
-  // todo chirag // make it INodeClient
+  // todo // make it INodeClient
   nodeClient!: NodeClient
   estimator!: Estimator
   contractUtils!: ContractUtils
@@ -83,7 +83,7 @@ class TransactionManager {
     return this.nodeClient
   }
 
-  // todo chirag add return type
+  // todo add return type
   async prepareDeployAndPayFees(chainId: ChainId, version: string) {
     const gasPriceQuotesResponse: FeeOptionsResponse = await this.relayer.getFeeOptions(chainId)
     const feeOptionsAvailable: Array<TokenData> = gasPriceQuotesResponse.data.response
@@ -275,7 +275,7 @@ class TransactionManager {
     prepareRefundTransactionDto: PrepareRefundTransactionDto
   ): Promise<FeeQuote[]> {
     // TODO
-    // Review @Talha
+    // Review
     const { transaction, batchId, chainId, version } = prepareRefundTransactionDto
 
     const gasPriceQuotesResponse: FeeOptionsResponse = await this.relayer.getFeeOptions(chainId)
@@ -507,7 +507,6 @@ class TransactionManager {
 
       const response = await this.nodeClient.estimateRequiredTxGas(estimateRequiredTxGas)
       // considerable offset ref gnosis safe service client safeTxGas
-      // @Talha
       // TODO
       // handle exception responses and when gas returned is 0
       // We could stop the further flow
@@ -673,7 +672,6 @@ class TransactionManager {
 
       const response = await this.nodeClient.estimateRequiredTxGas(estimateRequiredTxGas)
       // considerable offset ref gnosis safe service client safeTxGas
-      // @Talha
       // TODO
       // handle exception responses and when gas returned is 0
       // We could stop the further flow
