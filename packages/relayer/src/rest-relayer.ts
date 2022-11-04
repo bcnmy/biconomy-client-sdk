@@ -1,6 +1,6 @@
 import { JsonRpcProvider, TransactionResponse } from '@ethersproject/providers'
 import { constants, ethers } from 'ethers'
-import { Relayer } from '.'
+import { IRelayer } from '.'
 
 import {
   RelayTransaction,
@@ -19,7 +19,7 @@ import WebSocket from 'isomorphic-ws'
 /**
  * Relayer class that would be used via REST API to execute transactions
  */
-export class RestRelayer implements Relayer {
+export class RestRelayer implements IRelayer {
   #relayServiceBaseUrl: string
 
   relayerNodeEthersProvider!: { [chainId: number]: JsonRpcProvider }

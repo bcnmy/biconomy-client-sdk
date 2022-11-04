@@ -31,7 +31,7 @@ import NodeClient, {
   EstimateHandlePaymentTxGasDto
 } from '@biconomy-sdk/node-client'
 
-import { Relayer } from '@biconomy-sdk/relayer'
+import { IRelayer } from '@biconomy-sdk/relayer'
 import ContractUtils from './contract-utils'
 import { Utils } from './utils'
 class TransactionManager {
@@ -42,7 +42,7 @@ class TransactionManager {
   nodeClient!: NodeClient
   estimator!: Estimator
   contractUtils!: ContractUtils
-  relayer!: Relayer
+  relayer!: IRelayer
 
   utils!: Utils
 
@@ -51,7 +51,7 @@ class TransactionManager {
   }
 
   // smart account config and context
-  async initialize(relayer: Relayer, nodeClient: NodeClient, contractUtils: ContractUtils) {
+  async initialize(relayer: IRelayer, nodeClient: NodeClient, contractUtils: ContractUtils) {
     // Note: smart account is state specific so we may end up using chain specific transaction managers as discussed.
 
     this.nodeClient = nodeClient
@@ -65,7 +65,7 @@ class TransactionManager {
     this.estimator = new Estimator(this.nodeClient, this.contractUtils)
   }
 
-  setRelayer(relayer: Relayer): TransactionManager {
+  setRelayer(relayer: IRelayer): TransactionManager {
     this.relayer = relayer
     return this
   }

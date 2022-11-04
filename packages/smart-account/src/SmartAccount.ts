@@ -40,14 +40,14 @@ import NodeClient, {
   UsdBalanceResponse
 } from '@biconomy-sdk/node-client'
 import { Web3Provider } from '@ethersproject/providers'
-import { Relayer, RestRelayer } from '@biconomy-sdk/relayer'
+import { IRelayer, RestRelayer } from '@biconomy-sdk/relayer'
 
 import TransactionManager, {
   ContractUtils,
   smartAccountSignMessage,
   smartAccountSignTypedData
 } from '@biconomy-sdk/transactions'
-
+import EventEmitter from 'events'
 import { TransactionResponse } from '@ethersproject/providers'
 import { SmartAccountSigner } from './signers/SmartAccountSigner'
 
@@ -57,7 +57,7 @@ import { newProvider, ERC4337EthersProvider } from '@biconomy-sdk/account-abstra
 import { ethers, Signer } from 'ethers'
 
 // Create an instance of Smart Account with multi-chain support.
-class SmartAccount {
+class SmartAccount extends EventEmitter {
   // By default latest version
   DEFAULT_VERSION: SmartAccountVersion = '1.0.1'
 
@@ -91,7 +91,7 @@ class SmartAccount {
   // Instance of relayer (Relayer Service Client) connected with this Smart Account and always ready to dispatch transactions
   // relayer.relay => dispatch to blockchain
   // other methods are useful for the widget
-  relayer!: Relayer
+  relayer!: IRelayer
 
   // Owner of the Smart Account common between all chains
   // Could be part of Smart Account state / config
@@ -121,6 +121,7 @@ class SmartAccount {
    */
   // todo : could remove WalletProvider
   constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
+    super()
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
 
     if (!this.#smartAccountConfig.activeNetworkId) {
@@ -423,7 +424,7 @@ class SmartAccount {
    * @param relayer Relayer client to be associated with this smart account
    * @returns this/self
    */
-  async setRelayer(relayer: Relayer): Promise<SmartAccount> {
+  async setRelayer(relayer: IRelayer): Promise<SmartAccount> {
     if (relayer === undefined) return this
     this.relayer = relayer
     //If we end up maintaining relayer instance on this then it should update all transaction managers
