@@ -1,6 +1,6 @@
 {
   "name": "@biconomy-sdk/account-abstraction",
-  "version": "1.0.13",
+  "version": "1.0.17",
   "description": "Account abstraction APIs to prepare user operations ",
   "keywords": [
     "account-abstraction",
@@ -26,8 +26,8 @@
     "clear": "rm -rf dist artifacts cache",
     "lint": "eslint -f unix .",
     "lint-fix": "eslint -f unix . --fix",
-    "test": "hardhat test",
     "build": "hardhat compile && yarn typechain && tsc",
+    "test": "hardhat test",
     "hardhat-test": "hardhat test",
     "tsc": "tsc",
     "watch-tsc": "tsc -w --preserveWatchOutput"
@@ -52,6 +52,8 @@
   "devDependencies": {
     "@biconomy-sdk/common": "*",
     "@biconomy-sdk/core-types": "*",
+    "@biconomy-sdk/ethers-lib": "*",
+    "@biconomy-sdk/transactions": "*",
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.3",
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",
     "@nomiclabs/hardhat-ethers": "^2.0.0",

@@ -8,18 +8,25 @@ import { MultiSendContract } from './contracts/MultiSendContract'
 import { MultiSendCallOnlyContract } from './contracts/MultiSendCallOnlyContract'
 import { SmartWalletContract } from './contracts/SmartWalletContract'
 import { GasLimit } from './transaction.types'
-import { JsonRpcSigner } from '@ethersproject/providers'
-
+import { Signer } from 'ethers'
 
 export interface SmartAccountConfig {
-  // owner: string
-  // version: string
   activeNetworkId: ChainId // same
   supportedNetworksIds: ChainId[] // Network[] chainId: CbainId, rpcUrl?: string
-  backend_url: string,
-  relayer_url: string,
+  backend_url: string
+  relayer_url: string
   dappAPIKey?: string
+  signType: SignTypeMethod
   providerUrlConfig?: ProviderUrlConfig[]
+  entryPointAddress?: string
+  bundlerUrl?: string
+  paymasterAddress?: string
+  signingServiceUrl: string
+}
+
+export enum SignTypeMethod {
+  PERSONAL_SIGN = 'PERSONAL_SIGN',
+  EIP712_SIGN = 'EIP712_SIGN'
 }
 
 export type ProviderUrlConfig = {
@@ -34,16 +41,17 @@ export type SmartAccountContext = {
   multiSendCall: MultiSendCallOnlyContract
 }
 
-
 export type EstimateSmartAccountDeploymentDto = {
   chainId: ChainId
   version: string
-  owner: string,
+  owner: string
   entryPointAddress: string
   fallbackHandlerAddress: string
 }
 
 export type SmartAccountState = {
+  chainId: ChainId
+  version: string
   address: string // multichain (EVM)
   owner: string // multichain (EVM)
   isDeployed: boolean // chain specific
@@ -61,7 +69,7 @@ export type SignTransactionDto = {
   version: string
   tx: IWalletTransaction
   chainId: ChainId
-  signer: JsonRpcSigner
+  signer: Signer
 }
 
 export type SendTransactionDto = {
@@ -101,7 +109,7 @@ export type RefundTransactionBatchDto = {
 }
 
 export type TransactionDto = {
-  version?: string,
+  version?: string
   transaction: Transaction
   batchId?: number
   chainId?: ChainId

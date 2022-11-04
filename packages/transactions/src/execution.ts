@@ -1,13 +1,7 @@
-import {
-  Contract,
-  Wallet,
-  utils,
-  BigNumberish,
-  Signer,
-  PopulatedTransaction
-} from 'ethers'
+import { Contract, Wallet, utils, BigNumberish, Signer, PopulatedTransaction } from 'ethers'
 
 import {
+  ChainId,
   ExecTransaction,
   IFeeRefundV1_0_0,
   IFeeRefundV1_0_1,
@@ -99,7 +93,7 @@ export const smartAccountSignTypedData = async (
   chainId?: BigNumberish
 ): Promise<SmartAccountSignature> => {
   if (!chainId && !signer.provider) throw Error('Provider required to retrieve chainId')
-  const cid = chainId || (await signer.provider!!.getNetwork()).chainId
+  const cid = chainId || (await signer.provider!.getNetwork()).chainId
   const signerAddress = await signer.getAddress()
   return {
     signer: signerAddress,
@@ -124,9 +118,12 @@ export const smartAccountSignMessage = async (
   signer: Signer,
   wallet: Contract,
   SmartAccountTx: IWalletTransaction,
-  chainId?: BigNumberish
+  chainId: ChainId
 ): Promise<SmartAccountSignature> => {
-  const cid = chainId || (await signer.provider!!.getNetwork()).chainId
+  const cid = chainId ? chainId : (await signer.provider!.getNetwork()).chainId
+  if (!cid) {
+    throw Error('smartAccountSignMessage: Chain Id Not Found')
+  }
   return signHash(signer, calculateSmartAccountTransactionHash(wallet, SmartAccountTx, cid))
 }
 
@@ -141,6 +138,7 @@ export const buildSignatureBytes = (signatures: SmartAccountSignature[]): string
   return signatureBytes
 }
 
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 export const executeTx = async (
   wallet: Contract,
   SmartAccountTx: IWalletTransaction,
@@ -171,6 +169,7 @@ export const executeTx = async (
   )
 }
 
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 export const populateExecuteTx = async (
   wallet: Contract,
   SmartAccountTx: IWalletTransaction,
@@ -200,7 +199,7 @@ export const populateExecuteTx = async (
     overrides || {}
   )
 }
-
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 export const buildContractCall = (
   contract: Contract,
   method: string,
@@ -223,6 +222,7 @@ export const buildContractCall = (
   )
 }
 
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 export const executeTxWithSigners = async (
   wallet: Contract,
   tx: IWalletTransaction,
@@ -234,7 +234,7 @@ export const executeTxWithSigners = async (
   )
   return executeTx(wallet, tx, sigs, overrides)
 }
-
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 export const executeContractCallWithSigners = async (
   wallet: Contract,
   contract: Contract,

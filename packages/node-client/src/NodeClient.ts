@@ -16,7 +16,7 @@ import {
   BalancesResponse,
   UsdBalanceResponse,
   EstimateGasResponse,
-  TransactionResponse
+  SCWTransactionResponse
 } from './types/NodeClientTypes'
 import { getTxServiceBaseUrl } from './utils'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
@@ -151,17 +151,19 @@ class NodeClient implements INodeClient {
     })
   }
 
-  async estimateRequiredTxGasOverride(estimateRequiredTxGasDto: EstimateRequiredTxGasDto
-    ): Promise<EstimateGasResponse> {
-      return sendRequest({
-        url: `${this.#txServiceBaseUrl}/estimator/required-override`,
-        method: HttpMethod.Post,
-        body: estimateRequiredTxGasDto
-      })
-    }
+  async estimateRequiredTxGasOverride(
+    estimateRequiredTxGasDto: EstimateRequiredTxGasDto
+  ): Promise<EstimateGasResponse> {
+    return sendRequest({
+      url: `${this.#txServiceBaseUrl}/estimator/required-override`,
+      method: HttpMethod.Post,
+      body: estimateRequiredTxGasDto
+    })
+  }
 
-  async estimateHandlePaymentGasOverride(estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto
-    ): Promise<EstimateGasResponse> {
+  async estimateHandlePaymentGasOverride(
+    estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto
+  ): Promise<EstimateGasResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/estimator/handle-payment-override`,
       method: HttpMethod.Post,
@@ -169,31 +171,28 @@ class NodeClient implements INodeClient {
     })
   }
 
-  async estimateUndeployedContractGas(estimateUndeployedContractGasDto: EstimateUndeployedContractGasDto): Promise<EstimateGasResponse> {
+  async estimateUndeployedContractGas(
+    estimateUndeployedContractGasDto: EstimateUndeployedContractGasDto
+  ): Promise<EstimateGasResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/estimator/undeployed`,
       method: HttpMethod.Post,
-       body: estimateUndeployedContractGasDto
-     })
-   }
+      body: estimateUndeployedContractGasDto
+    })
+  }
 
-   getTransactionByAddress(
-     chainId: number,
-     address: string
-  ): Promise<TransactionResponse[]>{
+  getTransactionByAddress(chainId: number, address: string): Promise<SCWTransactionResponse[]> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/transactions/chainId/${chainId}/address/${address}`,
       method: HttpMethod.Get
-     })
+    })
   }
 
-  getTransactionByHash(
-    txHash: string
-  ): Promise<TransactionResponse>{
+  getTransactionByHash(txHash: string): Promise<SCWTransactionResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/transactions/txHash/${txHash}`,
       method: HttpMethod.Get
-     })
+    })
   }
 }
 

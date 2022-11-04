@@ -24,7 +24,7 @@ export type SmartAccountInfoResponse = {
 }
 
 // Review
-export type TransactionResponse = {
+export type SCWTransactionResponse = {
   symbol: string
   tokenAddress: string
   scwAddress: string

@@ -33,6 +33,7 @@ export interface IEvmNetworkManager {
   ): SmartWalletFactoryContract
   getContractCode(address: string): Promise<string>
   isContractDeployed(address: string): Promise<boolean>
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   getTransaction(transactionHash: string): Promise<any>
   getSignerAddress(): Promise<string>
   signMessage(message: string): Promise<string>

@@ -4,7 +4,7 @@ import {
   SmartWalletContract,
   IWalletTransaction,
   ExecTransaction,
-  IFeeRefundV1_0_0, 
+  IFeeRefundV1_0_0,
   ITransactionResult
 } from '@biconomy-sdk/core-types'
 import { toTxResult } from '../../../utils'
@@ -68,6 +68,7 @@ class SmartWalletContractEthers implements SmartWalletContract {
     return toTxResult(txResponse)
   }
 
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   encode: SmartWalletContractV100Interface['encodeFunctionData'] = (
     methodName: any,
     params: any

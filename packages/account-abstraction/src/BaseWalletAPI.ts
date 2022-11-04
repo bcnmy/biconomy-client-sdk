@@ -1,15 +1,18 @@
-import { ethers, BigNumber, BigNumberish } from 'ethers'
+import { BigNumber, BigNumberish } from 'ethers'
 import { Provider } from '@ethersproject/providers'
-import {
-  EntryPoint, EntryPoint__factory,
-  UserOperationStruct
-} from '@account-abstraction/contracts'
+import { UserOperation } from '@biconomy-sdk/core-types'
+import { ClientConfig } from './ClientConfig'
 
+import {
+  EntryPointContractV101,
+  SmartWalletFactoryV101,
+  SmartWalletContractV101
+} from '@biconomy-sdk/ethers-lib'
 import { TransactionDetailsForUserOp } from './TransactionDetailsForUserOp'
 import { resolveProperties } from 'ethers/lib/utils'
 import { PaymasterAPI } from './PaymasterAPI'
 import { getRequestId } from '@biconomy-sdk/common'
-
+import { ZERO_ADDRESS } from '@biconomy-sdk/core-types'
 /**
  * Base class for all Smart Wallet ERC-4337 Clients to implement.
  * Subclass should inherit 5 methods to support a specific wallet contract:
@@ -23,16 +26,25 @@ import { getRequestId } from '@biconomy-sdk/common'
  * - createUnsignedUserOp - given "target" and "calldata", fill userOp to perform that operation from the wallet.
  * - createSignedUserOp - helper to call the above createUnsignedUserOp, and then extract the requestId and sign it
  */
+
+// Note: Resembles SmartAccount methods itself. Could be sperated out across smart-account & || transactions || new package and reclaim
+
 export abstract class BaseWalletAPI {
   private senderAddress!: string
   private isPhantom = true
   // entryPoint connected to "zero" address. allowed to make static calls (e.g. to getSenderAddress)
-  private readonly entryPointView: EntryPoint
+  // private readonly entryPointView: EntryPoint
 
   /**
    * subclass MAY initialize to support custom paymaster
    */
   paymasterAPI?: PaymasterAPI
+
+  /**
+   * our wallet contract.
+   * should support the "execFromSingleton" and "nonce" methods
+   */
+  walletContract!: SmartWalletContractV101
 
   /**
    * base constructor.
@@ -41,16 +53,33 @@ export abstract class BaseWalletAPI {
    * @param entryPointAddress - the entryPoint to send requests through (used to calculate the request-id, and for gas estimations)
    * @param walletAddress. may be empty for new wallet (using factory to determine address)
    */
-  protected constructor (
+  protected constructor(
     readonly provider: Provider,
-    readonly entryPointAddress: string,
+    readonly entryPoint: EntryPointContractV101,
+    readonly clientConfig: ClientConfig,
     readonly walletAddress?: string
   ) {
     // factory "connect" define the contract address. the contract "connect" defines the "from" address.
-    this.entryPointView = EntryPoint__factory.connect(entryPointAddress, provider).connect(ethers.constants.AddressZero)
+    // this.entryPointView = EntryPoint__factory.connect(entryPointAddress, provider).connect(ethers.constants.AddressZero)
+    this.paymasterAPI = new PaymasterAPI(
+      clientConfig.signingServiceUrl,
+      clientConfig.dappId,
+      clientConfig.paymasterAddress
+    )
   }
 
-  async init (): Promise<this> {
+  // based on provider chainId we maintain smartWalletContract..
+  async _getWalletContract(): Promise<SmartWalletContractV101> {
+    if (this.walletContract == null) {
+      this.walletContract = SmartWalletFactoryV101.connect(
+        await this.getWalletAddress(),
+        this.provider
+      )
+    }
+    return this.walletContract
+  }
+
+  async init(): Promise<this> {
     await this.getWalletAddress()
     return this
   }
@@ -59,12 +88,12 @@ export abstract class BaseWalletAPI {
    * return the value to put into the "initCode" field, if the wallet is not yet deployed.
    * this value holds the "factory" address, followed by this wallet's information
    */
-  abstract getWalletInitCode (): Promise<string>
+  abstract getWalletInitCode(): Promise<string>
 
   /**
    * return current wallet's nonce.
    */
-  abstract getNonce (): Promise<BigNumber>
+  abstract getNonce(batchId: number): Promise<BigNumber>
 
   /**
    * encode the call from entryPoint through our wallet to the target contract.
@@ -72,18 +101,23 @@ export abstract class BaseWalletAPI {
    * @param value
    * @param data
    */
-  abstract encodeExecute (target: string, value: BigNumberish, data: string): Promise<string>
+  abstract encodeExecute(
+    target: string,
+    value: BigNumberish,
+    data: string,
+    isDelegateCall: boolean
+  ): Promise<string>
 
   /**
    * sign a userOp's hash (requestId).
    * @param requestId
    */
-  abstract signRequestId (requestId: string): Promise<string>
+  abstract signRequestId(requestId: string): Promise<string>
 
   /**
    * check if the wallet is already deployed.
    */
-  async checkWalletPhantom (): Promise<boolean> {
+  async checkWalletPhantom(): Promise<boolean> {
     if (!this.isPhantom) {
       // already deployed. no need to check anymore.
       return this.isPhantom
@@ -101,18 +135,18 @@ export abstract class BaseWalletAPI {
   /**
    * calculate the wallet address even before it is deployed
    */
-  async getCounterFactualAddress (): Promise<string> {
-    const initCode = this.getWalletInitCode()
+  async getCounterFactualAddress(): Promise<string> {
+    const initCode = await this.getWalletInitCode()
     // use entryPoint to query wallet address (factory can provide a helper method to do the same, but
     // this method attempts to be generic
-    return await this.entryPointView.callStatic.getSenderAddress(initCode)
+    return await this.entryPoint.callStatic.getSenderAddress(initCode)
   }
 
   /**
    * return initCode value to into the UserOp.
    * (either deployment code, or empty hex if contract already deployed)
    */
-  async getInitCode (): Promise<string> {
+  async getInitCode(): Promise<string> {
     if (await this.checkWalletPhantom()) {
       return await this.getWalletInitCode()
     }
@@ -123,7 +157,7 @@ export abstract class BaseWalletAPI {
    * return maximum gas used for verification.
    * NOTE: createUnsignedUserOp will add to this value the cost of creation, if the wallet is not yet created.
    */
-  async getVerificationGasLimit (): Promise<BigNumberish> {
+  async getVerificationGasLimit(): Promise<BigNumberish> {
     return 100000
   }
 
@@ -131,28 +165,55 @@ export abstract class BaseWalletAPI {
    * should cover cost of putting calldata on-chain, and some overhead.
    * actual overhead depends on the expected bundle size
    */
-  async getPreVerificationGas (userOp: Partial<UserOperationStruct>): Promise<number> {
+  async getPreVerificationGas(userOp: Partial<UserOperation>): Promise<number> {
     console.log(userOp)
     const bundleSize = 1
     const cost = 21000
     // TODO: calculate calldata cost
-    return Math.floor(cost / bundleSize)
+    const preVerificationGas = Math.floor(cost / bundleSize)
+    console.log('preVerificationGas ', Math.floor(preVerificationGas))
+    return Math.floor(preVerificationGas)
   }
 
-  async encodeUserOpCallDataAndGasLimit (detailsForUserOp: TransactionDetailsForUserOp): Promise<{ callData: string, callGasLimit: BigNumber }> {
-    function parseNumber (a: any): BigNumber | null {
+  async encodeUserOpCallDataAndGasLimit(
+    detailsForUserOp: TransactionDetailsForUserOp
+  ): Promise<{ callData: string; callGasLimit: BigNumber }> {
+    /* eslint-disable  @typescript-eslint/no-explicit-any */
+    function parseNumber(a: any): BigNumber | null {
       if (a == null || a === '') return null
       return BigNumber.from(a.toString())
     }
 
-    const value = parseNumber(detailsForUserOp.value) ?? BigNumber.from(0)
-    const callData = await this.encodeExecute(detailsForUserOp.target, value, detailsForUserOp.data)
+    if (detailsForUserOp && detailsForUserOp.target === '' && detailsForUserOp.data === '') {
+      return {
+        callData: '0x',
+        callGasLimit: BigNumber.from('21000')
+      }
+    }
 
-    const callGasLimit = parseNumber(detailsForUserOp.gasLimit) ?? await this.provider.estimateGas({
-      from: this.entryPointAddress,
-      to: this.getWalletAddress(),
-      data: callData
-    })
+    const value = parseNumber(detailsForUserOp.value) ?? BigNumber.from(0)
+    const callData = await this.encodeExecute(
+      detailsForUserOp.target,
+      value,
+      detailsForUserOp.data,
+      detailsForUserOp.isDelegateCall || false
+    )
+
+    /*const callData = (await this._getWalletContract()).encodeFunctionData('execFromEntryPoint', [
+      detailsForUserOp.target,
+      value,
+      detailsForUserOp.data,
+      0,
+      300000
+    ])*/
+
+    const callGasLimit =
+      parseNumber(detailsForUserOp.gasLimit) ??
+      (await this.provider.estimateGas({
+        from: this.entryPoint.address,
+        to: this.getWalletAddress(),
+        data: callData
+      }))
 
     return {
       callData,
@@ -165,17 +226,19 @@ export abstract class BaseWalletAPI {
    * This value matches entryPoint.getRequestId (calculated off-chain, to avoid a view call)
    * @param userOp userOperation, (signature field ignored)
    */
-  async getRequestId (userOp: UserOperationStruct): Promise<string> {
+  async getRequestId(userOp: UserOperation): Promise<string> {
     const op = await resolveProperties(userOp)
-    const chainId = await this.provider.getNetwork().then(net => net.chainId)
-    return getRequestId(op, this.entryPointAddress, chainId)
+    console.log('op ', op)
+    const chainId = await this.provider.getNetwork().then((net) => net.chainId)
+    console.log('chainId ', chainId)
+    return getRequestId(op, this.entryPoint.address, chainId)
   }
 
   /**
    * return the wallet's address.
    * this value is valid even before deploying the wallet.
    */
-  async getWalletAddress (): Promise<string> {
+  async getWalletAddress(): Promise<string> {
     if (this.senderAddress == null) {
       if (this.walletAddress != null) {
         this.senderAddress = this.walletAddress
@@ -192,24 +255,23 @@ export abstract class BaseWalletAPI {
    * - if gas or nonce are missing, read them from the chain (note that we can't fill gaslimit before the wallet is created)
    * @param info
    */
-  async createUnsignedUserOp (info: TransactionDetailsForUserOp): Promise<UserOperationStruct> {
-    const {
-      callData,
-      callGasLimit
-    } = await this.encodeUserOpCallDataAndGasLimit(info)
+  async createUnsignedUserOp(info: TransactionDetailsForUserOp): Promise<UserOperation> {
+    const { callData, callGasLimit } = await this.encodeUserOpCallDataAndGasLimit(info)
     const initCode = await this.getInitCode()
+    console.log('initCode ', initCode)
 
     let verificationGasLimit = BigNumber.from(await this.getVerificationGasLimit())
     if (initCode.length > 2) {
       // add creation to required verification gas
-      const initGas = await this.entryPointView.estimateGas.getSenderAddress(initCode)
+      // using entry point static for gas estimation
+      const entryPointStatic = this.entryPoint.connect(ZERO_ADDRESS)
+      const initGas = await entryPointStatic.estimateGas.getSenderAddress(initCode, {
+        from: ZERO_ADDRESS
+      })
       verificationGasLimit = verificationGasLimit.add(initGas)
     }
 
-    let {
-      maxFeePerGas,
-      maxPriorityFeePerGas
-    } = info
+    let { maxFeePerGas, maxPriorityFeePerGas } = info
     if (maxFeePerGas == null || maxPriorityFeePerGas == null) {
       const feeData = await this.provider.getFeeData()
       if (maxFeePerGas == null) {
@@ -221,8 +283,8 @@ export abstract class BaseWalletAPI {
     }
 
     const partialUserOp: any = {
-      sender: this.getWalletAddress(),
-      nonce: this.getNonce(),
+      sender: await this.getWalletAddress(),
+      nonce: await this.getNonce(0), // TODO: add batchid as param
       initCode,
       callData,
       callGasLimit,
@@ -231,7 +293,8 @@ export abstract class BaseWalletAPI {
       maxPriorityFeePerGas
     }
 
-    partialUserOp.paymasterAndData = this.paymasterAPI == null ? '0x' : await this.paymasterAPI.getPaymasterAndData(partialUserOp)
+    partialUserOp.paymasterAndData =
+      this.paymasterAPI == null ? '0x' : await this.paymasterAPI.getPaymasterAndData(partialUserOp)
     return {
       ...partialUserOp,
       preVerificationGas: this.getPreVerificationGas(partialUserOp),
@@ -243,9 +306,10 @@ export abstract class BaseWalletAPI {
    * Sign the filled userOp.
    * @param userOp the UserOperation to sign (with signature field ignored)
    */
-  async signUserOp (userOp: UserOperationStruct): Promise<UserOperationStruct> {
+  async signUserOp(userOp: UserOperation): Promise<UserOperation> {
+    console.log('inside signUserOp')
     const requestId = await this.getRequestId(userOp)
-    const signature = this.signRequestId(requestId)
+    const signature = await this.signRequestId(requestId)
     return {
       ...userOp,
       signature
@@ -256,7 +320,7 @@ export abstract class BaseWalletAPI {
    * helper method: create and sign a user operation.
    * @param info transaction details for the userOp
    */
-  async createSignedUserOp (info: TransactionDetailsForUserOp): Promise<UserOperationStruct> {
+  async createSignedUserOp(info: TransactionDetailsForUserOp): Promise<UserOperation> {
     return await this.signUserOp(await this.createUnsignedUserOp(info))
   }
 }

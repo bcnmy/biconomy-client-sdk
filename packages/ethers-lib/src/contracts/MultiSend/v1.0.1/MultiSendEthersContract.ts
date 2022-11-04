@@ -20,7 +20,7 @@ class MultiSendEthersContract implements MultiSendContract {
   getInterface(): Interface {
     return this.contract.interface
   }
-
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   encode: MultiSendContractV101Interface['encodeFunctionData'] = (
     methodName: any,
     params: any

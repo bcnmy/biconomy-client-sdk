@@ -5,21 +5,18 @@ import {
   MultiSendContract,
   MultiSendCallOnlyContract,
   SmartAccountContext,
-  EstimateSmartAccountDeploymentDto
+  SmartAccountState
 } from '@biconomy-sdk/core-types'
-import{
-  ChainConfig,
-  SupportedChainsResponse
-} from '@biconomy-sdk/node-client'
+import { ChainConfig } from '@biconomy-sdk/node-client'
 import {
   getSmartWalletFactoryContract,
   getMultiSendContract,
   getMultiSendCallOnlyContract,
-  getSmartWalletContract
+  getSmartWalletContract,
+  findContractAddressesByVersion
 } from './utils/FetchContractsInfo'
-import { ethers } from 'ethers'
+import { ethers, Signer } from 'ethers'
 import EvmNetworkManager from '@biconomy-sdk/ethers-lib'
-import { JsonRpcSigner } from '@ethersproject/providers'
 import { SmartAccountVersion } from '@biconomy-sdk/core-types'
 
 class ContractUtils {
@@ -34,9 +31,9 @@ class ContractUtils {
     [chainId: number]: { [version: string]: SmartWalletFactoryContract }
   }
 
-  // Note: Should DEFAULT_VERSION be moved here? 
+  smartAccountState!: SmartAccountState
 
-  constructor(){
+  constructor(readonly chainConfig: ChainConfig[]) {
     this.ethAdapter = {}
     this.smartWalletContract = {}
     this.multiSendContract = {}
@@ -44,40 +41,28 @@ class ContractUtils {
     this.smartWalletFactoryContract = {}
   }
 
-  public async initialize(supportedChains: ChainConfig[], signer: JsonRpcSigner) {
-    const chainsInfo = supportedChains;
-
-    for (let i = 0; i < chainsInfo.length; i++) {
-      const network = chainsInfo[i]
-      const providerUrl = network.providerUrl
-      // To keep it network agnostic
-      // Note: think about events when signer needs to pay gas      
-
-      const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
-
-      console.log('chain id ', network.chainId, 'readProvider ', readProvider);
-
-      // Instantiating EthersAdapter instance and maintain it as above mentioned class level variable
-      this.ethAdapter[network.chainId] = new EvmNetworkManager({
-        ethers,
-        signer,
-        provider: readProvider
-      })
-
-      this.smartWalletFactoryContract[network.chainId] = {}
-      this.smartWalletContract[network.chainId] = {}
-      this.multiSendContract[network.chainId] = {}
-      this.multiSendCallOnlyContract[network.chainId] = {}
-      this.initializeContracts(network)
-    }
-  }
-  initializeContracts(chaininfo: ChainConfig) {
+  initializeContracts(
+    signer: Signer,
+    readProvider: ethers.providers.JsonRpcProvider,
+    chaininfo: ChainConfig
+  ) {
     // We get the addresses using chainConfig fetched from backend node
 
     const smartWallet = chaininfo.wallet
     const smartWalletFactoryAddress = chaininfo.walletFactory
     const multiSend = chaininfo.multiSend
     const multiSendCall = chaininfo.multiSendCall
+    this.ethAdapter[chaininfo.chainId] = new EvmNetworkManager({
+      ethers,
+      signer,
+      provider: readProvider
+    })
+
+    this.smartWalletFactoryContract[chaininfo.chainId] = {}
+    this.smartWalletContract[chaininfo.chainId] = {}
+    this.multiSendContract[chaininfo.chainId] = {}
+    this.multiSendCallOnlyContract[chaininfo.chainId] = {}
+
     for (let index = 0; index < smartWallet.length; index++) {
       const version = smartWallet[index].version
       console.log(smartWallet[index])
@@ -108,26 +93,18 @@ class ContractUtils {
     }
   }
 
-  // TODO: params as Object
-  // May not need it at all if we go provider route
   async isDeployed(chainId: ChainId, version: string, address: string): Promise<boolean> {
-    // Other approach : needs review and might be coming wrong
-    // const readProvider = new ethers.providers.JsonRpcProvider(networks[chainId].providerUrl);
-    // const walletCode = await readProvider.getCode(await this.getAddress(chainId));
-    // return !!walletCode && walletCode !== '0x'
-
-    // but below works
     return await this.smartWalletFactoryContract[chainId][version].isWalletExist(address)
   }
 
-   //
+  //
   /**
    * Serves smart contract instances associated with Smart Account for requested ChainId
    * Context is useful when relayer is deploying a wallet
    * @param chainId requested chain : default is active chain
    * @returns object containing relevant contract instances
    */
-   getSmartAccountContext(
+  getSmartAccountContext(
     // smartAccountVersion: SmartAccountVersion = this.DEFAULT_VERSION,
     chainId: ChainId,
     version: SmartAccountVersion
@@ -136,10 +113,55 @@ class ContractUtils {
       baseWallet: this.smartWalletContract[chainId][version],
       walletFactory: this.smartWalletFactoryContract[chainId][version],
       multiSend: this.multiSendContract[chainId][version],
-      multiSendCall: this.multiSendCallOnlyContract[chainId][version],
+      multiSendCall: this.multiSendCallOnlyContract[chainId][version]
       // Could be added dex router for chain in the future
     }
     return context
+  }
+
+  async getSmartAccountState(
+    smartAccountState: SmartAccountState,
+    currentVersion?: string,
+    currentChainId?: ChainId
+  ): Promise<SmartAccountState> {
+    const { address, owner, chainId, version } = smartAccountState
+
+    if (!currentVersion) {
+      currentVersion = version
+    }
+
+    if (!currentChainId) {
+      currentChainId = chainId
+    }
+
+    if (!this.smartAccountState) {
+      this.smartAccountState = smartAccountState
+    } else if (
+      this.smartAccountState.version !== currentVersion ||
+      this.smartAccountState.chainId !== currentChainId
+    ) {
+      this.smartAccountState.address = await this.smartWalletFactoryContract[chainId][
+        version
+      ].getAddressForCounterfactualWallet(owner, 0)
+      this.smartAccountState.version = currentVersion
+      this.smartAccountState.chainId = currentChainId
+
+      this.smartAccountState.isDeployed = await this.isDeployed(
+        this.smartAccountState.chainId,
+        this.smartAccountState.version,
+        address
+      ) // could be set as state in init
+      const contractsByVersion = findContractAddressesByVersion(
+        this.smartAccountState.version,
+        this.smartAccountState.chainId,
+        this.chainConfig
+      )
+      ;(this.smartAccountState.entryPointAddress = contractsByVersion.entryPointAddress || ''),
+        (this.smartAccountState.fallbackHandlerAddress =
+          contractsByVersion.fallBackHandlerAddress || '')
+    }
+
+    return this.smartAccountState
   }
 }
 
