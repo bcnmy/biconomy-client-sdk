@@ -3,9 +3,12 @@ import { UserOperation } from '@biconomy-sdk/core-types'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
 import { IPaymasterAPI } from '@biconomy-sdk/core-types'
 
+/**
+ * Verifying Paymaster API supported via Biconomy dahsboard to enable Gasless transactions
+ */
 export class BiconomyPaymasterAPI implements IPaymasterAPI {
-  constructor(readonly apiUrl: string, readonly dappAPIKey: string) {
-    this.apiUrl = apiUrl
+  constructor(readonly signingServiceUrl: string, readonly dappAPIKey: string) {
+    this.signingServiceUrl = signingServiceUrl
   }
 
   async getPaymasterAndData(userOp: Partial<UserOperation>): Promise<string> {
@@ -21,7 +24,7 @@ export class BiconomyPaymasterAPI implements IPaymasterAPI {
 
     // move dappAPIKey in headers
     const result: any = await sendRequest({
-      url: `${this.apiUrl}`,
+      url: `${this.signingServiceUrl}`,
       method: HttpMethod.Post,
       body: { userOp: userOp, dappAPIKey: this.dappAPIKey }
     })

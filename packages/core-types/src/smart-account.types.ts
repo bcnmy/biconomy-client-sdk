@@ -12,8 +12,8 @@ import { Signer } from 'ethers'
 import { IPaymasterAPI } from 'account-abstraction-types'
 
 export interface SmartAccountConfig {
-  activeNetworkId: ChainId // same
-  supportedNetworksIds: ChainId[] // Network[] chainId: CbainId, rpcUrl?: string
+  activeNetworkId: ChainId 
+  supportedNetworksIds: ChainId[]
   backend_url: string
   relayer_url: string
   signType: SignTypeMethod
