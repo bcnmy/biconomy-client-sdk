@@ -48,7 +48,8 @@ export class ERC4337EthersSigner extends Signer {
       userOperation,
       bundlerServiceResponse.transactionId
     )
-    console.log('transactionResponse ', transactionResponse)
+    const receipt = await transactionResponse.wait()
+    console.log('transactionResponse in deployWalletOnly', receipt)
 
     // TODO: handle errors - transaction that is "rejected" by bundler is _not likely_ to ever resolve its "wait()"
     return transactionResponse
@@ -130,7 +131,8 @@ export class ERC4337EthersSigner extends Signer {
       userOperation,
       bundlerServiceResponse.transactionId
     )
-    console.log('transactionResponse ', transactionResponse)
+    const receipt = await transactionResponse.wait()
+    console.log('transactionResponse in sendTransaction', receipt)
 
     // TODO: handle errors - transaction that is "rejected" by bundler is _not likely_ to ever resolve its "wait()"
     return transactionResponse

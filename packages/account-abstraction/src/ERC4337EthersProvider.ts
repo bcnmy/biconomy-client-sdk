@@ -150,14 +150,6 @@ export class ERC4337EthersProvider extends BaseProvider {
     const requestId = getRequestId(userOp, this.config.entryPointAddress, this.config.chainId)
 
     const waitPromise = new Promise<TransactionReceipt>((resolve, reject) => {
-      /*new UserOperationEventListener(
-        resolve,
-        reject,
-        this.entryPoint,
-        userOp.sender,
-        requestId,
-        userOp.nonce
-      ).start()*/
       clientMessenger.createTransactionNotifier(transactionId, {
         onMined: (tx: any) => {
           const txId = tx.transactionId
@@ -181,6 +173,7 @@ export class ERC4337EthersProvider extends BaseProvider {
         }
       })
     })
+
     return {
       hash: requestId, // or transactionId
       confirmations: 0,
@@ -192,8 +185,10 @@ export class ERC4337EthersProvider extends BaseProvider {
       chainId: this.config.chainId,
       wait: async (confirmations?: number): Promise<TransactionReceipt> => {
         console.log(confirmations)
-        const transactionReceipt = await waitPromise
-        console.log('received tx receipt ', transactionReceipt)
+        const transactionReceipt = waitPromise.then((receipt: any) => {
+          console.log('received tx receipt ', transactionReceipt)
+          return receipt
+        })
         if (userOp.initCode.length !== 0) {
           // checking if the wallet has been deployed by the transaction; it must be if we are here
           await this.smartWalletAPI.checkWalletPhantom()
