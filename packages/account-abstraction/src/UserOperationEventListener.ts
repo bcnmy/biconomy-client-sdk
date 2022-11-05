@@ -3,7 +3,7 @@ import { TransactionReceipt } from '@ethersproject/providers'
 import { EntryPoint } from '@account-abstraction/contracts'
 import { defaultAbiCoder } from 'ethers/lib/utils'
 
-const DEFAULT_TRANSACTION_TIMEOUT = 10000
+const DEFAULT_TRANSACTION_TIMEOUT = 100000
 
 /**
  * This class encapsulates Ethers.js listener function and necessary UserOperation details to
@@ -43,7 +43,7 @@ export class UserOperationEventListener {
       } else {
         this.entryPoint.once(filter, this.boundLisener)
       }
-    }, 100)
+    }, 30000)
   }
 
   stop(): void {

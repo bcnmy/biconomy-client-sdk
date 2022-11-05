@@ -10,6 +10,9 @@ import { HttpRpcClient } from './HttpRpcClient'
 import { EntryPoint } from '@account-abstraction/contracts'
 import { UserOperation } from '@biconomy-sdk/core-types'
 import { BaseWalletAPI } from './BaseWalletAPI'
+import { ClientMessenger } from 'messaging-sdk'
+import EventEmitter from 'events'
+import WebSocket from 'isomorphic-ws'
 
 export class ERC4337EthersProvider extends BaseProvider {
   readonly signer: ERC4337EthersSigner
@@ -96,7 +99,7 @@ export class ERC4337EthersProvider extends BaseProvider {
   }
 
   // fabricate a response in a format usable by ethers users...
-  async constructUserOpTransactionResponse(userOp1: UserOperation): Promise<TransactionResponse> {
+  /*async constructUserOpTransactionResponse(userOp1: UserOperation): Promise<TransactionResponse> {
     const userOp = await resolveProperties(userOp1)
     const requestId = getRequestId(userOp, this.config.entryPointAddress, this.config.chainId)
     const waitPromise = new Promise<TransactionReceipt>((resolve, reject) => {
@@ -121,6 +124,83 @@ export class ERC4337EthersProvider extends BaseProvider {
       wait: async (confirmations?: number): Promise<TransactionReceipt> => {
         console.log(confirmations)
         const transactionReceipt = await waitPromise
+        if (userOp.initCode.length !== 0) {
+          // checking if the wallet has been deployed by the transaction; it must be if we are here
+          await this.smartWalletAPI.checkWalletPhantom()
+        }
+        return transactionReceipt
+      }
+    }
+  }*/
+
+  // fabricate a response in a format usable by ethers users...
+  async constructUserOpTransactionResponse(
+    userOp1: UserOperation,
+    transactionId: string,
+    engine?: any // EventEmitter
+  ): Promise<TransactionResponse> {
+    const socketServerUrl = 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket'
+
+    const clientMessenger = new ClientMessenger(socketServerUrl, WebSocket)
+
+    if (!clientMessenger.socketClient.isConnected()) {
+      await clientMessenger.connect()
+      console.log('connect success')
+    }
+
+    const userOp = await resolveProperties(userOp1)
+    const requestId = getRequestId(userOp, this.config.entryPointAddress, this.config.chainId)
+
+    const waitPromise = new Promise<TransactionReceipt>((resolve, reject) => {
+      clientMessenger.createTransactionNotifier(transactionId, {
+        onMined: (tx: any) => {
+          const txId = tx.transactionId
+          clientMessenger.unsubscribe(txId)
+          console.log(
+            `Tx Hash mined message received at client ${JSON.stringify({
+              transactionId: txId,
+              hash: tx.transactionHash,
+              receipt: tx.receipt
+            })}`
+          )
+          const receipt: TransactionReceipt = tx.receipt
+          engine.emit('txMined', {
+            msg: 'txn mined',
+            id: txId,
+            hash: tx.transactionHash,
+            receipt: tx.receipt
+          })
+          resolve(receipt)
+        },
+        onError: async (tx: any) => {
+          console.log(`Error message received at client is ${tx}`)
+          const err = tx.error
+          const txId = tx.transactionId
+          clientMessenger.unsubscribe(txId)
+          engine.emit('onError', {
+            error: err,
+            transactionId: txId
+          })
+          reject(err)
+        }
+      })
+    })
+
+    return {
+      hash: requestId, // or transactionId
+      confirmations: 0,
+      from: userOp.sender,
+      nonce: BigNumber.from(userOp.nonce).toNumber(),
+      gasLimit: BigNumber.from(userOp.callGasLimit), // ??
+      value: BigNumber.from(0),
+      data: hexValue(userOp.callData), // should extract the actual called method from this "execFromEntryPoint()" call
+      chainId: this.config.chainId,
+      wait: async (confirmations?: number): Promise<TransactionReceipt> => {
+        console.log(confirmations)
+        const transactionReceipt = waitPromise.then((receipt: any) => {
+          console.log('received tx receipt ', transactionReceipt)
+          return receipt
+        })
         if (userOp.initCode.length !== 0) {
           // checking if the wallet has been deployed by the transaction; it must be if we are here
           await this.smartWalletAPI.checkWalletPhantom()

@@ -22,6 +22,7 @@ export class HttpRpcClient {
 
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   async sendUserOpToBundler(userOp1: UserOperation): Promise<any> {
+    // TODO comes from own config
     const userOp = await resolveProperties(userOp1)
     const hexifiedUserOp: any = Object.keys(userOp)
       .map((key) => {
@@ -35,11 +36,38 @@ export class HttpRpcClient {
 
     const jsonRequestData: [UserOperation, string] = [hexifiedUserOp, this.entryPointAddress]
     await this.printUserOperation(jsonRequestData)
-    return await this.userOpJsonRpcProvider.send('eth_sendUserOperation', [
+    /*return await this.userOpJsonRpcProvider.send('eth_sendUserOperation', [
       hexifiedUserOp,
       this.entryPointAddress,
       this.chainId
-    ])
+    ])*/
+
+    const response: any = await sendRequest({
+      url: `${this.bundlerUrl}`,
+      method: HttpMethod.Post,
+      body: {
+        method: 'eth_sendUserOperation',
+        params: [hexifiedUserOp, this.entryPointAddress, this.chainId],
+        id: 1234,
+        jsonrpc: '2.0'
+      }
+    })
+
+    console.log('rest relayer : response')
+    console.log(response)
+    if (response && response.data) {
+      const transactionId = response.data.transactionId
+      const connectionUrl = response.data.connectionUrl
+
+      return {
+        connectionUrl: connectionUrl,
+        transactionId: transactionId
+      }
+    } else {
+      return {
+        error: response.error || 'transaction failed'
+      }
+    }
   }
 
   private async printUserOperation([userOp1, entryPointAddress]: [

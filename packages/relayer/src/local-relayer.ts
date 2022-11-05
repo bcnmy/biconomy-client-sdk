@@ -1,6 +1,6 @@
 import { TransactionResponse } from '@ethersproject/providers'
 import { Signer as AbstractSigner, ethers } from 'ethers'
-import { Relayer } from '.'
+import { IRelayer } from '.'
 
 import {
   DeployWallet,
@@ -10,7 +10,7 @@ import {
 } from '@biconomy-sdk/core-types'
 import { MetaTransaction, encodeMultiSend } from './utils/multisend'
 
-export class LocalRelayer implements Relayer {
+export class LocalRelayer implements IRelayer {
   private signer: AbstractSigner
   // private txnOptions: TransactionRequest
 
