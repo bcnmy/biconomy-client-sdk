@@ -28,11 +28,6 @@ export enum SignTypeMethod {
   EIP712_SIGN = 'EIP712_SIGN'
 }
 
-export type ProviderUrlConfig = {
-  chainId: ChainId
-  providerUrl: string
-}
-
 export type NetworkConfig = {
   chainId: ChainId
   providerUrl: string

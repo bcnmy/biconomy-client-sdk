@@ -119,11 +119,6 @@ export type ChainConfig = {
   token: TokenInfo
 }
 
-export type ProviderUrlConfig = {
-  chainId: ChainId
-  providerUrl: string
-}
-
 export type MasterCopyResponse = {
   address: string
   version: string

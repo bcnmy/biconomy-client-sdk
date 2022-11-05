@@ -31,7 +31,6 @@ import {
 } from '@biconomy-sdk/core-types'
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import NodeClient, {
-  ProviderUrlConfig,
   ChainConfig,
   SmartAccountsResponse,
   SmartAccountByOwnerDto,
@@ -73,8 +72,6 @@ class SmartAccount extends EventEmitter {
 
   // Chain configurations fetched from backend
   chainConfig!: ChainConfig[]
-
-  providerUrlConfig!: ProviderUrlConfig[]
 
   provider!: Web3Provider
 
@@ -121,6 +118,9 @@ class SmartAccount extends EventEmitter {
   constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
     super()
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
+    console.log('stage 1 : default config')
+    console.log(this.#smartAccountConfig)
+    console.log(this.#smartAccountConfig.networkConfig)
 
     if (!this.#smartAccountConfig.activeNetworkId) {
       throw Error('active chain needs to be specified')
@@ -132,16 +132,27 @@ class SmartAccount extends EventEmitter {
     let networkConfig = this.#smartAccountConfig.networkConfig
 
     if (config) {
+      console.log('provided something in custom config')
+      console.log('merging network config from default and custom')
+      console.log('default network config')
+      console.log(networkConfig)
+      console.log('custom network config')
+      console.log(config.networkConfig)
       networkConfig = { ...networkConfig, ...config.networkConfig }
+      console.log('merged network config values below')
+      console.log(networkConfig)
+      console.log('merging smart account config')
+      console.log('before')
+      console.log(this.#smartAccountConfig)
       this.#smartAccountConfig = { ...this.#smartAccountConfig, ...config }
+      console.log('after')
+      console.log(this.#smartAccountConfig)
       this.#smartAccountConfig.networkConfig = networkConfig
+      console.log('finals')
+      console.log(this.#smartAccountConfig)
+      console.log(this.#smartAccountConfig.networkConfig)
     }
-    // Useful for AA flow. Check if it is valid key
-    // this.dappAPIKey = this.#smartAccountConfig.dappAPIKey || ''
-    // Useful if Dapp needs custom RPC Urls. Check if valid. Fallback to public Urls
 
-    // review
-    // this.providerUrlConfig = this.#smartAccountConfig.networkConfig || []
     this.supportedNetworkIds = this.#smartAccountConfig.supportedNetworksIds
 
     // Should not break if we make this wallet connected provider optional (We'd have JsonRpcProvider / JsonRpcSender)
@@ -154,8 +165,10 @@ class SmartAccount extends EventEmitter {
   }
 
   getProviderUrl(network: ChainConfig): string {
+    console.log('after init smartAccountConfig.networkConfig')
+    console.log(this.#smartAccountConfig.networkConfig)
     let providerUrl =
-      this.#smartAccountConfig.networkConfig?.find(
+      this.#smartAccountConfig.networkConfig.find(
         (element: NetworkConfig) => element.chainId === network.chainId
       )?.providerUrl || ''
 
@@ -180,9 +193,14 @@ class SmartAccount extends EventEmitter {
       console.log('Instantiating chain ', chainId)
     }
     if (!exist) {
+      console.log('this.chainConfig')
+      console.log(this.chainConfig)
       const network = this.chainConfig.find((element: ChainConfig) => element.chainId === chainId)
       if (!network) return
       const providerUrl = this.getProviderUrl(network)
+      console.log('init at chain')
+      console.log(chainId)
+      console.log(providerUrl)
       const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
       this.contractUtils.initializeContracts(this.signer, readProvider, network)
 
