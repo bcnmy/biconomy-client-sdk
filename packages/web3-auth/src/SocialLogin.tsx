@@ -18,6 +18,7 @@ class SocialLogin {
   iWin: any = false
   iframeInitialized = false
   isInit = false
+  clientId: string
   web3auth: Web3AuthCore | null = null
   provider: SafeEventEmitterProvider | null = null
 
@@ -26,14 +27,15 @@ class SocialLogin {
     this.isInit = false
     this.web3auth = null
     this.provider = null
+    this.clientId =
+      'BEQgHQ6oRgaJXc3uMnGIr-AY-FLTwRinuq8xfgnInrnDrQZYXxDO0e53osvXzBXC1dcUTyD2Itf-zN1VEB8xZlo'
   }
 
   async init(chainId: string) {
     try {
       console.log('SocialLogin init')
       const web3AuthCore = new Web3AuthCore({
-        clientId:
-          'BEQgHQ6oRgaJXc3uMnGIr-AY-FLTwRinuq8xfgnInrnDrQZYXxDO0e53osvXzBXC1dcUTyD2Itf-zN1VEB8xZlo',
+        clientId: this.clientId,
         chainConfig: {
           chainNamespace: CHAIN_NAMESPACES.EIP155,
           chainId: chainId
@@ -42,8 +44,7 @@ class SocialLogin {
 
       const openloginAdapter = new OpenloginAdapter({
         adapterSettings: {
-          clientId:
-            'BEQgHQ6oRgaJXc3uMnGIr-AY-FLTwRinuq8xfgnInrnDrQZYXxDO0e53osvXzBXC1dcUTyD2Itf-zN1VEB8xZlo',
+          clientId: this.clientId,
           network: 'testnet',
           uxMode: 'redirect',
           whiteLabel: {

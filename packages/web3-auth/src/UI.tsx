@@ -1,4 +1,9 @@
 import React from 'react'
+import SocialLogin from './SocialLogin'
+
+interface UIPorops {
+  socialLogin: SocialLogin
+}
 
 const googleCardStyle = {
   display: 'flex',
@@ -62,13 +67,13 @@ const footerBigText = {
   color: '#535353'
 } as React.CSSProperties
 
-const UI = (props: any) => {
+const UI: React.FC<UIPorops> = ({ socialLogin }) => {
   return (
     <div style={container}>
       <img
         src={'https://live-nft-hosted-assets.s3.ap-south-1.amazonaws.com/cancel_icon.svg'}
         style={{ position: 'absolute', right: 18, cursor: 'pointer' }}
-        onClick={() => props.socialLogin.hideWallet()}
+        onClick={() => socialLogin.hideWallet()}
       />
       <div
         style={{
@@ -106,7 +111,7 @@ const UI = (props: any) => {
         </p>
       </div>
       <div>
-        <button onClick={() => props.socialLogin.login()} style={googleCardStyle}>
+        <button onClick={() => socialLogin.login()} style={googleCardStyle}>
           <img
             src={'https://live-nft-hosted-assets.s3.ap-south-1.amazonaws.com/google_logo.svg'}
             style={{ marginRight: 14 }}
