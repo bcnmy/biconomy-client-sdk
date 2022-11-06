@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.settings.json",
   "compilerOptions": {
+    "jsx": "react",
     "composite": true,
     "outDir": "dist",
     "baseUrl": "src",
