@@ -809,7 +809,7 @@ class SmartAccount extends EventEmitter {
 // TODO/NOTE : make Goerli and Mumbai as test networks and remove others
 export const DefaultSmartAccountConfig: SmartAccountConfig = {
   activeNetworkId: ChainId.GOERLI, //Update later
-  paymasterAddress: '0x50e8996670759E1FAA315eeaCcEfe0c0A043aA51',
+  paymasterAddress: '0x16822044500E14A3F6d6A0F1513EaF420748aF34',
   signType: SignTypeMethod.EIP712_SIGN,
   signingServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
   supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],

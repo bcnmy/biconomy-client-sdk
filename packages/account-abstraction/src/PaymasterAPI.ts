@@ -1,7 +1,10 @@
 import { resolveProperties } from '@ethersproject/properties'
 import { UserOperation } from '@biconomy-sdk/core-types'
 import { hexConcat } from 'ethers/lib/utils'
+import { ethers } from 'ethers'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
+const abi = ethers.utils.defaultAbiCoder
+
 export class PaymasterAPI {
   // Might maintain API key at smart account level
   constructor(
@@ -47,9 +50,14 @@ export class PaymasterAPI {
     console.log('******** ||||| *********')
     console.log('signing service response', result)
 
+    // Temp
+    const paymasterId = '0x4E720e21D8BEFA24da71F2eacE864137e0166C6C'
+
     // ToDo: Get paymaster addr from dapp id / smart account config
     if (result) {
-      return hexConcat([this.payMasterAddress, result.signedMessage])
+      const idAndSig = abi.encode(['address', 'bytes'], [paymasterId, result.signedMessage])
+      const paymasterAndData = hexConcat([this.payMasterAddress, idAndSig])
+      return paymasterAndData
     }
 
     return '0x'
