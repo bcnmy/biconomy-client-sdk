@@ -153,6 +153,7 @@ export class RestRelayer implements IRelayer {
           {
             ...finalRawRx,
             gasLimit: (gasLimit as GasLimit).hex,
+            walletAddress: address,
             refundInfo: {
               tokenGasPrice: signedTx.tx.gasPrice,
               gasToken: signedTx.tx.gasToken

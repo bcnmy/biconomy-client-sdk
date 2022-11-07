@@ -10,7 +10,8 @@ export class HttpRpcClient {
   constructor(
     readonly bundlerUrl: string,
     readonly entryPointAddress: string,
-    readonly chainId: number
+    readonly chainId: number,
+    readonly dappAPIKey: string,
   ) {
     this.userOpJsonRpcProvider = new ethers.providers.JsonRpcProvider(this.bundlerUrl, {
       name: 'Not actually connected to network, only talking to the Bundler!',
@@ -42,12 +43,16 @@ export class HttpRpcClient {
       this.chainId
     ])*/
 
+    const metaData = {
+      dappAPIKey: this.dappAPIKey
+    }
+
     const response: any = await sendRequest({
       url: `${this.bundlerUrl}`,
       method: HttpMethod.Post,
       body: {
         method: 'eth_sendUserOperation',
-        params: [hexifiedUserOp, this.entryPointAddress, this.chainId],
+        params: [hexifiedUserOp, this.entryPointAddress, this.chainId, metaData],
         id: 1234,
         jsonrpc: '2.0'
       }

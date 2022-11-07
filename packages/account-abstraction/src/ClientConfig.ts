@@ -1,5 +1,5 @@
 export interface ClientConfig {
-  dappId: string
+  dappAPIKey: string
   signingServiceUrl: string
   paymasterAddress: string
   entryPointAddress: string

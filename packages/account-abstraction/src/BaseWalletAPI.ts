@@ -63,7 +63,7 @@ export abstract class BaseWalletAPI {
     // this.entryPointView = EntryPoint__factory.connect(entryPointAddress, provider).connect(ethers.constants.AddressZero)
     this.paymasterAPI = new PaymasterAPI(
       clientConfig.signingServiceUrl,
-      clientConfig.dappId,
+      clientConfig.dappAPIKey,
       clientConfig.paymasterAddress
     )
   }

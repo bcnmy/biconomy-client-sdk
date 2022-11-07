@@ -57,7 +57,7 @@ describe('ERC4337EthersSigner, Provider', function () {
         console.log('expected address ', expected)
 
         const clientConfig: ClientConfig = {
-            dappId: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
+            dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
             signingServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
             paymasterAddress: '',
             entryPointAddress: entryPoint.address,

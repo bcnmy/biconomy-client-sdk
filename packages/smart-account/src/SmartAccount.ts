@@ -206,7 +206,7 @@ class SmartAccount extends EventEmitter {
       this.aaProvider[network.chainId] = await newProvider(
         new ethers.providers.JsonRpcProvider(providerUrl),
         {
-          dappId: this.dappAPIKey,
+          dappAPIKey: this.dappAPIKey,
           signingServiceUrl: this.#smartAccountConfig.signingServiceUrl,
           paymasterAddress: this.#smartAccountConfig.paymasterAddress || '',
           entryPointAddress: this.#smartAccountConfig.entryPointAddress
