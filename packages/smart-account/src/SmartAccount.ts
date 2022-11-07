@@ -41,7 +41,7 @@ import NodeClient, {
 } from '@biconomy-sdk/node-client'
 import { Web3Provider } from '@ethersproject/providers'
 import { IRelayer, RestRelayer } from '@biconomy-sdk/relayer'
-
+import * as _ from "lodash";
 import TransactionManager, {
   ContractUtils,
   smartAccountSignMessage,
@@ -129,7 +129,7 @@ class SmartAccount extends EventEmitter {
     if (this.#smartAccountConfig.supportedNetworksIds.length == 0)
       this.#smartAccountConfig.supportedNetworksIds = [this.#smartAccountConfig.activeNetworkId]
 
-    let networkConfig = this.#smartAccountConfig.networkConfig
+    let networkConfig: NetworkConfig[] = this.#smartAccountConfig.networkConfig
 
     if (config) {
       console.log('provided something in custom config')
@@ -138,7 +138,7 @@ class SmartAccount extends EventEmitter {
       console.log(networkConfig)
       console.log('custom network config')
       console.log(config.networkConfig)
-      networkConfig = { ...networkConfig, ...config.networkConfig }
+      networkConfig = _.union(networkConfig, config.networkConfig, 'chainId')
       console.log('merged network config values below')
       console.log(networkConfig)
       console.log('merging smart account config')
@@ -167,8 +167,9 @@ class SmartAccount extends EventEmitter {
   getProviderUrl(network: ChainConfig): string {
     console.log('after init smartAccountConfig.networkConfig')
     console.log(this.#smartAccountConfig.networkConfig)
-    let providerUrl =
-      this.#smartAccountConfig.networkConfig.find(
+    const networkConfig: NetworkConfig[] = this.#smartAccountConfig.networkConfig
+    console.log('networkConfig state is ', networkConfig)
+    let providerUrl = networkConfig.find(
         (element: NetworkConfig) => element.chainId === network.chainId
       )?.providerUrl || ''
 
