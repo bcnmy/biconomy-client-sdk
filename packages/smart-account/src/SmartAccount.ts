@@ -142,7 +142,7 @@ class SmartAccount extends EventEmitter {
       console.log(networkConfig)
       console.log('smart account config before merge')
       console.log(this.#smartAccountConfig)
-      this.#smartAccountConfig = { ...config, ...this.#smartAccountConfig }
+      this.#smartAccountConfig = { ...this.#smartAccountConfig, ...config }
       this.#smartAccountConfig.networkConfig = networkConfig
       console.log('final smart account config before after merge')
       console.log(this.#smartAccountConfig)
@@ -287,7 +287,6 @@ class SmartAccount extends EventEmitter {
   ): Promise<TransactionResponse> {
     let { version, chainId } = transactionDto
     const { transaction } = transactionDto
-
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
     const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
@@ -843,7 +842,8 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
   backend_url: 'https://sdk-backend.staging.biconomy.io/v1',
   relayer_url: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
   bundlerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
-  biconomySigningServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
+  biconomySigningServiceUrl:
+    'https://us-central1-biconomy-staging.cloudfunctions.net/signing-service',
   // has to be public urls (local config / backend node)
   networkConfig: [
     {

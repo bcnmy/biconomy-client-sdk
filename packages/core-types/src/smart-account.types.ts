@@ -30,7 +30,7 @@ export enum SignTypeMethod {
 
 export type NetworkConfig = {
   chainId: ChainId
-  providerUrl: string
+  providerUrl?: string // review
   bundlerUrl?: string
   customPaymasterAPI?: IPaymasterAPI
   dappAPIKey?: string

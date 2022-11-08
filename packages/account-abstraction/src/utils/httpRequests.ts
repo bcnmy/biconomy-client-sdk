@@ -11,12 +11,14 @@ interface HttpRequest {
   url: string
   method: HttpMethod
   body?: Record<string, any>
+  headers?: object
 }
 
-export async function sendRequest<T>({ url, method, body }: HttpRequest): Promise<T> {
+export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRequest): Promise<T> {
   const response = await fetch(url, {
     method,
     headers: {
+      ...headers,
       Accept: 'application/json',
       'Content-Type': 'application/json'
     },
