@@ -2,8 +2,14 @@ import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { ethers } from 'ethers'
 import { Web3AuthCore } from '@web3auth/core'
+import { NetworkSwitch } from '@web3auth/ui'
 import { WALLET_ADAPTERS, CHAIN_NAMESPACES, SafeEventEmitterProvider } from '@web3auth/base'
 import { OpenloginAdapter } from '@web3auth/openlogin-adapter'
+import { MetamaskAdapter } from '@web3auth/metamask-adapter'
+import { WalletConnectV1Adapter } from '@web3auth/wallet-connect-v1-adapter'
+import QRCodeModal from '@walletconnect/qrcode-modal'
+import { getPublic, sign } from '@toruslabs/eccrypto'
+import { base64url, keccak } from '@toruslabs/openlogin-utils'
 
 import UIComponent from './UI'
 
@@ -31,7 +37,17 @@ class SocialLogin {
       'BEQgHQ6oRgaJXc3uMnGIr-AY-FLTwRinuq8xfgnInrnDrQZYXxDO0e53osvXzBXC1dcUTyD2Itf-zN1VEB8xZlo'
   }
 
-  async init(chainId: string) {
+  async whitelistUrl(appKey: string, origin: string): Promise<string> {
+    const appKeyBuf = Buffer.from(appKey.padStart(64, '0'), 'hex')
+    if (base64url.encode(getPublic(appKeyBuf)) !== this.clientId) throw new Error('appKey mismatch')
+    const sig = await sign(
+      appKeyBuf,
+      Buffer.from(keccak('keccak256').update(origin).digest('hex'), 'hex')
+    )
+    return base64url.encode(sig)
+  }
+
+  async init(chainId: string, whitelistUrls?: { [P in string]: string }) {
     try {
       console.log('SocialLogin init')
       const web3AuthCore = new Web3AuthCore({
@@ -53,10 +69,24 @@ class SocialLogin {
             logoDark: 'https://s2.coinmarketcap.com/static/img/coins/64x64/9543.png',
             defaultLanguage: 'en',
             dark: true
-          }
+          },
+          originData: whitelistUrls
         }
       })
+      const metamaskAdapter = new MetamaskAdapter({
+        clientId: this.clientId
+      })
+      const networkUi = new NetworkSwitch()
+      const wcAdapter = new WalletConnectV1Adapter({
+        adapterSettings: {
+          qrcodeModal: QRCodeModal,
+          networkSwitchModal: networkUi
+        }
+      })
+
       web3AuthCore.configureAdapter(openloginAdapter)
+      web3AuthCore.configureAdapter(metamaskAdapter)
+      web3AuthCore.configureAdapter(wcAdapter)
       await web3AuthCore.init()
       this.web3auth = web3AuthCore
       if (web3AuthCore && web3AuthCore.provider) {
@@ -66,6 +96,10 @@ class SocialLogin {
     } catch (error) {
       console.error(error)
     }
+  }
+
+  getProvider() {
+    return this.provider
   }
 
   _createIframe(iframeContainerDiv: any) {
@@ -116,7 +150,7 @@ class SocialLogin {
     createLoginModal(this)
   }
 
-  async login() {
+  async socialLogin() {
     if (!this.web3auth) {
       console.log('web3auth not initialized yet')
       return
@@ -125,11 +159,65 @@ class SocialLogin {
       const web3authProvider = await this.web3auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
         loginProvider: 'google'
       })
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const web3Provider = new ethers.providers.Web3Provider(web3authProvider!)
       const signer = web3Provider.getSigner()
       const gotAccount = await signer.getAddress()
       const network = await web3Provider.getNetwork()
       console.info(`EOA Address ${gotAccount}\nNetwork: ${network}`)
+      this.provider = web3authProvider
+      return web3authProvider
+    } catch (error) {
+      console.error(error)
+      throw error
+    }
+  }
+
+  async metamaskLogin() {
+    if (!this.web3auth) {
+      console.log('web3auth not initialized yet')
+      return
+    }
+    try {
+      const web3authProvider = await this.web3auth.connectTo(WALLET_ADAPTERS.METAMASK, {
+        chainConfig: {
+          chainNamespace: CHAIN_NAMESPACES.EIP155,
+          chainId: '0x1',
+          rpcTarget: 'https://rpc.ankr.com/eth'
+        }
+      })
+      const web3Provider = new ethers.providers.Web3Provider(web3authProvider!)
+      const signer = web3Provider.getSigner()
+      const gotAccount = await signer.getAddress()
+      const network = await web3Provider.getNetwork()
+      console.info(`EOA Address ${gotAccount}\nNetwork: ${network}`)
+      this.provider = web3authProvider
+      return web3authProvider
+    } catch (error) {
+      console.error(error)
+      throw error
+    }
+  }
+
+  async walletConnectLogin() {
+    if (!this.web3auth) {
+      console.log('web3auth not initialized yet')
+      return
+    }
+    try {
+      const web3authProvider = await this.web3auth.connectTo(WALLET_ADAPTERS.WALLET_CONNECT_V1, {
+        chainConfig: {
+          chainNamespace: CHAIN_NAMESPACES.EIP155,
+          chainId: '0x1',
+          rpcTarget: 'https://rpc.ankr.com/eth'
+        }
+      })
+      const web3Provider = new ethers.providers.Web3Provider(web3authProvider!)
+      const signer = web3Provider.getSigner()
+      const gotAccount = await signer.getAddress()
+      const network = await web3Provider.getNetwork()
+      console.info(`EOA Address ${gotAccount}\nNetwork: ${network}`)
+      this.provider = web3authProvider
       return web3authProvider
     } catch (error) {
       console.error(error)
