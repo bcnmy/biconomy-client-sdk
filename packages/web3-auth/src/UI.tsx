@@ -111,12 +111,24 @@ const UI: React.FC<UIPorops> = ({ socialLogin }) => {
         </p>
       </div>
       <div>
-        <button onClick={() => socialLogin.login()} style={googleCardStyle}>
+        <button onClick={() => socialLogin.socialLogin()} style={googleCardStyle}>
           <img
             src={'https://live-nft-hosted-assets.s3.ap-south-1.amazonaws.com/google_logo.svg'}
             style={{ marginRight: 14 }}
           />
           <span style={buttonTextSpan}>Continue with Google</span>
+        </button>
+      </div>
+      <hr style={{ margin: '20px 0' }} />
+      <div style={{ marginBottom: 20 }}>
+        <button onClick={() => socialLogin.metamaskLogin()} style={googleCardStyle}>
+          <span style={buttonTextSpan}>Connect MetaMask</span>
+        </button>
+      </div>
+
+      <div style={{ marginBottom: 20 }}>
+        <button onClick={() => socialLogin.walletConnectLogin()} style={googleCardStyle}>
+          <span style={buttonTextSpan}>Connect WalletConnect</span>
         </button>
       </div>
       <div style={footer}>
