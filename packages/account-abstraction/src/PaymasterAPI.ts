@@ -41,7 +41,7 @@ export class PaymasterAPI {
     const result: any = await sendRequest({
       url: `${this.apiUrl}/signing-service`,
       method: HttpMethod.Post,
-      body: { userOp: userOp }
+      body: { dappAPIKey: this.dappAPIKey, userOp: userOp }
     })
 
     console.log('******** ||||| *********')
