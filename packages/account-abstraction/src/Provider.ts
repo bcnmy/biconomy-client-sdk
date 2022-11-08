@@ -41,7 +41,8 @@ export async function newProvider(
   const httpRpcClient = new HttpRpcClient(
     config.bundlerUrl,
     config.entryPointAddress,
-    config.chainId
+    config.chainId,
+    config.dappAPIKey
   )
   const ethProvider = await new ERC4337EthersProvider(
     config,

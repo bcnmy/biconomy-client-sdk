@@ -9,9 +9,14 @@ import { IPaymasterAPI } from '@biconomy-sdk/core-types'
 export class BiconomyPaymasterAPI implements IPaymasterAPI {
   constructor(readonly signingServiceUrl: string, readonly dappAPIKey: string) {
     this.signingServiceUrl = signingServiceUrl
+    this.dappAPIKey = dappAPIKey
   }
 
   async getPaymasterAndData(userOp: Partial<UserOperation>): Promise<string> {
+    if (!this.dappAPIKey || this.dappAPIKey === '') {
+      return '0x'
+    }
+
     userOp = await resolveProperties(userOp)
     userOp.nonce = Number(userOp.nonce)
     userOp.callGasLimit = Number(userOp.callGasLimit)
@@ -26,17 +31,18 @@ export class BiconomyPaymasterAPI implements IPaymasterAPI {
     const result: any = await sendRequest({
       url: `${this.signingServiceUrl}`,
       method: HttpMethod.Post,
-      body: { userOp: userOp, dappAPIKey: this.dappAPIKey }
+      headers: { 'x-api-key': this.dappAPIKey },
+      body: { userOp: userOp }
     })
 
     console.log('******** ||||| *********')
-    console.log('signing service response', result)
+    console.log('verifying and signing service response', result)
 
-    // ToDo: Get paymaster addr from dapp id / smart account config
-    if (result) {
-      return result
+    if (result && result.data && result.code === 200) {
+      return result.data.paymasterAndData
     }
-
+    console.log('error in verifying. sending paymasterAndData 0x')
+    console.log(result.error)
     return '0x'
   }
 }

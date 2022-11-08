@@ -144,46 +144,53 @@ export class ERC4337EthersProvider extends BaseProvider {
     const clientMessenger = new ClientMessenger(socketServerUrl, WebSocket)
 
     if (!clientMessenger.socketClient.isConnected()) {
-      await clientMessenger.connect()
-      console.log('connect success')
+      try {
+        await clientMessenger.connect()
+        console.log('connect success')
+      } catch (err) {
+        console.log('socket connection failure')
+        console.log(err)
+      }
     }
 
     const userOp = await resolveProperties(userOp1)
     const requestId = getRequestId(userOp, this.config.entryPointAddress, this.config.chainId)
 
     const waitPromise = new Promise<TransactionReceipt>((resolve, reject) => {
-      clientMessenger.createTransactionNotifier(transactionId, {
-        onMined: (tx: any) => {
-          const txId = tx.transactionId
-          clientMessenger.unsubscribe(txId)
-          console.log(
-            `Tx Hash mined message received at client ${JSON.stringify({
-              transactionId: txId,
+      if (clientMessenger && clientMessenger.socketClient.isConnected()) {
+        clientMessenger.createTransactionNotifier(transactionId, {
+          onMined: (tx: any) => {
+            const txId = tx.transactionId
+            clientMessenger.unsubscribe(txId)
+            console.log(
+              `Tx Hash mined message received at client ${JSON.stringify({
+                transactionId: txId,
+                hash: tx.transactionHash,
+                receipt: tx.receipt
+              })}`
+            )
+            const receipt: TransactionReceipt = tx.receipt
+            engine.emit('txMined', {
+              msg: 'txn mined',
+              id: txId,
               hash: tx.transactionHash,
               receipt: tx.receipt
-            })}`
-          )
-          const receipt: TransactionReceipt = tx.receipt
-          engine.emit('txMined', {
-            msg: 'txn mined',
-            id: txId,
-            hash: tx.transactionHash,
-            receipt: tx.receipt
-          })
-          resolve(receipt)
-        },
-        onError: async (tx: any) => {
-          console.log(`Error message received at client is ${tx}`)
-          const err = tx.error
-          const txId = tx.transactionId
-          clientMessenger.unsubscribe(txId)
-          engine.emit('onError', {
-            error: err,
-            transactionId: txId
-          })
-          reject(err)
-        }
-      })
+            })
+            resolve(receipt)
+          },
+          onError: async (tx: any) => {
+            console.log(`Error message received at client is ${tx}`)
+            const err = tx.error
+            const txId = tx.transactionId
+            clientMessenger.unsubscribe(txId)
+            engine.emit('onError', {
+              error: err,
+              transactionId: txId
+            })
+            reject(err)
+          }
+        })
+      }
     })
 
     return {
