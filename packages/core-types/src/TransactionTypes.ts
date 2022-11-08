@@ -1,6 +1,6 @@
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
-import { OperationType } from './types'
-import { SmartAccountContext, SmartAccountState } from './smart-account.types'
+import { OperationType } from './Types'
+import { SmartAccountContext, SmartAccountState } from './SmartAccountTypes'
 import { PromiEvent, TransactionReceipt } from 'web3-core/types'
 import { ContractTransaction } from '@ethersproject/contracts'
 

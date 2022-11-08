@@ -19,7 +19,7 @@ import {
   SCWTransactionResponse
 } from './types/NodeClientTypes'
 import { getTxServiceBaseUrl } from './utils'
-import { HttpMethod, sendRequest } from './utils/httpRequests'
+import { HttpMethod, sendRequest } from './utils/HttpRequests'
 export interface NodeClientConfig {
   /** txServiceUrl - Safe Transaction Service URL */
   txServiceUrl: string

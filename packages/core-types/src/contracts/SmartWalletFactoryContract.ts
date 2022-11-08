@@ -1,4 +1,4 @@
-import { ITransactionResult } from '../transaction.types'
+import { ITransactionResult } from '../TransactionTypes'
 import { Interface } from '@ethersproject/abi'
 import { Contract } from '@ethersproject/contracts'
 export interface SmartWalletFactoryContract {

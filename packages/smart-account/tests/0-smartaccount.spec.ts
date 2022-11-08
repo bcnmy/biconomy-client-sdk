@@ -1093,7 +1093,7 @@ describe('Wallet integration', function () {
         activeNetworkId: ChainId.GANACHE,
         supportedNetworksIds: [ChainId.GOERLI, ChainId.GANACHE] // has to be consisttent providers and network names
         // walletProvider: ethnode.provider,
-        //backend_url: "http://localhost:3000/v1"
+        //backendUrl: "http://localhost:3000/v1"
       })
 
       const smartAccount = await wallet.init()
@@ -1127,7 +1127,7 @@ describe('Wallet integration', function () {
         activeNetworkId: ChainId.GANACHE,
         supportedNetworksIds: [ChainId.GOERLI, ChainId.GANACHE] // has to be consisttent providers and network names
         // walletProvider: ethnode.provider,
-        //backend_url: "http://localhost:3000/v1"
+        //backendUrl: "http://localhost:3000/v1"
       })
 
       const smartAccount = await wallet.init()

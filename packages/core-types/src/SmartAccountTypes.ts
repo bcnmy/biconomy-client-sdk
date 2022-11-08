@@ -1,21 +1,21 @@
 // Smart Account Detail Param Types
 
-import { ChainId } from './chains.types'
-import { IWalletTransaction, Transaction } from './transaction.types'
-import { FeeQuote } from './types'
+import { ChainId } from './ChainsTypes'
+import { IWalletTransaction, Transaction } from './TransactionTypes'
+import { FeeQuote } from './Types'
 import { SmartWalletFactoryContract } from './contracts/SmartWalletFactoryContract'
 import { MultiSendContract } from './contracts/MultiSendContract'
 import { MultiSendCallOnlyContract } from './contracts/MultiSendCallOnlyContract'
 import { SmartWalletContract } from './contracts/SmartWalletContract'
-import { GasLimit } from './transaction.types'
+import { GasLimit } from './TransactionTypes'
 import { Signer } from 'ethers'
-import { IPaymasterAPI } from 'account-abstraction-types'
+import { IPaymasterAPI } from 'AccountAbstractionTypes'
 
 export interface SmartAccountConfig {
   activeNetworkId: ChainId
   supportedNetworksIds: ChainId[]
-  backend_url: string
-  relayer_url: string
+  backendUrl: string
+  relayerUrl: string
   socketServerUrl: string // specific to biconomy messaging sdk
   signType: SignTypeMethod
   networkConfig: NetworkConfig[]

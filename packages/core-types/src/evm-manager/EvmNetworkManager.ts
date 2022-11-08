@@ -3,7 +3,7 @@ import { SmartWalletContract } from 'contracts/SmartWalletContract'
 import { MultiSendContract } from '../contracts/MultiSendContract'
 import { MultiSendCallOnlyContract } from '../contracts/MultiSendCallOnlyContract'
 import { SmartWalletFactoryContract } from '../contracts/SmartWalletFactoryContract'
-import { Eip3770Address, SmartAccountVersion } from '../types'
+import { Eip3770Address, SmartAccountVersion } from '../Types'
 
 export interface IEvmNetworkManagerTransaction {
   to: string

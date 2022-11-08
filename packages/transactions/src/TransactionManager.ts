@@ -1,4 +1,4 @@
-import { encodeTransfer } from './account-utils'
+import { encodeTransfer } from './AccountUtils'
 import {
   DEFAULT_FEE_RECEIVER,
   IMetaTransaction,
@@ -22,9 +22,9 @@ import {
   TransactionBatchDto,
   RefundTransactionBatchDto,
   RefundTransactionDto
-} from './types'
+} from './Types'
 import EvmNetworkManager from '@biconomy-sdk/ethers-lib'
-import { Estimator } from './estimator'
+import { Estimator } from './Estimator'
 
 import NodeClient, {
   EstimateRequiredTxGasDto,
@@ -32,8 +32,8 @@ import NodeClient, {
 } from '@biconomy-sdk/node-client'
 
 import { IRelayer } from '@biconomy-sdk/relayer'
-import ContractUtils from './contract-utils'
-import { Utils } from './utils'
+import ContractUtils from './ContractUtils'
+import { Utils } from './Utils'
 class TransactionManager {
   // chainId: ChainId
 
@@ -55,7 +55,7 @@ class TransactionManager {
     // Note: smart account is state specific so we may end up using chain specific transaction managers as discussed.
 
     this.nodeClient = nodeClient
-    // this.nodeClient = new NodeClient({ txServiceUrl: config.backend_url })
+    // this.nodeClient = new NodeClient({ txServiceUrl: config.backendUrl })
 
     this.contractUtils = contractUtils
 

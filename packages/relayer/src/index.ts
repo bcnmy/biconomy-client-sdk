@@ -11,5 +11,5 @@ export interface IRelayer {
   // wait(metaTxnId: string | SignedTransactions, timeout: number): Promise<TransactionResponse>
 }
 
-export * from './local-relayer'
-export * from './rest-relayer'
+export * from './LocalRelayer'
+export * from './RestRelayer'

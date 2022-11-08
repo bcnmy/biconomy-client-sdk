@@ -1,5 +1,5 @@
 import EvmNetworkManager, { EthersAdapterConfig } from './EvmNetworkManager'
-import { IEthersTransactionOptions, IEthersTransactionResult } from './types'
+import { IEthersTransactionOptions, IEthersTransactionResult } from './Types'
 
 export { SmartWalletContractV100__factory as SmartWalletFactoryV100 } from '../typechain/src/ethers-v5/v1.0.0/factories/SmartWalletContractV100__factory'
 export { SmartWalletContractV101__factory as SmartWalletFactoryV101 } from '../typechain/src/ethers-v5/v1.0.1/factories/SmartWalletContractV101__factory'
