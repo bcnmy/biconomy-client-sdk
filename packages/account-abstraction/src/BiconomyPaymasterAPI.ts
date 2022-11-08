@@ -1,22 +1,18 @@
 import { resolveProperties } from '@ethersproject/properties'
 import { UserOperation } from '@biconomy-sdk/core-types'
-import { hexConcat } from 'ethers/lib/utils'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-export class PaymasterAPI {
-  // Might maintain API key at smart account level
-  constructor(
-    readonly apiUrl: string,
-    readonly dappAPIKey: string,
-    readonly payMasterAddress: string
-  ) {
-    this.apiUrl = apiUrl
+import { IPaymasterAPI } from '@biconomy-sdk/core-types'
+
+/**
+ * Verifying Paymaster API supported via Biconomy dahsboard to enable Gasless transactions
+ */
+export class BiconomyPaymasterAPI implements IPaymasterAPI {
+  constructor(readonly signingServiceUrl: string, readonly dappAPIKey: string) {
+    this.signingServiceUrl = signingServiceUrl
   }
 
   async getPaymasterAndData(userOp: Partial<UserOperation>): Promise<string> {
-    console.log(userOp)
     userOp = await resolveProperties(userOp)
-    console.log('userOp')
-    console.log(userOp)
     userOp.nonce = Number(userOp.nonce)
     userOp.callGasLimit = Number(userOp.callGasLimit)
     userOp.verificationGasLimit = Number(userOp.verificationGasLimit)
@@ -26,22 +22,11 @@ export class PaymasterAPI {
     userOp.signature = '0x'
     userOp.paymasterAndData = '0x'
 
-    // temp
-    // for test case until mocking and control flow return '0x'
-    // return '0x'
-
-    if (this.payMasterAddress === '' || this.payMasterAddress === null) {
-      return '0x'
-    }
-
-    // TODO
-    // decode infromation about userop.callData (in case of batch or single tx) in verification service
-
-    // add dappAPIKey in headers
+    // move dappAPIKey in headers
     const result: any = await sendRequest({
-      url: `${this.apiUrl}/signing-service`,
+      url: `${this.signingServiceUrl}`,
       method: HttpMethod.Post,
-      body: { userOp: userOp }
+      body: { userOp: userOp, dappAPIKey: this.dappAPIKey }
     })
 
     console.log('******** ||||| *********')
@@ -49,7 +34,7 @@ export class PaymasterAPI {
 
     // ToDo: Get paymaster addr from dapp id / smart account config
     if (result) {
-      return hexConcat([this.payMasterAddress, result.signedMessage])
+      return result
     }
 
     return '0x'
