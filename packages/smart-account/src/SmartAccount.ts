@@ -41,7 +41,7 @@ import NodeClient, {
 } from '@biconomy-sdk/node-client'
 import { Web3Provider } from '@ethersproject/providers'
 import { IRelayer, RestRelayer } from '@biconomy-sdk/relayer'
-import * as _ from "lodash";
+import * as _ from 'lodash'
 import TransactionManager, {
   ContractUtils,
   smartAccountSignMessage,
@@ -132,25 +132,20 @@ class SmartAccount extends EventEmitter {
     let networkConfig: NetworkConfig[] = this.#smartAccountConfig.networkConfig
 
     if (config) {
-      console.log('provided something in custom config')
-      console.log('merging network config from default and custom')
+      const customNetworkConfig: NetworkConfig[] = config.networkConfig || []
       console.log('default network config')
       console.log(networkConfig)
       console.log('custom network config')
       console.log(config.networkConfig)
-      networkConfig = _.union(networkConfig, config.networkConfig, 'chainId')
-      console.log('merged network config values below')
+      networkConfig = _.unionBy(customNetworkConfig, networkConfig, 'chainId')
+      console.log('merged network config values')
       console.log(networkConfig)
-      console.log('merging smart account config')
-      console.log('before')
+      console.log('smart account config before merge')
       console.log(this.#smartAccountConfig)
-      this.#smartAccountConfig = { ...this.#smartAccountConfig, ...config }
-      console.log('after')
-      console.log(this.#smartAccountConfig)
+      this.#smartAccountConfig = { ...config, ...this.#smartAccountConfig }
       this.#smartAccountConfig.networkConfig = networkConfig
-      console.log('finals')
+      console.log('final smart account config before after merge')
       console.log(this.#smartAccountConfig)
-      console.log(this.#smartAccountConfig.networkConfig)
     }
 
     this.supportedNetworkIds = this.#smartAccountConfig.supportedNetworksIds
@@ -169,9 +164,9 @@ class SmartAccount extends EventEmitter {
     console.log(this.#smartAccountConfig.networkConfig)
     const networkConfig: NetworkConfig[] = this.#smartAccountConfig.networkConfig
     console.log('networkConfig state is ', networkConfig)
-    let providerUrl = networkConfig.find(
-        (element: NetworkConfig) => element.chainId === network.chainId
-      )?.providerUrl || ''
+    let providerUrl =
+      networkConfig.find((element: NetworkConfig) => element.chainId === network.chainId)
+        ?.providerUrl || ''
 
     if (!providerUrl) providerUrl = network.providerUrl
     return providerUrl
@@ -245,7 +240,7 @@ class SmartAccount extends EventEmitter {
           entryPointAddress: this.#smartAccountConfig.entryPointAddress
             ? this.#smartAccountConfig.entryPointAddress
             : network.entryPoint[network.entryPoint.length - 1].address,
-          bundlerUrl: clientConfig.bundlerUrl || '',
+          bundlerUrl: clientConfig.bundlerUrl || this.#smartAccountConfig.bundlerUrl || '',
           chainId: network.chainId,
           customPaymasterAPI: clientConfig.customPaymasterAPI
         },
@@ -846,19 +841,18 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
   supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],
   signType: SignTypeMethod.EIP712_SIGN,
   backend_url: 'https://sdk-backend.staging.biconomy.io/v1',
-  relayer_url: 'https://sdk-relayer-preview.staging.biconomy.io/api/v1/relay',
-  bundlerUrl: 'https://sdk-relayer-preview.staging.biconomy.io/api/v1/relay',
+  relayer_url: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
+  bundlerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
   biconomySigningServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
+  // has to be public urls (local config / backend node)
   networkConfig: [
     {
       chainId: ChainId.GOERLI,
-      providerUrl: 'https://eth-goerli.alchemyapi.io/v2/lmW2og_aq-OXWKYRoRu-X6Yl6wDQYt_2',
-      bundlerUrl: 'https://sdk-relayer-preview.staging.biconomy.io/api/v1/relay'
+      providerUrl: 'https://eth-goerli.alchemyapi.io/v2/lmW2og_aq-OXWKYRoRu-X6Yl6wDQYt_2'
     },
     {
       chainId: ChainId.POLYGON_MUMBAI,
-      providerUrl: 'https://polygon-mumbai.g.alchemy.com/v2/Q4WqQVxhEEmBYREX22xfsS2-s5EXWD31',
-      bundlerUrl: 'https://sdk-relayer-preview.staging.biconomy.io/api/v1/relay'
+      providerUrl: 'https://polygon-mumbai.g.alchemy.com/v2/Q4WqQVxhEEmBYREX22xfsS2-s5EXWD31'
     }
   ]
 }
