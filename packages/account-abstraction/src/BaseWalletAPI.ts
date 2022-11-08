@@ -201,14 +201,6 @@ export abstract class BaseWalletAPI {
       detailsForUserOp.isDelegateCall || false
     )
 
-    /*const callData = (await this._getWalletContract()).encodeFunctionData('execFromEntryPoint', [
-      detailsForUserOp.target,
-      value,
-      detailsForUserOp.data,
-      0,
-      300000
-    ])*/
-
     const callGasLimit =
       parseNumber(detailsForUserOp.gasLimit) ??
       (await this.provider.estimateGas({

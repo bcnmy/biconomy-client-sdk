@@ -10,9 +10,6 @@ import { ERC4337EthersProvider } from './ERC4337EthersProvider'
 import { HttpRpcClient } from './HttpRpcClient'
 import { Signer } from '@ethersproject/abstract-signer'
 
-// TODO: Update in the context of SmartAccount and WalletFactory aka deployer
-// Might need smart account state for contract addresses
-
 // To be used in SmartAccount to init 4337 provider
 export async function newProvider(
   originalProvider: JsonRpcProvider,

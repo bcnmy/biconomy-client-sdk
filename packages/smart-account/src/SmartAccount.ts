@@ -154,7 +154,10 @@ class SmartAccount extends EventEmitter {
     this.provider = walletProvider
     this.signer = new SmartAccountSigner(this.provider)
     this.nodeClient = new NodeClient({ txServiceUrl: this.#smartAccountConfig.backend_url })
-    this.relayer = new RestRelayer({ url: this.#smartAccountConfig.relayer_url })
+    this.relayer = new RestRelayer({
+      url: this.#smartAccountConfig.relayer_url,
+      socketServerUrl: this.#smartAccountConfig.socketServerUrl
+    })
     this.aaProvider = {}
     this.chainConfig = []
   }
@@ -237,6 +240,7 @@ class SmartAccount extends EventEmitter {
         {
           dappAPIKey: clientConfig.dappAPIKey || '',
           biconomySigningServiceUrl: this.#smartAccountConfig.biconomySigningServiceUrl || '',
+          socketServerUrl: this.#smartAccountConfig.socketServerUrl || '',
           entryPointAddress: this.#smartAccountConfig.entryPointAddress
             ? this.#smartAccountConfig.entryPointAddress
             : network.entryPoint[network.entryPoint.length - 1].address,
@@ -833,18 +837,19 @@ class SmartAccount extends EventEmitter {
   }
 }
 
-// Temporary default config
-// TODO/NOTE : make Goerli and Mumbai as test networks and remove others
+// Current default config
+// TODO/NOTE : Goerli and Mumbai as test networks and remove others
 export const DefaultSmartAccountConfig: SmartAccountConfig = {
   activeNetworkId: ChainId.GOERLI, //Update later
   supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],
   signType: SignTypeMethod.EIP712_SIGN,
   backend_url: 'https://sdk-backend.staging.biconomy.io/v1',
   relayer_url: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
+  socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
   bundlerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
   biconomySigningServiceUrl:
     'https://us-central1-biconomy-staging.cloudfunctions.net/signing-service',
-  // has to be public urls (local config / backend node)
+  // TODO : has to be public provider urls (local config / backend node)
   networkConfig: [
     {
       chainId: ChainId.GOERLI,

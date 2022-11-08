@@ -16,6 +16,7 @@ export interface SmartAccountConfig {
   supportedNetworksIds: ChainId[]
   backend_url: string
   relayer_url: string
+  socketServerUrl: string // specific to biconomy messaging sdk
   signType: SignTypeMethod
   networkConfig: NetworkConfig[]
   entryPointAddress?: string

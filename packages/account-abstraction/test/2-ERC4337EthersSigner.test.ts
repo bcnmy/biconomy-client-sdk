@@ -60,7 +60,7 @@ describe('ERC4337EthersSigner, Provider', function () {
     const clientConfig: ClientConfig = {
       dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
       biconomySigningServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
-      // paymasterAddress: '',
+      socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
       entryPointAddress: entryPoint.address,
       bundlerUrl: 'http://localhost:3000/rpc',
       chainId: await provider.getNetwork().then((net) => net.chainId)

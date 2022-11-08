@@ -21,13 +21,16 @@ import WebSocket, { EventEmitter } from 'isomorphic-ws'
  */
 export class RestRelayer implements IRelayer {
   #relayServiceBaseUrl: string
+  #socketServerUrl: string
 
   relayerNodeEthersProvider!: { [chainId: number]: JsonRpcProvider }
 
   constructor(options: RestRelayerOptions) {
-    const { url } = options
+    // TODO : Rename url to relayerServiceUrl
+    const { url, socketServerUrl } = options
     this.relayerNodeEthersProvider = {}
     this.#relayServiceBaseUrl = url
+    this.#socketServerUrl = socketServerUrl
   }
 
   setRelayerNodeEthersProvider(chainId: ChainId) {
@@ -61,12 +64,8 @@ export class RestRelayer implements IRelayer {
     }
   }
 
-  // Make gas limit a param
-  // We would send manual gas limit with high targetTxGas (whenever targetTxGas can't be accurately estimated)
-
   async relay(relayTransaction: RelayTransaction, engine: EventEmitter): Promise<RelayResponse> {
-    // TODO comes from own config
-    const socketServerUrl = 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket'
+    const socketServerUrl = this.#socketServerUrl
 
     const clientMessenger = new ClientMessenger(socketServerUrl, WebSocket)
 
@@ -78,8 +77,6 @@ export class RestRelayer implements IRelayer {
     const { config, signedTx, context, gasLimit } = relayTransaction
     const { isDeployed, address } = config
     const chainId = signedTx.rawTx.chainId
-
-    //
 
     // Creates an instance of relayer node ethers provider for chain not already discovered
     this.setRelayerNodeEthersProvider(chainId)
@@ -119,9 +116,6 @@ export class RestRelayer implements IRelayer {
         chainId: signedTx.rawTx.chainId,
         value: 0
       }
-
-      // JSON RPC Call
-      // rawTx to becomes multiSend address and data gets prepared again
     } else {
       finalRawRx = signedTx.rawTx
     }

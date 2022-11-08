@@ -44,6 +44,7 @@ export class HttpRpcClient {
       const metaData = {
         dappAPIKey: this.dappAPIKey
       }
+      // TODO : evaluate this for other bundler clients not operating a Dapp dashboard
       params = [hexifiedUserOp, this.entryPointAddress, this.chainId, metaData]
     } else {
       params = [hexifiedUserOp, this.entryPointAddress, this.chainId]

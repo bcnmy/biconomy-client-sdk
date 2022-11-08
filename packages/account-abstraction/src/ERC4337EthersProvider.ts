@@ -98,7 +98,8 @@ export class ERC4337EthersProvider extends BaseProvider {
     })
   }
 
-  // fabricate a response in a format usable by ethers users...
+  // fabricate a response (using UserOperation events and requestId match filter) in a format usable by ethers users...
+
   /*async constructUserOpTransactionResponse(userOp1: UserOperation): Promise<TransactionResponse> {
     const userOp = await resolveProperties(userOp1)
     const requestId = getRequestId(userOp, this.config.entryPointAddress, this.config.chainId)
@@ -133,13 +134,13 @@ export class ERC4337EthersProvider extends BaseProvider {
     }
   }*/
 
-  // fabricate a response in a format usable by ethers users...
+  // fabricate a response (using messaging SDK) in a format usable by ethers users...
   async constructUserOpTransactionResponse(
     userOp1: UserOperation,
     transactionId: string,
     engine?: any // EventEmitter
   ): Promise<TransactionResponse> {
-    const socketServerUrl = 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket'
+    const socketServerUrl = this.config.socketServerUrl
 
     const clientMessenger = new ClientMessenger(socketServerUrl, WebSocket)
 

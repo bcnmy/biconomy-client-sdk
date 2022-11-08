@@ -59,7 +59,7 @@ export class ERC4337EthersSigner extends Signer {
     transaction: Deferrable<TransactionRequest>,
     engine?: any // EventEmitter
   ): Promise<TransactionResponse> {
-    const socketServerUrl = 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket'
+    const socketServerUrl = this.config.socketServerUrl
 
     const clientMessenger = new ClientMessenger(socketServerUrl, WebSocket)
 
@@ -86,9 +86,9 @@ export class ERC4337EthersSigner extends Signer {
     console.log('gaslimit ', gasLimit)
     console.log('transaction.gaslimit ', transaction.gasLimit)
 
-    // temp
+    // TODO : //temp to avoid running into issues with populateTransaction when destination is multisend OR wallet is undeployed
     transaction.gasLimit = gasLimit
-    // TODO : if isDeployed = false || skipGasLimit = true then use provided gas limit => transaction.gasLimit = gasLimit
+    // TODO : If isDeployed = false || skipGasLimit = true then use provided gas limit => transaction.gasLimit = gasLimit
     delete transaction.customData
     // transaction.from = await this.smartWalletAPI.getWalletAddress()
     const tx: TransactionRequest = await this.populateTransaction(transaction)
@@ -124,7 +124,6 @@ export class ERC4337EthersSigner extends Signer {
               hash: txHash
             })}`
           )
-          // todo event emitter
           engine.emit('txHashGenerated', {
             id: tx.transactionId,
             hash: tx.transactionHash,

@@ -59,7 +59,6 @@ export class UserOperationEventListener {
       console.error('got event without args', event)
       return
     }
-    // TODO: can this happen? we register to event by requestId..
     if (event.args.requestId !== this.requestId) {
       console.log(
         `== event with wrong requestId: sender/nonce: event.${event.args.sender as string}@${

@@ -98,11 +98,11 @@ export class SmartAccountAPI extends BaseWalletAPI {
       target,
       value,
       data,
-      isDelegateCall ? 1 : 0, //temp // TODO // if multisend then delegatecall (take flag...)
-      500000 //temp // TODO
+      isDelegateCall ? 1 : 0,
+      1000000 // gasLimit for execute call on SmartWallet.sol. TODO: estimate using requiredTxGas
     ])
   }
-  // TODO: May be need to move this to ERC4337EthersPrivider
+
   async signRequestId(requestId: string): Promise<string> {
     return await this.owner.signMessage(arrayify(requestId))
   }
@@ -142,7 +142,7 @@ export class SmartAccountAPI extends BaseWalletAPI {
 
     const partialUserOp: any = {
       sender: await this.getWalletAddress(),
-      nonce: await this.getNonce(0), // TODO: add batchid as param
+      nonce: await this.getNonce(0), // TODO (nice-to-have): add batchid as param
       initCode,
       callData,
       callGasLimit,

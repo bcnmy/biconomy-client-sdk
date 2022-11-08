@@ -10,8 +10,11 @@ import {
 } from '@biconomy-sdk/core-types'
 import { MetaTransaction, encodeMultiSend } from './utils/multisend'
 
+// You can configure your own signer with gas held to send out test transactions or some sponsored transactions by plugging it into SmartAccount package
+// Not meant to use for production environment for transaction ordering.
 export class LocalRelayer implements IRelayer {
   private signer: AbstractSigner
+  // TODO : review members
   // private txnOptions: TransactionRequest
 
   constructor(signer: AbstractSigner) {
@@ -20,12 +23,10 @@ export class LocalRelayer implements IRelayer {
     if (!this.signer.provider) throw new Error('Signer must have a provider')
   }
 
-  // TODO
-  // Review function arguments and return values
-  // Defines a type that takes config, context for SCW in play along with other details
+  // Defines a type DeployWallet that takes config, context for SCW in this context
   async deployWallet(deployWallet: DeployWallet): Promise<TransactionResponse> {
-    // Should check if already deployed
-    // Review for index and ownership transfer case
+    // checkd if already deployed
+    // TODO : Review for index and ownership transfer case
     const { config, context, index = 0 } = deployWallet
     const { address } = config
     const { walletFactory } = context
@@ -41,10 +42,7 @@ export class LocalRelayer implements IRelayer {
     return tx
   }
 
-  prepareWalletDeploy(
-    deployWallet: DeployWallet
-    // context: WalletContext
-  ): { to: string; data: string } {
+  prepareWalletDeploy(deployWallet: DeployWallet): { to: string; data: string } {
     const { config, context, index = 0 } = deployWallet
 
     const { walletFactory } = context
@@ -115,6 +113,7 @@ export class LocalRelayer implements IRelayer {
 
   async getFeeOptions(chainId: number): Promise<FeeOptionsResponse> {
     console.log('requested fee options for chain ', chainId)
+    // Mock response for local relayer to adhere with the interface!
     const feeOptions: FeeOptionsResponse = {
       msg: 'all ok',
       data: {

@@ -1,11 +1,11 @@
 # `@biconomy-sdk/gas-estimator`
 
-> TODO: description
+> WIP: Generic gas estimator package to estimate gas on your smart contracts in many generic ways.
 
 ## Usage
 
 ```
-const gasEstimator = require('@biconomy-sdk/gas-estimator');
+import { Estimator } from '@biconomy-sdk/gas-estimator';
 
 // TODO: DEMONSTRATE API
 ```
