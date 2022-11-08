@@ -64,15 +64,20 @@ export class ERC4337EthersSigner extends Signer {
     const clientMessenger = new ClientMessenger(socketServerUrl, WebSocket)
 
     if (!clientMessenger.socketClient.isConnected()) {
-      await clientMessenger.connect()
-      console.log('connect success')
+      try {
+        await clientMessenger.connect()
+        console.log('connect success')
+      } catch (err) {
+        console.log('socket connection failure')
+        console.log(err)
+      }
     }
 
     console.log('received transaction ', transaction)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const customData: any = transaction.customData
     console.log(customData)
-    let gasLimit = 500000
+    let gasLimit = 1000000
     if (customData && customData.appliedGasLimit) {
       gasLimit = customData.appliedGasLimit
       console.log('gaslimit applied from custom data...', gasLimit)
@@ -82,7 +87,7 @@ export class ERC4337EthersSigner extends Signer {
     console.log('transaction.gaslimit ', transaction.gasLimit)
 
     // temp
-    // transaction.gasLimit = gasLimit
+    transaction.gasLimit = gasLimit
     // TODO : if isDeployed = false || skipGasLimit = true then use provided gas limit => transaction.gasLimit = gasLimit
     delete transaction.customData
     // transaction.from = await this.smartWalletAPI.getWalletAddress()
@@ -108,36 +113,38 @@ export class ERC4337EthersSigner extends Signer {
       throw this.unwrapError(error)
     }
 
-    clientMessenger.createTransactionNotifier(bundlerServiceResponse.transactionId, {
-      onHashGenerated: async (tx: any) => {
-        const txHash = tx.transactionHash
-        const txId = tx.transactionId
-        console.log(
-          `Tx Hash generated message received at client ${JSON.stringify({
-            transactionId: txId,
-            hash: txHash
-          })}`
-        )
-        // todo event emitter
-        engine.emit('txHashGenerated', {
-          id: tx.transactionId,
-          hash: tx.transactionHash,
-          msg: 'txn hash generated'
-        })
-      },
-      onError: async (tx: any) => {
-        console.log(`Error message received at client is ${tx}`)
-        const err = tx.error
-        const txId = tx.transactionId
-        clientMessenger.unsubscribe(txId)
-        // event emitter
-        engine.emit('error', {
-          id: tx.transactionId,
-          error: err,
-          msg: 'txn hash generated'
-        })
-      }
-    })
+    if (clientMessenger && clientMessenger.socketClient.isConnected()) {
+      clientMessenger.createTransactionNotifier(bundlerServiceResponse.transactionId, {
+        onHashGenerated: async (tx: any) => {
+          const txHash = tx.transactionHash
+          const txId = tx.transactionId
+          console.log(
+            `Tx Hash generated message received at client ${JSON.stringify({
+              transactionId: txId,
+              hash: txHash
+            })}`
+          )
+          // todo event emitter
+          engine.emit('txHashGenerated', {
+            id: tx.transactionId,
+            hash: tx.transactionHash,
+            msg: 'txn hash generated'
+          })
+        },
+        onError: async (tx: any) => {
+          console.log(`Error message received at client is ${tx}`)
+          const err = tx.error
+          const txId = tx.transactionId
+          clientMessenger.unsubscribe(txId)
+          // event emitter
+          engine.emit('error', {
+            id: tx.transactionId,
+            error: err,
+            msg: 'txn hash generated'
+          })
+        }
+      })
+    }
 
     const transactionResponse = await this.erc4337provider.constructUserOpTransactionResponse(
       userOperation,
