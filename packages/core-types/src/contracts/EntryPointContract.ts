@@ -1,5 +1,5 @@
-import { UserOperation } from '../types'
-import { ITransactionResult } from '../transaction.types'
+import { UserOperation } from '../Types'
+import { ITransactionResult } from '../TransactionTypes'
 import { Contract } from '@ethersproject/contracts'
 import { BytesLike } from 'ethers'
 export interface EntryPointContract {

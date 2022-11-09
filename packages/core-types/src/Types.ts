@@ -1,5 +1,3 @@
-import { ChainId } from './chains.types'
-
 export type SmartAccountVersion = '1.0.1' | '1.0.0'
 
 export enum OperationType {
@@ -12,11 +10,12 @@ export type Eip3770Address = {
   address: string
 }
 
+// review
 export type RelayResponse = {
   code?: number
   message?: string
   transactionId?: string
-  hash: string
+  hash?: string
   error?: string
   connectionUrl?: string
 }
@@ -42,13 +41,12 @@ export const DEFAULT_FEE_RECEIVER = '0x7306aC7A32eb690232De81a9FFB44Bb346026faB'
 export const GAS_USAGE_OFFSET = 4928 + 2360
 
 // Few more constants can be added regarding token transfer / handle payments
-
 export const FAKE_SIGNATURE =
   '0x39f5032f1cd30005aa1e35f04394cabfe7de3b6ae6d95b27edd8556064c287bf61f321fead0cf48ca4405d497cc8fc47fc7ff0b7f5c45baa14090a44f2307d8230'
 
 export type RestRelayerOptions = {
   url: string
-  // chainId: ChainId
+  socketServerUrl: string
 }
 
 export type TokenData = {

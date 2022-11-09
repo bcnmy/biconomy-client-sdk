@@ -20,17 +20,15 @@ import {
   SmartWalletFactoryContractV101,
   EntryPointContractV101,
   SmartWalletContractV101
-}
-  from '@biconomy-sdk/ethers-lib'
+} from '@biconomy-sdk/ethers-lib'
 import { DeterministicDeployer } from '../src/DeterministicDeployer'
 
 const provider = ethers.provider
 const signer = provider.getSigner()
 const originalSigner = provider.getSigner(1)
-const fallBackHandlerAddress = "0xF05217199F1C25604c67993F11a81461Bc97F3Ab"; // temp
+const fallBackHandlerAddress = '0xF05217199F1C25604c67993F11a81461Bc97F3Ab' // temp
 
 describe('SmartAccountAPI', async () => {
-
   let owner: Wallet
   let api: SmartAccountAPI
   let entryPoint: EntryPointContractV101
@@ -45,8 +43,7 @@ describe('SmartAccountAPI', async () => {
   let chainId: number
 
   before('init', async () => {
-
-    chainId = (await provider.getNetwork()).chainId;
+    chainId = (await provider.getNetwork()).chainId
     console.log(chainId)
 
     entryPoint = await new EntryPointFactoryContractV101(signer).deploy(1, 1)
@@ -60,10 +57,12 @@ describe('SmartAccountAPI', async () => {
     baseWalletContract = await new SmartWalletFactoryV101(signer).deploy()
     console.log('base wallet deployed at ', baseWalletContract.address)
 
-    walletFactoryContract = await new SmartWalletFactoryFactoryContractV101(signer).deploy(baseWalletContract.address)
+    walletFactoryContract = await new SmartWalletFactoryFactoryContractV101(signer).deploy(
+      baseWalletContract.address
+    )
     console.log('wallet factory deployed at ', walletFactoryContract.address)
 
-    expected = await walletFactoryContract.getAddressForCounterfactualWallet(owner.address, 0);
+    expected = await walletFactoryContract.getAddressForCounterfactualWallet(owner.address, 0)
     console.log('expected address ', expected)
 
     // deploy wallet
@@ -73,11 +72,10 @@ describe('SmartAccountAPI', async () => {
     userSCW = baseWalletContract.attach(expected)
 
     // const factoryAddress = await DeterministicDeployer.deploy(SimpleWalletDeployer__factory.bytecode)
-
     const clientConfig = {
-      dappId: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
-      signingServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
-      paymasterAddress: '',
+      dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
+      biconomySigningServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
+      socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
       entryPointAddress: entryPoint.address,
       bundlerUrl: 'http://localhost:3000/rpc',
       chainId: chainId
@@ -96,13 +94,9 @@ describe('SmartAccountAPI', async () => {
 
     console.log('smart account api')
     console.log(api.walletAddress)
-
-
-
   })
 
   it('#getRequestId should match entryPoint.getRequestId', async function () {
-
     const userOp: UserOperation = {
       sender: '0x'.padEnd(42, '1'),
       nonce: 2,
@@ -119,14 +113,12 @@ describe('SmartAccountAPI', async () => {
     const hash = await api.getRequestId(userOp)
     const epHash = await entryPoint.getRequestId(userOp)
     expect(hash).to.equal(epHash)
-
   })
 
   it('should deploy to counterfactual address', async () => {
-
     walletAddress = await api.getWalletAddress()
     console.log('wallet address from api ', walletAddress)
-    expect(await provider.getCode(walletAddress).then(code => code.length)).to.equal(2)
+    expect(await provider.getCode(walletAddress).then((code) => code.length)).to.equal(2)
 
     await signer.sendTransaction({
       to: walletAddress,
@@ -134,9 +126,9 @@ describe('SmartAccountAPI', async () => {
     })
     console.log('sent eth')
 
-    let op: any;
+    let op: any
     try {
-    op = await api.createSignedUserOp({
+      op = await api.createSignedUserOp({
         target: recipient.address,
         data: recipient.interface.encodeFunctionData('something', ['hello'])
       })
@@ -145,23 +137,23 @@ describe('SmartAccountAPI', async () => {
       console.log(err)
     }
 
-    await expect(entryPoint.handleOps([op], beneficiary)).to.emit(recipient, 'Sender')
+    await expect(entryPoint.handleOps([op], beneficiary))
+      .to.emit(recipient, 'Sender')
       .withArgs(anyValue, walletAddress, 'hello')
-    
+
     //expect(await provider.getCode(walletAddress).then(code => code.length)).to.greaterThan(1000)
     walletDeployed = true
-
   })
 
   it('should use wallet API after creation without a factory', async function () {
-
     if (!walletDeployed) {
       this.skip()
     }
+    // TODO : Update with prod values
     const clientConfig = {
-      dappId: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
-      signingServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
-      paymasterAddress: '',
+      dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
+      biconomySigningServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
+      socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
       entryPointAddress: entryPoint.address,
       bundlerUrl: 'http://localhost:3000/rpc',
       chainId: chainId
@@ -182,7 +174,8 @@ describe('SmartAccountAPI', async () => {
       target: recipient.address,
       data: recipient.interface.encodeFunctionData('something', ['world'])
     })
-    await expect(entryPoint.handleOps([op1], beneficiary)).to.emit(recipient, 'Sender')
+    await expect(entryPoint.handleOps([op1], beneficiary))
+      .to.emit(recipient, 'Sender')
       .withArgs(anyValue, walletAddress, 'world')
   })
 })

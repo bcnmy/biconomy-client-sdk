@@ -1,11 +1,6 @@
 import { Contract } from 'ethers'
 
 export class WalletFactoryAPI {
-  // TODO: uncomment and enable constructor
-  // constructor(
-  //     readonly factoryAddress: string
-  // ){}
-
   static deployWalletTransactionCallData(
     factoryAddress: string,
     owner: string,

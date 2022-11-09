@@ -3,7 +3,7 @@ import { TransactionReceipt } from '@ethersproject/providers'
 import { EntryPoint } from '@account-abstraction/contracts'
 import { defaultAbiCoder } from 'ethers/lib/utils'
 
-const DEFAULT_TRANSACTION_TIMEOUT = 10000
+const DEFAULT_TRANSACTION_TIMEOUT = 100000
 
 /**
  * This class encapsulates Ethers.js listener function and necessary UserOperation details to
@@ -43,7 +43,7 @@ export class UserOperationEventListener {
       } else {
         this.entryPoint.once(filter, this.boundLisener)
       }
-    }, 100)
+    }, 30000)
   }
 
   stop(): void {
@@ -59,7 +59,6 @@ export class UserOperationEventListener {
       console.error('got event without args', event)
       return
     }
-    // TODO: can this happen? we register to event by requestId..
     if (event.args.requestId !== this.requestId) {
       console.log(
         `== event with wrong requestId: sender/nonce: event.${event.args.sender as string}@${

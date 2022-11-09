@@ -10,7 +10,7 @@ import {
 import { ChainId } from '@biconomy-sdk/core-types'
 
 // Might as well be RpcRelayer
-// import { Relayer, RestRelayer } from '@biconomy-sdk/relayer'
+// import { IRelayer, RestRelayer } from '@biconomy-sdk/relayer'
 import { Deferrable } from 'ethers/lib/utils'
 import { TransactionRequest, TransactionResponse } from '@ethersproject/providers'
 

@@ -1,12 +1,12 @@
 // Review
 
-import TransactionManager from './transaction-manager'
-import ContractUtils from './contract-utils'
+import TransactionManager from './TransactionManager'
+import ContractUtils from './ContractUtils'
 
 export default TransactionManager
 
-export * from './account-utils'
-export * from './execution'
-export * from './multisend'
+export * from './AccountUtils'
+export * from './Execution'
+export * from './MultiSend'
 
 export { ContractUtils }

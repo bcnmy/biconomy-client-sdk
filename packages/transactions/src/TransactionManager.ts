@@ -1,4 +1,4 @@
-import { encodeTransfer } from './account-utils'
+import { encodeTransfer } from './AccountUtils'
 import {
   DEFAULT_FEE_RECEIVER,
   IMetaTransaction,
@@ -22,27 +22,27 @@ import {
   TransactionBatchDto,
   RefundTransactionBatchDto,
   RefundTransactionDto
-} from './types'
+} from './Types'
 import EvmNetworkManager from '@biconomy-sdk/ethers-lib'
-import { Estimator } from './estimator'
+import { Estimator } from './Estimator'
 
 import NodeClient, {
   EstimateRequiredTxGasDto,
   EstimateHandlePaymentTxGasDto
 } from '@biconomy-sdk/node-client'
 
-import { Relayer } from '@biconomy-sdk/relayer'
-import ContractUtils from './contract-utils'
-import { Utils } from './utils'
+import { IRelayer } from '@biconomy-sdk/relayer'
+import ContractUtils from './ContractUtils'
+import { Utils } from './Utils'
 class TransactionManager {
   // chainId: ChainId
 
   // Need setters
-  // todo chirag // make it INodeClient
+  // todo // make it INodeClient
   nodeClient!: NodeClient
   estimator!: Estimator
   contractUtils!: ContractUtils
-  relayer!: Relayer
+  relayer!: IRelayer
 
   utils!: Utils
 
@@ -51,11 +51,11 @@ class TransactionManager {
   }
 
   // smart account config and context
-  async initialize(relayer: Relayer, nodeClient: NodeClient, contractUtils: ContractUtils) {
+  async initialize(relayer: IRelayer, nodeClient: NodeClient, contractUtils: ContractUtils) {
     // Note: smart account is state specific so we may end up using chain specific transaction managers as discussed.
 
     this.nodeClient = nodeClient
-    // this.nodeClient = new NodeClient({ txServiceUrl: config.backend_url })
+    // this.nodeClient = new NodeClient({ txServiceUrl: config.backendUrl })
 
     this.contractUtils = contractUtils
 
@@ -65,7 +65,7 @@ class TransactionManager {
     this.estimator = new Estimator(this.nodeClient, this.contractUtils)
   }
 
-  setRelayer(relayer: Relayer): TransactionManager {
+  setRelayer(relayer: IRelayer): TransactionManager {
     this.relayer = relayer
     return this
   }
@@ -83,7 +83,7 @@ class TransactionManager {
     return this.nodeClient
   }
 
-  // todo chirag add return type
+  // todo add return type
   async prepareDeployAndPayFees(chainId: ChainId, version: string) {
     const gasPriceQuotesResponse: FeeOptionsResponse = await this.relayer.getFeeOptions(chainId)
     const feeOptionsAvailable: Array<TokenData> = gasPriceQuotesResponse.data.response
@@ -275,7 +275,7 @@ class TransactionManager {
     prepareRefundTransactionDto: PrepareRefundTransactionDto
   ): Promise<FeeQuote[]> {
     // TODO
-    // Review @Talha
+    // Review
     const { transaction, batchId, chainId, version } = prepareRefundTransactionDto
 
     const gasPriceQuotesResponse: FeeOptionsResponse = await this.relayer.getFeeOptions(chainId)
@@ -507,7 +507,6 @@ class TransactionManager {
 
       const response = await this.nodeClient.estimateRequiredTxGas(estimateRequiredTxGas)
       // considerable offset ref gnosis safe service client safeTxGas
-      // @Talha
       // TODO
       // handle exception responses and when gas returned is 0
       // We could stop the further flow
@@ -673,7 +672,6 @@ class TransactionManager {
 
       const response = await this.nodeClient.estimateRequiredTxGas(estimateRequiredTxGas)
       // considerable offset ref gnosis safe service client safeTxGas
-      // @Talha
       // TODO
       // handle exception responses and when gas returned is 0
       // We could stop the further flow

@@ -3,8 +3,8 @@ import {
   ExecTransaction,
   IFeeRefundV1_0_0,
   IFeeRefundV1_0_1
-} from '../transaction.types'
-import { SmartAccountVersion } from '../types'
+} from '../TransactionTypes'
+import { SmartAccountVersion } from '../Types'
 import { BigNumber } from '@ethersproject/bignumber'
 import { Interface } from '@ethersproject/abi'
 import { Contract } from '@ethersproject/contracts'

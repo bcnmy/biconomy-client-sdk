@@ -2,10 +2,9 @@ import { Web3Provider, BaseProvider } from '@ethersproject/providers'
 import { SmartAccountSigner } from '../signers/SmartAccountSigner'
 import { Signer } from 'ethers'
 import { TransactionResponse } from '@ethersproject/providers'
-
 import { ChainId, IWalletTransaction } from '@biconomy-sdk/core-types'
 
-// import { JsonRpcSender } from '@0xsequence/network'
+// Note: WIP. Not used by SmartAccount at the moment
 
 /*export class SmartAccountProvider extends Web3Provider { //implements JsonRpcHandler
 
@@ -36,7 +35,7 @@ export class SmartAccountProvider extends BaseProvider {
     tempProvider: Web3Provider,
     chainId: ChainId,
     readonly originalSigner: Signer, // EOASigner
-    readonly originalProvider: BaseProvider // could be Web3Provider // optional? cc @sachin // readonly httpRpcClient: HttpRpcClient, // Required for relaying to rpc-relayer // readonly smartAccountAPI: SmartAccountAPI ? // Could be useful/needful
+    readonly originalProvider: BaseProvider // could be Web3Provider // optional? // readonly httpRpcClient: HttpRpcClient, // Required for relaying to rpc-relayer // readonly smartAccountAPI: SmartAccountAPI ? // Could be useful/needful
   ) {
     super({
       name: 'Smart Account User Refund Provider',

@@ -1,27 +1,27 @@
 // Smart Account Detail Param Types
 
-import { ChainId } from './chains.types'
-import { IWalletTransaction, Transaction } from './transaction.types'
-import { FeeQuote } from './types'
+import { ChainId } from './ChainsTypes'
+import { IWalletTransaction, Transaction } from './TransactionTypes'
+import { FeeQuote } from './Types'
 import { SmartWalletFactoryContract } from './contracts/SmartWalletFactoryContract'
 import { MultiSendContract } from './contracts/MultiSendContract'
 import { MultiSendCallOnlyContract } from './contracts/MultiSendCallOnlyContract'
 import { SmartWalletContract } from './contracts/SmartWalletContract'
-import { GasLimit } from './transaction.types'
+import { GasLimit } from './TransactionTypes'
 import { Signer } from 'ethers'
+import { IPaymasterAPI } from 'AccountAbstractionTypes'
 
 export interface SmartAccountConfig {
-  activeNetworkId: ChainId // same
-  supportedNetworksIds: ChainId[] // Network[] chainId: CbainId, rpcUrl?: string
-  backend_url: string
-  relayer_url: string
-  dappAPIKey?: string
+  activeNetworkId: ChainId
+  supportedNetworksIds: ChainId[]
+  backendUrl: string
+  relayerUrl: string
+  socketServerUrl: string // specific to biconomy messaging sdk
   signType: SignTypeMethod
-  providerUrlConfig?: ProviderUrlConfig[]
+  networkConfig: NetworkConfig[]
   entryPointAddress?: string
+  biconomySigningServiceUrl?: string
   bundlerUrl?: string
-  paymasterAddress?: string
-  signingServiceUrl: string
 }
 
 export enum SignTypeMethod {
@@ -29,9 +29,12 @@ export enum SignTypeMethod {
   EIP712_SIGN = 'EIP712_SIGN'
 }
 
-export type ProviderUrlConfig = {
+export type NetworkConfig = {
   chainId: ChainId
-  providerUrl: string
+  providerUrl?: string // review
+  bundlerUrl?: string
+  customPaymasterAPI?: IPaymasterAPI
+  dappAPIKey?: string
 }
 
 export type SmartAccountContext = {
