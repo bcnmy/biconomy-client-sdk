@@ -57,8 +57,6 @@ cache
 artifacts
 deployments
 
-packages/common/src/types/
-
 # lockfiles
 packages/core-types/package-lock.json
 packages/account-abstraction/package-lock.json
