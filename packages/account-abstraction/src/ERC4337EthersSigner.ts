@@ -57,6 +57,7 @@ export class ERC4337EthersSigner extends Signer {
   // This one is called by Contract. It signs the request and passes in to Provider to be sent.
   async sendTransaction(
     transaction: Deferrable<TransactionRequest>,
+    isDelegate: boolean = false,
     engine?: any // EventEmitter
   ): Promise<TransactionResponse> {
     const socketServerUrl = this.config.socketServerUrl
@@ -77,7 +78,7 @@ export class ERC4337EthersSigner extends Signer {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const customData: any = transaction.customData
     console.log(customData)
-    let gasLimit = 1000000
+    let gasLimit = 2000000
     if (customData && customData.appliedGasLimit) {
       gasLimit = customData.appliedGasLimit
       console.log('gaslimit applied from custom data...', gasLimit)
@@ -99,7 +100,7 @@ export class ERC4337EthersSigner extends Signer {
       data: tx.data?.toString() ?? '',
       value: tx.value,
       gasLimit: tx.gasLimit,
-      isDelegateCall: true // get from customData.isBatchedToMultiSend
+      isDelegateCall: isDelegate // get from customData.isBatchedToMultiSend
     })
     console.log('signed userOp ', userOperation)
 

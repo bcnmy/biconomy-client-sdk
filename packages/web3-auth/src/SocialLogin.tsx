@@ -225,14 +225,14 @@ class SocialLogin {
     }
   }
 
-  logout() {
+  async logout() {
     if (!this.web3auth) {
       console.log('web3auth not initialized yet')
       return
     }
-    this.web3auth.logout().then(() => {
-      this.provider = null
-    })
+    await this.web3auth.logout()
+    this.web3auth.clearCache()
+    this.provider = null
   }
 }
 

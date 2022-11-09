@@ -345,9 +345,9 @@
   "resolved" "https://registry.npmjs.org/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz"
   "version" "0.2.3"
 
-"@biconomy-sdk/account-abstraction@*", "@biconomy-sdk/account-abstraction@file:/Users/aman/Desktop/work/bico/biconomy-client-sdk/packages/account-abstraction":
+"@biconomy-sdk/account-abstraction@*", "@biconomy-sdk/account-abstraction@file:/Users/talha/Documents/Biconomy/biconomy-client-sdk/packages/account-abstraction":
   "resolved" "file:packages/account-abstraction"
-  "version" "1.0.19"
+  "version" "1.0.20"
   dependencies:
     "@account-abstraction/contracts" "^0.2.0"
     "@biconomy-sdk/common" "*"
@@ -362,9 +362,9 @@
     "hardhat" "^2.9.7"
     "solidity-coverage" "^0.7.22"
 
-"@biconomy-sdk/common@*", "@biconomy-sdk/common@file:/Users/aman/Desktop/work/bico/biconomy-client-sdk/packages/common":
+"@biconomy-sdk/common@*", "@biconomy-sdk/common@file:/Users/talha/Documents/Biconomy/biconomy-client-sdk/packages/common":
   "resolved" "file:packages/common"
-  "version" "1.0.19"
+  "version" "1.0.20"
   dependencies:
     "@account-abstraction/contracts" "^0.2.0"
     "@biconomy-sdk/core-types" "*"
@@ -374,9 +374,9 @@
     "@openzeppelin/contracts" "^4.7.3"
     "ethers" "^5.7.0"
 
-"@biconomy-sdk/core-types@*", "@biconomy-sdk/core-types@file:/Users/aman/Desktop/work/bico/biconomy-client-sdk/packages/core-types":
+"@biconomy-sdk/core-types@*", "@biconomy-sdk/core-types@file:/Users/talha/Documents/Biconomy/biconomy-client-sdk/packages/core-types":
   "resolved" "file:packages/core-types"
-  "version" "1.0.19"
+  "version" "1.0.20"
   dependencies:
     "@ethersproject/bignumber" "^5.6.0"
     "@ethersproject/contracts" "^5.6.0"
@@ -384,9 +384,9 @@
     "@gnosis.pm/safe-deployments" "^1.16.0"
     "web3-core" "^1.7.1"
 
-"@biconomy-sdk/ethers-lib@*", "@biconomy-sdk/ethers-lib@file:/Users/aman/Desktop/work/bico/biconomy-client-sdk/packages/ethers-lib":
+"@biconomy-sdk/ethers-lib@*", "@biconomy-sdk/ethers-lib@file:/Users/talha/Documents/Biconomy/biconomy-client-sdk/packages/ethers-lib":
   "resolved" "file:packages/ethers-lib"
-  "version" "1.0.19"
+  "version" "1.0.20"
   dependencies:
     "@biconomy-sdk/core-types" "*"
     "@gnosis.pm/safe-core-sdk-utils" "^1.1.0"
@@ -395,15 +395,15 @@
     "scw-contracts-v1.0.0" "npm:scw-contracts@1.0.0"
     "scw-contracts-v1.0.1" "npm:scw-contracts@1.0.9"
 
-"@biconomy-sdk/gas-estimator@file:/Users/aman/Desktop/work/bico/biconomy-client-sdk/packages/gas-estimator":
+"@biconomy-sdk/gas-estimator@file:/Users/talha/Documents/Biconomy/biconomy-client-sdk/packages/gas-estimator":
   "resolved" "file:packages/gas-estimator"
-  "version" "1.0.19"
+  "version" "1.0.20"
   dependencies:
     "ethers" "^5.7.1"
 
-"@biconomy-sdk/node-client@*", "@biconomy-sdk/node-client@file:/Users/aman/Desktop/work/bico/biconomy-client-sdk/packages/node-client":
+"@biconomy-sdk/node-client@*", "@biconomy-sdk/node-client@file:/Users/talha/Documents/Biconomy/biconomy-client-sdk/packages/node-client":
   "resolved" "file:packages/node-client"
-  "version" "1.0.19"
+  "version" "1.0.20"
   dependencies:
     "@biconomy-sdk/core-types" "*"
     "@ethersproject/abstract-signer" "^5.6.0"
@@ -411,9 +411,9 @@
     "@nomiclabs/hardhat-ethers" "^2.1.0"
     "node-fetch" "^2.6.6"
 
-"@biconomy-sdk/relayer@*", "@biconomy-sdk/relayer@file:/Users/aman/Desktop/work/bico/biconomy-client-sdk/packages/relayer":
+"@biconomy-sdk/relayer@*", "@biconomy-sdk/relayer@file:/Users/talha/Documents/Biconomy/biconomy-client-sdk/packages/relayer":
   "resolved" "file:packages/relayer"
-  "version" "1.0.19"
+  "version" "1.0.20"
   dependencies:
     "@biconomy-sdk/core-types" "*"
     "@ethersproject/providers" "^5.6.8"
@@ -421,9 +421,9 @@
     "isomorphic-ws" "^5.0.0"
     "messaging-sdk" "^0.0.3"
 
-"@biconomy-sdk/smart-account@file:/Users/aman/Desktop/work/bico/biconomy-client-sdk/packages/smart-account":
+"@biconomy-sdk/smart-account@file:/Users/talha/Documents/Biconomy/biconomy-client-sdk/packages/smart-account":
   "resolved" "file:packages/smart-account"
-  "version" "1.0.19"
+  "version" "1.0.20"
   dependencies:
     "@0xsequence/network" "^0.41.0"
     "@biconomy-sdk/account-abstraction" "*"
@@ -439,10 +439,11 @@
     "@nomiclabs/hardhat-ethers" "^2.1.0"
     "@types/mocha" "^9.1.1"
     "concurrently" "^7.4.0"
+    "lodash" "^4.17.21"
 
-"@biconomy-sdk/transactions@*", "@biconomy-sdk/transactions@file:/Users/aman/Desktop/work/bico/biconomy-client-sdk/packages/transactions":
+"@biconomy-sdk/transactions@*", "@biconomy-sdk/transactions@file:/Users/talha/Documents/Biconomy/biconomy-client-sdk/packages/transactions":
   "resolved" "file:packages/transactions"
-  "version" "1.0.19"
+  "version" "1.0.20"
   dependencies:
     "@biconomy-sdk/core-types" "*"
     "@biconomy-sdk/ethers-lib" "*"
@@ -453,9 +454,9 @@
     "ethereumjs-util" "^7.1.5"
     "ethers" "^5.6.9"
 
-"@biconomy-sdk/web3-auth@file:/Users/aman/Desktop/work/bico/biconomy-client-sdk/packages/web3-auth":
+"@biconomy-sdk/web3-auth@file:/Users/talha/Documents/Biconomy/biconomy-client-sdk/packages/web3-auth":
   "resolved" "file:packages/web3-auth"
-  "version" "1.0.19"
+  "version" "1.0.20"
   dependencies:
     "@toruslabs/eccrypto" "^1.1.8"
     "@toruslabs/openlogin-utils" "^2.1.0"
@@ -2212,9 +2213,9 @@
   "resolved" "https://registry.npmjs.org/@nomicfoundation/hardhat-toolbox/-/hardhat-toolbox-1.0.2.tgz"
   "version" "1.0.2"
 
-"@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.0":
-  "integrity" "sha512-vEF3yKuuzfMHsZecHQcnkUrqm8mnTWfJeEVFHpg+cO+le96xQA4lAJYdUan8pXZohQxv1fSReQsn4QGNuBNuCw=="
-  "resolved" "https://registry.npmjs.org/@nomicfoundation/solidity-analyzer-darwin-arm64/-/solidity-analyzer-darwin-arm64-0.1.0.tgz"
+"@nomicfoundation/solidity-analyzer-darwin-x64@0.1.0":
+  "integrity" "sha512-dlHeIg0pTL4dB1l9JDwbi/JG6dHQaU1xpDK+ugYO8eJ1kxx9Dh2isEUtA4d02cQAl22cjOHTvifAk96A+ItEHA=="
+  "resolved" "https://registry.npmjs.org/@nomicfoundation/solidity-analyzer-darwin-x64/-/solidity-analyzer-darwin-x64-0.1.0.tgz"
   "version" "0.1.0"
 
 "@nomicfoundation/solidity-analyzer@^0.1.0":
@@ -2400,17 +2401,17 @@
     "read-package-json-fast" "^2.0.3"
     "which" "^2.0.2"
 
-"@nrwl/cli@15.0.11":
-  "integrity" "sha512-neRDAhm/8HT6+UCWH3idRZZ5bxcJtYjlHmxqglxv9ygR592CirlBLYRWuudiYxnu6QGBuIzLobvq0885wJFq2g=="
-  "resolved" "https://registry.npmjs.org/@nrwl/cli/-/cli-15.0.11.tgz"
-  "version" "15.0.11"
+"@nrwl/cli@15.0.13":
+  "integrity" "sha512-w0oOP4v176CbD34+VytiAItIH3fOeiaccq7T2Un/hhx+/Q9mdO/VWyYZOKmp85uGodx/yZ6LyGW6rX0BjM0Rsg=="
+  "resolved" "https://registry.npmjs.org/@nrwl/cli/-/cli-15.0.13.tgz"
+  "version" "15.0.13"
   dependencies:
-    "nx" "15.0.11"
+    "nx" "15.0.13"
 
 "@nrwl/devkit@>=14.8.1 < 16":
-  "integrity" "sha512-+1bvJ2tjqwWLDR76iEL3qdC0+hS5C/kCkvQMzD2/giPZJS2yrVhAqRxvGxiPYZLXdSZL0Lggzb01nXywJOSRGw=="
-  "resolved" "https://registry.npmjs.org/@nrwl/devkit/-/devkit-15.0.11.tgz"
-  "version" "15.0.11"
+  "integrity" "sha512-esQoF8CZpKRCnvme0sXbkbM45NfXIpQK0Ur0MIx+Y16DnieTHhpbH94ugoL/COBsoMVwJ5MTRjKGIgHALQOikA=="
+  "resolved" "https://registry.npmjs.org/@nrwl/devkit/-/devkit-15.0.12.tgz"
+  "version" "15.0.12"
   dependencies:
     "@phenomnomnominal/tsquery" "4.1.1"
     "ejs" "^3.1.7"
@@ -2418,12 +2419,12 @@
     "semver" "7.3.4"
     "tslib" "^2.3.0"
 
-"@nrwl/tao@15.0.11":
-  "integrity" "sha512-KiQB4i7AeY6xkhGeMnPgmpnjN60In9vj9ruW2W2+WZeQN/HxwCSh0tR0oPb1e92z8ncqw6guO4QYR7CbCHF3Yg=="
-  "resolved" "https://registry.npmjs.org/@nrwl/tao/-/tao-15.0.11.tgz"
-  "version" "15.0.11"
+"@nrwl/tao@15.0.13":
+  "integrity" "sha512-z55RKnVOYsiABKFUIj+QBf6I4fUwTlObxJpgUJp0i3E97P3BgbzhTG1EhuBxLH8fGKrbOAPs0ct38Asl+zGZfQ=="
+  "resolved" "https://registry.npmjs.org/@nrwl/tao/-/tao-15.0.13.tgz"
+  "version" "15.0.13"
   dependencies:
-    "nx" "15.0.11"
+    "nx" "15.0.13"
 
 "@octokit/auth-token@^3.0.0":
   "integrity" "sha512-pq7CwIMV1kmzkFTimdwjAINCXKTajZErLB4wMLYapR2nuB/Jpr66+05wOTZMSCBXP6n4DdDWT2W19Bm17vU69Q=="
@@ -2532,14 +2533,14 @@
     "@octokit/openapi-types" "^14.0.0"
 
 "@openzeppelin/contracts-upgradeable@^4.7.3":
-  "integrity" "sha512-+wuegAMaLcZnLCJIvrVUDzA9z/Wp93f0Dla/4jJvIhijRrPabjQbZe6fWiECLaJyfn5ci9fqf9vTw3xpQOad2A=="
-  "resolved" "https://registry.npmjs.org/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.7.3.tgz"
-  "version" "4.7.3"
+  "integrity" "sha512-5GeFgqMiDlqGT8EdORadp1ntGF0qzWZLmEY7Wbp/yVhN7/B3NNzCxujuI77ktlyG81N3CUZP8cZe3ZAQ/cW10w=="
+  "resolved" "https://registry.npmjs.org/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.8.0.tgz"
+  "version" "4.8.0"
 
 "@openzeppelin/contracts@^4.2.0", "@openzeppelin/contracts@^4.6.0", "@openzeppelin/contracts@^4.7.3":
-  "integrity" "sha512-dGRS0agJzu8ybo44pCIf3xBaPQN/65AIXNgK8+4gzKd5kbvlqyxryUYVLJv7fK98Seyd2hDZzVEHSWAh0Bt1Yw=="
-  "resolved" "https://registry.npmjs.org/@openzeppelin/contracts/-/contracts-4.7.3.tgz"
-  "version" "4.7.3"
+  "integrity" "sha512-AGuwhRRL+NaKx73WKRNzeCxOCOCxpaqF+kp8TJ89QzAipSwZy/NoflkWaL9bywXFRhIzXt8j38sfF7KBKCPWLw=="
+  "resolved" "https://registry.npmjs.org/@openzeppelin/contracts/-/contracts-4.8.0.tgz"
+  "version" "4.8.0"
 
 "@parcel/watcher@2.0.4":
   "integrity" "sha512-cTDi+FUDBIUOBKEtj+nhiJ71AZVlkAsQFuGQTun5tV9mwQBQgZvhCzG+URPQc8myeN32yRVZEfVAPCs1RW+Jvg=="
@@ -3205,6 +3206,11 @@
   "version" "4.2.0"
   dependencies:
     "keyv" "*"
+
+"@types/lodash@^4.14.188":
+  "integrity" "sha512-zmEmF5OIM3rb7SbLCFYoQhO4dGt2FRM9AMkxvA3LaADOF1n8in/zGJlWji9fmafLoNyz+FoL6FE0SLtGIArD7w=="
+  "resolved" "https://registry.npmjs.org/@types/lodash/-/lodash-4.14.188.tgz"
+  "version" "4.14.188"
 
 "@types/long@^4.0.1":
   "integrity" "sha512-MqTGEo5bj5t157U6fA/BiDynNkn0YknVdh48CMPkTSpFTVmvao5UQmm7uEF6xBEo7qIMAlY/JSleYaE6VOdpaA=="
@@ -10269,9 +10275,9 @@
     "wrap-ansi" "^6.2.0"
 
 "loglevel@^1.8.0":
-  "integrity" "sha512-G6A/nJLRgWOuuwdNuA6koovfEV1YpqqAG4pRUlFaz3jj2QNZ8M4vBqnVA+HBTmU/AMNUtlOsMmSpF6NyOjztbA=="
-  "resolved" "https://registry.npmjs.org/loglevel/-/loglevel-1.8.0.tgz"
-  "version" "1.8.0"
+  "integrity" "sha512-tCRIJM51SHjAayKwC+QAg8hT8vg6z7GSgLJKGvzuPb1Wc+hLzqtuVLxp6/HzSPOozuK+8ErAhy7U/sVzw8Dgfg=="
+  "resolved" "https://registry.npmjs.org/loglevel/-/loglevel-1.8.1.tgz"
+  "version" "1.8.1"
 
 "long@^4.0.0":
   "integrity" "sha512-XsP+KhQif4bjX1kbuSiySJFNAehNxgLb6hPRGJ9QsUr8ajHkuXGdrHmFUTUUXhDwVX2R5bY4JNZEwbUiMhV+MA=="
@@ -11338,13 +11344,13 @@
     "bn.js" "4.11.6"
     "strip-hex-prefix" "1.0.0"
 
-"nx@^15.0.11", "nx@>= 14 <= 16", "nx@>=14.8.1 < 16", "nx@15.0.11":
-  "integrity" "sha512-4qmzj6wE2RJXyy3p/X33cisl4yYgUUvXZ6yUYbt1zxWdInYYse61yqyRR91jwLeKpgxL7plkIC5rPiqg4kNJDQ=="
-  "resolved" "https://registry.npmjs.org/nx/-/nx-15.0.11.tgz"
-  "version" "15.0.11"
+"nx@^15.0.13", "nx@>= 14 <= 16", "nx@>=14.8.1 < 16", "nx@15.0.13":
+  "integrity" "sha512-5mJGWz91B9/sxzLjXdD+pmZTel54NeNNxFDis8OhtGDn6eRZ25qWsZNDgzqIDtwKn3c9gThAMHU4XH2OTgWUnA=="
+  "resolved" "https://registry.npmjs.org/nx/-/nx-15.0.13.tgz"
+  "version" "15.0.13"
   dependencies:
-    "@nrwl/cli" "15.0.11"
-    "@nrwl/tao" "15.0.11"
+    "@nrwl/cli" "15.0.13"
+    "@nrwl/tao" "15.0.13"
     "@parcel/watcher" "2.0.4"
     "@yarnpkg/lockfile" "^1.1.0"
     "@yarnpkg/parsers" "^3.0.0-rc.18"
@@ -13420,9 +13426,9 @@
     "minipass" "^3.1.1"
 
 "stack-utils@^2.0.3":
-  "integrity" "sha512-xrQcmYhOsn/1kX+Vraq+7j4oE2j/6BFscZ0etmYg81xuM8Gq0022Pxb8+IqgOFUIaxHs0KaSb7T1+OegiNrNFA=="
-  "resolved" "https://registry.npmjs.org/stack-utils/-/stack-utils-2.0.5.tgz"
-  "version" "2.0.5"
+  "integrity" "sha512-XlkWvfIm6RmsWtNJx+uqtKLS8eqFbxUg0ZzLXqY0caEy9l7hruX8IpiDnjsLavoBgqCCR71TqWO8MaXYheJ3RQ=="
+  "resolved" "https://registry.npmjs.org/stack-utils/-/stack-utils-2.0.6.tgz"
+  "version" "2.0.6"
   dependencies:
     "escape-string-regexp" "^2.0.0"
 
