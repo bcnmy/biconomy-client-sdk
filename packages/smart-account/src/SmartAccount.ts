@@ -296,7 +296,11 @@ class SmartAccount extends EventEmitter {
     const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
 
     await this.initializeContractsAtChain(chainId)
-    const response = await aaSigner.sendTransaction(transaction, this)
+    const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract()
+
+    const isDelegate = transaction.to === multiSendContract.address ? true: false
+
+    const response = await aaSigner.sendTransaction(transaction, isDelegate, this)
 
     return response
     // todo: make sense of this response and return hash to the user
