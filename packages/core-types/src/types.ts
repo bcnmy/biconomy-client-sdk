@@ -1,5 +1,3 @@
-// import { ChainId } from './ChainsTypes'
-
 export type SmartAccountVersion = '1.0.1' | '1.0.0'
 
 export enum OperationType {
