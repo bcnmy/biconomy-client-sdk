@@ -179,13 +179,7 @@ class SocialLogin {
       return
     }
     try {
-      const web3authProvider = await this.web3auth.connectTo(WALLET_ADAPTERS.METAMASK, {
-        chainConfig: {
-          chainNamespace: CHAIN_NAMESPACES.EIP155,
-          chainId: '0x1',
-          rpcTarget: 'https://rpc.ankr.com/eth'
-        }
-      })
+      const web3authProvider = await this.web3auth.connectTo(WALLET_ADAPTERS.METAMASK)
       const web3Provider = new ethers.providers.Web3Provider(web3authProvider!)
       const signer = web3Provider.getSigner()
       const gotAccount = await signer.getAddress()
@@ -205,13 +199,7 @@ class SocialLogin {
       return
     }
     try {
-      const web3authProvider = await this.web3auth.connectTo(WALLET_ADAPTERS.WALLET_CONNECT_V1, {
-        chainConfig: {
-          chainNamespace: CHAIN_NAMESPACES.EIP155,
-          chainId: '0x1',
-          rpcTarget: 'https://rpc.ankr.com/eth'
-        }
-      })
+      const web3authProvider = await this.web3auth.connectTo(WALLET_ADAPTERS.WALLET_CONNECT_V1)
       const web3Provider = new ethers.providers.Web3Provider(web3authProvider!)
       const signer = web3Provider.getSigner()
       const gotAccount = await signer.getAddress()
