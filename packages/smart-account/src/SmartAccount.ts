@@ -92,8 +92,6 @@ class SmartAccount extends EventEmitter {
   relayer!: IRelayer
 
   // Owner of the Smart Account common between all chains
-  // Could be part of Smart Account state / config
-  // @review with Sachin
   owner!: string
 
   // Address of the smart contract wallet common between all chains
