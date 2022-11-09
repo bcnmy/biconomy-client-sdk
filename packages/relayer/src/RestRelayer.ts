@@ -11,8 +11,8 @@ import {
   GasLimit,
   ChainId
 } from '@biconomy-sdk/core-types'
-import { MetaTransaction, encodeMultiSend } from './utils/multisend'
-import { HttpMethod, sendRequest } from './utils/httpRequests'
+import { MetaTransaction, encodeMultiSend } from './utils/MultiSend'
+import { HttpMethod, sendRequest } from './utils/HttpRequests'
 import { ClientMessenger } from 'messaging-sdk'
 import WebSocket, { EventEmitter } from 'isomorphic-ws'
 

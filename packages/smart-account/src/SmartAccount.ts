@@ -153,9 +153,9 @@ class SmartAccount extends EventEmitter {
     // Should not break if we make this wallet connected provider optional (We'd have JsonRpcProvider / JsonRpcSender)
     this.provider = walletProvider
     this.signer = new SmartAccountSigner(this.provider)
-    this.nodeClient = new NodeClient({ txServiceUrl: this.#smartAccountConfig.backend_url })
+    this.nodeClient = new NodeClient({ txServiceUrl: this.#smartAccountConfig.backendUrl })
     this.relayer = new RestRelayer({
-      url: this.#smartAccountConfig.relayer_url,
+      url: this.#smartAccountConfig.relayerUrl,
       socketServerUrl: this.#smartAccountConfig.socketServerUrl
     })
     this.aaProvider = {}
@@ -847,8 +847,8 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
   activeNetworkId: ChainId.GOERLI, //Update later
   supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],
   signType: SignTypeMethod.EIP712_SIGN,
-  backend_url: 'https://sdk-backend.staging.biconomy.io/v1',
-  relayer_url: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
+  backendUrl: 'https://sdk-backend.staging.biconomy.io/v1',
+  relayerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
   socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
   bundlerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
   biconomySigningServiceUrl:

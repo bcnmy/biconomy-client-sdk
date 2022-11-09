@@ -1,6 +1,10 @@
 {
   "name": "@biconomy-sdk/relayer",
+<<<<<<< HEAD
   "version": "1.0.20",
+=======
+  "version": "1.0.18",
+>>>>>>> development
   "description": "relayer client to dispatach transactions on blockchain",
   "keywords": [
     "relayer"

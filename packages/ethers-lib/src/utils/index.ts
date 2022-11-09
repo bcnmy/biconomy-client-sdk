@@ -1,5 +1,5 @@
 import { ContractTransaction } from '@ethersproject/contracts'
-import { IEthersTransactionOptions, IEthersTransactionResult } from '../types'
+import { IEthersTransactionOptions, IEthersTransactionResult } from '../Types'
 
 export function sameString(str1: string, str2: string): boolean {
   return str1.toLowerCase() === str2.toLowerCase()

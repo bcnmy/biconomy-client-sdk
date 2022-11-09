@@ -1,7 +1,7 @@
 import { ethers } from 'ethers'
 import { GasEstimator } from './assets'
 import NodeClient, { EstimateUndeployedContractGasDto } from '@biconomy-sdk/node-client'
-import ContractUtils from './contract-utils'
+import ContractUtils from './ContractUtils'
 import {
   EstimateSmartAccountDeploymentDto,
   IWalletTransaction,
@@ -10,7 +10,7 @@ import {
   IFeeRefundV1_0_1,
   SmartAccountState
 } from '@biconomy-sdk/core-types'
-import { PrepareRefundTransactionsDto, PrepareRefundTransactionDto } from './types'
+import { PrepareRefundTransactionsDto, PrepareRefundTransactionDto } from './Types'
 
 export class Estimator {
   nodeClient!: NodeClient
