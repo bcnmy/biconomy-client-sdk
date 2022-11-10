@@ -101,18 +101,15 @@ class SmartAccount extends EventEmitter {
   // TODO : review from contractUtils
   smartAccountState!: SmartAccountState
 
-  // TODO
-  // Review provider type WalletProviderLike / ExternalProvider
+  // provider type could be WalletProviderLike / ExternalProvider
   // Can expose recommended provider classes through the SDK
-
-  // review SmartAccountConfig
-  // TODO : EOA signer instead of { walletProvider }
+  // Note: If required Dapp devs can just pass on the signer in future
 
   /**
-   * Constrcutor for the Smart Account. If config is not provided it makes Smart Account available using default configuration
+   * Constructor for the Smart Account. If config is not provided it makes Smart Account available using default configuration
    * If you wish to use your own backend server and relayer service, pass the URLs here
    */
-  // todo : could remove WalletProvider
+  // Note: Could remove WalletProvider later on
   constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
     super()
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
@@ -296,7 +293,7 @@ class SmartAccount extends EventEmitter {
     await this.initializeContractsAtChain(chainId)
     const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract()
 
-    const isDelegate = transaction.to === multiSendContract.address ? true: false
+    const isDelegate = transaction.to === multiSendContract.address ? true : false
 
     const response = await aaSigner.sendTransaction(transaction, isDelegate, this)
 
@@ -311,12 +308,10 @@ class SmartAccount extends EventEmitter {
     const { transactions } = transactionBatchDto
 
     // Might get optional operation for tx
-
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
     batchId = batchId ? batchId : 0
 
-    // NOTE : If the wallet is not deployed yet then nonce would be zero
     let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()
     walletContract = walletContract.attach(this.address)
 
@@ -361,20 +356,19 @@ class SmartAccount extends EventEmitter {
 
     // Multisend is tricky because populateTransaction expects delegateCall and we must override
 
-    // Review : Stuff before this can be moved to TransactionManager
+    // TODO : stuff before this can be moved to TransactionManager
     const response = await this.sendGasLessTransaction({ version, transaction: gaslessTx, chainId })
     return response
   }
 
-  // Only to deploy wallet using connected paymaster (or the one corresponding to dapp api key)
-  // Todo
-  // Add return type
+  // Only to deploy wallet using connected paymaster
+  // Todo : Add return type
   // Review involvement of Dapp API Key
   public async deployWalletUsingPaymaster() {
     // can pass chainId
     const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
     await aaSigner.deployWalletOnly()
-    // todo: make sense of this response and return hash to the user
+    // Todo: make sense of this response and return hash to the user
   }
 
   /**
@@ -634,7 +628,6 @@ class SmartAccount extends EventEmitter {
   }
 
   // Other helpers go here for pre build (feeOptions and quotes from relayer) , build and execution of refund type transactions
-
   /**
    * Prepares compatible IWalletTransaction object based on Transaction Request
    * @todo Rename based on other variations to prepare transaction
@@ -666,6 +659,7 @@ class SmartAccount extends EventEmitter {
    * @param transactionDto
    * @returns
    */
+  // Todo : Marked for deletion
   async createTransaction(transactionDto: TransactionDto): Promise<IWalletTransaction> {
     let { version, batchId, chainId } = transactionDto
     const { transaction } = transactionDto
@@ -685,6 +679,7 @@ class SmartAccount extends EventEmitter {
    * @param chainId
    * @returns
    */
+  // Todo: Marked for deletion
   async createTransactionBatch(
     transactionBatchDto: TransactionBatchDto
   ): Promise<IWalletTransaction> {
@@ -742,6 +737,8 @@ class SmartAccount extends EventEmitter {
     const txHash = await this.sendTransaction({ tx: transaction })
     return txHash
   }
+
+  // Todo: sendSignedTransaction (only applies for Refund transaction )
 
   /**
    *
