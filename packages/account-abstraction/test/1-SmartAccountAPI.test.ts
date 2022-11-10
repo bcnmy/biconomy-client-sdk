@@ -73,7 +73,9 @@ describe('SmartAccountAPI', async () => {
 
     // const factoryAddress = await DeterministicDeployer.deploy(SimpleWalletDeployer__factory.bytecode)
     const clientConfig = {
-      dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
+      // Note: dappAPIKey will be empty in smart account config when not provided
+      // provide non-empty key and handle exceptions
+      dappAPIKey: '',
       biconomySigningServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
       socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
       entryPointAddress: entryPoint.address,
@@ -128,10 +130,12 @@ describe('SmartAccountAPI', async () => {
 
     let op: any
     try {
+      console.log('recipient.address ', recipient.address)
       op = await api.createSignedUserOp({
         target: recipient.address,
         data: recipient.interface.encodeFunctionData('something', ['hello'])
       })
+      console.log('signed user op ', op)
     } catch (err) {
       console.log('error here')
       console.log(err)
@@ -151,7 +155,9 @@ describe('SmartAccountAPI', async () => {
     }
     // TODO : Update with prod values
     const clientConfig = {
-      dappAPIKey: 'PMO3rOHIu.5eabcc5d-df35-4d37-93ff-502d6ce7a5d6',
+      // Note: dappAPIKey will be empty in smart account config when not provided
+      // provide non-empty key and handle exceptions
+      dappAPIKey: '',
       biconomySigningServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
       socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
       entryPointAddress: entryPoint.address,
