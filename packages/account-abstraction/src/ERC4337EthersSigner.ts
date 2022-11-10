@@ -57,7 +57,7 @@ export class ERC4337EthersSigner extends Signer {
   // This one is called by Contract. It signs the request and passes in to Provider to be sent.
   async sendTransaction(
     transaction: Deferrable<TransactionRequest>,
-    isDelegate: boolean = false,
+    isDelegate = false,
     engine?: any // EventEmitter
   ): Promise<TransactionResponse> {
     const socketServerUrl = this.config.socketServerUrl
@@ -108,6 +108,7 @@ export class ERC4337EthersSigner extends Signer {
 
     try {
       bundlerServiceResponse = await this.httpRpcClient.sendUserOpToBundler(userOperation)
+      console.log('bundlerServiceResponse')
       console.log(bundlerServiceResponse)
     } catch (error) {
       // console.error('sendUserOpToBundler failed', error)
@@ -117,31 +118,35 @@ export class ERC4337EthersSigner extends Signer {
     if (clientMessenger && clientMessenger.socketClient.isConnected()) {
       clientMessenger.createTransactionNotifier(bundlerServiceResponse.transactionId, {
         onHashGenerated: async (tx: any) => {
-          const txHash = tx.transactionHash
-          const txId = tx.transactionId
-          console.log(
-            `Tx Hash generated message received at client ${JSON.stringify({
-              transactionId: txId,
-              hash: txHash
-            })}`
-          )
-          engine.emit('txHashGenerated', {
-            id: tx.transactionId,
-            hash: tx.transactionHash,
-            msg: 'txn hash generated'
-          })
+          if (tx) {
+            const txHash = tx.transactionHash
+            const txId = tx.transactionId
+            console.log(
+              `Tx Hash generated message received at client ${JSON.stringify({
+                transactionId: txId,
+                hash: txHash
+              })}`
+            )
+            engine.emit('txHashGenerated', {
+              id: tx.transactionId,
+              hash: tx.transactionHash,
+              msg: 'txn hash generated'
+            })
+          }
         },
         onError: async (tx: any) => {
-          console.log(`Error message received at client is ${tx}`)
-          const err = tx.error
-          const txId = tx.transactionId
-          clientMessenger.unsubscribe(txId)
-          // event emitter
-          engine.emit('error', {
-            id: tx.transactionId,
-            error: err,
-            msg: 'txn hash generated'
-          })
+          if (tx) {
+            console.log(`Error message received at client is ${tx}`)
+            const err = tx.error
+            const txId = tx.transactionId
+            clientMessenger.unsubscribe(txId)
+            // event emitter
+            engine.emit('error', {
+              id: tx.transactionId,
+              error: err,
+              msg: 'txn hash generated'
+            })
+          }
         }
       })
     }

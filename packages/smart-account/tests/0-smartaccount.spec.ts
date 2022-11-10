@@ -87,7 +87,7 @@ describe('Wallet integration', function () {
                 api: 'https://api.etherscan.io/'
               },
               ensRegistryAddress: '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e',
-              estimatorAddress: '0xc6e8748a08e591250a3eed526e9455859633c6c4',
+              estimatorAddress: '0x65DB1c3c53B7e4EEa71EBA504d8F05369E63Ed34',
               walletFactory: [
                 {
                   version: '1.0.0',
@@ -102,50 +102,53 @@ describe('Wallet integration', function () {
                 },
                 {
                   version: '1.0.1',
-                  address: '0x596387b0232540b3b620050dcd747fa7e4d21797',
+                  address: '0xf59cda6fd211303bfb79f87269abd37f565499d8',
                   abi: '',
                   walletCreatedEventName: 'WalletCreated',
                   WalletCreatedEventConfirmations: 6,
                   walletCreatedEventTopicHash:
-                    '0xca0b7dde26052d34217ef1a0cee48085a07ca32da0a918609937a307d496bbf6',
+                    '0xdccb4dfe68c3cc7c8b9bdc8577a418c2c77377328c5b1c3791069c7fa53b1128',
                   walletCreatedAbi:
-                    '{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_proxy","type":"address"},{"indexed":true,"internalType":"address","name":"_implementation","type":"address"},{"indexed":true,"internalType":"address","name":"_owner","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"uint256","name":"_index","type":"uint256"}],"name":"WalletCreated","type":"event"}'
+                    '[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_proxy","type":"address"},{"indexed":true,"internalType":"address","name":"_implementation","type":"address"},{"indexed":true,"internalType":"address","name":"_owner","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"uint256","name":"_index","type":"uint256"}],"name":"WalletCreated","type":"event"}]'
                 }
               ],
-              decoderAddress: '0x4C6B185b60a2b9D11d746591C8bA768dcBCF7d18',
+              decoderAddress: '0x69214e26ab458fe20b7c3337530b994cd49c8686',
               multiSend: [
                 {
                   version: '1.0.0',
-                  address: '0xf9dc4a9b8b551f693a10ecb5f931fe2e1a9156f0',
+                  address: '0x2f65bed438a30827d408b7c6818ec5a22c022dd1',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xf9dc4a9b8b551f693a10ecb5f931fe2e1a9156f0',
+                  address: '0x2f65bed438a30827d408b7c6818ec5a22c022dd1',
                   abi: ''
                 }
               ],
               multiSendCall: [
                 {
                   version: '1.0.0',
-                  address: '0xa72e2c9ec14ddee494f551aae9885158105f809c',
+                  address: '0xa1677d8c8edb188e49ecd832236af281d6b0b20e',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xa72e2c9ec14ddee494f551aae9885158105f809c',
+                  address: '0xa1677d8c8edb188e49ecd832236af281d6b0b20e',
                   abi: ''
                 }
               ],
               walletCreatedCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
-              walletCreatedEventHit: false,
+              walletCreatedEventHit: true,
               eoaChangedCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
-              eoaChangedEventHit: false,
+              eoaChangedEventHit: true,
               updateImplementationCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/implementation',
-              updateImplementationEventHit: false,
+              updateImplementationEventHit: true,
+              executionSuccessCallBackEndpoint:
+                'https://sdk-backend.staging.biconomy.io/v1/transactions/',
+              executionSuccessEventHit: true,
               wallet: [
                 {
                   version: '1.0.0',
@@ -160,13 +163,59 @@ describe('Wallet integration', function () {
                   updateImplementationEventName: 'UpdateImplementation',
                   updateImplementationEventConfirmations: 6,
                   updateImplementationEventTopicHash:
-                    '0xf2c2b1b5312b1e31ad49a7d85acd6322ae6facc51488810b882ecdb4df861cd4',
+                    '0x310ba5f1d2ed074b51e2eccd052a47ae9ab7c6b800d1fca3db3999d6a592ca03',
                   updateImplementationEventAbi:
-                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]'
+                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]',
+                  executionSuccessEventName: 'ExecutionSuccess',
+                  executionSuccessEventConfirmations: 6,
+                  executionSuccessEventTopicHash:
+                    '0x442e715f626346e8c54381002da614f62bee8d27386535b2521ec8540898556e',
+                  executionSuccessEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'bytes32',
+                        name: 'txHash',
+                        type: 'bytes32'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'payment',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionSuccess',
+                    type: 'event'
+                  },
+                  executionFailureEventName: 'ExecutionFailure',
+                  executionFailureEventConfirmations: 6,
+                  executionFailureEventTopicHash:
+                    '0x23428b18acfb3ea64b08dc0c1d296ea9c09702c09083ca5272e64d115b687d23',
+                  executionFailureEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'bytes32',
+                        name: 'txHash',
+                        type: 'bytes32'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'payment',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionFailure',
+                    type: 'event'
+                  }
                 },
                 {
                   version: '1.0.1',
-                  address: '0xc313daf8dc1e6991f15068a6ca27d372f08a5455',
+                  address: '0x1572be4ca6ee072b3a3f82dca003ed980ff98732',
                   abi: '',
                   eoaChangedEventName: 'EOAChanged',
                   eoaChangedEventConfirmations: 6,
@@ -177,32 +226,114 @@ describe('Wallet integration', function () {
                   updateImplementationEventName: 'UpdateImplementation',
                   updateImplementationEventConfirmations: 6,
                   updateImplementationEventTopicHash:
-                    '0xf2c2b1b5312b1e31ad49a7d85acd6322ae6facc51488810b882ecdb4df861cd4',
+                    '0x31c5374dcc95d137f3c21741a151157300dc87c02ffd59e4a177713557a916b1',
                   updateImplementationEventAbi:
-                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"_scw","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]'
+                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"_scw","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]',
+                  executionSuccessEventName: 'ExecutionSuccess',
+                  executionSuccessEventConfirmations: 6,
+                  executionSuccessEventTopicHash:
+                    '0x81d12fffced46c214dfae8ab8fa0b9f7b69f70c9d500e33f612f2105deb261ee',
+                  executionSuccessEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'address',
+                        name: 'to',
+                        type: 'address'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'value',
+                        type: 'uint256'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'bytes',
+                        name: 'data',
+                        type: 'bytes'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'enum Enum.Operation',
+                        name: 'operation',
+                        type: 'uint8'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'txGas',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionSuccess',
+                    type: 'event'
+                  },
+                  executionFailureEventName: 'ExecutionFailure',
+                  executionFailureEventConfirmations: 6,
+                  executionFailureEventTopicHash:
+                    '0x3ddd038f78c876172d5dbfd730b14c9f8692dfa197ef104eaac6df3f85a0874a',
+                  executionFailureEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'address',
+                        name: 'to',
+                        type: 'address'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'value',
+                        type: 'uint256'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'bytes',
+                        name: 'data',
+                        type: 'bytes'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'enum Enum.Operation',
+                        name: 'operation',
+                        type: 'uint8'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'txGas',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionFailure',
+                    type: 'event'
+                  }
                 }
               ],
               entryPoint: [
                 {
                   version: '1.0.0',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xf05217199f1c25604c67993f11a81461bc97f3ab',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xa948dc08f217c96c687dc3bf2e6051fb906b872a',
                   abi: ''
                 }
               ],
               fallBackHandler: [
                 {
                   version: '1.0.0',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xf05217199f1c25604c67993f11a81461bc97f3ab',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xf05217199f1c25604c67993f11a81461bc97f3ab',
                   abi: ''
                 }
               ],
@@ -233,7 +364,7 @@ describe('Wallet integration', function () {
                 api: 'https://api.polygonscan.com/'
               },
               ensRegistryAddress: '',
-              estimatorAddress: '0xc6e8748a08e591250a3eed526e9455859633c6c4',
+              estimatorAddress: '0x65DB1c3c53B7e4EEa71EBA504d8F05369E63Ed34',
               walletFactory: [
                 {
                   version: '1.0.0',
@@ -248,50 +379,53 @@ describe('Wallet integration', function () {
                 },
                 {
                   version: '1.0.1',
-                  address: '0x2602cf019a69f40fb7de5a0f3fdb778eee7ed722',
+                  address: '0xf59cda6fd211303bfb79f87269abd37f565499d8',
                   abi: '',
                   walletCreatedEventName: 'WalletCreated',
                   WalletCreatedEventConfirmations: 6,
                   walletCreatedEventTopicHash:
-                    '0xca0b7dde26052d34217ef1a0cee48085a07ca32da0a918609937a307d496bbf6',
+                    '0xdccb4dfe68c3cc7c8b9bdc8577a418c2c77377328c5b1c3791069c7fa53b1128',
                   walletCreatedAbi:
-                    '{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_proxy","type":"address"},{"indexed":true,"internalType":"address","name":"_implementation","type":"address"},{"indexed":true,"internalType":"address","name":"_owner","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"uint256","name":"_index","type":"uint256"}],"name":"WalletCreated","type":"event"}'
+                    '[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_proxy","type":"address"},{"indexed":true,"internalType":"address","name":"_implementation","type":"address"},{"indexed":true,"internalType":"address","name":"_owner","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"uint256","name":"_index","type":"uint256"}],"name":"WalletCreated","type":"event"}]'
                 }
               ],
-              decoderAddress: '0x4C6B185b60a2b9D11d746591C8bA768dcBCF7d18',
+              decoderAddress: '0x69214e26ab458fe20b7c3337530b994cd49c8686',
               multiSend: [
                 {
                   version: '1.0.0',
-                  address: '0xf9dc4a9b8b551f693a10ecb5f931fe2e1a9156f0',
+                  address: '0x2f65bed438a30827d408b7c6818ec5a22c022dd1',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xf9dc4a9b8b551f693a10ecb5f931fe2e1a9156f0',
+                  address: '0x2f65bed438a30827d408b7c6818ec5a22c022dd1',
                   abi: ''
                 }
               ],
               multiSendCall: [
                 {
                   version: '1.0.0',
-                  address: '0xa72e2c9ec14ddee494f551aae9885158105f809c',
+                  address: '0xa1677d8c8edb188e49ecd832236af281d6b0b20e',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xa72e2c9ec14ddee494f551aae9885158105f809c',
+                  address: '0xa1677d8c8edb188e49ecd832236af281d6b0b20e',
                   abi: ''
                 }
               ],
               walletCreatedCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
-              walletCreatedEventHit: false,
+              walletCreatedEventHit: true,
               eoaChangedCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
-              eoaChangedEventHit: false,
+              eoaChangedEventHit: true,
               updateImplementationCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/implementation',
-              updateImplementationEventHit: false,
+              updateImplementationEventHit: true,
+              executionSuccessCallBackEndpoint:
+                'https://sdk-backend.staging.biconomy.io/v1/transactions/',
+              executionSuccessEventHit: true,
               wallet: [
                 {
                   version: '1.0.0',
@@ -306,13 +440,59 @@ describe('Wallet integration', function () {
                   updateImplementationEventName: 'UpdateImplementation',
                   updateImplementationEventConfirmations: 6,
                   updateImplementationEventTopicHash:
-                    '0xf2c2b1b5312b1e31ad49a7d85acd6322ae6facc51488810b882ecdb4df861cd4',
+                    '0x310ba5f1d2ed074b51e2eccd052a47ae9ab7c6b800d1fca3db3999d6a592ca03',
                   updateImplementationEventAbi:
-                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]'
+                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]',
+                  executionSuccessEventName: 'ExecutionSuccess',
+                  executionSuccessEventConfirmations: 6,
+                  executionSuccessEventTopicHash:
+                    '0x442e715f626346e8c54381002da614f62bee8d27386535b2521ec8540898556e',
+                  executionSuccessEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'bytes32',
+                        name: 'txHash',
+                        type: 'bytes32'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'payment',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionSuccess',
+                    type: 'event'
+                  },
+                  executionFailureEventName: 'ExecutionFailure',
+                  executionFailureEventConfirmations: 6,
+                  executionFailureEventTopicHash:
+                    '0x23428b18acfb3ea64b08dc0c1d296ea9c09702c09083ca5272e64d115b687d23',
+                  executionFailureEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'bytes32',
+                        name: 'txHash',
+                        type: 'bytes32'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'payment',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionFailure',
+                    type: 'event'
+                  }
                 },
                 {
                   version: '1.0.1',
-                  address: '0x140a25bd5b002dceae2754cf12576a2640ddc18e',
+                  address: '0x1572be4ca6ee072b3a3f82dca003ed980ff98732',
                   abi: '',
                   eoaChangedEventName: 'EOAChanged',
                   eoaChangedEventConfirmations: 6,
@@ -323,32 +503,114 @@ describe('Wallet integration', function () {
                   updateImplementationEventName: 'UpdateImplementation',
                   updateImplementationEventConfirmations: 6,
                   updateImplementationEventTopicHash:
-                    '0xf2c2b1b5312b1e31ad49a7d85acd6322ae6facc51488810b882ecdb4df861cd4',
+                    '0x31c5374dcc95d137f3c21741a151157300dc87c02ffd59e4a177713557a916b1',
                   updateImplementationEventAbi:
-                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"_scw","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]'
+                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"_scw","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]',
+                  executionSuccessEventName: 'ExecutionSuccess',
+                  executionSuccessEventConfirmations: 6,
+                  executionSuccessEventTopicHash:
+                    '0x81d12fffced46c214dfae8ab8fa0b9f7b69f70c9d500e33f612f2105deb261ee',
+                  executionSuccessEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'address',
+                        name: 'to',
+                        type: 'address'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'value',
+                        type: 'uint256'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'bytes',
+                        name: 'data',
+                        type: 'bytes'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'enum Enum.Operation',
+                        name: 'operation',
+                        type: 'uint8'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'txGas',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionSuccess',
+                    type: 'event'
+                  },
+                  executionFailureEventName: 'ExecutionFailure',
+                  executionFailureEventConfirmations: 6,
+                  executionFailureEventTopicHash:
+                    '0x3ddd038f78c876172d5dbfd730b14c9f8692dfa197ef104eaac6df3f85a0874a',
+                  executionFailureEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'address',
+                        name: 'to',
+                        type: 'address'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'value',
+                        type: 'uint256'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'bytes',
+                        name: 'data',
+                        type: 'bytes'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'enum Enum.Operation',
+                        name: 'operation',
+                        type: 'uint8'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'txGas',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionFailure',
+                    type: 'event'
+                  }
                 }
               ],
               entryPoint: [
                 {
                   version: '1.0.0',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xf05217199f1c25604c67993f11a81461bc97f3ab',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xa948dc08f217c96c687dc3bf2e6051fb906b872a',
                   abi: ''
                 }
               ],
               fallBackHandler: [
                 {
                   version: '1.0.0',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xf05217199f1c25604c67993f11a81461bc97f3ab',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xfc942e06c54d08502557fa40e1aa23c5258132d5',
+                  address: '0x0bc0c08122947be919a02f9861d83060d34ea478',
                   abi: ''
                 }
               ],
@@ -380,7 +642,7 @@ describe('Wallet integration', function () {
                 api: 'https://bscscan.com/'
               },
               ensRegistryAddress: '',
-              estimatorAddress: '0xc6e8748a08e591250a3eed526e9455859633c6c4',
+              estimatorAddress: '0x65DB1c3c53B7e4EEa71EBA504d8F05369E63Ed34',
               walletFactory: [
                 {
                   version: '1.0.0',
@@ -395,50 +657,53 @@ describe('Wallet integration', function () {
                 },
                 {
                   version: '1.0.1',
-                  address: '0x596387b0232540b3b620050dcd747fa7e4d21797',
+                  address: '0xf59cda6fd211303bfb79f87269abd37f565499d8',
                   abi: '',
                   walletCreatedEventName: 'WalletCreated',
                   WalletCreatedEventConfirmations: 6,
                   walletCreatedEventTopicHash:
-                    '0xca0b7dde26052d34217ef1a0cee48085a07ca32da0a918609937a307d496bbf6',
+                    '0xdccb4dfe68c3cc7c8b9bdc8577a418c2c77377328c5b1c3791069c7fa53b1128',
                   walletCreatedAbi:
-                    '{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_proxy","type":"address"},{"indexed":true,"internalType":"address","name":"_implementation","type":"address"},{"indexed":true,"internalType":"address","name":"_owner","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"uint256","name":"_index","type":"uint256"}],"name":"WalletCreated","type":"event"}'
+                    '[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_proxy","type":"address"},{"indexed":true,"internalType":"address","name":"_implementation","type":"address"},{"indexed":true,"internalType":"address","name":"_owner","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"uint256","name":"_index","type":"uint256"}],"name":"WalletCreated","type":"event"}]'
                 }
               ],
-              decoderAddress: '0x4C6B185b60a2b9D11d746591C8bA768dcBCF7d18',
+              decoderAddress: '0x69214e26ab458fe20b7c3337530b994cd49c8686',
               multiSend: [
                 {
                   version: '1.0.0',
-                  address: '0xf9dc4a9b8b551f693a10ecb5f931fe2e1a9156f0',
+                  address: '0x2f65bed438a30827d408b7c6818ec5a22c022dd1',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xf9dc4a9b8b551f693a10ecb5f931fe2e1a9156f0',
+                  address: '0x2f65bed438a30827d408b7c6818ec5a22c022dd1',
                   abi: ''
                 }
               ],
               multiSendCall: [
                 {
                   version: '1.0.0',
-                  address: '0xa72e2c9ec14ddee494f551aae9885158105f809c',
+                  address: '0xa1677d8c8edb188e49ecd832236af281d6b0b20e',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xa72e2c9ec14ddee494f551aae9885158105f809c',
+                  address: '0xa1677d8c8edb188e49ecd832236af281d6b0b20e',
                   abi: ''
                 }
               ],
               walletCreatedCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
-              walletCreatedEventHit: false,
+              walletCreatedEventHit: true,
               eoaChangedCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
-              eoaChangedEventHit: false,
+              eoaChangedEventHit: true,
               updateImplementationCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/implementation',
-              updateImplementationEventHit: false,
+              updateImplementationEventHit: true,
+              executionSuccessCallBackEndpoint:
+                'https://sdk-backend.staging.biconomy.io/v1/transactions/',
+              executionSuccessEventHit: true,
               wallet: [
                 {
                   version: '1.0.0',
@@ -453,13 +718,59 @@ describe('Wallet integration', function () {
                   updateImplementationEventName: 'UpdateImplementation',
                   updateImplementationEventConfirmations: 6,
                   updateImplementationEventTopicHash:
-                    '0xf2c2b1b5312b1e31ad49a7d85acd6322ae6facc51488810b882ecdb4df861cd4',
+                    '0x310ba5f1d2ed074b51e2eccd052a47ae9ab7c6b800d1fca3db3999d6a592ca03',
                   updateImplementationEventAbi:
-                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]'
+                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]',
+                  executionSuccessEventName: 'ExecutionSuccess',
+                  executionSuccessEventConfirmations: 6,
+                  executionSuccessEventTopicHash:
+                    '0x442e715f626346e8c54381002da614f62bee8d27386535b2521ec8540898556e',
+                  executionSuccessEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'bytes32',
+                        name: 'txHash',
+                        type: 'bytes32'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'payment',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionSuccess',
+                    type: 'event'
+                  },
+                  executionFailureEventName: 'ExecutionFailure',
+                  executionFailureEventConfirmations: 6,
+                  executionFailureEventTopicHash:
+                    '0x23428b18acfb3ea64b08dc0c1d296ea9c09702c09083ca5272e64d115b687d23',
+                  executionFailureEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'bytes32',
+                        name: 'txHash',
+                        type: 'bytes32'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'payment',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionFailure',
+                    type: 'event'
+                  }
                 },
                 {
                   version: '1.0.1',
-                  address: '0xc313daf8dc1e6991f15068a6ca27d372f08a5455',
+                  address: '0x1572be4ca6ee072b3a3f82dca003ed980ff98732',
                   abi: '',
                   eoaChangedEventName: 'EOAChanged',
                   eoaChangedEventConfirmations: 6,
@@ -470,32 +781,114 @@ describe('Wallet integration', function () {
                   updateImplementationEventName: 'UpdateImplementation',
                   updateImplementationEventConfirmations: 6,
                   updateImplementationEventTopicHash:
-                    '0xf2c2b1b5312b1e31ad49a7d85acd6322ae6facc51488810b882ecdb4df861cd4',
+                    '0x31c5374dcc95d137f3c21741a151157300dc87c02ffd59e4a177713557a916b1',
                   updateImplementationEventAbi:
-                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"_scw","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]'
+                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"_scw","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]',
+                  executionSuccessEventName: 'ExecutionSuccess',
+                  executionSuccessEventConfirmations: 6,
+                  executionSuccessEventTopicHash:
+                    '0x81d12fffced46c214dfae8ab8fa0b9f7b69f70c9d500e33f612f2105deb261ee',
+                  executionSuccessEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'address',
+                        name: 'to',
+                        type: 'address'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'value',
+                        type: 'uint256'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'bytes',
+                        name: 'data',
+                        type: 'bytes'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'enum Enum.Operation',
+                        name: 'operation',
+                        type: 'uint8'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'txGas',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionSuccess',
+                    type: 'event'
+                  },
+                  executionFailureEventName: 'ExecutionFailure',
+                  executionFailureEventConfirmations: 6,
+                  executionFailureEventTopicHash:
+                    '0x3ddd038f78c876172d5dbfd730b14c9f8692dfa197ef104eaac6df3f85a0874a',
+                  executionFailureEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'address',
+                        name: 'to',
+                        type: 'address'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'value',
+                        type: 'uint256'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'bytes',
+                        name: 'data',
+                        type: 'bytes'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'enum Enum.Operation',
+                        name: 'operation',
+                        type: 'uint8'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'txGas',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionFailure',
+                    type: 'event'
+                  }
                 }
               ],
               entryPoint: [
                 {
                   version: '1.0.0',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xf05217199f1c25604c67993f11a81461bc97f3ab',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xa948dc08f217c96c687dc3bf2e6051fb906b872a',
                   abi: ''
                 }
               ],
               fallBackHandler: [
                 {
                   version: '1.0.0',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xf05217199f1c25604c67993f11a81461bc97f3ab',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xf05217199f1c25604c67993f11a81461bc97f3ab',
                   abi: ''
                 }
               ],
@@ -526,7 +919,7 @@ describe('Wallet integration', function () {
                 api: 'https://goerli.etherscan.io/'
               },
               ensRegistryAddress: '',
-              estimatorAddress: '0x8caefe0d512b8e86c7c1bb59e7473d354cf864ab',
+              estimatorAddress: '0x65DB1c3c53B7e4EEa71EBA504d8F05369E63Ed34',
               walletFactory: [
                 {
                   version: '1.0.0',
@@ -541,50 +934,53 @@ describe('Wallet integration', function () {
                 },
                 {
                   version: '1.0.1',
-                  address: '0x2602cf019a69f40fb7de5a0f3fdb778eee7ed722',
+                  address: '0xf59cda6fd211303bfb79f87269abd37f565499d8',
                   abi: '',
                   walletCreatedEventName: 'WalletCreated',
                   WalletCreatedEventConfirmations: 6,
                   walletCreatedEventTopicHash:
-                    '0xca0b7dde26052d34217ef1a0cee48085a07ca32da0a918609937a307d496bbf6',
+                    '0xdccb4dfe68c3cc7c8b9bdc8577a418c2c77377328c5b1c3791069c7fa53b1128',
                   walletCreatedAbi:
-                    '{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_proxy","type":"address"},{"indexed":true,"internalType":"address","name":"_implementation","type":"address"},{"indexed":true,"internalType":"address","name":"_owner","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"uint256","name":"_index","type":"uint256"}],"name":"WalletCreated","type":"event"}'
+                    '[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_proxy","type":"address"},{"indexed":true,"internalType":"address","name":"_implementation","type":"address"},{"indexed":true,"internalType":"address","name":"_owner","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"uint256","name":"_index","type":"uint256"}],"name":"WalletCreated","type":"event"}]'
                 }
               ],
-              decoderAddress: '0xba63a55b7ee3334044a2100c99acdd93325fc0cb',
+              decoderAddress: '0x69214e26ab458fe20b7c3337530b994cd49c8686',
               multiSend: [
                 {
                   version: '1.0.0',
-                  address: '0xf9dc4a9b8b551f693a10ecb5f931fe2e1a9156f0',
+                  address: '0x2f65bed438a30827d408b7c6818ec5a22c022dd1',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xf9dc4a9b8b551f693a10ecb5f931fe2e1a9156f0',
+                  address: '0x2f65bed438a30827d408b7c6818ec5a22c022dd1',
                   abi: ''
                 }
               ],
               multiSendCall: [
                 {
                   version: '1.0.0',
-                  address: '0xa72e2c9ec14ddee494f551aae9885158105f809c',
+                  address: '0xa1677d8c8edb188e49ecd832236af281d6b0b20e',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xa72e2c9ec14ddee494f551aae9885158105f809c',
+                  address: '0xa1677d8c8edb188e49ecd832236af281d6b0b20e',
                   abi: ''
                 }
               ],
               walletCreatedCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
-              walletCreatedEventHit: false,
+              walletCreatedEventHit: true,
               eoaChangedCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
-              eoaChangedEventHit: false,
+              eoaChangedEventHit: true,
               updateImplementationCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/implementation',
-              updateImplementationEventHit: false,
+              updateImplementationEventHit: true,
+              executionSuccessCallBackEndpoint:
+                'https://sdk-backend.staging.biconomy.io/v1/transactions/',
+              executionSuccessEventHit: true,
               wallet: [
                 {
                   version: '1.0.0',
@@ -599,13 +995,59 @@ describe('Wallet integration', function () {
                   updateImplementationEventName: 'UpdateImplementation',
                   updateImplementationEventConfirmations: 6,
                   updateImplementationEventTopicHash:
-                    '0xf2c2b1b5312b1e31ad49a7d85acd6322ae6facc51488810b882ecdb4df861cd4',
+                    '0x310ba5f1d2ed074b51e2eccd052a47ae9ab7c6b800d1fca3db3999d6a592ca03',
                   updateImplementationEventAbi:
-                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]'
+                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]',
+                  executionSuccessEventName: 'ExecutionSuccess',
+                  executionSuccessEventConfirmations: 6,
+                  executionSuccessEventTopicHash:
+                    '0x442e715f626346e8c54381002da614f62bee8d27386535b2521ec8540898556e',
+                  executionSuccessEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'bytes32',
+                        name: 'txHash',
+                        type: 'bytes32'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'payment',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionSuccess',
+                    type: 'event'
+                  },
+                  executionFailureEventName: 'ExecutionFailure',
+                  executionFailureEventConfirmations: 6,
+                  executionFailureEventTopicHash:
+                    '0x23428b18acfb3ea64b08dc0c1d296ea9c09702c09083ca5272e64d115b687d23',
+                  executionFailureEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'bytes32',
+                        name: 'txHash',
+                        type: 'bytes32'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'payment',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionFailure',
+                    type: 'event'
+                  }
                 },
                 {
                   version: '1.0.1',
-                  address: '0x140a25bd5b002dceae2754cf12576a2640ddc18e',
+                  address: '0x1572be4ca6ee072b3a3f82dca003ed980ff98732',
                   abi: '',
                   eoaChangedEventName: 'EOAChanged',
                   eoaChangedEventConfirmations: 6,
@@ -616,32 +1058,114 @@ describe('Wallet integration', function () {
                   updateImplementationEventName: 'UpdateImplementation',
                   updateImplementationEventConfirmations: 6,
                   updateImplementationEventTopicHash:
-                    '0xf2c2b1b5312b1e31ad49a7d85acd6322ae6facc51488810b882ecdb4df861cd4',
+                    '0x31c5374dcc95d137f3c21741a151157300dc87c02ffd59e4a177713557a916b1',
                   updateImplementationEventAbi:
-                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"_scw","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]'
+                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"_scw","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]',
+                  executionSuccessEventName: 'ExecutionSuccess',
+                  executionSuccessEventConfirmations: 6,
+                  executionSuccessEventTopicHash:
+                    '0x81d12fffced46c214dfae8ab8fa0b9f7b69f70c9d500e33f612f2105deb261ee',
+                  executionSuccessEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'address',
+                        name: 'to',
+                        type: 'address'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'value',
+                        type: 'uint256'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'bytes',
+                        name: 'data',
+                        type: 'bytes'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'enum Enum.Operation',
+                        name: 'operation',
+                        type: 'uint8'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'txGas',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionSuccess',
+                    type: 'event'
+                  },
+                  executionFailureEventName: 'ExecutionFailure',
+                  executionFailureEventConfirmations: 6,
+                  executionFailureEventTopicHash:
+                    '0x3ddd038f78c876172d5dbfd730b14c9f8692dfa197ef104eaac6df3f85a0874a',
+                  executionFailureEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'address',
+                        name: 'to',
+                        type: 'address'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'value',
+                        type: 'uint256'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'bytes',
+                        name: 'data',
+                        type: 'bytes'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'enum Enum.Operation',
+                        name: 'operation',
+                        type: 'uint8'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'txGas',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionFailure',
+                    type: 'event'
+                  }
                 }
               ],
               entryPoint: [
                 {
                   version: '1.0.0',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xf05217199f1c25604c67993f11a81461bc97f3ab',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xa948dc08f217c96c687dc3bf2e6051fb906b872a',
                   abi: ''
                 }
               ],
               fallBackHandler: [
                 {
                   version: '1.0.0',
-                  address: '0xfc942e06c54d08502557fa40e1aa23c5258132d5',
+                  address: '0x0bc0c08122947be919a02f9861d83060d34ea478',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xfc942e06c54d08502557fa40e1aa23c5258132d5',
+                  address: '0x0bc0c08122947be919a02f9861d83060d34ea478',
                   abi: ''
                 }
               ],
@@ -672,7 +1196,7 @@ describe('Wallet integration', function () {
                 api: 'https://api.mumbai.polygonscan.com/'
               },
               ensRegistryAddress: '',
-              estimatorAddress: '0x8caefe0d512b8e86c7c1bb59e7473d354cf864ab',
+              estimatorAddress: '0x65DB1c3c53B7e4EEa71EBA504d8F05369E63Ed34',
               walletFactory: [
                 {
                   version: '1.0.0',
@@ -687,50 +1211,53 @@ describe('Wallet integration', function () {
                 },
                 {
                   version: '1.0.1',
-                  address: '0x2602cf019a69f40fb7de5a0f3fdb778eee7ed722',
+                  address: '0xf59cda6fd211303bfb79f87269abd37f565499d8',
                   abi: '',
                   walletCreatedEventName: 'WalletCreated',
                   WalletCreatedEventConfirmations: 6,
                   walletCreatedEventTopicHash:
-                    '0xca0b7dde26052d34217ef1a0cee48085a07ca32da0a918609937a307d496bbf5',
+                    '0xdccb4dfe68c3cc7c8b9bdc8577a418c2c77377328c5b1c3791069c7fa53b1128',
                   walletCreatedAbi:
-                    '{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_proxy","type":"address"},{"indexed":true,"internalType":"address","name":"_implementation","type":"address"},{"indexed":true,"internalType":"address","name":"_owner","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"uint256","name":"_index","type":"uint256"}],"name":"WalletCreated","type":"event"}'
+                    '[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_proxy","type":"address"},{"indexed":true,"internalType":"address","name":"_implementation","type":"address"},{"indexed":true,"internalType":"address","name":"_owner","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"uint256","name":"_index","type":"uint256"}],"name":"WalletCreated","type":"event"}]'
                 }
               ],
-              decoderAddress: '0xba63a55b7ee3334044a2100c99acdd93325fc0cb',
+              decoderAddress: '0x69214e26ab458fe20b7c3337530b994cd49c8686',
               multiSend: [
                 {
                   version: '1.0.0',
-                  address: '0xf9dc4a9b8b551f693a10ecb5f931fe2e1a9156f0',
+                  address: '0x2f65bed438a30827d408b7c6818ec5a22c022dd1',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xf9dc4a9b8b551f693a10ecb5f931fe2e1a9156f0',
+                  address: '0x2f65bed438a30827d408b7c6818ec5a22c022dd1',
                   abi: ''
                 }
               ],
               multiSendCall: [
                 {
                   version: '1.0.0',
-                  address: '0xa72e2c9ec14ddee494f551aae9885158105f809c',
+                  address: '0xa1677d8c8edb188e49ecd832236af281d6b0b20e',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xa72e2c9ec14ddee494f551aae9885158105f809c',
+                  address: '0xa1677d8c8edb188e49ecd832236af281d6b0b20e',
                   abi: ''
                 }
               ],
               walletCreatedCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
-              walletCreatedEventHit: false,
+              walletCreatedEventHit: true,
               eoaChangedCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
-              eoaChangedEventHit: false,
+              eoaChangedEventHit: true,
               updateImplementationCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/implementation',
-              updateImplementationEventHit: false,
+              updateImplementationEventHit: true,
+              executionSuccessCallBackEndpoint:
+                'https://sdk-backend.staging.biconomy.io/v1/transactions/',
+              executionSuccessEventHit: true,
               wallet: [
                 {
                   version: '1.0.0',
@@ -745,13 +1272,59 @@ describe('Wallet integration', function () {
                   updateImplementationEventName: 'UpdateImplementation',
                   updateImplementationEventConfirmations: 6,
                   updateImplementationEventTopicHash:
-                    '0xf2c2b1b5312b1e31ad49a7d85acd6322ae6facc51488810b882ecdb4df861cd4',
+                    '0x310ba5f1d2ed074b51e2eccd052a47ae9ab7c6b800d1fca3db3999d6a592ca03',
                   updateImplementationEventAbi:
-                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]'
+                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]',
+                  executionSuccessEventName: 'ExecutionSuccess',
+                  executionSuccessEventConfirmations: 6,
+                  executionSuccessEventTopicHash:
+                    '0x442e715f626346e8c54381002da614f62bee8d27386535b2521ec8540898556e',
+                  executionSuccessEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'bytes32',
+                        name: 'txHash',
+                        type: 'bytes32'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'payment',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionSuccess',
+                    type: 'event'
+                  },
+                  executionFailureEventName: 'ExecutionFailure',
+                  executionFailureEventConfirmations: 6,
+                  executionFailureEventTopicHash:
+                    '0x23428b18acfb3ea64b08dc0c1d296ea9c09702c09083ca5272e64d115b687d23',
+                  executionFailureEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'bytes32',
+                        name: 'txHash',
+                        type: 'bytes32'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'payment',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionFailure',
+                    type: 'event'
+                  }
                 },
                 {
                   version: '1.0.1',
-                  address: '0x140a25bd5b002dceae2754cf12576a2640ddc18e',
+                  address: '0x1572be4ca6ee072b3a3f82dca003ed980ff98732',
                   abi: '',
                   eoaChangedEventName: 'EOAChanged',
                   eoaChangedEventConfirmations: 6,
@@ -762,32 +1335,114 @@ describe('Wallet integration', function () {
                   updateImplementationEventName: 'UpdateImplementation',
                   updateImplementationEventConfirmations: 6,
                   updateImplementationEventTopicHash:
-                    '0xf2c2b1b5312b1e31ad49a7d85acd6322ae6facc51488810b882ecdb4df861cd4',
+                    '0x31c5374dcc95d137f3c21741a151157300dc87c02ffd59e4a177713557a916b1',
                   updateImplementationEventAbi:
-                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"_scw","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]'
+                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"_scw","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]',
+                  executionSuccessEventName: 'ExecutionSuccess',
+                  executionSuccessEventConfirmations: 6,
+                  executionSuccessEventTopicHash:
+                    '0x81d12fffced46c214dfae8ab8fa0b9f7b69f70c9d500e33f612f2105deb261ee',
+                  executionSuccessEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'address',
+                        name: 'to',
+                        type: 'address'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'value',
+                        type: 'uint256'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'bytes',
+                        name: 'data',
+                        type: 'bytes'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'enum Enum.Operation',
+                        name: 'operation',
+                        type: 'uint8'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'txGas',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionSuccess',
+                    type: 'event'
+                  },
+                  executionFailureEventName: 'ExecutionFailure',
+                  executionFailureEventConfirmations: 6,
+                  executionFailureEventTopicHash:
+                    '0x3ddd038f78c876172d5dbfd730b14c9f8692dfa197ef104eaac6df3f85a0874a',
+                  executionFailureEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'address',
+                        name: 'to',
+                        type: 'address'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'value',
+                        type: 'uint256'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'bytes',
+                        name: 'data',
+                        type: 'bytes'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'enum Enum.Operation',
+                        name: 'operation',
+                        type: 'uint8'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'txGas',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionFailure',
+                    type: 'event'
+                  }
                 }
               ],
               entryPoint: [
                 {
                   version: '1.0.0',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xf05217199f1c25604c67993f11a81461bc97f3ab',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xa948dc08f217c96c687dc3bf2e6051fb906b872a',
                   abi: ''
                 }
               ],
               fallBackHandler: [
                 {
                   version: '1.0.0',
-                  address: '0xfc942e06c54d08502557fa40e1aa23c5258132d5',
+                  address: '0x0bc0c08122947be919a02f9861d83060d34ea478',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xfc942e06c54d08502557fa40e1aa23c5258132d5',
+                  address: '0x0bc0c08122947be919a02f9861d83060d34ea478',
                   abi: ''
                 }
               ],
@@ -819,7 +1474,7 @@ describe('Wallet integration', function () {
                 api: 'https://bscscan.com/'
               },
               ensRegistryAddress: '',
-              estimatorAddress: '0xc6e8748a08e591250a3eed526e9455859633c6c4',
+              estimatorAddress: '0x65DB1c3c53B7e4EEa71EBA504d8F05369E63Ed34',
               walletFactory: [
                 {
                   version: '1.0.0',
@@ -834,50 +1489,53 @@ describe('Wallet integration', function () {
                 },
                 {
                   version: '1.0.1',
-                  address: '0x596387b0232540b3b620050dcd747fa7e4d21797',
+                  address: '0xf59cda6fd211303bfb79f87269abd37f565499d8',
                   abi: '',
                   walletCreatedEventName: 'WalletCreated',
                   WalletCreatedEventConfirmations: 6,
                   walletCreatedEventTopicHash:
-                    '0xca0b7dde26052d34217ef1a0cee48085a07ca32da0a918609937a307d496bbf6',
+                    '0xdccb4dfe68c3cc7c8b9bdc8577a418c2c77377328c5b1c3791069c7fa53b1128',
                   walletCreatedAbi:
-                    '{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_proxy","type":"address"},{"indexed":true,"internalType":"address","name":"_implementation","type":"address"},{"indexed":true,"internalType":"address","name":"_owner","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"uint256","name":"_index","type":"uint256"}],"name":"WalletCreated","type":"event"}'
+                    '[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_proxy","type":"address"},{"indexed":true,"internalType":"address","name":"_implementation","type":"address"},{"indexed":true,"internalType":"address","name":"_owner","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"uint256","name":"_index","type":"uint256"}],"name":"WalletCreated","type":"event"}]'
                 }
               ],
-              decoderAddress: '0x4C6B185b60a2b9D11d746591C8bA768dcBCF7d18',
+              decoderAddress: '0x69214e26ab458fe20b7c3337530b994cd49c8686',
               multiSend: [
                 {
                   version: '1.0.0',
-                  address: '0xf9dc4a9b8b551f693a10ecb5f931fe2e1a9156f0',
+                  address: '0x2f65bed438a30827d408b7c6818ec5a22c022dd1',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xf9dc4a9b8b551f693a10ecb5f931fe2e1a9156f0',
+                  address: '0x2f65bed438a30827d408b7c6818ec5a22c022dd1',
                   abi: ''
                 }
               ],
               multiSendCall: [
                 {
                   version: '1.0.0',
-                  address: '0xa72e2c9ec14ddee494f551aae9885158105f809c',
+                  address: '0xa1677d8c8edb188e49ecd832236af281d6b0b20e',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xa72e2c9ec14ddee494f551aae9885158105f809c',
+                  address: '0xa1677d8c8edb188e49ecd832236af281d6b0b20e',
                   abi: ''
                 }
               ],
               walletCreatedCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
-              walletCreatedEventHit: false,
+              walletCreatedEventHit: true,
               eoaChangedCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
-              eoaChangedEventHit: false,
+              eoaChangedEventHit: true,
               updateImplementationCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/implementation',
-              updateImplementationEventHit: false,
+              updateImplementationEventHit: true,
+              executionSuccessCallBackEndpoint:
+                'https://sdk-backend.staging.biconomy.io/v1/transactions/',
+              executionSuccessEventHit: true,
               wallet: [
                 {
                   version: '1.0.0',
@@ -892,13 +1550,59 @@ describe('Wallet integration', function () {
                   updateImplementationEventName: 'UpdateImplementation',
                   updateImplementationEventConfirmations: 6,
                   updateImplementationEventTopicHash:
-                    '0xf2c2b1b5312b1e31ad49a7d85acd6322ae6facc51488810b882ecdb4df861cd4',
+                    '0x310ba5f1d2ed074b51e2eccd052a47ae9ab7c6b800d1fca3db3999d6a592ca03',
                   updateImplementationEventAbi:
-                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]'
+                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]',
+                  executionSuccessEventName: 'ExecutionSuccess',
+                  executionSuccessEventConfirmations: 6,
+                  executionSuccessEventTopicHash:
+                    '0x442e715f626346e8c54381002da614f62bee8d27386535b2521ec8540898556e',
+                  executionSuccessEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'bytes32',
+                        name: 'txHash',
+                        type: 'bytes32'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'payment',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionSuccess',
+                    type: 'event'
+                  },
+                  executionFailureEventName: 'ExecutionFailure',
+                  executionFailureEventConfirmations: 6,
+                  executionFailureEventTopicHash:
+                    '0x23428b18acfb3ea64b08dc0c1d296ea9c09702c09083ca5272e64d115b687d23',
+                  executionFailureEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'bytes32',
+                        name: 'txHash',
+                        type: 'bytes32'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'payment',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionFailure',
+                    type: 'event'
+                  }
                 },
                 {
                   version: '1.0.1',
-                  address: '0xc313daf8dc1e6991f15068a6ca27d372f08a5455',
+                  address: '0x1572be4ca6ee072b3a3f82dca003ed980ff98732',
                   abi: '',
                   eoaChangedEventName: 'EOAChanged',
                   eoaChangedEventConfirmations: 6,
@@ -909,32 +1613,114 @@ describe('Wallet integration', function () {
                   updateImplementationEventName: 'UpdateImplementation',
                   updateImplementationEventConfirmations: 6,
                   updateImplementationEventTopicHash:
-                    '0xf2c2b1b5312b1e31ad49a7d85acd6322ae6facc51488810b882ecdb4df861cd4',
+                    '0x31c5374dcc95d137f3c21741a151157300dc87c02ffd59e4a177713557a916b1',
                   updateImplementationEventAbi:
-                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"_scw","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]'
+                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"_scw","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]',
+                  executionSuccessEventName: 'ExecutionSuccess',
+                  executionSuccessEventConfirmations: 6,
+                  executionSuccessEventTopicHash:
+                    '0x81d12fffced46c214dfae8ab8fa0b9f7b69f70c9d500e33f612f2105deb261ee',
+                  executionSuccessEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'address',
+                        name: 'to',
+                        type: 'address'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'value',
+                        type: 'uint256'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'bytes',
+                        name: 'data',
+                        type: 'bytes'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'enum Enum.Operation',
+                        name: 'operation',
+                        type: 'uint8'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'txGas',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionSuccess',
+                    type: 'event'
+                  },
+                  executionFailureEventName: 'ExecutionFailure',
+                  executionFailureEventConfirmations: 6,
+                  executionFailureEventTopicHash:
+                    '0x3ddd038f78c876172d5dbfd730b14c9f8692dfa197ef104eaac6df3f85a0874a',
+                  executionFailureEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'address',
+                        name: 'to',
+                        type: 'address'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'value',
+                        type: 'uint256'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'bytes',
+                        name: 'data',
+                        type: 'bytes'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'enum Enum.Operation',
+                        name: 'operation',
+                        type: 'uint8'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'txGas',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionFailure',
+                    type: 'event'
+                  }
                 }
               ],
               entryPoint: [
                 {
                   version: '1.0.0',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xf05217199f1c25604c67993f11a81461bc97f3ab',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xa948dc08f217c96c687dc3bf2e6051fb906b872a',
                   abi: ''
                 }
               ],
               fallBackHandler: [
                 {
                   version: '1.0.0',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xf05217199f1c25604c67993f11a81461bc97f3ab',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xf05217199f1c25604c67993f11a81461bc97f3ab',
                   abi: ''
                 }
               ],
@@ -956,7 +1742,7 @@ describe('Wallet integration', function () {
                 api: 'https://api.mumbai.polygonscan.com/'
               },
               ensRegistryAddress: '',
-              estimatorAddress: '0xc6e8748a08e591250a3eed526e9455859633c6c4',
+              estimatorAddress: '0x65DB1c3c53B7e4EEa71EBA504d8F05369E63Ed34',
               walletFactory: [
                 {
                   version: '1.0.0',
@@ -976,16 +1762,16 @@ describe('Wallet integration', function () {
                   walletCreatedEventName: 'WalletCreated',
                   WalletCreatedEventConfirmations: 6,
                   walletCreatedEventTopicHash:
-                    '0xca0b7dde26052d34217ef1a0cee48085a07ca32da0a918609937a307d496bbf6',
+                    '0xdccb4dfe68c3cc7c8b9bdc8577a418c2c77377328c5b1c3791069c7fa53b1128',
                   walletCreatedAbi:
-                    '{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_proxy","type":"address"},{"indexed":true,"internalType":"address","name":"_implementation","type":"address"},{"indexed":true,"internalType":"address","name":"_owner","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"uint256","name":"_index","type":"uint256"}],"name":"WalletCreated","type":"event"}'
+                    '[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_proxy","type":"address"},{"indexed":true,"internalType":"address","name":"_implementation","type":"address"},{"indexed":true,"internalType":"address","name":"_owner","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"uint256","name":"_index","type":"uint256"}],"name":"WalletCreated","type":"event"}]'
                 }
               ],
-              decoderAddress: '0x4C6B185b60a2b9D11d746591C8bA768dcBCF7d18',
+              decoderAddress: '0x69214e26ab458fe20b7c3337530b994cd49c8686',
               multiSend: [
                 {
                   version: '1.0.0',
-                  address: '0xf9dc4a9b8b551f693a10ecb5f931fe2e1a9156f0',
+                  address: '0x2f65bed438a30827d408b7c6818ec5a22c022dd1',
                   abi: ''
                 },
                 {
@@ -997,7 +1783,7 @@ describe('Wallet integration', function () {
               multiSendCall: [
                 {
                   version: '1.0.0',
-                  address: '0xa72e2c9ec14ddee494f551aae9885158105f809c',
+                  address: '0xa1677d8c8edb188e49ecd832236af281d6b0b20e',
                   abi: ''
                 },
                 {
@@ -1008,13 +1794,16 @@ describe('Wallet integration', function () {
               ],
               walletCreatedCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
-              walletCreatedEventHit: false,
+              walletCreatedEventHit: true,
               eoaChangedCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
-              eoaChangedEventHit: false,
+              eoaChangedEventHit: true,
               updateImplementationCallBackEndpoint:
                 'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/implementation',
-              updateImplementationEventHit: false,
+              updateImplementationEventHit: true,
+              executionSuccessCallBackEndpoint:
+                'https://sdk-backend.staging.biconomy.io/v1/transactions/',
+              executionSuccessEventHit: true,
               wallet: [
                 {
                   version: '1.0.0',
@@ -1029,9 +1818,55 @@ describe('Wallet integration', function () {
                   updateImplementationEventName: 'UpdateImplementation',
                   updateImplementationEventConfirmations: 6,
                   updateImplementationEventTopicHash:
-                    '0xf2c2b1b5312b1e31ad49a7d85acd6322ae6facc51488810b882ecdb4df861cd4',
+                    '0x310ba5f1d2ed074b51e2eccd052a47ae9ab7c6b800d1fca3db3999d6a592ca03',
                   updateImplementationEventAbi:
-                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]'
+                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]',
+                  executionSuccessEventName: 'ExecutionSuccess',
+                  executionSuccessEventConfirmations: 6,
+                  executionSuccessEventTopicHash:
+                    '0x442e715f626346e8c54381002da614f62bee8d27386535b2521ec8540898556e',
+                  executionSuccessEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'bytes32',
+                        name: 'txHash',
+                        type: 'bytes32'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'payment',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionSuccess',
+                    type: 'event'
+                  },
+                  executionFailureEventName: 'ExecutionFailure',
+                  executionFailureEventConfirmations: 6,
+                  executionFailureEventTopicHash:
+                    '0x23428b18acfb3ea64b08dc0c1d296ea9c09702c09083ca5272e64d115b687d23',
+                  executionFailureEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'bytes32',
+                        name: 'txHash',
+                        type: 'bytes32'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'payment',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionFailure',
+                    type: 'event'
+                  }
                 },
                 {
                   version: '1.0.1',
@@ -1046,32 +1881,114 @@ describe('Wallet integration', function () {
                   updateImplementationEventName: 'UpdateImplementation',
                   updateImplementationEventConfirmations: 6,
                   updateImplementationEventTopicHash:
-                    '0xf2c2b1b5312b1e31ad49a7d85acd6322ae6facc51488810b882ecdb4df861cd4',
+                    '0x31c5374dcc95d137f3c21741a151157300dc87c02ffd59e4a177713557a916b1',
                   updateImplementationEventAbi:
-                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"_scw","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]'
+                    '[{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"_scw","type":"address"},{"indexed":false,"internalType":"string","name":"version","type":"string"},{"indexed":false,"internalType":"address","name":"newImplementation","type":"address"}],"name":"ImplementationUpdated","type":"event"}]',
+                  executionSuccessEventName: 'ExecutionSuccess',
+                  executionSuccessEventConfirmations: 6,
+                  executionSuccessEventTopicHash:
+                    '0x81d12fffced46c214dfae8ab8fa0b9f7b69f70c9d500e33f612f2105deb261ee',
+                  executionSuccessEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'address',
+                        name: 'to',
+                        type: 'address'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'value',
+                        type: 'uint256'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'bytes',
+                        name: 'data',
+                        type: 'bytes'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'enum Enum.Operation',
+                        name: 'operation',
+                        type: 'uint8'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'txGas',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionSuccess',
+                    type: 'event'
+                  },
+                  executionFailureEventName: 'ExecutionFailure',
+                  executionFailureEventConfirmations: 6,
+                  executionFailureEventTopicHash:
+                    '0x3ddd038f78c876172d5dbfd730b14c9f8692dfa197ef104eaac6df3f85a0874a',
+                  executionFailureEventAbi: {
+                    anonymous: false,
+                    inputs: [
+                      {
+                        indexed: false,
+                        internalType: 'address',
+                        name: 'to',
+                        type: 'address'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'value',
+                        type: 'uint256'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'bytes',
+                        name: 'data',
+                        type: 'bytes'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'enum Enum.Operation',
+                        name: 'operation',
+                        type: 'uint8'
+                      },
+                      {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'txGas',
+                        type: 'uint256'
+                      }
+                    ],
+                    name: 'ExecutionFailure',
+                    type: 'event'
+                  }
                 }
               ],
               entryPoint: [
                 {
                   version: '1.0.0',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xf05217199f1c25604c67993f11a81461bc97f3ab',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xa948dc08f217c96c687dc3bf2e6051fb906b872a',
                   abi: ''
                 }
               ],
               fallBackHandler: [
                 {
                   version: '1.0.0',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xf05217199f1c25604c67993f11a81461bc97f3ab',
                   abi: ''
                 },
                 {
                   version: '1.0.1',
-                  address: '0xF05217199F1C25604c67993F11a81461Bc97F3Ab',
+                  address: '0xf05217199f1c25604c67993f11a81461bc97f3ab',
                   abi: ''
                 }
               ],
@@ -1091,9 +2008,15 @@ describe('Wallet integration', function () {
 
       const wallet = new SmartAccount(ethnode.provider!, {
         activeNetworkId: ChainId.GANACHE,
-        supportedNetworksIds: [ChainId.GOERLI, ChainId.GANACHE] // has to be consisttent providers and network names
+        supportedNetworksIds: [ChainId.GOERLI, ChainId.GANACHE], // has to be consisttent providers and network names
         // walletProvider: ethnode.provider,
         //backendUrl: "http://localhost:3000/v1"
+        networkConfig: [
+          {
+            chainId: ChainId.GANACHE,
+            providerUrl: 'http://localhost:8545'
+          }
+        ]
       })
 
       const smartAccount = await wallet.init()
@@ -1125,9 +2048,15 @@ describe('Wallet integration', function () {
 
       const wallet = new SmartAccount(ethnode.provider!, {
         activeNetworkId: ChainId.GANACHE,
-        supportedNetworksIds: [ChainId.GOERLI, ChainId.GANACHE] // has to be consisttent providers and network names
+        supportedNetworksIds: [ChainId.GOERLI, ChainId.GANACHE], // has to be consisttent providers and network names
         // walletProvider: ethnode.provider,
         //backendUrl: "http://localhost:3000/v1"
+        networkConfig: [
+          {
+            chainId: ChainId.GANACHE,
+            providerUrl: 'http://localhost:8545'
+          }
+        ]
       })
 
       const smartAccount = await wallet.init()
@@ -1163,7 +2092,13 @@ describe('Wallet integration', function () {
 
       const wallet = new SmartAccount(ethnode.provider!, {
         activeNetworkId: ChainId.GANACHE,
-        supportedNetworksIds: [ChainId.GOERLI, ChainId.GANACHE] // has to be consisttent providers and network names
+        supportedNetworksIds: [ChainId.GOERLI, ChainId.GANACHE], // has to be consisttent providers and network names
+        networkConfig: [
+          {
+            chainId: ChainId.GANACHE,
+            providerUrl: 'http://localhost:8545'
+          }
+        ]
       })
 
       const smartAccount = await wallet.init()
@@ -1192,7 +2127,12 @@ describe('Wallet integration', function () {
         transaction: tx
       })
 
-      const signature = await smartAccount.signTransaction({ version: smartAccount.DEFAULT_VERSION,  tx: smartAccountTransaction, chainId: ChainId.GANACHE, signer: smartAccount.signer })
+      const signature = await smartAccount.signTransaction({
+        version: smartAccount.DEFAULT_VERSION,
+        tx: smartAccountTransaction,
+        chainId: ChainId.GANACHE,
+        signer: smartAccount.signer
+      })
       console.log('signature is: ', signature)
     })
 
@@ -1203,7 +2143,13 @@ describe('Wallet integration', function () {
 
       const wallet = new SmartAccount(ethnode.provider!, {
         activeNetworkId: ChainId.GANACHE,
-        supportedNetworksIds: [ChainId.GOERLI, ChainId.GANACHE] // has to be consisttent providers and network names
+        supportedNetworksIds: [ChainId.GOERLI, ChainId.GANACHE], // has to be consisttent providers and network names
+        networkConfig: [
+          {
+            chainId: ChainId.GANACHE,
+            providerUrl: 'http://localhost:8545'
+          }
+        ]
       })
 
       const smartAccount = await wallet.init()
@@ -1226,7 +2172,7 @@ describe('Wallet integration', function () {
 
       // todo : undo and fix
       // const isDeployed = await smartAccount.isDeployed(ChainId.GOERLI) /// can pass chainId here
-      
+
       // Check if the smart wallet is deployed or not
       const state = await smartAccount.getSmartAccountState(ChainId.GOERLI)
       console.log(state)
@@ -1245,7 +2191,13 @@ describe('Wallet integration', function () {
 
       const wallet = new SmartAccount(ethnode.provider!, {
         activeNetworkId: ChainId.GANACHE,
-        supportedNetworksIds: [ChainId.GOERLI, ChainId.GANACHE] // has to be consisttent providers and network names
+        supportedNetworksIds: [ChainId.GOERLI, ChainId.GANACHE], // has to be consisttent providers and network names
+        networkConfig: [
+          {
+            chainId: ChainId.GANACHE,
+            providerUrl: 'http://localhost:8545'
+          }
+        ]
       })
 
       const smartAccount = await wallet.init()
@@ -1302,7 +2254,13 @@ describe('Wallet integration', function () {
 
       const wallet = new SmartAccount(ethnode.provider!, {
         activeNetworkId: ChainId.GANACHE,
-        supportedNetworksIds: [ChainId.GOERLI, ChainId.GANACHE] // has to be consisttent providers and network names
+        supportedNetworksIds: [ChainId.GOERLI, ChainId.GANACHE], // has to be consisttent providers and network names
+        networkConfig: [
+          {
+            chainId: ChainId.GANACHE,
+            providerUrl: 'http://localhost:8545'
+          }
+        ]
       })
 
       const smartAccount = await wallet.init()
@@ -1346,9 +2304,11 @@ describe('Wallet integration', function () {
 
       txs.push(tx2)
 
-      const smartAccountTransaction: IWalletTransaction = await smartAccount.createTransactionBatch({
-        transactions: txs
-      })
+      const smartAccountTransaction: IWalletTransaction = await smartAccount.createTransactionBatch(
+        {
+          transactions: txs
+        }
+      )
 
       // Attach relayer before sending a transaction
 
@@ -1384,6 +2344,5 @@ describe('Wallet integration', function () {
     // connectPaymaster?
     // disconnectPaymaster?
     // connectBundler?
-
   })
 })
