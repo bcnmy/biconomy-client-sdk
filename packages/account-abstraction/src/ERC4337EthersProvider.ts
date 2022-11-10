@@ -155,7 +155,7 @@ export class ERC4337EthersProvider extends BaseProvider {
     }
 
     const userOp = await resolveProperties(userOp1)
-//    const requestId = getRequestId(userOp, this.config.entryPointAddress, this.config.chainId)
+    //    const requestId = getRequestId(userOp, this.config.entryPointAddress, this.config.chainId)
 
     const waitPromise = new Promise<any>((resolve, reject) => {
       if (clientMessenger && clientMessenger.socketClient.isConnected()) {
@@ -176,7 +176,7 @@ export class ERC4337EthersProvider extends BaseProvider {
               id: txId,
               hash: tx.transactionHash,
               receipt: tx.receipt
-            })            
+            })
             resolve(receipt)
           },
           onError: async (tx: any) => {
@@ -195,7 +195,7 @@ export class ERC4337EthersProvider extends BaseProvider {
     })
 
     const transactionReceipt = await waitPromise
-    console.log('transactionReceipt ', transactionReceipt);
+    console.log('transactionReceipt ', transactionReceipt)
 
     return {
       hash: transactionReceipt.hash, // or transactionId

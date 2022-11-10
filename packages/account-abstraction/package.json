@@ -1,6 +1,6 @@
 {
   "name": "@biconomy-sdk/account-abstraction",
-  "version": "1.0.25",
+  "version": "1.0.26",
   "description": "Account abstraction APIs to prepare user operations ",
   "keywords": [
     "account-abstraction",
