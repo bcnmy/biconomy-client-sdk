@@ -155,9 +155,9 @@ export class ERC4337EthersProvider extends BaseProvider {
     }
 
     const userOp = await resolveProperties(userOp1)
-    const requestId = getRequestId(userOp, this.config.entryPointAddress, this.config.chainId)
+//    const requestId = getRequestId(userOp, this.config.entryPointAddress, this.config.chainId)
 
-    const waitPromise = new Promise<TransactionReceipt>((resolve, reject) => {
+    const waitPromise = new Promise<any>((resolve, reject) => {
       if (clientMessenger && clientMessenger.socketClient.isConnected()) {
         clientMessenger.createTransactionNotifier(transactionId, {
           onMined: (tx: any) => {
@@ -170,13 +170,13 @@ export class ERC4337EthersProvider extends BaseProvider {
                 receipt: tx.receipt
               })}`
             )
-            const receipt: TransactionReceipt = tx.receipt
+            const receipt: any = tx.receipt
             engine.emit('txMined', {
               msg: 'txn mined',
               id: txId,
               hash: tx.transactionHash,
               receipt: tx.receipt
-            })
+            })            
             resolve(receipt)
           },
           onError: async (tx: any) => {
@@ -194,8 +194,11 @@ export class ERC4337EthersProvider extends BaseProvider {
       }
     })
 
+    const transactionReceipt = await waitPromise
+    console.log('transactionReceipt ', transactionReceipt);
+
     return {
-      hash: requestId, // or transactionId
+      hash: transactionReceipt.hash, // or transactionId
       confirmations: 0,
       from: userOp.sender,
       nonce: BigNumber.from(userOp.nonce).toNumber(),
@@ -204,11 +207,6 @@ export class ERC4337EthersProvider extends BaseProvider {
       data: hexValue(userOp.callData), // should extract the actual called method from this "execFromEntryPoint()" call
       chainId: this.config.chainId,
       wait: async (confirmations?: number): Promise<TransactionReceipt> => {
-        console.log(confirmations)
-        const transactionReceipt = waitPromise.then((receipt: any) => {
-          console.log('received tx receipt ', transactionReceipt)
-          return receipt
-        })
         if (userOp.initCode.length !== 0) {
           // checking if the wallet has been deployed by the transaction; it must be if we are here
           await this.smartWalletAPI.checkWalletPhantom()
