@@ -1,5 +1,5 @@
 {
-  "name": "@biconomy-sdk/ethers-lib",
+  "name": "@biconomy/ethers-lib",
   "version": "1.0.27",
   "description": "Ethers library adapter to be used by Biconomy SDK",
   "main": "./dist/src/index.js",
@@ -43,7 +43,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@biconomy-sdk/core-types": "*",
+    "@biconomy/core-types": "*",
     "@nomiclabs/hardhat-ethers": "^2.1.0",
     "@gnosis.pm/safe-core-sdk-utils": "^1.1.0",
     "@openzeppelin/contracts": "^4.6.0",

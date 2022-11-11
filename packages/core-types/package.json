@@ -1,5 +1,5 @@
 {
-  "name": "@biconomy-sdk/core-types",
+  "name": "@biconomy/core-types",
   "version": "1.0.27",
   "description": "Biconomy Client SDK types",
   "main": "./dist/src/index.js",

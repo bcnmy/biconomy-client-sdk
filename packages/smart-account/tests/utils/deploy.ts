@@ -1,6 +1,6 @@
 import { Contract, ethers } from 'ethers'
 
-// import { SmartWalletContract } from '@biconomy-sdk/core-types'
+// import { SmartWalletContract } from '@biconomy/core-types'
 const SmartWalletArtifact = require('../../../ethers-lib/artifacts/contracts/V1.0.1.sol/SmartWalletContract_v1_0_1.json')
 const WalletFactoryArtifact = require('../../../ethers-lib/artifacts/contracts/V1.0.1.sol/SmartWalletFactoryContract_v1_0_1.json')
 const MultiSendArtifact = require('../../../ethers-lib/artifacts/contracts/V1.0.1.sol/MultiSendContract_v1_0_1.json')

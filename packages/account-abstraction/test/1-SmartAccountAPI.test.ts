@@ -9,9 +9,9 @@ import { parseEther } from 'ethers/lib/utils'
 import { expect } from 'chai'
 import { anyValue } from '@nomicfoundation/hardhat-chai-matchers/withArgs'
 import { ethers } from 'hardhat'
-import { UserOperation } from '@biconomy-sdk/core-types'
+import { UserOperation } from '@biconomy/core-types'
 import { SmartAccountAPI } from '../src'
-import { SampleRecipient, SampleRecipient__factory } from '@biconomy-sdk/common/dist/src/types'
+import { SampleRecipient, SampleRecipient__factory } from '@biconomy/common/dist/src/types'
 
 import {
   SmartWalletFactoryFactoryContractV101,
@@ -20,7 +20,7 @@ import {
   SmartWalletFactoryContractV101,
   EntryPointContractV101,
   SmartWalletContractV101
-} from '@biconomy-sdk/ethers-lib'
+} from '@biconomy/ethers-lib'
 import { DeterministicDeployer } from '../src/DeterministicDeployer'
 
 const provider = ethers.provider

@@ -1,4 +1,4 @@
-import { SampleRecipient, SampleRecipient__factory } from '@biconomy-sdk/common/dist/src/types'
+import { SampleRecipient, SampleRecipient__factory } from '@biconomy/common/dist/src/types'
 import { ethers } from 'hardhat'
 import { ClientConfig, ERC4337EthersProvider, newProvider } from '../src'
 import { EntryPoint, EntryPoint__factory } from '@account-abstraction/contracts'
@@ -14,7 +14,7 @@ import {
   SmartWalletFactoryContractV101,
   EntryPointContractV101,
   SmartWalletContractV101
-} from '@biconomy-sdk/ethers-lib'
+} from '@biconomy/ethers-lib'
 
 const provider = ethers.provider
 const signer = provider.getSigner()

@@ -1,16 +1,16 @@
 import { BigNumber, BigNumberish } from 'ethers'
-import { EntryPointContractV101 } from '@biconomy-sdk/ethers-lib'
+import { EntryPointContractV101 } from '@biconomy/ethers-lib'
 
 import { ClientConfig } from './ClientConfig'
 import { arrayify, hexConcat } from 'ethers/lib/utils'
 import { Signer } from '@ethersproject/abstract-signer'
 import { TransactionDetailsForUserOp } from './TransactionDetailsForUserOp'
-import { UserOperation } from '@biconomy-sdk/core-types'
+import { UserOperation } from '@biconomy/core-types'
 import { BaseWalletAPI } from './BaseWalletAPI'
 import { Provider } from '@ethersproject/providers'
 import { WalletFactoryAPI } from './WalletFactoryAPI'
 import { BiconomyPaymasterAPI } from './BiconomyPaymasterAPI'
-import { ZERO_ADDRESS } from '@biconomy-sdk/core-types'
+import { ZERO_ADDRESS } from '@biconomy/core-types'
 
 /**
  * An implementation of the BaseWalletAPI using the SmartWalletContract contract.

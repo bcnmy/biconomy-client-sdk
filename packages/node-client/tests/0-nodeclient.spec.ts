@@ -1,5 +1,5 @@
-import SmartAccount from '@biconomy-sdk/smart-account'
-import { LocalRelayer } from '@biconomy-sdk/relayer'
+import SmartAccount from '@biconomy/smart-account'
+import { LocalRelayer } from '@biconomy/relayer'
 import { Contract, ethers, Signer as AbstractSigner } from 'ethers'
 import {
   JsonRpcProvider,

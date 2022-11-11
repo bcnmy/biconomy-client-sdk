@@ -1,5 +1,5 @@
 {
-  "name": "@biconomy-sdk/transactions",
+  "name": "@biconomy/transactions",
   "version": "1.0.27",
   "description": "utils for sending all transaction legos",
   "main": "./dist/src/index.js",
@@ -34,10 +34,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@biconomy-sdk/core-types": "*",
-    "@biconomy-sdk/ethers-lib": "*",
-    "@biconomy-sdk/node-client": "*",
-    "@biconomy-sdk/relayer": "*",
+    "@biconomy/core-types": "*",
+    "@biconomy/ethers-lib": "*",
+    "@biconomy/node-client": "*",
+    "@biconomy/relayer": "*",
     "@ethersproject/abstract-signer": "^5.6.2",
     "@ethersproject/constants": "^5.6.1",
     "ethereumjs-util": "^7.1.5",

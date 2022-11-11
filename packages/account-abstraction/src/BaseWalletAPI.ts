@@ -1,17 +1,17 @@
 import { BigNumber, BigNumberish } from 'ethers'
 import { Provider } from '@ethersproject/providers'
-import { UserOperation } from '@biconomy-sdk/core-types'
+import { UserOperation } from '@biconomy/core-types'
 import { ClientConfig } from './ClientConfig'
 
 import {
   EntryPointContractV101,
   SmartWalletFactoryV101,
   SmartWalletContractV101
-} from '@biconomy-sdk/ethers-lib'
+} from '@biconomy/ethers-lib'
 import { TransactionDetailsForUserOp } from './TransactionDetailsForUserOp'
 import { resolveProperties } from 'ethers/lib/utils'
-import { IPaymasterAPI } from '@biconomy-sdk/core-types'
-import { getRequestId } from '@biconomy-sdk/common'
+import { IPaymasterAPI } from '@biconomy/core-types'
+import { getRequestId } from '@biconomy/common'
 /**
  * Base class for all Smart Wallet ERC-4337 Clients to implement.
  * Subclass should inherit 5 methods to support a specific wallet contract:

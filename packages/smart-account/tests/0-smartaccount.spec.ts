@@ -1,5 +1,5 @@
 import SmartAccount from '../src/SmartAccount'
-import { LocalRelayer } from '@biconomy-sdk/relayer'
+import { LocalRelayer } from '@biconomy/relayer'
 import { Contract, ethers, Signer as AbstractSigner } from 'ethers'
 import {
   JsonRpcProvider,
@@ -17,7 +17,7 @@ const { expect } = chai.use(chaiAsPromised)
 import hardhat from 'hardhat'
 import { deployWalletContracts } from './utils/deploy'
 import { BytesLike, Interface } from 'ethers/lib/utils'
-import { IWalletTransaction, Transaction } from '@biconomy-sdk/core-types'
+import { IWalletTransaction, Transaction } from '@biconomy/core-types'
 import { textSpanContainsPosition } from 'typescript'
 
 type EthereumInstance = {
