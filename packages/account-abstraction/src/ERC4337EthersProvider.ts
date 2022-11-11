@@ -174,7 +174,7 @@ export class ERC4337EthersProvider extends BaseProvider {
             engine.emit('txMined', {
               msg: 'txn mined',
               id: txId,
-              hash: tx.transactionHash,
+              hash: tx.transactionHash, // Note: differs from TransactionReceipt.transactionHash
               receipt: tx.receipt
             })
             resolve(receipt)
@@ -184,7 +184,7 @@ export class ERC4337EthersProvider extends BaseProvider {
     })
 
     return {
-      hash: requestId, // or transactionId
+      hash: requestId, // or transactionId // or watcher like wait()
       confirmations: 0,
       from: userOp.sender,
       nonce: BigNumber.from(userOp.nonce).toNumber(),
