@@ -178,6 +178,9 @@ export class ERC4337EthersProvider extends BaseProvider {
               receipt: tx.receipt
             })
             resolve(receipt)
+          },
+          onError: async (err: any) => {
+            reject(err)
           }
         })
       }
