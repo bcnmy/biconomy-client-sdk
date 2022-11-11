@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/core-types",
-  "version": "1.0.27",
+  "version": "0.0.1-beta",
   "description": "Biconomy Client SDK types",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
