@@ -202,6 +202,23 @@ export class RestRelayer implements IRelayer {
             msg: 'txn hash generated'
           })
         },
+        onHashChanged: async (tx: any) => {
+          if (tx) {
+            const txHash = tx.transactionHash
+            const txId = tx.transactionId
+            console.log(
+              `Tx Hash changed message received at client ${JSON.stringify({
+                transactionId: txId,
+                hash: txHash
+              })}`
+            )
+            engine.emit('txHashChanged', {
+              id: tx.transactionId,
+              hash: tx.transactionHash,
+              msg: 'txn hash changed'
+            })
+          }
+        },
         onError: async (tx: any) => {
           console.log(`Error message received at client is ${tx}`)
           const err = tx.error

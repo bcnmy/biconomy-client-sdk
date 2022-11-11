@@ -178,17 +178,6 @@ export class ERC4337EthersProvider extends BaseProvider {
               receipt: tx.receipt
             })
             resolve(receipt)
-          },
-          onError: async (tx: any) => {
-            console.log(`Error message received at client is ${tx}`)
-            const err = tx.error
-            const txId = tx.transactionId
-            clientMessenger.unsubscribe(txId)
-            engine.emit('onError', {
-              error: err,
-              transactionId: txId
-            })
-            reject(err)
           }
         })
       }
