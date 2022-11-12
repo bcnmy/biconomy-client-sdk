@@ -11,11 +11,11 @@ import QRCodeModal from '@walletconnect/qrcode-modal'
 import { getPublic, sign } from '@toruslabs/eccrypto'
 import { base64url, keccak } from '@toruslabs/openlogin-utils'
 
-import UIComponent from './UI'
+import UI from './UI'
 
 function createLoginModal(socialLogin: SocialLogin) {
-  const root = createRoot((document as any).getElementById('web3auth-container'))
-  root.render(<UIComponent socialLogin={socialLogin} />)
+  const root = createRoot((document as any).getElementById('w3a-modal'))
+  root.render(<UI socialLogin={socialLogin} />)
 }
 
 class SocialLogin {
@@ -116,12 +116,15 @@ class SocialLogin {
   createWalletDiv() {
     // create a fixed div into html but keep it hidden initially
     const walletDiv = document.createElement('div')
-    walletDiv.id = 'web3auth-container'
+    walletDiv.id = 'w3a-modal'
     walletDiv.style.display = 'none'
     walletDiv.style.position = 'fixed'
     walletDiv.style.top = '0'
     walletDiv.style.right = '0'
-    walletDiv.style.zIndex = '2323123'
+    walletDiv.style.height = '100%'
+    walletDiv.style.width = '100%'
+    walletDiv.style.background = 'rgba(33, 33, 33, 0.46)'
+    walletDiv.style.zIndex = '100'
     this.walletDiv = walletDiv
     // insert div into top of body.
     document.body.insertBefore(walletDiv, document.body.firstChild)
@@ -136,7 +139,7 @@ class SocialLogin {
     this.walletIframe.style.width = '341px'
     this.walletIframe.style.border = '0px'
     this.walletIframe.style.borderRadius = '3%'
-    const el = document.getElementById('web3auth-container')
+    const el = document.getElementById('w3a-modal')
     el?.dispatchEvent(new Event('show-modal'))
   }
 
