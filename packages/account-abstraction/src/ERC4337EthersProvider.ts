@@ -2,13 +2,13 @@ import { BaseProvider, TransactionReceipt, TransactionResponse } from '@etherspr
 import { BigNumber, Signer } from 'ethers'
 import { Network } from '@ethersproject/networks'
 import { hexValue, resolveProperties } from 'ethers/lib/utils'
-import { getRequestId } from '@biconomy-sdk/common'
+import { getRequestId } from '@biconomy/common'
 import { ClientConfig } from './ClientConfig'
 import { ERC4337EthersSigner } from './ERC4337EthersSigner'
 import { UserOperationEventListener } from './UserOperationEventListener'
 import { HttpRpcClient } from './HttpRpcClient'
 import { EntryPoint } from '@account-abstraction/contracts'
-import { UserOperation } from '@biconomy-sdk/core-types'
+import { UserOperation } from '@biconomy/core-types'
 import { BaseWalletAPI } from './BaseWalletAPI'
 import { ClientMessenger } from 'messaging-sdk'
 import EventEmitter from 'events'
@@ -174,20 +174,12 @@ export class ERC4337EthersProvider extends BaseProvider {
             engine.emit('txMined', {
               msg: 'txn mined',
               id: txId,
-              hash: tx.transactionHash,
+              hash: tx.transactionHash, // Note: differs from TransactionReceipt.transactionHash
               receipt: tx.receipt
             })
             resolve(receipt)
           },
-          onError: async (tx: any) => {
-            console.log(`Error message received at client is ${tx}`)
-            const err = tx.error
-            const txId = tx.transactionId
-            clientMessenger.unsubscribe(txId)
-            engine.emit('onError', {
-              error: err,
-              transactionId: txId
-            })
+          onError: async (err: any) => {
             reject(err)
           }
         })
@@ -195,7 +187,7 @@ export class ERC4337EthersProvider extends BaseProvider {
     })
 
     return {
-      hash: requestId, // or transactionId
+      hash: requestId, // or transactionId // or watcher like wait()
       confirmations: 0,
       from: userOp.sender,
       nonce: BigNumber.from(userOp.nonce).toNumber(),

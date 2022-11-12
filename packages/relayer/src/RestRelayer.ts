@@ -10,7 +10,7 @@ import {
   RelayResponse,
   GasLimit,
   ChainId
-} from '@biconomy-sdk/core-types'
+} from '@biconomy/core-types'
 import { MetaTransaction, encodeMultiSend } from './utils/MultiSend'
 import { HttpMethod, sendRequest } from './utils/HttpRequests'
 import { ClientMessenger } from 'messaging-sdk'
@@ -201,6 +201,23 @@ export class RestRelayer implements IRelayer {
             hash: tx.transactionHash,
             msg: 'txn hash generated'
           })
+        },
+        onHashChanged: async (tx: any) => {
+          if (tx) {
+            const txHash = tx.transactionHash
+            const txId = tx.transactionId
+            console.log(
+              `Tx Hash changed message received at client ${JSON.stringify({
+                transactionId: txId,
+                hash: txHash
+              })}`
+            )
+            engine.emit('txHashChanged', {
+              id: tx.transactionId,
+              hash: tx.transactionHash,
+              msg: 'txn hash changed'
+            })
+          }
         },
         onError: async (tx: any) => {
           console.log(`Error message received at client is ${tx}`)

@@ -6,7 +6,7 @@ import { Bytes } from 'ethers'
 import { ERC4337EthersProvider } from './ERC4337EthersProvider'
 import { ClientConfig } from './ClientConfig'
 import { HttpRpcClient } from './HttpRpcClient'
-import { UserOperation } from '@biconomy-sdk/core-types'
+import { UserOperation } from '@biconomy/core-types'
 import { BaseWalletAPI } from './BaseWalletAPI'
 import EventEmitter from 'events'
 import { ClientMessenger } from 'messaging-sdk'
@@ -134,6 +134,23 @@ export class ERC4337EthersSigner extends Signer {
             })
           }
         },
+        onHashChanged: async (tx: any) => {
+          if (tx) {
+            const txHash = tx.transactionHash
+            const txId = tx.transactionId
+            console.log(
+              `Tx Hash changed message received at client ${JSON.stringify({
+                transactionId: txId,
+                hash: txHash
+              })}`
+            )
+            engine.emit('txHashChanged', {
+              id: tx.transactionId,
+              hash: tx.transactionHash,
+              msg: 'txn hash changed'
+            })
+          }
+        },
         onError: async (tx: any) => {
           if (tx) {
             console.log(`Error message received at client is ${tx}`)
@@ -156,8 +173,8 @@ export class ERC4337EthersSigner extends Signer {
       bundlerServiceResponse.transactionId,
       engine
     )
-    const receipt = await transactionResponse.wait()
-    console.log('transactionResponse in sendTransaction', receipt)
+    // const receipt = await transactionResponse.wait()
+    // console.log('transactionResponse in sendTransaction', receipt)
 
     // TODO: handle errors - transaction that is "rejected" by bundler is _not likely_ to ever resolve its "wait()"
     return transactionResponse

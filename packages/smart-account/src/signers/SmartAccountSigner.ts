@@ -7,10 +7,10 @@ import {
   TypedDataSigner,
   Signer as EthersSigner
 } from '@ethersproject/abstract-signer'
-import { ChainId } from '@biconomy-sdk/core-types'
+import { ChainId } from '@biconomy/core-types'
 
 // Might as well be RpcRelayer
-// import { IRelayer, RestRelayer } from '@biconomy-sdk/relayer'
+// import { IRelayer, RestRelayer } from '@biconomy/relayer'
 import { Deferrable } from 'ethers/lib/utils'
 import { TransactionRequest, TransactionResponse } from '@ethersproject/providers'
 

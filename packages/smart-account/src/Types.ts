@@ -1,5 +1,5 @@
 import { BytesLike, Wallet } from 'ethers'
-import { ChainNames } from '@biconomy-sdk/core-types'
+import { ChainNames } from '@biconomy/core-types'
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 

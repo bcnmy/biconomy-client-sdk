@@ -6,7 +6,7 @@ import {
   ExecTransaction,
   IFeeRefundV1_0_0,
   ITransactionResult
-} from '@biconomy-sdk/core-types'
+} from '@biconomy/core-types'
 import { toTxResult } from '../../../utils'
 import { SmartWalletContractV100 as SmartWalletContract_TypeChain } from '../../../../typechain/src/ethers-v5/v1.0.0/SmartWalletContractV100'
 import { SmartWalletContractV100Interface } from '../../../../typechain/src/ethers-v5/v1.0.0/SmartWalletContractV100'

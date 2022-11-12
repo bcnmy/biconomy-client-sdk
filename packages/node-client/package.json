@@ -1,6 +1,6 @@
 {
-  "name": "@biconomy-sdk/node-client",
-  "version": "1.0.24",
+  "name": "@biconomy/node-client",
+  "version": "0.0.1",
   "description": "Node Client that comminucates with indexer service to fetch necessary details for the Smart Account",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -55,7 +55,7 @@
     "ts-generator": "^0.1.1",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.3",
-    "@biconomy-sdk/core-types": "*"
+    "@biconomy/core-types": "*"
   },
   "lint-staged": {
     "src/**/!(*test).ts": [
@@ -72,7 +72,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@biconomy-sdk/core-types": "*",
+    "@biconomy/core-types": "*",
     "@nomiclabs/hardhat-ethers": "^2.1.0",
     "@ethersproject/abstract-signer": "^5.6.0",
     "@gnosis.pm/safe-core-sdk": "^2.1.0",

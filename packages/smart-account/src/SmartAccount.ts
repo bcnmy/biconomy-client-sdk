@@ -28,7 +28,7 @@ import {
   SmartAccountConfig,
   IMetaTransaction,
   NetworkConfig
-} from '@biconomy-sdk/core-types'
+} from '@biconomy/core-types'
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import NodeClient, {
   ChainConfig,
@@ -38,21 +38,21 @@ import NodeClient, {
   BalancesResponse,
   BalancesDto,
   UsdBalanceResponse
-} from '@biconomy-sdk/node-client'
+} from '@biconomy/node-client'
 import { Web3Provider } from '@ethersproject/providers'
-import { IRelayer, RestRelayer } from '@biconomy-sdk/relayer'
+import { IRelayer, RestRelayer } from '@biconomy/relayer'
 import * as _ from 'lodash'
 import TransactionManager, {
   ContractUtils,
   smartAccountSignMessage,
   smartAccountSignTypedData
-} from '@biconomy-sdk/transactions'
+} from '@biconomy/transactions'
 import EventEmitter from 'events'
 import { TransactionResponse } from '@ethersproject/providers'
 import { SmartAccountSigner } from './signers/SmartAccountSigner'
 
 // AA
-import { newProvider, ERC4337EthersProvider } from '@biconomy-sdk/account-abstraction'
+import { newProvider, ERC4337EthersProvider } from '@biconomy/account-abstraction'
 
 import { ethers, Signer } from 'ethers'
 
