@@ -1,6 +1,7 @@
 import {
   SignTransactionDto,
   SendTransactionDto,
+  SendSignedTransactionDto,
   PrepareRefundTransactionDto,
   PrepareRefundTransactionsDto,
   RefundTransactionDto,
@@ -581,6 +582,87 @@ class SmartAccount extends EventEmitter {
     return ''
   }
 
+  async sendSignedTransaction(sendSignedTransactionDto: SendSignedTransactionDto): Promise<string> {
+    let { chainId } = sendSignedTransactionDto
+    const { tx, batchId = 0, signature } = sendSignedTransactionDto
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+    let { gasLimit } = sendSignedTransactionDto
+    const isDeployed = await this.contractUtils.isDeployed(
+      chainId,
+      this.DEFAULT_VERSION,
+      this.address
+    )
+    const rawTx: RawTransactionType = {
+      to: tx.to,
+      data: tx.data,
+      value: 0,
+      chainId: chainId
+    }
+
+    const transaction: ExecTransaction = {
+      to: tx.to,
+      value: tx.value,
+      data: tx.data,
+      operation: tx.operation,
+      targetTxGas: tx.targetTxGas
+    }
+
+    const refundInfo: IFeeRefundV1_0_0 | IFeeRefundV1_0_1 = {
+      baseGas: tx.baseGas,
+      gasPrice: tx.gasPrice,
+      tokenGasPriceFactor: tx.tokenGasPriceFactor,
+      gasToken: tx.gasToken,
+      refundReceiver: tx.refundReceiver
+    }
+
+    let walletContract =
+      this.contractUtils.smartWalletContract[chainId][this.DEFAULT_VERSION].getContract()
+    walletContract = walletContract.attach(this.address)
+
+    const execTransaction = await walletContract.populateTransaction.execTransaction(
+      transaction,
+      batchId,
+      refundInfo,
+      signature
+    )
+
+    rawTx.to = this.address
+    rawTx.data = execTransaction.data
+
+    const state = await this.contractUtils.getSmartAccountState(
+      this.smartAccountState,
+      this.DEFAULT_VERSION,
+      this.#smartAccountConfig.activeNetworkId
+    )
+
+    const signedTx: SignedTransaction = {
+      rawTx,
+      tx
+    }
+    const relayTrx: RelayTransaction = {
+      signedTx,
+      config: state,
+      context: this.getSmartAccountContext(chainId)
+    }
+    if (gasLimit) {
+      relayTrx.gasLimit = gasLimit
+    }
+    if (!isDeployed) {
+      gasLimit = {
+        hex: '0x1E8480',
+        type: 'hex'
+      }
+      relayTrx.gasLimit = gasLimit
+    }
+    const relayResponse: RelayResponse = await this.relayer.relay(relayTrx, this)
+    console.log('relayResponse')
+    console.log(relayResponse)
+    if (relayResponse.transactionId) {
+      return relayResponse.transactionId
+    }
+    return ''
+  }
+
   // Get Fee Options from relayer and make it available for display
   // We can also show list of transactions to be processed (decodeContractCall)
   /**
@@ -862,3 +944,4 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
 }
 
 export default SmartAccount
+

@@ -82,6 +82,14 @@ export type SendTransactionDto = {
   gasLimit?: GasLimit
 }
 
+export type SendSignedTransactionDto = {
+  tx: IWalletTransaction
+  batchId?: number
+  chainId?: ChainId
+  gasLimit?: GasLimit
+  signature: string
+}
+
 export type PrepareRefundTransactionDto = {
   version?: string
   transaction: Transaction
