@@ -50,7 +50,7 @@ import TransactionManager, {
 import EventEmitter from 'events'
 import { TransactionResponse } from '@ethersproject/providers'
 import { SmartAccountSigner } from './signers/SmartAccountSigner'
-
+import { getConfigByNetwork } from './config/Config'
 // AA
 import { newProvider, ERC4337EthersProvider } from '@biconomy-sdk/account-abstraction'
 
@@ -110,9 +110,10 @@ class SmartAccount extends EventEmitter {
    * If you wish to use your own backend server and relayer service, pass the URLs here
    */
   // Note: Could remove WalletProvider later on
-  constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
+  constructor(networkType: string, walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
     super()
-    this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
+    const defaultSmartAccountConfig = getConfigByNetwork(networkType)
+    this.#smartAccountConfig = { ...defaultSmartAccountConfig }
     console.log('stage 1 : default config')
     console.log(this.#smartAccountConfig)
     console.log(this.#smartAccountConfig.networkConfig)
@@ -836,29 +837,6 @@ class SmartAccount extends EventEmitter {
   }
 }
 
-// Current default config
-// TODO/NOTE : Goerli and Mumbai as test networks and remove others
-export const DefaultSmartAccountConfig: SmartAccountConfig = {
-  activeNetworkId: ChainId.GOERLI, //Update later
-  supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],
-  signType: SignTypeMethod.EIP712_SIGN,
-  backendUrl: 'https://sdk-backend.staging.biconomy.io/v1',
-  relayerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
-  socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
-  bundlerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
-  biconomySigningServiceUrl:
-    'https://us-central1-biconomy-staging.cloudfunctions.net/signing-service',
-  // TODO : has to be public provider urls (local config / backend node)
-  networkConfig: [
-    {
-      chainId: ChainId.GOERLI,
-      providerUrl: 'https://eth-goerli.alchemyapi.io/v2/lmW2og_aq-OXWKYRoRu-X6Yl6wDQYt_2'
-    },
-    {
-      chainId: ChainId.POLYGON_MUMBAI,
-      providerUrl: 'https://polygon-mumbai.g.alchemy.com/v2/Q4WqQVxhEEmBYREX22xfsS2-s5EXWD31'
-    }
-  ]
-}
+
 
 export default SmartAccount

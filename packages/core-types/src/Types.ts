@@ -1,5 +1,11 @@
 export type SmartAccountVersion = '1.0.1' | '1.0.0'
 
+
+export enum NetworkTypes {
+  MAINNET = 'MAINNET',
+  TESTNET = 'TESTNET'
+}
+
 export enum OperationType {
   Call, // 0
   DelegateCall // 1
