@@ -66,7 +66,7 @@ const UI: React.FC<UIPorops> = ({ socialLogin }) => {
               <button
                 type="button"
                 className="w3a-button w3a-button--icon"
-                onClick={() => socialLogin.socialLogin()}
+                onClick={() => socialLogin.socialLogin('google')}
               >
                 <img
                   src="https://images.web3auth.io/login-google.svg"
@@ -80,7 +80,7 @@ const UI: React.FC<UIPorops> = ({ socialLogin }) => {
               <button
                 type="button"
                 className="w3a-button w3a-button--icon"
-                onClick={() => socialLogin.socialLogin()}
+                onClick={() => socialLogin.socialLogin('facebook')}
               >
                 <img
                   src="https://images.web3auth.io/login-facebook.svg"
