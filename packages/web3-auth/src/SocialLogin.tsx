@@ -117,6 +117,7 @@ class SocialLogin {
     // create a fixed div into html but keep it hidden initially
     const walletDiv = document.createElement('div')
     walletDiv.id = 'w3a-modal'
+    walletDiv.className = 'w3a-modal w3a-modal--light'
     walletDiv.style.display = 'none'
     walletDiv.style.position = 'fixed'
     walletDiv.style.top = '0'

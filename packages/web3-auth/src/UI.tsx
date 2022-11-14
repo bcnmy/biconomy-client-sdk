@@ -59,7 +59,7 @@ const UI: React.FC<UIPorops> = ({ socialLogin }) => {
       </div>
 
       <div className="w3a-modal__content">
-        <div className="w3ajs-social-logins">
+        <div className="w3ajs-social-logins w3a-group">
           <div className="w3a-group__title">CONTINUE WITH</div>
           <ul className="w3a-adapter-list">
             <li className="w3a-adapter-item">
@@ -92,10 +92,16 @@ const UI: React.FC<UIPorops> = ({ socialLogin }) => {
             </li>
           </ul>
         </div>
-      </div>
-
-      <div className="w3a-modal__content">
-        <div className="w3ajs-external-wallet w3a-group">
+        <div className="w3ajs-email-passwordless w3a-group w3a-group--email">
+          <div className="w3a-group__title">EMAIL</div>
+          <form className="w3ajs-email-passwordless-form">
+            <input className="w3a-text-field" type="email" name="email" placeholder="Email" />
+            <button className="w3a-button" type="submit">
+              Continue with Email
+            </button>
+          </form>
+        </div>
+        <div className="w3ajs-external-wallet">
           <div className="w3a-external-toggle">
             <div className="w3a-group__title">EXTERNAL WALLET</div>
             <button
