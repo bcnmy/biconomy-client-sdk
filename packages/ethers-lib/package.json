@@ -47,8 +47,8 @@
     "@nomiclabs/hardhat-ethers": "^2.1.0",
     "@gnosis.pm/safe-core-sdk-utils": "^1.1.0",
     "@openzeppelin/contracts": "^4.6.0",
-    "scw-contracts-v1.0.0": "npm:scw-contracts@1.0.0",
-    "scw-contracts-v1.0.1": "npm:scw-contracts@1.0.9"
+    "scw-contracts-v1.0.0": "npm:@biconomy/smart-account-contracts@1.0.0",
+    "scw-contracts-v1.0.1": "npm:@biconomy/smart-account-contracts@1.0.1"
   },
   "peerDependencies": {
     "ethers": "^5.5.3"
