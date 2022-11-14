@@ -286,7 +286,7 @@ class SocialLogin {
 }
 
 const defaultSocialLoginConfig: DefaultSocialLoginConfig = {
-  backendUrl: 'https://sdk-backend.staging.biconomy.io/v1'
+  backendUrl: 'https://sdk-backend.prod.biconomy.io/v1'
 }
 
 export default SocialLogin
