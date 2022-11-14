@@ -30,6 +30,7 @@ class SocialLogin {
   iframeInitialized = false
   isInit = false
   clientId: string
+  apiKey: string
   userInfo: Partial<UserInfo> | null = null
   web3auth: Web3AuthCore | null = null
   provider: SafeEventEmitterProvider | null = null
@@ -41,11 +42,12 @@ class SocialLogin {
     this.provider = null
     this.clientId =
       'BEQgHQ6oRgaJXc3uMnGIr-AY-FLTwRinuq8xfgnInrnDrQZYXxDO0e53osvXzBXC1dcUTyD2Itf-zN1VEB8xZlo'
+    this.apiKey = '5da89c1278407a50ad036223c32046c4af0e43bf453ce8a2bd8378bf78900a97'
   }
 
   // TODO: call NodeClient to get the whitelistUrl with single param
-  async whitelistUrl(appKey: string, origin: string): Promise<string> {
-    const appKeyBuf = Buffer.from(appKey.padStart(64, '0'), 'hex')
+  async whitelistUrl(origin: string): Promise<string> {
+    const appKeyBuf = Buffer.from(this.apiKey.padStart(64, '0'), 'hex')
     if (base64url.encode(getPublic(appKeyBuf)) !== this.clientId) throw new Error('appKey mismatch')
     const sig = await sign(
       appKeyBuf,
@@ -182,6 +184,34 @@ class SocialLogin {
     try {
       const web3authProvider = await this.web3auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
         loginProvider: loginProvider
+      })
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const web3Provider = new ethers.providers.Web3Provider(web3authProvider!)
+      const signer = web3Provider.getSigner()
+      const gotAccount = await signer.getAddress()
+      const network = await web3Provider.getNetwork()
+      console.info(`EOA Address ${gotAccount}\nNetwork: ${network}`)
+      this.provider = web3authProvider
+      return web3authProvider
+    } catch (error) {
+      console.error(error)
+      throw error
+    }
+  }
+
+  async emailLogin(email: string) {
+    console.log('signing in with email1', email, this.web3auth)
+    if (!this.web3auth) {
+      console.log('web3auth not initialized yet')
+      return
+    }
+    try {
+      console.log('signing in with email', email)
+      const web3authProvider = await this.web3auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
+        loginProvider: 'email_passwordless',
+        extraLoginOptions: {
+          login_hint: email
+        }
       })
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const web3Provider = new ethers.providers.Web3Provider(web3authProvider!)

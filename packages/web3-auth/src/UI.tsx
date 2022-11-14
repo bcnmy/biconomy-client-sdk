@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import SocialLogin from './SocialLogin'
 import './style.css'
 
@@ -21,6 +21,8 @@ const container = {
 } as React.CSSProperties
 
 const UI: React.FC<UIPorops> = ({ socialLogin }) => {
+  const [email, setEmail] = useState('')
+
   return (
     <div style={container}>
       <div className="w3a-modal__header">
@@ -94,8 +96,17 @@ const UI: React.FC<UIPorops> = ({ socialLogin }) => {
         </div>
         <div className="w3ajs-email-passwordless w3a-group w3a-group--email">
           <div className="w3a-group__title">EMAIL</div>
-          <form className="w3ajs-email-passwordless-form">
-            <input className="w3a-text-field" type="email" name="email" placeholder="Email" />
+          <form
+            className="w3ajs-email-passwordless-form"
+            onSubmit={() => socialLogin.emailLogin(email)}
+          >
+            <input
+              className="w3a-text-field"
+              type="email"
+              name="email"
+              placeholder="Email"
+              onChange={(e) => setEmail(e.target.value)}
+            />
             <button className="w3a-button" type="submit">
               Continue with Email
             </button>
