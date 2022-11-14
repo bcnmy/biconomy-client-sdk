@@ -17,7 +17,7 @@ import {
   UsdBalanceResponse,
   EstimateGasResponse,
   SCWTransactionResponse,
-  WhiteListSignature
+  WhiteListSignatureResponse
 } from './types/NodeClientTypes'
 import { getTxServiceBaseUrl } from './utils'
 import { HttpMethod, sendRequest } from './utils/HttpRequests'
@@ -129,7 +129,7 @@ class NodeClient implements INodeClient {
    * @description this function will return the signature for your domain
    * @returns
    */
-  async whitelistUrl(origin: string): Promise<WhiteListSignature> {
+  async whitelistUrl(origin: string): Promise<WhiteListSignatureResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/whitelist`,
       method: HttpMethod.Post,

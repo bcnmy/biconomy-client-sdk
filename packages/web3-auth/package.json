@@ -36,6 +36,7 @@
     "access": "public"
   },
   "dependencies": {
+    "@biconomy/node-client": "*",
     "@toruslabs/eccrypto": "^1.1.8",
     "@toruslabs/openlogin-utils": "^2.1.0",
     "@walletconnect/qrcode-modal": "^1.8.0",
@@ -51,6 +52,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@biconomy/node-client": "*",
     "@types/react": "^18.0.15",
     "@types/react-dom": "^18.0.6",
     "copyfiles": "^2.4.1",

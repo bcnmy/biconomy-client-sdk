@@ -15,7 +15,7 @@ import { WalletConnectV1Adapter } from '@web3auth/wallet-connect-v1-adapter'
 import QRCodeModal from '@walletconnect/qrcode-modal'
 import { getPublic, sign } from '@toruslabs/eccrypto'
 import { base64url, keccak } from '@toruslabs/openlogin-utils'
-import NodeClient, { whitelistUrl } from '@biconomy/node-client'
+import NodeClient, { WhiteListSignatureResponse } from '@biconomy/node-client'
 
 import UI from './UI'
 
@@ -35,8 +35,9 @@ class SocialLogin {
   userInfo: Partial<UserInfo> | null = null
   web3auth: Web3AuthCore | null = null
   provider: SafeEventEmitterProvider | null = null
+  // nodeClient!: NodeClient
 
-  constructor() {
+  constructor(/*backendUrl: string*/) {
     this.createWalletDiv()
     this.isInit = false
     this.web3auth = null
@@ -44,13 +45,23 @@ class SocialLogin {
     this.clientId =
       'BEQgHQ6oRgaJXc3uMnGIr-AY-FLTwRinuq8xfgnInrnDrQZYXxDO0e53osvXzBXC1dcUTyD2Itf-zN1VEB8xZlo'
     this.apiKey = '5da89c1278407a50ad036223c32046c4af0e43bf453ce8a2bd8378bf78900a97'
+    // this.nodeClient = new NodeClient({ txServiceUrl: backendUrl })
   }
 
-  // TODO: call NodeClient to get the whitelistUrl with single param
   async whitelistUrl(origin: string): Promise<string> {
-    const signature = whitelistUrl(origin)
-    console.log(signature)
-    return signature
+    const appKeyBuf = Buffer.from(this.apiKey.padStart(64, '0'), 'hex')
+    if (base64url.encode(getPublic(appKeyBuf)) !== this.clientId) throw new Error('appKey mismatch')
+    const sig = await sign(
+      appKeyBuf,
+      Buffer.from(keccak('keccak256').update(origin).digest('hex'), 'hex')
+    )
+    return base64url.encode(sig)
+
+    /*const whiteListUrlResponse: WhiteListSignatureResponse = await this.nodeClient.whitelistUrl(
+      origin
+    )
+    console.log(whiteListUrlResponse.signature)
+    return whiteListUrlResponse.signature*/
   }
 
   async init(

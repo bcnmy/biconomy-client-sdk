@@ -17,7 +17,7 @@ import {
   UsdBalanceResponse,
   EstimateGasResponse,
   SCWTransactionResponse,
-  WhiteListSignature
+  WhiteListSignatureResponse
 } from './types/NodeClientTypes'
 
 interface INodeClient {
@@ -113,7 +113,7 @@ interface INodeClient {
    * About: Whitelist domain by passing the origin domain
    * Purpose: Returns the signature used in init
    */
-  whitelistUrl(origin: string): Promise<WhiteListSignature>
+  whitelistUrl(origin: string): Promise<WhiteListSignatureResponse>
 
   /**
    * About : Estimating the gas for inner transaction for undeployed wallet

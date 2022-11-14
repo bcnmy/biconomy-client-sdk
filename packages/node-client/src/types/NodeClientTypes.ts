@@ -50,7 +50,7 @@ export type BalancesDto = {
   tokenAddresses: string[]
 }
 
-export type WhiteListSignature = {
+export type WhiteListSignatureResponse = {
   signature: string
 }
 
