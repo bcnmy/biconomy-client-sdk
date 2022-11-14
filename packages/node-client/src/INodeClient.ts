@@ -16,7 +16,8 @@ import {
   BalancesDto,
   UsdBalanceResponse,
   EstimateGasResponse,
-  SCWTransactionResponse
+  SCWTransactionResponse,
+  WhiteListSignatureResponse
 } from './types/NodeClientTypes'
 
 interface INodeClient {
@@ -105,6 +106,14 @@ interface INodeClient {
   estimateRequiredTxGas(
     estimateRequiredTxGasDto: EstimateRequiredTxGasDto
   ): Promise<EstimateGasResponse>
+
+  /**
+   *
+   * @param origin
+   * About: Whitelist domain by passing the origin domain
+   * Purpose: Returns the signature used in init
+   */
+  whitelistUrl(origin: string): Promise<WhiteListSignatureResponse>
 
   /**
    * About : Estimating the gas for inner transaction for undeployed wallet

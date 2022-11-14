@@ -158,6 +158,10 @@ class SmartAccount extends EventEmitter {
     this.chainConfig = []
   }
 
+  getConfig(): SmartAccountConfig {
+    return this.#smartAccountConfig
+  }
+
   getProviderUrl(network: ChainConfig): string {
     console.log('after init smartAccountConfig.networkConfig')
     console.log(this.#smartAccountConfig.networkConfig)
@@ -944,4 +948,3 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
 }
 
 export default SmartAccount
-
