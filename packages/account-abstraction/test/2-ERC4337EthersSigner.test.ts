@@ -62,7 +62,7 @@ describe('ERC4337EthersSigner, Provider', function () {
       // provide non-empty key and handle exceptions
       dappAPIKey: '',
       biconomySigningServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
-      socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
+      socketServerUrl: 'wss://sdk-ws.prod.biconomy.io/connection/websocket',
       entryPointAddress: entryPoint.address,
       bundlerUrl: 'http://localhost:3005/rpc',
       chainId: await provider.getNetwork().then((net) => net.chainId)

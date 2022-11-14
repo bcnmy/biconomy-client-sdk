@@ -77,7 +77,7 @@ describe('SmartAccountAPI', async () => {
       // provide non-empty key and handle exceptions
       dappAPIKey: '',
       biconomySigningServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
-      socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
+      socketServerUrl: 'wss://sdk-ws.prod.biconomy.io/connection/websocket',
       entryPointAddress: entryPoint.address,
       bundlerUrl: 'http://localhost:3000/rpc',
       chainId: chainId
@@ -159,7 +159,7 @@ describe('SmartAccountAPI', async () => {
       // provide non-empty key and handle exceptions
       dappAPIKey: '',
       biconomySigningServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
-      socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
+      socketServerUrl: 'wss://sdk-ws.prod.biconomy.io/connection/websocket',
       entryPointAddress: entryPoint.address,
       bundlerUrl: 'http://localhost:3000/rpc',
       chainId: chainId
