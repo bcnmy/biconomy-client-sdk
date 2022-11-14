@@ -23,6 +23,15 @@ const container = {
 const UI: React.FC<UIPorops> = ({ socialLogin }) => {
   const [email, setEmail] = useState('')
 
+  function handleEmailSubmit(event: React.SyntheticEvent) {
+    event.preventDefault()
+    socialLogin.emailLogin(email)
+  }
+
+  function handleEmailChange(event: React.FormEvent<HTMLInputElement>) {
+    setEmail(event.currentTarget.value)
+  }
+
   return (
     <div style={container}>
       <div className="w3a-modal__header">
@@ -96,20 +105,14 @@ const UI: React.FC<UIPorops> = ({ socialLogin }) => {
         </div>
         <div className="w3ajs-email-passwordless w3a-group w3a-group--email">
           <div className="w3a-group__title">EMAIL</div>
-          <form
-            className="w3ajs-email-passwordless-form"
-            onSubmit={(e) => {
-              e.preventDefault()
-              socialLogin.emailLogin(email)
-            }}
-          >
+          <form className="w3ajs-email-passwordless-form" onSubmit={handleEmailSubmit}>
             <input
               className="w3a-text-field"
               type="email"
               name="email"
               placeholder="Email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
             />
             <button className="w3a-button" type="submit">
               Continue with Email
