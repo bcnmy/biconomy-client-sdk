@@ -135,7 +135,7 @@ class SocialLogin {
     walletDiv.style.right = '0'
     walletDiv.style.height = '100%'
     walletDiv.style.width = '100%'
-    walletDiv.style.background = 'rgba(33, 33, 33, 0.46)'
+    walletDiv.style.background = 'rgba(33, 33, 33, 0.75)'
     walletDiv.style.zIndex = '100'
     this.walletDiv = walletDiv
     // insert div into top of body.
