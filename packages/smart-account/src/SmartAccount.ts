@@ -943,6 +943,10 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
     {
       chainId: ChainId.POLYGON_MUMBAI,
       providerUrl: 'https://polygon-mumbai.g.alchemy.com/v2/Q4WqQVxhEEmBYREX22xfsS2-s5EXWD31'
+    },
+    {
+      chainId: ChainId.POLYGON_MAINNET,
+      providerUrl: 'https://polygon‑rpc.com'
     }
   ]
 }
