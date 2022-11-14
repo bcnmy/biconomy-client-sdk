@@ -7,7 +7,7 @@
 No need to create api key from transak dashboard.
 
 ```ts
-import Transak from '@biconomy-sdk/transak';
+import Transak from '@biconomy/transak';
 
 const transak = new Transak('STAGING');
 transak.init();

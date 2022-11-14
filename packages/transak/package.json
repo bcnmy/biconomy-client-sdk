@@ -1,6 +1,6 @@
 {
-  "name": "@biconomy-sdk/transak",
-  "version": "1.0.13",
+  "name": "@biconomy/transak",
+  "version": "0.0.1",
   "description": "transak for biconomy sdk",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
