@@ -50,6 +50,10 @@ export type BalancesDto = {
   tokenAddresses: string[]
 }
 
+export type WhiteListSignature = {
+  signature: string
+}
+
 export type EstimateExternalGasDto = {
   chainId: number
   encodedData: string

@@ -15,6 +15,7 @@ import { WalletConnectV1Adapter } from '@web3auth/wallet-connect-v1-adapter'
 import QRCodeModal from '@walletconnect/qrcode-modal'
 import { getPublic, sign } from '@toruslabs/eccrypto'
 import { base64url, keccak } from '@toruslabs/openlogin-utils'
+import NodeClient, { whitelistUrl } from '@biconomy/node-client'
 
 import UI from './UI'
 
@@ -47,13 +48,9 @@ class SocialLogin {
 
   // TODO: call NodeClient to get the whitelistUrl with single param
   async whitelistUrl(origin: string): Promise<string> {
-    const appKeyBuf = Buffer.from(this.apiKey.padStart(64, '0'), 'hex')
-    if (base64url.encode(getPublic(appKeyBuf)) !== this.clientId) throw new Error('appKey mismatch')
-    const sig = await sign(
-      appKeyBuf,
-      Buffer.from(keccak('keccak256').update(origin).digest('hex'), 'hex')
-    )
-    return base64url.encode(sig)
+    const signature = whitelistUrl(origin)
+    console.log(signature)
+    return signature
   }
 
   async init(
