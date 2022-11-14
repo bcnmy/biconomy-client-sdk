@@ -98,13 +98,17 @@ const UI: React.FC<UIPorops> = ({ socialLogin }) => {
           <div className="w3a-group__title">EMAIL</div>
           <form
             className="w3ajs-email-passwordless-form"
-            onSubmit={() => socialLogin.emailLogin(email)}
+            onSubmit={(e) => {
+              e.preventDefault()
+              socialLogin.emailLogin(email)
+            }}
           >
             <input
               className="w3a-text-field"
               type="email"
               name="email"
               placeholder="Email"
+              value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
             <button className="w3a-button" type="submit">

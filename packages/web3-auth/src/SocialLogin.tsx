@@ -200,18 +200,18 @@ class SocialLogin {
   }
 
   async emailLogin(email: string) {
-    console.log('signing in with email1', email, this.web3auth)
     if (!this.web3auth) {
       console.log('web3auth not initialized yet')
       return
     }
     try {
-      console.log('signing in with email', email)
+      // console.log('signing in with email', email)
       const web3authProvider = await this.web3auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
         loginProvider: 'email_passwordless',
-        extraLoginOptions: {
-          login_hint: email
-        }
+        login_hint: email
+        // extraLoginOptions: {
+        //   login_hint: email
+        // }
       })
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const web3Provider = new ethers.providers.Web3Provider(web3authProvider!)
