@@ -1,3 +1,4 @@
-import Torus from '@toruslabs/torus-embed'
+import SocialLogin, { socialLoginSDK, getSocialLoginSDK } from './SocialLogin'
 
-export default Torus
+export default SocialLogin
+export { socialLoginSDK, getSocialLoginSDK }

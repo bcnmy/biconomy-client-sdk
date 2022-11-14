@@ -1,14 +1,14 @@
-import { ChainConfig } from '@biconomy-sdk/node-client'
-import { ChainId } from '@biconomy-sdk/core-types'
+import { ChainConfig } from '@biconomy/node-client'
+import { ChainId } from '@biconomy/core-types'
 import {
   SmartWalletContract,
   SmartWalletFactoryContract,
   MultiSendContract,
   MultiSendCallOnlyContract,
   SmartAccountVersion
-} from '@biconomy-sdk/core-types'
+} from '@biconomy/core-types'
 
-import EthersAdapter from '@biconomy-sdk/ethers-lib'
+import EthersAdapter from '@biconomy/ethers-lib'
 
 export function getSmartWalletFactoryContract(
   smartAccountVersion: SmartAccountVersion,
@@ -48,28 +48,32 @@ export function findChainById(chainId: ChainId, chainConfig: ChainConfig[]): Cha
 }
 
 export function findContractAddressesByVersion(
-  smartAccountVersion: SmartAccountVersion,
+  smartAccountVersion: string,
   chainId: ChainId,
   chainConfig: ChainConfig[]
 ) {
   const chainInfo: ChainConfig = findChainById(chainId, chainConfig)
-
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   const entryPointAddress = chainInfo.entryPoint.find((element: any) => {
     return element.version === smartAccountVersion
   })?.address
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   const walletFactoryAddress = chainInfo.walletFactory.find((element: any) => {
     return element.version === smartAccountVersion
   })?.address
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   const walletAddress = chainInfo.wallet.find((element: any) => {
     return element.version === smartAccountVersion
   })?.address
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   const multiSendAddress = chainInfo.multiSend.find((element: any) => {
     return element.version === smartAccountVersion
   })?.address
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   const multiSendCallAddress = chainInfo.multiSendCall.find((element: any) => {
     return element.version === smartAccountVersion
   })?.address
-
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   const fallBackHandlerAddress = chainInfo.fallBackHandler.find((element: any) => {
     return element.version === smartAccountVersion
   })?.address

@@ -1,12 +1,15 @@
 # `web3-auth`
 
-> A library to import the torus web3 social auth directly from biconomy-sdk.
+> A library to import the torus web3 social auth directly from Biconomy Sdk.
 
 ## Usage
 
-```
-import Torus from "@biconomy-sdk/web3-auth";
-
-const torus = new Torus();
-torus.init();
+```ts
+import SocialLogin from "@biconomy/web3-auth";
+// init wallet
+const socialLoginSDK = new SocialLogin();
+await socialLoginSDK.init('0x5');
+socialLoginSDK.showConnectModal();
+// show connect modal
+socialLoginSDK.showWallet();
 ```

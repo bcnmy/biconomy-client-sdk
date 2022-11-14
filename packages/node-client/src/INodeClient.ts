@@ -1,4 +1,4 @@
-// import { FeeRefund, FeeRefundData, MetaTransactionData } from '@biconomy-sdk/core-types'
+// import { FeeRefund, FeeRefundData, MetaTransactionData } from '@biconomy/core-types'
 import {
   EstimateExternalGasDto,
   EstimateRequiredTxGasDto,
@@ -16,7 +16,8 @@ import {
   BalancesDto,
   UsdBalanceResponse,
   EstimateGasResponse,
-  TransactionResponse
+  SCWTransactionResponse,
+  WhiteListSignatureResponse
 } from './types/NodeClientTypes'
 
 interface INodeClient {
@@ -29,15 +30,15 @@ interface INodeClient {
 
   /**
    * Get ChainConfig for requested chainId
-   * @param chainId 
+   * @param chainId
    */
   getChainById(chainId: number): Promise<IndividualChainResponse>
 
   // 2. Token APIs
 
   /**
-   * Get prices for configured tokens from backend node API 
-   * @param chainId 
+   * Get prices for configured tokens from backend node API
+   * @param chainId
    */
   getTokenPricesByChainId(chainId: number): Promise<TokenPriceResponse>
 
@@ -49,13 +50,13 @@ interface INodeClient {
 
   /**
    * Get TokenInfo for requested chainId
-   * @param chainId 
+   * @param chainId
    */
   getTokensByChainId(chainId: number): Promise<SupportedTokensResponse>
 
   /**
    * Get TokenInfo by address and chainId
-   * @param tokenByChainIdAndAddressDto 
+   * @param tokenByChainIdAndAddressDto
    */
   getTokenByChainIdAndAddress(
     tokenByChainIdAndAddressDto: TokenByChainIdAndAddressDto
@@ -65,7 +66,7 @@ interface INodeClient {
 
   /**
    * Get information of all smart accounts deployed for particular eoa owner for any version and index
-   * @param smartAccountByOwnerDto 
+   * @param smartAccountByOwnerDto
    */
   getSmartAccountsByOwner(
     smartAccountByOwnerDto: SmartAccountByOwnerDto
@@ -74,15 +75,15 @@ interface INodeClient {
   // 4. Balances Endpoints
 
   /**
-   * Get token balances for requested chainId and address 
+   * Get token balances for requested chainId and address
    * address could be EOA or SmartAccount
-   * @param balancesDto 
+   * @param balancesDto
    */
   getAlltokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse>
 
   /**
-   * 
-   * @param balancesDto Get total USD balance 
+   *
+   * @param balancesDto Get total USD balance
    */
   getTotalBalanceInUsd(balancesDto: BalancesDto): Promise<UsdBalanceResponse>
 
@@ -90,16 +91,16 @@ interface INodeClient {
   /**
    * About: This is generic method to estimate gas on any contract call done using GasEstimator contract
    * Can be used to estimate gas before sending final transaction.
-   * Purpose: Currently used in smart account methods deployAndPayFees / prepareDeployandPayFees 
-   * @param estimateExternalGasDto 
+   * Purpose: Currently used in smart account methods deployAndPayFees / prepareDeployandPayFees
+   * @param estimateExternalGasDto
    */
   estimateExternalGas(estimateExternalGasDto: EstimateExternalGasDto): Promise<EstimateGasResponse>
 
   /**
-   * 
-   * @param estimateRequiredTxGasDto 
-   * About: Estimating the gas for inner transaction 
-   * Purpose: Returns suggested value for targetTxGas 
+   *
+   * @param estimateRequiredTxGasDto
+   * About: Estimating the gas for inner transaction
+   * Purpose: Returns suggested value for targetTxGas
    * Uses method requiredTxGas on SmartWallet contract and captures gas result from revert string
    */
   estimateRequiredTxGas(
@@ -107,16 +108,26 @@ interface INodeClient {
   ): Promise<EstimateGasResponse>
 
   /**
-   * About : Estimating the gas for inner transaction for undeployed wallet
-   * Purpose: Returns suggested value for targetTxGas when the wallet is undeployed.
-   * Uses eth_call and bytecode of SmartWalletNoAuth which has method requiredTxGas 
-   * @param estimateRequiredTxGasDto 
+   *
+   * @param origin
+   * About: Whitelist domain by passing the origin domain
+   * Purpose: Returns the signature used in init
    */
-  estimateRequiredTxGasOverride(estimateRequiredTxGasDto: EstimateRequiredTxGasDto): Promise<EstimateGasResponse>
+  whitelistUrl(origin: string): Promise<WhiteListSignatureResponse>
 
   /**
-   * 
-   * @param estimateHandlePaymentTxGasDto 
+   * About : Estimating the gas for inner transaction for undeployed wallet
+   * Purpose: Returns suggested value for targetTxGas when the wallet is undeployed.
+   * Uses eth_call and bytecode of SmartWalletNoAuth which has method requiredTxGas
+   * @param estimateRequiredTxGasDto
+   */
+  estimateRequiredTxGasOverride(
+    estimateRequiredTxGasDto: EstimateRequiredTxGasDto
+  ): Promise<EstimateGasResponse>
+
+  /**
+   *
+   * @param estimateHandlePaymentTxGasDto
    * About : Estimating the gas for token refund internal transaction handlePayment
    * Purpose: Returns suggested value for handlePayment part to calculate baseGas
    */
@@ -125,33 +136,29 @@ interface INodeClient {
   ): Promise<EstimateGasResponse>
 
   /**
-   * About : Estimating the gas for token refund internal transaction handlePayment but for undeployed wallet 
+   * About : Estimating the gas for token refund internal transaction handlePayment but for undeployed wallet
    * (counterfactual address should have token balance)
-   * Purpose: Returns suggested value for handlePayment part to calculate baseGas 
-   * @param estimateHandlePaymentTxGasDto 
+   * Purpose: Returns suggested value for handlePayment part to calculate baseGas
+   * @param estimateHandlePaymentTxGasDto
    */
-  estimateHandlePaymentGasOverride(estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto): Promise<EstimateGasResponse>
+  estimateHandlePaymentGasOverride(
+    estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto
+  ): Promise<EstimateGasResponse>
 
   /**
    * About: Estimating the gas for execTransaction method on undeployed smart-wallet
    * for undeployed wallet it uses fake signature and byte code of SmartwalletNoAuth using eth_call
    * Purpose: Returns suggested value for overall transaction gas cost for undeployed wallet. Helpful for calculating fee quote
-   * @param estimateUndeployedContractGasDto 
+   * @param estimateUndeployedContractGasDto
    */
   estimateUndeployedContractGas(
     estimateUndeployedContractGasDto: EstimateUndeployedContractGasDto
   ): Promise<EstimateGasResponse>
 
-  getTransactionByHash(
-    txHash: string
-  ): Promise<TransactionResponse>
+  getTransactionByHash(txHash: string): Promise<SCWTransactionResponse>
 
-  getTransactionByAddress(
-    chainId: number,
-    address: string
-  ): Promise<TransactionResponse[]>
+  getTransactionByAddress(chainId: number, address: string): Promise<SCWTransactionResponse[]>
 
-  
   // 6. Conditional Gasless Endpoint
 
   // 7. Signing Service Endpoint

@@ -3,6 +3,8 @@ logs
 *.log
 yarn-debug.log*
 yarn-error.log*
+yarn.lock
+lockfiles
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
@@ -54,8 +56,6 @@ yarn.lock
 cache
 artifacts
 deployments
-
-packages/common/src/types/
 
 # lockfiles
 packages/core-types/package-lock.json

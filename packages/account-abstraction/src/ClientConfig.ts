@@ -1,5 +1,10 @@
+import { IPaymasterAPI } from '@biconomy/core-types'
+
 export interface ClientConfig {
-  paymasterAddress?: string
+  dappAPIKey: string
+  socketServerUrl: string
+  biconomySigningServiceUrl: string
+  customPaymasterAPI?: IPaymasterAPI
   entryPointAddress: string
   bundlerUrl: string
   chainId: number

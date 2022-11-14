@@ -6,7 +6,7 @@ import {
   ExecTransaction,
   IFeeRefundV1_0_1,
   ITransactionResult
-} from '@biconomy-sdk/core-types'
+} from '@biconomy/core-types'
 import { toTxResult } from '../../../utils'
 import { SmartWalletContractV101 as SmartWalletContract_TypeChain } from '../../../../typechain/src/ethers-v5/v1.0.1/SmartWalletContractV101'
 import { SmartWalletContractV101Interface } from '../../../../typechain/src/ethers-v5/v1.0.1/SmartWalletContractV101'
@@ -68,7 +68,7 @@ class SmartWalletContractEthers implements SmartWalletContract {
     const txResponse = await this.contract.execTransaction(_tx, batchId, refundInfo, signatures)
     return toTxResult(txResponse)
   }
-
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   encode: SmartWalletContractV101Interface['encodeFunctionData'] = (
     methodName: any,
     params: any

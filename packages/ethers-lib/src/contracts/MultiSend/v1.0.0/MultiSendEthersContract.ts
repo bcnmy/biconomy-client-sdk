@@ -1,4 +1,4 @@
-import { MultiSendContract } from '@biconomy-sdk/core-types'
+import { MultiSendContract } from '@biconomy/core-types'
 import {
   MultiSendContractV100 as MultiSend_TypeChain,
   MultiSendContractV100Interface
@@ -21,6 +21,7 @@ class MultiSendEthersContract implements MultiSendContract {
     return this.contract.interface
   }
 
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   encode: MultiSendContractV100Interface['encodeFunctionData'] = (
     methodName: any,
     params: any

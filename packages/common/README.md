@@ -1,11 +1,8 @@
-# `@biconomy-sdk/common`
+# `@biconomy/common`
 
-> TODO: description
+> TODO: ERC4337 common utils
 
 ## Usage
 
 ```
-const common = require('@biconomy-sdk/common');
-
-// TODO: DEMONSTRATE API
 ```

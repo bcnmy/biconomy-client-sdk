@@ -4,7 +4,7 @@ import {
   MetaTransactionData,
   IFeeRefundV1_0_0,
   IFeeRefundV1_0_1
-} from '@biconomy-sdk/core-types'
+} from '@biconomy/core-types'
 export type SmartAccountInfoResponse = {
   readonly name: string
   readonly version: string
@@ -24,7 +24,7 @@ export type SmartAccountInfoResponse = {
 }
 
 // Review
-export type TransactionResponse = {
+export type SCWTransactionResponse = {
   symbol: string
   tokenAddress: string
   scwAddress: string
@@ -48,6 +48,12 @@ export type BalancesDto = {
   chainId: number
   eoaAddress: string
   tokenAddresses: string[]
+}
+
+export type WhiteListSignatureResponse = {
+  code: number
+  message: string
+  data: string
 }
 
 export type EstimateExternalGasDto = {
@@ -117,11 +123,6 @@ export type ChainConfig = {
   createdAt: Date
   updatedAt: Date
   token: TokenInfo
-}
-
-export type ProviderUrlConfig = {
-  chainId: ChainId
-  providerUrl: string
 }
 
 export type MasterCopyResponse = {

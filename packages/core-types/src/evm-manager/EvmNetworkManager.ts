@@ -3,7 +3,7 @@ import { SmartWalletContract } from 'contracts/SmartWalletContract'
 import { MultiSendContract } from '../contracts/MultiSendContract'
 import { MultiSendCallOnlyContract } from '../contracts/MultiSendCallOnlyContract'
 import { SmartWalletFactoryContract } from '../contracts/SmartWalletFactoryContract'
-import { Eip3770Address, SmartAccountVersion } from '../types'
+import { Eip3770Address, SmartAccountVersion } from '../Types'
 
 export interface IEvmNetworkManagerTransaction {
   to: string
@@ -33,6 +33,7 @@ export interface IEvmNetworkManager {
   ): SmartWalletFactoryContract
   getContractCode(address: string): Promise<string>
   isContractDeployed(address: string): Promise<boolean>
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   getTransaction(transactionHash: string): Promise<any>
   getSignerAddress(): Promise<string>
   signMessage(message: string): Promise<string>

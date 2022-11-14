@@ -1,11 +1,12 @@
-# `@biconomy-sdk/account-abstraction`
+# `@biconomy/account-abstraction`
 
-> TODO: description
+## To create and send UserOperation
 
-## Usage
+## Provides SmartAccountAPI and high-level Provider API
+
+### Usage
 
 ```
-const accountAbstraction = require('@biconomy-sdk/account-abstraction');
 
 // TODO: DEMONSTRATE API
 ```

@@ -1,4 +1,4 @@
-import { MultiSendCallOnlyContract } from '@biconomy-sdk/core-types'
+import { MultiSendCallOnlyContract } from '@biconomy/core-types'
 import {
   MultiSendCallOnlyContractV100 as MultiSendCallOnly_TypeChain,
   MultiSendCallOnlyContractV100Interface
@@ -20,7 +20,7 @@ class MultiSendCallOnlyEthersContract implements MultiSendCallOnlyContract {
   getInterface(): Interface {
     return this.contract.interface
   }
-
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   encode: MultiSendCallOnlyContractV100Interface['encodeFunctionData'] = (
     methodName: any,
     params: any
