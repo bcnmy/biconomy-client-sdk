@@ -30,7 +30,6 @@ class SocialLogin {
   iframeInitialized = false
   isInit = false
   clientId: string
-  apiKey: string
   userInfo: Partial<UserInfo> | null = null
   web3auth: Web3AuthCore | null = null
   provider: SafeEventEmitterProvider | null = null
@@ -44,7 +43,6 @@ class SocialLogin {
     this.provider = null
     this.clientId =
       'BEQgHQ6oRgaJXc3uMnGIr-AY-FLTwRinuq8xfgnInrnDrQZYXxDO0e53osvXzBXC1dcUTyD2Itf-zN1VEB8xZlo'
-    this.apiKey = '5da89c1278407a50ad036223c32046c4af0e43bf453ce8a2bd8378bf78900a97'
     this.backendUrl = backendUrl
     this.nodeClient = new NodeClient({ txServiceUrl: this.backendUrl })
   }

@@ -8,7 +8,7 @@ class TransakSDK {
   transak: any
 
   constructor(environment: environments, transakData: ITransakDto = {}) {
-    this.apiKey = '486be068-bb98-4852-8947-c415e12200a9'
+    this.apiKey = 'f7d64c91-8f89-4018-9577-9098e42290af'
     const transak = new transakSDK({
       apiKey: this.apiKey,
       widgetHeight: '625px',
