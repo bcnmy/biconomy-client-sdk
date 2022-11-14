@@ -13,8 +13,6 @@ import { OpenloginAdapter } from '@web3auth/openlogin-adapter'
 import { MetamaskAdapter } from '@web3auth/metamask-adapter'
 import { WalletConnectV1Adapter } from '@web3auth/wallet-connect-v1-adapter'
 import QRCodeModal from '@walletconnect/qrcode-modal'
-import { getPublic, sign } from '@toruslabs/eccrypto'
-import { base64url, keccak } from '@toruslabs/openlogin-utils'
 import NodeClient, { WhiteListSignatureResponse } from '@biconomy/node-client'
 
 import UI from './UI'
@@ -289,6 +287,10 @@ class SocialLogin {
   }
 }
 
+const defaultSocialLoginConfig: DefaultSocialLoginConfig = {
+  backendUrl: 'https://sdk-backend.staging.biconomy.io/v1'
+}
+
 export default SocialLogin
 
 let initializedSocialLogin: SocialLogin | null = null
@@ -309,7 +311,3 @@ const socialLoginSDK: SocialLogin = new SocialLogin()
 ;(window as any).socialLoginSDK = socialLoginSDK
 
 export { socialLoginSDK, getSocialLoginSDK }
-
-export const defaultSocialLoginConfig: DefaultSocialLoginConfig = {
-  backendUrl: 'https://sdk-backend.prod.biconomy.io/v1'
-}
