@@ -928,10 +928,10 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
   activeNetworkId: ChainId.GOERLI, //Update later
   supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI],
   signType: SignTypeMethod.EIP712_SIGN,
-  backendUrl: 'https://sdk-backend.staging.biconomy.io/v1',
-  relayerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
-  socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
-  bundlerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
+  backendUrl: 'https://sdk-backend.prod.biconomy.io/v1',
+  relayerUrl: 'https://sdk-relayer.prod.biconomy.io/api/v1/relay',
+  socketServerUrl: 'wss://sdk-ws.prod.biconomy.io/connection/websocket',
+  bundlerUrl: 'https://sdk-relayer.prod.biconomy.io/api/v1/relay',
   biconomySigningServiceUrl:
     'https://us-central1-biconomy-staging.cloudfunctions.net/signing-service',
   // TODO : has to be public provider urls (local config / backend node)

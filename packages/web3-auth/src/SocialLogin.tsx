@@ -311,5 +311,5 @@ const socialLoginSDK: SocialLogin = new SocialLogin()
 export { socialLoginSDK, getSocialLoginSDK }
 
 export const defaultSocialLoginConfig: DefaultSocialLoginConfig = {
-  backendUrl: 'https://sdk-backend.staging.biconomy.io/v1'
+  backendUrl: 'https://sdk-backend.prod.biconomy.io/v1'
 }
