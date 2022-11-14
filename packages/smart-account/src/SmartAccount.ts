@@ -948,4 +948,3 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
 }
 
 export default SmartAccount
-

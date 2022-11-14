@@ -51,7 +51,9 @@ export type BalancesDto = {
 }
 
 export type WhiteListSignatureResponse = {
-  signature: string
+  code: number
+  message: string
+  data: string
 }
 
 export type EstimateExternalGasDto = {

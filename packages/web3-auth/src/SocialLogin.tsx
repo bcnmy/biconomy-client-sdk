@@ -18,6 +18,7 @@ import { base64url, keccak } from '@toruslabs/openlogin-utils'
 import NodeClient, { WhiteListSignatureResponse } from '@biconomy/node-client'
 
 import UI from './UI'
+import { DefaultSocialLoginConfig } from './types/Web3AuthConfig'
 
 function createLoginModal(socialLogin: SocialLogin) {
   const root = createRoot((document as any).getElementById('w3a-modal'))
@@ -35,9 +36,10 @@ class SocialLogin {
   userInfo: Partial<UserInfo> | null = null
   web3auth: Web3AuthCore | null = null
   provider: SafeEventEmitterProvider | null = null
-  // nodeClient!: NodeClient
+  backendUrl!: string
+  nodeClient!: NodeClient
 
-  constructor(/*backendUrl: string*/) {
+  constructor(backendUrl: string = defaultSocialLoginConfig.backendUrl) {
     this.createWalletDiv()
     this.isInit = false
     this.web3auth = null
@@ -45,23 +47,24 @@ class SocialLogin {
     this.clientId =
       'BEQgHQ6oRgaJXc3uMnGIr-AY-FLTwRinuq8xfgnInrnDrQZYXxDO0e53osvXzBXC1dcUTyD2Itf-zN1VEB8xZlo'
     this.apiKey = '5da89c1278407a50ad036223c32046c4af0e43bf453ce8a2bd8378bf78900a97'
-    // this.nodeClient = new NodeClient({ txServiceUrl: backendUrl })
+    this.backendUrl = backendUrl
+    this.nodeClient = new NodeClient({ txServiceUrl: this.backendUrl })
   }
 
   async whitelistUrl(origin: string): Promise<string> {
-    const appKeyBuf = Buffer.from(this.apiKey.padStart(64, '0'), 'hex')
+    /*const appKeyBuf = Buffer.from(this.apiKey.padStart(64, '0'), 'hex')
     if (base64url.encode(getPublic(appKeyBuf)) !== this.clientId) throw new Error('appKey mismatch')
     const sig = await sign(
       appKeyBuf,
       Buffer.from(keccak('keccak256').update(origin).digest('hex'), 'hex')
     )
-    return base64url.encode(sig)
+    return base64url.encode(sig)*/
 
-    /*const whiteListUrlResponse: WhiteListSignatureResponse = await this.nodeClient.whitelistUrl(
+    const whiteListUrlResponse: WhiteListSignatureResponse = await this.nodeClient.whitelistUrl(
       origin
     )
-    console.log(whiteListUrlResponse.signature)
-    return whiteListUrlResponse.signature*/
+    console.log(whiteListUrlResponse.data)
+    return whiteListUrlResponse.data
   }
 
   async init(
@@ -306,3 +309,7 @@ const socialLoginSDK: SocialLogin = new SocialLogin()
 ;(window as any).socialLoginSDK = socialLoginSDK
 
 export { socialLoginSDK, getSocialLoginSDK }
+
+export const defaultSocialLoginConfig: DefaultSocialLoginConfig = {
+  backendUrl: 'https://sdk-backend.staging.biconomy.io/v1'
+}
