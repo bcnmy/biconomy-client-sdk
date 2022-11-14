@@ -321,7 +321,7 @@ describe('Wallet integration', function () {
                 },
                 {
                   version: '1.0.1',
-                  address: '0xa948dc08f217c96c687dc3bf2e6051fb906b872a',
+                  address: '0x119df1582e0dd7334595b8280180f336c959f3bb',
                   abi: ''
                 }
               ],
@@ -598,7 +598,7 @@ describe('Wallet integration', function () {
                 },
                 {
                   version: '1.0.1',
-                  address: '0xa948dc08f217c96c687dc3bf2e6051fb906b872a',
+                  address: '0x119df1582e0dd7334595b8280180f336c959f3bb',
                   abi: ''
                 }
               ],
@@ -876,7 +876,7 @@ describe('Wallet integration', function () {
                 },
                 {
                   version: '1.0.1',
-                  address: '0xa948dc08f217c96c687dc3bf2e6051fb906b872a',
+                  address: '0x119df1582e0dd7334595b8280180f336c959f3bb',
                   abi: ''
                 }
               ],
@@ -1153,7 +1153,7 @@ describe('Wallet integration', function () {
                 },
                 {
                   version: '1.0.1',
-                  address: '0xa948dc08f217c96c687dc3bf2e6051fb906b872a',
+                  address: '0x119df1582e0dd7334595b8280180f336c959f3bb',
                   abi: ''
                 }
               ],
@@ -1430,7 +1430,7 @@ describe('Wallet integration', function () {
                 },
                 {
                   version: '1.0.1',
-                  address: '0xa948dc08f217c96c687dc3bf2e6051fb906b872a',
+                  address: '0x119df1582e0dd7334595b8280180f336c959f3bb',
                   abi: ''
                 }
               ],
@@ -1708,7 +1708,7 @@ describe('Wallet integration', function () {
                 },
                 {
                   version: '1.0.1',
-                  address: '0xa948dc08f217c96c687dc3bf2e6051fb906b872a',
+                  address: '0x119df1582e0dd7334595b8280180f336c959f3bb',
                   abi: ''
                 }
               ],
@@ -1976,7 +1976,7 @@ describe('Wallet integration', function () {
                 },
                 {
                   version: '1.0.1',
-                  address: '0xa948dc08f217c96c687dc3bf2e6051fb906b872a',
+                  address: '0x119df1582e0dd7334595b8280180f336c959f3bb',
                   abi: ''
                 }
               ],
