@@ -42,20 +42,12 @@ class SocialLogin {
     this.web3auth = null
     this.provider = null
     this.clientId =
-      'BEQgHQ6oRgaJXc3uMnGIr-AY-FLTwRinuq8xfgnInrnDrQZYXxDO0e53osvXzBXC1dcUTyD2Itf-zN1VEB8xZlo'
+      'BDtxlmCXNAWQFGiiaiVY3Qb1aN-d7DQ82OhT6B-RBr5j_rGnrKAqbIkvLJlf-ofYlJRiNSHbnkeHlsh8j3ueuYY'
     this.backendUrl = backendUrl
     this.nodeClient = new NodeClient({ txServiceUrl: this.backendUrl })
   }
 
   async whitelistUrl(origin: string): Promise<string> {
-    /*const appKeyBuf = Buffer.from(this.apiKey.padStart(64, '0'), 'hex')
-    if (base64url.encode(getPublic(appKeyBuf)) !== this.clientId) throw new Error('appKey mismatch')
-    const sig = await sign(
-      appKeyBuf,
-      Buffer.from(keccak('keccak256').update(origin).digest('hex'), 'hex')
-    )
-    return base64url.encode(sig)*/
-
     const whiteListUrlResponse: WhiteListSignatureResponse = await this.nodeClient.whitelistUrl(
       origin
     )
