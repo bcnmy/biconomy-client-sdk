@@ -8,7 +8,11 @@ class TransakSDK {
   transak: any
 
   constructor(environment: environments, transakData: ITransakDto = {}) {
-    this.apiKey = 'f7d64c91-8f89-4018-9577-9098e42290af'
+    if (environment === 'PRODUCTION') {
+      this.apiKey = 'f7d64c91-8f89-4018-9577-9098e42290af'
+    } else {
+      this.apiKey = 'c71ecd4a-0819-46a7-8d63-c8b7148aaf63'
+    }
     const transak = new transakSDK({
       apiKey: this.apiKey,
       widgetHeight: '625px',
