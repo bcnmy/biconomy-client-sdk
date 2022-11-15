@@ -945,8 +945,13 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
       providerUrl: 'https://polygon-mumbai.g.alchemy.com/v2/Q4WqQVxhEEmBYREX22xfsS2-s5EXWD31'
     },
     {
+      chainId: ChainId.BSC_TESTNET,
+      providerUrl:
+        'https://wandering-broken-tree.bsc-testnet.quiknode.pro/7992da20f9e4f97c2a117bea9af37c1c266f63ec/'
+    },
+    {
       chainId: ChainId.POLYGON_MAINNET,
-      providerUrl: 'https://polygon‑rpc.com'
+      providerUrl: 'https://polygon-mainnet.g.alchemy.com/v2/6Tn--QDkp1vRBXzRV3Cc8fLXayr5Yoij'
     }
   ]
 }
