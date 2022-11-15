@@ -67,7 +67,7 @@ describe('Wallet integration', function () {
       console.log('multi send deployed at : ', multiSend.address)
       console.log('multi send call deployed at : ', multiSendCallOnly.address)
 
-      const scope = nock('https://sdk-backend.staging.biconomy.io')
+      const scope = nock('https://sdk-backend.prod.biconomy.io')
         .persist()
         .get('/v1/chains/')
         .reply(200, {
@@ -138,16 +138,16 @@ describe('Wallet integration', function () {
                 }
               ],
               walletCreatedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts',
               walletCreatedEventHit: true,
               eoaChangedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts/owner',
               eoaChangedEventHit: true,
               updateImplementationCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/implementation',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts/implementation',
               updateImplementationEventHit: true,
               executionSuccessCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/transactions/',
+                'https://sdk-backend.prod.biconomy.io/v1/transactions/',
               executionSuccessEventHit: true,
               wallet: [
                 {
@@ -415,16 +415,16 @@ describe('Wallet integration', function () {
                 }
               ],
               walletCreatedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts',
               walletCreatedEventHit: true,
               eoaChangedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts/owner',
               eoaChangedEventHit: true,
               updateImplementationCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/implementation',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts/implementation',
               updateImplementationEventHit: true,
               executionSuccessCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/transactions/',
+                'https://sdk-backend.prod.biconomy.io/v1/transactions/',
               executionSuccessEventHit: true,
               wallet: [
                 {
@@ -693,16 +693,16 @@ describe('Wallet integration', function () {
                 }
               ],
               walletCreatedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts',
               walletCreatedEventHit: true,
               eoaChangedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts/owner',
               eoaChangedEventHit: true,
               updateImplementationCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/implementation',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts/implementation',
               updateImplementationEventHit: true,
               executionSuccessCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/transactions/',
+                'https://sdk-backend.prod.biconomy.io/v1/transactions/',
               executionSuccessEventHit: true,
               wallet: [
                 {
@@ -970,16 +970,16 @@ describe('Wallet integration', function () {
                 }
               ],
               walletCreatedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts',
               walletCreatedEventHit: true,
               eoaChangedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts/owner',
               eoaChangedEventHit: true,
               updateImplementationCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/implementation',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts/implementation',
               updateImplementationEventHit: true,
               executionSuccessCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/transactions/',
+                'https://sdk-backend.prod.biconomy.io/v1/transactions/',
               executionSuccessEventHit: true,
               wallet: [
                 {
@@ -1247,16 +1247,16 @@ describe('Wallet integration', function () {
                 }
               ],
               walletCreatedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts',
               walletCreatedEventHit: true,
               eoaChangedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts/owner',
               eoaChangedEventHit: true,
               updateImplementationCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/implementation',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts/implementation',
               updateImplementationEventHit: true,
               executionSuccessCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/transactions/',
+                'https://sdk-backend.prod.biconomy.io/v1/transactions/',
               executionSuccessEventHit: true,
               wallet: [
                 {
@@ -1525,16 +1525,16 @@ describe('Wallet integration', function () {
                 }
               ],
               walletCreatedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts',
               walletCreatedEventHit: true,
               eoaChangedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts/owner',
               eoaChangedEventHit: true,
               updateImplementationCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/implementation',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts/implementation',
               updateImplementationEventHit: true,
               executionSuccessCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/transactions/',
+                'https://sdk-backend.prod.biconomy.io/v1/transactions/',
               executionSuccessEventHit: true,
               wallet: [
                 {
@@ -1793,16 +1793,16 @@ describe('Wallet integration', function () {
                 }
               ],
               walletCreatedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts',
               walletCreatedEventHit: true,
               eoaChangedCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/owner',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts/owner',
               eoaChangedEventHit: true,
               updateImplementationCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/smart-accounts/implementation',
+                'https://sdk-backend.prod.biconomy.io/v1/smart-accounts/implementation',
               updateImplementationEventHit: true,
               executionSuccessCallBackEndpoint:
-                'https://sdk-backend.staging.biconomy.io/v1/transactions/',
+                'https://sdk-backend.prod.biconomy.io/v1/transactions/',
               executionSuccessEventHit: true,
               wallet: [
                 {

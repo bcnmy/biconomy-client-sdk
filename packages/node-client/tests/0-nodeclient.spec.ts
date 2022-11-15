@@ -42,7 +42,7 @@ describe('Node Client', function () {
   let nodeClient: NodeClient
 
   before(async () => {
-    nodeClient = new NodeClient({ txServiceUrl: 'https://sdk-backend.staging.biconomy.io/v1' })
+    nodeClient = new NodeClient({ txServiceUrl: 'https://sdk-backend.prod.biconomy.io/v1' })
   })
 
   beforeEach(async () => { })
