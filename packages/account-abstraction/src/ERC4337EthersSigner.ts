@@ -24,39 +24,10 @@ export class ERC4337EthersSigner extends Signer {
     defineReadOnly(this, 'provider', erc4337provider)
   }
 
-  async deployWalletOnly(): Promise<TransactionResponse | undefined> {
-    const userOperation = await this.smartWalletAPI.createSignedUserOp({
-      target: '',
-      data: '',
-      value: 0,
-      gasLimit: 21000
-    })
-
-    console.log('signed userOp ', userOperation)
-
-    let bundlerServiceResponse: any
-
-    try {
-      bundlerServiceResponse = await this.httpRpcClient.sendUserOpToBundler(userOperation)
-      console.log(bundlerServiceResponse)
-    } catch (error) {
-      // console.error('sendUserOpToBundler failed', error)
-      throw this.unwrapError(error)
-    }
-
-    const transactionResponse = await this.erc4337provider.constructUserOpTransactionResponse(
-      userOperation,
-      bundlerServiceResponse.transactionId
-    )
-    const receipt = await transactionResponse.wait()
-    console.log('transactionResponse in deployWalletOnly', receipt)
-
-    // TODO: handle errors - transaction that is "rejected" by bundler is _not likely_ to ever resolve its "wait()"
-    return transactionResponse
-  }
   // This one is called by Contract. It signs the request and passes in to Provider to be sent.
   async sendTransaction(
     transaction: Deferrable<TransactionRequest>,
+    walletDeployOnly = false,
     isDelegate = false,
     engine?: any // EventEmitter
   ): Promise<TransactionResponse> {
@@ -91,17 +62,31 @@ export class ERC4337EthersSigner extends Signer {
     transaction.gasLimit = gasLimit
     // TODO : If isDeployed = false || skipGasLimit = true then use provided gas limit => transaction.gasLimit = gasLimit
     delete transaction.customData
+
     // transaction.from = await this.smartWalletAPI.getWalletAddress()
-    const tx: TransactionRequest = await this.populateTransaction(transaction)
-    console.log('populate trx ', tx)
-    await this.verifyAllNecessaryFields(tx)
-    const userOperation = await this.smartWalletAPI.createSignedUserOp({
-      target: tx.to ?? '',
-      data: tx.data?.toString() ?? '',
-      value: tx.value,
-      gasLimit: tx.gasLimit,
-      isDelegateCall: isDelegate // get from customData.isBatchedToMultiSend
-    })
+
+    let userOperation: UserOperation
+    if (walletDeployOnly === true) {
+      userOperation = await this.smartWalletAPI.createSignedUserOp({
+        target: '',
+        data: '',
+        value: 0,
+        gasLimit: 21000
+      })
+    } else {
+      const tx: TransactionRequest = await this.populateTransaction(transaction)
+
+      console.log('populate trx ', tx)
+      await this.verifyAllNecessaryFields(tx)
+
+      userOperation = await this.smartWalletAPI.createSignedUserOp({
+        target: tx.to ?? '',
+        data: tx.data?.toString() ?? '',
+        value: tx.value,
+        gasLimit: tx.gasLimit,
+        isDelegateCall: isDelegate // get from customData.isBatchedToMultiSend
+      })
+    }
     console.log('signed userOp ', userOperation)
 
     let bundlerServiceResponse: any

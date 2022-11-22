@@ -28,7 +28,8 @@ import {
   RelayResponse,
   SmartAccountConfig,
   IMetaTransaction,
-  NetworkConfig
+  NetworkConfig,
+  ZERO_ADDRESS
 } from '@biconomy/core-types'
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import NodeClient, {
@@ -300,7 +301,7 @@ class SmartAccount extends EventEmitter {
 
     const isDelegate = transaction.to === multiSendContract.address ? true : false
 
-    const response = await aaSigner.sendTransaction(transaction, isDelegate, this)
+    const response = await aaSigner.sendTransaction(transaction, false, isDelegate, this)
 
     return response
     // todo: make sense of this response and return hash to the user
@@ -369,10 +370,15 @@ class SmartAccount extends EventEmitter {
   // Only to deploy wallet using connected paymaster
   // Todo : Add return type
   // Review involvement of Dapp API Key
-  public async deployWalletUsingPaymaster() {
+  public async deployWalletUsingPaymaster(): Promise<TransactionResponse> {
     // can pass chainId
     const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
-    await aaSigner.deployWalletOnly()
+    const transaction = {
+      to: ZERO_ADDRESS,
+      data: '0x'
+    }
+    const response = await aaSigner.sendTransaction(transaction, true, false, this)
+    return response
     // Todo: make sense of this response and return hash to the user
   }
 
