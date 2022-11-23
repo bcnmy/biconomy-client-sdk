@@ -2,7 +2,6 @@ import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { ethers } from 'ethers'
 import { Web3AuthCore } from '@web3auth/core'
-import { NetworkSwitch } from '@web3auth/ui'
 import {
   WALLET_ADAPTERS,
   CHAIN_NAMESPACES,
@@ -88,11 +87,9 @@ class SocialLogin {
       const metamaskAdapter = new MetamaskAdapter({
         clientId: this.clientId
       })
-      const networkUi = new NetworkSwitch()
       const wcAdapter = new WalletConnectV1Adapter({
         adapterSettings: {
-          qrcodeModal: QRCodeModal,
-          networkSwitchModal: networkUi
+          qrcodeModal: QRCodeModal
         }
       })
 
