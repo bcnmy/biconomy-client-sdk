@@ -695,7 +695,7 @@ class SmartAccount extends EventEmitter {
    *
    * @param prepareRefundTransactionsDto
    */
-  // TODO: Rename method to getFeeOptionsForBatch
+  // TODO: Could rename method to getFeeOptionsForBatch
   async prepareRefundTransactionBatch(
     prepareRefundTransactionsDto: PrepareRefundTransactionsDto
   ): Promise<FeeQuote[]> {

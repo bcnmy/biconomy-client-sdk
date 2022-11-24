@@ -36,9 +36,9 @@ export type UserOperation = {
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 // Review
-export const DEFAULT_FEE_RECEIVER = '0x7306aC7A32eb690232De81a9FFB44Bb346026faB'
+export const DEFAULT_FEE_RECEIVER = '0xc75Bb3956c596efc6DB663cd3e2f64929d6AB0fc'
 
-export const GAS_USAGE_OFFSET = 4928 + 2360
+export const GAS_USAGE_OFFSET = 4928 + 2360 // proxy delegate + events
 
 // Few more constants can be added regarding token transfer / handle payments
 export const FAKE_SIGNATURE =

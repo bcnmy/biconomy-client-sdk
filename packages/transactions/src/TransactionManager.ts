@@ -209,7 +209,6 @@ class TransactionManager {
     transactionBatchDto: TransactionBatchDto
   ): Promise<IWalletTransaction> {
     const { transactions, batchId, chainId, version } = transactionBatchDto
-    // NOTE : If the wallet is not deployed yet then nonce would be zero
 
     const smartAccountState = await this.contractUtils.getSmartAccountState(this.smartAccountState)
     let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()
@@ -345,7 +344,7 @@ class TransactionManager {
    *
    * @param prepareRefundTransactionsDto
    */
-  // TODO: Rename method to getFeeOptionsForBatch
+  // TODO: Could rename method to getFeeOptionsForBatch
   async prepareRefundTransactionBatch(
     prepareRefundTransactionsDto: PrepareRefundTransactionsDto
   ): Promise<FeeQuote[]> {
@@ -449,7 +448,7 @@ class TransactionManager {
       to: transaction.to,
       value: transaction.value || 0,
       data: transaction.data || '0x',
-      operation: OperationType.Call
+      operation: OperationType.Call // Review
     }
     console.log(internalTx)
 
