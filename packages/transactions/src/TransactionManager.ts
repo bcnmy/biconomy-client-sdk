@@ -631,6 +631,7 @@ class TransactionManager {
       const response = await this.nodeClient.estimateRequiredTxGasOverride(estimateRequiredTxGas)
 
       // not getting accurate value for undeployed wallet
+      // should just call the execute and make it external
       // TODO
       // Review
       const requiredTxGasEstimate = Number(response.data.gas) + 700000
