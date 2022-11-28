@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/core-types",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Biconomy Client SDK types",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -36,9 +36,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@ethersproject/providers": "^5.6.8",
     "@ethersproject/bignumber": "^5.6.0",
     "@ethersproject/contracts": "^5.6.0",
+    "@ethersproject/providers": "^5.6.8",
     "@gnosis.pm/safe-deployments": "^1.16.0",
     "web3-core": "^1.7.1"
   }
