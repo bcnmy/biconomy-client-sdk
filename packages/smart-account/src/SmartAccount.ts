@@ -28,7 +28,8 @@ import {
   RelayResponse,
   SmartAccountConfig,
   IMetaTransaction,
-  NetworkConfig
+  NetworkConfig,
+  ZERO_ADDRESS
 } from '@biconomy/core-types'
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import NodeClient, {
@@ -163,10 +164,7 @@ class SmartAccount extends EventEmitter {
   }
 
   getProviderUrl(network: ChainConfig): string {
-    console.log('after init smartAccountConfig.networkConfig')
-    console.log(this.#smartAccountConfig.networkConfig)
     const networkConfig: NetworkConfig[] = this.#smartAccountConfig.networkConfig
-    console.log('networkConfig state is ', networkConfig)
     let providerUrl =
       networkConfig.find((element: NetworkConfig) => element.chainId === network.chainId)
         ?.providerUrl || ''
@@ -197,9 +195,7 @@ class SmartAccount extends EventEmitter {
       const network = this.chainConfig.find((element: ChainConfig) => element.chainId === chainId)
       if (!network) return
       const providerUrl = this.getProviderUrl(network)
-      console.log('init at chain')
-      console.log(chainId)
-      console.log(providerUrl)
+      console.log('init at chain', chainId)
       const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
       this.contractUtils.initializeContracts(this.signer, readProvider, network)
 
@@ -300,7 +296,7 @@ class SmartAccount extends EventEmitter {
 
     const isDelegate = transaction.to === multiSendContract.address ? true : false
 
-    const response = await aaSigner.sendTransaction(transaction, isDelegate, this)
+    const response = await aaSigner.sendTransaction(transaction, false, isDelegate, this)
 
     return response
     // todo: make sense of this response and return hash to the user
@@ -369,10 +365,15 @@ class SmartAccount extends EventEmitter {
   // Only to deploy wallet using connected paymaster
   // Todo : Add return type
   // Review involvement of Dapp API Key
-  public async deployWalletUsingPaymaster() {
+  public async deployWalletUsingPaymaster(): Promise<TransactionResponse> {
     // can pass chainId
     const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
-    await aaSigner.deployWalletOnly()
+    const transaction = {
+      to: ZERO_ADDRESS,
+      data: '0x'
+    }
+    const response = await aaSigner.sendTransaction(transaction, true, false, this)
+    return response
     // Todo: make sense of this response and return hash to the user
   }
 
