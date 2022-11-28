@@ -55,7 +55,7 @@ class SocialLogin {
   }
 
   async init(
-    chainId: string = '0x1',
+    chainId: string = defaultSocialLoginConfig.defaultChainId,
     whitelistUrls?: { [P in string]: string },
     network: 'mainnet' | 'testnet' = 'testnet'
   ) {
@@ -275,6 +275,7 @@ class SocialLogin {
 }
 
 const defaultSocialLoginConfig: DefaultSocialLoginConfig = {
+  defaultChainId: '0x1', // string hex of mainnet
   backendUrl: 'https://sdk-backend.prod.biconomy.io/v1'
 }
 
@@ -282,7 +283,7 @@ export default SocialLogin
 
 let initializedSocialLogin: SocialLogin | null = null
 const getSocialLoginSDK = async (
-  chainId: string = '0x1',
+  chainId: string = defaultSocialLoginConfig.defaultChainId,
   whitelistUrls?: { [P in string]: string },
   network: 'mainnet' | 'testnet' = 'testnet'
 ) => {
