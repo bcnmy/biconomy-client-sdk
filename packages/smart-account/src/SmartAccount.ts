@@ -652,6 +652,7 @@ class SmartAccount extends EventEmitter {
     if (gasLimit) {
       relayTrx.gasLimit = gasLimit
     }
+    // todo : review gasLimit passed to relay endpoint
     if (!isDeployed) {
       gasLimit = {
         hex: '0x1E8480',

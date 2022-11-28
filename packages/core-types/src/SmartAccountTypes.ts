@@ -62,6 +62,7 @@ export type SmartAccountState = {
   fallbackHandlerAddress: string // chain specific?
 }
 
+// Review for optional
 export type AddressForCounterFactualWalletDto = {
   index: number
   chainId: ChainId
@@ -69,9 +70,9 @@ export type AddressForCounterFactualWalletDto = {
 }
 
 export type SignTransactionDto = {
-  version: string
+  version?: string
   tx: IWalletTransaction
-  chainId: ChainId
+  chainId?: ChainId
   signer: Signer
 }
 
