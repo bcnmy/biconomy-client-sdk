@@ -198,9 +198,7 @@ class SmartAccount extends EventEmitter {
       const network = this.chainConfig.find((element: ChainConfig) => element.chainId === chainId)
       if (!network) return
       const providerUrl = this.getProviderUrl(network)
-      console.log('init at chain')
-      console.log(chainId)
-      console.log(providerUrl)
+      console.log('init at chain', chainId)
       const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
       this.contractUtils.initializeContracts(this.signer, readProvider, network)
 
