@@ -55,7 +55,7 @@ class SocialLogin {
   }
 
   async init(
-    chainId: string,
+    chainId: string = '0x1',
     whitelistUrls?: { [P in string]: string },
     network: 'mainnet' | 'testnet' = 'testnet'
   ) {
@@ -73,7 +73,7 @@ class SocialLogin {
         adapterSettings: {
           clientId: this.clientId,
           network: network,
-          uxMode: 'redirect',
+          uxMode: 'popup',
           whiteLabel: {
             name: 'Biconomy SDK',
             logoLight: 'https://s2.coinmarketcap.com/static/img/coins/64x64/9543.png',
@@ -282,7 +282,7 @@ export default SocialLogin
 
 let initializedSocialLogin: SocialLogin | null = null
 const getSocialLoginSDK = async (
-  chainId: string,
+  chainId: string = '0x1',
   whitelistUrls?: { [P in string]: string },
   network: 'mainnet' | 'testnet' = 'testnet'
 ) => {
