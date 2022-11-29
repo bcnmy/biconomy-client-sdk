@@ -2,7 +2,7 @@ import { JsonRpcProvider } from '@ethersproject/providers'
 import { ethers } from 'ethers'
 import { hexValue, resolveProperties } from 'ethers/lib/utils'
 
-import { UserOperation } from '@biconomy-sdk/core-types'
+import { UserOperation } from '@biconomy/core-types'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
 export class HttpRpcClient {
   private readonly userOpJsonRpcProvider: JsonRpcProvider

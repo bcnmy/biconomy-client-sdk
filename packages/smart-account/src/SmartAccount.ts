@@ -1,6 +1,7 @@
 import {
   SignTransactionDto,
   SendTransactionDto,
+  SendSignedTransactionDto,
   PrepareRefundTransactionDto,
   PrepareRefundTransactionsDto,
   RefundTransactionDto,
@@ -27,8 +28,9 @@ import {
   RelayResponse,
   SmartAccountConfig,
   IMetaTransaction,
-  NetworkConfig
-} from '@biconomy-sdk/core-types'
+  NetworkConfig,
+  ZERO_ADDRESS
+} from '@biconomy/core-types'
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import NodeClient, {
   ChainConfig,
@@ -38,21 +40,21 @@ import NodeClient, {
   BalancesResponse,
   BalancesDto,
   UsdBalanceResponse
-} from '@biconomy-sdk/node-client'
+} from '@biconomy/node-client'
 import { Web3Provider } from '@ethersproject/providers'
-import { IRelayer, RestRelayer } from '@biconomy-sdk/relayer'
+import { IRelayer, RestRelayer } from '@biconomy/relayer'
 import * as _ from 'lodash'
 import TransactionManager, {
   ContractUtils,
   smartAccountSignMessage,
   smartAccountSignTypedData
-} from '@biconomy-sdk/transactions'
+} from '@biconomy/transactions'
 import EventEmitter from 'events'
 import { TransactionResponse } from '@ethersproject/providers'
 import { SmartAccountSigner } from './signers/SmartAccountSigner'
 import { getConfigByNetwork } from './config/Config'
 // AA
-import { newProvider, ERC4337EthersProvider } from '@biconomy-sdk/account-abstraction'
+import { newProvider, ERC4337EthersProvider } from '@biconomy/account-abstraction'
 
 import { ethers, Signer } from 'ethers'
 
@@ -158,11 +160,12 @@ class SmartAccount extends EventEmitter {
     this.chainConfig = []
   }
 
+  getConfig(): SmartAccountConfig {
+    return this.#smartAccountConfig
+  }
+
   getProviderUrl(network: ChainConfig): string {
-    console.log('after init smartAccountConfig.networkConfig')
-    console.log(this.#smartAccountConfig.networkConfig)
     const networkConfig: NetworkConfig[] = this.#smartAccountConfig.networkConfig
-    console.log('networkConfig state is ', networkConfig)
     let providerUrl =
       networkConfig.find((element: NetworkConfig) => element.chainId === network.chainId)
         ?.providerUrl || ''
@@ -193,9 +196,7 @@ class SmartAccount extends EventEmitter {
       const network = this.chainConfig.find((element: ChainConfig) => element.chainId === chainId)
       if (!network) return
       const providerUrl = this.getProviderUrl(network)
-      console.log('init at chain')
-      console.log(chainId)
-      console.log(providerUrl)
+      console.log('init at chain', chainId)
       const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
       this.contractUtils.initializeContracts(this.signer, readProvider, network)
 
@@ -296,7 +297,7 @@ class SmartAccount extends EventEmitter {
 
     const isDelegate = transaction.to === multiSendContract.address ? true : false
 
-    const response = await aaSigner.sendTransaction(transaction, isDelegate, this)
+    const response = await aaSigner.sendTransaction(transaction, false, isDelegate, this)
 
     return response
     // todo: make sense of this response and return hash to the user
@@ -365,10 +366,15 @@ class SmartAccount extends EventEmitter {
   // Only to deploy wallet using connected paymaster
   // Todo : Add return type
   // Review involvement of Dapp API Key
-  public async deployWalletUsingPaymaster() {
+  public async deployWalletUsingPaymaster(): Promise<TransactionResponse> {
     // can pass chainId
     const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
-    await aaSigner.deployWalletOnly()
+    const transaction = {
+      to: ZERO_ADDRESS,
+      data: '0x'
+    }
+    const response = await aaSigner.sendTransaction(transaction, true, false, this)
+    return response
     // Todo: make sense of this response and return hash to the user
   }
 
@@ -537,6 +543,87 @@ class SmartAccount extends EventEmitter {
       chainId,
       signer: this.signer
     })
+
+    const execTransaction = await walletContract.populateTransaction.execTransaction(
+      transaction,
+      batchId,
+      refundInfo,
+      signature
+    )
+
+    rawTx.to = this.address
+    rawTx.data = execTransaction.data
+
+    const state = await this.contractUtils.getSmartAccountState(
+      this.smartAccountState,
+      this.DEFAULT_VERSION,
+      this.#smartAccountConfig.activeNetworkId
+    )
+
+    const signedTx: SignedTransaction = {
+      rawTx,
+      tx
+    }
+    const relayTrx: RelayTransaction = {
+      signedTx,
+      config: state,
+      context: this.getSmartAccountContext(chainId)
+    }
+    if (gasLimit) {
+      relayTrx.gasLimit = gasLimit
+    }
+    if (!isDeployed) {
+      gasLimit = {
+        hex: '0x1E8480',
+        type: 'hex'
+      }
+      relayTrx.gasLimit = gasLimit
+    }
+    const relayResponse: RelayResponse = await this.relayer.relay(relayTrx, this)
+    console.log('relayResponse')
+    console.log(relayResponse)
+    if (relayResponse.transactionId) {
+      return relayResponse.transactionId
+    }
+    return ''
+  }
+
+  async sendSignedTransaction(sendSignedTransactionDto: SendSignedTransactionDto): Promise<string> {
+    let { chainId } = sendSignedTransactionDto
+    const { tx, batchId = 0, signature } = sendSignedTransactionDto
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+    let { gasLimit } = sendSignedTransactionDto
+    const isDeployed = await this.contractUtils.isDeployed(
+      chainId,
+      this.DEFAULT_VERSION,
+      this.address
+    )
+    const rawTx: RawTransactionType = {
+      to: tx.to,
+      data: tx.data,
+      value: 0,
+      chainId: chainId
+    }
+
+    const transaction: ExecTransaction = {
+      to: tx.to,
+      value: tx.value,
+      data: tx.data,
+      operation: tx.operation,
+      targetTxGas: tx.targetTxGas
+    }
+
+    const refundInfo: IFeeRefundV1_0_0 | IFeeRefundV1_0_1 = {
+      baseGas: tx.baseGas,
+      gasPrice: tx.gasPrice,
+      tokenGasPriceFactor: tx.tokenGasPriceFactor,
+      gasToken: tx.gasToken,
+      refundReceiver: tx.refundReceiver
+    }
+
+    let walletContract =
+      this.contractUtils.smartWalletContract[chainId][this.DEFAULT_VERSION].getContract()
+    walletContract = walletContract.attach(this.address)
 
     const execTransaction = await walletContract.populateTransaction.execTransaction(
       transaction,
@@ -836,7 +923,5 @@ class SmartAccount extends EventEmitter {
     return context
   }
 }
-
-
 
 export default SmartAccount

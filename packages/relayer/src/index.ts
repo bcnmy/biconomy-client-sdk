@@ -1,5 +1,5 @@
-import { FeeOptionsResponse } from '@biconomy-sdk/core-types'
-import { RelayTransaction, RelayResponse } from '@biconomy-sdk/core-types'
+import { FeeOptionsResponse } from '@biconomy/core-types'
+import { RelayTransaction, RelayResponse } from '@biconomy/core-types'
 import { EventEmitter } from 'isomorphic-ws'
 export interface IRelayer {
   // relayer will submit the transaction(s) to the network and return the transaction response.

@@ -1,143 +1,152 @@
-import React from 'react'
+import React, { useState } from 'react'
 import SocialLogin from './SocialLogin'
 
 interface UIPorops {
   socialLogin: SocialLogin
 }
 
-const googleCardStyle = {
-  display: 'flex',
-  flexDirection: 'row',
-  justifyContent: 'center',
-  alignItems: 'center',
-  width: '319px',
-  height: '45px',
-  background: '#252525',
-  borderRadius: '12px',
-  border: 'none',
-  cursor: 'pointer'
-} as React.CSSProperties
-
-const buttonTextSpan = {
-  fontStyle: 'normal',
-  fontWeight: 600,
-  fontSize: '18px',
-  lineHeight: '23px',
-  display: 'flex',
-  alignItems: 'center',
-  textAlign: 'center',
-  color: '#FFFFFF'
-} as React.CSSProperties
-
 const container = {
   position: 'fixed',
   float: 'left',
   left: '50%',
   top: '50%',
+  width: 'min(90vw, 375px)',
   transform: 'translate(-50%, -50%)',
   transition: 'opacity 400ms ease-in',
   border: '1px solid #181818',
-  boxShadow: '5px 5px 0px #181818',
   borderRadius: 10,
-  padding: 30,
-  zIndex: 100,
-  background: 'black'
-} as React.CSSProperties
-
-const footer = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginTop: '26.39px'
-} as React.CSSProperties
-
-const footerNormalText = {
-  fontStyle: 'normal',
-  fontWeight: '600',
-  fontSize: '14.109px',
-  color: '#535353',
-  lineGeight: '18px'
-} as React.CSSProperties
-
-const footerBigText = {
-  fontStyle: 'normal',
-  fontWeight: '700',
-  fontSize: '16.1351px',
-  lineHeight: '21px',
-  color: '#535353'
+  background: 'black',
+  overflow: 'hidden'
 } as React.CSSProperties
 
 const UI: React.FC<UIPorops> = ({ socialLogin }) => {
+  const [email, setEmail] = useState('')
+
+  function handleEmailSubmit(event: React.SyntheticEvent) {
+    event.preventDefault()
+    socialLogin.emailLogin(email)
+  }
+
+  function handleEmailChange(event: React.FormEvent<HTMLInputElement>) {
+    setEmail(event.currentTarget.value)
+  }
+
   return (
     <div style={container}>
-      <img
-        src={'https://live-nft-hosted-assets.s3.ap-south-1.amazonaws.com/cancel_icon.svg'}
-        style={{ position: 'absolute', right: 18, cursor: 'pointer' }}
-        onClick={() => socialLogin.hideWallet()}
-      />
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          position: 'relative',
-          color: '#FFFFFF',
-          flexDirection: 'column'
-        }}
-      >
-        <h1
-          style={{
-            fontStyle: 'normal',
-            fontWeight: '700',
-            fontSize: '28px',
-            lineHeight: '110%',
-            margin: '15px',
-            display: 'flex',
-            alignItems: 'center',
-            textAlign: 'center',
-            border: '1px solid #000000',
-            textShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)'
-          }}
-        >
-          Biconomy Social Login
-        </h1>
-        <p
-          style={{
-            fontSize: '18px',
-            marginBottom: 35
-          }}
-        >
-          Create a wallet to continue
-        </p>
-      </div>
-      <div>
-        <button onClick={() => socialLogin.socialLogin()} style={googleCardStyle}>
+      <div className="w3a-modal__header">
+        <div className="w3a-header">
           <img
-            src={'https://live-nft-hosted-assets.s3.ap-south-1.amazonaws.com/google_logo.svg'}
-            style={{ marginRight: 14 }}
+            className="w3a-header__logo"
+            src="https://s2.coinmarketcap.com/static/img/coins/64x64/9543.png"
+            alt=""
           />
-          <span style={buttonTextSpan}>Continue with Google</span>
-        </button>
-      </div>
-      <hr style={{ margin: '20px 0' }} />
-      <div style={{ marginBottom: 20 }}>
-        <button onClick={() => socialLogin.metamaskLogin()} style={googleCardStyle}>
-          <span style={buttonTextSpan}>Connect MetaMask</span>
+          <div>
+            <div className="w3a-header__title">Sign in</div>
+            <p className="w3a-header__subtitle">Select one of the following to continue</p>
+          </div>
+        </div>
+        <button
+          onClick={() => socialLogin.hideWallet()}
+          style={{ position: 'absolute', top: 20, right: 26, cursor: 'pointer' }}
+        >
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
+            <path
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M17.25 6.75L6.75 17.25"
+            ></path>
+            <path
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M6.75 6.75L17.25 17.25"
+            ></path>
+          </svg>
         </button>
       </div>
 
-      <div style={{ marginBottom: 20 }}>
-        <button onClick={() => socialLogin.walletConnectLogin()} style={googleCardStyle}>
-          <span style={buttonTextSpan}>Connect WalletConnect</span>
-        </button>
+      <div className="w3a-modal__content">
+        <div className="w3ajs-social-logins w3a-group">
+          <div className="w3a-group__title">CONTINUE WITH</div>
+          <ul className="w3a-adapter-list">
+            <li className="w3a-adapter-item">
+              <button
+                type="button"
+                className="w3a-button w3a-button--icon"
+                onClick={() => socialLogin.socialLogin('google')}
+              >
+                <img
+                  src="https://images.web3auth.io/login-google.svg"
+                  height="auto"
+                  width="auto"
+                  alt="login-google"
+                />
+              </button>
+            </li>
+            <li className="w3a-adapter-item">
+              <button
+                type="button"
+                className="w3a-button w3a-button--icon"
+                onClick={() => socialLogin.socialLogin('facebook')}
+              >
+                <img
+                  src="https://images.web3auth.io/login-facebook.svg"
+                  height="auto"
+                  width="auto"
+                  alt="login-facebook"
+                />
+              </button>
+            </li>
+          </ul>
+        </div>
+        <div className="w3ajs-email-passwordless w3a-group w3a-group--email">
+          <div className="w3a-group__title">EMAIL</div>
+          <form className="w3ajs-email-passwordless-form" onSubmit={handleEmailSubmit}>
+            <input
+              className="w3a-text-field"
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={email}
+              onChange={handleEmailChange}
+            />
+            <button className="w3a-button" type="submit">
+              Continue with Email
+            </button>
+          </form>
+        </div>
+        <div className="w3ajs-external-wallet">
+          <div className="w3a-external-toggle">
+            <div className="w3a-group__title">EXTERNAL WALLET</div>
+            <button
+              type="button"
+              className="w3a-button w3ajs-external-toggle__button"
+              onClick={() => socialLogin.metamaskLogin()}
+            >
+              Connect using MetaMask
+            </button>
+            <button
+              type="button"
+              className="w3a-button w3ajs-external-toggle__button"
+              onClick={() => socialLogin.walletConnectLogin()}
+            >
+              Use Wallet Connect
+            </button>
+          </div>
+        </div>
       </div>
-      <div style={footer}>
-        <span style={footerNormalText}>powered by</span>
-        <img
-          src={'https://s2.coinmarketcap.com/static/img/coins/64x64/9543.png'}
-          style={{ marginLeft: 12, marginRight: 6, width: 30 }}
-        />
-        <span style={footerBigText}>Biconomy</span>
+
+      <div className="w3a-modal__footer">
+        <div className="w3a-footer">
+          <div>
+            <div className="w3a-footer__links">
+              Powered by <a href="https://biconomy.io">Biconomy</a>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

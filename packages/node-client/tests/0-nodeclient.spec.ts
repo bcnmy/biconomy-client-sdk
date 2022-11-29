@@ -1,5 +1,5 @@
-import SmartAccount from '@biconomy-sdk/smart-account'
-import { LocalRelayer } from '@biconomy-sdk/relayer'
+import SmartAccount from '@biconomy/smart-account'
+import { LocalRelayer } from '@biconomy/relayer'
 import { Contract, ethers, Signer as AbstractSigner } from 'ethers'
 import {
   JsonRpcProvider,
@@ -42,7 +42,7 @@ describe('Node Client', function () {
   let nodeClient: NodeClient
 
   before(async () => {
-    nodeClient = new NodeClient({ txServiceUrl: 'https://sdk-backend.staging.biconomy.io/v1' })
+    nodeClient = new NodeClient({ txServiceUrl: 'https://sdk-backend.prod.biconomy.io/v1' })
   })
 
   beforeEach(async () => { })

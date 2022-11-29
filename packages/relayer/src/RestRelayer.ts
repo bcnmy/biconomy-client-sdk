@@ -10,7 +10,7 @@ import {
   RelayResponse,
   GasLimit,
   ChainId
-} from '@biconomy-sdk/core-types'
+} from '@biconomy/core-types'
 import { MetaTransaction, encodeMultiSend } from './utils/MultiSend'
 import { HttpMethod, sendRequest } from './utils/HttpRequests'
 import { ClientMessenger } from 'messaging-sdk'

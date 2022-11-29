@@ -1,5 +1,5 @@
 import { arrayify, defaultAbiCoder, keccak256 } from 'ethers/lib/utils'
-import { UserOperation } from '@biconomy-sdk/core-types'
+import { UserOperation } from '@biconomy/core-types'
 import { abi as entryPointAbi } from '@account-abstraction/contracts/artifacts/IEntryPoint.json'
 
 // UserOperation is the first parameter of simulateValidation
