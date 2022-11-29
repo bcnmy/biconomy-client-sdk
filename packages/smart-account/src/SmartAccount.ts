@@ -927,8 +927,8 @@ class SmartAccount extends EventEmitter {
 // Current default config
 // TODO/NOTE : Goerli and Mumbai as test networks and remove others
 export const DefaultSmartAccountConfig: SmartAccountConfig = {
-  activeNetworkId: ChainId.GOERLI, //Update later
-  supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI, ChainId.POLYGON_MAINNET],
+  activeNetworkId: ChainId.POLYGON_MUMBAI, //Update later
+  supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI, ChainId.POLYGON_MAINNET, ChainId.BSC_TESTNET],
   signType: SignTypeMethod.EIP712_SIGN,
   backendUrl: 'https://sdk-backend.prod.biconomy.io/v1',
   relayerUrl: 'https://sdk-relayer.prod.biconomy.io/api/v1/relay',
