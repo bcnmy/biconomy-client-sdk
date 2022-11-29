@@ -140,6 +140,12 @@ export class SmartAccountAPI extends BaseWalletAPI {
       }
     }
 
+    if(!maxFeePerGas || !maxPriorityFeePerGas) {
+      const gasFee = await this.provider.getGasPrice() // Could be from bundler/ oracle
+      maxFeePerGas = gasFee
+      maxPriorityFeePerGas = gasFee
+    }
+
     const partialUserOp: any = {
       sender: await this.getWalletAddress(),
       nonce: await this.getNonce(0), // TODO (nice-to-have): add batchid as param
