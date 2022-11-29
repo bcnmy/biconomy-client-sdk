@@ -10,6 +10,7 @@ import { SmartWalletContract } from './contracts/SmartWalletContract'
 import { GasLimit } from './TransactionTypes'
 import { Signer } from 'ethers'
 import { IPaymasterAPI } from 'AccountAbstractionTypes'
+import { Web3Provider } from '@ethersproject/providers'
 
 export interface SmartAccountConfig {
   activeNetworkId: ChainId
@@ -22,6 +23,11 @@ export interface SmartAccountConfig {
   entryPointAddress?: string
   biconomySigningServiceUrl?: string
   bundlerUrl?: string
+}
+
+export type SmartAccountDto = {
+  walletProvider: Web3Provider
+  config?: Partial<SmartAccountConfig>
 }
 
 export enum SignTypeMethod {

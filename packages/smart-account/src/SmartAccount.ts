@@ -1,4 +1,5 @@
 import {
+  SmartAccountDto,
   SignTransactionDto,
   SendTransactionDto,
   PrepareRefundTransactionDto,
@@ -110,8 +111,9 @@ class SmartAccount extends EventEmitter {
    * If you wish to use your own backend server and relayer service, pass the URLs here
    */
   // Note: Could remove WalletProvider later on
-  constructor(networkType: string, walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
+  constructor(networkType: string, smartAccountDto: SmartAccountDto) {
     super()
+    const { config, walletProvider } = smartAccountDto
     const defaultSmartAccountConfig = getConfigByNetwork(networkType)
     this.#smartAccountConfig = { ...defaultSmartAccountConfig }
     console.log('stage 1 : default config')
