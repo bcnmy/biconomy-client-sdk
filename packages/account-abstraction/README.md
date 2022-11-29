@@ -1,4 +1,4 @@
-# `@biconomy-sdk/account-abstraction`
+# `@biconomy/account-abstraction`
 
 ## To create and send UserOperation
 

@@ -1,6 +1,6 @@
 import { BigNumberish, Contract, utils } from 'ethers'
 
-import { IMetaTransaction, IWalletTransaction, Transaction } from '@biconomy-sdk/core-types'
+import { IMetaTransaction, IWalletTransaction, Transaction } from '@biconomy/core-types'
 
 import { AddressZero } from '@ethersproject/constants'
 

@@ -1,4 +1,4 @@
-import { SampleRecipient, SampleRecipient__factory } from '@biconomy-sdk/common/dist/src/types'
+import { SampleRecipient, SampleRecipient__factory } from '@biconomy/common/dist/src/types'
 import { ethers } from 'hardhat'
 import { ClientConfig, ERC4337EthersProvider, newProvider } from '../src'
 import { EntryPoint, EntryPoint__factory } from '@account-abstraction/contracts'
@@ -14,7 +14,7 @@ import {
   SmartWalletFactoryContractV101,
   EntryPointContractV101,
   SmartWalletContractV101
-} from '@biconomy-sdk/ethers-lib'
+} from '@biconomy/ethers-lib'
 
 const provider = ethers.provider
 const signer = provider.getSigner()
@@ -62,7 +62,7 @@ describe('ERC4337EthersSigner, Provider', function () {
       // provide non-empty key and handle exceptions
       dappAPIKey: '',
       biconomySigningServiceUrl: 'https://us-central1-biconomy-staging.cloudfunctions.net',
-      socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
+      socketServerUrl: 'wss://sdk-ws.prod.biconomy.io/connection/websocket',
       entryPointAddress: entryPoint.address,
       bundlerUrl: 'http://localhost:3005/rpc',
       chainId: await provider.getNetwork().then((net) => net.chainId)

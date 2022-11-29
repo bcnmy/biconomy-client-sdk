@@ -1,6 +1,6 @@
 {
-  "name": "@biconomy-sdk/web3-auth",
-  "version": "1.0.27",
+  "name": "@biconomy/web3-auth",
+  "version": "0.0.3",
   "description": "web3-auth for biconomy sdk",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -35,14 +35,12 @@
     "access": "public"
   },
   "dependencies": {
-    "@toruslabs/eccrypto": "^1.1.8",
-    "@toruslabs/openlogin-utils": "^2.1.0",
+    "@biconomy/node-client": "^0.0.3",
     "@walletconnect/qrcode-modal": "^1.8.0",
     "@web3auth/base": "^3.0.0",
     "@web3auth/core": "^3.0.0",
     "@web3auth/metamask-adapter": "^3.0.0",
     "@web3auth/openlogin-adapter": "^3.0.3",
-    "@web3auth/ui": "^3.0.3",
     "@web3auth/wallet-connect-v1-adapter": "^3.0.3",
     "ethers": "^5.6.8",
     "process": "^0.11.10",
@@ -50,6 +48,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@biconomy/node-client": "*",
     "@types/react": "^18.0.15",
     "@types/react-dom": "^18.0.6",
     "path": "^0.12.7",
