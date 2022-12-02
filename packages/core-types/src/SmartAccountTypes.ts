@@ -22,6 +22,7 @@ export interface SmartAccountConfig {
   entryPointAddress?: string
   biconomySigningServiceUrl?: string
   bundlerUrl?: string
+  debug?: boolean
 }
 
 export enum SignTypeMethod {

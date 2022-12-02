@@ -58,6 +58,8 @@ import { newProvider, ERC4337EthersProvider } from '@biconomy/account-abstractio
 
 import { ethers, Signer } from 'ethers'
 
+let isLogsEnabled: Boolean = false;
+
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount extends EventEmitter {
   // By default latest version
@@ -114,10 +116,13 @@ class SmartAccount extends EventEmitter {
   // Note: Could remove WalletProvider later on
   constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
     super()
+    if(config && config.debug === true) {
+      isLogsEnabled = true;
+    }
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
-    console.log('stage 1 : default config')
-    console.log(this.#smartAccountConfig)
-    console.log(this.#smartAccountConfig.networkConfig)
+    this._logMessage('stage 1 : default config')
+    this._logMessage(this.#smartAccountConfig)
+    this._logMessage(this.#smartAccountConfig.networkConfig)
 
     if (!this.#smartAccountConfig.activeNetworkId) {
       throw Error('active chain needs to be specified')
@@ -130,21 +135,20 @@ class SmartAccount extends EventEmitter {
 
     if (config) {
       const customNetworkConfig: NetworkConfig[] = config.networkConfig || []
-      console.log('default network config')
-      console.log(networkConfig)
-      console.log('custom network config')
-      console.log(config.networkConfig)
+      this._logMessage('default network config')
+      this._logMessage(networkConfig)
+      this._logMessage('custom network config')
+      this._logMessage(config.networkConfig)
       networkConfig = _.unionBy(customNetworkConfig, networkConfig, 'chainId')
-      console.log('merged network config values')
-      console.log(networkConfig)
-      console.log('smart account config before merge')
-      console.log(this.#smartAccountConfig)
+      this._logMessage('merged network config values')
+      this._logMessage(networkConfig)
+      this._logMessage('smart account config before merge')
+      this._logMessage(this.#smartAccountConfig)
       this.#smartAccountConfig = { ...this.#smartAccountConfig, ...config }
       this.#smartAccountConfig.networkConfig = networkConfig
-      console.log('final smart account config before after merge')
-      console.log(this.#smartAccountConfig)
+      this._logMessage('final smart account config before after merge')
+      this._logMessage(this.#smartAccountConfig)
     }
-
     this.supportedNetworkIds = this.#smartAccountConfig.supportedNetworksIds
 
     // Should not break if we make this wallet connected provider optional (We'd have JsonRpcProvider / JsonRpcSender)
@@ -159,12 +163,32 @@ class SmartAccount extends EventEmitter {
     this.chainConfig = []
   }
 
+  /**
+   * Single method to be used for logging purpose.
+   *
+   * @param {any} message Message to be logged
+   */
+  _logMessage(message: any) {
+    if (isLogsEnabled && console.log) {
+      console.log(message);
+    }
+  }
+
   getConfig(): SmartAccountConfig {
     return this.#smartAccountConfig
   }
 
+  // Changes if we make change in nature of smart account signer
+  getsigner(): Signer & TypedDataSigner {
+    return this.signer
+  } 
+
   getProviderUrl(network: ChainConfig): string {
+    this._logMessage('after init smartAccountConfig.networkConfig')
+    this._logMessage(this.#smartAccountConfig.networkConfig)
     const networkConfig: NetworkConfig[] = this.#smartAccountConfig.networkConfig
+    this._logMessage(`networkConfig state is`)
+    this._logMessage(networkConfig)
     let providerUrl =
       networkConfig.find((element: NetworkConfig) => element.chainId === network.chainId)
         ?.providerUrl || ''
@@ -190,12 +214,13 @@ class SmartAccount extends EventEmitter {
       console.log('Instantiating chain ', chainId)
     }
     if (!exist) {
-      console.log('this.chainConfig')
-      console.log(this.chainConfig)
+      this._logMessage('this.chainConfig')
+      this._logMessage(this.chainConfig)
       const network = this.chainConfig.find((element: ChainConfig) => element.chainId === chainId)
       if (!network) return
       const providerUrl = this.getProviderUrl(network)
-      console.log('init at chain', chainId)
+      this._logMessage('init at chain')
+      this._logMessage(chainId)
       const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
       this.contractUtils.initializeContracts(this.signer, readProvider, network)
 
@@ -346,8 +371,8 @@ class SmartAccount extends EventEmitter {
       nonce,
       true
     )
-    console.log('final gasless batch tx ')
-    console.log(finalTx)
+    this._logMessage('final gasless batch tx ')
+    this._logMessage(finalTx)
 
     const gaslessTx = {
       to: finalTx.to,
@@ -954,7 +979,8 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
       chainId: ChainId.POLYGON_MAINNET,
       providerUrl: 'https://polygon-mainnet.g.alchemy.com/v2/6Tn--QDkp1vRBXzRV3Cc8fLXayr5Yoij'
     }
-  ]
+  ],
+    debug: false
 }
 
 export default SmartAccount
