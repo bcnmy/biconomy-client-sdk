@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/web3-auth",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "web3-auth for biconomy sdk",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -24,7 +24,8 @@
   },
   "scripts": {
     "unbuild": "rimraf dist *.tsbuildinfo",
-    "build": "rimraf dist && tsc",
+    "copy-files": "npx copyfiles -u 1 src/**/*.css dist/src",
+    "build": "rimraf dist && tsc && yarn copy-files",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
     "lint": "tslint -p tsconfig.json"
   },
@@ -35,7 +36,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@biconomy/node-client": "^0.0.3",
+    "@biconomy/node-client": "^0.0.4",
     "@walletconnect/qrcode-modal": "^1.8.0",
     "@web3auth/base": "^3.0.0",
     "@web3auth/core": "^3.0.0",
