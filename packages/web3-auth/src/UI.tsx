@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import SocialLogin from './SocialLogin'
-import './style.css'
 
 interface UIPorops {
   socialLogin: SocialLogin

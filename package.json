@@ -36,7 +36,8 @@
     "eslint-plugin-import": "^2.26.0",
     "hardhat": "^2.9.9",
     "lerna": "^5.5.4",
-    "nx": "^15.0.13",
+    "lerna-changelog": "^2.2.0",
+    "nx": "^15.2.4",
     "prettier": "2.7.1",
     "rimraf": "^3.0.2",
     "ts-node": "^10.9.1"

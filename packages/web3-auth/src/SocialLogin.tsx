@@ -2,7 +2,6 @@ import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { ethers } from 'ethers'
 import { Web3AuthCore } from '@web3auth/core'
-import { NetworkSwitch } from '@web3auth/ui'
 import {
   WALLET_ADAPTERS,
   CHAIN_NAMESPACES,
@@ -56,7 +55,7 @@ class SocialLogin {
   }
 
   async init(
-    chainId: string,
+    chainId: string = defaultSocialLoginConfig.defaultChainId,
     whitelistUrls?: { [P in string]: string },
     network: 'mainnet' | 'testnet' = 'testnet'
   ) {
@@ -74,7 +73,7 @@ class SocialLogin {
         adapterSettings: {
           clientId: this.clientId,
           network: network,
-          uxMode: 'redirect',
+          uxMode: 'popup',
           whiteLabel: {
             name: 'Biconomy SDK',
             logoLight: 'https://s2.coinmarketcap.com/static/img/coins/64x64/9543.png',
@@ -88,11 +87,9 @@ class SocialLogin {
       const metamaskAdapter = new MetamaskAdapter({
         clientId: this.clientId
       })
-      const networkUi = new NetworkSwitch()
       const wcAdapter = new WalletConnectV1Adapter({
         adapterSettings: {
-          qrcodeModal: QRCodeModal,
-          networkSwitchModal: networkUi
+          qrcodeModal: QRCodeModal
         }
       })
 
@@ -278,6 +275,7 @@ class SocialLogin {
 }
 
 const defaultSocialLoginConfig: DefaultSocialLoginConfig = {
+  defaultChainId: '0x1', // string hex of mainnet
   backendUrl: 'https://sdk-backend.prod.biconomy.io/v1'
 }
 
@@ -285,7 +283,7 @@ export default SocialLogin
 
 let initializedSocialLogin: SocialLogin | null = null
 const getSocialLoginSDK = async (
-  chainId: string,
+  chainId: string = defaultSocialLoginConfig.defaultChainId,
   whitelistUrls?: { [P in string]: string },
   network: 'mainnet' | 'testnet' = 'testnet'
 ) => {

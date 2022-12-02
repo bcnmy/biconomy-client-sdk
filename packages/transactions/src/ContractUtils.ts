@@ -65,7 +65,6 @@ class ContractUtils {
 
     for (let index = 0; index < smartWallet.length; index++) {
       const version = smartWallet[index].version
-      console.log(smartWallet[index])
 
       this.smartWalletFactoryContract[chaininfo.chainId][version] = getSmartWalletFactoryContract(
         version,
