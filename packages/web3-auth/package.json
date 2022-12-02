@@ -24,7 +24,8 @@
   },
   "scripts": {
     "unbuild": "rimraf dist *.tsbuildinfo",
-    "build": "rimraf dist && tsc",
+    "copy-files": "npx copyfiles -u 1 src/**/*.css dist/src",
+    "build": "rimraf dist && tsc && yarn copy-files",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
     "lint": "tslint -p tsconfig.json"
   },
