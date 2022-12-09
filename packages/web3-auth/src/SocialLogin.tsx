@@ -274,7 +274,6 @@ class SocialLogin {
 }
 
 const defaultSocialLoginConfig: DefaultSocialLoginConfig = {
-  defaultChainId: '0x1', // string hex of mainnet
   backendUrl: 'https://sdk-backend.prod.biconomy.io/v1'
 }
 
