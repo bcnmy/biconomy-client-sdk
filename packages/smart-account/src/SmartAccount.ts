@@ -604,8 +604,6 @@ class SmartAccount extends EventEmitter {
       relayTrx.gasLimit = gasLimit
     }
     const relayResponse: RelayResponse = await this.relayer.relay(relayTrx, this)
-    console.log('relayResponse')
-    console.log(relayResponse)
     if (relayResponse.transactionId) {
       return relayResponse.transactionId
     }
