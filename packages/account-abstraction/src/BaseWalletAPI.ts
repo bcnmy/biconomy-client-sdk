@@ -201,6 +201,10 @@ export abstract class BaseWalletAPI {
       detailsForUserOp.isDelegateCall || false
     )
 
+    // console.log('detailsForUserOp.gasLimit')
+    // console.log(detailsForUserOp.gasLimit)
+
+    // Review: doesn't work if wallet is not already deployed.
     const callGasLimit =
       parseNumber(detailsForUserOp.gasLimit) ??
       (await this.provider.estimateGas({
@@ -208,6 +212,9 @@ export abstract class BaseWalletAPI {
         to: this.getWalletAddress(),
         data: callData
       }))
+
+    // console.log('callGasLimit returned')
+    // console.log(callGasLimit)
 
     return {
       callData,

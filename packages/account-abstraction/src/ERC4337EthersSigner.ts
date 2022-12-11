@@ -49,18 +49,21 @@ export class ERC4337EthersSigner extends Signer {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const customData: any = transaction.customData
     console.log(customData)
-    let gasLimit = 2000000
-    if (customData && customData.appliedGasLimit) {
-      gasLimit = customData.appliedGasLimit
-      console.log('gaslimit applied from custom data...', gasLimit)
-    }
 
+    let gasLimit = 2000000
+
+    if(customData && (customData.isBatchedToMultiSend || !customData.isDeployed)) {
+      if (customData.appliedGasLimit) {
+        gasLimit = customData.appliedGasLimit
+        console.log('gaslimit applied from custom data...', gasLimit)
+      }
+    }
+    
     console.log('gaslimit ', gasLimit)
+    transaction.gasLimit = gasLimit
     console.log('transaction.gaslimit ', transaction.gasLimit)
 
-    // TODO : //temp to avoid running into issues with populateTransaction when destination is multisend OR wallet is undeployed
-    transaction.gasLimit = gasLimit
-    // TODO : If isDeployed = false || skipGasLimit = true then use provided gas limit => transaction.gasLimit = gasLimit
+
     delete transaction.customData
 
     // transaction.from = await this.smartWalletAPI.getWalletAddress()

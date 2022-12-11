@@ -57,6 +57,7 @@ import { SmartAccountSigner } from './signers/SmartAccountSigner'
 import { newProvider, ERC4337EthersProvider } from '@biconomy/account-abstraction'
 
 import { ethers, Signer } from 'ethers'
+import { TransactionRequest } from '@ethersproject/providers/lib'
 
 let isLogsEnabled: Boolean = false;
 
@@ -321,10 +322,25 @@ class SmartAccount extends EventEmitter {
 
     const isDelegate = transaction.to === multiSendContract.address ? true : false
 
-    const response = await aaSigner.sendTransaction(transaction, false, isDelegate, this)
+    let customData: any = {}
+    let transactionRequest : TransactionRequest = {...transaction}
 
+    const isDeployed = await this.contractUtils.isDeployed(
+      chainId,
+      this.DEFAULT_VERSION,
+      this.address
+    )
+
+    if(!isDeployed || isDelegate) {
+       customData.appliedGasLimit = ethers.constants.Two.pow(24) // estimateGas for execFromEntryPoint
+       customData.isDeployed = isDeployed
+       customData.isBatchedToMultiSend = isDelegate
+
+       transactionRequest = {...transactionRequest, customData}
+    }
+
+    const response = await aaSigner.sendTransaction(transactionRequest, false, isDelegate, this)
     return response
-    // todo: make sense of this response and return hash to the user
   }
 
   public async sendGaslessTransactionBatch(
