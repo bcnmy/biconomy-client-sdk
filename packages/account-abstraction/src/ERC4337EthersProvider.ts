@@ -170,8 +170,6 @@ export class ERC4337EthersProvider extends BaseProvider {
                 receipt: tx.receipt
               })}`
             )
-            tx.receipt.transactionHash = tx.receipt.hash
-            delete tx.receipt.hash
             const receipt: TransactionReceipt = tx.receipt
             // Todo // review below
             engine.emit('txMined', {
@@ -200,8 +198,8 @@ export class ERC4337EthersProvider extends BaseProvider {
       chainId: this.config.chainId,
       wait: async (confirmations?: number): Promise<TransactionReceipt> => {
         console.log(confirmations)
-        const transactionReceipt = waitPromise.then((receipt: any) => {
-          console.log('received tx receipt ', receipt)
+        const transactionReceipt = waitPromise.then((receipt: TransactionReceipt) => {
+          // console.log('received tx receipt ', receipt)
           return receipt
         })
         if (userOp.initCode.length !== 0) {
