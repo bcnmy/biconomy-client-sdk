@@ -307,7 +307,7 @@ class SmartAccount extends EventEmitter {
   // Optional methods for connecting paymaster
   // Optional methods for connecting another bundler
 
-  public async sendGasLessTransaction(
+  public async sendGaslessTransaction(
     transactionDto: TransactionDto
   ): Promise<TransactionResponse> {
     let { version, chainId } = transactionDto
@@ -383,7 +383,7 @@ class SmartAccount extends EventEmitter {
     // Multisend is tricky because populateTransaction expects delegateCall and we must override
 
     // TODO : stuff before this can be moved to TransactionManager
-    const response = await this.sendGasLessTransaction({ version, transaction: gaslessTx, chainId })
+    const response = await this.sendGaslessTransaction({ version, transaction: gaslessTx, chainId })
     return response
   }
 
@@ -604,8 +604,6 @@ class SmartAccount extends EventEmitter {
       relayTrx.gasLimit = gasLimit
     }
     const relayResponse: RelayResponse = await this.relayer.relay(relayTrx, this)
-    console.log('relayResponse')
-    console.log(relayResponse)
     if (relayResponse.transactionId) {
       return relayResponse.transactionId
     }
