@@ -6,7 +6,8 @@ import {
   DeployWallet,
   FeeOptionsResponse,
   RelayTransaction,
-  RelayResponse
+  RelayResponse,
+  GasLimit
 } from '@biconomy/core-types'
 import { MetaTransaction, encodeMultiSend } from './utils/MultiSend'
 
@@ -59,7 +60,7 @@ export class LocalRelayer implements IRelayer {
   }
 
   async relay(relayTransaction: RelayTransaction): Promise<RelayResponse> {
-    const { config, signedTx, context } = relayTransaction
+    const { config, signedTx, context, gasLimit } = relayTransaction
     const { isDeployed, address } = config
     const { multiSendCall } = context // multisend has to be multiSendCallOnly here!
     if (!isDeployed) {
@@ -98,7 +99,7 @@ export class LocalRelayer implements IRelayer {
 
       const tx = this.signer.sendTransaction({
         ...finalRawRx,
-        gasLimit: ethers.constants.Two.pow(24)
+        gasLimit: gasLimit ? (gasLimit as GasLimit).hex : ethers.constants.Two.pow(24)
       })
       return tx
       // rawTx to becomes multiSend address and data gets prepared again
@@ -106,7 +107,7 @@ export class LocalRelayer implements IRelayer {
 
     const tx = this.signer.sendTransaction({
       ...signedTx.rawTx,
-      gasLimit: ethers.constants.Two.pow(24)
+      gasLimit: gasLimit ? (gasLimit as GasLimit).hex : ethers.constants.Two.pow(24)
     })
     return tx
   }
