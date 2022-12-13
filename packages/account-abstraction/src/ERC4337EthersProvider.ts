@@ -171,7 +171,6 @@ export class ERC4337EthersProvider extends BaseProvider {
               })}`
             )
             const receipt: TransactionReceipt = tx.receipt
-            // Todo // review below
             engine.emit('txMined', {
               msg: 'txn mined',
               id: txId,
