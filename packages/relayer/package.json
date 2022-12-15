@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/relayer",
-  "version": "0.0.4",
+  "version": "1.0.0",
   "description": "relayer client to dispatach transactions on blockchain",
   "keywords": [
     "relayer"
@@ -25,7 +25,7 @@
     "lint": "tslint -p tsconfig.json"
   },
   "dependencies": {
-    "@biconomy/core-types": "^0.0.4",
+    "@biconomy/core-types": "^1.0.0",
     "@ethersproject/providers": "^5.6.8",
     "ethers": "^5.6.9",
     "isomorphic-ws": "^5.0.0",
