@@ -346,6 +346,8 @@ class SmartAccount extends EventEmitter {
        transactionRequest = {...transactionRequest, customData}
     }
 
+    // Todo: should be able to pass requiredTxGas (gasLimit for execute when execFromEntryPoint is called)
+
     const response = await aaSigner.sendTransaction(transactionRequest, false, isDelegate, this)
     return response
   }

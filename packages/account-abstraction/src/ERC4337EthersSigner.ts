@@ -26,7 +26,7 @@ export class ERC4337EthersSigner extends Signer {
 
   // This one is called by Contract. It signs the request and passes in to Provider to be sent.
   async sendTransaction(
-    transaction: Deferrable<TransactionRequest>,
+    transaction: TransactionRequest,
     walletDeployOnly = false,
     isDelegate = false,
     engine?: any // EventEmitter
@@ -59,17 +59,12 @@ export class ERC4337EthersSigner extends Signer {
       }
     }
     
-    console.log('gaslimit ', gasLimit)
-    transaction.gasLimit = gasLimit
-    console.log('transaction.gaslimit ', transaction.gasLimit)
-
-
     delete transaction.customData
 
     // transaction.from = await this.smartWalletAPI.getWalletAddress()
 
     // checking if wallet is deployed or not
-    // const isDeployed = await this.smartWalletAPI.checkWalletPhantom()
+    const isDeployed = await this.smartWalletAPI.checkWalletPhantom()
 
     let userOperation: UserOperation
     if (walletDeployOnly === true) {
@@ -80,16 +75,16 @@ export class ERC4337EthersSigner extends Signer {
         gasLimit: 21000
       })
     } else {
-      const tx: TransactionRequest = await this.populateTransaction(transaction)
+      // Removing populate transaction all together
+      // const tx: TransactionRequest = await this.populateTransaction(transaction)
 
-      console.log('populate trx ', tx)
-      await this.verifyAllNecessaryFields(tx)
+      await this.verifyAllNecessaryFields(transaction)
 
       userOperation = await this.smartWalletAPI.createSignedUserOp({
-        target: tx.to ?? '',
-        data: tx.data?.toString() ?? '',
-        value: tx.value,
-        gasLimit: tx.gasLimit,
+        target: transaction.to ?? '',
+        data: transaction.data?.toString() ?? '',
+        value: transaction.value,
+        gasLimit: isDeployed? gasLimit : transaction.gasLimit,
         isDelegateCall: isDelegate // get from customData.isBatchedToMultiSend
       })
     }
