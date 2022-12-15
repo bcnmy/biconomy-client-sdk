@@ -54,7 +54,7 @@ import { TransactionResponse } from '@ethersproject/providers'
 import { SmartAccountSigner } from './signers/SmartAccountSigner'
 
 // AA
-import { newProvider, ERC4337EthersProvider } from '@biconomy/account-abstraction'
+import { newProvider, ERC4337EthersProvider, ERC4337EthersSigner, BaseWalletAPI } from '@biconomy/account-abstraction'
 
 import { ethers, Signer } from 'ethers'
 import { TransactionRequest } from '@ethersproject/providers/lib'
@@ -182,7 +182,14 @@ class SmartAccount extends EventEmitter {
   // Changes if we make change in nature of smart account signer
   getsigner(): Signer & TypedDataSigner {
     return this.signer
-  } 
+  }
+  
+  getSmartAccountAPI(chainId: ChainId): BaseWalletAPI {
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+    const aaSigner: ERC4337EthersSigner = this.aaProvider[chainId].getSigner()
+    return aaSigner.smartWalletAPI;
+
+  }
 
   getProviderUrl(network: ChainConfig): string {
     this._logMessage('after init smartAccountConfig.networkConfig')
@@ -315,7 +322,7 @@ class SmartAccount extends EventEmitter {
     const { transaction } = transactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
-    const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
+    const aaSigner = this.aaProvider[chainId].getSigner()
 
     await this.initializeContractsAtChain(chainId)
     const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract()

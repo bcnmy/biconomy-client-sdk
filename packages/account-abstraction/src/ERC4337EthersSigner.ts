@@ -68,6 +68,9 @@ export class ERC4337EthersSigner extends Signer {
 
     // transaction.from = await this.smartWalletAPI.getWalletAddress()
 
+    // checking if wallet is deployed or not
+    // const isDeployed = await this.smartWalletAPI.checkWalletPhantom()
+
     let userOperation: UserOperation
     if (walletDeployOnly === true) {
       userOperation = await this.smartWalletAPI.createSignedUserOp({
