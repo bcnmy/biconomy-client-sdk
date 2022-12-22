@@ -19,6 +19,8 @@ export const EIP_DOMAIN = {
   ]
 }
 
+// todo
+// Create a method that returns EIP712_WALLET_TX_TYPE based on the version passed
 export const EIP712_WALLET_TX_TYPE = {
   // "AccountTx(address to,uint256 value,bytes data,uint8 operation,uint256 targetTxGas,uint256 baseGas,uint256 gasPrice,address gasToken,address refundReceiver,uint256 nonce)"
   AccountTx: [
