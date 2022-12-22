@@ -1,4 +1,4 @@
-export type SmartAccountVersion = '1.0.1' | '1.0.0'
+export type SmartAccountVersion = '1.0.1' | '1.0.0' | '1.0.2'
 
 export enum OperationType {
   Call, // 0

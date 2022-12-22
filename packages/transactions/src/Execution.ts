@@ -20,8 +20,8 @@ export const EIP_DOMAIN = {
 }
 
 export const EIP712_WALLET_TX_TYPE = {
-  // "WalletTx(address to,uint256 value,bytes data,uint8 operation,uint256 targetTxGas,uint256 baseGas,uint256 gasPrice,address gasToken,address refundReceiver,uint256 nonce)"
-  WalletTx: [
+  // "AccountTx(address to,uint256 value,bytes data,uint8 operation,uint256 targetTxGas,uint256 baseGas,uint256 gasPrice,address gasToken,address refundReceiver,uint256 nonce)"
+  AccountTx: [
     { type: 'address', name: 'to' },
     { type: 'uint256', name: 'value' },
     { type: 'bytes', name: 'data' },
