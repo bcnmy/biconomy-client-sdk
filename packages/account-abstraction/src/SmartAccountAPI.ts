@@ -73,7 +73,7 @@ export class SmartAccountAPI extends BaseWalletAPI {
 
   async getNonce(batchId: number): Promise<BigNumber> {
     console.log('checking nonce')
-    if (await this.checkWalletPhantom()) {
+    if (!await this.checkWalletDeployed()) {
       return BigNumber.from(0)
     }
     const walletContract = await this._getWalletContract()
@@ -115,7 +115,7 @@ export class SmartAccountAPI extends BaseWalletAPI {
    */
   async createUnsignedUserOp(info: TransactionDetailsForUserOp): Promise<UserOperation> {
     // not ideal as it will unnecessary increase callGasLimit, unless appliedGasLimit is sent reasonable
-    /*if (!(await this.checkWalletPhantom())) {
+    /*if ((await this.checkWalletDeployed())) {
     delete info.gasLimit
     }*/
     const { callData, callGasLimit } = await this.encodeUserOpCallDataAndGasLimit(info)

@@ -64,7 +64,7 @@ export class ERC4337EthersSigner extends Signer {
     // transaction.from = await this.smartWalletAPI.getWalletAddress()
 
     // checking if wallet is deployed or not
-    const isDeployed = await this.smartWalletAPI.checkWalletPhantom()
+    const isDeployed = await this.smartWalletAPI.checkWalletDeployed()
 
     let userOperation: UserOperation
     if (walletDeployOnly === true) {
@@ -84,7 +84,7 @@ export class ERC4337EthersSigner extends Signer {
         target: transaction.to ?? '',
         data: transaction.data?.toString() ?? '',
         value: transaction.value,
-        gasLimit: isDeployed? gasLimit : transaction.gasLimit,
+        gasLimit: isDeployed? transaction.gasLimit : gasLimit,
         isDelegateCall: isDelegate // get from customData.isBatchedToMultiSend
       })
     }
