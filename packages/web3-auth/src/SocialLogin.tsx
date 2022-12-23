@@ -63,7 +63,7 @@ class SocialLogin {
     const finalDTO: SocialLoginDTO = {
       chainId: '0x1',
       whitelistUrls: {},
-      network: 'testnet',
+      network: 'mainnet',
       whteLableData: this.whiteLabel
     }
     if (socialLoginDTO) {
