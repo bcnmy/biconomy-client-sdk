@@ -35,11 +35,7 @@ const UI: React.FC<UIPorops> = ({ socialLogin }) => {
     <div style={container}>
       <div className="w3a-modal__header">
         <div className="w3a-header">
-          <img
-            className="w3a-header__logo"
-            src="https://s2.coinmarketcap.com/static/img/coins/64x64/9543.png"
-            alt=""
-          />
+          <img className="w3a-header__logo" src={socialLogin.whiteLabel.logo} alt="logo" />
           <div>
             <div className="w3a-header__title">Sign in</div>
             <p className="w3a-header__subtitle">Select one of the following to continue</p>

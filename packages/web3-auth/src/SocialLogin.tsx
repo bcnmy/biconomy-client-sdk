@@ -15,7 +15,7 @@ import QRCodeModal from '@walletconnect/qrcode-modal'
 import NodeClient, { WhiteListSignatureResponse } from '@biconomy/node-client'
 
 import UI from './UI'
-import { DefaultSocialLoginConfig, SocialLoginDTO } from './types/Web3AuthConfig'
+import { DefaultSocialLoginConfig, SocialLoginDTO, WhiteLabelDataType } from './types/Web3AuthConfig'
 
 function createLoginModal(socialLogin: SocialLogin) {
   const root = createRoot((document as any).getElementById('w3a-modal'))
@@ -29,6 +29,7 @@ class SocialLogin {
   iframeInitialized = false
   isInit = false
   clientId: string
+  whiteLabel: WhiteLabelDataType
   userInfo: Partial<UserInfo> | null = null
   web3auth: Web3AuthCore | null = null
   provider: SafeEventEmitterProvider | null = null
@@ -44,6 +45,10 @@ class SocialLogin {
       'BDtxlmCXNAWQFGiiaiVY3Qb1aN-d7DQ82OhT6B-RBr5j_rGnrKAqbIkvLJlf-ofYlJRiNSHbnkeHlsh8j3ueuYY'
     this.backendUrl = backendUrl
     this.nodeClient = new NodeClient({ txServiceUrl: this.backendUrl })
+    this.whiteLabel = {
+      name: 'Biconomy SDK',
+      logo: 'https://s2.coinmarketcap.com/static/img/coins/64x64/9543.png'
+    }
   }
 
   async whitelistUrl(origin: string): Promise<string> {
@@ -58,12 +63,14 @@ class SocialLogin {
     const finalDTO: SocialLoginDTO = {
       chainId: '0x1',
       whitelistUrls: {},
-      network: 'testnet'
+      network: 'testnet',
+      whteLableData: this.whiteLabel
     }
     if (socialLoginDTO) {
       if (socialLoginDTO.chainId) finalDTO.chainId = socialLoginDTO.chainId
       if (socialLoginDTO.network) finalDTO.network = socialLoginDTO.network
       if (socialLoginDTO.whitelistUrls) finalDTO.whitelistUrls = socialLoginDTO.whitelistUrls
+      if (socialLoginDTO.whteLableData) this.whiteLabel = socialLoginDTO.whteLableData
     }
     try {
       console.log('SocialLogin init')
@@ -81,9 +88,9 @@ class SocialLogin {
           network: finalDTO.network,
           uxMode: 'popup',
           whiteLabel: {
-            name: 'Biconomy SDK',
-            logoLight: 'https://s2.coinmarketcap.com/static/img/coins/64x64/9543.png',
-            logoDark: 'https://s2.coinmarketcap.com/static/img/coins/64x64/9543.png',
+            name: this.whiteLabel.name,
+            logoLight: this.whiteLabel.logo,
+            logoDark: this.whiteLabel.logo,
             defaultLanguage: 'en',
             dark: true
           },
@@ -171,6 +178,16 @@ class SocialLogin {
       const userInfo = await this.web3auth.getUserInfo()
       this.userInfo = userInfo
       return userInfo
+    }
+    return null
+  }
+
+  async getPrivateKey() {
+    if (this.web3auth && this.web3auth.provider) {
+      const privateKey = await this.web3auth.provider.request({
+        method: 'eth_private_key'
+      })
+      return privateKey
     }
     return null
   }
