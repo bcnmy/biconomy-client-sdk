@@ -321,7 +321,41 @@ class SmartAccount extends EventEmitter {
 
     const isDelegate = transaction.to === multiSendContract.address ? true : false
 
+    // nodeclient.isFallbackEnabled()
+    // if false
     const response = await aaSigner.sendTransaction(transaction, false, isDelegate, this)
+
+    // else 
+
+    // { to, data } = 
+    // this.createTransaction() / this.createTransactionBatch()
+    // signTransaction and get execTransaction payload
+    // nonce from gas tank contract : 
+
+    // create instance of SingletonGasTank contracts 
+    // i. read deposit of dappIdentifier (TBD)
+    // ii. read nonce for walletAddress 
+
+    // gas estimation and get gasLimit
+    // TBD : probably extraBaseGas for the case of wallet deployment
+
+    // @review : Is it fine if the user signs first and then we invoke the signing service??
+
+    // get smartAcocuntConfig.networkConfig.dappApiKey // smartAccount.currentVersion
+    // make a call to fallback signing service (make use of created instance of FallbackSigningAPI.ts - reference IPaymasterAPI)  
+    // with 
+    // i. fallbackUserOp
+    // ii. version
+    // iii. transactionMetadata // optional
+    // with dappAPIKey in headers
+
+    // expected repsonse from above 
+    // dappIdentifier and signature
+
+    // rawTx = { to: gasTankContract.address, data: encode for exeucteRelay (fallbackUserOp)} where fallbackUserop is wallet address, nonce, baseGas, execTransactionData, gasLimit, dappIdentifier, signature 
+    // 
+    // now send to relayer this.relayer.relay(relayTrx, isFallbackEnabled)
+    // response from above ^  transactionId
 
     return response
     // todo: make sense of this response and return hash to the user
@@ -537,7 +571,7 @@ class SmartAccount extends EventEmitter {
     const rawTx: RawTransactionType = {
       to: tx.to,
       data: tx.data,
-      value: 0,
+      value: 0, // review
       chainId: chainId
     }
 

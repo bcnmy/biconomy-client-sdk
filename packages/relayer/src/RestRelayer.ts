@@ -64,6 +64,8 @@ export class RestRelayer implements IRelayer {
     }
   }
 
+  // todo: modify this dto to accept a flag isFallbackEnabled 
+  // if the wallet is deployed baseGas would be coming as part of struct in rawtx 
   async relay(relayTransaction: RelayTransaction, engine: EventEmitter): Promise<RelayResponse> {
     const socketServerUrl = this.#socketServerUrl
 
@@ -138,6 +140,7 @@ export class RestRelayer implements IRelayer {
       ]
     )*/
 
+    // based on the flag make rpc call to relayer code service with necessary rawTx data
     const response: any = await sendRequest({
       url: `${this.#relayServiceBaseUrl}`,
       method: HttpMethod.Post,
