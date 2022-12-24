@@ -114,10 +114,6 @@ export class SmartAccountAPI extends BaseWalletAPI {
    * @param info
    */
   async createUnsignedUserOp(info: TransactionDetailsForUserOp): Promise<UserOperation> {
-    // not ideal as it will unnecessary increase callGasLimit, unless appliedGasLimit is sent reasonable
-    /*if ((await this.checkWalletDeployed())) {
-    delete info.gasLimit
-    }*/
     const { callData, callGasLimit } = await this.encodeUserOpCallDataAndGasLimit(info)
     const initCode = await this.getInitCode()
     console.log('initCode ', initCode)
