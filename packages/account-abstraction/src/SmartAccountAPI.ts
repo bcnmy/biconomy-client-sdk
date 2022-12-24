@@ -73,7 +73,7 @@ export class SmartAccountAPI extends BaseWalletAPI {
 
   async getNonce(batchId: number): Promise<BigNumber> {
     console.log('checking nonce')
-    if (await this.checkWalletPhantom()) {
+    if (!await this.checkWalletDeployed()) {
       return BigNumber.from(0)
     }
     const walletContract = await this._getWalletContract()
