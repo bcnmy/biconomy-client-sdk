@@ -4,7 +4,7 @@ import log from "loglevel";
 import { URL } from "react-native-url-polyfill";
 
 import { IWebBrowser } from "./types/IWebBrowser";
-import { SdkInitParams, SdkLoginParams, SdkLogoutParams } from "./types/sdk";
+import { IOriginData, SdkInitParams, SdkLoginParams, SdkLogoutParams, SoicalLoginDto } from "./types/sdk";
 import { State } from "./types/State";
 
 class SoicalLogin {
@@ -16,12 +16,17 @@ class SoicalLogin {
 
   private backendUrl: string;
 
-  constructor(webBrowser: IWebBrowser, initParams: SdkInitParams) {
-    this.initParams = initParams;
+  private clientId: string;
+
+  private originData: IOriginData;
+
+  constructor(socialLoginDto: SoicalLoginDto) {
+    this.initParams = socialLoginDto.initParams;
     if (!this.initParams.sdkUrl) {
-      this.initParams.sdkUrl = "https://dev-sdk.openlogin.com";
+      this.initParams.sdkUrl = "https://sdk.openlogin.com";
     }
-    this.webBrowser = webBrowser;
+    this.webBrowser = socialLoginDto.webBrowser;
+    this.clientId = "BDtxlmCXNAWQFGiiaiVY3Qb1aN-d7DQ82OhT6B-RBr5j_rGnrKAqbIkvLJlf-ofYlJRiNSHbnkeHlsh8j3ueuYY";
     this.backendUrl = "https://sdk-backend.prod.biconomy.io/v1";
     this.nodeClient = new NodeClient({ txServiceUrl: this.backendUrl });
   }
@@ -32,7 +37,7 @@ class SoicalLogin {
   }
 
   async login(options: SdkLoginParams): Promise<State> {
-    const result = await this.request("login", options.redirectUrl || "", options);
+    const result = await this.request("login", options.redirectUrl, options);
     if (result.type !== "success" || !result.url) {
       log.error(`[Web3Auth] login flow failed with error type ${result.type}`);
       throw new Error(`login flow failed with error type ${result.type}`);
@@ -45,7 +50,7 @@ class SoicalLogin {
   }
 
   async logout(options: SdkLogoutParams): Promise<void> {
-    const result = await this.request("logout", options.redirectUrl || "", options);
+    const result = await this.request("logout", options.redirectUrl, options);
     if (result.type !== "success" || !result.url) {
       log.error(`[Web3Auth] logout flow failed with error type ${result.type}`);
       throw new Error(`logout flow failed with error type ${result.type}`);
@@ -55,8 +60,9 @@ class SoicalLogin {
   private async request(path: string, redirectUrl: string, params: Record<string, unknown> = {}) {
     const initParams = {
       ...this.initParams,
-      clientId: this.initParams.clientId,
-      network: this.initParams.network,
+      clientId: this.clientId,
+      network: this.initParams.network || 'mainnet',
+      originData: this.originData,
       ...(!!this.initParams.redirectUrl && {
         redirectUrl: this.initParams.redirectUrl,
       }),

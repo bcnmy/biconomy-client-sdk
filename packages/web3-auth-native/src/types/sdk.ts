@@ -4,9 +4,19 @@ import type {
   LoginParams,
   OpenLoginOptions
 } from '@toruslabs/openlogin'
+import { IWebBrowser } from './IWebBrowser'
 
 type SdkSpecificInitParams = {
   sdkUrl?: string
+}
+
+export type SoicalLoginDto = {
+  initParams: SdkInitParams
+  webBrowser: IWebBrowser
+}
+
+export type IOriginData = {
+  [P in string]: string
 }
 
 export type SdkInitParams = Omit<
@@ -19,11 +29,12 @@ export type SdkInitParams = Omit<
   | '_startUrl'
   | '_popupUrl'
   | '_storageServerUrl'
+  | 'clientId'
 >
 
 export type SdkLoginParams = Omit<LoginParams, 'fastLogin' | 'skipTKey' | 'getWalletKey'>
 
-export type SdkLogoutParams = Partial<BaseLogoutParams> & Partial<BaseRedirectParams>
+export type SdkLogoutParams = Partial<BaseLogoutParams> & Partial<BaseRedirectParams> & IOriginData
 
 export const OPENLOGIN_NETWORK = {
   MAINNET: 'mainnet',
