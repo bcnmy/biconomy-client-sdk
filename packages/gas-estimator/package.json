@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/gas-estimator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "library for estimating gas for generic actions and smart account methods under different conditions. ",
   "keywords": [
     "gas-estimation",
