@@ -148,7 +148,7 @@ export abstract class BaseWalletAPI {
    * (either deployment code, or empty hex if contract already deployed)
    */
   async getInitCode(): Promise<string> {
-    if (!await this.checkWalletDeployed()) {
+    if (!(await this.checkWalletDeployed())) {
       return await this.getWalletInitCode()
     }
     return '0x'

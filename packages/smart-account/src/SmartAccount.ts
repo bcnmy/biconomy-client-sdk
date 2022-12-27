@@ -54,12 +54,17 @@ import { TransactionResponse } from '@ethersproject/providers'
 import { SmartAccountSigner } from './signers/SmartAccountSigner'
 
 // AA
-import { newProvider, ERC4337EthersProvider, ERC4337EthersSigner, BaseWalletAPI } from '@biconomy/account-abstraction'
+import {
+  newProvider,
+  ERC4337EthersProvider,
+  ERC4337EthersSigner,
+  BaseWalletAPI
+} from '@biconomy/account-abstraction'
 
 import { ethers, Signer } from 'ethers'
 import { TransactionRequest } from '@ethersproject/providers/lib'
 
-let isLogsEnabled: Boolean = false;
+let isLogsEnabled = false
 
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount extends EventEmitter {
@@ -117,8 +122,8 @@ class SmartAccount extends EventEmitter {
   // Note: Could remove WalletProvider later on
   constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
     super()
-    if(config && config.debug === true) {
-      isLogsEnabled = true;
+    if (config && config.debug === true) {
+      isLogsEnabled = true
     }
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
     this._logMessage('stage 1 : default config')
@@ -171,7 +176,7 @@ class SmartAccount extends EventEmitter {
    */
   _logMessage(message: any) {
     if (isLogsEnabled && console.log) {
-      console.log(message);
+      console.log(message)
     }
   }
 
@@ -183,12 +188,11 @@ class SmartAccount extends EventEmitter {
   getsigner(): Signer & TypedDataSigner {
     return this.signer
   }
-  
+
   getSmartAccountAPI(chainId: ChainId): BaseWalletAPI {
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     const aaSigner: ERC4337EthersSigner = this.aaProvider[chainId].getSigner()
-    return aaSigner.smartWalletAPI;
-
+    return aaSigner.smartWalletAPI
   }
 
   getProviderUrl(network: ChainConfig): string {
@@ -329,8 +333,8 @@ class SmartAccount extends EventEmitter {
 
     const isDelegate = transaction.to === multiSendContract.address ? true : false
 
-    let customData: any = {}
-    let transactionRequest : TransactionRequest = {...transaction}
+    const customData: any = {}
+    let transactionRequest: TransactionRequest = { ...transaction }
 
     const isDeployed = await this.contractUtils.isDeployed(
       chainId,
@@ -338,12 +342,12 @@ class SmartAccount extends EventEmitter {
       this.address
     )
 
-    if(!isDeployed || isDelegate) {
-       customData.appliedGasLimit = ethers.constants.Two.pow(24) // estimateGas for execFromEntryPoint
-       customData.isDeployed = isDeployed
-       customData.isBatchedToMultiSend = isDelegate
+    if (!isDeployed || isDelegate) {
+      customData.appliedGasLimit = ethers.constants.Two.pow(24) // estimateGas for execFromEntryPoint
+      customData.isDeployed = isDeployed
+      customData.isBatchedToMultiSend = isDelegate
 
-       transactionRequest = {...transactionRequest, customData}
+      transactionRequest = { ...transactionRequest, customData }
     }
 
     // Todo: should be able to pass requiredTxGas (gasLimit for execute when execFromEntryPoint is called)
@@ -976,7 +980,12 @@ class SmartAccount extends EventEmitter {
 // TODO/NOTE : Goerli and Mumbai as test networks and remove others
 export const DefaultSmartAccountConfig: SmartAccountConfig = {
   activeNetworkId: ChainId.POLYGON_MUMBAI, //Update later
-  supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI, ChainId.POLYGON_MAINNET, ChainId.BSC_TESTNET],
+  supportedNetworksIds: [
+    ChainId.GOERLI,
+    ChainId.POLYGON_MUMBAI,
+    ChainId.POLYGON_MAINNET,
+    ChainId.BSC_TESTNET
+  ],
   signType: SignTypeMethod.EIP712_SIGN,
   backendUrl: 'https://sdk-backend.prod.biconomy.io/v1',
   relayerUrl: 'https://sdk-relayer.prod.biconomy.io/api/v1/relay',
@@ -1004,7 +1013,7 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
       providerUrl: 'https://polygon-mainnet.g.alchemy.com/v2/6Tn--QDkp1vRBXzRV3Cc8fLXayr5Yoij'
     }
   ],
-    debug: false
+  debug: false
 }
 
 export default SmartAccount

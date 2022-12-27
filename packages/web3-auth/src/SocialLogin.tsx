@@ -15,7 +15,11 @@ import QRCodeModal from '@walletconnect/qrcode-modal'
 import NodeClient, { WhiteListSignatureResponse } from '@biconomy/node-client'
 
 import UI from './UI'
-import { DefaultSocialLoginConfig, SocialLoginDTO, WhiteLabelDataType } from './types/Web3AuthConfig'
+import {
+  DefaultSocialLoginConfig,
+  SocialLoginDTO,
+  WhiteLabelDataType
+} from './types/Web3AuthConfig'
 
 function createLoginModal(socialLogin: SocialLogin) {
   const root = createRoot((document as any).getElementById('w3a-modal'))

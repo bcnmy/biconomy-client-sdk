@@ -52,13 +52,13 @@ export class ERC4337EthersSigner extends Signer {
 
     let gasLimit = 2000000
 
-    if(customData && (customData.isBatchedToMultiSend || !customData.isDeployed)) {
+    if (customData && (customData.isBatchedToMultiSend || !customData.isDeployed)) {
       if (customData.appliedGasLimit) {
         gasLimit = customData.appliedGasLimit
         console.log('gaslimit applied from custom data...', gasLimit)
       }
     }
-    
+
     delete transaction.customData
 
     // transaction.from = await this.smartWalletAPI.getWalletAddress()
@@ -84,7 +84,7 @@ export class ERC4337EthersSigner extends Signer {
         target: transaction.to ?? '',
         data: transaction.data?.toString() ?? '',
         value: transaction.value,
-        gasLimit: isDeployed? transaction.gasLimit : gasLimit,
+        gasLimit: isDeployed ? transaction.gasLimit : gasLimit,
         isDelegateCall: isDelegate // get from customData.isBatchedToMultiSend
       })
     }
