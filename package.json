@@ -14,7 +14,7 @@
     "postinstall": "cd packages/ethers-lib; hardhat compile",
     "prettier": "lerna run prettier --npm-client=npm",
     "diff": "lerna diff",
-    "new-version": "lerna version --no-git-tag-version --no-push --conventional-commits --yes",
+    "new-version": "lerna version --no-push --conventional-commits --yes",
     "lint": "eslint -c .eslintrc.js 'packages/*/src/**/*.{ts,tsx}'",
     "lint:fix": "eslint -c .eslintrc.js 'packages/*/src/**/*.{ts,tsx}' --fix"
   },
