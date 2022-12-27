@@ -11,7 +11,6 @@ import { EntryPoint } from '@account-abstraction/contracts'
 import { UserOperation } from '@biconomy/core-types'
 import { BaseWalletAPI } from './BaseWalletAPI'
 import { ClientMessenger } from 'messaging-sdk'
-import EventEmitter from 'events'
 import WebSocket from 'isomorphic-ws'
 
 export class ERC4337EthersProvider extends BaseProvider {
