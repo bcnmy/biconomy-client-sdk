@@ -1,0 +1,57 @@
+{
+  "name": "@biconomy/transak-native",
+  "version": "1.0.0",
+  "description": "transak for biconomy sdk",
+  "main": "./dist/src/index.js",
+  "typings": "./dist/src/index.d.ts",
+  "keywords": [
+    "legos",
+    "batching",
+    "one-click",
+    "cross-chain",
+    "transak"
+  ],
+  "author": "livingrockrises <chirag@biconomy.io>",
+  "homepage": "https://github.com/bcnmy/biconomy-client-sdk#readme",
+  "license": "MIT",
+  "files": [
+    "dist/*",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bcnmy/biconomy-client-sdk.git"
+  },
+  "scripts": {
+    "unbuild": "rimraf dist *.tsbuildinfo",
+    "build": "rimraf dist && tsc",
+    "format": "prettier --write \"{src,tests}/**/*.ts\"",
+    "lint": "tslint -p tsconfig.json"
+  },
+  "bugs": {
+    "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "@react-native-community/netinfo": "~9.1.0",
+    "@types/react-native": "*",
+    "react": "*",
+    "react-native": "*",
+    "react-native-inappbrowser-reborn": "*",
+    "react-native-webview": "*"
+  },
+  "dependencies": {
+    "pusher-js": "~7.0.6",
+    "query-string": "~7.1.1",
+    "typescript": "^4.9.4"
+  },
+  "devDependencies": {
+    "@types/react-native": "^0.70.8",
+    "react": "^18.1.0",
+    "react-native": "^0.70.6",
+    "react-native-inappbrowser-reborn": "^3.7.0",
+    "react-native-webview": "^11.26.0"
+  }
+}
