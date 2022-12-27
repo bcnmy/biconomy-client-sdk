@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/web3-auth",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "web3-auth for biconomy sdk",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",

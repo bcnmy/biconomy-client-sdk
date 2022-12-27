@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/common",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "common utils to be used for aa transactions",
   "keywords": [
     "utils"
