@@ -4,7 +4,7 @@ import log from "loglevel";
 import { URL } from "react-native-url-polyfill";
 
 import { IWebBrowser } from "./types/IWebBrowser";
-import { IOriginData, SdkInitParams, SdkLoginParams, SdkLogoutParams, SoicalLoginDto } from "./types/sdk";
+import { SdkInitParams, SdkLoginParams, SdkLogoutParams, SoicalLoginDto } from "./types/sdk";
 import { State } from "./types/State";
 
 class SoicalLogin {
@@ -17,8 +17,6 @@ class SoicalLogin {
   private backendUrl: string;
 
   private clientId: string;
-
-  private originData: IOriginData;
 
   constructor(socialLoginDto: SoicalLoginDto) {
     this.initParams = socialLoginDto.initParams;
@@ -61,8 +59,8 @@ class SoicalLogin {
     const initParams = {
       ...this.initParams,
       clientId: this.clientId,
-      network: this.initParams.network || 'mainnet',
-      originData: this.originData,
+      originData: params.originData,
+      network: this.initParams.network || "mainnet",
       ...(!!this.initParams.redirectUrl && {
         redirectUrl: this.initParams.redirectUrl,
       }),

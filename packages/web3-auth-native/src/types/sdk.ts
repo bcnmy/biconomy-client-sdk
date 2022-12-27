@@ -32,9 +32,12 @@ export type SdkInitParams = Omit<
   | 'clientId'
 >
 
-export type SdkLoginParams = Omit<LoginParams, 'fastLogin' | 'skipTKey' | 'getWalletKey'>
+export type SdkLoginParams = Omit<
+  LoginParams & IOriginData,
+  'fastLogin' | 'skipTKey' | 'getWalletKey'
+>
 
-export type SdkLogoutParams = Partial<BaseLogoutParams> & Partial<BaseRedirectParams> & IOriginData
+export type SdkLogoutParams = Partial<BaseLogoutParams> & Partial<BaseRedirectParams>
 
 export const OPENLOGIN_NETWORK = {
   MAINNET: 'mainnet',
