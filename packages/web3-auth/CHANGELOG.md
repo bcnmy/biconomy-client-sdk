@@ -3,23 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## [1.0.1](https://github.com/bcnmy/biconomy-client-sdk/compare/@biconomy/web3-auth@1.1.0...@biconomy/web3-auth@1.0.1) (2022-12-27)
-
-**Note:** Version bump only for package @biconomy/web3-auth
-
-# 1.0.0 (2022-12-26)
-
 ### Bug Fixes
 
 - css file not found ([d6cbd0b](https://github.com/bcnmy/biconomy-client-sdk/commit/d6cbd0bf88bc119c69778776df7c9bf6cd1efdb9))
 
-## 0.0.4 (2022-12-02)
-
 ### Bug Fixes
 
 - init param ([6bbccfb](https://github.com/bcnmy/biconomy-client-sdk/commit/6bbccfbff8834fa96160685f80bab7d64ec0f135))
-
-# 0.1.0 (2022-11-28)
 
 ### Bug Fixes
 
@@ -34,15 +24,9 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 - web3auth modal UI ([7b7e510](https://github.com/bcnmy/biconomy-client-sdk/commit/7b7e5104ad5b1828e083f70a185328b566e9d456))
 - whitelist logic added ([53c2140](https://github.com/bcnmy/biconomy-client-sdk/commit/53c2140ef9b9d79d9d9c0e0c2c80e82b1df7f8b9))
 
-**Note:** Version bump only for package @biconomy/web3-auth
-
-## [1.0.0](https://github.com/bcnmy/biconomy-client-sdk/compare/v0.1.0...v0.0.4) (2022-12-02)
-
 ### Bug Fixes
 
 - init param ([6bbccfb](https://github.com/bcnmy/biconomy-client-sdk/commit/6bbccfbff8834fa96160685f80bab7d64ec0f135))
-
-# [1.0.0](https://github.com/bcnmy/biconomy-client-sdk/compare/v1.0.0...v0.1.0) (2022-11-28)
 
 ### Bug Fixes
 
