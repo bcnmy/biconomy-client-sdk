@@ -56,6 +56,8 @@ import { BalancesDto } from '@biconomy/node-client'
 
 import { ChainId } from '@biconomy/core-types'
 
+const address = '0xabc......'
+
 const balanceParams: BalancesDto =
       {
           // if no chainId is supplied, SDK will automatically pick active one that
