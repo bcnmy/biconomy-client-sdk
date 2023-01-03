@@ -5,7 +5,8 @@ import {
   MultiSendContract,
   MultiSendCallOnlyContract,
   SmartAccountContext,
-  SmartAccountState
+  SmartAccountState,
+  FallbackGasTankContract
 } from '@biconomy/core-types'
 import { ChainConfig } from '@biconomy/node-client'
 import {
@@ -13,7 +14,8 @@ import {
   getMultiSendContract,
   getMultiSendCallOnlyContract,
   getSmartWalletContract,
-  findContractAddressesByVersion
+  findContractAddressesByVersion,
+  getFallbackGasTankContract
 } from './utils/FetchContractsInfo'
 import { ethers, Signer } from 'ethers'
 import EvmNetworkManager from '@biconomy/ethers-lib'
@@ -31,6 +33,8 @@ class ContractUtils {
     [chainId: number]: { [version: string]: SmartWalletFactoryContract }
   }
 
+  fallbackGasTankContract!: { [chainId: number]: { [version: string]: FallbackGasTankContract } }
+
   smartAccountState!: SmartAccountState
 
   constructor(readonly chainConfig: ChainConfig[]) {
@@ -39,6 +43,7 @@ class ContractUtils {
     this.multiSendContract = {}
     this.multiSendCallOnlyContract = {}
     this.smartWalletFactoryContract = {}
+    this.fallbackGasTankContract = {}
   }
 
   initializeContracts(
@@ -50,6 +55,7 @@ class ContractUtils {
 
     const smartWallet = chaininfo.wallet
     const smartWalletFactoryAddress = chaininfo.walletFactory
+    const fallbackGasTankAddress = chaininfo.fallbackGasTank
     const multiSend = chaininfo.multiSend
     const multiSendCall = chaininfo.multiSendCall
     this.ethAdapter[chaininfo.chainId] = new EvmNetworkManager({
@@ -62,6 +68,7 @@ class ContractUtils {
     this.smartWalletContract[chaininfo.chainId] = {}
     this.multiSendContract[chaininfo.chainId] = {}
     this.multiSendCallOnlyContract[chaininfo.chainId] = {}
+    this.fallbackGasTankContract[chaininfo.chainId] = {}
 
     for (let index = 0; index < smartWallet.length; index++) {
       const version = smartWallet[index].version
@@ -88,6 +95,12 @@ class ContractUtils {
         version,
         this.ethAdapter[chaininfo.chainId],
         multiSendCall[index].address
+      )
+
+      this.fallbackGasTankContract[chaininfo.chainId][version] = getFallbackGasTankContract(
+        version,
+        this.ethAdapter[chaininfo.chainId],
+        fallbackGasTankAddress[index].address
       )
     }
   }

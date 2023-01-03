@@ -27,7 +27,8 @@ const smartAccountContracts_V1_0_1 = [
   `${smartAccountContractsPath}/V1.0.1.sol/MultiSendContract_v1_0_1.json`,
   `${smartAccountContractsPath}/V1.0.1.sol/MultiSendCallOnlyContract_v1_0_1.json`,
   `${smartAccountContractsPath}/V1.0.1.sol/SmartWalletFactoryContract_v1_0_1.json`,
-  `${smartAccountContractsPath}/V1.0.1.sol/EntryPointContract_v1_0_1.json`
+  `${smartAccountContractsPath}/V1.0.1.sol/EntryPointContract_v1_0_1.json`,
+  `${smartAccountContractsPath}/V1.0.1.sol/FallbackGasTankContract_v1_0_1.json`
 ].join(' ')
 
 // Remove existing Typechain files

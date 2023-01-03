@@ -28,6 +28,9 @@ import { EntryPointContractV101__factory as EntryPointFactoryContractV101 } from
 import EntryPointEthersContract_v1_0_0 from './EntryPointContract/v1.0.0/EntryPointEthersContract'
 import EntryPointEthersContract_v1_0_1 from './EntryPointContract/v1.0.1/EntryPointEthersContract'
 
+import { FallbackGasTankContractV101__factory as FallbackGasTankContractV101 } from '../../typechain/src/ethers-v5/v1.0.1/factories/FallbackGasTankContractV101__factory'
+import FallbackGasTankEthersContract_v1_0_1 from './FallbackGasTank/v1.0.1/FallbackGasTankEthersContract'
+
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { SmartAccountVersion } from '@biconomy/core-types'
 
@@ -122,5 +125,22 @@ export function getEntryPointFactoryContractInstance(
     case '1.0.1':
       walletFactoryContract = EntryPointFactoryContractV101.connect(contractAddress, provider)
       return new EntryPointEthersContract_v1_0_1(walletFactoryContract)
+  }
+}
+
+export function getFallbackGasTankContractInstance(
+  smartAccountVersion: SmartAccountVersion,
+  contractAddress: string,
+  provider: JsonRpcProvider
+): FallbackGasTankEthersContract_v1_0_1 {
+  let fallbackGasTankContract
+
+  switch (smartAccountVersion) {
+    case '1.0.0':
+    case '1.0.1':
+      fallbackGasTankContract = FallbackGasTankContractV101.connect(contractAddress, provider)
+      return new FallbackGasTankEthersContract_v1_0_1(fallbackGasTankContract)
+    default:
+      throw new Error('Invalid smart account version')
   }
 }

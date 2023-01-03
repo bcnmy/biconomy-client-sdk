@@ -116,6 +116,7 @@ export type ChainConfig = {
   wallet: ContractDetails[] // base wallet
   entryPoint: ContractDetails[] //should make this address var
   fallBackHandler: ContractDetails[] //should make this address var
+  fallbackGasTank: ContractDetails[] //should make this address var
   relayerURL: string
   providerUrl: string
   indexerUrl: string

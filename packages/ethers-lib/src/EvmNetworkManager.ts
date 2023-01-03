@@ -15,7 +15,8 @@ import {
   getMultiSendContractInstance,
   getMultiSendCallOnlyContractInstance,
   getSmartWalletContractInstance,
-  getSmartWalletFactoryContractInstance
+  getSmartWalletFactoryContractInstance,
+  getFallbackGasTankContractInstance
 } from './contracts/contractInstancesEthers'
 type Ethers = typeof ethers
 
@@ -96,6 +97,13 @@ class EvmNetworkManager implements IEvmNetworkManager {
       throw new Error('Invalid Wallet Factory contract address')
     }
     return getSmartWalletFactoryContractInstance(smartAccountVersion, address, this.#provider)
+  }
+
+  getFallbackGasTankContract(smartAccountVersion: SmartAccountVersion, address: string) {
+    if (!address) {
+      throw new Error('Invalid Fallback Handler contract address')
+    }
+    return getFallbackGasTankContractInstance(smartAccountVersion, address, this.#provider)
   }
 
   async getContractCode(address: string): Promise<string> {

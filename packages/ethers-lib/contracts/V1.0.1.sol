@@ -7,6 +7,7 @@ import { SmartWallet } from "scw-contracts-v1.0.1/contracts/smart-contract-walle
 import { MultiSend } from "scw-contracts-v1.0.1/contracts/smart-contract-wallet/libs/MultiSend.sol";
 import { MultiSendCallOnly } from "scw-contracts-v1.0.1/contracts/smart-contract-wallet/libs/MultiSendCallOnly.sol";
 import { EntryPoint } from "scw-contracts-v1.0.1/contracts/smart-contract-wallet/aa-4337/core/EntryPoint.sol";
+import { SingletonGasTank } from "fallback-contracts-v1.0.0/contracts/gas-tank/SingletonGasTank.sol";
 
 contract SmartWalletFactoryContract_v1_0_1 is WalletFactory {
     constructor(address _defaultImpl) WalletFactory(_defaultImpl){}
@@ -17,4 +18,6 @@ contract MultiSendCallOnlyContract_v1_0_1 is MultiSendCallOnly {}
 contract EntryPointContract_v1_0_1 is EntryPoint {
     constructor(uint _paymasterStake, uint32 _unstakeDelaySec) EntryPoint(_paymasterStake, _unstakeDelaySec){}
 }
-
+contract FallbackGasTankContract_v1_0_1 is SingletonGasTank {
+    constructor(address _verifyingSigner) SingletonGasTank(_verifyingSigner) {}
+}
