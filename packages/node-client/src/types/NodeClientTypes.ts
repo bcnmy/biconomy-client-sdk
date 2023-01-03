@@ -56,6 +56,14 @@ export type WhiteListSignatureResponse = {
   data: string
 }
 
+export type IsFallbackEnabledResponse = {
+  code: number
+  message: string
+  data: {
+    enable_fallback_flow: boolean
+  }
+}
+
 export type EstimateExternalGasDto = {
   chainId: number
   encodedData: string

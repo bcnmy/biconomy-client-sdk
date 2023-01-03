@@ -49,6 +49,11 @@ export type RestRelayerOptions = {
   socketServerUrl: string
 }
 
+export type FallbackRelayerOptions = {
+  url: string
+  relayerServiceUrl: string
+}
+
 export type TokenData = {
   tokenGasPrice: number // review
   offset?: number // review

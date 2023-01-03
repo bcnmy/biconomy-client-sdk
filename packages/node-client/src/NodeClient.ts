@@ -17,7 +17,8 @@ import {
   UsdBalanceResponse,
   EstimateGasResponse,
   SCWTransactionResponse,
-  WhiteListSignatureResponse
+  WhiteListSignatureResponse,
+  IsFallbackEnabledResponse
 } from './types/NodeClientTypes'
 import { getTxServiceBaseUrl } from './utils'
 import { HttpMethod, sendRequest } from './utils/HttpRequests'
@@ -136,6 +137,13 @@ class NodeClient implements INodeClient {
       body: {
         origin
       }
+    })
+  }
+
+  async isFallbackEnabled(): Promise<IsFallbackEnabledResponse> {
+    return sendRequest({
+      url: `${this.#txServiceBaseUrl}/gasless-fallback-flag`,
+      method: HttpMethod.Get
     })
   }
 

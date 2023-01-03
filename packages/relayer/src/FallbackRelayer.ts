@@ -1,11 +1,11 @@
 import { JsonRpcProvider, TransactionResponse } from '@ethersproject/providers'
-import { constants, ethers } from 'ethers'
-import { IRelayer } from '.'
+import { BigNumber, ethers } from 'ethers'
+import { IFallbackRelayer } from '.'
 
 import {
   RelayTransaction,
   DeployWallet,
-  RestRelayerOptions,
+  FallbackRelayerOptions,
   FeeOptionsResponse,
   RelayResponse,
   GasLimit,
@@ -15,22 +15,22 @@ import { MetaTransaction, encodeMultiSend } from './utils/MultiSend'
 import { HttpMethod, sendRequest } from './utils/HttpRequests'
 import { ClientMessenger } from 'messaging-sdk'
 import WebSocket, { EventEmitter } from 'isomorphic-ws'
+import { hexValue } from 'ethers/lib/utils'
 
 /**
  * Relayer class that would be used via REST API to execute transactions
  */
-export class RestRelayer implements IRelayer {
+export class FallbackRelayer implements IFallbackRelayer {
   #relayServiceBaseUrl: string
-  #socketServerUrl: string
+  #relayerServiceUrl: string
 
   relayerNodeEthersProvider!: { [chainId: number]: JsonRpcProvider }
 
-  constructor(options: RestRelayerOptions) {
-    // TODO : Rename url to relayerServiceUrl
-    const { url, socketServerUrl } = options
+  constructor(options: FallbackRelayerOptions) {
+    const { url, relayerServiceUrl } = options
     this.relayerNodeEthersProvider = {}
     this.#relayServiceBaseUrl = url
-    this.#socketServerUrl = socketServerUrl
+    this.#relayerServiceUrl = relayerServiceUrl
   }
 
   setRelayerNodeEthersProvider(chainId: ChainId) {
@@ -64,12 +64,14 @@ export class RestRelayer implements IRelayer {
     }
   }
 
-  // todo: modify this dto to accept a flag isFallbackEnabled
   // if the wallet is deployed baseGas would be coming as part of struct in rawtx
-  async relay(relayTransaction: RelayTransaction, engine: EventEmitter): Promise<RelayResponse> {
-    const socketServerUrl = this.#socketServerUrl
+  async relay(
+    relayTransaction: RelayTransaction,
+    engine: EventEmitter
+  ): Promise<TransactionResponse> {
+    const relayerServiceUrl = this.#relayerServiceUrl
 
-    const clientMessenger = new ClientMessenger(socketServerUrl, WebSocket)
+    const clientMessenger = new ClientMessenger(relayerServiceUrl, WebSocket)
 
     if (!clientMessenger.socketClient.isConnected()) {
       await clientMessenger.connect()
@@ -125,27 +127,12 @@ export class RestRelayer implements IRelayer {
     console.log('finaRawTx')
     console.log(finalRawRx)
 
-    // reason : can not capture repsonse from jsonRpcProvider.send()
-    /*const response: any = await this.relayerNodeEthersProvider[chainId].send(
-      'eth_sendSmartContractWalletTransaction',
-      [
-        {
-          ...finalRawRx,
-          gasLimit: (gasLimit as GasLimit).hex,
-          refundInfo: {
-            tokenGasPrice: signedTx.tx.gasPrice,
-            gasToken: signedTx.tx.gasToken
-          }
-        }
-      ]
-    )*/
-
     // based on the flag make rpc call to relayer code service with necessary rawTx data
     const response: any = await sendRequest({
       url: `${this.#relayServiceBaseUrl}`,
       method: HttpMethod.Post,
       body: {
-        method: 'eth_sendSmartContractWalletTransaction',
+        method: 'eth_sendGaslessFallbackTransaction',
         params: [
           {
             ...finalRawRx,
@@ -237,13 +224,31 @@ export class RestRelayer implements IRelayer {
       })
 
       return {
-        connectionUrl: connectionUrl,
-        transactionId: transactionId
+        hash: '',
+        from: '',
+        nonce: 0,
+        gasLimit: BigNumber.from(0),
+        value: BigNumber.from(0),
+        data: hexValue('0x'),
+        chainId: 0,
+        confirmations: 0,
+        wait: async (confirmations?: number) => {
+          return new Promise((resolve) => {
+            const onTxMined = (tx: any) => {
+              if (tx.id === transactionId) {
+                engine.removeListener('txMined', onTxMined)
+                resolve(tx.receipt)
+              }
+            }
+            engine.on('txMined', onTxMined)
+          })
+        }
       }
     } else {
-      return {
-        error: response.error || 'transaction failed'
-      }
+      throw new Error(response.error || 'transaction failed')
+      // return {
+      //   error: response.error || 'transaction failed'
+      // }
     }
   }
 

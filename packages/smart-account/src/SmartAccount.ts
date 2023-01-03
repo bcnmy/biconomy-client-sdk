@@ -42,7 +42,7 @@ import NodeClient, {
   UsdBalanceResponse
 } from '@biconomy/node-client'
 import { Web3Provider } from '@ethersproject/providers'
-import { IRelayer, RestRelayer } from '@biconomy/relayer'
+import { IRelayer, RestRelayer, FallbackRelayer } from '@biconomy/relayer'
 import * as _ from 'lodash'
 import TransactionManager, {
   ContractUtils,
@@ -94,6 +94,8 @@ class SmartAccount extends EventEmitter {
   // relayer.relay => dispatch to blockchain
   // other methods are useful for the widget
   relayer!: IRelayer
+
+  fallbackRelayer!: FallbackRelayer
 
   // Owner of the Smart Account common between all chains
   owner!: string
@@ -158,6 +160,10 @@ class SmartAccount extends EventEmitter {
     this.relayer = new RestRelayer({
       url: this.#smartAccountConfig.relayerUrl,
       socketServerUrl: this.#smartAccountConfig.socketServerUrl
+    })
+    this.fallbackRelayer = new FallbackRelayer({
+      url: this.#smartAccountConfig.relayerUrl,
+      relayerServiceUrl: this.#smartAccountConfig.socketServerUrl
     })
     this.aaProvider = {}
     this.chainConfig = []
@@ -323,6 +329,7 @@ class SmartAccount extends EventEmitter {
     const isDelegate = transactionDto.transaction.to === multiSendContract.address ? true : false
 
     // const isFallbackEnabled = await this.nodeClient.isFallbackEnabled()
+    // console.log('isFallbackEnabled', isFallbackEnabled)
     const isFallbackEnabled = true
     if (!isFallbackEnabled) {
       const response = await aaSigner.sendTransaction(
@@ -355,7 +362,7 @@ class SmartAccount extends EventEmitter {
       gasToken: transaction.gasToken,
       refundReceiver: transaction.refundReceiver
     }
-    const execTransaction = await walletContract.populateTransaction.execTransaction(
+    let execTransaction = await walletContract.populateTransaction.execTransaction(
       transaction,
       0, // review batchId : 0
       refundInfo,
@@ -377,20 +384,28 @@ class SmartAccount extends EventEmitter {
       sender: this.address,
       nonce: gasTankNonce,
       callData: execTransaction.data,
-      callGasLimit: execTransaction.gasLimit
+      callGasLimit: execTransaction.gasLimit,
+      dappIdentifier: '',
+      signature: '0x'
     }
 
-    // send fallback user operation to signing service
+    // send fallback user operation to signing service to get signature and dappIdentifier
     // const fallbackUserOpSignature = await this.signFallbackUserOperation(
     //   fallbackUserOp,
     //   chainId,
     //   this.signer
     // )
+    const fallbackUserOpSignature = '0x'
 
-    // populateTransaction by singletonGasTank contract userop
+    execTransaction = await singletonGasTank.populateTransaction.handleFallbackUserop(
+      transaction,
+      0, // review batchId : 0
+      refundInfo,
+      fallbackUserOpSignature
+    )
     const rawTrx: RawTransactionType = {
       to: transaction.to, // gas tank address
-      data: execTransaction.data,
+      data: execTransaction.data, // populateTransaction by singletonGasTank contract handleFallbackUserop
       value: 0, // review
       chainId: chainId
     }
@@ -429,7 +444,7 @@ class SmartAccount extends EventEmitter {
       }
       relayTrx.gasLimit = gasLimit
     }
-    const relayResponse: RelayResponse = await this.relayer.relay(relayTrx, this)
+    const relayResponse = await this.fallbackRelayer.relay(relayTrx, this)
     return relayResponse
     // signTransaction and get execTransaction payload
     // nonce from gas tank contract :
