@@ -112,11 +112,12 @@ export class ERC4337EthersSigner extends Signer {
                 hash: txHash
               })}`
             )
-            engine.emit('txHashGenerated', {
-              id: tx.transactionId,
-              hash: tx.transactionHash,
-              msg: 'txn hash generated'
-            })
+            engine &&
+              engine.emit('txHashGenerated', {
+                id: tx.transactionId,
+                hash: tx.transactionHash,
+                msg: 'txn hash generated'
+              })
           }
         },
         onHashChanged: async (tx: any) => {
@@ -129,11 +130,12 @@ export class ERC4337EthersSigner extends Signer {
                 hash: txHash
               })}`
             )
-            engine.emit('txHashChanged', {
-              id: tx.transactionId,
-              hash: tx.transactionHash,
-              msg: 'txn hash changed'
-            })
+            engine &&
+              engine.emit('txHashChanged', {
+                id: tx.transactionId,
+                hash: tx.transactionHash,
+                msg: 'txn hash changed'
+              })
           }
         },
         onError: async (tx: any) => {
@@ -143,11 +145,12 @@ export class ERC4337EthersSigner extends Signer {
             const txId = tx.transactionId
             clientMessenger.unsubscribe(txId)
             // event emitter
-            engine.emit('error', {
-              id: tx.transactionId,
-              error: err,
-              msg: 'txn hash generated'
-            })
+            engine &&
+              engine.emit('error', {
+                id: tx.transactionId,
+                error: err,
+                msg: 'txn hash generated'
+              })
           }
         }
       })
