@@ -8,7 +8,6 @@ import { ClientConfig } from './ClientConfig'
 import { HttpRpcClient } from './HttpRpcClient'
 import { UserOperation } from '@biconomy/core-types'
 import { BaseWalletAPI } from './BaseWalletAPI'
-import EventEmitter from 'events'
 import { ClientMessenger } from 'messaging-sdk'
 import WebSocket from 'isomorphic-ws'
 export class ERC4337EthersSigner extends Signer {
@@ -26,7 +25,7 @@ export class ERC4337EthersSigner extends Signer {
 
   // This one is called by Contract. It signs the request and passes in to Provider to be sent.
   async sendTransaction(
-    transaction: Deferrable<TransactionRequest>,
+    transaction: TransactionRequest,
     walletDeployOnly = false,
     isDelegate = false,
     engine?: any // EventEmitter
@@ -49,21 +48,22 @@ export class ERC4337EthersSigner extends Signer {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const customData: any = transaction.customData
     console.log(customData)
+
     let gasLimit = 2000000
-    if (customData && customData.appliedGasLimit) {
-      gasLimit = customData.appliedGasLimit
-      console.log('gaslimit applied from custom data...', gasLimit)
+
+    if (customData && (customData.isBatchedToMultiSend || !customData.isDeployed)) {
+      if (customData.appliedGasLimit) {
+        gasLimit = customData.appliedGasLimit
+        console.log('gaslimit applied from custom data...', gasLimit)
+      }
     }
 
-    console.log('gaslimit ', gasLimit)
-    console.log('transaction.gaslimit ', transaction.gasLimit)
-
-    // TODO : //temp to avoid running into issues with populateTransaction when destination is multisend OR wallet is undeployed
-    transaction.gasLimit = gasLimit
-    // TODO : If isDeployed = false || skipGasLimit = true then use provided gas limit => transaction.gasLimit = gasLimit
     delete transaction.customData
 
     // transaction.from = await this.smartWalletAPI.getWalletAddress()
+
+    // checking if wallet is deployed or not
+    const isDeployed = await this.smartWalletAPI.checkWalletDeployed()
 
     let userOperation: UserOperation
     if (walletDeployOnly === true) {
@@ -74,16 +74,16 @@ export class ERC4337EthersSigner extends Signer {
         gasLimit: 21000
       })
     } else {
-      const tx: TransactionRequest = await this.populateTransaction(transaction)
+      // Removing populate transaction all together
+      // const tx: TransactionRequest = await this.populateTransaction(transaction)
 
-      console.log('populate trx ', tx)
-      await this.verifyAllNecessaryFields(tx)
+      await this.verifyAllNecessaryFields(transaction)
 
       userOperation = await this.smartWalletAPI.createSignedUserOp({
-        target: tx.to ?? '',
-        data: tx.data?.toString() ?? '',
-        value: tx.value,
-        gasLimit: tx.gasLimit,
+        target: transaction.to ?? '',
+        data: transaction.data?.toString() ?? '',
+        value: transaction.value,
+        gasLimit: isDeployed ? transaction.gasLimit : gasLimit,
         isDelegateCall: isDelegate // get from customData.isBatchedToMultiSend
       })
     }

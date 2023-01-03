@@ -11,7 +11,6 @@ import { EntryPoint } from '@account-abstraction/contracts'
 import { UserOperation } from '@biconomy/core-types'
 import { BaseWalletAPI } from './BaseWalletAPI'
 import { ClientMessenger } from 'messaging-sdk'
-import EventEmitter from 'events'
 import WebSocket from 'isomorphic-ws'
 
 export class ERC4337EthersProvider extends BaseProvider {
@@ -127,7 +126,7 @@ export class ERC4337EthersProvider extends BaseProvider {
         const transactionReceipt = await waitPromise
         if (userOp.initCode.length !== 0) {
           // checking if the wallet has been deployed by the transaction; it must be if we are here
-          await this.smartWalletAPI.checkWalletPhantom()
+          await !this.smartWalletAPI.checkWalletDeployed()
         }
         return transactionReceipt
       }
@@ -197,13 +196,13 @@ export class ERC4337EthersProvider extends BaseProvider {
       chainId: this.config.chainId,
       wait: async (confirmations?: number): Promise<TransactionReceipt> => {
         console.log(confirmations)
-        const transactionReceipt = waitPromise.then((receipt: any) => {
-          console.log('received tx receipt ', transactionReceipt)
+        const transactionReceipt = waitPromise.then((receipt: TransactionReceipt) => {
+          // console.log('received tx receipt ', receipt)
           return receipt
         })
         if (userOp.initCode.length !== 0) {
           // checking if the wallet has been deployed by the transaction; it must be if we are here
-          await this.smartWalletAPI.checkWalletPhantom()
+          await this.smartWalletAPI.checkWalletDeployed()
         }
         return transactionReceipt
       }

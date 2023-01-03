@@ -3,15 +3,9 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-**Note:** Version bump only for package biconomy-sdk
-
-## [0.0.4](https://github.com/bcnmy/biconomy-client-sdk/compare/v0.1.0...v0.0.4) (2022-12-02)
-
 ### Bug Fixes
 
 - init param ([6bbccfb](https://github.com/bcnmy/biconomy-client-sdk/commit/6bbccfbff8834fa96160685f80bab7d64ec0f135))
-
-# [0.0.4](https://github.com/bcnmy/biconomy-client-sdk/compare/v1.0.0...v0.1.0) (2022-11-28)
 
 ### Bug Fixes
 
