@@ -233,6 +233,7 @@ export class FallbackRelayer implements IFallbackRelayer {
         chainId: 0,
         confirmations: 0,
         wait: async (confirmations?: number) => {
+          console.log(confirmations)
           return new Promise((resolve) => {
             const onTxMined = (tx: any) => {
               if (tx.id === transactionId) {
