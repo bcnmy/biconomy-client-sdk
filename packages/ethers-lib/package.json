@@ -49,7 +49,7 @@
     "@openzeppelin/contracts": "^4.6.0",
     "scw-contracts-v1.0.0": "npm:@biconomy/wallet-contracts@1.0.0",
     "scw-contracts-v1.0.1": "npm:@biconomy/wallet-contracts@1.0.1",
-    "fallback-contracts-v1.0.0": "npm:fallback-gastank@1.0.0"
+    "fallback-contracts-v1.0.1": "npm:fallback-gastank@1.0.1"
   },
   "peerDependencies": {
     "ethers": "^5.5.3"
