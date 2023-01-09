@@ -7,7 +7,6 @@ import {
   DeployWallet,
   FallbackRelayerOptions,
   FeeOptionsResponse,
-  RelayResponse,
   GasLimit,
   ChainId
 } from '@biconomy/core-types'

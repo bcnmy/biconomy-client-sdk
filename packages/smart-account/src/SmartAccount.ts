@@ -29,7 +29,8 @@ import {
   SmartAccountConfig,
   IMetaTransaction,
   NetworkConfig,
-  ZERO_ADDRESS
+  ZERO_ADDRESS,
+  IFallbackAPI
 } from '@biconomy/core-types'
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import NodeClient, {
@@ -42,7 +43,7 @@ import NodeClient, {
   UsdBalanceResponse
 } from '@biconomy/node-client'
 import { Web3Provider } from '@ethersproject/providers'
-import { IRelayer, RestRelayer, FallbackRelayer } from '@biconomy/relayer'
+import { IRelayer, RestRelayer, FallbackRelayer, IFallbackRelayer } from '@biconomy/relayer'
 import * as _ from 'lodash'
 import TransactionManager, {
   ContractUtils,
@@ -54,7 +55,11 @@ import { TransactionResponse } from '@ethersproject/providers'
 import { SmartAccountSigner } from './signers/SmartAccountSigner'
 
 // AA
-import { newProvider, ERC4337EthersProvider } from '@biconomy/account-abstraction'
+import {
+  newProvider,
+  ERC4337EthersProvider,
+  FallbackGasTankAPI
+} from '@biconomy/account-abstraction'
 
 import { ethers, Signer } from 'ethers'
 
@@ -94,8 +99,9 @@ class SmartAccount extends EventEmitter {
   // relayer.relay => dispatch to blockchain
   // other methods are useful for the widget
   relayer!: IRelayer
+  fallbackRelayer!: IFallbackRelayer
 
-  fallbackRelayer!: FallbackRelayer
+  private signingService!: IFallbackAPI
 
   // Owner of the Smart Account common between all chains
   owner!: string
@@ -161,8 +167,9 @@ class SmartAccount extends EventEmitter {
       url: this.#smartAccountConfig.relayerUrl,
       socketServerUrl: this.#smartAccountConfig.socketServerUrl
     })
+    console.log('relayer', RestRelayer, FallbackRelayer);
     this.fallbackRelayer = new FallbackRelayer({
-      url: this.#smartAccountConfig.relayerUrl,
+      url: "https://sdk-257-fallback-transaction-relayer.staging.biconomy.io/api/v1/relay",
       relayerServiceUrl: this.#smartAccountConfig.socketServerUrl
     })
     this.aaProvider = {}
@@ -262,6 +269,11 @@ class SmartAccount extends EventEmitter {
 
       const clientConfig = this.getNetworkConfigValues(network.chainId)
 
+      this.signingService = new FallbackGasTankAPI(
+        'https://us-central1-biconomy-staging.cloudfunctions.net/fallback-signing-service',
+        clientConfig.dappAPIKey || ''
+      )
+
       this.aaProvider[network.chainId] = await newProvider(
         new ethers.providers.JsonRpcProvider(providerUrl),
         {
@@ -341,6 +353,7 @@ class SmartAccount extends EventEmitter {
       return response
     }
 
+    console.log('transactionDto', transactionDto)
     // create IWalletTransaction instance
     const transaction = await this.createTransaction(transactionDto)
 
@@ -390,12 +403,11 @@ class SmartAccount extends EventEmitter {
     }
 
     // send fallback user operation to signing service to get signature and dappIdentifier
-    // const fallbackUserOpSignature = await this.signFallbackUserOperation(
-    //   fallbackUserOp,
-    //   chainId,
-    //   this.signer
-    // )
-    const fallbackUserOpSignature = '0x'
+    const fallbackUserOpSignature = await this.signingService.getDappIdentifierAndSign(
+      fallbackUserOp
+    )
+    console.log('fallbackUserOpSignature', fallbackUserOpSignature)
+    // const fallbackUserOpSignature = '0x'
 
     execTransaction = await singletonGasTank.populateTransaction.handleFallbackUserop(
       transaction,

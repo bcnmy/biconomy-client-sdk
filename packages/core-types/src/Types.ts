@@ -33,6 +33,15 @@ export type UserOperation = {
   signature: string
 }
 
+export type FallbackUserOperation = {
+  sender: string
+  nonce: number
+  callData: string
+  callGasLimit: number
+  dappIdentifier: string
+  signature: string
+}
+
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 // Review

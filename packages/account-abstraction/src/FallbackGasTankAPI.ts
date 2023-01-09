@@ -1,7 +1,6 @@
 import { resolveProperties } from '@ethersproject/properties'
-import { UserOperation } from '@biconomy/core-types'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-import { IFallbackAPI } from '@biconomy/core-types'
+import { IFallbackAPI, FallbackUserOperation } from '@biconomy/core-types'
 
 /**
  * Verifying Dapp Identifier API supported via Biconomy dahsboard to enable fallback Gasless transactions
@@ -12,28 +11,26 @@ export class FallbackGasTankAPI implements IFallbackAPI {
     this.dappAPIKey = dappAPIKey
   }
 
-  async getDappIdentifierAndSign(userOp: Partial<UserOperation>): Promise<string> {
+  async getDappIdentifierAndSign(fallbackUserOp: Partial<FallbackUserOperation>): Promise<string> {
     try {
       if (!this.dappAPIKey || this.dappAPIKey === '') {
         return '0x'
       }
 
-      userOp = await resolveProperties(userOp)
-      userOp.nonce = Number(userOp.nonce)
-      userOp.callGasLimit = Number(userOp.callGasLimit)
-      userOp.verificationGasLimit = Number(userOp.verificationGasLimit)
-      userOp.maxFeePerGas = Number(userOp.maxFeePerGas)
-      userOp.maxPriorityFeePerGas = Number(userOp.maxPriorityFeePerGas)
-      userOp.preVerificationGas = 21000
-      userOp.signature = '0x'
-      userOp.paymasterAndData = '0x'
+      fallbackUserOp = await resolveProperties(fallbackUserOp)
+      fallbackUserOp.sender = fallbackUserOp.sender
+      fallbackUserOp.nonce = Number(fallbackUserOp.nonce)
+      fallbackUserOp.callData = fallbackUserOp.callData
+      fallbackUserOp.callGasLimit = fallbackUserOp.callGasLimit
+      fallbackUserOp.dappIdentifier = ''
+      fallbackUserOp.signature = '0x'
 
       // move dappAPIKey in headers
       const result: any = await sendRequest({
         url: `${this.signingServiceUrl}`,
         method: HttpMethod.Post,
         headers: { 'x-api-key': this.dappAPIKey },
-        body: { userOp: userOp, smartAccountVersion: '1.0.0' }
+        body: { fallbackUserOp: fallbackUserOp, smartAccountVersion: '1.0.0' }
       })
 
       console.log('******** ||||| *********')
