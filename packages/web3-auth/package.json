@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/web3-auth",
-  "version": "0.0.4",
+  "version": "1.0.0",
   "description": "web3-auth for biconomy sdk",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -36,7 +36,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@biconomy/node-client": "^0.0.4",
+    "@biconomy/node-client": "^1.0.0",
     "@walletconnect/qrcode-modal": "^1.8.0",
     "@web3auth/base": "^3.0.0",
     "@web3auth/core": "^3.0.0",

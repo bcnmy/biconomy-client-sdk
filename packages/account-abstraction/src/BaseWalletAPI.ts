@@ -30,7 +30,7 @@ import { getRequestId } from '@biconomy/common'
 
 export abstract class BaseWalletAPI {
   private senderAddress!: string
-  private isPhantom = true
+  private isDeployed = false
   // entryPoint connected to "zero" address. allowed to make static calls (e.g. to getSenderAddress)
   // private readonly entryPointView: EntryPoint
 
@@ -119,19 +119,18 @@ export abstract class BaseWalletAPI {
   /**
    * check if the wallet is already deployed.
    */
-  async checkWalletPhantom(): Promise<boolean> {
-    if (!this.isPhantom) {
+  async checkWalletDeployed(): Promise<boolean> {
+    if (this.isDeployed) {
       // already deployed. no need to check anymore.
-      return this.isPhantom
+      return this.isDeployed
     }
     const senderAddressCode = await this.provider.getCode(this.getWalletAddress())
     if (senderAddressCode.length > 2) {
       console.log(`SimpleWallet Contract already deployed at ${this.senderAddress}`)
-      this.isPhantom = false
+      this.isDeployed = true
     } else {
-      // console.log(`SimpleWallet Contract is NOT YET deployed at ${this.senderAddress} - working in "phantom wallet" mode.`)
     }
-    return this.isPhantom
+    return this.isDeployed
   }
 
   /**
@@ -149,7 +148,7 @@ export abstract class BaseWalletAPI {
    * (either deployment code, or empty hex if contract already deployed)
    */
   async getInitCode(): Promise<string> {
-    if (await this.checkWalletPhantom()) {
+    if (!(await this.checkWalletDeployed())) {
       return await this.getWalletInitCode()
     }
     return '0x'
@@ -201,6 +200,7 @@ export abstract class BaseWalletAPI {
       detailsForUserOp.isDelegateCall || false
     )
 
+    // Review: doesn't work if wallet is not already deployed.
     const callGasLimit =
       parseNumber(detailsForUserOp.gasLimit) ??
       (await this.provider.estimateGas({

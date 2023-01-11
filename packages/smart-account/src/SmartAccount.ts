@@ -58,10 +58,13 @@ import { SmartAccountSigner } from './signers/SmartAccountSigner'
 import {
   newProvider,
   ERC4337EthersProvider,
-  FallbackGasTankAPI
+  FallbackGasTankAPI,
+  ERC4337EthersSigner,
+  BaseWalletAPI
 } from '@biconomy/account-abstraction'
 
 import { ethers, Signer } from 'ethers'
+import { TransactionRequest } from '@ethersproject/providers/lib'
 
 let isLogsEnabled = false
 
@@ -196,6 +199,12 @@ class SmartAccount extends EventEmitter {
     return this.signer
   }
 
+  getSmartAccountAPI(chainId: ChainId): BaseWalletAPI {
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+    const aaSigner: ERC4337EthersSigner = this.aaProvider[chainId].getSigner()
+    return aaSigner.smartWalletAPI
+  }
+
   getProviderUrl(network: ChainConfig): string {
     this._logMessage('after init smartAccountConfig.networkConfig')
     this._logMessage(this.#smartAccountConfig.networkConfig)
@@ -327,13 +336,13 @@ class SmartAccount extends EventEmitter {
   // Optional methods for connecting paymaster
   // Optional methods for connecting another bundler
 
-  public async sendGasLessTransaction(
+  public async sendGaslessTransaction(
     transactionDto: TransactionDto
   ): Promise<TransactionResponse> {
     let { version, chainId } = transactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
-    const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
+    const aaSigner = this.aaProvider[chainId].getSigner()
 
     await this.initializeContractsAtChain(chainId)
     const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract()
@@ -545,7 +554,7 @@ class SmartAccount extends EventEmitter {
     // Multisend is tricky because populateTransaction expects delegateCall and we must override
 
     // TODO : stuff before this can be moved to TransactionManager
-    const response = await this.sendGasLessTransaction({ version, transaction: gaslessTx, chainId })
+    const response = await this.sendGaslessTransaction({ version, transaction: gaslessTx, chainId })
     return response
   }
 
@@ -766,8 +775,6 @@ class SmartAccount extends EventEmitter {
       relayTrx.gasLimit = gasLimit
     }
     const relayResponse: RelayResponse = await this.relayer.relay(relayTrx, this)
-    console.log('relayResponse')
-    console.log(relayResponse)
     if (relayResponse.transactionId) {
       return relayResponse.transactionId
     }

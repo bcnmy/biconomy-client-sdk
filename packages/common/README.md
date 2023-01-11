@@ -1,8 +1,11 @@
 # `@biconomy/common`
 
-> TODO: ERC4337 common utils
+common utils
+
+methods for processing UserOperations
 
 ## Usage
 
 ```
+no direct usage of this package
 ```

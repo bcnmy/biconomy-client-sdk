@@ -12,7 +12,7 @@ import { ChainId } from '@biconomy/core-types'
 // Might as well be RpcRelayer
 // import { IRelayer, RestRelayer } from '@biconomy/relayer'
 import { Deferrable } from 'ethers/lib/utils'
-import { TransactionRequest, TransactionResponse } from '@ethersproject/providers'
+import { TransactionRequest } from '@ethersproject/providers'
 
 export class SmartAccountSigner extends EthersSigner implements TypedDataSigner {
   readonly provider: JsonRpcProvider
