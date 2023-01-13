@@ -64,7 +64,6 @@ import {
 } from '@biconomy/account-abstraction'
 
 import { ethers, Signer } from 'ethers'
-import { TransactionRequest } from '@ethersproject/providers/lib'
 
 let isLogsEnabled = false
 
@@ -170,9 +169,9 @@ class SmartAccount extends EventEmitter {
       url: this.#smartAccountConfig.relayerUrl,
       socketServerUrl: this.#smartAccountConfig.socketServerUrl
     })
-    console.log('relayer', RestRelayer, FallbackRelayer);
+
     this.fallbackRelayer = new FallbackRelayer({
-      url: "https://sdk-257-fallback-transaction-relayer.staging.biconomy.io/api/v1/relay",
+      url: 'https://sdk-257-fallback-transaction-relayer.staging.biconomy.io/api/v1/relay',
       relayerServiceUrl: this.#smartAccountConfig.socketServerUrl
     })
     this.aaProvider = {}
@@ -310,10 +309,8 @@ class SmartAccount extends EventEmitter {
     this.owner = await this.signer.getAddress()
 
     const chainConfig = (await this.nodeClient.getAllSupportedChains()).data
-    console.log('chainConfig', chainConfig)
 
     this.contractUtils = new ContractUtils(chainConfig)
-    console.log('this.contractUtils', this.contractUtils)
 
     for (let index = 0; index < this.#smartAccountConfig.supportedNetworksIds.length; index++) {
       const network = chainConfig.find(
@@ -349,10 +346,10 @@ class SmartAccount extends EventEmitter {
 
     const isDelegate = transactionDto.transaction.to === multiSendContract.address ? true : false
 
-    // const isFallbackEnabled = await this.nodeClient.isFallbackEnabled()
-    // console.log('isFallbackEnabled', isFallbackEnabled)
-    const isFallbackEnabled = true
-    if (!isFallbackEnabled) {
+    const { data } = await this.nodeClient.isFallbackEnabled()
+    console.log('isFallbackEnabled', data.isFallbackEnabled)
+
+    if (!data.isFallbackEnabled) {
       const response = await aaSigner.sendTransaction(
         transactionDto.transaction,
         false,
@@ -362,7 +359,6 @@ class SmartAccount extends EventEmitter {
       return response
     }
 
-    console.log('transactionDto', transactionDto)
     // create IWalletTransaction instance
     const transaction = await this.createTransaction(transactionDto)
 
@@ -390,16 +386,12 @@ class SmartAccount extends EventEmitter {
       refundInfo,
       signature
     )
-    console.log('call data for fallback user operation is ', execTransaction.data)
 
-    // create instance of SingletonGasTank contracts
-    let singletonGasTank =
+    // create instance of fallbackGasTank contracts
+    let fallbackGasTank =
       this.contractUtils.fallbackGasTankContract[chainId][version].getContract()
-    singletonGasTank = singletonGasTank.attach(this.address)
-
     // check for fallback gastank nonce
-    const gasTankNonce = (await singletonGasTank.getNonce(this.address)).toNumber()
-    console.log('nonce: ', gasTankNonce)
+    const gasTankNonce = await fallbackGasTank.getNonce(this.address)
 
     // dappIdentifier and signature will be added by signing service
     const fallbackUserOp = {
@@ -410,6 +402,7 @@ class SmartAccount extends EventEmitter {
       dappIdentifier: '',
       signature: '0x'
     }
+    console.log('fallbackUserOp', fallbackUserOp)
 
     // send fallback user operation to signing service to get signature and dappIdentifier
     const fallbackUserOpSignature = await this.signingService.getDappIdentifierAndSign(
@@ -418,7 +411,7 @@ class SmartAccount extends EventEmitter {
     console.log('fallbackUserOpSignature', fallbackUserOpSignature)
     // const fallbackUserOpSignature = '0x'
 
-    execTransaction = await singletonGasTank.populateTransaction.handleFallbackUserop(
+    execTransaction = await fallbackGasTank.populateTransaction.handleFallbackUserop(
       transaction,
       0, // review batchId : 0
       refundInfo,
@@ -426,7 +419,7 @@ class SmartAccount extends EventEmitter {
     )
     const rawTrx: RawTransactionType = {
       to: transaction.to, // gas tank address
-      data: execTransaction.data, // populateTransaction by singletonGasTank contract handleFallbackUserop
+      data: execTransaction.data, // populateTransaction by fallbackGasTank contract handleFallbackUserop
       value: 0, // review
       chainId: chainId
     }
@@ -470,7 +463,7 @@ class SmartAccount extends EventEmitter {
     // signTransaction and get execTransaction payload
     // nonce from gas tank contract :
 
-    // create instance of SingletonGasTank contracts
+    // create instance of fallbackGasTank contracts
     // i. read deposit of dappIdentifier (TBD)
     // ii. read nonce for walletAddress
 

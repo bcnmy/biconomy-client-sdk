@@ -30,7 +30,7 @@ export class FallbackGasTankAPI implements IFallbackAPI {
         url: `${this.signingServiceUrl}`,
         method: HttpMethod.Post,
         headers: { 'x-api-key': this.dappAPIKey },
-        body: { fallbackUserOp: fallbackUserOp, smartAccountVersion: '1.0.0' }
+        body: { fallbackUserOp: fallbackUserOp, smartAccountVersion: '1.0.1' }
       })
 
       console.log('******** ||||| *********')

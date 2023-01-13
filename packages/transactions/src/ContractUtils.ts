@@ -55,7 +55,7 @@ class ContractUtils {
 
     const smartWallet = chaininfo.wallet
     const smartWalletFactoryAddress = chaininfo.walletFactory
-    const fallbackGasTankAddress = chaininfo.fallbackGasTank
+    const fallbackGasTankAddress = chaininfo.fallBackGasTankAddress
     const multiSend = chaininfo.multiSend
     const multiSendCall = chaininfo.multiSendCall
     this.ethAdapter[chaininfo.chainId] = new EvmNetworkManager({
@@ -100,7 +100,7 @@ class ContractUtils {
       this.fallbackGasTankContract[chaininfo.chainId][version] = getFallbackGasTankContract(
         version,
         this.ethAdapter[chaininfo.chainId],
-        fallbackGasTankAddress[index].address
+        fallbackGasTankAddress
       )
     }
   }
