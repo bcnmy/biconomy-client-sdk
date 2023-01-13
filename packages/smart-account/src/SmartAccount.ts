@@ -347,9 +347,9 @@ class SmartAccount extends EventEmitter {
     const isDelegate = transactionDto.transaction.to === multiSendContract.address ? true : false
 
     const { data } = await this.nodeClient.isFallbackEnabled()
-    console.log('isFallbackEnabled', data.isFallbackEnabled)
+    console.log('isFallbackEnabled', data.enable_fallback_flow)
 
-    if (!data.isFallbackEnabled) {
+    if (!data.enable_fallback_flow) {
       const response = await aaSigner.sendTransaction(
         transactionDto.transaction,
         false,
@@ -1122,7 +1122,7 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
     ChainId.BSC_TESTNET
   ],
   signType: SignTypeMethod.EIP712_SIGN,
-  backendUrl: 'https://sdk-backend.prod.biconomy.io/v1',
+  backendUrl: 'http://localhost:3000/v1',
   relayerUrl: 'https://sdk-relayer.prod.biconomy.io/api/v1/relay',
   socketServerUrl: 'wss://sdk-ws.prod.biconomy.io/connection/websocket',
   bundlerUrl: 'https://sdk-relayer.prod.biconomy.io/api/v1/relay',
