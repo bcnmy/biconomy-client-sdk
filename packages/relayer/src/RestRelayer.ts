@@ -1,5 +1,5 @@
-import { JsonRpcProvider, TransactionResponse } from '@ethersproject/providers'
-import { constants, ethers } from 'ethers'
+import { JsonRpcProvider } from '@ethersproject/providers'
+import { ethers } from 'ethers'
 import { IRelayer } from '.'
 
 import {
@@ -146,7 +146,8 @@ export class RestRelayer implements IRelayer {
         params: [
           {
             ...finalRawRx,
-            gasLimit: (gasLimit as GasLimit).hex,
+            // Could send custom high instead of undefined
+            gasLimit: gasLimit ? (gasLimit as GasLimit).hex : undefined,
             walletInfo: {
               address: address
             },
@@ -161,8 +162,6 @@ export class RestRelayer implements IRelayer {
       }
     })
 
-    console.log('rest relayer : response')
-    console.log(response)
     if (response.data) {
       const transactionId = response.data.transactionId
       const connectionUrl = response.data.connectionUrl

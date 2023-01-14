@@ -1,6 +1,6 @@
-# `web3-auth`
+# `@biconomy/web3-auth`
 
-> A library to import the torus web3 social auth directly from Biconomy Sdk.
+> A library to import the torus web3 social auth directly from [Biconomy SDK](https://github.com/bcnmy/biconomy-client-sdk)
 
 ## Usage
 

@@ -54,11 +54,17 @@ import { TransactionResponse } from '@ethersproject/providers'
 import { SmartAccountSigner } from './signers/SmartAccountSigner'
 
 // AA
-import { newProvider, ERC4337EthersProvider } from '@biconomy/account-abstraction'
+import {
+  newProvider,
+  ERC4337EthersProvider,
+  ERC4337EthersSigner,
+  BaseWalletAPI
+} from '@biconomy/account-abstraction'
 
 import { ethers, Signer } from 'ethers'
+import { TransactionRequest } from '@ethersproject/providers/lib'
 
-let isLogsEnabled: Boolean = false;
+let isLogsEnabled = false
 
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount extends EventEmitter {
@@ -116,8 +122,8 @@ class SmartAccount extends EventEmitter {
   // Note: Could remove WalletProvider later on
   constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
     super()
-    if(config && config.debug === true) {
-      isLogsEnabled = true;
+    if (config && config.debug === true) {
+      isLogsEnabled = true
     }
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
     this._logMessage('stage 1 : default config')
@@ -170,7 +176,7 @@ class SmartAccount extends EventEmitter {
    */
   _logMessage(message: any) {
     if (isLogsEnabled && console.log) {
-      console.log(message);
+      console.log(message)
     }
   }
 
@@ -181,7 +187,13 @@ class SmartAccount extends EventEmitter {
   // Changes if we make change in nature of smart account signer
   getsigner(): Signer & TypedDataSigner {
     return this.signer
-  } 
+  }
+
+  getSmartAccountAPI(chainId: ChainId): BaseWalletAPI {
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+    const aaSigner: ERC4337EthersSigner = this.aaProvider[chainId].getSigner()
+    return aaSigner.smartWalletAPI
+  }
 
   getProviderUrl(network: ChainConfig): string {
     this._logMessage('after init smartAccountConfig.networkConfig')
@@ -307,24 +319,41 @@ class SmartAccount extends EventEmitter {
   // Optional methods for connecting paymaster
   // Optional methods for connecting another bundler
 
-  public async sendGasLessTransaction(
+  public async sendGaslessTransaction(
     transactionDto: TransactionDto
   ): Promise<TransactionResponse> {
     let { version, chainId } = transactionDto
     const { transaction } = transactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
-    const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
+    const aaSigner = this.aaProvider[chainId].getSigner()
 
     await this.initializeContractsAtChain(chainId)
     const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract()
 
     const isDelegate = transaction.to === multiSendContract.address ? true : false
 
-    const response = await aaSigner.sendTransaction(transaction, false, isDelegate, this)
+    const customData: any = {}
+    let transactionRequest: TransactionRequest = { ...transaction }
 
+    const isDeployed = await this.contractUtils.isDeployed(
+      chainId,
+      this.DEFAULT_VERSION,
+      this.address
+    )
+
+    if (!isDeployed || isDelegate) {
+      customData.appliedGasLimit = ethers.constants.Two.pow(24) // estimateGas for execFromEntryPoint
+      customData.isDeployed = isDeployed
+      customData.isBatchedToMultiSend = isDelegate
+
+      transactionRequest = { ...transactionRequest, customData }
+    }
+
+    // Todo: should be able to pass requiredTxGas (gasLimit for execute when execFromEntryPoint is called)
+
+    const response = await aaSigner.sendTransaction(transactionRequest, false, isDelegate, this)
     return response
-    // todo: make sense of this response and return hash to the user
   }
 
   public async sendGaslessTransactionBatch(
@@ -383,7 +412,7 @@ class SmartAccount extends EventEmitter {
     // Multisend is tricky because populateTransaction expects delegateCall and we must override
 
     // TODO : stuff before this can be moved to TransactionManager
-    const response = await this.sendGasLessTransaction({ version, transaction: gaslessTx, chainId })
+    const response = await this.sendGaslessTransaction({ version, transaction: gaslessTx, chainId })
     return response
   }
 
@@ -604,8 +633,6 @@ class SmartAccount extends EventEmitter {
       relayTrx.gasLimit = gasLimit
     }
     const relayResponse: RelayResponse = await this.relayer.relay(relayTrx, this)
-    console.log('relayResponse')
-    console.log(relayResponse)
     if (relayResponse.transactionId) {
       return relayResponse.transactionId
     }
@@ -953,7 +980,12 @@ class SmartAccount extends EventEmitter {
 // TODO/NOTE : Goerli and Mumbai as test networks and remove others
 export const DefaultSmartAccountConfig: SmartAccountConfig = {
   activeNetworkId: ChainId.POLYGON_MUMBAI, //Update later
-  supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI, ChainId.POLYGON_MAINNET, ChainId.BSC_TESTNET],
+  supportedNetworksIds: [
+    ChainId.GOERLI,
+    ChainId.POLYGON_MUMBAI,
+    ChainId.POLYGON_MAINNET,
+    ChainId.BSC_TESTNET
+  ],
   signType: SignTypeMethod.EIP712_SIGN,
   backendUrl: 'https://sdk-backend.prod.biconomy.io/v1',
   relayerUrl: 'https://sdk-relayer.prod.biconomy.io/api/v1/relay',
@@ -981,7 +1013,7 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
       providerUrl: 'https://polygon-mainnet.g.alchemy.com/v2/6Tn--QDkp1vRBXzRV3Cc8fLXayr5Yoij'
     }
   ],
-    debug: false
+  debug: false
 }
 
 export default SmartAccount
