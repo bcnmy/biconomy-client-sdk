@@ -1,7 +1,7 @@
 import {
   EntryPoint,
   EntryPoint__factory,
-  SimpleWalletDeployer__factory,
+  SimpleAccountDeployer__factory,
   UserOperationStruct
 } from '@account-abstraction/contracts'
 import { Wallet } from 'ethers'
@@ -18,7 +18,7 @@ import {
   EntryPointFactoryContractV101,
   SmartWalletFactoryV101,
   SmartWalletFactoryContractV101,
-  EntryPointContractV101,
+  EntryPointContractV102,
   SmartWalletContractV101
 } from '@biconomy/ethers-lib'
 import { DeterministicDeployer } from '../src/DeterministicDeployer'
@@ -31,7 +31,7 @@ const fallBackHandlerAddress = '0xF05217199F1C25604c67993F11a81461Bc97F3Ab' // t
 describe('SmartAccountAPI', async () => {
   let owner: Wallet
   let api: SmartAccountAPI
-  let entryPoint: EntryPointContractV101
+  let entryPoint: EntryPointContractV102
   let beneficiary: string
   let recipient: SampleRecipient
   let walletAddress: string
@@ -71,7 +71,7 @@ describe('SmartAccountAPI', async () => {
 
     userSCW = baseWalletContract.attach(expected)
 
-    // const factoryAddress = await DeterministicDeployer.deploy(SimpleWalletDeployer__factory.bytecode)
+    // const factoryAddress = await DeterministicDeployer.deploy(SimpleAccountDeployer__factory.bytecode)
     const clientConfig = {
       // Note: dappAPIKey will be empty in smart account config when not provided
       // provide non-empty key and handle exceptions
@@ -118,7 +118,7 @@ describe('SmartAccountAPI', async () => {
   })
 
   it('should deploy to counterfactual address', async () => {
-    walletAddress = await api.getWalletAddress()
+    walletAddress = await api.getAccountAddress()
     console.log('wallet address from api ', walletAddress)
     expect(await provider.getCode(walletAddress).then((code) => code.length)).to.equal(2)
 

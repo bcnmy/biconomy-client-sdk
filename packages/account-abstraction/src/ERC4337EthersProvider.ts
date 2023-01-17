@@ -9,7 +9,7 @@ import { UserOperationEventListener } from './UserOperationEventListener'
 import { HttpRpcClient } from './HttpRpcClient'
 import { EntryPoint } from '@account-abstraction/contracts'
 import { UserOperation } from '@biconomy/core-types'
-import { BaseWalletAPI } from './BaseWalletAPI'
+import { BaseAccountAPI } from './BaseAccountAPI'
 import { ClientMessenger } from 'messaging-sdk'
 import WebSocket from 'isomorphic-ws'
 
@@ -65,14 +65,14 @@ export class ERC4337EthersProvider extends BaseProvider {
     transactionHash: string | Promise<string>
   ): Promise<TransactionReceipt> {
     const requestId = await transactionHash
-    const sender = await this.getSenderWalletAddress()
+    const sender = await this.getSenderAccountAddress()
     return await new Promise<TransactionReceipt>((resolve, reject) => {
       new UserOperationEventListener(resolve, reject, this.entryPoint, sender, requestId).start()
     })
   }
 
-  async getSenderWalletAddress(): Promise<string> {
-    return await this.smartWalletAPI.getWalletAddress()
+  async getSenderAccountAddress(): Promise<string> {
+    return await this.smartWalletAPI.getAccountAddress()
   }
 
   async waitForTransaction(
@@ -81,7 +81,7 @@ export class ERC4337EthersProvider extends BaseProvider {
     timeout?: number
   ): Promise<TransactionReceipt> {
     console.log(confirmations)
-    const sender = await this.getSenderWalletAddress()
+    const sender = await this.getSenderAccountAddress()
 
     return await new Promise<TransactionReceipt>((resolve, reject) => {
       const listener = new UserOperationEventListener(

@@ -7,7 +7,7 @@ import { ERC4337EthersProvider } from './ERC4337EthersProvider'
 import { ClientConfig } from './ClientConfig'
 import { HttpRpcClient } from './HttpRpcClient'
 import { UserOperation } from '@biconomy/core-types'
-import { BaseWalletAPI } from './BaseWalletAPI'
+import { BaseWalletAPI } from './BaseAccountAPI'
 import { ClientMessenger } from 'messaging-sdk'
 import WebSocket from 'isomorphic-ws'
 export class ERC4337EthersSigner extends Signer {
@@ -60,7 +60,7 @@ export class ERC4337EthersSigner extends Signer {
 
     delete transaction.customData
 
-    // transaction.from = await this.smartWalletAPI.getWalletAddress()
+    // transaction.from = await this.smartWalletAPI.getAccountAddress()
 
     // checking if wallet is deployed or not
     const isDeployed = await this.smartWalletAPI.checkWalletDeployed()

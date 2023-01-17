@@ -37,12 +37,13 @@
     "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"
   },
   "dependencies": {
-    "@account-abstraction/contracts": "^0.2.0",
+    "@account-abstraction/contracts": "^0.4.0",
     "@biconomy/core-types": "^1.0.0",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/bytes": "^5.7.0",
     "@ethersproject/providers": "^5.7.0",
     "@openzeppelin/contracts": "^4.7.3",
+    "debug": "^4.3.4",
     "ethers": "^5.7.0"
   },
   "devDependencies": {

@@ -7,5 +7,6 @@ export interface TransactionDetailsForUserOp {
   gasLimit?: BigNumberish
   maxFeePerGas?: BigNumberish
   maxPriorityFeePerGas?: BigNumberish
-  isDelegateCall?: boolean
+  // review
+  isDelegateCall?: boolean //added by Biconomy
 }

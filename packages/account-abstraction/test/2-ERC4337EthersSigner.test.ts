@@ -12,7 +12,7 @@ import {
   EntryPointFactoryContractV101,
   SmartWalletFactoryV101,
   SmartWalletFactoryContractV101,
-  EntryPointContractV101,
+  EntryPointContractV102,
   SmartWalletContractV101
 } from '@biconomy/ethers-lib'
 

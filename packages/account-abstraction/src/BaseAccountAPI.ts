@@ -1,37 +1,64 @@
-import { BigNumber, BigNumberish } from 'ethers'
+import { ethers, BigNumber, BigNumberish } from 'ethers'
 import { Provider } from '@ethersproject/providers'
-import { UserOperation } from '@biconomy/core-types'
-import { ClientConfig } from './ClientConfig'
+import { UserOperation } from '@biconomy/core-types' // review
+import { ClientConfig } from './ClientConfig' // ClientConfig is needed in this design
+
+/*
+	import {
+  EntryPoint, EntryPoint__factory,
+  UserOperationStruct
+} from '@account-abstraction/contracts'
+*/
+
+// notice: SmartWalletFactory and SmartWalletContract as well needed in this design
+// SmartAccountAPI is BiconomySmartAccount and above imports could be used there only
 
 import {
-  EntryPointContractV101,
+  EntryPointContractV102,
   SmartWalletFactoryV101,
   SmartWalletContractV101
 } from '@biconomy/ethers-lib'
 import { TransactionDetailsForUserOp } from './TransactionDetailsForUserOp'
 import { resolveProperties } from 'ethers/lib/utils'
-import { IPaymasterAPI } from '@biconomy/core-types'
-import { getRequestId } from '@biconomy/common'
+import { IPaymasterAPI } from '@biconomy/core-types' // only use interface
+import { getUserOpHash, NotPromise, packUserOp } from '@biconomy/common'
+import { calcPreVerificationGas, GasOverheads } from './calcPreVerificationGas'
+
+// might make use of this
+export interface BaseApiParams {
+  provider: Provider
+  entryPointAddress: string
+  accountAddress?: string
+  overheads?: Partial<GasOverheads>
+  paymasterAPI?: IPaymasterAPI
+}
+export interface UserOpResult {
+  transactionHash: string
+  success: boolean
+}
+
 /**
  * Base class for all Smart Wallet ERC-4337 Clients to implement.
  * Subclass should inherit 5 methods to support a specific wallet contract:
  *
- * - getWalletInitCode - return the value to put into the "initCode" field, if the wallet is not yet deployed. should create the wallet instance using a factory contract.
- * - getNonce - return current wallet's nonce value
- * - encodeExecute - encode the call from entryPoint through our wallet to the target contract.
- * - signRequestId - sign the requestId of a UserOp.
+ * - getAccountInitCode - return the value to put into the "initCode" field, if the account is not yet deployed. should create the account instance using a factory contract.
+ * - getNonce - return current account's nonce value
+ * - encodeExecute - encode the call from entryPoint through our account to the target contract.
+ * - signUserOpHash - sign the hash of a UserOp.
  *
  * The user can use the following APIs:
- * - createUnsignedUserOp - given "target" and "calldata", fill userOp to perform that operation from the wallet.
- * - createSignedUserOp - helper to call the above createUnsignedUserOp, and then extract the requestId and sign it
+ * - createUnsignedUserOp - given "target" and "calldata", fill userOp to perform that operation from the account.
+ * - createSignedUserOp - helper to call the above createUnsignedUserOp, and then extract the userOpHash and sign it
  */
 
 // Note: Resembles SmartAccount methods itself. Could be sperated out across smart-account & || transactions || new package and reclaim
 
-export abstract class BaseWalletAPI {
+export abstract class BaseAccountAPI {
   private senderAddress!: string
   private isDeployed = false
   // entryPoint connected to "zero" address. allowed to make static calls (e.g. to getSenderAddress)
+
+  // may need...
   // private readonly entryPointView: EntryPoint
 
   /**
@@ -41,7 +68,6 @@ export abstract class BaseWalletAPI {
 
   /**
    * our wallet contract.
-   * should support the "execFromSingleton" and "nonce" methods
    */
   walletContract!: SmartWalletContractV101
 
@@ -50,29 +76,31 @@ export abstract class BaseWalletAPI {
    * subclass SHOULD add parameters that define the owner (signer) of this wallet
    * @param provider - read-only provider for view calls
    * @param entryPointAddress - the entryPoint to send requests through (used to calculate the request-id, and for gas estimations)
-   * @param walletAddress. may be empty for new wallet (using factory to determine address)
+   * @param accountAddress. may be empty for new wallet (using factory to determine address)
    */
   protected constructor(
     readonly provider: Provider,
-    readonly entryPoint: EntryPointContractV101,
-    readonly clientConfig: ClientConfig,
-    readonly walletAddress?: string
+    readonly overheads: Partial<GasOverheads>,
+    readonly entryPoint: EntryPointContractV102, // we could just get an address : evaluate
+    readonly clientConfig: ClientConfig, // review the need to get entire clientconfig
+    readonly accountAddress?: string
   ) {
+    // may need...
     // factory "connect" define the contract address. the contract "connect" defines the "from" address.
     // this.entryPointView = EntryPoint__factory.connect(entryPointAddress, provider).connect(ethers.constants.AddressZero)
   }
 
-  // temp placeholder
-  connectPaymaster(newPaymasterAPI: IPaymasterAPI): BaseWalletAPI {
+  // placeholder to replace paymaster
+  connectPaymaster(newPaymasterAPI: IPaymasterAPI): BaseAccountAPI {
     this.paymasterAPI = newPaymasterAPI
     return this
   }
 
   // based on provider chainId we maintain smartWalletContract..
-  async _getWalletContract(): Promise<SmartWalletContractV101> {
+  async _getSmartAccountContract(): Promise<SmartWalletContractV101> {
     if (this.walletContract == null) {
       this.walletContract = SmartWalletFactoryV101.connect(
-        await this.getWalletAddress(),
+        await this.getAccountAddress(),
         this.provider
       )
     }
@@ -80,7 +108,7 @@ export abstract class BaseWalletAPI {
   }
 
   async init(): Promise<this> {
-    await this.getWalletAddress()
+    await this.getAccountAddress()
     return this
   }
 
@@ -124,7 +152,7 @@ export abstract class BaseWalletAPI {
       // already deployed. no need to check anymore.
       return this.isDeployed
     }
-    const senderAddressCode = await this.provider.getCode(this.getWalletAddress())
+    const senderAddressCode = await this.provider.getCode(this.getAccountAddress())
     if (senderAddressCode.length > 2) {
       console.log(`SimpleWallet Contract already deployed at ${this.senderAddress}`)
       this.isDeployed = true
@@ -205,7 +233,7 @@ export abstract class BaseWalletAPI {
       parseNumber(detailsForUserOp.gasLimit) ??
       (await this.provider.estimateGas({
         from: this.entryPoint.address,
-        to: this.getWalletAddress(),
+        to: this.getAccountAddress(),
         data: callData
       }))
 
@@ -232,7 +260,7 @@ export abstract class BaseWalletAPI {
    * return the wallet's address.
    * this value is valid even before deploying the wallet.
    */
-  async getWalletAddress(): Promise<string> {
+  async getAccountAddress(): Promise<string> {
     if (this.senderAddress == null) {
       if (this.walletAddress != null) {
         this.senderAddress = this.walletAddress

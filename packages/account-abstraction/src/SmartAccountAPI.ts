@@ -1,12 +1,12 @@
 import { BigNumber, BigNumberish } from 'ethers'
-import { EntryPointContractV101 } from '@biconomy/ethers-lib'
+import { EntryPointContractV102 } from '@biconomy/ethers-lib'
 
 import { ClientConfig } from './ClientConfig'
 import { arrayify, hexConcat } from 'ethers/lib/utils'
 import { Signer } from '@ethersproject/abstract-signer'
 import { TransactionDetailsForUserOp } from './TransactionDetailsForUserOp'
 import { UserOperation } from '@biconomy/core-types'
-import { BaseWalletAPI } from './BaseWalletAPI'
+import { BaseWalletAPI } from './BaseAccountAPI'
 import { Provider } from '@ethersproject/providers'
 import { WalletFactoryAPI } from './WalletFactoryAPI'
 import { BiconomyPaymasterAPI } from './BiconomyPaymasterAPI'
@@ -35,7 +35,7 @@ export class SmartAccountAPI extends BaseWalletAPI {
    */
   constructor(
     provider: Provider,
-    readonly entryPoint: EntryPointContractV101,
+    readonly entryPoint: EntryPointContractV102,
     readonly clientConfig: ClientConfig,
     walletAddress: string | undefined,
     readonly owner: Signer,
@@ -73,10 +73,10 @@ export class SmartAccountAPI extends BaseWalletAPI {
 
   async getNonce(batchId: number): Promise<BigNumber> {
     console.log('checking nonce')
-    if (!(await this.checkWalletDeployed())) {
+    if (!(await this.checkAccountDeployed())) {
       return BigNumber.from(0)
     }
-    const walletContract = await this._getWalletContract()
+    const walletContract = await this._getSmartAccountContract()
     const nonce = await walletContract.getNonce(batchId)
     return nonce
   }
@@ -92,7 +92,7 @@ export class SmartAccountAPI extends BaseWalletAPI {
     data: string,
     isDelegateCall: boolean
   ): Promise<string> {
-    const walletContract = await this._getWalletContract()
+    const walletContract = await this._getSmartAccountContract()
 
     return walletContract.interface.encodeFunctionData('execFromEntryPoint', [
       target,
@@ -147,7 +147,7 @@ export class SmartAccountAPI extends BaseWalletAPI {
     }
 
     const partialUserOp: any = {
-      sender: await this.getWalletAddress(),
+      sender: await this.getAccountAddress(),
       nonce: await this.getNonce(0), // TODO (nice-to-have): add batchid as param
       initCode,
       callData,
