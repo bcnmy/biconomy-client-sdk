@@ -1,6 +1,6 @@
 import { resolveProperties } from '@ethersproject/properties'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-import { IFallbackAPI, FallbackUserOperation } from '@biconomy/core-types'
+import { IFallbackAPI, FallbackUserOperation, FallbackApiResponse } from '@biconomy/core-types'
 
 /**
  * Verifying Dapp Identifier API supported via Biconomy dahsboard to enable fallback Gasless transactions
@@ -11,14 +11,17 @@ export class FallbackGasTankAPI implements IFallbackAPI {
     this.dappAPIKey = dappAPIKey
   }
 
-  async getDappIdentifierAndSign(fallbackUserOp: Partial<FallbackUserOperation>): Promise<string> {
+  async getDappIdentifierAndSign(
+    fallbackUserOp: Partial<FallbackUserOperation>
+  ): Promise<FallbackApiResponse> {
     try {
       if (!this.dappAPIKey || this.dappAPIKey === '') {
-        return '0x'
+        throw new Error('Dapp API Key not found. Please pass dappAPIKey in constructor')
       }
 
       fallbackUserOp = await resolveProperties(fallbackUserOp)
       fallbackUserOp.sender = fallbackUserOp.sender
+      fallbackUserOp.target = fallbackUserOp.target
       fallbackUserOp.nonce = Number(fallbackUserOp.nonce)
       fallbackUserOp.callData = fallbackUserOp.callData
       fallbackUserOp.callGasLimit = fallbackUserOp.callGasLimit
@@ -37,16 +40,15 @@ export class FallbackGasTankAPI implements IFallbackAPI {
       console.log('verifying and signing service response', result)
 
       if (result && result.data && result.code === 200) {
-        return result.data.paymasterAndData
+        return result.data
       } else {
         console.log('error in verifying. sending paymasterAndData 0x')
         console.log(result.error)
       }
     } catch (err) {
-      console.log('error in signing service response')
-      console.error(err)
-      return '0x'
+      console.log('error in signing service response', err)
+      throw err
     }
-    return '0x'
+    throw new Error('Error in verifying dapp identifier')
   }
 }

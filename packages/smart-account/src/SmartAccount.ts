@@ -47,6 +47,7 @@ import { IRelayer, RestRelayer, FallbackRelayer, IFallbackRelayer } from '@bicon
 import * as _ from 'lodash'
 import TransactionManager, {
   ContractUtils,
+  encodeMultiSend,
   smartAccountSignMessage,
   smartAccountSignTypedData
 } from '@biconomy/transactions'
@@ -63,7 +64,7 @@ import {
   BaseWalletAPI
 } from '@biconomy/account-abstraction'
 
-import { ethers, Signer } from 'ethers'
+import { BigNumber, ethers, Signer } from 'ethers'
 
 let isLogsEnabled = false
 
@@ -168,11 +169,6 @@ class SmartAccount extends EventEmitter {
     this.relayer = new RestRelayer({
       url: this.#smartAccountConfig.relayerUrl,
       socketServerUrl: this.#smartAccountConfig.socketServerUrl
-    })
-
-    this.fallbackRelayer = new FallbackRelayer({
-      url: 'https://sdk-257-fallback-transaction-relayer.staging.biconomy.io/api/v1/relay',
-      relayerServiceUrl: this.#smartAccountConfig.socketServerUrl
     })
     this.aaProvider = {}
     this.chainConfig = []
@@ -282,6 +278,12 @@ class SmartAccount extends EventEmitter {
         clientConfig.dappAPIKey || ''
       )
 
+      this.fallbackRelayer = new FallbackRelayer({
+        dappAPIKey: clientConfig.dappAPIKey || '',
+        url: this.#smartAccountConfig.relayerUrl,
+        relayerServiceUrl: this.#smartAccountConfig.socketServerUrl
+      })
+
       this.aaProvider[network.chainId] = await newProvider(
         new ethers.providers.JsonRpcProvider(providerUrl),
         {
@@ -388,40 +390,82 @@ class SmartAccount extends EventEmitter {
     )
 
     // create instance of fallbackGasTank contracts
-    let fallbackGasTank =
-      this.contractUtils.fallbackGasTankContract[chainId][version].getContract()
+    let fallbackGasTank = this.contractUtils.fallbackGasTankContract[chainId][version].getContract()
     // check for fallback gastank nonce
     const gasTankNonce = await fallbackGasTank.getNonce(this.address)
+    // console.log('gasTankNonce', gasTankNonce, fallbackGasTank.address)
 
+    const isDeployed = await this.contractUtils.isDeployed(
+      chainId,
+      this.DEFAULT_VERSION,
+      this.address
+    )
     // dappIdentifier and signature will be added by signing service
     const fallbackUserOp = {
       sender: this.address,
+      target: this.address,
       nonce: gasTankNonce,
       callData: execTransaction.data,
-      callGasLimit: execTransaction.gasLimit,
+      callGasLimit: execTransaction.gasLimit || BigNumber.from(500000), // TODO: check if callGasLimit is valid
       dappIdentifier: '',
-      signature: '0x'
+      signature: ''
     }
-    console.log('fallbackUserOp', fallbackUserOp)
+    if (!isDeployed) {
+      const { multiSendCall, walletFactory } = this.getSmartAccountContext(chainId)
+      const { owner, entryPointAddress, fallbackHandlerAddress } =
+        await this.contractUtils.getSmartAccountState(
+          this.smartAccountState,
+          this.DEFAULT_VERSION,
+          this.#smartAccountConfig.activeNetworkId
+        )
+      const factoryInterface = walletFactory.getInterface()
+      const txs = [
+        {
+          to: walletFactory.getAddress(),
+          value: 0,
+          data: factoryInterface.encodeFunctionData(
+            factoryInterface.getFunction('deployCounterFactualWallet'),
+            [owner, entryPointAddress, fallbackHandlerAddress, 0]
+          ),
+          operation: 0
+        },
+        {
+          to: this.address,
+          value: 0,
+          data: execTransaction.data || '',
+          operation: 0
+        }
+      ]
+      const txnData = multiSendCall
+        .getInterface()
+        .encodeFunctionData('multiSend', [encodeMultiSend(txs)])
+      console.log('txnData', txnData)
+
+      // update fallbackUserOp with target and multiSend call data
+      fallbackUserOp.target = multiSendCall.getAddress()
+      fallbackUserOp.callData = txnData
+    }
+    console.log('fallbackUserOp before', fallbackUserOp)
 
     // send fallback user operation to signing service to get signature and dappIdentifier
-    const fallbackUserOpSignature = await this.signingService.getDappIdentifierAndSign(
+    const signingServiceResponse = await this.signingService.getDappIdentifierAndSign(
       fallbackUserOp
     )
-    console.log('fallbackUserOpSignature', fallbackUserOpSignature)
-    // const fallbackUserOpSignature = '0x'
+    fallbackUserOp.dappIdentifier = signingServiceResponse.dappIdentifier
+    fallbackUserOp.signature = signingServiceResponse.signature
+    console.log('fallbackUserOp after', fallbackUserOp)
 
-    execTransaction = await fallbackGasTank.populateTransaction.handleFallbackUserop(
-      transaction,
-      0, // review batchId : 0
-      refundInfo,
-      fallbackUserOpSignature
-    )
+    execTransaction = await fallbackGasTank.populateTransaction.handleFallbackUserOp(fallbackUserOp)
+
     const rawTrx: RawTransactionType = {
       to: transaction.to, // gas tank address
       data: execTransaction.data, // populateTransaction by fallbackGasTank contract handleFallbackUserop
-      value: 0, // review
+      value: 0, // tx value
       chainId: chainId
+    }
+    const signedTx: SignedTransaction = {
+      rawTx: rawTrx,
+      tx: transaction
     }
 
     const state = await this.contractUtils.getSmartAccountState(
@@ -429,11 +473,6 @@ class SmartAccount extends EventEmitter {
       this.DEFAULT_VERSION,
       this.#smartAccountConfig.activeNetworkId
     )
-
-    const signedTx: SignedTransaction = {
-      rawTx: rawTrx,
-      tx: transaction
-    }
     const relayTrx: RelayTransaction = {
       signedTx,
       config: state,
@@ -446,11 +485,6 @@ class SmartAccount extends EventEmitter {
         type: 'hex'
       }
     }
-    const isDeployed = await this.contractUtils.isDeployed(
-      chainId,
-      this.DEFAULT_VERSION,
-      this.address
-    )
     if (!isDeployed) {
       const gasLimit = {
         hex: '0x1E8480',
@@ -460,35 +494,6 @@ class SmartAccount extends EventEmitter {
     }
     const relayResponse = await this.fallbackRelayer.relay(relayTrx, this)
     return relayResponse
-    // signTransaction and get execTransaction payload
-    // nonce from gas tank contract :
-
-    // create instance of fallbackGasTank contracts
-    // i. read deposit of dappIdentifier (TBD)
-    // ii. read nonce for walletAddress
-
-    // gas estimation and get gasLimit
-    // TBD : probably extraBaseGas for the case of wallet deployment
-
-    // @review : Is it fine if the user signs first and then we invoke the signing service??
-
-    // get smartAcocuntConfig.networkConfig.dappApiKey // smartAccount.currentVersion
-    // make a call to fallback signing service (make use of created instance of FallbackSigningAPI.ts - reference IPaymasterAPI)
-    // with
-    // i. fallbackUserOp
-    // ii. version
-    // iii. transactionMetadata // optional
-    // with dappAPIKey in headers
-
-    // expected repsonse from above
-    // dappIdentifier and signature
-
-    // rawTx = { to: gasTankContract.address, data: encode for exeucteRelay (fallbackUserOp)} where fallbackUserop is wallet address, nonce, baseGas, execTransactionData, gasLimit, dappIdentifier, signature
-    //
-    // now send to relayer this.relayer.relay(relayTrx, isFallbackEnabled)
-    // response from above ^  transactionId
-
-    // todo: make sense of this response and return hash to the user
   }
 
   public async sendGaslessTransactionBatch(
@@ -1123,9 +1128,9 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
   ],
   signType: SignTypeMethod.EIP712_SIGN,
   backendUrl: 'http://localhost:3000/v1',
-  relayerUrl: 'https://sdk-relayer.prod.biconomy.io/api/v1/relay',
-  socketServerUrl: 'wss://sdk-ws.prod.biconomy.io/connection/websocket',
-  bundlerUrl: 'https://sdk-relayer.prod.biconomy.io/api/v1/relay',
+  relayerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
+  socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
+  bundlerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
   biconomySigningServiceUrl:
     'https://us-central1-biconomy-staging.cloudfunctions.net/signing-service',
   // TODO : has to be public provider urls (local config / backend node)

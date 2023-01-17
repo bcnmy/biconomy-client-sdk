@@ -13,7 +13,6 @@ export interface IRelayer {
 }
 
 export interface IFallbackRelayer {
-  getFeeOptions(chainId: number): Promise<FeeOptionsResponse>
   relay(relayTransaction: RelayTransaction, engine: EventEmitter): Promise<TransactionResponse>
 }
 

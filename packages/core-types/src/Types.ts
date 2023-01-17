@@ -35,9 +35,14 @@ export type UserOperation = {
 
 export type FallbackUserOperation = {
   sender: string
+  target: string
   nonce: number
   callData: string
   callGasLimit: number
+  dappIdentifier: string
+  signature: string
+}
+export type FallbackApiResponse = {
   dappIdentifier: string
   signature: string
 }
@@ -61,6 +66,7 @@ export type RestRelayerOptions = {
 export type FallbackRelayerOptions = {
   url: string
   relayerServiceUrl: string
+  dappAPIKey: string
 }
 
 export type TokenData = {
