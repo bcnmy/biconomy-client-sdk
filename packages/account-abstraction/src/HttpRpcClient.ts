@@ -11,7 +11,7 @@ const debug = Debug('aa.rpc')
 export class HttpRpcClient {
   private readonly userOpJsonRpcProvider: JsonRpcProvider
 
-  initializing: Promise<void>
+  // initializing: Promise<void>
 
   constructor(
     readonly bundlerUrl: string,
@@ -23,9 +23,10 @@ export class HttpRpcClient {
       name: 'Not actually connected to network, only talking to the Bundler!',
       chainId
     })
-    this.initializing = this.validateChainId()
+    // this.initializing = this.validateChainId()
   }
 
+  // review : bundler needs to support this
   async validateChainId (): Promise<void> {
     // validate chainId is in sync with expected chainid
     const chain = await this.userOpJsonRpcProvider.send('eth_chainId', [])
@@ -39,12 +40,12 @@ export class HttpRpcClient {
 
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   async sendUserOpToBundler(userOp1: UserOperation): Promise<any> {
-    await this.initializing
+    // await this.initializing
     // TODO comes from own config
     const hexifiedUserOp = deepHexlify(await resolveProperties(userOp1))
 
     const jsonRequestData: [UserOperation, string] = [hexifiedUserOp, this.entryPointAddress]
-    await this.printUserOperation('eth_sendUserOperation', jsonRequestData)
+    // await this.printUserOperation('eth_sendUserOperation', jsonRequestData)
 
     let params
 
@@ -87,10 +88,10 @@ export class HttpRpcClient {
   }
 
   async estimateUserOpGas (userOp1: Partial<UserOperation>): Promise<string> {
-    await this.initializing
+    // await this.initializing
     const hexifiedUserOp = deepHexlify(await resolveProperties(userOp1))
     const jsonRequestData: [UserOperation, string] = [hexifiedUserOp, this.entryPointAddress]
-    await this.printUserOperation('eth_estimateUserOperationGas', jsonRequestData)
+    // await this.printUserOperation('eth_estimateUserOperationGas', jsonRequestData)
     return await this.userOpJsonRpcProvider
       .send('eth_estimateUserOperationGas', [hexifiedUserOp, this.entryPointAddress])
   }

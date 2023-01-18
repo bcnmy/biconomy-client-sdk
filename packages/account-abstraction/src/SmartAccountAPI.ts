@@ -138,7 +138,10 @@ export class SmartAccountAPI extends BaseAccountAPI {
     console.log('initCode ', initCode)
 
     const initGas = await this.estimateCreationGas(initCode)
+    console.log('initgas estimated is ', initGas)
 
+    // Review verification gas limit
+    // Test tx : https://mumbai.polygonscan.com/tx/0x4d862c501360988e77155c8a28812d1641d2fcca53d266ef3ad189e4a34fcdd0
     const verificationGasLimit = BigNumber.from(await this.getVerificationGasLimit())
     .add(initGas)
 
@@ -162,7 +165,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
       maxPriorityFeePerGas = gasFee
     }
 
-    const partialUserOp: any = {
+    let partialUserOp: any = {
       sender: await this.getAccountAddress(),
       nonce: await this.getNonce(0), // TODO (nice-to-have): add batchid as param
       initCode,
@@ -173,11 +176,15 @@ export class SmartAccountAPI extends BaseAccountAPI {
       maxPriorityFeePerGas
     }
 
+    partialUserOp.paymasterAndData = '0x'
+    const preVerificationGas = await this.getPreVerificationGas(partialUserOp)
+    partialUserOp.preVerificationGas = preVerificationGas
+
     partialUserOp.paymasterAndData =
       this.paymasterAPI == null ? '0x' : await this.paymasterAPI.getPaymasterAndData(partialUserOp)
     return {
       ...partialUserOp,
-      preVerificationGas: this.getPreVerificationGas(partialUserOp),
+      // preVerificationGas: this.getPreVerificationGas(partialUserOp),
       signature: ''
     }
   }

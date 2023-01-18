@@ -24,7 +24,7 @@ export class BiconomyPaymasterAPI implements IPaymasterAPI {
       userOp.verificationGasLimit = Number(userOp.verificationGasLimit)
       userOp.maxFeePerGas = Number(userOp.maxFeePerGas)
       userOp.maxPriorityFeePerGas = Number(userOp.maxPriorityFeePerGas)
-      userOp.preVerificationGas = 21000
+      userOp.preVerificationGas = Number(userOp.preVerificationGas)
       userOp.signature = '0x'
       userOp.paymasterAndData = '0x'
 

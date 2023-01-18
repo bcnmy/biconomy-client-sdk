@@ -1,4 +1,4 @@
-import { UserOperationStruct } from '@account-abstraction/contracts'
+import { UserOperation } from '@biconomy/core-types' // review
 import { NotPromise, packUserOp } from '@biconomy/common'  // '@account-abstraction/utils'
 import { arrayify, hexlify } from 'ethers/lib/utils'
 
@@ -58,9 +58,9 @@ export const DefaultGasOverheads: GasOverheads = {
  * @param userOp filled userOp to calculate. The only possible missing fields can be the signature and preVerificationGas itself
  * @param overheads gas overheads to use, to override the default values
  */
-export function calcPreVerificationGas (userOp: Partial<NotPromise<UserOperationStruct>>, overheads?: Partial<GasOverheads>): number {
+export function calcPreVerificationGas (userOp: Partial<NotPromise<UserOperation>>, overheads?: Partial<GasOverheads>): number {
   const ov = { ...DefaultGasOverheads, ...(overheads ?? {}) }
-  const p: NotPromise<UserOperationStruct> = {
+  const p: NotPromise<UserOperation> = {
     // dummy values, in case the UserOp is incomplete.
     preVerificationGas: 21000, // dummy value, just for calldata cost
     signature: hexlify(Buffer.alloc(ov.sigSize, 1)), // dummy signature
