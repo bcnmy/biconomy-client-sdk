@@ -58,7 +58,7 @@ import {
   newProvider,
   ERC4337EthersProvider,
   ERC4337EthersSigner,
-  BaseWalletAPI
+  BaseAccountAPI
 } from '@biconomy/account-abstraction'
 
 import { ethers, Signer } from 'ethers'
@@ -189,10 +189,10 @@ class SmartAccount extends EventEmitter {
     return this.signer
   }
 
-  getSmartAccountAPI(chainId: ChainId): BaseWalletAPI {
+  getSmartAccountAPI(chainId: ChainId): BaseAccountAPI {
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     const aaSigner: ERC4337EthersSigner = this.aaProvider[chainId].getSigner()
-    return aaSigner.smartWalletAPI
+    return aaSigner.smartAccountAPI
   }
 
   getProviderUrl(network: ChainConfig): string {

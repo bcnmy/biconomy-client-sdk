@@ -1,5 +1,5 @@
 export { SmartAccountAPI } from './SmartAccountAPI'
-export { BaseWalletAPI } from './BaseAccountAPI'
+export { BaseAccountAPI } from './BaseAccountAPI'
 export { BiconomyPaymasterAPI } from './BiconomyPaymasterAPI'
 export { newProvider } from './Provider'
 export { ERC4337EthersSigner } from './ERC4337EthersSigner'
