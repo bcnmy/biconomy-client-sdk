@@ -87,7 +87,7 @@ export const calculateSmartAccountMessageHash = (
 }
 
 export const smartAccountSignTypedData = async (
-  signer: Signer & TypedDataSigner,
+  signer: Signer,
   wallet: Contract,
   SmartAccountTx: IWalletTransaction,
   chainId?: BigNumberish
@@ -97,7 +97,7 @@ export const smartAccountSignTypedData = async (
   const signerAddress = await signer.getAddress()
   return {
     signer: signerAddress,
-    data: await signer._signTypedData(
+    data: await (signer as Signer & TypedDataSigner)._signTypedData(
       { verifyingContract: wallet.address, chainId: cid },
       EIP712_WALLET_TX_TYPE,
       SmartAccountTx
