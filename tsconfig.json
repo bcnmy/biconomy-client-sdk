@@ -25,6 +25,7 @@
       { "path": "smart-account" },
       { "path": "transactions" },
       { "path": "web3-auth" },
+      { "path": "web3-auth-native" },
       { "path": "transak" }
     ]
   }
