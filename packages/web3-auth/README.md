@@ -8,8 +8,7 @@
 import SocialLogin from "@biconomy/web3-auth";
 // init wallet
 const socialLoginSDK = new SocialLogin();
-await socialLoginSDK.init('0x5');
-socialLoginSDK.showConnectModal();
+await socialLoginSDK.init();
 // show connect modal
 socialLoginSDK.showWallet();
 ```

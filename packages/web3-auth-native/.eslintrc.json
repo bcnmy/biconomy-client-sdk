@@ -1,0 +1,14 @@
+{
+  "root": true,
+  "extends": ["@toruslabs/eslint-config-typescript"],
+  "parser": "@typescript-eslint/parser",
+  "ignorePatterns": ["*.config.js", "example/*"],
+  "parserOptions": {
+    "ecmaVersion": 2020, // Allows for the parsing of modern ECMAScript features
+    "sourceType": "module", // Allows for the use of imports
+    "project": "./tsconfig.json"
+  },
+  "rules": {
+    "camelcase": 0
+  }
+}
