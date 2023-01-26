@@ -8,7 +8,6 @@ import { ClientConfig } from './ClientConfig'
 import { HttpRpcClient } from './HttpRpcClient'
 import { UserOperation } from '@biconomy/core-types'
 import { BaseWalletAPI } from './BaseWalletAPI'
-import EventEmitter from 'events'
 import { ClientMessenger } from 'messaging-sdk'
 import WebSocket from 'isomorphic-ws'
 export class ERC4337EthersSigner extends Signer {
@@ -52,13 +51,13 @@ export class ERC4337EthersSigner extends Signer {
 
     let gasLimit = 2000000
 
-    if(customData && (customData.isBatchedToMultiSend || !customData.isDeployed)) {
+    if (customData && (customData.isBatchedToMultiSend || !customData.isDeployed)) {
       if (customData.appliedGasLimit) {
         gasLimit = customData.appliedGasLimit
         console.log('gaslimit applied from custom data...', gasLimit)
       }
     }
-    
+
     delete transaction.customData
 
     // transaction.from = await this.smartWalletAPI.getWalletAddress()
@@ -84,7 +83,7 @@ export class ERC4337EthersSigner extends Signer {
         target: transaction.to ?? '',
         data: transaction.data?.toString() ?? '',
         value: transaction.value,
-        gasLimit: isDeployed? transaction.gasLimit : gasLimit,
+        gasLimit: isDeployed ? transaction.gasLimit : gasLimit,
         isDelegateCall: isDelegate // get from customData.isBatchedToMultiSend
       })
     }
@@ -113,11 +112,12 @@ export class ERC4337EthersSigner extends Signer {
                 hash: txHash
               })}`
             )
-            engine.emit('txHashGenerated', {
-              id: tx.transactionId,
-              hash: tx.transactionHash,
-              msg: 'txn hash generated'
-            })
+            engine &&
+              engine.emit('txHashGenerated', {
+                id: tx.transactionId,
+                hash: tx.transactionHash,
+                msg: 'txn hash generated'
+              })
           }
         },
         onHashChanged: async (tx: any) => {
@@ -130,11 +130,12 @@ export class ERC4337EthersSigner extends Signer {
                 hash: txHash
               })}`
             )
-            engine.emit('txHashChanged', {
-              id: tx.transactionId,
-              hash: tx.transactionHash,
-              msg: 'txn hash changed'
-            })
+            engine &&
+              engine.emit('txHashChanged', {
+                id: tx.transactionId,
+                hash: tx.transactionHash,
+                msg: 'txn hash changed'
+              })
           }
         },
         onError: async (tx: any) => {
@@ -144,11 +145,12 @@ export class ERC4337EthersSigner extends Signer {
             const txId = tx.transactionId
             clientMessenger.unsubscribe(txId)
             // event emitter
-            engine.emit('error', {
-              id: tx.transactionId,
-              error: err,
-              msg: 'txn hash generated'
-            })
+            engine &&
+              engine.emit('error', {
+                id: tx.transactionId,
+                error: err,
+                msg: 'txn hash generated'
+              })
           }
         }
       })

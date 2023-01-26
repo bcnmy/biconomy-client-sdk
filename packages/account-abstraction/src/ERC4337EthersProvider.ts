@@ -11,7 +11,6 @@ import { EntryPoint } from '@account-abstraction/contracts'
 import { UserOperation } from '@biconomy/core-types'
 import { BaseWalletAPI } from './BaseWalletAPI'
 import { ClientMessenger } from 'messaging-sdk'
-import EventEmitter from 'events'
 import WebSocket from 'isomorphic-ws'
 
 export class ERC4337EthersProvider extends BaseProvider {
@@ -171,12 +170,13 @@ export class ERC4337EthersProvider extends BaseProvider {
               })}`
             )
             const receipt: TransactionReceipt = tx.receipt
-            engine.emit('txMined', {
-              msg: 'txn mined',
-              id: txId,
-              hash: tx.transactionHash, // Note: differs from TransactionReceipt.transactionHash
-              receipt: tx.receipt
-            })
+            engine &&
+              engine.emit('txMined', {
+                msg: 'txn mined',
+                id: txId,
+                hash: tx.transactionHash, // Note: differs from TransactionReceipt.transactionHash
+                receipt: tx.receipt
+              })
             resolve(receipt)
           },
           onError: async (err: any) => {

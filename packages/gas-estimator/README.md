@@ -4,7 +4,7 @@
 
 ## Usage
 
-```
+```typescript
 import { Estimator } from '@biconomy/gas-estimator';
 
 // TODO: DEMONSTRATE API
