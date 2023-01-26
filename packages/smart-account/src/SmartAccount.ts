@@ -41,7 +41,7 @@ import NodeClient, {
   BalancesDto,
   UsdBalanceResponse
 } from '@biconomy/node-client'
-import { Web3Provider } from '@ethersproject/providers'
+import { Provider, Web3Provider } from '@ethersproject/providers'
 import { IRelayer, RestRelayer } from '@biconomy/relayer'
 import * as _ from 'lodash'
 import TransactionManager, {
@@ -88,7 +88,7 @@ class SmartAccount extends EventEmitter {
   // 4337Provider
   aaProvider!: { [chainId: number]: ERC4337EthersProvider }
 
-  signer!: Signer & TypedDataSigner
+  signer!: Signer
 
   nodeClient!: NodeClient
 
@@ -120,7 +120,7 @@ class SmartAccount extends EventEmitter {
    * If you wish to use your own backend server and relayer service, pass the URLs here
    */
   // Note: Could remove WalletProvider later on
-  constructor(walletProvider: Web3Provider, config?: Partial<SmartAccountConfig>) {
+  constructor(signerOrProvider: Web3Provider | Signer, config?: Partial<SmartAccountConfig>) {
     super()
     if (config && config.debug === true) {
       isLogsEnabled = true
@@ -157,9 +157,13 @@ class SmartAccount extends EventEmitter {
     }
     this.supportedNetworkIds = this.#smartAccountConfig.supportedNetworksIds
 
-    // Should not break if we make this wallet connected provider optional (We'd have JsonRpcProvider / JsonRpcSender)
-    this.provider = walletProvider
-    this.signer = new SmartAccountSigner(this.provider)
+    if (Signer.isSigner(signerOrProvider)) {
+      this.signer = signerOrProvider
+    } else if (Provider.isProvider(signerOrProvider)) {
+      this.signer = new SmartAccountSigner(signerOrProvider)
+    } else {
+      this._logMessage('signer or provider is not valid')
+    }
     this.nodeClient = new NodeClient({ txServiceUrl: this.#smartAccountConfig.backendUrl })
     this.relayer = new RestRelayer({
       url: this.#smartAccountConfig.relayerUrl,
@@ -185,7 +189,7 @@ class SmartAccount extends EventEmitter {
   }
 
   // Changes if we make change in nature of smart account signer
-  getsigner(): Signer & TypedDataSigner {
+  getsigner(): Signer {
     return this.signer
   }
 
