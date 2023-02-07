@@ -3,7 +3,7 @@ import { HttpMethod, sendRequest } from './utils/httpRequests'
 import { IFallbackAPI, FallbackUserOperation, FallbackApiResponse } from '@biconomy/core-types'
 
 /**
- * Verifying Dapp Identifier API supported via Biconomy dahsboard to enable fallback Gasless transactions
+ * Verifying and Signing fallback gasless transactions
  */
 export class FallbackGasTankAPI implements IFallbackAPI {
   constructor(readonly signingServiceUrl: string, readonly dappAPIKey: string) {
@@ -33,22 +33,18 @@ export class FallbackGasTankAPI implements IFallbackAPI {
         url: `${this.signingServiceUrl}`,
         method: HttpMethod.Post,
         headers: { 'x-api-key': this.dappAPIKey },
-        body: { fallbackUserOp: fallbackUserOp, smartAccountVersion: '1.0.1' }
+        body: { fallbackUserOp: fallbackUserOp }
       })
-
-      console.log('******** ||||| *********')
-      console.log('verifying and signing service response', result)
 
       if (result && result.data && result.code === 200) {
         return result.data
       } else {
-        console.log('error in verifying. sending paymasterAndData 0x')
-        console.log(result.error)
+        console.error(result.error)
+        throw new Error('Error in fallback signing api')
       }
     } catch (err) {
-      console.log('error in signing service response', err)
-      throw err
+      console.log('Error in fallback signing api', err)
+      throw new Error('Error in fallback signing api')
     }
-    throw new Error('Error in verifying dapp identifier')
   }
 }

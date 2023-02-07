@@ -402,6 +402,11 @@ class TransactionManager {
     return estimateWalletDeployment
   }
 
+  async estimateGasUsed(target: string, data: string, chainId: number): Promise<number> {
+    const gasUsed = await this.estimator.estimateGasUsed(target, data, chainId)
+    return gasUsed
+  }
+
   /**
    * Prepares compatible IWalletTransaction object based on Transaction Request
    * @todo Rename based on other variations to prepare transaction

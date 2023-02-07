@@ -102,6 +102,7 @@ class SmartAccount extends EventEmitter {
   // relayer.relay => dispatch to blockchain
   // other methods are useful for the widget
   relayer!: IRelayer
+
   fallbackRelayer!: IFallbackRelayer
 
   private signingService!: IFallbackAPI
@@ -348,10 +349,17 @@ class SmartAccount extends EventEmitter {
 
     const isDelegate = transactionDto.transaction.to === multiSendContract.address ? true : false
 
-    const { data } = await this.nodeClient.isFallbackEnabled()
-    console.log('isFallbackEnabled', data.enable_fallback_flow)
+    let isFallbackEnabled = false
+    try {
+      const { data } = await this.nodeClient.isFallbackEnabled()
+      isFallbackEnabled = data.enable_fallback_flow
+      this._logMessage('isFallbackEnabled')
+      this._logMessage(data.enable_fallback_flow)
+    } catch (error) {
+      console.error('isFallbackEnabled', error)
+    }
 
-    if (!data.enable_fallback_flow) {
+    if (!isFallbackEnabled) {
       const response = await aaSigner.sendTransaction(
         transactionDto.transaction,
         false,
@@ -389,11 +397,9 @@ class SmartAccount extends EventEmitter {
       signature
     )
 
-    // create instance of fallbackGasTank contracts
+    // create instance of fallbackGasTank contracts to get nonce
     let fallbackGasTank = this.contractUtils.fallbackGasTankContract[chainId][version].getContract()
-    // check for fallback gastank nonce
     const gasTankNonce = await fallbackGasTank.getNonce(this.address)
-    // console.log('gasTankNonce', gasTankNonce, fallbackGasTank.address)
 
     const isDeployed = await this.contractUtils.isDeployed(
       chainId,
@@ -405,8 +411,8 @@ class SmartAccount extends EventEmitter {
       sender: this.address,
       target: this.address,
       nonce: gasTankNonce,
-      callData: execTransaction.data,
-      callGasLimit: execTransaction.gasLimit || BigNumber.from(500000), // TODO: check if callGasLimit is valid
+      callData: execTransaction.data || '',
+      callGasLimit: BigNumber.from(500000), // will be updated below
       dappIdentifier: '',
       signature: ''
     }
@@ -444,9 +450,22 @@ class SmartAccount extends EventEmitter {
       // update fallbackUserOp with target and multiSend call data
       fallbackUserOp.target = multiSendCall.getAddress()
       fallbackUserOp.callData = txnData
+      // TODO: check if callGasLimit is valid
     }
-    console.log('fallbackUserOp before', fallbackUserOp)
+    try {
+      const callGasLimit = await this.transactionManager.estimateGasUsed(
+        this.address,
+        fallbackUserOp.callData,
+        chainId
+      )
+      fallbackUserOp.callGasLimit = BigNumber.from(callGasLimit)
+      this._logMessage('callGasLimit')
+      this._logMessage(callGasLimit)
+    } catch (error) {
+      this._logMessage('Error in estimating callGasLimit')
+    }
 
+    console.log('fallbackUserOp before', fallbackUserOp)
     // send fallback user operation to signing service to get signature and dappIdentifier
     const signingServiceResponse = await this.signingService.getDappIdentifierAndSign(
       fallbackUserOp
@@ -467,7 +486,6 @@ class SmartAccount extends EventEmitter {
       rawTx: rawTrx,
       tx: transaction
     }
-
     const state = await this.contractUtils.getSmartAccountState(
       this.smartAccountState,
       this.DEFAULT_VERSION,

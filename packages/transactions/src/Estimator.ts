@@ -154,6 +154,18 @@ export class Estimator {
     return estimatedGasUsed
   }
 
+  // Generic function to estimate gas used for any contract call
+  async estimateGasUsed(target: string, data: string, chainId: number): Promise<number> {
+    const estimatorInterface = new ethers.utils.Interface(GasEstimator.abi)
+    const encodedEstimateData = estimatorInterface.encodeFunctionData('estimate', [target, data])
+
+    let estimateGasUsedResponse = await this.nodeClient.estimateExternalGas({
+      chainId,
+      encodedData: encodedEstimateData
+    })
+    return Number(estimateGasUsedResponse.data.gas)
+  }
+
   async estimateSmartAccountDeployment(
     estimateSmartAccountDeploymentDto: EstimateSmartAccountDeploymentDto
   ): Promise<number> {

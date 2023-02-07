@@ -1,4 +1,4 @@
-import { JsonRpcProvider, TransactionResponse } from '@ethersproject/providers'
+import { JsonRpcProvider, TransactionReceipt, TransactionResponse } from '@ethersproject/providers'
 import { BigNumber, ethers } from 'ethers'
 import { IFallbackRelayer } from '.'
 
@@ -45,8 +45,13 @@ export class FallbackRelayer implements IFallbackRelayer {
     const relayerServiceUrl = this.#relayerServiceUrl
     const clientMessenger = new ClientMessenger(relayerServiceUrl, WebSocket)
     if (!clientMessenger.socketClient.isConnected()) {
-      await clientMessenger.connect()
-      console.log('connect success')
+      try {
+        await clientMessenger.connect()
+        console.log('connect success')
+      } catch (err) {
+        console.log('socket connection failure')
+        console.log(err)
+      }
     }
 
     const { config, signedTx, gasLimit } = relayTransaction
@@ -54,26 +59,6 @@ export class FallbackRelayer implements IFallbackRelayer {
 
     const finalRawRx = signedTx.rawTx
 
-    console.log(
-      'params',
-      JSON.stringify({
-        method: 'eth_sendGaslessFallbackTransaction',
-        params: [
-          {
-            ...finalRawRx,
-            gasLimit: (gasLimit as GasLimit).hex,
-            walletInfo: {
-              address: address
-            },
-            metaData: {
-              dappAPIKey: this.#dappAPIKey
-            }
-          }
-        ],
-        id: 1234,
-        jsonrpc: '2.0'
-      })
-    )
     // based on the flag make rpc call to relayer code service with necessary rawTx data
     const response: any = await sendRequest({
       url: `${this.#relayServiceBaseUrl}`,
@@ -83,7 +68,7 @@ export class FallbackRelayer implements IFallbackRelayer {
         params: [
           {
             ...finalRawRx,
-            gasLimit: (gasLimit as GasLimit).hex,
+            gasLimit: (gasLimit as GasLimit).hex || '',
             walletInfo: {
               address: address
             },
@@ -100,7 +85,37 @@ export class FallbackRelayer implements IFallbackRelayer {
 
     if (response.data) {
       const transactionId = response.data.transactionId
-      const connectionUrl = response.data.connectionUrl
+      // const connectionUrl = response.data.connectionUrl
+
+      const waitPromise = new Promise<TransactionReceipt>((resolve, reject) => {
+        if (clientMessenger && clientMessenger.socketClient.isConnected()) {
+          clientMessenger.createTransactionNotifier(transactionId, {
+            onMined: (tx: any) => {
+              const txId = tx.transactionId
+              clientMessenger.unsubscribe(txId)
+              console.log(
+                `Tx Hash mined message received at client ${JSON.stringify({
+                  transactionId: txId,
+                  hash: tx.transactionHash,
+                  receipt: tx.receipt
+                })}`
+              )
+              const receipt: TransactionReceipt = tx.receipt
+              engine &&
+                engine.emit('txMined', {
+                  msg: 'txn mined',
+                  id: txId,
+                  hash: tx.transactionHash, // Note: differs from TransactionReceipt.transactionHash
+                  receipt: tx.receipt
+                })
+              resolve(receipt)
+            },
+            onError: async (err: any) => {
+              reject(err)
+            }
+          })
+        }
+      })
 
       clientMessenger.createTransactionNotifier(transactionId, {
         onMined: (tx: any) => {
@@ -168,26 +183,22 @@ export class FallbackRelayer implements IFallbackRelayer {
         }
       })
 
+      // TODO: confirm return type
       return {
-        hash: '',
-        from: '',
-        nonce: 0,
-        gasLimit: BigNumber.from(0),
-        value: BigNumber.from(0),
-        data: hexValue('0x'),
-        chainId: 0,
+        hash: transactionId, // transactionId, can get orignal txHash by wait promise or event
         confirmations: 0,
-        wait: async (confirmations?: number) => {
+        from: signedTx.rawTx.from || '',
+        nonce: Number(signedTx.rawTx.nonce),
+        gasLimit: BigNumber.from(signedTx.rawTx.gasLimit || 0),
+        value: BigNumber.from(0),
+        data: hexValue(signedTx.rawTx.data || '0x'),
+        chainId: signedTx.rawTx.chainId,
+        wait: async (confirmations?: number): Promise<TransactionReceipt> => {
           console.log(confirmations)
-          return new Promise((resolve) => {
-            const onTxMined = (tx: any) => {
-              if (tx.id === transactionId) {
-                engine.removeListener('txMined', onTxMined)
-                resolve(tx.receipt)
-              }
-            }
-            engine.on('txMined', onTxMined)
+          const transactionReceipt = waitPromise.then((receipt: TransactionReceipt) => {
+            return receipt
           })
+          return transactionReceipt
         }
       }
     } else {
