@@ -36,7 +36,8 @@
     "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"
   },
   "dependencies": {
-    "@account-abstraction/contracts": "^0.2.0",
+    "@account-abstraction/contracts": "^0.4.0",
+    "@account-abstraction/utils": "^0.4.0",
     "@biconomy/common": "^1.0.0",
     "@ethersproject/abstract-provider": "^5.7.0",
     "@ethersproject/abstract-signer": "^5.7.0",
@@ -50,7 +51,7 @@
     "solidity-coverage": "^0.7.22"
   },
   "devDependencies": {
-    "@biconomy/common": "*",
+    "@biconomy/common": "^1.0.0",
     "@biconomy/core-types": "^1.0.0",
     "@biconomy/ethers-lib": "^1.0.0",
     "@biconomy/transactions": "^1.0.0",

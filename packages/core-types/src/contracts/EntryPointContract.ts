@@ -11,5 +11,5 @@ export interface EntryPointContract {
     userOperation: UserOperation,
     offChainSigCheck: boolean
   ): Promise<ITransactionResult>
-  getRequestId(userOperation: UserOperation): Promise<string>
+  // getRequestId(userOperation: UserOperation): Promise<string>
 }

@@ -58,14 +58,14 @@ export type UserOperationStructOutput = [
 export interface IAggregatorInterface extends utils.Interface {
   contractName: "IAggregator";
   functions: {
-    "aggregateSignatures(bytes[])": FunctionFragment;
+    "aggregateSignatures((address,uint256,bytes,bytes,uint256,uint256,uint256,uint256,uint256,bytes,bytes)[])": FunctionFragment;
     "validateSignatures((address,uint256,bytes,bytes,uint256,uint256,uint256,uint256,uint256,bytes,bytes)[],bytes)": FunctionFragment;
-    "validateUserOpSignature((address,uint256,bytes,bytes,uint256,uint256,uint256,uint256,uint256,bytes,bytes),bool)": FunctionFragment;
+    "validateUserOpSignature((address,uint256,bytes,bytes,uint256,uint256,uint256,uint256,uint256,bytes,bytes))": FunctionFragment;
   };
 
   encodeFunctionData(
     functionFragment: "aggregateSignatures",
-    values: [BytesLike[]]
+    values: [UserOperationStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "validateSignatures",
@@ -73,7 +73,7 @@ export interface IAggregatorInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "validateUserOpSignature",
-    values: [UserOperationStruct, boolean]
+    values: [UserOperationStruct]
   ): string;
 
   decodeFunctionResult(
@@ -121,7 +121,7 @@ export interface IAggregator extends BaseContract {
 
   functions: {
     aggregateSignatures(
-      sigsForAggregation: BytesLike[],
+      userOps: UserOperationStruct[],
       overrides?: CallOverrides
     ): Promise<[string] & { aggregatesSignature: string }>;
 
@@ -133,19 +133,12 @@ export interface IAggregator extends BaseContract {
 
     validateUserOpSignature(
       userOp: UserOperationStruct,
-      offChainSigCheck: boolean,
       overrides?: CallOverrides
-    ): Promise<
-      [string, string, string] & {
-        sigForUserOp: string;
-        sigForAggregation: string;
-        offChainSigInfo: string;
-      }
-    >;
+    ): Promise<[string] & { sigForUserOp: string }>;
   };
 
   aggregateSignatures(
-    sigsForAggregation: BytesLike[],
+    userOps: UserOperationStruct[],
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -157,19 +150,12 @@ export interface IAggregator extends BaseContract {
 
   validateUserOpSignature(
     userOp: UserOperationStruct,
-    offChainSigCheck: boolean,
     overrides?: CallOverrides
-  ): Promise<
-    [string, string, string] & {
-      sigForUserOp: string;
-      sigForAggregation: string;
-      offChainSigInfo: string;
-    }
-  >;
+  ): Promise<string>;
 
   callStatic: {
     aggregateSignatures(
-      sigsForAggregation: BytesLike[],
+      userOps: UserOperationStruct[],
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -181,22 +167,15 @@ export interface IAggregator extends BaseContract {
 
     validateUserOpSignature(
       userOp: UserOperationStruct,
-      offChainSigCheck: boolean,
       overrides?: CallOverrides
-    ): Promise<
-      [string, string, string] & {
-        sigForUserOp: string;
-        sigForAggregation: string;
-        offChainSigInfo: string;
-      }
-    >;
+    ): Promise<string>;
   };
 
   filters: {};
 
   estimateGas: {
     aggregateSignatures(
-      sigsForAggregation: BytesLike[],
+      userOps: UserOperationStruct[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -208,14 +187,13 @@ export interface IAggregator extends BaseContract {
 
     validateUserOpSignature(
       userOp: UserOperationStruct,
-      offChainSigCheck: boolean,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     aggregateSignatures(
-      sigsForAggregation: BytesLike[],
+      userOps: UserOperationStruct[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -227,7 +205,6 @@ export interface IAggregator extends BaseContract {
 
     validateUserOpSignature(
       userOp: UserOperationStruct,
-      offChainSigCheck: boolean,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

@@ -1,5 +1,5 @@
 export { SmartAccountAPI } from './SmartAccountAPI'
-export { BaseWalletAPI } from './BaseWalletAPI'
+export { BaseAccountAPI } from './BaseAccountAPI'
 export { BiconomyPaymasterAPI } from './BiconomyPaymasterAPI'
 export { FallbackGasTankAPI } from './FallbackGasTankAPI'
 export { newProvider } from './Provider'

@@ -61,7 +61,7 @@ import {
   ERC4337EthersProvider,
   FallbackGasTankAPI,
   ERC4337EthersSigner,
-  BaseWalletAPI
+  BaseAccountAPI
 } from '@biconomy/account-abstraction'
 
 import { BigNumber, ethers, Signer } from 'ethers'
@@ -71,7 +71,7 @@ let isLogsEnabled = false
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount extends EventEmitter {
   // By default latest version
-  DEFAULT_VERSION: SmartAccountVersion = '1.0.1'
+  DEFAULT_VERSION: SmartAccountVersion = '1.0.2'
 
   // Smart Account Context provies relevant contract instances for chainId asked (default is current active chain)
   context!: { [chainId: number]: SmartAccountContext }
@@ -195,10 +195,10 @@ class SmartAccount extends EventEmitter {
     return this.signer
   }
 
-  getSmartAccountAPI(chainId: ChainId): BaseWalletAPI {
+  getSmartAccountAPI(chainId: ChainId): BaseAccountAPI {
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     const aaSigner: ERC4337EthersSigner = this.aaProvider[chainId].getSigner()
-    return aaSigner.smartWalletAPI
+    return aaSigner.smartAccountAPI
   }
 
   getProviderUrl(network: ChainConfig): string {

@@ -2,24 +2,26 @@ import { BigNumberish, Event } from 'ethers'
 import { TransactionReceipt } from '@ethersproject/providers'
 import { EntryPoint } from '@account-abstraction/contracts'
 import { defaultAbiCoder } from 'ethers/lib/utils'
+import Debug from 'debug'
 
-const DEFAULT_TRANSACTION_TIMEOUT = 100000
+const debug = Debug('aa.listener')
+
+const DEFAULT_TRANSACTION_TIMEOUT: number = 10000
 
 /**
  * This class encapsulates Ethers.js listener function and necessary UserOperation details to
  * discover a TransactionReceipt for the operation.
  */
 export class UserOperationEventListener {
-  resolved = false
-  /* eslint-disable  @typescript-eslint/no-explicit-any */
+  resolved: boolean = false
   boundLisener: (this: any, ...param: any) => void
-  /* eslint-disable  @typescript-eslint/no-explicit-any */
-  constructor(
+
+  constructor (
     readonly resolve: (t: TransactionReceipt) => void,
     readonly reject: (reason?: any) => void,
     readonly entryPoint: EntryPoint,
     readonly sender: string,
-    readonly requestId: string,
+    readonly userOpHash: string,
     readonly nonce?: BigNumberish,
     readonly timeout?: number
   ) {
@@ -31,9 +33,9 @@ export class UserOperationEventListener {
     }, this.timeout ?? DEFAULT_TRANSACTION_TIMEOUT)
   }
 
-  start(): void {
+  start (): void {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    const filter = this.entryPoint.filters.UserOperationEvent(this.requestId)
+    const filter = this.entryPoint.filters.UserOperationEvent(this.userOpHash)
     // listener takes time... first query directly:
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(async () => {
@@ -46,36 +48,27 @@ export class UserOperationEventListener {
     }, 30000)
   }
 
-  stop(): void {
+  stop (): void {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     this.entryPoint.off('UserOperationEvent', this.boundLisener)
   }
-  /* eslint-disable  @typescript-eslint/no-explicit-any */
-  async listenerCallback(this: any, ...param: any): Promise<void> {
+
+  async listenerCallback (this: any, ...param: any): Promise<void> {
     console.log(param)
-    // eslint-disable-next-line prefer-rest-params
     const event = arguments[arguments.length - 1] as Event
     if (event.args == null) {
       console.error('got event without args', event)
       return
     }
-    if (event.args.requestId !== this.requestId) {
-      console.log(
-        `== event with wrong requestId: sender/nonce: event.${event.args.sender as string}@${
-          event.args.nonce.toString() as string
-        }!= userOp.${this.sender as string}@${parseInt(this.nonce?.toString())}`
-      )
+    // TODO: can this happen? we register to event by userOpHash..
+    if (event.args.userOpHash !== this.userOpHash) {
+      console.log(`== event with wrong userOpHash: sender/nonce: event.${event.args.sender as string}@${event.args.nonce.toString() as string}!= userOp.${this.sender as string}@${parseInt(this.nonce?.toString())}`)
       return
     }
 
     const transactionReceipt = await event.getTransactionReceipt()
-    transactionReceipt.transactionHash = this.requestId
-    console.log(
-      'got event with status=',
-      event.args.success,
-      'gasUsed=',
-      transactionReceipt.gasUsed
-    )
+    transactionReceipt.transactionHash = this.userOpHash
+    debug('got event with status=', event.args.success, 'gasUsed=', transactionReceipt.gasUsed)
 
     // before returning the receipt, update the status from the event.
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
@@ -87,21 +80,19 @@ export class UserOperationEventListener {
     this.resolved = true
   }
 
-  async extractFailureReason(receipt: TransactionReceipt): Promise<void> {
-    console.log('mark tx as failed')
+  async extractFailureReason (receipt: TransactionReceipt): Promise<void> {
+    debug('mark tx as failed')
     receipt.status = 0
-    const revertReasonEvents = await this.entryPoint.queryFilter(
-      this.entryPoint.filters.UserOperationRevertReason(this.requestId, this.sender),
-      receipt.blockHash
-    )
+    const revertReasonEvents = await this.entryPoint.queryFilter(this.entryPoint.filters.UserOperationRevertReason(this.userOpHash, this.sender), receipt.blockHash)
     if (revertReasonEvents[0] != null) {
       let message = revertReasonEvents[0].args.revertReason
       if (message.startsWith('0x08c379a0')) {
         // Error(string)
         message = defaultAbiCoder.decode(['string'], '0x' + message.substring(10)).toString()
       }
-      console.log(`rejecting with reason: ${message}`)
-      this.reject(new Error(`UserOp failed with reason: ${message}`))
+      debug(`rejecting with reason: ${message}`)
+      this.reject(new Error(`UserOp failed with reason: ${message}`)
+      )
     }
   }
 }
