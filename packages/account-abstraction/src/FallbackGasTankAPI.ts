@@ -30,13 +30,13 @@ export class FallbackGasTankAPI implements IFallbackAPI {
 
       // move dappAPIKey in headers
       const result: any = await sendRequest({
-        url: `${this.signingServiceUrl}`,
+        url: `${this.signingServiceUrl}/fallback-user-op`,
         method: HttpMethod.Post,
         headers: { 'x-api-key': this.dappAPIKey },
         body: { fallbackUserOp: fallbackUserOp }
       })
 
-      if (result && result.data && result.code === 200) {
+      if (result && result.data && result.statusCode === 200) {
         return result.data
       } else {
         console.error(result.error)

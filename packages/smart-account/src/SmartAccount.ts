@@ -275,7 +275,7 @@ class SmartAccount extends EventEmitter {
       const clientConfig = this.getNetworkConfigValues(network.chainId)
 
       this.signingService = new FallbackGasTankAPI(
-        'https://us-central1-biconomy-staging.cloudfunctions.net/fallback-signing-service',
+        this.#smartAccountConfig.biconomySigningServiceUrl || '',
         clientConfig.dappAPIKey || ''
       )
 
@@ -477,7 +477,7 @@ class SmartAccount extends EventEmitter {
     execTransaction = await fallbackGasTank.populateTransaction.handleFallbackUserOp(fallbackUserOp)
 
     const rawTrx: RawTransactionType = {
-      to: transaction.to, // gas tank address
+      to: fallbackGasTank.address, // gas tank address
       data: execTransaction.data, // populateTransaction by fallbackGasTank contract handleFallbackUserop
       value: 0, // tx value
       chainId: chainId
@@ -1145,12 +1145,11 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
     ChainId.BSC_TESTNET
   ],
   signType: SignTypeMethod.EIP712_SIGN,
-  backendUrl: 'http://localhost:3000/v1',
+  backendUrl: 'https://sdk-backend.staging.biconomy.io/v1',
   relayerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
   socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
   bundlerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
-  biconomySigningServiceUrl:
-    'https://us-central1-biconomy-staging.cloudfunctions.net/signing-service',
+  biconomySigningServiceUrl: 'https://paymaster.staging.biconomy.io',
   // TODO : has to be public provider urls (local config / backend node)
   networkConfig: [
     {
