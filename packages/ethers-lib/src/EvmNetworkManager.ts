@@ -101,7 +101,7 @@ class EvmNetworkManager implements IEvmNetworkManager {
 
   getFallbackGasTankContract(smartAccountVersion: SmartAccountVersion, address: string) {
     if (!address) {
-      throw new Error('Invalid Fallback Handler contract address')
+      throw new Error('Invalid Fallback Gas Tank contract address')
     }
     return getFallbackGasTankContractInstance(smartAccountVersion, address, this.#provider)
   }

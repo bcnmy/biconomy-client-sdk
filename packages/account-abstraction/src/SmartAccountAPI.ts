@@ -1,5 +1,5 @@
 import { BigNumber, BigNumberish } from 'ethers'
-import { EntryPointContractV102 } from '@biconomy/ethers-lib'
+import { EntryPointContractV100 } from '@biconomy/ethers-lib'
 
 import { ClientConfig } from './ClientConfig' // added in this design
 import { arrayify, hexConcat } from 'ethers/lib/utils'
@@ -44,7 +44,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
    */
   constructor(
     provider: Provider,
-    readonly entryPoint: EntryPointContractV102,
+    readonly entryPoint: EntryPointContractV100,
     readonly clientConfig: ClientConfig,
     accountAddress: string | undefined,
     readonly owner: Signer,

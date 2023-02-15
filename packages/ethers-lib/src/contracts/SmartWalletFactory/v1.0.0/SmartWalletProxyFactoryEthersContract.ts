@@ -16,7 +16,7 @@ class SmartWalletFactoryContractEthers implements SmartWalletFactoryContract {
   }
 
   async isWalletExist(wallet: string): Promise<boolean> {
-    const doesExist = await this.contract.isWalletExist(wallet)
+    const doesExist = await this.contract.isAccountExist(wallet)
     return doesExist
   }
 

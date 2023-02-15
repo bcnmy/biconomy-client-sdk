@@ -2,7 +2,7 @@ import { JsonRpcProvider } from '@ethersproject/providers'
 
 // import { EntryPoint__factory } from '@account-abstraction/contracts'
 
-import { EntryPointFactoryContractV102 } from '@biconomy/ethers-lib'
+import { EntryPointFactoryContractV100 } from '@biconomy/ethers-lib'
 
 import { ClientConfig } from './ClientConfig'
 import { SmartAccountAPI } from './SmartAccountAPI'
@@ -19,7 +19,7 @@ export async function newProvider(
   fallbackHandlerAddress: string,
   factoryAddress: string
 ): Promise<ERC4337EthersProvider> {
-  const entryPoint = EntryPointFactoryContractV102.connect(
+  const entryPoint = EntryPointFactoryContractV100.connect(
     config.entryPointAddress,
     originalProvider
   )
