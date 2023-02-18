@@ -1,6 +1,7 @@
 import { Deferrable, defineReadOnly } from '@ethersproject/properties'
 import { Provider, TransactionRequest, TransactionResponse } from '@ethersproject/providers'
 import { Signer } from '@ethersproject/abstract-signer'
+import { EntryPointFactoryContractV100 } from '@biconomy/ethers-lib'
 
 import { Bytes } from 'ethers'
 import { ERC4337EthersProvider } from './ERC4337EthersProvider'
@@ -36,36 +37,22 @@ export class ERC4337EthersSigner extends Signer {
 
     const clientMessenger = new ClientMessenger(socketServerUrl, WebSocket)
 
-    if (!clientMessenger.socketClient.isConnected()) {
-      try {
-        await clientMessenger.connect()
-        console.log('connect success')
-      } catch (err) {
-        console.log('socket connection failure')
-        console.log(err)
-      }
-    }
+    // if (!clientMessenger.socketClient.isConnected()) {
+    //   try {
+    //     await clientMessenger.connect()
+    //     console.log('connect success')
+    //   } catch (err) {
+    //     console.log('socket connection failure')
+    //     console.log(err)
+    //   }
+    // }
 
     console.log('received transaction ', transaction)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const customData: any = transaction.customData
     console.log(customData)
 
-    let gasLimit = 2000000
-
-    if (customData && (customData.isBatchedToMultiSend || !customData.isDeployed)) {
-      if (customData.appliedGasLimit) {
-        gasLimit = customData.appliedGasLimit
-        console.log('gaslimit applied from custom data...', gasLimit)
-      }
-    }
-
     delete transaction.customData
-
-    // transaction.from = await this.smartWalletAPI.getAccountAddress()
-
-    // checking if wallet is deployed or not
-    const isDeployed = await this.smartAccountAPI.checkAccountDeployed()
 
     let userOperation: UserOperation
     if (walletDeployOnly === true) {
@@ -85,7 +72,7 @@ export class ERC4337EthersSigner extends Signer {
         target: transaction.to ?? '',
         data: transaction.data?.toString() ?? '',
         value: transaction.value,
-        gasLimit: isDeployed ? transaction.gasLimit : gasLimit,
+        gasLimit: transaction.gasLimit,
         isDelegateCall: isDelegate // get from customData.isBatchedToMultiSend
       })
     }
@@ -94,6 +81,16 @@ export class ERC4337EthersSigner extends Signer {
     let bundlerServiceResponse: any
 
     try {
+      const entryPoint = EntryPointFactoryContractV100.connect(
+        this.config.entryPointAddress,
+        this.erc4337provider
+      )
+      try {
+        await entryPoint.callStatic.simulateValidation(userOperation)
+      } catch (error) {
+        console.log(error);
+        
+      }
       bundlerServiceResponse = await this.httpRpcClient.sendUserOpToBundler(userOperation)
       console.log('bundlerServiceResponse')
       console.log(bundlerServiceResponse)

@@ -258,7 +258,6 @@ export abstract class BaseAccountAPI {
 
     // Review: doesn't work if wallet is not already deployed.
     const callGasLimit =
-      parseNumber(detailsForUserOp.gasLimit) ??
       (await this.provider.estimateGas({
         from: this.entryPoint.address,
         to: this.getAccountAddress(),
