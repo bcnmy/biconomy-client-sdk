@@ -20,8 +20,8 @@ export const EIP_DOMAIN = {
 }
 
 // todo
-// Create a method that returns EIP712_WALLET_TX_TYPE based on the version passed
-export const EIP712_WALLET_TX_TYPE = {
+// Create a method that returns EIP712_ACCOUNT_TX_TYPE based on the version passed
+export const EIP712_ACCOUNT_TX_TYPE = {
   // "AccountTx(address to,uint256 value,bytes data,uint8 operation,uint256 targetTxGas,uint256 baseGas,uint256 gasPrice,address gasToken,address refundReceiver,uint256 nonce)"
   AccountTx: [
     { type: 'address', name: 'to' },
@@ -31,11 +31,14 @@ export const EIP712_WALLET_TX_TYPE = {
     { type: 'uint256', name: 'targetTxGas' },
     { type: 'uint256', name: 'baseGas' },
     { type: 'uint256', name: 'gasPrice' },
+    { type: "uint256", name: "tokenGasPriceFactor" },
     { type: 'address', name: 'gasToken' },
     { type: 'address', name: 'refundReceiver' },
     { type: 'uint256', name: 'nonce' }
   ]
 }
+
+// TODO: { EIP712_SMART_ACCOUNT_MESSAGE_TYPE } needs to be change to { EIP712_SAFE_MESSAGE_TYPE }  
 
 export const EIP712_SMART_ACCOUNT_MESSAGE_TYPE = {
   // "SmartAccountMessage(bytes message)"
@@ -59,7 +62,7 @@ export const preimageWalletTransactionHash = (
 ): string => {
   return utils._TypedDataEncoder.encode(
     { verifyingContract: wallet.address, chainId },
-    EIP712_WALLET_TX_TYPE,
+    EIP712_ACCOUNT_TX_TYPE,
     SmartAccountTx
   )
 }
@@ -71,7 +74,7 @@ export const calculateSmartAccountTransactionHash = (
 ): string => {
   return utils._TypedDataEncoder.hash(
     { verifyingContract: wallet.address, chainId },
-    EIP712_WALLET_TX_TYPE,
+    EIP712_ACCOUNT_TX_TYPE,
     SmartAccountTx
   )
 }
@@ -101,7 +104,7 @@ export const smartAccountSignTypedData = async (
     signer: signerAddress,
     data: await signer._signTypedData(
       { verifyingContract: wallet.address, chainId: cid },
-      EIP712_WALLET_TX_TYPE,
+      EIP712_ACCOUNT_TX_TYPE,
       SmartAccountTx
     )
   }

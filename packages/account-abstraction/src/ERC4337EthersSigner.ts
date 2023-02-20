@@ -37,15 +37,15 @@ export class ERC4337EthersSigner extends Signer {
 
     const clientMessenger = new ClientMessenger(socketServerUrl, WebSocket)
 
-    // if (!clientMessenger.socketClient.isConnected()) {
-    //   try {
-    //     await clientMessenger.connect()
-    //     console.log('connect success')
-    //   } catch (err) {
-    //     console.log('socket connection failure')
-    //     console.log(err)
-    //   }
-    // }
+    if (!clientMessenger.socketClient.isConnected()) {
+      try {
+        await clientMessenger.connect()
+        console.log('connect success')
+      } catch (err) {
+        console.log('socket connection failure')
+        console.log(err)
+      }
+    }
 
     console.log('received transaction ', transaction)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -81,16 +81,6 @@ export class ERC4337EthersSigner extends Signer {
     let bundlerServiceResponse: any
 
     try {
-      const entryPoint = EntryPointFactoryContractV100.connect(
-        this.config.entryPointAddress,
-        this.erc4337provider
-      )
-      try {
-        await entryPoint.callStatic.simulateValidation(userOperation)
-      } catch (error) {
-        console.log(error);
-        
-      }
       bundlerServiceResponse = await this.httpRpcClient.sendUserOpToBundler(userOperation)
       console.log('bundlerServiceResponse')
       console.log(bundlerServiceResponse)
