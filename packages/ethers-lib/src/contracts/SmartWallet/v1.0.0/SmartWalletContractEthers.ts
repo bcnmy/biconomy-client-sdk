@@ -42,6 +42,10 @@ class SmartWalletContractEthers implements SmartWalletContract {
   async getNonce(batchId: number): Promise<BigNumber> {
     return await this.contract.getNonce(batchId)
   }
+  
+  async nonce(): Promise<BigNumber> {
+    return await this.contract.nonce()
+  }
   async getTransactionHash(smartAccountTrxData: IWalletTransaction): Promise<string> {
     return this.contract.getTransactionHash(
       smartAccountTrxData.to,
@@ -60,12 +64,11 @@ class SmartWalletContractEthers implements SmartWalletContract {
 
   async execTransaction(
     _tx: ExecTransaction,
-    batchId: number,
     refundInfo: IFeeRefundV1_0_1,
     signatures: string
   ): Promise<ITransactionResult> {
     // TODO: estimate GAS before making the transaction
-    const txResponse = await this.contract.execTransaction(_tx, batchId, refundInfo, signatures)
+    const txResponse = await this.contract.execTransaction(_tx, refundInfo, signatures)
     return toTxResult(txResponse)
   }
   /* eslint-disable  @typescript-eslint/no-explicit-any */

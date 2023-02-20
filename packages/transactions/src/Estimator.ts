@@ -40,9 +40,7 @@ export class Estimator {
       const estimateWalletDeployment = await this.estimateSmartAccountDeployment({
         chainId,
         version,
-        owner: smartAccountState.owner, // SmartAccountState
-        entryPointAddress: smartAccountState.entryPointAddress, // SmartAccountState
-        fallbackHandlerAddress: smartAccountState.fallbackHandlerAddress // SmartAccountState
+        owner: smartAccountState.owner
       })
       console.log('estimateWalletDeployment ', estimateWalletDeployment)
 
@@ -106,9 +104,7 @@ export class Estimator {
       const estimateWalletDeployment = await this.estimateSmartAccountDeployment({
         chainId,
         version,
-        owner: smartAccountState.owner,
-        entryPointAddress: smartAccountState.entryPointAddress,
-        fallbackHandlerAddress: smartAccountState.fallbackHandlerAddress
+        owner: smartAccountState.owner
       })
       console.log('estimateWalletDeployment ', estimateWalletDeployment)
       estimatedGasUsed += estimateWalletDeployment
@@ -170,7 +166,7 @@ export class Estimator {
     estimateSmartAccountDeploymentDto: EstimateSmartAccountDeploymentDto
   ): Promise<number> {
     const estimatorInterface = new ethers.utils.Interface(GasEstimator.abi)
-    const { chainId, version, owner, entryPointAddress, fallbackHandlerAddress } =
+    const { chainId, version, owner } =
       estimateSmartAccountDeploymentDto
     const walletFactoryInterface =
       this.contractUtils.smartWalletFactoryContract[chainId][version].getInterface()
@@ -178,8 +174,6 @@ export class Estimator {
       this.contractUtils.smartWalletFactoryContract[chainId][version].getAddress(),
       walletFactoryInterface.encodeFunctionData('deployCounterFactualWallet', [
         owner,
-        entryPointAddress,
-        fallbackHandlerAddress,
         0
       ])
     ])

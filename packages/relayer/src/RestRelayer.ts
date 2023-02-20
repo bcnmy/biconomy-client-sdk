@@ -59,7 +59,7 @@ export class RestRelayer implements IRelayer {
       to: walletFactory.getAddress(), // from context
       data: factoryInterface.encodeFunctionData(
         factoryInterface.getFunction('deployCounterFactualWallet'),
-        [owner, entryPointAddress, fallbackHandlerAddress, index]
+        [owner, index]
       )
     }
   }

@@ -75,20 +75,18 @@ export class SmartAccountAPI extends BaseAccountAPI {
     const deployWalletCallData = WalletFactoryAPI.deployWalletTransactionCallData(
       this.factoryAddress,
       await this.owner.getAddress(),
-      this.entryPoint.address,
-      this.handlerAddress,
       0
     )
     return hexConcat([this.factoryAddress, deployWalletCallData])
   }
 
-  async getNonce(batchId: number): Promise<BigNumber> {
+  async nonce(): Promise<BigNumber> {
     console.log('checking nonce')
     if (!(await this.checkAccountDeployed())) {
       return BigNumber.from(0)
     }
     const walletContract = await this._getSmartAccountContract()
-    const nonce = await walletContract.getNonce(batchId)
+    const nonce = await walletContract.nonce()
     return nonce
   }
 
@@ -161,7 +159,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
 
     let partialUserOp: any = {
       sender: await this.getAccountAddress(),
-      nonce: await this.getNonce(0), // TODO (nice-to-have): add batchid as param
+      nonce: await this.nonce(),
       initCode,
       callData,
       callGasLimit,

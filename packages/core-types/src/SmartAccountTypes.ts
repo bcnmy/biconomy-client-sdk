@@ -49,8 +49,6 @@ export type EstimateSmartAccountDeploymentDto = {
   chainId: ChainId
   version: string
   owner: string
-  entryPointAddress: string
-  fallbackHandlerAddress: string
 }
 
 export type SmartAccountState = {

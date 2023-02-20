@@ -94,9 +94,7 @@ class TransactionManager {
     const estimateWalletDeployment = await this.estimateSmartAccountDeployment({
       chainId: chainId,
       version,
-      owner: smartAccountState.owner,
-      entryPointAddress: smartAccountState.entryPointAddress,
-      fallbackHandlerAddress: smartAccountState.fallbackHandlerAddress
+      owner: smartAccountState.owner
     })
 
     feeOptionsAvailable.forEach((feeOption) => {
@@ -141,9 +139,7 @@ class TransactionManager {
     const estimateWalletDeployment = await this.estimateSmartAccountDeployment({
       chainId: chainId,
       version,
-      owner: smartAccountState.owner,
-      entryPointAddress: smartAccountState.entryPointAddress,
-      fallbackHandlerAddress: smartAccountState.fallbackHandlerAddress
+      owner: smartAccountState.owner
     })
     // do estimations here or pass on payment and use feeQuote fully!
     let feesToPay = (feeQuote.tokenGasPrice * (estimateWalletDeployment + 77369)) / offset
@@ -171,7 +167,7 @@ class TransactionManager {
    * @returns
    */
   async createTransaction(transactionDto: TransactionDto): Promise<IWalletTransaction> {
-    const { transaction, batchId = 0, chainId, version } = transactionDto
+    const { transaction, batchId = 1, chainId, version } = transactionDto
 
     const smartAccountState = await this.contractUtils.getSmartAccountState(this.smartAccountState)
 
@@ -208,7 +204,7 @@ class TransactionManager {
   async createTransactionBatch(
     transactionBatchDto: TransactionBatchDto
   ): Promise<IWalletTransaction> {
-    const { transactions, batchId, chainId, version } = transactionBatchDto
+    const { transactions, batchId = 1, chainId, version } = transactionBatchDto
     // NOTE : If the wallet is not deployed yet then nonce would be zero
 
     const smartAccountState = await this.contractUtils.getSmartAccountState(this.smartAccountState)
@@ -417,7 +413,7 @@ class TransactionManager {
   async createRefundTransaction(
     refundTransactionDto: RefundTransactionDto
   ): Promise<IWalletTransaction> {
-    const { transaction, feeQuote, batchId, chainId, version } = refundTransactionDto
+    const { transaction, feeQuote, batchId = 1, chainId, version } = refundTransactionDto
 
     const smartAccountState = await this.contractUtils.getSmartAccountState(this.smartAccountState)
     let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()
@@ -438,9 +434,7 @@ class TransactionManager {
       const estimateWalletDeployment = await this.estimateSmartAccountDeployment({
         chainId: chainId,
         version,
-        owner: smartAccountState.owner,
-        entryPointAddress: smartAccountState.entryPointAddress,
-        fallbackHandlerAddress: smartAccountState.fallbackHandlerAddress
+        owner: smartAccountState.owner
       })
       // We know it's going to get deployed by Relayer but we handle refund cost here..
       additionalBaseGas += estimateWalletDeployment // wallet deployment gas
@@ -570,7 +564,7 @@ class TransactionManager {
   async createRefundTransactionBatch(
     refundTransactionBatchDto: RefundTransactionBatchDto
   ): Promise<IWalletTransaction> {
-    const { transactions, feeQuote, batchId, chainId, version } = refundTransactionBatchDto
+    const { transactions, feeQuote, batchId = 1, chainId, version } = refundTransactionBatchDto
     const smartAccountState = await this.contractUtils.getSmartAccountState(this.smartAccountState)
     let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()
     const connectedWallet = smartAccountState.address
@@ -591,9 +585,7 @@ class TransactionManager {
       const estimateWalletDeployment = await this.estimateSmartAccountDeployment({
         chainId: chainId,
         version,
-        owner: smartAccountState.owner,
-        entryPointAddress: smartAccountState.entryPointAddress,
-        fallbackHandlerAddress: smartAccountState.fallbackHandlerAddress
+        owner: smartAccountState.owner
       })
       // We know it's going to get deployed by Relayer but we handle refund cost here..
       console.log('estimateWalletDeployment ', estimateWalletDeployment)

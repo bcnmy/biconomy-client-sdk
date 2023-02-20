@@ -129,12 +129,7 @@ export abstract class BaseAccountAPI {
    * return current account's nonce.
    */
   // review : may not keep the batchId in contracts
-  abstract getNonce(batchId: number): Promise<BigNumber>
-
-  /**
-   * return current account's nonce.
-   */
-  // abstract getNonce(): Promise<BigNumber>
+  abstract nonce(): Promise<BigNumber>
 
   /**
    * create a UserOperation, filling all details (except signature)
