@@ -52,6 +52,14 @@ export class ERC4337EthersSigner extends Signer {
     const customData: any = transaction.customData
     console.log(customData)
 
+    // customise gasLimit help dapps to supply gasLimit of their choice
+    if (customData && (customData.isBatchedToMultiSend || !customData.isDeployed)) {
+      if (customData.appliedGasLimit) {
+        transaction.gasLimit = customData.appliedGasLimit
+        console.log('gaslimit applied from custom data...', transaction.gasLimit)
+      }
+    }
+
     delete transaction.customData
 
     let userOperation: UserOperation

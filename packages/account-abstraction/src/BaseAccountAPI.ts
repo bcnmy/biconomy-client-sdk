@@ -256,13 +256,19 @@ export abstract class BaseAccountAPI {
       detailsForUserOp.isDelegateCall || false
     )
 
-    // Review: doesn't work if wallet is not already deployed.
-    const callGasLimit =
-      (await this.provider.estimateGas({
-        from: this.entryPoint.address,
-        to: this.getAccountAddress(),
-        data: callData
-      }))
+    let callGasLimit = BigNumber.from(0)
+
+    if (!detailsForUserOp.gasLimit)
+      {
+        callGasLimit = (await this.provider.estimateGas({
+          from: this.entryPoint.address,
+          to: this.getAccountAddress(),
+          data: callData
+        }))
+        // if wallet is not deployed we need to multiply estimated limit to 3 times to get accurate callGasLimit
+        if (!this.isDeployed)
+        callGasLimit = callGasLimit.mul(3)
+      }
 
     return {
       callData,
