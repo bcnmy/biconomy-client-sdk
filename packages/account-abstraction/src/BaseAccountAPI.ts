@@ -14,9 +14,9 @@ import { ClientConfig } from './ClientConfig' // ClientConfig is needed in this 
 // SmartAccountAPI is BiconomySmartAccount and above imports could be used there only
 
 import {
-  EntryPointContractV102,
-  SmartWalletFactoryV102,
-  SmartWalletContractV102
+  EntryPointContractV100,
+  SmartWalletFactoryV100,
+  SmartWalletContractV100
 } from '@biconomy/ethers-lib'
 import { TransactionDetailsForUserOp } from './TransactionDetailsForUserOp'
 import { resolveProperties } from 'ethers/lib/utils'
@@ -69,7 +69,7 @@ export abstract class BaseAccountAPI {
   /**
    * our wallet contract.
    */
-  accountContract!: SmartWalletContractV102 //possibly rename to account 
+  accountContract!: SmartWalletContractV100 //possibly rename to account 
 
   /**
    * base constructor.
@@ -80,7 +80,7 @@ export abstract class BaseAccountAPI {
    */
   protected constructor(
     readonly provider: Provider,
-    readonly entryPoint: EntryPointContractV102, // we could just get an address : evaluate
+    readonly entryPoint: EntryPointContractV100, // we could just get an address : evaluate
     readonly clientConfig: ClientConfig, // review the need to get entire clientconfig
     readonly accountAddress?: string,
     readonly overheads?: Partial<GasOverheads>
@@ -97,10 +97,10 @@ export abstract class BaseAccountAPI {
   }
 
   // based on provider chainId we maintain smartWalletContract..
-  async _getSmartAccountContract(): Promise<SmartWalletContractV102> {
+  async _getSmartAccountContract(): Promise<SmartWalletContractV100> {
     if (this.accountContract == null) {
       // may rename if to account factory
-      this.accountContract = SmartWalletFactoryV102.connect(
+      this.accountContract = SmartWalletFactoryV100.connect(
         await this.getAccountAddress(),
         this.provider
       )
@@ -256,14 +256,19 @@ export abstract class BaseAccountAPI {
       detailsForUserOp.isDelegateCall || false
     )
 
-    // Review: doesn't work if wallet is not already deployed.
-    const callGasLimit =
-      parseNumber(detailsForUserOp.gasLimit) ??
-      (await this.provider.estimateGas({
-        from: this.entryPoint.address,
-        to: this.getAccountAddress(),
-        data: callData
-      }))
+    let callGasLimit = BigNumber.from(0)
+
+    if (!detailsForUserOp.gasLimit)
+      {
+        callGasLimit = (await this.provider.estimateGas({
+          from: this.entryPoint.address,
+          to: this.getAccountAddress(),
+          data: callData
+        }))
+        // if wallet is not deployed we need to multiply estimated limit to 3 times to get accurate callGasLimit
+        if (!this.isDeployed)
+        callGasLimit = callGasLimit.mul(3)
+      }
 
     return {
       callData,

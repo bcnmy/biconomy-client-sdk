@@ -20,24 +20,9 @@ const smartAccountContracts_V1_0_0 = [
   `${smartAccountContractsPath}/V1.0.0.sol//MultiSendContract_v1_0_0.json`,
   `${smartAccountContractsPath}/V1.0.0.sol//MultiSendCallOnlyContract_v1_0_0.json`,
   `${smartAccountContractsPath}/V1.0.0.sol//SmartWalletFactoryContract_v1_0_0.json`,
-  `${smartAccountContractsPath}/V1.0.0.sol//EntryPointContract_v1_0_0.json`
+  `${smartAccountContractsPath}/V1.0.0.sol//EntryPointContract_v1_0_0.json`,
+  `${smartAccountContractsPath}/V1.0.0.sol/FallbackGasTankContract_v1_0_0.json`
 ].join(' ')
-const smartAccountContracts_V1_0_1 = [
-  `${smartAccountContractsPath}/V1.0.1.sol/SmartWalletContract_v1_0_1.json`,
-  `${smartAccountContractsPath}/V1.0.1.sol/MultiSendContract_v1_0_1.json`,
-  `${smartAccountContractsPath}/V1.0.1.sol/MultiSendCallOnlyContract_v1_0_1.json`,
-  `${smartAccountContractsPath}/V1.0.1.sol/SmartWalletFactoryContract_v1_0_1.json`,
-  `${smartAccountContractsPath}/V1.0.1.sol/EntryPointContract_v1_0_1.json`,
-  `${smartAccountContractsPath}/V1.0.1.sol/FallbackGasTankContract_v1_0_1.json`
-].join(' ')
-const smartAccountContracts_V1_0_2 = [
-  `${smartAccountContractsPath}/V1.0.2.sol/SmartWalletContract_v1_0_2.json`,
-  `${smartAccountContractsPath}/V1.0.2.sol/MultiSendContract_v1_0_2.json`,
-  `${smartAccountContractsPath}/V1.0.2.sol/MultiSendCallOnlyContract_v1_0_2.json`,
-  `${smartAccountContractsPath}/V1.0.2.sol/SmartWalletFactoryContract_v1_0_2.json`,
-  `${smartAccountContractsPath}/V1.0.2.sol/EntryPointContract_v1_0_2.json`
-].join(' ')
-
 // Remove existing Typechain files
 execSync(`rimraf ${outDirSrc} ${outDirTests}`)
 
@@ -74,18 +59,8 @@ const ethersV5 = 'ethers-v5'
 
 // Src: Ethers V5 types
 generateTypechainFiles(ethersV5, `${outDirSrc}${ethersV5}/v1.0.0`, smartAccountContracts_V1_0_0)
-generateTypechainFiles(ethersV5, `${outDirSrc}${ethersV5}/v1.0.1`, smartAccountContracts_V1_0_1)
-generateTypechainFiles(ethersV5, `${outDirSrc}${ethersV5}/v1.0.2`, smartAccountContracts_V1_0_2)
 
 moveTypechainFiles(
   `${typeChainDirectorySrcPath}${ethersV5}/v1.0.0`,
   `${typeChainDirectoryBuildPath}${ethersV5}/v1.0.0`
-)
-moveTypechainFiles(
-  `${typeChainDirectorySrcPath}${ethersV5}/v1.0.1`,
-  `${typeChainDirectoryBuildPath}${ethersV5}/v1.0.1`
-)
-moveTypechainFiles(
-  `${typeChainDirectorySrcPath}${ethersV5}/v1.0.2`,
-  `${typeChainDirectoryBuildPath}${ethersV5}/v1.0.2`
 )

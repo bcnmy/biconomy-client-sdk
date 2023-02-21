@@ -68,7 +68,7 @@ export class FallbackRelayer implements IFallbackRelayer {
         params: [
           {
             ...finalRawRx,
-            gasLimit: (gasLimit as GasLimit).hex || '',
+            gasLimit: (gasLimit as GasLimit)?.hex || '',
             walletInfo: {
               address: address
             },

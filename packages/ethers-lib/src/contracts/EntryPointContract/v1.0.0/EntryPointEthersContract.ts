@@ -19,16 +19,13 @@ class EntryPointEthersContract implements EntryPointContract {
     return this.contract
   }
 
-  async simulateValidation(
-    userOperation: UserOperation,
-    offChainSigCheck: boolean
-  ): Promise<ITransactionResult> {
-    const resultSet = await this.contract.simulateValidation(userOperation, offChainSigCheck)
+  async simulateValidation(userOperation: UserOperation): Promise<ITransactionResult> {
+    const resultSet = await this.contract.simulateValidation(userOperation)
     return toTxResult(resultSet)
   }
 
-  async getRequestId(userOperation: UserOperation): Promise<string> {
-    return this.contract.getRequestId(userOperation)
+  async getUserOpHash(userOperation: UserOperation): Promise<string> {
+    return this.contract.getUserOpHash(userOperation)
   }
 
   async handleOps(

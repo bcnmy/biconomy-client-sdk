@@ -20,6 +20,7 @@ class MultiSendCallOnlyEthersContract implements MultiSendCallOnlyContract {
   getInterface(): Interface {
     return this.contract.interface
   }
+
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   encode: MultiSendCallOnlyContractV100Interface['encodeFunctionData'] = (
     methodName: any,

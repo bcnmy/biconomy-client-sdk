@@ -1,6 +1,7 @@
 import { Deferrable, defineReadOnly } from '@ethersproject/properties'
 import { Provider, TransactionRequest, TransactionResponse } from '@ethersproject/providers'
 import { Signer } from '@ethersproject/abstract-signer'
+import { EntryPointFactoryContractV100 } from '@biconomy/ethers-lib'
 
 import { Bytes } from 'ethers'
 import { ERC4337EthersProvider } from './ERC4337EthersProvider'
@@ -51,21 +52,15 @@ export class ERC4337EthersSigner extends Signer {
     const customData: any = transaction.customData
     console.log(customData)
 
-    let gasLimit = 2000000
-
+    // customise gasLimit help dapps to supply gasLimit of their choice
     if (customData && (customData.isBatchedToMultiSend || !customData.isDeployed)) {
       if (customData.appliedGasLimit) {
-        gasLimit = customData.appliedGasLimit
-        console.log('gaslimit applied from custom data...', gasLimit)
+        transaction.gasLimit = customData.appliedGasLimit
+        console.log('gaslimit applied from custom data...', transaction.gasLimit)
       }
     }
 
     delete transaction.customData
-
-    // transaction.from = await this.smartWalletAPI.getAccountAddress()
-
-    // checking if wallet is deployed or not
-    const isDeployed = await this.smartAccountAPI.checkAccountDeployed()
 
     let userOperation: UserOperation
     if (walletDeployOnly === true) {
@@ -85,7 +80,7 @@ export class ERC4337EthersSigner extends Signer {
         target: transaction.to ?? '',
         data: transaction.data?.toString() ?? '',
         value: transaction.value,
-        gasLimit: isDeployed ? transaction.gasLimit : gasLimit,
+        gasLimit: transaction.gasLimit,
         isDelegateCall: isDelegate // get from customData.isBatchedToMultiSend
       })
     }
