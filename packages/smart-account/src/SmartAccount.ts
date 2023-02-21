@@ -1149,7 +1149,7 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
   relayerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
   socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
   bundlerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
-  biconomySigningServiceUrl: 'https://paymaster.staging.biconomy.io',
+  biconomySigningServiceUrl: 'https://paymaster-signing-service.staging.biconomy.io/api/v1/sign',
   // TODO : has to be public provider urls (local config / backend node)
   networkConfig: [
     {
