@@ -23,11 +23,13 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
     },
     body: JSON.stringify(body)
   })
-
+  console.log('response ', response);
+  
   let jsonResponse
   try {
     jsonResponse = await response.json()
   } catch (error) {
+    console.log('error ', error)
     if (!response.ok) {
       throw new Error(response.statusText)
     }

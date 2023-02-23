@@ -171,7 +171,10 @@ class TransactionManager {
    * @returns
    */
   async createTransaction(transactionDto: TransactionDto): Promise<IWalletTransaction> {
-    const { transaction, batchId = 0, chainId, version } = transactionDto
+    const { transaction, batchId = 1, chainId, version } = transactionDto
+
+    const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract()
+    const isDelegate = transactionDto.transaction.to === multiSendContract.address ? true : false
 
     const smartAccountState = await this.contractUtils.getSmartAccountState(this.smartAccountState)
 
@@ -185,11 +188,14 @@ class TransactionManager {
     }
     console.log('nonce: ', nonce)
 
+    let operation = isDelegate ? 1 : 0
+
     const walletTx: IWalletTransaction = this.utils.buildSmartAccountTransaction({
       to: transaction.to,
       value: transaction.value,
       data: transaction.data, // for token transfers use encodeTransfer
-      nonce
+      nonce,
+      operation
     })
 
     return walletTx
