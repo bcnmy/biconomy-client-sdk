@@ -39,7 +39,7 @@ export class BiconomyPaymasterAPI implements IPaymasterAPI {
       console.log('******** ||||| *********')
       console.log('verifying and signing service response', result)
 
-      if (result && result.data && result.code === 200) {
+      if (result && result.data && result.statusCode === 200) {
         return result.data.paymasterAndData
       } else {
         console.error(result.error)

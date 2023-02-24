@@ -215,8 +215,8 @@ class SmartAccount extends EventEmitter {
     return providerUrl
   }
 
-  getNetworkConfigValues(chainId: ChainId): NetworkConfig {
-    const networkConfigValues = this.#smartAccountConfig.networkConfig?.find(
+  async getNetworkConfigValues(chainId: ChainId): Promise<NetworkConfig> {
+    const networkConfigValues = await this.#smartAccountConfig.networkConfig?.find(
       (element: NetworkConfig) => element.chainId === chainId
     )
     if (!networkConfigValues) throw new Error('Could not get network config values')
@@ -272,7 +272,7 @@ class SmartAccount extends EventEmitter {
         )
       }
 
-      const clientConfig = this.getNetworkConfigValues(network.chainId)
+      const clientConfig = await this.getNetworkConfigValues(network.chainId)
 
       this.signingService = new FallbackGasTankAPI(
         this.#smartAccountConfig.biconomySigningServiceUrl || '',
@@ -390,11 +390,12 @@ class SmartAccount extends EventEmitter {
       gasToken: transaction.gasToken,
       refundReceiver: transaction.refundReceiver
     }
-    let execTransaction = await walletContract.populateTransaction.execTransaction(
+
+    let execTransactionData = await walletContract.interface.encodeFunctionData('execTransaction',[
       transaction,
       refundInfo,
-      signature
-    )
+      signature,
+    ])
 
     // create instance of fallbackGasTank contracts to get nonce
     let fallbackGasTank = this.contractUtils.fallbackGasTankContract[chainId][version].getContract()
@@ -410,8 +411,8 @@ class SmartAccount extends EventEmitter {
       sender: this.address,
       target: this.address,
       nonce: gasTankNonce,
-      callData: execTransaction.data || '',
-      callGasLimit: BigNumber.from(500000), // will be updated below
+      callData: execTransactionData || '',
+      callGasLimit: BigNumber.from(800000), // will be updated below
       dappIdentifier: '',
       signature: ''
     }
@@ -437,7 +438,7 @@ class SmartAccount extends EventEmitter {
         {
           to: this.address,
           value: 0,
-          data: execTransaction.data || '',
+          data: execTransactionData || '',
           operation: 0
         }
       ]
@@ -451,18 +452,18 @@ class SmartAccount extends EventEmitter {
       fallbackUserOp.callData = txnData
       // TODO: check if callGasLimit is valid
     }
-    try {
-      const callGasLimit = await this.transactionManager.estimateGasUsed(
-        this.address,
-        fallbackUserOp.callData,
-        chainId
-      )
-      fallbackUserOp.callGasLimit = BigNumber.from(callGasLimit)
-      this._logMessage('callGasLimit')
-      this._logMessage(callGasLimit)
-    } catch (error) {
-      this._logMessage('Error in estimating callGasLimit')
-    }
+    // try {
+    //   // const callGasLimit = await this.transactionManager.estimateGasUsed(
+    //   //   fallbackUserOp.target,
+    //   //   fallbackUserOp.callData,
+    //   //   chainId
+    //   // )
+    //   // console.log('callGasLimit')
+    //   // console.log(callGasLimit)
+    //   // fallbackUserOp.callGasLimit = BigNumber.from(callGasLimit)
+    // } catch (error) {
+    //   console.log('Error in estimating callGasLimit')
+    // }
 
     console.log('fallbackUserOp before', fallbackUserOp)
     // send fallback user operation to signing service to get signature and dappIdentifier
@@ -473,11 +474,11 @@ class SmartAccount extends EventEmitter {
     fallbackUserOp.signature = signingServiceResponse.signature
     console.log('fallbackUserOp after', fallbackUserOp)
 
-    execTransaction = await fallbackGasTank.populateTransaction.handleFallbackUserOp(fallbackUserOp)
+    const handleFallBackData = await fallbackGasTank.populateTransaction.handleFallbackUserOp(fallbackUserOp)
 
     const rawTrx: RawTransactionType = {
       to: fallbackGasTank.address, // gas tank address
-      data: execTransaction.data, // populateTransaction by fallbackGasTank contract handleFallbackUserop
+      data: handleFallBackData.data, // populateTransaction by fallbackGasTank contract handleFallbackUserop
       value: 0, // tx value
       chainId: chainId
     }
@@ -494,20 +495,6 @@ class SmartAccount extends EventEmitter {
       signedTx,
       config: state,
       context: this.getSmartAccountContext(chainId)
-    }
-    const gasLimit = transactionDto.transaction.gasLimit
-    if (gasLimit) {
-      relayTrx.gasLimit = {
-        hex: gasLimit.toString(),
-        type: 'hex'
-      }
-    }
-    if (!isDeployed) {
-      const gasLimit = {
-        hex: '0x1E8480',
-        type: 'hex'
-      }
-      relayTrx.gasLimit = gasLimit
     }
     const relayResponse = await this.fallbackRelayer.relay(relayTrx, this)
     return relayResponse
@@ -562,7 +549,8 @@ class SmartAccount extends EventEmitter {
     const gaslessTx = {
       to: finalTx.to,
       data: finalTx.data,
-      value: finalTx.value
+      value: finalTx.value,
+      operation: finalTx.operation
     }
 
     // Multisend is tricky because populateTransaction expects delegateCall and we must override
@@ -1139,7 +1127,7 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
   relayerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
   socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
   bundlerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
-  biconomySigningServiceUrl: 'https://paymaster.staging.biconomy.io',
+  biconomySigningServiceUrl: 'https://paymaster-signing-service.staging.biconomy.io/api/v1/sign',
   // TODO : has to be public provider urls (local config / backend node)
   networkConfig: [
     {
