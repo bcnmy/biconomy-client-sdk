@@ -336,38 +336,12 @@ class SmartAccount extends EventEmitter {
   // Optional methods for connecting paymaster
   // Optional methods for connecting another bundler
 
-  public async sendGaslessTransaction(
-    transactionDto: TransactionDto
-  ): Promise<TransactionResponse> {
+  async sendGaslessFallbackTransaction(transactionDto: TransactionDto): Promise<TransactionResponse> {
     let { version, chainId } = transactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
-    const aaSigner = this.aaProvider[chainId].getSigner()
 
     await this.initializeContractsAtChain(chainId)
-    const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract()
-
-    const isDelegate = transactionDto.transaction.to === multiSendContract.address ? true : false
-
-    let isFallbackEnabled = false
-    try {
-      const { data } = await this.nodeClient.isFallbackEnabled()
-      isFallbackEnabled = data.enable_fallback_flow
-      this._logMessage('isFallbackEnabled')
-      this._logMessage(data.enable_fallback_flow)
-    } catch (error) {
-      console.error('isFallbackEnabled', error)
-    }
-
-    if (!isFallbackEnabled) {
-      const response = await aaSigner.sendTransaction(
-        transactionDto.transaction,
-        false,
-        isDelegate,
-        this
-      )
-      return response
-    }
 
     // create IWalletTransaction instance
     const transaction = await this.createTransaction(transactionDto)
@@ -391,7 +365,7 @@ class SmartAccount extends EventEmitter {
       refundReceiver: transaction.refundReceiver
     }
 
-    let execTransactionData = await walletContract.interface.encodeFunctionData('execTransaction',[
+    let execTransactionData = await walletContract.interface.encodeFunctionData('execTransaction', [
       transaction,
       refundInfo,
       signature,
@@ -418,7 +392,7 @@ class SmartAccount extends EventEmitter {
     }
     if (!isDeployed) {
       const { multiSendCall, walletFactory } = this.getSmartAccountContext(chainId)
-      const { owner, entryPointAddress, fallbackHandlerAddress } =
+      const { owner } =
         await this.contractUtils.getSmartAccountState(
           this.smartAccountState,
           this.DEFAULT_VERSION,
@@ -450,20 +424,8 @@ class SmartAccount extends EventEmitter {
       // update fallbackUserOp with target and multiSend call data
       fallbackUserOp.target = multiSendCall.getAddress()
       fallbackUserOp.callData = txnData
-      // TODO: check if callGasLimit is valid
     }
-    // try {
-    //   // const callGasLimit = await this.transactionManager.estimateGasUsed(
-    //   //   fallbackUserOp.target,
-    //   //   fallbackUserOp.callData,
-    //   //   chainId
-    //   // )
-    //   // console.log('callGasLimit')
-    //   // console.log(callGasLimit)
-    //   // fallbackUserOp.callGasLimit = BigNumber.from(callGasLimit)
-    // } catch (error) {
-    //   console.log('Error in estimating callGasLimit')
-    // }
+
 
     console.log('fallbackUserOp before', fallbackUserOp)
     // send fallback user operation to signing service to get signature and dappIdentifier
@@ -498,6 +460,44 @@ class SmartAccount extends EventEmitter {
     }
     const relayResponse = await this.fallbackRelayer.relay(relayTrx, this)
     return relayResponse
+  }
+
+  public async sendGaslessTransaction(
+    transactionDto: TransactionDto
+  ): Promise<TransactionResponse> {
+
+    let isFallbackEnabled = false
+    try {
+      const { data } = await this.nodeClient.isFallbackEnabled()
+      isFallbackEnabled = data.enable_fallback_flow
+      console.log('isFallbackEnabled')
+      console.log(data.enable_fallback_flow)
+    } catch (error) {
+      console.error('isFallbackEnabled', error)
+    }
+
+    if (isFallbackEnabled){
+      return this.sendGaslessFallbackTransaction(transactionDto)
+    }
+
+    let { version, chainId } = transactionDto
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+    version = version ? version : this.DEFAULT_VERSION
+    const aaSigner = this.aaProvider[chainId].getSigner()
+
+    await this.initializeContractsAtChain(chainId)
+    const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract()
+
+    const isDelegate = transactionDto.transaction.to === multiSendContract.address ? true : false
+
+
+    const response = await aaSigner.sendTransaction(
+      transactionDto.transaction,
+      false,
+      isDelegate,
+      this
+    )
+    return response
   }
 
   public async sendGaslessTransactionBatch(
@@ -552,10 +552,6 @@ class SmartAccount extends EventEmitter {
       value: finalTx.value,
       operation: finalTx.operation
     }
-
-    // Multisend is tricky because populateTransaction expects delegateCall and we must override
-
-    // TODO : stuff before this can be moved to TransactionManager
     const response = await this.sendGaslessTransaction({ version, transaction: gaslessTx, chainId })
     return response
   }
@@ -1052,14 +1048,18 @@ class SmartAccount extends EventEmitter {
   async getAddress(
     addressForCounterFactualWalletDto: AddressForCounterFactualWalletDto
   ): Promise<string> {
-    // TODO: Get from node client first from cache, if not found then query smart contract
+    
     const { index, chainId, version } = addressForCounterFactualWalletDto
 
-    const address = await this.contractUtils.smartWalletFactoryContract[chainId][
-      version
-    ].getAddressForCounterfactualWallet(this.owner, index)
-    this.address = address
-    return address
+    const smartAccountInfo = await this.getSmartAccountsByOwner({
+      owner: this.owner,
+      chainId
+    })
+    if (!smartAccountInfo.data || smartAccountInfo.data.length == 0){
+      throw new Error("No Smart Account Found against supplied EOA");      
+    }
+    this.address = smartAccountInfo.data[index].smartAccountAddress
+    return this.address
   }
 
   /**
