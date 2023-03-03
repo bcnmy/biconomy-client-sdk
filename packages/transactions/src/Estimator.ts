@@ -33,7 +33,6 @@ export class Estimator {
     // Check if available from current state
     const isDeployed = await this.contractUtils.isDeployed(
       chainId,
-      version,
       smartAccountState.address // SmartAccountState
     )
     if (!isDeployed) {
@@ -97,7 +96,6 @@ export class Estimator {
     // Check if available from current state
     const isDeployed = await this.contractUtils.isDeployed(
       chainId,
-      version,
       smartAccountState.address
     )
     if (!isDeployed) {

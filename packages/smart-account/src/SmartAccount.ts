@@ -259,7 +259,6 @@ class SmartAccount extends EventEmitter {
           owner: this.owner,
           isDeployed: await this.contractUtils.isDeployed(
             network.chainId,
-            this.DEFAULT_VERSION,
             this.address
           ), // could be set as state in init
           entryPointAddress: network.entryPoint[network.entryPoint.length - 1].address,
@@ -347,9 +346,7 @@ class SmartAccount extends EventEmitter {
     const transaction = await this.createTransaction(transactionDto)
 
     // create instance of SmartWallet contracts
-    let walletContract =
-      this.contractUtils.smartWalletContract[chainId][this.DEFAULT_VERSION].getContract()
-    walletContract = walletContract.attach(this.address)
+    let walletContract = this.contractUtils.attachWalletContract(chainId, this.DEFAULT_VERSION, this.address)
 
     const signature = await this.signTransaction({
       version: this.DEFAULT_VERSION,
@@ -377,7 +374,6 @@ class SmartAccount extends EventEmitter {
 
     const isDeployed = await this.contractUtils.isDeployed(
       chainId,
-      this.DEFAULT_VERSION,
       this.address
     )
     // dappIdentifier and signature will be added by signing service
@@ -510,12 +506,11 @@ class SmartAccount extends EventEmitter {
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
 
-    let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()
-    walletContract = walletContract.attach(this.address)
+    let walletContract = this.contractUtils.attachWalletContract(chainId, this.DEFAULT_VERSION, this.address)
 
     // NOTE : If the wallet is not deployed yet then nonce would be zero
     let nonce = 0
-    if (await this.contractUtils.isDeployed(chainId, version, this.address)) {
+    if (await this.contractUtils.isDeployed(chainId, this.address)) {
       nonce = (await walletContract.nonce()).toNumber()
     }
     console.log('nonce: ', nonce)
@@ -661,8 +656,7 @@ class SmartAccount extends EventEmitter {
   async signTransaction(signTransactionDto: SignTransactionDto): Promise<string> {
     const { chainId = this.#smartAccountConfig.activeNetworkId, tx } = signTransactionDto
     const signatureType = this.#smartAccountConfig.signType
-    let walletContract = this.smartAccount(chainId).getContract()
-    walletContract = walletContract.attach(this.address)
+    let walletContract = this.contractUtils.attachWalletContract(chainId, this.DEFAULT_VERSION, this.address)
     let signature = '0x'
     if (signatureType === SignTypeMethod.PERSONAL_SIGN) {
       const { signer, data } = await smartAccountSignMessage(
@@ -700,7 +694,6 @@ class SmartAccount extends EventEmitter {
     let { gasLimit } = sendTransactionDto
     const isDeployed = await this.contractUtils.isDeployed(
       chainId,
-      this.DEFAULT_VERSION,
       this.address
     )
     const rawTx: RawTransactionType = {
@@ -726,9 +719,7 @@ class SmartAccount extends EventEmitter {
       refundReceiver: tx.refundReceiver
     }
 
-    let walletContract =
-      this.contractUtils.smartWalletContract[chainId][this.DEFAULT_VERSION].getContract()
-    walletContract = walletContract.attach(this.address)
+    let walletContract = this.contractUtils.attachWalletContract(chainId, this.DEFAULT_VERSION, this.address)
 
     const signature = await this.signTransaction({
       version: this.DEFAULT_VERSION,
@@ -785,7 +776,6 @@ class SmartAccount extends EventEmitter {
     let { gasLimit } = sendSignedTransactionDto
     const isDeployed = await this.contractUtils.isDeployed(
       chainId,
-      this.DEFAULT_VERSION,
       this.address
     )
     const rawTx: RawTransactionType = {
@@ -811,9 +801,7 @@ class SmartAccount extends EventEmitter {
       refundReceiver: tx.refundReceiver
     }
 
-    let walletContract =
-      this.contractUtils.smartWalletContract[chainId][this.DEFAULT_VERSION].getContract()
-    walletContract = walletContract.attach(this.address)
+    let walletContract = this.contractUtils.attachWalletContract(chainId, this.DEFAULT_VERSION, this.address)
 
     const execTransaction = await walletContract.populateTransaction.execTransaction(
       transaction,
@@ -1071,10 +1059,7 @@ class SmartAccount extends EventEmitter {
    */
   async isDeployed(chainId: ChainId): Promise<boolean> {
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
-
-    return await this.contractUtils.smartWalletFactoryContract[chainId][
-      this.DEFAULT_VERSION
-    ].isWalletExist(this.address)
+    return await this.contractUtils.isDeployed(chainId, this.address)
   }
 
   /**

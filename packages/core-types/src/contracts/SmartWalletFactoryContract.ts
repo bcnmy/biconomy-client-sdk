@@ -5,7 +5,6 @@ export interface SmartWalletFactoryContract {
   getInterface(): Interface
   getAddress(): string
   getContract(): Contract
-  isWalletExist(wallet: string): Promise<boolean>
   deployCounterFactualWallet(
     owner: string,
     index: number

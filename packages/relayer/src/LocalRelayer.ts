@@ -29,10 +29,8 @@ export class LocalRelayer implements IRelayer {
     // checkd if already deployed
     // TODO : Review for index and ownership transfer case
     const { config, context, index = 0 } = deployWallet
-    const { address } = config
-    const { walletFactory } = context
-    const isExist = await walletFactory.isWalletExist(address)
-    if (isExist) {
+    const { isDeployed } = config
+    if ( isDeployed ) {
       throw new Error('Smart Account is Already Deployed')
     }
     const walletDeployTxn = this.prepareWalletDeploy({ config, context, index })

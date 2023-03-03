@@ -111,8 +111,13 @@ class EvmNetworkManager implements IEvmNetworkManager {
   }
 
   async isContractDeployed(address: string): Promise<boolean> {
-    const contractCode = await this.#provider.getCode(address)
-    return contractCode !== '0x'
+    let contractCode
+    try {
+      contractCode = await this.#provider.getCode(address)
+      return contractCode !== '0x'
+    } catch (error) {
+      throw new Error('Unable to get Contract details')
+    }
   }
 
   async getTransaction(transactionHash: string): Promise<TransactionResponse> {

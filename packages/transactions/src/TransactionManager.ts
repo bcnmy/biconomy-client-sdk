@@ -179,7 +179,7 @@ class TransactionManager {
     walletContract = walletContract.attach(smartAccountState.address)
 
     let nonce = 0
-    if (await this.contractUtils.isDeployed(chainId, version, smartAccountState.address)) {
+    if (await this.contractUtils.isDeployed(chainId, smartAccountState.address)) {
       nonce = (await walletContract.getNonce(batchId)).toNumber()
     }
     console.log('nonce: ', nonce)
@@ -219,7 +219,7 @@ class TransactionManager {
 
     // NOTE : If the wallet is not deployed yet then nonce would be zero
     let nonce = 0
-    if (await this.contractUtils.isDeployed(chainId, version, smartAccountState.address)) {
+    if (await this.contractUtils.isDeployed(chainId, smartAccountState.address)) {
       nonce = (await walletContract.getNonce(batchId)).toNumber()
     }
     console.log('nonce: ', nonce)
@@ -431,7 +431,6 @@ class TransactionManager {
     let nonce = 0
     const isDeployed = await this.contractUtils.isDeployed(
       chainId,
-      version,
       smartAccountState.address
     )
     if (isDeployed) {

@@ -105,8 +105,8 @@ class ContractUtils {
     }
   }
 
-  async isDeployed(chainId: ChainId, version: string, address: string): Promise<boolean> {
-    return await this.smartWalletFactoryContract[chainId][version].isWalletExist(address)
+  async isDeployed(chainId: ChainId, address: string): Promise<boolean> {
+    return await this.ethAdapter[chainId].isContractDeployed(address)
   }
 
   //
@@ -160,7 +160,6 @@ class ContractUtils {
 
       this.smartAccountState.isDeployed = await this.isDeployed(
         this.smartAccountState.chainId,
-        this.smartAccountState.version,
         address
       ) // could be set as state in init
       const contractsByVersion = findContractAddressesByVersion(
@@ -168,12 +167,22 @@ class ContractUtils {
         this.smartAccountState.chainId,
         this.chainConfig
       )
-      ;(this.smartAccountState.entryPointAddress = contractsByVersion.entryPointAddress || ''),
-        (this.smartAccountState.fallbackHandlerAddress =
-          contractsByVersion.fallBackHandlerAddress || '')
+        ; (this.smartAccountState.entryPointAddress = contractsByVersion.entryPointAddress || ''),
+          (this.smartAccountState.fallbackHandlerAddress =
+            contractsByVersion.fallBackHandlerAddress || '')
     }
 
     return this.smartAccountState
+  }
+
+  attachWalletContract(
+    chainId: ChainId,
+    version: SmartAccountVersion,
+    address: string
+  ) {
+    let walletContract = this.smartWalletContract[chainId][version].getContract()
+    return walletContract.attach(address)
+
   }
 }
 
