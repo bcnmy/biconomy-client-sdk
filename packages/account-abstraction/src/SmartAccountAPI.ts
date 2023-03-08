@@ -47,6 +47,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
     readonly entryPoint: EntryPointContractV100,
     readonly clientConfig: ClientConfig,
     accountAddress: string | undefined,
+    readonly implementationAddress: string,
     readonly owner: Signer,
     readonly handlerAddress: string,
     readonly factoryAddress: string,
@@ -72,9 +73,13 @@ export class SmartAccountAPI extends BaseAccountAPI {
    */
   async getAccountInitCode(): Promise<string> {
     // can rename it smart account factory
-    const deployWalletCallData = WalletFactoryAPI.deployWalletTransactionCallData(
+    const deployWalletCallData = await WalletFactoryAPI.deployWalletTransactionCallData(
+      this.clientConfig.txServiceUrl,
+      (await this.provider.getNetwork()).chainId,
       this.factoryAddress,
       await this.owner.getAddress(),
+      this.handlerAddress,
+      this.implementationAddress,
       0
     )
     return hexConcat([this.factoryAddress, deployWalletCallData])

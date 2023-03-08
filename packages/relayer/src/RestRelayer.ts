@@ -51,15 +51,25 @@ export class RestRelayer implements IRelayer {
     // context: WalletContext
   ): { to: string; data: string } {
     const { config, context, index = 0 } = deployWallet
-    const { walletFactory } = context
+
+    const { walletFactory, baseWallet } = context
     const { owner, entryPointAddress, fallbackHandlerAddress } = config
     const factoryInterface = walletFactory.getInterface()
+    const baseWalletInterface = baseWallet.getInterface()
+
+    // const walletInterface = SmartWalletFactoryContractV100Interface.getInterface()
+    const initializer = baseWalletInterface.encodeFunctionData("init", [
+      owner,
+      fallbackHandlerAddress,
+    ]);
 
     return {
       to: walletFactory.getAddress(), // from context
       data: factoryInterface.encodeFunctionData(
         factoryInterface.getFunction('deployCounterFactualWallet'),
-        [owner, index]
+        [ baseWallet.getAddress(),
+          initializer,
+          index]
       )
     }
   }

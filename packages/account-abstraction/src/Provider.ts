@@ -16,6 +16,7 @@ export async function newProvider(
   config: ClientConfig,
   originalSigner: Signer = originalProvider.getSigner(),
   walletAddress: string,
+  implementationAddress: string,
   fallbackHandlerAddress: string,
   factoryAddress: string
 ): Promise<ERC4337EthersProvider> {
@@ -30,6 +31,7 @@ export async function newProvider(
     entryPoint,
     config,
     walletAddress,
+    implementationAddress,
     originalSigner,
     fallbackHandlerAddress,
     factoryAddress,

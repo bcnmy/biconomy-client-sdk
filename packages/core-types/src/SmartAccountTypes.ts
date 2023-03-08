@@ -68,6 +68,14 @@ export type AddressForCounterFactualWalletDto = {
   version: string
 }
 
+export type InitializerDto = {
+  index: number
+  chainId: ChainId
+  version: string
+  owner: string
+  txServiceUrl: string
+}
+
 export type SignTransactionDto = {
   version?: string
   tx: IWalletTransaction

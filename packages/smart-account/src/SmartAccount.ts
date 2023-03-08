@@ -34,6 +34,7 @@ import {
 } from '@biconomy/core-types'
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import NodeClient, {
+  ISmartAccount,
   ChainConfig,
   SmartAccountsResponse,
   SmartAccountByOwnerDto,
@@ -243,11 +244,11 @@ class SmartAccount extends EventEmitter {
       this.contractUtils.initializeContracts(this.signer, readProvider, network)
 
       if (!this.address) {
-        this.address = await this.getAddress({
+        this.address = (await this.getAddress({
           index: 0,
           chainId: network.chainId,
           version: this.DEFAULT_VERSION
-        })
+        })).smartAccountAddress
         console.log('smart wallet address is ', this.address)
       }
 
@@ -295,10 +296,12 @@ class SmartAccount extends EventEmitter {
             : network.entryPoint[network.entryPoint.length - 1].address,
           bundlerUrl: clientConfig.bundlerUrl || this.#smartAccountConfig.bundlerUrl || '',
           chainId: network.chainId,
-          customPaymasterAPI: clientConfig.customPaymasterAPI
+          customPaymasterAPI: clientConfig.customPaymasterAPI,
+          txServiceUrl: this.#smartAccountConfig.backendUrl
         },
         this.signer,
         this.address,
+        network.wallet[network.wallet.length - 1].address,
         network.fallBackHandler[network.fallBackHandler.length - 1].address,
         network.walletFactory[network.walletFactory.length - 1].address
       )
@@ -387,7 +390,11 @@ class SmartAccount extends EventEmitter {
       signature: ''
     }
     if (!isDeployed) {
-      const { multiSendCall, walletFactory } = this.getSmartAccountContext(chainId)
+      const network = this.chainConfig.find((element: ChainConfig) => element.chainId === chainId)
+      if (!network)
+      throw new Error('No Network Found for given chainid')
+
+      const { multiSendCall, walletFactory, baseWallet } = this.getSmartAccountContext(chainId)
       const { owner } =
         await this.contractUtils.getSmartAccountState(
           this.smartAccountState,
@@ -395,13 +402,22 @@ class SmartAccount extends EventEmitter {
           this.#smartAccountConfig.activeNetworkId
         )
       const factoryInterface = walletFactory.getInterface()
+      const baseWalletInterface = baseWallet.getInterface()
+
+      const initializer = baseWalletInterface.encodeFunctionData("init", [
+        owner,
+        network.fallBackHandler[network.fallBackHandler.length - 1].address
+      ]);
+
       const txs = [
         {
           to: walletFactory.getAddress(),
           value: 0,
           data: factoryInterface.encodeFunctionData(
             factoryInterface.getFunction('deployCounterFactualWallet'),
-            [owner, 0]
+            [baseWallet.getAddress(),
+            initializer,
+            0]
           ),
           operation: 0
         },
@@ -573,11 +589,11 @@ class SmartAccount extends EventEmitter {
    */
   async setSmartAccountVersion(smartAccountVersion: SmartAccountVersion): Promise<SmartAccount> {
     this.DEFAULT_VERSION = smartAccountVersion
-    this.address = await this.getAddress({
+    this.address = (await this.getAddress({
       index: 0,
       chainId: this.#smartAccountConfig.activeNetworkId,
       version: this.DEFAULT_VERSION
-    })
+    })).smartAccountAddress
     return this
   }
 
@@ -1035,7 +1051,7 @@ class SmartAccount extends EventEmitter {
   // Marked for deletion
   async getAddress(
     addressForCounterFactualWalletDto: AddressForCounterFactualWalletDto
-  ): Promise<string> {
+  ): Promise<ISmartAccount> {
     
     const { index, chainId, version } = addressForCounterFactualWalletDto
 
@@ -1046,8 +1062,18 @@ class SmartAccount extends EventEmitter {
     if (!smartAccountInfo.data || smartAccountInfo.data.length == 0){
       throw new Error("No Smart Account Found against supplied EOA");      
     }
-    this.address = smartAccountInfo.data[index].smartAccountAddress
-    return this.address
+
+    // check wallet is deployed on not
+
+    let wallet = _.filter(smartAccountInfo.data, {chainId: chainId, 'isDeployed': true})
+    if (!wallet){
+    // filtering wallet base on deployed status and latest deployed wallet on chain
+    let walletLists = _.filter(smartAccountInfo.data, {'isDeployed': true})
+    walletLists = _.orderBy(walletLists, ['createdAt'], 'desc')
+    return walletLists[0]
+    }
+    this.address = wallet[0].smartAccountAddress
+    return wallet[0]
   }
 
   /**

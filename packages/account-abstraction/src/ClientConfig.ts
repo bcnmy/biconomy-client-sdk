@@ -8,5 +8,6 @@ export interface ClientConfig {
   entryPointAddress: string
   bundlerUrl: string
   chainId: number
+  txServiceUrl: string
   // not using accountAddress in client config
 }
