@@ -64,6 +64,7 @@ import {
   ERC4337EthersSigner,
   BaseAccountAPI
 } from '@biconomy/account-abstraction'
+import { deployCounterFactualEncodedData } from '@biconomy/common'
 
 import { BigNumber, ethers, Signer } from 'ethers'
 
@@ -240,37 +241,40 @@ class SmartAccount extends EventEmitter {
       const providerUrl = this.getProviderUrl(network)
       this._logMessage('init at chain')
       this._logMessage(chainId)
-      const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
-      this.contractUtils.initializeContracts(this.signer, readProvider, network)
+      let walletInfo: ISmartAccount
 
-      if (!this.address) {
-        this.address = (await this.getAddress({
+      // if (!this.address) {
+        walletInfo = (await this.getAddress({
           index: 0,
           chainId: network.chainId,
           version: this.DEFAULT_VERSION
-        })).smartAccountAddress
+        }))
+        this.address = walletInfo.smartAccountAddress
         console.log('smart wallet address is ', this.address)
-      }
+      // }
 
-      if (!this.smartAccountState) {
-        this.smartAccountState = {
-          chainId: network.chainId,
-          version: this.DEFAULT_VERSION,
-          address: this.address,
-          owner: this.owner,
-          isDeployed: await this.contractUtils.isDeployed(
-            network.chainId,
-            this.address
-          ), // could be set as state in init
-          entryPointAddress: network.entryPoint[network.entryPoint.length - 1].address,
-          fallbackHandlerAddress:
-            network.fallBackHandler[network.fallBackHandler.length - 1].address
-        }
-      } else if (this.DEFAULT_VERSION !== this.smartAccountState.version) {
-        this.smartAccountState = await this.contractUtils.getSmartAccountState(
-          this.smartAccountState
-        )
-      }
+      const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
+      this.contractUtils.initializeContracts(this.signer, readProvider, walletInfo, network)
+
+      // if (!this.smartAccountState) {
+      //   this.smartAccountState = {
+      //     chainId: network.chainId,
+      //     version: walletInfo.version,
+      //     address: this.address,
+      //     owner: this.owner,
+      //     isDeployed: await this.contractUtils.isDeployed(
+      //       network.chainId,
+      //       this.address
+      //     ), // could be set as state in init
+      //     entryPointAddress: walletInfo.entryPointAddress,
+      //     fallbackHandlerAddress: walletInfo.handlerAddress
+      //   }
+      // } 
+      // else if (this.DEFAULT_VERSION !== this.smartAccountState.version) {
+      //   this.smartAccountState = await this.contractUtils.getSmartAccountState(
+      //     this.smartAccountState
+      //   )
+      // }
 
       const clientConfig = await this.getNetworkConfigValues(network.chainId)
 
@@ -328,7 +332,7 @@ class SmartAccount extends EventEmitter {
     }
     await this.initializeContractsAtChain(this.#smartAccountConfig.activeNetworkId)
 
-    this.transactionManager = new TransactionManager(this.smartAccountState)
+    this.transactionManager = new TransactionManager(this.contractUtils.getSmartAccountState())
 
     await this.transactionManager.initialize(this.relayer, this.nodeClient, this.contractUtils)
     return this
@@ -395,30 +399,17 @@ class SmartAccount extends EventEmitter {
       throw new Error('No Network Found for given chainid')
 
       const { multiSendCall, walletFactory, baseWallet } = this.getSmartAccountContext(chainId)
-      const { owner } =
-        await this.contractUtils.getSmartAccountState(
-          this.smartAccountState,
-          this.DEFAULT_VERSION,
-          this.#smartAccountConfig.activeNetworkId
-        )
-      const factoryInterface = walletFactory.getInterface()
-      const baseWalletInterface = baseWallet.getInterface()
-
-      const initializer = baseWalletInterface.encodeFunctionData("init", [
-        owner,
-        network.fallBackHandler[network.fallBackHandler.length - 1].address
-      ]);
-
+      const deployWalletencodedData = await deployCounterFactualEncodedData({
+        chainId: (await this.provider.getNetwork()).chainId,
+        owner: await this.owner,
+        txServiceUrl: this.#smartAccountConfig.backendUrl,
+        index: 0
+      })
       const txs = [
         {
           to: walletFactory.getAddress(),
           value: 0,
-          data: factoryInterface.encodeFunctionData(
-            factoryInterface.getFunction('deployCounterFactualWallet'),
-            [baseWallet.getAddress(),
-            initializer,
-            0]
-          ),
+          data: deployWalletencodedData,
           operation: 0
         },
         {
@@ -460,11 +451,7 @@ class SmartAccount extends EventEmitter {
       rawTx: rawTrx,
       tx: transaction
     }
-    const state = await this.contractUtils.getSmartAccountState(
-      this.smartAccountState,
-      this.DEFAULT_VERSION,
-      this.#smartAccountConfig.activeNetworkId
-    )
+    const state = await this.contractUtils.getSmartAccountState()
     const relayTrx: RelayTransaction = {
       signedTx,
       config: state,
@@ -753,11 +740,7 @@ class SmartAccount extends EventEmitter {
     rawTx.to = this.address
     rawTx.data = execTransaction.data
 
-    const state = await this.contractUtils.getSmartAccountState(
-      this.smartAccountState,
-      this.DEFAULT_VERSION,
-      this.#smartAccountConfig.activeNetworkId
-    )
+    const state = await this.contractUtils.getSmartAccountState()
 
     const signedTx: SignedTransaction = {
       rawTx,
@@ -828,11 +811,7 @@ class SmartAccount extends EventEmitter {
     rawTx.to = this.address
     rawTx.data = execTransaction.data
 
-    const state = await this.contractUtils.getSmartAccountState(
-      this.smartAccountState,
-      this.DEFAULT_VERSION,
-      this.#smartAccountConfig.activeNetworkId
-    )
+    const state = await this.contractUtils.getSmartAccountState()
 
     const signedTx: SignedTransaction = {
       rawTx,
@@ -1063,6 +1042,8 @@ class SmartAccount extends EventEmitter {
       throw new Error("No Smart Account Found against supplied EOA");      
     }
 
+    let walletInfo: ISmartAccount
+
     // check wallet is deployed on not
 
     let wallet = _.filter(smartAccountInfo.data, {chainId: chainId, 'isDeployed': true})
@@ -1070,10 +1051,23 @@ class SmartAccount extends EventEmitter {
     // filtering wallet base on deployed status and latest deployed wallet on chain
     let walletLists = _.filter(smartAccountInfo.data, {'isDeployed': true})
     walletLists = _.orderBy(walletLists, ['createdAt'], 'desc')
-    return walletLists[0]
+    walletInfo = walletLists[0]
     }
     this.address = wallet[0].smartAccountAddress
-    return wallet[0]
+    walletInfo = wallet[0]
+
+    const smartAccountState = {
+      chainId: walletInfo.chainId,
+      version: walletInfo.version,
+      address: walletInfo.smartAccountAddress,
+      owner: this.owner,
+      isDeployed: walletInfo.isDeployed, // could be set as state in init
+      entryPointAddress: walletInfo.entryPointAddress,
+      fallbackHandlerAddress: walletInfo.handlerAddress
+    }
+    this.contractUtils.setSmartAccountState(smartAccountState)
+
+    return walletInfo
   }
 
   /**
@@ -1095,11 +1089,7 @@ class SmartAccount extends EventEmitter {
    */
   async getSmartAccountState(chainId?: ChainId): Promise<SmartAccountState> {
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
-    return this.contractUtils.getSmartAccountState(
-      this.smartAccountState,
-      this.DEFAULT_VERSION,
-      this.#smartAccountConfig.activeNetworkId
-    )
+    return this.contractUtils.getSmartAccountState()
   }
 
   //

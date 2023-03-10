@@ -69,9 +69,9 @@ export type AddressForCounterFactualWalletDto = {
 }
 
 export type InitializerDto = {
-  index: number
+  index?: number
   chainId: ChainId
-  version: string
+  version?: string
   owner: string
   txServiceUrl: string
 }

@@ -12,7 +12,7 @@ import { WalletFactoryAPI } from './WalletFactoryAPI' // could be renamed smart 
 import { BiconomyPaymasterAPI } from './BiconomyPaymasterAPI'
 import { ZERO_ADDRESS } from '@biconomy/core-types'
 import { GasOverheads } from './calcPreVerificationGas'
-
+import { deployCounterFactualEncodedData } from '@biconomy/common'
 
 // may use...
 export interface SmartAccountApiParams extends BaseApiParams {
@@ -73,15 +73,21 @@ export class SmartAccountAPI extends BaseAccountAPI {
    */
   async getAccountInitCode(): Promise<string> {
     // can rename it smart account factory
-    const deployWalletCallData = await WalletFactoryAPI.deployWalletTransactionCallData(
-      this.clientConfig.txServiceUrl,
-      (await this.provider.getNetwork()).chainId,
-      this.factoryAddress,
-      await this.owner.getAddress(),
-      this.handlerAddress,
-      this.implementationAddress,
-      0
-    )
+    // const deployWalletCallData = await WalletFactoryAPI.deployWalletTransactionCallData(
+    //   this.clientConfig.txServiceUrl,
+    //   (await this.provider.getNetwork()).chainId,
+    //   this.factoryAddress,
+    //   await this.owner.getAddress(),
+    //   this.handlerAddress,
+    //   this.implementationAddress,
+    //   0
+    // )
+    const deployWalletCallData = await deployCounterFactualEncodedData({
+      chainId: (await this.provider.getNetwork()).chainId,
+      owner: await this.owner.getAddress(),
+      txServiceUrl: this.clientConfig.txServiceUrl,
+      index: this.index
+    })
     return hexConcat([this.factoryAddress, deployWalletCallData])
   }
 

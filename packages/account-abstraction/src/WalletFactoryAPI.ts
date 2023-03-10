@@ -21,9 +21,8 @@ export class WalletFactoryAPI {
     })
     console.log('walletInfo ', walletInfo);
     if ( walletInfo.isDeployed ){
-      handlerAddress = walletInfo.handler
+      handlerAddress = walletInfo.handlerAddress
       implementationAddress = walletInfo.implementationAddress
-
     }
     const implementation = new Contract(implementationAddress, [
       'function init(address _owner, address _handler)'

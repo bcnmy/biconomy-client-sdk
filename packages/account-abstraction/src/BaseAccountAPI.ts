@@ -3,16 +3,6 @@ import { Provider } from '@ethersproject/providers'
 import { UserOperation } from '@biconomy/core-types' // review
 import { ClientConfig } from './ClientConfig' // ClientConfig is needed in this design
 
-/*
-	import {
-  EntryPoint, EntryPoint__factory,
-  UserOperationStruct
-} from '@account-abstraction/contracts'
-*/
-
-// notice: SmartWalletFactory and SmartWalletContract as well needed in this design
-// SmartAccountAPI is BiconomySmartAccount and above imports could be used there only
-
 import {
   EntryPointContractV100,
   SmartWalletFactoryV100,
