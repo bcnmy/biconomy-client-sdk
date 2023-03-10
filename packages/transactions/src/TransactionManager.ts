@@ -453,7 +453,7 @@ class TransactionManager {
     }
     console.log(internalTx)
 
-    let targetTxGas, baseGas, handlePaymentEstimate
+    let targetTxGas, baseGas
     const regularOffSet = GAS_USAGE_OFFSET
 
     if (!isDeployed) {
@@ -491,10 +491,11 @@ class TransactionManager {
         walletAddress: smartAccountState.address,
         feeRefund: refundDetails
       }
-      const handlePaymentResponse = await this.nodeClient.estimateHandlePaymentGasOverride(
-        estimateHandlePaymentGas
-      )
-      handlePaymentEstimate = Number(handlePaymentResponse.data.gas)
+      // const handlePaymentResponse = await this.nodeClient.estimateHandlePaymentGasOverride(
+      //   estimateHandlePaymentGas
+      // )
+      // handlePaymentEstimate = Number(handlePaymentResponse.data.gas)
+      const handlePaymentEstimate = 7300
 
       console.log('handlePaymentEstimate (with override) ', handlePaymentEstimate)
       baseGas = handlePaymentEstimate + regularOffSet + additionalBaseGas
@@ -523,16 +524,19 @@ class TransactionManager {
         refundReceiver: feeQuote.refundReceiver || ZERO_ADDRESS
       }
 
-      const estimateHandlePaymentGas: EstimateHandlePaymentTxGasDto = {
-        chainId: chainId,
-        version: version,
-        walletAddress: smartAccountState.address,
-        feeRefund: refundDetails
-      }
-      const handlePaymentResponse = await this.nodeClient.estimateHandlePaymentGas(
-        estimateHandlePaymentGas
-      )
-      handlePaymentEstimate = Number(handlePaymentResponse.data.gas)
+      // const estimateHandlePaymentGas: EstimateHandlePaymentTxGasDto = {
+      //   chainId: chainId,
+      //   version: version,
+      //   walletAddress: smartAccountState.address,
+      //   feeRefund: refundDetails
+      // }
+      // const handlePaymentResponse = await this.nodeClient.estimateHandlePaymentGas(
+      //   estimateHandlePaymentGas
+      // )
+      // handlePaymentEstimate = Number(handlePaymentResponse.data.gas)
+
+
+      let handlePaymentEstimate = 7300
 
       console.log('handlePaymentEstimate ', handlePaymentEstimate)
 
@@ -657,10 +661,11 @@ class TransactionManager {
         feeRefund: refundDetails
       }
 
-      const handlePaymentResponse = await this.nodeClient.estimateHandlePaymentGasOverride(
-        estimateHandlePaymentGas
-      )
-      const handlePaymentEstimate = Number(handlePaymentResponse.data.gas)
+      // const handlePaymentResponse = await this.nodeClient.estimateHandlePaymentGasOverride(
+      //   estimateHandlePaymentGas
+      // )
+      // const handlePaymentEstimate = Number(handlePaymentResponse.data.gas)
+      let handlePaymentEstimate = 7300
       console.log('handlePaymentEstimate (with override) ', handlePaymentEstimate)
       baseGas = handlePaymentEstimate + regularOffSet + additionalBaseGas
     } else {
