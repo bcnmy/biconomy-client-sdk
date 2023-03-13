@@ -177,21 +177,21 @@ export class SmartAccountAPI extends BaseAccountAPI {
     const verificationGasLimit = BigNumber.from(await this.getVerificationGasLimit())
     .add(initGas)
 
-    // let {
-    //   maxFeePerGas,
-    //   maxPriorityFeePerGas
-    // } = 
+    let {
+      maxFeePerGas,
+      maxPriorityFeePerGas
+    } = 
     
-    // info
-    // if (maxFeePerGas == null || maxPriorityFeePerGas == null) {
-    //   const feeData = await this.provider.getFeeData()
-    //   if (maxFeePerGas == null) {
-    //     maxFeePerGas = feeData.maxFeePerGas ?? undefined
-    //   }
-    //   if (maxPriorityFeePerGas == null) {
-    //     maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? undefined
-    //   }
-    // }
+    info
+    if (maxFeePerGas == null || maxPriorityFeePerGas == null) {
+      const feeData = await this.provider.getFeeData()
+      if (maxFeePerGas == null) {
+        maxFeePerGas = feeData.maxFeePerGas ?? undefined
+      }
+      if (maxPriorityFeePerGas == null) {
+        maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? undefined
+      }
+    }
 
     let partialUserOp: any = {
       sender: await this.getAccountAddress(),
