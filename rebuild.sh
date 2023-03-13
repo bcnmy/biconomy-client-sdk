@@ -16,6 +16,8 @@ rm -rf packages/core-types/package-lock.json
 rm -rf packages/core-types/dist
 
 rm -rf packages/ethers-lib/node_modules
+rm -rf packages/ethers-lib/artifacts
+rm -rf packages/ethers-lib/cache
 rm -rf packages/ethers-lib/package-lock.json
 rm -rf packages/ethers-lib/dist
 

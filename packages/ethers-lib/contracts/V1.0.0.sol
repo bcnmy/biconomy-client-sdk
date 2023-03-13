@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 // @review
-pragma solidity ^0.8.12;
+pragma solidity ^0.8.17;
 
 import { SmartAccountFactory } from "scw-contracts-v1.0.0/contracts/smart-contract-wallet/SmartAccountFactory.sol";
 import { SmartAccount } from "scw-contracts-v1.0.0/contracts/smart-contract-wallet/SmartAccount.sol";
@@ -11,7 +11,7 @@ import { FallbackGasTank } from "fallback-contracts-v1.0.0/contracts/gas-tank/Fa
 import "@account-abstraction/contracts/interfaces/IEntryPoint.sol";
 
 contract SmartWalletFactoryContract_v1_0_0 is SmartAccountFactory {
-    constructor(address _defaultImpl, address _handler) SmartAccountFactory(_defaultImpl, _handler){}
+    constructor(address _basicImplementation) SmartAccountFactory(_basicImplementation){}
 }
 contract SmartWalletContract_v1_0_0 is SmartAccount {
     constructor(IEntryPoint anEntryPoint) SmartAccount(IEntryPoint(anEntryPoint)){}
