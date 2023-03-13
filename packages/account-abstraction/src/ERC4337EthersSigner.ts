@@ -3,7 +3,7 @@ import { Provider, TransactionRequest, TransactionResponse } from '@ethersprojec
 import { Signer } from '@ethersproject/abstract-signer'
 import { EntryPointFactoryContractV100 } from '@biconomy/ethers-lib'
 
-import { Bytes } from 'ethers'
+import { BigNumber, Bytes } from 'ethers'
 import { ERC4337EthersProvider } from './ERC4337EthersProvider'
 import { ClientConfig } from './ClientConfig'
 import { HttpRpcClient } from './HttpRpcClient'
@@ -30,7 +30,6 @@ export class ERC4337EthersSigner extends Signer {
   async sendTransaction(
     transaction: TransactionRequest,
     walletDeployOnly = false,
-    isDelegate = false,
     engine?: any // EventEmitter
   ): Promise<TransactionResponse> {
     const socketServerUrl = this.config.socketServerUrl
@@ -65,10 +64,10 @@ export class ERC4337EthersSigner extends Signer {
     let userOperation: UserOperation
     if (walletDeployOnly === true) {
       userOperation = await this.smartAccountAPI.createSignedUserOp({
-        target: '',
-        data: '',
-        value: 0,
-        gasLimit: 21000
+        target: [''],
+        data: [''],
+        value: [0],
+        gasLimit: [21000]
       })
     } else {
       // Removing populate transaction all together
@@ -77,11 +76,142 @@ export class ERC4337EthersSigner extends Signer {
       await this.verifyAllNecessaryFields(transaction)
 
       userOperation = await this.smartAccountAPI.createSignedUserOp({
-        target: transaction.to ?? '',
-        data: transaction.data?.toString() ?? '',
-        value: transaction.value,
-        gasLimit: transaction.gasLimit,
-        isDelegateCall: isDelegate // get from customData.isBatchedToMultiSend
+        target: transaction.to ? [transaction.to] :  [''],
+        data: transaction.data?.toString() ? [transaction.data?.toString()]: [''],
+        value: transaction.value ? [transaction.value] : [0],
+        gasLimit: transaction.gasLimit ? [transaction.gasLimit] : [0],
+      })
+    }
+    console.log('signed userOp ', userOperation)
+
+    let bundlerServiceResponse: any
+
+    try {
+      bundlerServiceResponse = await this.httpRpcClient.sendUserOpToBundler(userOperation)
+      console.log('bundlerServiceResponse')
+      console.log(bundlerServiceResponse)
+    } catch (error) {
+      // console.error('sendUserOpToBundler failed', error)
+      throw this.unwrapError(error)
+    }
+
+    if (clientMessenger && clientMessenger.socketClient.isConnected()) {
+      clientMessenger.createTransactionNotifier(bundlerServiceResponse.transactionId, {
+        onHashGenerated: async (tx: any) => {
+          if (tx) {
+            const txHash = tx.transactionHash
+            const txId = tx.transactionId
+            console.log(
+              `Tx Hash generated message received at client ${JSON.stringify({
+                transactionId: txId,
+                hash: txHash
+              })}`
+            )
+            engine &&
+              engine.emit('txHashGenerated', {
+                id: tx.transactionId,
+                hash: tx.transactionHash,
+                msg: 'txn hash generated'
+              })
+          }
+        },
+        onHashChanged: async (tx: any) => {
+          if (tx) {
+            const txHash = tx.transactionHash
+            const txId = tx.transactionId
+            console.log(
+              `Tx Hash changed message received at client ${JSON.stringify({
+                transactionId: txId,
+                hash: txHash
+              })}`
+            )
+            engine &&
+              engine.emit('txHashChanged', {
+                id: tx.transactionId,
+                hash: tx.transactionHash,
+                msg: 'txn hash changed'
+              })
+          }
+        },
+        onError: async (tx: any) => {
+          if (tx) {
+            console.log(`Error message received at client is ${tx}`)
+            const err = tx.error
+            const txId = tx.transactionId
+            clientMessenger.unsubscribe(txId)
+            // event emitter
+            engine &&
+              engine.emit('error', {
+                id: tx.transactionId,
+                error: err,
+                msg: 'txn hash generated'
+              })
+          }
+        }
+      })
+    }
+
+    const transactionResponse = await this.erc4337provider.constructUserOpTransactionResponse(
+      userOperation,
+      bundlerServiceResponse.transactionId,
+      engine
+    )
+    // const receipt = await transactionResponse.wait()
+    // console.log('transactionResponse in sendTransaction', receipt)
+
+    // TODO: handle errors - transaction that is "rejected" by bundler is _not likely_ to ever resolve its "wait()"
+    return transactionResponse
+  }
+
+  async sendTransactionBatch(
+    transactions: TransactionRequest[],
+    walletDeployOnly = false,
+    engine?: any // EventEmitter
+  ): Promise<TransactionResponse> {
+
+    const socketServerUrl = this.config.socketServerUrl
+
+    const clientMessenger = new ClientMessenger(socketServerUrl, WebSocket)
+
+    if (!clientMessenger.socketClient.isConnected()) {
+      try {
+        await clientMessenger.connect()
+        console.log('connect success')
+      } catch (err) {
+        console.log('socket connection failure')
+        console.log(err)
+      }
+    }
+
+    console.log('received transaction ', transactions)
+   
+    let userOperation: UserOperation
+    if (walletDeployOnly === true) {
+      userOperation = await this.smartAccountAPI.createSignedUserOp({
+        target: [''],
+        data: [''],
+        value: [0],
+        gasLimit: [21000]
+      })
+    } else {
+      // Removing populate transaction all together
+      // const tx: TransactionRequest = await this.populateTransaction(transaction)
+
+      transactions.map(await this.verifyAllNecessaryFields)
+
+      // let target = transactions.map(({ target }) => target)
+     
+      const target = transactions.map((element) => element.to ?? '')
+      const data = transactions.map((element) => element.data ?? '')
+      const value = transactions.map((element) => element.value ?? 0)
+      const gasLimit = transactions.map((element) => element.gasLimit ?? BigNumber.from(0))
+      
+
+      userOperation = await this.smartAccountAPI.createSignedUserOp({
+        target,
+        data,
+        value,
+        gasLimit
       })
     }
     console.log('signed userOp ', userOperation)

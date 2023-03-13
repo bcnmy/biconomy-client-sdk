@@ -32,13 +32,13 @@ export declare namespace IStakeManager {
     boolean,
     BigNumber,
     number,
-    BigNumber
+    number
   ] & {
     deposit: BigNumber;
     staked: boolean;
     stake: BigNumber;
     unstakeDelaySec: number;
-    withdrawTime: BigNumber;
+    withdrawTime: number;
   };
 }
 
@@ -118,7 +118,7 @@ export type DepositedEventFilter = TypedEventFilter<DepositedEvent>;
 
 export type StakeLockedEvent = TypedEvent<
   [string, BigNumber, BigNumber],
-  { account: string; totalStaked: BigNumber; withdrawTime: BigNumber }
+  { account: string; totalStaked: BigNumber; unstakeDelaySec: BigNumber }
 >;
 
 export type StakeLockedEventFilter = TypedEventFilter<StakeLockedEvent>;
@@ -283,12 +283,12 @@ export interface IStakeManager extends BaseContract {
     "StakeLocked(address,uint256,uint256)"(
       account?: string | null,
       totalStaked?: null,
-      withdrawTime?: null
+      unstakeDelaySec?: null
     ): StakeLockedEventFilter;
     StakeLocked(
       account?: string | null,
       totalStaked?: null,
-      withdrawTime?: null
+      unstakeDelaySec?: null
     ): StakeLockedEventFilter;
 
     "StakeUnlocked(address,uint256)"(

@@ -2,13 +2,15 @@ import { ethers, BigNumber, BigNumberish } from 'ethers'
 import { Provider } from '@ethersproject/providers'
 import { UserOperation } from '@biconomy/core-types' // review
 import { ClientConfig } from './ClientConfig' // ClientConfig is needed in this design
+import { BytesLike } from "@ethersproject/bytes";
+import { EntryPoint } from '@account-abstraction/contracts'
 
 import {
   EntryPointContractV100,
   SmartWalletFactoryV100,
   SmartWalletContractV100
 } from '@biconomy/ethers-lib'
-import { TransactionDetailsForUserOp } from './TransactionDetailsForUserOp'
+import { TransactionDetailsForUserOp, TransactionDetailsForBatchUserOp } from './TransactionDetailsForUserOp'
 import { resolveProperties } from 'ethers/lib/utils'
 import { IPaymasterAPI } from '@biconomy/core-types' // only use interface
 import { getUserOpHash, NotPromise, packUserOp } from '@biconomy/common'
@@ -70,7 +72,7 @@ export abstract class BaseAccountAPI {
    */
   protected constructor(
     readonly provider: Provider,
-    readonly entryPoint: EntryPointContractV100, // we could just get an address : evaluate
+    readonly entryPoint: EntryPoint, // we could just get an address : evaluate
     readonly clientConfig: ClientConfig, // review the need to get entire clientconfig
     readonly accountAddress?: string,
     readonly overheads?: Partial<GasOverheads>
@@ -128,7 +130,7 @@ export abstract class BaseAccountAPI {
    * @param info
    */
   // UserOperation = UserOperationStruct // if anything changes changes in core-types
-  abstract createUnsignedUserOp(info: TransactionDetailsForUserOp): Promise<UserOperation>
+  abstract createUnsignedUserOp(info: TransactionDetailsForBatchUserOp): Promise<UserOperation>
 
   /**
    * encode the call from entryPoint through our wallet to the target contract.
@@ -143,6 +145,10 @@ export abstract class BaseAccountAPI {
     data: string,
     isDelegateCall: boolean
   ): Promise<string>
+
+  abstract encodeExecuteCall(target: string, value: BigNumberish, data: BytesLike): Promise<string>
+  
+  abstract encodeExecuteBatchCall(target: string[], value: BigNumberish[], data: BytesLike[]): Promise<string>
 
   /**
    * sign a userOp's hash (userOpHash).
@@ -218,7 +224,7 @@ export abstract class BaseAccountAPI {
   }
 
   async encodeUserOpCallDataAndGasLimit(
-    detailsForUserOp: TransactionDetailsForUserOp
+    detailsForUserOp: TransactionDetailsForBatchUserOp
   ): Promise<{ callData: string; callGasLimit: BigNumber }> {
     /* eslint-disable  @typescript-eslint/no-explicit-any */
     function parseNumber(a: any): BigNumber | null {
@@ -226,7 +232,7 @@ export abstract class BaseAccountAPI {
       return BigNumber.from(a.toString())
     }
 
-    if (detailsForUserOp && detailsForUserOp.target === '' && detailsForUserOp.data === '') {
+    if (detailsForUserOp && detailsForUserOp.target[0] === '' && detailsForUserOp.data[0] === '') {
       return {
         callData: '0x',
         callGasLimit: BigNumber.from('21000')
@@ -234,12 +240,27 @@ export abstract class BaseAccountAPI {
     }
 
     const value = parseNumber(detailsForUserOp.value) ?? BigNumber.from(0)
-    const callData = await this.encodeExecute(
-      detailsForUserOp.target,
-      value,
-      detailsForUserOp.data,
-      detailsForUserOp.isDelegateCall || false
-    )
+    let callData
+    if ( detailsForUserOp.target.length == 1 )
+    {
+      callData = await this.encodeExecuteCall(
+        detailsForUserOp.target[0],
+        value,
+        detailsForUserOp.data[0],
+      )
+    }
+    else{
+      let values = []
+
+      for (let index = 0; index < detailsForUserOp.target.length; index++) {
+        values.push(BigNumber.from(0))
+      }
+      callData = await this.encodeExecuteBatchCall(
+        detailsForUserOp.target,
+        values,
+        detailsForUserOp.data,
+      )
+    }
 
     let callGasLimit = BigNumber.from(0)
 
@@ -314,7 +335,7 @@ export abstract class BaseAccountAPI {
    * helper method: create and sign a user operation.
    * @param info transaction details for the userOp
    */
-  async createSignedUserOp (info: TransactionDetailsForUserOp): Promise<UserOperation> {
+  async createSignedUserOp (info: TransactionDetailsForBatchUserOp): Promise<UserOperation> {
     return await this.signUserOp(await this.createUnsignedUserOp(info))
   }
 

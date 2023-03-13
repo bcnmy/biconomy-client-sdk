@@ -22,5 +22,5 @@ contract EntryPointContract_v1_0_0 is EntryPoint {
     constructor() EntryPoint(){}
 }
 contract FallbackGasTankContract_v1_0_0 is FallbackGasTank {
-    constructor(address _verifyingSigner) FallbackGasTank(_verifyingSigner) {}
+    constructor(address _owner, address _verifyingSigner) FallbackGasTank(_owner, _verifyingSigner) {}
 }

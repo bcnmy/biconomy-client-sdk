@@ -76,7 +76,7 @@ const _abi = [
     outputs: [
       {
         internalType: "bytes",
-        name: "aggregatesSignature",
+        name: "aggregatedSignature",
         type: "bytes",
       },
     ],

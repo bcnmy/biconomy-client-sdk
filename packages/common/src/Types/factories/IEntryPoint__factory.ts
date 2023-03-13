@@ -3,8 +3,11 @@
 /* eslint-disable */
 
 import { Contract, Signer, utils } from "ethers";
-import { Provider } from "@ethersproject/providers";
-import type { IEntryPoint, IEntryPointInterface } from "../IEntryPoint";
+import type { Provider } from "@ethersproject/providers";
+import type {
+  IEntryPoint,
+  IEntryPointInterface,
+} from "../IEntryPoint";
 
 const _abi = [
   {
@@ -20,14 +23,24 @@ const _abi = [
         type: "uint256",
       },
       {
-        internalType: "uint256",
-        name: "deadline",
-        type: "uint256",
+        internalType: "uint48",
+        name: "validAfter",
+        type: "uint48",
       },
       {
-        internalType: "uint256",
-        name: "paymasterDeadline",
-        type: "uint256",
+        internalType: "uint48",
+        name: "validUntil",
+        type: "uint48",
+      },
+      {
+        internalType: "bool",
+        name: "targetSuccess",
+        type: "bool",
+      },
+      {
+        internalType: "bytes",
+        name: "targetResult",
+        type: "bytes",
       },
     ],
     name: "ExecutionResult",
@@ -39,11 +52,6 @@ const _abi = [
         internalType: "uint256",
         name: "opIndex",
         type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "paymaster",
-        type: "address",
       },
       {
         internalType: "string",
@@ -91,14 +99,19 @@ const _abi = [
             type: "uint256",
           },
           {
-            internalType: "uint256",
-            name: "deadline",
-            type: "uint256",
+            internalType: "bool",
+            name: "sigFailed",
+            type: "bool",
           },
           {
-            internalType: "uint256",
-            name: "paymasterDeadline",
-            type: "uint256",
+            internalType: "uint48",
+            name: "validAfter",
+            type: "uint48",
+          },
+          {
+            internalType: "uint48",
+            name: "validUntil",
+            type: "uint48",
           },
           {
             internalType: "bytes",
@@ -180,14 +193,19 @@ const _abi = [
             type: "uint256",
           },
           {
-            internalType: "uint256",
-            name: "deadline",
-            type: "uint256",
+            internalType: "bool",
+            name: "sigFailed",
+            type: "bool",
           },
           {
-            internalType: "uint256",
-            name: "paymasterDeadline",
-            type: "uint256",
+            internalType: "uint48",
+            name: "validAfter",
+            type: "uint48",
+          },
+          {
+            internalType: "uint48",
+            name: "validUntil",
+            type: "uint48",
           },
           {
             internalType: "bytes",
@@ -254,7 +272,7 @@ const _abi = [
         components: [
           {
             internalType: "address",
-            name: "actualAggregator",
+            name: "aggregator",
             type: "address",
           },
           {
@@ -337,7 +355,7 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
+        indexed: true,
         internalType: "address",
         name: "aggregator",
         type: "address",
@@ -364,7 +382,7 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "withdrawTime",
+        name: "unstakeDelaySec",
         type: "uint256",
       },
     ],
@@ -598,9 +616,9 @@ const _abi = [
             type: "uint32",
           },
           {
-            internalType: "uint64",
+            internalType: "uint48",
             name: "withdrawTime",
-            type: "uint64",
+            type: "uint48",
           },
         ],
         internalType: "struct IStakeManager.DepositInfo",
@@ -931,6 +949,16 @@ const _abi = [
         name: "op",
         type: "tuple",
       },
+      {
+        internalType: "address",
+        name: "target",
+        type: "address",
+      },
+      {
+        internalType: "bytes",
+        name: "targetCallData",
+        type: "bytes",
+      },
     ],
     name: "simulateHandleOp",
     outputs: [],
@@ -1045,7 +1073,7 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
-];
+] as const;
 
 export class IEntryPoint__factory {
   static readonly abi = _abi;

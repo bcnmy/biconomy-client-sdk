@@ -123,7 +123,7 @@ export interface IAggregator extends BaseContract {
     aggregateSignatures(
       userOps: UserOperationStruct[],
       overrides?: CallOverrides
-    ): Promise<[string] & { aggregatesSignature: string }>;
+    ): Promise<[string] & { aggregatedSignature: string }>;
 
     validateSignatures(
       userOps: UserOperationStruct[],

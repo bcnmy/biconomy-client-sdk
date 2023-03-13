@@ -1,10 +1,11 @@
 import { BigNumber, BigNumberish } from 'ethers'
-import { EntryPointContractV100 } from '@biconomy/ethers-lib'
+// import { EntryPointContractV100 } from '@biconomy/ethers-lib'
+import { EntryPoint } from '@account-abstraction/contracts'
 
 import { ClientConfig } from './ClientConfig' // added in this design
 import { arrayify, hexConcat } from 'ethers/lib/utils'
 import { Signer } from '@ethersproject/abstract-signer'
-import { TransactionDetailsForUserOp } from './TransactionDetailsForUserOp'
+import { TransactionDetailsForUserOp, TransactionDetailsForBatchUserOp } from './TransactionDetailsForUserOp'
 import { UserOperation } from '@biconomy/core-types'
 import { BaseApiParams, BaseAccountAPI } from './BaseAccountAPI'
 import { Provider } from '@ethersproject/providers'
@@ -44,7 +45,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
    */
   constructor(
     provider: Provider,
-    readonly entryPoint: EntryPointContractV100,
+    readonly entryPoint: EntryPoint,
     readonly clientConfig: ClientConfig,
     accountAddress: string | undefined,
     readonly implementationAddress: string,
@@ -135,14 +136,32 @@ export class SmartAccountAPI extends BaseAccountAPI {
     ])
   }
 
+  async encodeExecuteCall(target: string, value: BigNumberish, data: string): Promise<string>{
+    const walletContract = await this._getSmartAccountContract()
+    return walletContract.interface.encodeFunctionData('executeCall', [
+      target,
+      value,
+      data,
+    ])
+  }
+  async encodeExecuteBatchCall(target: string[], value: BigNumberish[], data: string[]): Promise<string>{
+    const walletContract = await this._getSmartAccountContract()
+    return walletContract.interface.encodeFunctionData('executeBatchCall', [
+      target,
+      value,
+      data,
+    ])
+  }
+
   /**
    * create a UserOperation, filling all details (except signature)
    * - if wallet is not yet created, add initCode to deploy it.
    * - if gas or nonce are missing, read them from the chain (note that we can't fill gaslimit before the wallet is created)
    * @param info
    */
-  async createUnsignedUserOp(info: TransactionDetailsForUserOp): Promise<UserOperation> {
+  async createUnsignedUserOp(info: TransactionDetailsForBatchUserOp): Promise<UserOperation> {
     const { callData, callGasLimit } = await this.encodeUserOpCallDataAndGasLimit(info)
+
     const initCode = await this.getInitCode()
     console.log('initCode ', initCode)
 
@@ -154,19 +173,21 @@ export class SmartAccountAPI extends BaseAccountAPI {
     const verificationGasLimit = BigNumber.from(await this.getVerificationGasLimit())
     .add(initGas)
 
-    let {
-      maxFeePerGas,
-      maxPriorityFeePerGas
-    } = info
-    if (maxFeePerGas == null || maxPriorityFeePerGas == null) {
-      const feeData = await this.provider.getFeeData()
-      if (maxFeePerGas == null) {
-        maxFeePerGas = feeData.maxFeePerGas ?? undefined
-      }
-      if (maxPriorityFeePerGas == null) {
-        maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? undefined
-      }
-    }
+    // let {
+    //   maxFeePerGas,
+    //   maxPriorityFeePerGas
+    // } = 
+    
+    // info
+    // if (maxFeePerGas == null || maxPriorityFeePerGas == null) {
+    //   const feeData = await this.provider.getFeeData()
+    //   if (maxFeePerGas == null) {
+    //     maxFeePerGas = feeData.maxFeePerGas ?? undefined
+    //   }
+    //   if (maxPriorityFeePerGas == null) {
+    //     maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? undefined
+    //   }
+    // }
 
     let partialUserOp: any = {
       sender: await this.getAccountAddress(),
@@ -175,8 +196,8 @@ export class SmartAccountAPI extends BaseAccountAPI {
       callData,
       callGasLimit,
       verificationGasLimit,
-      maxFeePerGas,
-      maxPriorityFeePerGas
+      maxFeePerGas: BigNumber.from(0),
+      maxPriorityFeePerGas: BigNumber.from(0)
     }
 
     partialUserOp.paymasterAndData = '0x'

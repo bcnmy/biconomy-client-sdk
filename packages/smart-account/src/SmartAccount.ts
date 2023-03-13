@@ -492,9 +492,7 @@ class SmartAccount extends EventEmitter {
 
     const response = await aaSigner.sendTransaction(
       transactionDto.transaction,
-      false,
-      isDelegate,
-      this
+      false
     )
     return response
   }
@@ -502,55 +500,15 @@ class SmartAccount extends EventEmitter {
   public async sendGaslessTransactionBatch(
     transactionBatchDto: TransactionBatchDto
   ): Promise<TransactionResponse> {
-    let { version, chainId } = transactionBatchDto
+
+    let { chainId } = transactionBatchDto
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+
     const { transactions } = transactionBatchDto
 
-    // Might get optional operation for tx
-    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
-    version = version ? version : this.DEFAULT_VERSION
+    const aaSigner = this.aaProvider[chainId].getSigner()
 
-    let walletContract = this.contractUtils.attachWalletContract(chainId, this.DEFAULT_VERSION, this.address)
-
-    // NOTE : If the wallet is not deployed yet then nonce would be zero
-    let nonce = 0
-    if (await this.contractUtils.isDeployed(chainId, this.address)) {
-      nonce = (await walletContract.nonce()).toNumber()
-    }
-    console.log('nonce: ', nonce)
-
-    const txs: IMetaTransaction[] = []
-
-    for (let i = 0; i < transactions.length; i++) {
-      if (transactions[i]) {
-        const innerTx: IMetaTransaction = {
-          to: transactions[i].to,
-          value: transactions[i].value || 0,
-          operation: 0, // review
-          data: transactions[i].data || '0x' // for token transfers use encodeTransfer
-        }
-
-        txs.push(innerTx)
-      }
-    }
-
-    const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract()
-
-    const finalTx = this.transactionManager.utils.buildMultiSendTx(
-      multiSendContract,
-      txs,
-      nonce,
-      true
-    )
-    this._logMessage('final gasless batch tx ')
-    this._logMessage(finalTx)
-
-    const gaslessTx = {
-      to: finalTx.to,
-      data: finalTx.data,
-      value: finalTx.value,
-      operation: finalTx.operation
-    }
-    const response = await this.sendGaslessTransaction({ version, transaction: gaslessTx, chainId })
+    const response = await aaSigner.sendTransactionBatch(transactions,false)
     return response
   }
 
@@ -564,7 +522,7 @@ class SmartAccount extends EventEmitter {
       to: ZERO_ADDRESS,
       data: '0x'
     }
-    const response = await aaSigner.sendTransaction(transaction, true, false, this)
+    const response = await aaSigner.sendTransaction(transaction, true)
     return response
     // Todo: make sense of this response and return hash to the user
   }
