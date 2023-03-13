@@ -79,7 +79,7 @@ export class ERC4337EthersSigner extends Signer {
         target: transaction.to ? [transaction.to] :  [''],
         data: transaction.data?.toString() ? [transaction.data?.toString()]: [''],
         value: transaction.value ? [transaction.value] : [0],
-        gasLimit: transaction.gasLimit ? [transaction.gasLimit] : [0],
+        gasLimit: transaction.gasLimit ?? 0,
       })
     }
     console.log('signed userOp ', userOperation)
@@ -199,19 +199,20 @@ export class ERC4337EthersSigner extends Signer {
 
       transactions.map(await this.verifyAllNecessaryFields)
 
+      console.log('fields verified');
+      
+
       // let target = transactions.map(({ target }) => target)
      
       const target = transactions.map((element) => element.to ?? '')
       const data = transactions.map((element) => element.data ?? '')
-      const value = transactions.map((element) => element.value ?? 0)
-      const gasLimit = transactions.map((element) => element.gasLimit ?? BigNumber.from(0))
-      
+      const value = transactions.map((element) => element.value ?? BigNumber.from(0))
 
       userOperation = await this.smartAccountAPI.createSignedUserOp({
         target,
         data,
         value,
-        gasLimit
+        gasLimit: BigNumber.from(0)
       })
     }
     console.log('signed userOp ', userOperation)

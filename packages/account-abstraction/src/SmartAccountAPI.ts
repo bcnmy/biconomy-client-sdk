@@ -146,11 +146,13 @@ export class SmartAccountAPI extends BaseAccountAPI {
   }
   async encodeExecuteBatchCall(target: string[], value: BigNumberish[], data: string[]): Promise<string>{
     const walletContract = await this._getSmartAccountContract()
-    return walletContract.interface.encodeFunctionData('executeBatchCall', [
+    const encodeData = walletContract.interface.encodeFunctionData('executeBatchCall', [
       target,
       value,
       data,
     ])
+    console.log('encodeData ', encodeData);
+    return encodeData
   }
 
   /**
@@ -161,6 +163,8 @@ export class SmartAccountAPI extends BaseAccountAPI {
    */
   async createUnsignedUserOp(info: TransactionDetailsForBatchUserOp): Promise<UserOperation> {
     const { callData, callGasLimit } = await this.encodeUserOpCallDataAndGasLimit(info)
+    console.log(callData, callGasLimit);
+    
 
     const initCode = await this.getInitCode()
     console.log('initCode ', initCode)

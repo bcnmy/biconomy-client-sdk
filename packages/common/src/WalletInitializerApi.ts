@@ -17,10 +17,10 @@ export async function getInitializers(
     throw new Error("No Smart Account Found against supplied EOA");
   }
   // check wallet is deployed on not
-  let wallet = _.filter(smartAccountInfo.data, { chainId: chainId, 'isDeployed': true })
-  if (!wallet) {
+  let wallet = _.filter(smartAccountInfo.data, { 'isDeployed': true })
+  if (wallet.length == 0){
     // filtering wallet base on deployed status and latest deployed wallet on chain
-    let walletLists = _.filter(smartAccountInfo.data, { 'isDeployed': true })
+    let walletLists = _.filter(smartAccountInfo.data, { chainId: chainId })
     walletLists = _.orderBy(walletLists, ['createdAt'], 'desc')
     return walletLists[0]
   }

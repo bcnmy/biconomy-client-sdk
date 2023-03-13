@@ -61,35 +61,47 @@ class ContractUtils {
     this.multiSendCallOnlyContract[walletInfo.chainId] = {}
     this.fallbackGasTankContract[walletInfo.chainId] = {}
     const version = walletInfo.version
+    console.log('version ', version);
+    
     this.smartWalletFactoryContract[walletInfo.chainId][version] = getSmartWalletFactoryContract(
       version,
       this.ethAdapter[walletInfo.chainId],
       walletInfo.factoryAddress
     )
+    console.log('factoryAddress ',  walletInfo.factoryAddress);
+
     // NOTE/TODO : attached address is not wallet address yet
     this.smartWalletContract[walletInfo.chainId][version] = getSmartWalletContract(
       version,
       this.ethAdapter[walletInfo.chainId],
       walletInfo.smartAccountAddress
     )
+    console.log('smartAccountAddress ',  walletInfo.smartAccountAddress);
+
 
     this.multiSendContract[walletInfo.chainId][version] = getMultiSendContract(
       version,
       this.ethAdapter[walletInfo.chainId],
-      chaininfo.multiSend[Number(version)].address
+      chaininfo.multiSend[chaininfo.multiSend.length - 1].address
     )
+    // console.log('multiSend ',  chaininfo.multiSend[Number(version)].address);
+
 
     this.multiSendCallOnlyContract[walletInfo.chainId][version] = getMultiSendCallOnlyContract(
       version,
       this.ethAdapter[walletInfo.chainId],
-      chaininfo.multiSendCall[Number(version)].address
+      chaininfo.multiSendCall[chaininfo.multiSendCall.length - 1].address
     )
+    // console.log('multiSendCall ',  chaininfo.multiSendCall[chaininfo.multiSendCall.length].address);
+
 
     this.fallbackGasTankContract[walletInfo.chainId][Number(version)] = getFallbackGasTankContract(
       version,
       this.ethAdapter[walletInfo.chainId],
       chaininfo.fallBackGasTankAddress
     )
+    console.log('fallBackGasTankAddress ',  chaininfo.fallBackGasTankAddress);
+
     }
 
   // initializeContracts(

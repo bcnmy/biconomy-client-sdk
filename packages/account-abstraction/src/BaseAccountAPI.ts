@@ -10,7 +10,7 @@ import {
   SmartWalletFactoryV100,
   SmartWalletContractV100
 } from '@biconomy/ethers-lib'
-import { TransactionDetailsForUserOp, TransactionDetailsForBatchUserOp } from './TransactionDetailsForUserOp'
+import { TransactionDetailsForBatchUserOp } from './TransactionDetailsForUserOp'
 import { resolveProperties } from 'ethers/lib/utils'
 import { IPaymasterAPI } from '@biconomy/core-types' // only use interface
 import { getUserOpHash, NotPromise, packUserOp } from '@biconomy/common'
@@ -166,7 +166,7 @@ export abstract class BaseAccountAPI {
     }
     const senderAddressCode = await this.provider.getCode(this.getAccountAddress())
     if (senderAddressCode.length > 2) {
-      console.log(`SimpleWallet Contract already deployed at ${this.senderAddress}`)
+      console.log(`Smart account Contract already deployed at ${this.senderAddress}`)
       this.isDeployed = true
     } else {
     }
@@ -239,10 +239,10 @@ export abstract class BaseAccountAPI {
       }
     }
 
-    const value = parseNumber(detailsForUserOp.value) ?? BigNumber.from(0)
     let callData
     if ( detailsForUserOp.target.length == 1 )
     {
+      const value = parseNumber(detailsForUserOp.value) ?? BigNumber.from(0)
       callData = await this.encodeExecuteCall(
         detailsForUserOp.target[0],
         value,
@@ -250,22 +250,19 @@ export abstract class BaseAccountAPI {
       )
     }
     else{
-      let values = []
-
-      for (let index = 0; index < detailsForUserOp.target.length; index++) {
-        values.push(BigNumber.from(0))
-      }
       callData = await this.encodeExecuteBatchCall(
         detailsForUserOp.target,
-        values,
+        detailsForUserOp.value,
         detailsForUserOp.data,
       )
     }
 
     let callGasLimit = BigNumber.from(0)
 
-    if (!detailsForUserOp.gasLimit)
+    console.log('detailsForUserOp.gasLimit ', detailsForUserOp.gasLimit);
+    if (detailsForUserOp.gasLimit)
       {
+        console.log('GasLimit is not defined');
         callGasLimit = (await this.provider.estimateGas({
           from: this.entryPoint.address,
           to: this.getAccountAddress(),

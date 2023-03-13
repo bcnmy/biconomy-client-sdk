@@ -1004,24 +1004,26 @@ class SmartAccount extends EventEmitter {
 
     // check wallet is deployed on not
 
-    let wallet = _.filter(smartAccountInfo.data, {chainId: chainId, 'isDeployed': true})
-    if (!wallet){
+    let wallet = _.filter(smartAccountInfo.data, {'isDeployed': true})
+    if (wallet.length == 0){
     // filtering wallet base on deployed status and latest deployed wallet on chain
-    let walletLists = _.filter(smartAccountInfo.data, {'isDeployed': true})
+    let walletLists = _.filter(smartAccountInfo.data, {chainId: chainId})
     walletLists = _.orderBy(walletLists, ['createdAt'], 'desc')
     walletInfo = walletLists[0]
+    }else{
+      walletInfo = wallet[0]
     }
-    this.address = wallet[0].smartAccountAddress
-    walletInfo = wallet[0]
+    this.address = walletInfo.smartAccountAddress
 
     const smartAccountState = {
-      chainId: walletInfo.chainId,
+      chainId: chainId,
       version: walletInfo.version,
       address: walletInfo.smartAccountAddress,
       owner: this.owner,
       isDeployed: walletInfo.isDeployed, // could be set as state in init
       entryPointAddress: walletInfo.entryPointAddress,
-      fallbackHandlerAddress: walletInfo.handlerAddress
+      fallbackHandlerAddress: walletInfo.handlerAddress,
+      factoryAddress: walletInfo.factoryAddress
     }
     this.contractUtils.setSmartAccountState(smartAccountState)
 
