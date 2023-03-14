@@ -58,6 +58,7 @@ export type SmartAccountState = {
   owner: string // multichain (EVM)
   isDeployed: boolean // chain specific
   entryPointAddress: string // chain specific?
+  implementationAddress: string
   fallbackHandlerAddress: string // chain specific?
 }
 

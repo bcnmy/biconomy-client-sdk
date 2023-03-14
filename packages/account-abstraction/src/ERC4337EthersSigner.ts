@@ -79,7 +79,7 @@ export class ERC4337EthersSigner extends Signer {
         target: transaction.to ? [transaction.to] :  [''],
         data: transaction.data?.toString() ? [transaction.data?.toString()]: [''],
         value: transaction.value ? [transaction.value] : [0],
-        gasLimit: transaction.gasLimit ?? 0,
+        gasLimit: transaction.gasLimit ? transaction.gasLimit : BigNumber.from(0),
       })
     }
     console.log('signed userOp ', userOperation)
@@ -212,7 +212,7 @@ export class ERC4337EthersSigner extends Signer {
         target,
         data,
         value,
-        gasLimit: BigNumber.from(0)
+        gasLimit: BigNumber.from(0),
       })
     }
     console.log('signed userOp ', userOperation)

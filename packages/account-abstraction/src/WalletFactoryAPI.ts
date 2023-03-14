@@ -1,5 +1,5 @@
 import { Contract } from 'ethers'
-import { getInitializers } from '@biconomy/common'
+import { getWalletInfo } from '@biconomy/common'
 import { ChainId } from '@biconomy/core-types'
 // review // rename to SmartAccountFactoryAPI
 export class WalletFactoryAPI {
@@ -12,9 +12,8 @@ export class WalletFactoryAPI {
     implementationAddress: string,
     index: number
   ): Promise<string> {
-    const walletInfo = await getInitializers({
+    const walletInfo = await getWalletInfo({
       chainId,
-      version: '1.0.0',
       owner,
       txServiceUrl,
       index

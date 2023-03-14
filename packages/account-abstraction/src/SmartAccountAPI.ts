@@ -200,8 +200,8 @@ export class SmartAccountAPI extends BaseAccountAPI {
       callData,
       callGasLimit,
       verificationGasLimit,
-      maxFeePerGas: BigNumber.from(0),
-      maxPriorityFeePerGas: BigNumber.from(0)
+      maxFeePerGas,
+      maxPriorityFeePerGas
     }
 
     partialUserOp.paymasterAndData = '0x'

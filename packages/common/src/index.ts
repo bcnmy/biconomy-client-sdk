@@ -1,4 +1,5 @@
 export * from './Version'
 export * from './ERC4337Utils'
 export * from './Logger'
-export * from './WalletInitializerApi'
+export * from './WalletFactoryApi'
+export * from './EnodeSmartAccountUtils'

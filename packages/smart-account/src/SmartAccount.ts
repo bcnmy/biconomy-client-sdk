@@ -64,9 +64,11 @@ import {
   ERC4337EthersSigner,
   BaseAccountAPI
 } from '@biconomy/account-abstraction'
-import { deployCounterFactualEncodedData } from '@biconomy/common'
+import { deployCounterFactualEncodedData, getWalletInfo } from '@biconomy/common'
+import { updateImplementationEncodedData } from '@biconomy/common'
 
 import { BigNumber, ethers, Signer } from 'ethers'
+import { Transaction } from '@biconomy/core-types'
 
 let isLogsEnabled = false
 
@@ -256,26 +258,6 @@ class SmartAccount extends EventEmitter {
       const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
       this.contractUtils.initializeContracts(this.signer, readProvider, walletInfo, network)
 
-      // if (!this.smartAccountState) {
-      //   this.smartAccountState = {
-      //     chainId: network.chainId,
-      //     version: walletInfo.version,
-      //     address: this.address,
-      //     owner: this.owner,
-      //     isDeployed: await this.contractUtils.isDeployed(
-      //       network.chainId,
-      //       this.address
-      //     ), // could be set as state in init
-      //     entryPointAddress: walletInfo.entryPointAddress,
-      //     fallbackHandlerAddress: walletInfo.handlerAddress
-      //   }
-      // } 
-      // else if (this.DEFAULT_VERSION !== this.smartAccountState.version) {
-      //   this.smartAccountState = await this.contractUtils.getSmartAccountState(
-      //     this.smartAccountState
-      //   )
-      // }
-
       const clientConfig = await this.getNetworkConfigValues(network.chainId)
 
       this.signingService = new FallbackGasTankAPI(
@@ -399,7 +381,7 @@ class SmartAccount extends EventEmitter {
       throw new Error('No Network Found for given chainid')
 
       const { multiSendCall, walletFactory, baseWallet } = this.getSmartAccountContext(chainId)
-      const deployWalletencodedData = await deployCounterFactualEncodedData({
+      const deployWalletEncodedData = await deployCounterFactualEncodedData({
         chainId: (await this.provider.getNetwork()).chainId,
         owner: await this.owner,
         txServiceUrl: this.#smartAccountConfig.backendUrl,
@@ -409,7 +391,7 @@ class SmartAccount extends EventEmitter {
         {
           to: walletFactory.getAddress(),
           value: 0,
-          data: deployWalletencodedData,
+          data: deployWalletEncodedData,
           operation: 0
         },
         {
@@ -461,6 +443,23 @@ class SmartAccount extends EventEmitter {
     return relayResponse
   }
 
+  async updateImplementationTrx(chainId: ChainId): Promise<Transaction>{
+    const isWalletDeployed = await this.isDeployed(chainId)
+    if ( isWalletDeployed ){
+      const chainInfo = this.chainConfig.find((element: ChainConfig) => element.chainId === chainId)
+      if ( !chainInfo ){
+        throw new Error('No ChainInfo Found')
+      }
+      const latestImpAddress = chainInfo.wallet[chainInfo.wallet.length - 1].address
+      const walletsImpAddress = await this.contractUtils.getSmartAccountState().implementationAddress
+      if ( latestImpAddress !== walletsImpAddress ){
+        const updateImplementationCallData = await updateImplementationEncodedData(latestImpAddress)
+        return {to: latestImpAddress, value: BigNumber.from(0), data: updateImplementationCallData}
+      }
+    }
+    return {to:'0x', value:0, data: '0x'}
+  }
+
   public async sendGaslessTransaction(
     transactionDto: TransactionDto
   ): Promise<TransactionResponse> {
@@ -485,12 +484,15 @@ class SmartAccount extends EventEmitter {
     const aaSigner = this.aaProvider[chainId].getSigner()
 
     await this.initializeContractsAtChain(chainId)
-    const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract()
 
-    const isDelegate = transactionDto.transaction.to === multiSendContract.address ? true : false
-
-
-    const response = await aaSigner.sendTransaction(
+    const batchTrx = []
+    const updateImplTrx = await this.updateImplementationTrx(chainId)
+    let response
+    if ( updateImplTrx.to != '0x' ){
+      batchTrx.push(updateImplTrx, transactionDto.transaction)
+      response = this.sendGaslessTransactionBatch({transactions: batchTrx})
+    }else
+    response = await aaSigner.sendTransaction(
       transactionDto.transaction,
       false
     )
@@ -504,11 +506,16 @@ class SmartAccount extends EventEmitter {
     let { chainId } = transactionBatchDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
 
-    const { transactions } = transactionBatchDto
+    let { transactions } = transactionBatchDto
 
     const aaSigner = this.aaProvider[chainId].getSigner()
 
-    const response = await aaSigner.sendTransactionBatch(transactions,false)
+    const updateImplTrx = await this.updateImplementationTrx(chainId)
+    let response
+    if ( updateImplTrx.to != '0x' ){
+      transactions.unshift(updateImplTrx)
+    }
+    response = await aaSigner.sendTransactionBatch(transactions,false)
     return response
   }
 
@@ -990,29 +997,15 @@ class SmartAccount extends EventEmitter {
     addressForCounterFactualWalletDto: AddressForCounterFactualWalletDto
   ): Promise<ISmartAccount> {
     
-    const { index, chainId, version } = addressForCounterFactualWalletDto
+    const { index, chainId } = addressForCounterFactualWalletDto
 
-    const smartAccountInfo = await this.getSmartAccountsByOwner({
+    const walletInfo = await getWalletInfo({
+      chainId,
       owner: this.owner,
-      chainId
+      txServiceUrl: this.#smartAccountConfig.backendUrl,
+      index
     })
-    if (!smartAccountInfo.data || smartAccountInfo.data.length == 0){
-      throw new Error("No Smart Account Found against supplied EOA");      
-    }
 
-    let walletInfo: ISmartAccount
-
-    // check wallet is deployed on not
-
-    let wallet = _.filter(smartAccountInfo.data, {'isDeployed': true})
-    if (wallet.length == 0){
-    // filtering wallet base on deployed status and latest deployed wallet on chain
-    let walletLists = _.filter(smartAccountInfo.data, {chainId: chainId})
-    walletLists = _.orderBy(walletLists, ['createdAt'], 'desc')
-    walletInfo = walletLists[0]
-    }else{
-      walletInfo = wallet[0]
-    }
     this.address = walletInfo.smartAccountAddress
 
     const smartAccountState = {
@@ -1022,6 +1015,7 @@ class SmartAccount extends EventEmitter {
       owner: this.owner,
       isDeployed: walletInfo.isDeployed, // could be set as state in init
       entryPointAddress: walletInfo.entryPointAddress,
+      implementationAddress: walletInfo.implementationAddress,
       fallbackHandlerAddress: walletInfo.handlerAddress,
       factoryAddress: walletInfo.factoryAddress
     }

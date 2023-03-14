@@ -4,7 +4,7 @@ import { Contract } from 'ethers'
 
 import * as _ from 'lodash'
 
-export async function getInitializers(
+export async function getWalletInfo(
   initializerDto: InitializerDto
 ): Promise<ISmartAccount> {
   const { chainId, owner, txServiceUrl } = initializerDto
@@ -30,7 +30,7 @@ export async function getInitializers(
 export async function deployCounterFactualEncodedData(initializerDto: InitializerDto) {
   let { index } = initializerDto
   index = index ? index : 0
-  const walletInfo = await getInitializers(initializerDto)
+  const walletInfo = await getWalletInfo(initializerDto)
   // these would be deployCounterfactualWallet
   const factory = new Contract(walletInfo.factoryAddress, [
     'function deployCounterFactualWallet(address _owner, uint256 _index) returns(address)'
@@ -39,25 +39,5 @@ export async function deployCounterFactualEncodedData(initializerDto: Initialize
     walletInfo.owner,
     index
   ])
-  return encodedData
-}
-
-export async function updateImplementationEncodedData(implementationAddress: string) {
-  const implementation = new Contract(implementationAddress, [
-    'function updateImplementation(address _implementation)'
-  ])
-  const encodedData = implementation.interface.encodeFunctionData("updateImplementation", [
-    implementationAddress
-  ]);
-  return encodedData
-}
-
-export async function fallbackHandlerEncodedData(implementationAddress: string, handler: string) {
-  const implementation = new Contract(implementationAddress, [
-    'function setFallbackHandler(address handler)'
-  ])
-  const encodedData = implementation.interface.encodeFunctionData("setFallbackHandler", [
-    handler
-  ]);
   return encodedData
 }
