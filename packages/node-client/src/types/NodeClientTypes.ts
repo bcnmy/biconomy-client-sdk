@@ -190,7 +190,8 @@ export type ISmartAccount = {
   handlerAddress: string,
   index: number,
   implementationAddress: string,
-  owner: string
+  fallBackHandlerAddress: string,
+  owner: string,
   factoryAddress: string
 }
 

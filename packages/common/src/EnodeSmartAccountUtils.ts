@@ -1,21 +1,17 @@
-import { Contract } from 'ethers'
+import { ethers } from 'ethers'
 
-export async function updateImplementationEncodedData(implementationAddress: string) {
-    const implementation = new Contract(implementationAddress, [
-      'function updateImplementation(address _implementation)'
-    ])
-    const encodedData = implementation.interface.encodeFunctionData("updateImplementation", [
-      implementationAddress
-    ]);
-    return encodedData
-  }
-  
-  export async function fallbackHandlerEncodedData(implementationAddress: string, handler: string) {
-    const implementation = new Contract(implementationAddress, [
-      'function setFallbackHandler(address handler)'
-    ])
-    const encodedData = implementation.interface.encodeFunctionData("setFallbackHandler", [
-      handler
-    ]);
-    return encodedData
-  }
+export async function updateImplementationEncodedData(newimplementationAddress: string) {
+  const impInterface = new ethers.utils.Interface('function updateImplementation(address _implementation)');
+  const encodedData = impInterface.encodeFunctionData("updateImplementation", [
+    newimplementationAddress
+  ]);
+  return encodedData
+}
+
+export async function fallbackHandlerEncodedData(newhandler: string) {
+  const impInterface = new ethers.utils.Interface('function setFallbackHandler(address handler)');
+  const encodedData = impInterface.encodeFunctionData("setFallbackHandler", [
+    newhandler
+  ]);
+  return encodedData
+}

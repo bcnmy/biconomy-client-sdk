@@ -16,7 +16,7 @@ export interface TransactionDetailsForBatchUserOp {
   target: string[]
   data: BytesLike[]
   value: BigNumberish[]
-  gasLimit: BigNumberish
+  gasLimit?: BigNumberish
   maxFeePerGas?: BigNumberish
   maxPriorityFeePerGas?: BigNumberish
 }

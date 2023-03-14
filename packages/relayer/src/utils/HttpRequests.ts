@@ -31,6 +31,8 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
   } catch (error) {
     console.log('error ', error)
     if (!response.ok) {
+      console.log(JSON.stringify(response));
+      
       throw new Error(response.statusText)
     }
   }

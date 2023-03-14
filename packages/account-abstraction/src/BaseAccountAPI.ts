@@ -232,17 +232,16 @@ export abstract class BaseAccountAPI {
       return BigNumber.from(a.toString())
     }
 
-    if (detailsForUserOp && detailsForUserOp.target[0] === '' && detailsForUserOp.data[0] === '') {
-      return {
-        callData: '0x',
-        callGasLimit: BigNumber.from('21000')
-      }
-    }
-
     let callData
     if ( detailsForUserOp.target.length == 1 )
     {
-      const value = parseNumber(detailsForUserOp.value) ?? BigNumber.from(0)
+      if (detailsForUserOp && detailsForUserOp.target[0] === '' && detailsForUserOp.data[0] === '') {
+        return {
+          callData: '0x',
+          callGasLimit: BigNumber.from('21000')
+        }
+      }
+      const value = parseNumber(detailsForUserOp.value[0]) ?? BigNumber.from(0)
       callData = await this.encodeExecuteCall(
         detailsForUserOp.target[0],
         value,
@@ -260,8 +259,7 @@ export abstract class BaseAccountAPI {
     let callGasLimit = BigNumber.from(0)
 
     console.log('detailsForUserOp.gasLimit ', detailsForUserOp.gasLimit);
-    if (detailsForUserOp.gasLimit)
-      {
+    if (!detailsForUserOp.gasLimit){
         console.log('GasLimit is not defined');
         callGasLimit = (await this.provider.estimateGas({
           from: this.entryPoint.address,
@@ -270,7 +268,7 @@ export abstract class BaseAccountAPI {
         }))
         // if wallet is not deployed we need to multiply estimated limit to 3 times to get accurate callGasLimit
         if (!this.isDeployed)
-        callGasLimit = callGasLimit.mul(3)
+        callGasLimit = BigNumber.from('2000000')
       }else{
         callGasLimit = BigNumber.from(detailsForUserOp.gasLimit)
       }

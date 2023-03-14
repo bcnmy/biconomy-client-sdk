@@ -2,7 +2,7 @@ import { Deferrable, defineReadOnly } from '@ethersproject/properties'
 import { Provider, TransactionRequest, TransactionResponse } from '@ethersproject/providers'
 import { Signer } from '@ethersproject/abstract-signer'
 import { EntryPointFactoryContractV100 } from '@biconomy/ethers-lib'
-
+import { ethers } from 'ethers'
 import { BigNumber, Bytes } from 'ethers'
 import { ERC4337EthersProvider } from './ERC4337EthersProvider'
 import { ClientConfig } from './ClientConfig'
@@ -73,13 +73,13 @@ export class ERC4337EthersSigner extends Signer {
       // Removing populate transaction all together
       // const tx: TransactionRequest = await this.populateTransaction(transaction)
 
-      await this.verifyAllNecessaryFields(transaction)
+      this.verifyAllNecessaryFields(transaction)
 
       userOperation = await this.smartAccountAPI.createSignedUserOp({
-        target: transaction.to ? [transaction.to] :  [''],
-        data: transaction.data?.toString() ? [transaction.data?.toString()]: [''],
+        target: transaction.to ? [transaction.to] :  [ethers.constants.AddressZero],
+        data: transaction.data?.toString() ? [transaction.data?.toString()]: ['0x'],
         value: transaction.value ? [transaction.value] : [0],
-        gasLimit: transaction.gasLimit ? transaction.gasLimit : BigNumber.from(0),
+        gasLimit: transaction.gasLimit
       })
     }
     console.log('signed userOp ', userOperation)
@@ -165,7 +165,6 @@ export class ERC4337EthersSigner extends Signer {
 
   async sendTransactionBatch(
     transactions: TransactionRequest[],
-    walletDeployOnly = false,
     engine?: any // EventEmitter
   ): Promise<TransactionResponse> {
 
@@ -186,35 +185,25 @@ export class ERC4337EthersSigner extends Signer {
     console.log('received transaction ', transactions)
    
     let userOperation: UserOperation
-    if (walletDeployOnly === true) {
-      userOperation = await this.smartAccountAPI.createSignedUserOp({
-        target: [''],
-        data: [''],
-        value: [0],
-        gasLimit: [21000]
-      })
-    } else {
       // Removing populate transaction all together
       // const tx: TransactionRequest = await this.populateTransaction(transaction)
 
-      transactions.map(await this.verifyAllNecessaryFields)
+      transactions.map(this.verifyAllNecessaryFields)
 
       console.log('fields verified');
       
 
       // let target = transactions.map(({ target }) => target)
      
-      const target = transactions.map((element) => element.to ?? '')
-      const data = transactions.map((element) => element.data ?? '')
+      const target = transactions.map((element) => element.to ?? ethers.constants.AddressZero)
+      const data = transactions.map((element) => element.data ?? '0x')
       const value = transactions.map((element) => element.value ?? BigNumber.from(0))
 
       userOperation = await this.smartAccountAPI.createSignedUserOp({
         target,
         data,
         value,
-        gasLimit: BigNumber.from(0),
       })
-    }
     console.log('signed userOp ', userOperation)
 
     let bundlerServiceResponse: any
@@ -317,7 +306,7 @@ export class ERC4337EthersSigner extends Signer {
     return errorIn
   }
 
-  async verifyAllNecessaryFields (transactionRequest: TransactionRequest): Promise<void> {
+  verifyAllNecessaryFields (transactionRequest: TransactionRequest): void {
     if (transactionRequest.to == null) {
       throw new Error('Missing call target')
     }

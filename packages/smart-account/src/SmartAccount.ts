@@ -65,7 +65,7 @@ import {
   BaseAccountAPI
 } from '@biconomy/account-abstraction'
 import { deployCounterFactualEncodedData, getWalletInfo } from '@biconomy/common'
-import { updateImplementationEncodedData } from '@biconomy/common'
+import { updateImplementationEncodedData, fallbackHandlerEncodedData } from '@biconomy/common'
 
 import { BigNumber, ethers, Signer } from 'ethers'
 import { Transaction } from '@biconomy/core-types'
@@ -443,6 +443,12 @@ class SmartAccount extends EventEmitter {
     return relayResponse
   }
 
+  /**
+   * @description this function will make complete transaction data for updateImplementationTrx
+   * @param chainId 
+   * @returns 
+   */
+
   async updateImplementationTrx(chainId: ChainId): Promise<Transaction>{
     const isWalletDeployed = await this.isDeployed(chainId)
     if ( isWalletDeployed ){
@@ -454,14 +460,72 @@ class SmartAccount extends EventEmitter {
       const walletsImpAddress = await this.contractUtils.getSmartAccountState().implementationAddress
       if ( latestImpAddress !== walletsImpAddress ){
         const updateImplementationCallData = await updateImplementationEncodedData(latestImpAddress)
-        return {to: latestImpAddress, value: BigNumber.from(0), data: updateImplementationCallData}
+        return {to: this.address, value: BigNumber.from(0), data: updateImplementationCallData}
       }
     }
-    return {to:'0x', value:0, data: '0x'}
+    return {to:this.address, value:0, data: '0x'}
+  }
+
+  /**
+   * @description this function will make complete transaction data for updateFallBackHandlerTrx
+   * @param chainId 
+   * @returns 
+   */
+  async updateFallBackHandlerTrx(chainId: ChainId): Promise<Transaction>{
+    const isWalletDeployed = await this.isDeployed(chainId)
+    if ( isWalletDeployed ){
+      const chainInfo = this.chainConfig.find((element: ChainConfig) => element.chainId === chainId)
+      if ( !chainInfo ){
+        throw new Error('No ChainInfo Found')
+      }
+      const latestfallBackHandlerAddress = chainInfo.fallBackHandler[chainInfo.fallBackHandler.length - 1].address
+      const walletInfo = await this.contractUtils.getSmartAccountState()
+      const implementationAddress = walletInfo.implementationAddress
+      const fallBackHandlerAddress = walletInfo.fallbackHandlerAddress
+
+      if ( latestfallBackHandlerAddress !== fallBackHandlerAddress ){
+        const fallbackHandlerCallData = await fallbackHandlerEncodedData(latestfallBackHandlerAddress)
+        return {to: this.address, value: BigNumber.from(0), data: fallbackHandlerCallData}
+      }
+    }
+    return {to:this.address, value:0, data: '0x'}
+  }
+
+  /**
+   * @description this function will let dapp to update Base wallet Implemenation to Latest
+   * @returns 
+   */
+  public async updateFallbackHandler(): Promise<TransactionResponse> {
+    const chainId = this.#smartAccountConfig.activeNetworkId
+    const fallbackHandlerTrx = await this.updateFallBackHandlerTrx(this.#smartAccountConfig.activeNetworkId)
+    await this.initializeContractsAtChain(chainId)
+    const aaSigner = this.aaProvider[chainId].getSigner()
+    const response = await aaSigner.sendTransaction(
+      fallbackHandlerTrx,
+      false
+    )
+    return response
+  }
+
+  /**
+   * @description this function will let dapp to update FallBackHandler to Latest
+   * @returns 
+   */
+  public async updateImplementation():Promise<TransactionResponse> {
+    const chainId = this.#smartAccountConfig.activeNetworkId
+    const updateImplTrx = await this.updateImplementationTrx(this.#smartAccountConfig.activeNetworkId)
+    await this.initializeContractsAtChain(chainId)
+    const aaSigner = this.aaProvider[chainId].getSigner()
+    const response = await aaSigner.sendTransaction(
+      updateImplTrx,
+      false
+    )
+    return response
   }
 
   public async sendGaslessTransaction(
-    transactionDto: TransactionDto
+    transactionDto: TransactionDto,
+    // isUpdateImpTrx?: Boolean
   ): Promise<TransactionResponse> {
 
     let isFallbackEnabled = false
@@ -488,14 +552,27 @@ class SmartAccount extends EventEmitter {
     const batchTrx = []
     const updateImplTrx = await this.updateImplementationTrx(chainId)
     let response
-    if ( updateImplTrx.to != '0x' ){
+    
+
+    // this case will run when user is making any normal trx and we have detected that the wallet is
+    // not pointing to latest implementation so will merge user's trx with update Implementation Trx and 
+    // Batch both trx
+    //     if ( updateImplTrx.data != '0x' && !isUpdateImpTrx){
+
+    if ( updateImplTrx.data != '0x' ){
       batchTrx.push(updateImplTrx, transactionDto.transaction)
       response = this.sendGaslessTransactionBatch({transactions: batchTrx})
     }else
-    response = await aaSigner.sendTransaction(
-      transactionDto.transaction,
-      false
-    )
+    {
+      // this case { if ( isUpdateImpTrx ) } will work only when user specifically wanted to just update Base wallet Implementation
+      // if ( isUpdateImpTrx )
+      // transactionDto.transaction = updateImplTrx
+      
+      response = await aaSigner.sendTransaction(
+        transactionDto.transaction,
+        false
+      )
+    }
     return response
   }
 
@@ -512,7 +589,8 @@ class SmartAccount extends EventEmitter {
 
     const updateImplTrx = await this.updateImplementationTrx(chainId)
     let response
-    if ( updateImplTrx.to != '0x' ){
+    // whatever batch trx user make. will ensure to update Base wallet implementation if needed
+    if ( updateImplTrx.data != '0x' ){
       transactions.unshift(updateImplTrx)
     }
     response = await aaSigner.sendTransactionBatch(transactions,false)
@@ -1016,7 +1094,7 @@ class SmartAccount extends EventEmitter {
       isDeployed: walletInfo.isDeployed, // could be set as state in init
       entryPointAddress: walletInfo.entryPointAddress,
       implementationAddress: walletInfo.implementationAddress,
-      fallbackHandlerAddress: walletInfo.handlerAddress,
+      fallbackHandlerAddress: walletInfo.fallBackHandlerAddress,
       factoryAddress: walletInfo.factoryAddress
     }
     this.contractUtils.setSmartAccountState(smartAccountState)
