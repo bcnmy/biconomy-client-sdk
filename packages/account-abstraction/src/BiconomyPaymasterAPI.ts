@@ -24,13 +24,13 @@ export class BiconomyPaymasterAPI implements IPaymasterAPI {
       userOp.verificationGasLimit = Number(userOp.verificationGasLimit)
       userOp.maxFeePerGas = Number(userOp.maxFeePerGas)
       userOp.maxPriorityFeePerGas = Number(userOp.maxPriorityFeePerGas)
-      userOp.preVerificationGas = 21000
+      userOp.preVerificationGas = Number(userOp.preVerificationGas)
       userOp.signature = '0x'
       userOp.paymasterAndData = '0x'
 
       // move dappAPIKey in headers
       const result: any = await sendRequest({
-        url: `${this.signingServiceUrl}`,
+        url: `${this.signingServiceUrl}/user-op`,
         method: HttpMethod.Post,
         headers: { 'x-api-key': this.dappAPIKey },
         body: { userOp: userOp }
@@ -39,17 +39,15 @@ export class BiconomyPaymasterAPI implements IPaymasterAPI {
       console.log('******** ||||| *********')
       console.log('verifying and signing service response', result)
 
-      if (result && result.data && result.code === 200) {
+      if (result && result.data && result.statusCode === 200) {
         return result.data.paymasterAndData
       } else {
-        console.log('error in verifying. sending paymasterAndData 0x')
-        console.log(result.error)
+        console.error(result.error)
+        throw new Error('Error in verifying. sending paymasterAndData 0x')
       }
     } catch (err) {
-      console.log('error in signing service response')
       console.error(err)
-      return '0x'
+      throw new Error('Error in verifying. sending paymasterAndData 0x')
     }
-    return '0x'
   }
 }

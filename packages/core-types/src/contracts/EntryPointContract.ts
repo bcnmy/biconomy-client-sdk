@@ -8,8 +8,6 @@ export interface EntryPointContract {
   getContract(): Contract
   handleOps(userOperations: UserOperation[], beneficiary: string): Promise<ITransactionResult>
   simulateValidation(
-    userOperation: UserOperation,
-    offChainSigCheck: boolean
+    userOperation: UserOperation
   ): Promise<ITransactionResult>
-  getRequestId(userOperation: UserOperation): Promise<string>
 }

@@ -1,4 +1,4 @@
-export type SmartAccountVersion = '1.0.1' | '1.0.0'
+export type SmartAccountVersion = '1.0.1' | '1.0.0' | '1.0.2'
 
 export enum OperationType {
   Call, // 0
@@ -33,6 +33,20 @@ export type UserOperation = {
   signature: string
 }
 
+export type FallbackUserOperation = {
+  sender: string
+  target: string
+  nonce: number
+  callData: string
+  callGasLimit: number
+  dappIdentifier: string
+  signature: string
+}
+export type FallbackApiResponse = {
+  dappIdentifier: string
+  signature: string
+}
+
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 // Review
@@ -47,6 +61,12 @@ export const FAKE_SIGNATURE =
 export type RestRelayerOptions = {
   url: string
   socketServerUrl: string
+}
+
+export type FallbackRelayerOptions = {
+  url: string
+  relayerServiceUrl: string
+  dappAPIKey: string
 }
 
 export type TokenData = {

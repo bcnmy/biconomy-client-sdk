@@ -17,7 +17,8 @@ import {
   UsdBalanceResponse,
   EstimateGasResponse,
   SCWTransactionResponse,
-  WhiteListSignatureResponse
+  WhiteListSignatureResponse,
+  IsFallbackEnabledResponse
 } from './types/NodeClientTypes'
 
 interface INodeClient {
@@ -114,6 +115,12 @@ interface INodeClient {
    * Purpose: Returns the signature used in init
    */
   whitelistUrl(origin: string): Promise<WhiteListSignatureResponse>
+
+  /**
+   * About: Is fallback enabled in backend
+   * Purpose: Returns a boolean value
+   */
+  isFallbackEnabled(): Promise<IsFallbackEnabledResponse>
 
   /**
    * About : Estimating the gas for inner transaction for undeployed wallet

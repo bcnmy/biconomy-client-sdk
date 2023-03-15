@@ -49,8 +49,6 @@ export type EstimateSmartAccountDeploymentDto = {
   chainId: ChainId
   version: string
   owner: string
-  entryPointAddress: string
-  fallbackHandlerAddress: string
 }
 
 export type SmartAccountState = {
@@ -60,6 +58,7 @@ export type SmartAccountState = {
   owner: string // multichain (EVM)
   isDeployed: boolean // chain specific
   entryPointAddress: string // chain specific?
+  implementationAddress: string
   fallbackHandlerAddress: string // chain specific?
 }
 
@@ -68,6 +67,14 @@ export type AddressForCounterFactualWalletDto = {
   index: number
   chainId: ChainId
   version: string
+}
+
+export type InitializerDto = {
+  index?: number
+  chainId: ChainId
+  version?: string
+  owner: string
+  txServiceUrl: string
 }
 
 export type SignTransactionDto = {

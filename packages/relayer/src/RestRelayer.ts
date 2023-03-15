@@ -51,19 +51,23 @@ export class RestRelayer implements IRelayer {
     // context: WalletContext
   ): { to: string; data: string } {
     const { config, context, index = 0 } = deployWallet
+
     const { walletFactory } = context
-    const { owner, entryPointAddress, fallbackHandlerAddress } = config
+    const { owner } = config
     const factoryInterface = walletFactory.getInterface()
 
     return {
       to: walletFactory.getAddress(), // from context
       data: factoryInterface.encodeFunctionData(
         factoryInterface.getFunction('deployCounterFactualWallet'),
-        [owner, entryPointAddress, fallbackHandlerAddress, index]
+        [ owner,
+          index]
       )
     }
   }
 
+  // todo: modify this dto to accept a flag isFallbackEnabled
+  // if the wallet is deployed baseGas would be coming as part of struct in rawtx
   async relay(relayTransaction: RelayTransaction, engine: EventEmitter): Promise<RelayResponse> {
     const socketServerUrl = this.#socketServerUrl
 
@@ -123,21 +127,7 @@ export class RestRelayer implements IRelayer {
     console.log('finaRawTx')
     console.log(finalRawRx)
 
-    // reason : can not capture repsonse from jsonRpcProvider.send()
-    /*const response: any = await this.relayerNodeEthersProvider[chainId].send(
-      'eth_sendSmartContractWalletTransaction',
-      [
-        {
-          ...finalRawRx,
-          gasLimit: (gasLimit as GasLimit).hex,
-          refundInfo: {
-            tokenGasPrice: signedTx.tx.gasPrice,
-            gasToken: signedTx.tx.gasToken
-          }
-        }
-      ]
-    )*/
-
+    // based on the flag make rpc call to relayer code service with necessary rawTx data
     const response: any = await sendRequest({
       url: `${this.#relayServiceBaseUrl}`,
       method: HttpMethod.Post,

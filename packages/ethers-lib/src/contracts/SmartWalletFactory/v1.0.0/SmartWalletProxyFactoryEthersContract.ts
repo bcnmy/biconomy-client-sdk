@@ -15,11 +15,6 @@ class SmartWalletFactoryContractEthers implements SmartWalletFactoryContract {
     return this.contract
   }
 
-  async isWalletExist(wallet: string): Promise<boolean> {
-    const doesExist = await this.contract.isWalletExist(wallet)
-    return doesExist
-  }
-
   getAddress(): string {
     return this.contract.address
   }
@@ -30,14 +25,10 @@ class SmartWalletFactoryContractEthers implements SmartWalletFactoryContract {
 
   async deployCounterFactualWallet(
     owner: string,
-    entryPoint: string,
-    handler: string,
     index: number
   ): Promise<ITransactionResult> {
     const resultSet = await this.contract.deployCounterFactualWallet(
       owner,
-      entryPoint,
-      handler,
       index
     )
     return toTxResult(resultSet)
@@ -45,10 +36,8 @@ class SmartWalletFactoryContractEthers implements SmartWalletFactoryContract {
 
   async deployWallet(
     owner: string,
-    entryPoint: string,
-    handler: string
   ): Promise<ITransactionResult> {
-    const resultSet = await this.contract.deployWallet(owner, entryPoint, handler)
+    const resultSet = await this.contract.deployWallet(owner)
     return toTxResult(resultSet)
   }
 

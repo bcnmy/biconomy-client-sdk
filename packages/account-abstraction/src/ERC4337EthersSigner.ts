@@ -1,13 +1,14 @@
 import { Deferrable, defineReadOnly } from '@ethersproject/properties'
 import { Provider, TransactionRequest, TransactionResponse } from '@ethersproject/providers'
 import { Signer } from '@ethersproject/abstract-signer'
-
-import { Bytes } from 'ethers'
+import { EntryPointFactoryContractV100 } from '@biconomy/ethers-lib'
+import { ethers } from 'ethers'
+import { BigNumber, Bytes } from 'ethers'
 import { ERC4337EthersProvider } from './ERC4337EthersProvider'
 import { ClientConfig } from './ClientConfig'
 import { HttpRpcClient } from './HttpRpcClient'
 import { UserOperation } from '@biconomy/core-types'
-import { BaseWalletAPI } from './BaseWalletAPI'
+import { BaseAccountAPI } from './BaseAccountAPI'
 import { ClientMessenger } from 'messaging-sdk'
 import WebSocket from 'isomorphic-ws'
 export class ERC4337EthersSigner extends Signer {
@@ -17,17 +18,18 @@ export class ERC4337EthersSigner extends Signer {
     readonly originalSigner: Signer,
     readonly erc4337provider: ERC4337EthersProvider,
     readonly httpRpcClient: HttpRpcClient,
-    readonly smartWalletAPI: BaseWalletAPI
+    readonly smartAccountAPI: BaseAccountAPI
   ) {
     super()
     defineReadOnly(this, 'provider', erc4337provider)
   }
 
+  address?: string
+
   // This one is called by Contract. It signs the request and passes in to Provider to be sent.
   async sendTransaction(
     transaction: TransactionRequest,
     walletDeployOnly = false,
-    isDelegate = false,
     engine?: any // EventEmitter
   ): Promise<TransactionResponse> {
     const socketServerUrl = this.config.socketServerUrl
@@ -49,42 +51,35 @@ export class ERC4337EthersSigner extends Signer {
     const customData: any = transaction.customData
     console.log(customData)
 
-    let gasLimit = 2000000
-
+    // customise gasLimit help dapps to supply gasLimit of their choice
     if (customData && (customData.isBatchedToMultiSend || !customData.isDeployed)) {
       if (customData.appliedGasLimit) {
-        gasLimit = customData.appliedGasLimit
-        console.log('gaslimit applied from custom data...', gasLimit)
+        transaction.gasLimit = customData.appliedGasLimit
+        console.log('gaslimit applied from custom data...', transaction.gasLimit)
       }
     }
 
     delete transaction.customData
 
-    // transaction.from = await this.smartWalletAPI.getWalletAddress()
-
-    // checking if wallet is deployed or not
-    const isDeployed = await this.smartWalletAPI.checkWalletDeployed()
-
     let userOperation: UserOperation
     if (walletDeployOnly === true) {
-      userOperation = await this.smartWalletAPI.createSignedUserOp({
-        target: '',
-        data: '',
-        value: 0,
-        gasLimit: 21000
+      userOperation = await this.smartAccountAPI.createSignedUserOp({
+        target: [''],
+        data: [''],
+        value: [0],
+        gasLimit: [21000]
       })
     } else {
       // Removing populate transaction all together
       // const tx: TransactionRequest = await this.populateTransaction(transaction)
 
-      await this.verifyAllNecessaryFields(transaction)
+      this.verifyAllNecessaryFields(transaction)
 
-      userOperation = await this.smartWalletAPI.createSignedUserOp({
-        target: transaction.to ?? '',
-        data: transaction.data?.toString() ?? '',
-        value: transaction.value,
-        gasLimit: isDeployed ? transaction.gasLimit : gasLimit,
-        isDelegateCall: isDelegate // get from customData.isBatchedToMultiSend
+      userOperation = await this.smartAccountAPI.createSignedUserOp({
+        target: transaction.to ? [transaction.to] :  [ethers.constants.AddressZero],
+        data: transaction.data?.toString() ? [transaction.data?.toString()]: ['0x'],
+        value: transaction.value ? [transaction.value] : [0],
+        gasLimit: transaction.gasLimit
       })
     }
     console.log('signed userOp ', userOperation)
@@ -167,11 +162,133 @@ export class ERC4337EthersSigner extends Signer {
     // TODO: handle errors - transaction that is "rejected" by bundler is _not likely_ to ever resolve its "wait()"
     return transactionResponse
   }
+
+  async sendTransactionBatch(
+    transactions: TransactionRequest[],
+    engine?: any // EventEmitter
+  ): Promise<TransactionResponse> {
+
+    const socketServerUrl = this.config.socketServerUrl
+
+    const clientMessenger = new ClientMessenger(socketServerUrl, WebSocket)
+
+    if (!clientMessenger.socketClient.isConnected()) {
+      try {
+        await clientMessenger.connect()
+        console.log('connect success')
+      } catch (err) {
+        console.log('socket connection failure')
+        console.log(err)
+      }
+    }
+
+    console.log('received transaction ', transactions)
+   
+    let userOperation: UserOperation
+      // Removing populate transaction all together
+      // const tx: TransactionRequest = await this.populateTransaction(transaction)
+
+      transactions.map(this.verifyAllNecessaryFields)
+
+      console.log('fields verified');
+      
+
+      // let target = transactions.map(({ target }) => target)
+     
+      const target = transactions.map((element) => element.to ?? ethers.constants.AddressZero)
+      const data = transactions.map((element) => element.data ?? '0x')
+      const value = transactions.map((element) => element.value ?? BigNumber.from(0))
+
+      userOperation = await this.smartAccountAPI.createSignedUserOp({
+        target,
+        data,
+        value,
+      })
+    console.log('signed userOp ', userOperation)
+
+    let bundlerServiceResponse: any
+
+    try {
+      bundlerServiceResponse = await this.httpRpcClient.sendUserOpToBundler(userOperation)
+      console.log('bundlerServiceResponse')
+      console.log(bundlerServiceResponse)
+    } catch (error) {
+      // console.error('sendUserOpToBundler failed', error)
+      throw this.unwrapError(error)
+    }
+
+    if (clientMessenger && clientMessenger.socketClient.isConnected()) {
+      clientMessenger.createTransactionNotifier(bundlerServiceResponse.transactionId, {
+        onHashGenerated: async (tx: any) => {
+          if (tx) {
+            const txHash = tx.transactionHash
+            const txId = tx.transactionId
+            console.log(
+              `Tx Hash generated message received at client ${JSON.stringify({
+                transactionId: txId,
+                hash: txHash
+              })}`
+            )
+            engine &&
+              engine.emit('txHashGenerated', {
+                id: tx.transactionId,
+                hash: tx.transactionHash,
+                msg: 'txn hash generated'
+              })
+          }
+        },
+        onHashChanged: async (tx: any) => {
+          if (tx) {
+            const txHash = tx.transactionHash
+            const txId = tx.transactionId
+            console.log(
+              `Tx Hash changed message received at client ${JSON.stringify({
+                transactionId: txId,
+                hash: txHash
+              })}`
+            )
+            engine &&
+              engine.emit('txHashChanged', {
+                id: tx.transactionId,
+                hash: tx.transactionHash,
+                msg: 'txn hash changed'
+              })
+          }
+        },
+        onError: async (tx: any) => {
+          if (tx) {
+            console.log(`Error message received at client is ${tx}`)
+            const err = tx.error
+            const txId = tx.transactionId
+            clientMessenger.unsubscribe(txId)
+            // event emitter
+            engine &&
+              engine.emit('error', {
+                id: tx.transactionId,
+                error: err,
+                msg: 'txn hash generated'
+              })
+          }
+        }
+      })
+    }
+
+    const transactionResponse = await this.erc4337provider.constructUserOpTransactionResponse(
+      userOperation,
+      bundlerServiceResponse.transactionId,
+      engine
+    )
+    // const receipt = await transactionResponse.wait()
+    // console.log('transactionResponse in sendTransaction', receipt)
+
+    // TODO: handle errors - transaction that is "rejected" by bundler is _not likely_ to ever resolve its "wait()"
+    return transactionResponse
+  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  unwrapError(errorIn: any): Error {
+  unwrapError (errorIn: any): Error {
     if (errorIn.body != null) {
       const errorBody = JSON.parse(errorIn.body)
-      let paymasterInfo = ''
+      let paymasterInfo: string = ''
       let failedOpMessage: string | undefined = errorBody?.error?.message
       if (failedOpMessage?.includes('FailedOp') === true) {
         // TODO: better error extraction methods will be needed
@@ -182,16 +299,14 @@ export class ERC4337EthersSigner extends Signer {
           failedOpMessage = split[2]
         }
       }
-      const error = new Error(
-        `The bundler has failed to include UserOperation in a batch: ${failedOpMessage} ${paymasterInfo})`
-      )
+      const error = new Error(`The bundler has failed to include UserOperation in a batch: ${failedOpMessage} ${paymasterInfo})`)
       error.stack = errorIn.stack
       return error
     }
     return errorIn
   }
 
-  async verifyAllNecessaryFields(transactionRequest: TransactionRequest): Promise<void> {
+  verifyAllNecessaryFields (transactionRequest: TransactionRequest): void {
     if (transactionRequest.to == null) {
       throw new Error('Missing call target')
     }
@@ -201,26 +316,29 @@ export class ERC4337EthersSigner extends Signer {
     }
   }
 
-  connect(provider: Provider): Signer {
+  connect (provider: Provider): Signer {
     console.log(provider)
     throw new Error('changing providers is not supported')
   }
 
-  async getAddress(): Promise<string> {
-    return await this.erc4337provider.getSenderWalletAddress()
+  async getAddress (): Promise<string> {
+    if (this.address == null) {
+      this.address = await this.erc4337provider.getSenderAccountAddress()
+    }
+    return this.address
   }
 
-  async signMessage(message: Bytes | string): Promise<string> {
+  async signMessage (message: Bytes | string): Promise<string> {
     return await this.originalSigner.signMessage(message)
   }
 
-  async signTransaction(transaction: Deferrable<TransactionRequest>): Promise<string> {
+  async signTransaction (transaction: Deferrable<TransactionRequest>): Promise<string> {
     console.log(transaction)
     throw new Error('not implemented')
   }
 
-  async signUserOperation(userOperation: UserOperation): Promise<string> {
-    const message = await this.smartWalletAPI.getRequestId(userOperation)
+  async signUserOperation (userOperation: UserOperation): Promise<string> {
+    const message = await this.smartAccountAPI.getUserOpHash(userOperation)
     return await this.originalSigner.signMessage(message)
   }
 }

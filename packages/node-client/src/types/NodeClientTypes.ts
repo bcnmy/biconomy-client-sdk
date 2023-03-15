@@ -56,6 +56,14 @@ export type WhiteListSignatureResponse = {
   data: string
 }
 
+export type IsFallbackEnabledResponse = {
+  code: number
+  message: string
+  data: {
+    enable_fallback_flow: boolean
+  }
+}
+
 export type EstimateExternalGasDto = {
   chainId: number
   encodedData: string
@@ -116,6 +124,7 @@ export type ChainConfig = {
   wallet: ContractDetails[] // base wallet
   entryPoint: ContractDetails[] //should make this address var
   fallBackHandler: ContractDetails[] //should make this address var
+  fallBackGasTankAddress: string
   relayerURL: string
   providerUrl: string
   indexerUrl: string
@@ -172,9 +181,18 @@ export type TokenInfo = {
 }
 
 export type ISmartAccount = {
-  version: string
+  version: SmartAccountVersion
   smartAccountAddress: string
-  isDeployed: boolean
+  isDeployed: boolean,
+  chainId: ChainId,
+  eoaAddress: string,
+  entryPointAddress: string,
+  handlerAddress: string,
+  index: number,
+  implementationAddress: string,
+  fallBackHandlerAddress: string,
+  owner: string,
+  factoryAddress: string
 }
 
 export type IBalances = {
