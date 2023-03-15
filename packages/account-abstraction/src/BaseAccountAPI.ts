@@ -268,7 +268,7 @@ export abstract class BaseAccountAPI {
         }))
         // if wallet is not deployed we need to multiply estimated limit to 3 times to get accurate callGasLimit
         if (!this.isDeployed)
-        callGasLimit = BigNumber.from('2000000')
+        callGasLimit = callGasLimit.add(500000)
       }else{
         callGasLimit = BigNumber.from(detailsForUserOp.gasLimit)
       }
