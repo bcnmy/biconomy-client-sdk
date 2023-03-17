@@ -41,8 +41,8 @@ class SmartWalletFactoryContractEthers implements SmartWalletFactoryContract {
     return toTxResult(resultSet)
   }
 
-  async getAddressForCounterfactualWallet(owner: string, index: number): Promise<string> {
-    return this.contract.getAddressForCounterfactualWallet(owner, index)
+  async getAddressForCounterFactualWallet(owner: string, index: number): Promise<string> {
+    return this.contract.getAddressForCounterFactualWallet(owner, index)
   }
 }
 

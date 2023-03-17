@@ -10,5 +10,5 @@ export interface SmartWalletFactoryContract {
     index: number
   ): Promise<ITransactionResult>
   deployWallet(owner: string): Promise<ITransactionResult>
-  getAddressForCounterfactualWallet(owner: string, index: number): Promise<string>
+  getAddressForCounterFactualWallet(owner: string, index: number): Promise<string>
 }

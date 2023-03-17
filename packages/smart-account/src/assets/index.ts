@@ -1213,7 +1213,7 @@ export const WalletFactory = {
           type: 'uint256'
         }
       ],
-      name: 'getAddressForCounterfactualWallet',
+      name: 'getAddressForCounterFactualWallet',
       outputs: [
         {
           internalType: 'address',
