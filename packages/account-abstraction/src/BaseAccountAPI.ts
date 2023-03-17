@@ -204,6 +204,7 @@ export abstract class BaseAccountAPI {
    * NOTE: createUnsignedUserOp will add to this value the cost of creation, if the contract is not yet created.
    */
    async getVerificationGasLimit (): Promise<BigNumberish> {
+    // Verification gas should be max(initGas(wallet deployment), validateUserOp + validatePaymasterUserOp , postOp)
     return 100000
   }
 

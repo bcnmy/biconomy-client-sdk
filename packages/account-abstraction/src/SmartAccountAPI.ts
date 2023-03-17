@@ -212,7 +212,6 @@ export class SmartAccountAPI extends BaseAccountAPI {
       this.paymasterAPI == null ? '0x' : await this.paymasterAPI.getPaymasterAndData(partialUserOp)
     return {
       ...partialUserOp,
-      // preVerificationGas: this.getPreVerificationGas(partialUserOp),
       signature: ''
     }
   }
