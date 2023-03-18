@@ -162,7 +162,7 @@ export class ERC4337EthersProvider extends BaseProvider {
       nonce: BigNumber.from(userOp.nonce).toNumber(),
       gasLimit: BigNumber.from(userOp.callGasLimit), // ??
       value: BigNumber.from(0),
-      data: hexValue(userOp.callData), // should extract the actual called method from this "execFromEntryPoint()" call
+      data: hexValue(userOp.callData),
       chainId: this.config.chainId,
       wait: async (confirmations?: number): Promise<TransactionReceipt> => {
         console.log(confirmations)

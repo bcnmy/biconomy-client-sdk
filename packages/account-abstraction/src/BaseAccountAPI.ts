@@ -139,12 +139,12 @@ export abstract class BaseAccountAPI {
    * @param data
    * @param isDelegateCall // added by Biconomy
    */
-  abstract encodeExecute(
-    target: string,
-    value: BigNumberish,
-    data: string,
-    isDelegateCall: boolean
-  ): Promise<string>
+  // abstract encodeExecute(
+  //   target: string,
+  //   value: BigNumberish,
+  //   data: string,
+  //   isDelegateCall: boolean
+  // ): Promise<string>
 
   abstract encodeExecuteCall(target: string, value: BigNumberish, data: BytesLike): Promise<string>
   

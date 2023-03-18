@@ -27,7 +27,6 @@ export interface SmartAccountApiParams extends BaseApiParams {
  * - contract deployer gets "entrypoint", "owner" addresses and "index" nonce
  * - owner signs requests using normal "Ethereum Signed Message" (ether's signer.signMessage())
  * - nonce method is "nonce()"
- * - execute method is "execFromEntryPoint()"
  */
 
 // Should be maintain SmartAccountAPI
@@ -113,28 +112,28 @@ export class SmartAccountAPI extends BaseAccountAPI {
   }*/
 
 
-  /**
-   * encode a method call from entryPoint to our contract
-   * @param target
-   * @param value
-   * @param data
-   */
-  async encodeExecute(
-    target: string,
-    value: BigNumberish,
-    data: string,
-    isDelegateCall: boolean
-  ): Promise<string> {
-    const walletContract = await this._getSmartAccountContract()
+  // /**
+  //  * encode a method call from entryPoint to our contract
+  //  * @param target
+  //  * @param value
+  //  * @param data
+  //  */
+  // async encodeExecute(
+  //   target: string,
+  //   value: BigNumberish,
+  //   data: string,
+  //   isDelegateCall: boolean
+  // ): Promise<string> {
+  //   const walletContract = await this._getSmartAccountContract()
 
-    return walletContract.interface.encodeFunctionData('execFromEntryPoint', [
-      target,
-      value,
-      data,
-      isDelegateCall ? 1 : 0,
-      1000000 // gasLimit for execute call on SmartWallet.sol. TODO: estimate using requiredTxGas
-    ])
-  }
+  //   return walletContract.interface.encodeFunctionData('execFromEntryPoint', [
+  //     target,
+  //     value,
+  //     data,
+  //     isDelegateCall ? 1 : 0,
+  //     1000000 // gasLimit for execute call on SmartWallet.sol. TODO: estimate using requiredTxGas
+  //   ])
+  // }
 
   async encodeExecuteCall(target: string, value: BigNumberish, data: string): Promise<string>{
     const walletContract = await this._getSmartAccountContract()

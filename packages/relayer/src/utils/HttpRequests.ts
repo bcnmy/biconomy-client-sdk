@@ -12,7 +12,6 @@ interface HttpRequest {
   body?: Record<string, any>
   headers?: object
 }
-
 export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRequest): Promise<T> {
   const response = await fetch(url, {
     method,
