@@ -58,7 +58,7 @@ export class LocalRelayer implements IRelayer {
     return {
       to: walletFactory.getAddress(), // from context
       data: factoryInterface.encodeFunctionData(
-        factoryInterface.getFunction('deployCounterFactualWallet'),
+        factoryInterface.getFunction('deployCounterFactualAccount'),
         [ baseWallet.getAddress(),
           initializer,
           index]

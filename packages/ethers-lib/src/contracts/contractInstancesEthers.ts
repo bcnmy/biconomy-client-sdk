@@ -4,7 +4,7 @@ import { MultiSendContractV100__factory as MultiSendContractV100 } from '../../t
 
 import { MultiSendCallOnlyContractV100__factory as MultiSendCallOnlyContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/MultiSendCallOnlyContractV100__factory'
 
-import { SmartWalletFactoryContractV100__factory as SmartWalletFactoryFactoryContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/SmartWalletFactoryContractV100__factory'
+import { SmartWalletFactoryContractV100__factory as SmartWalletContractFactoryV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/SmartWalletFactoryContractV100__factory'
 
 import SmartWalletContractEthers_v1_0_0 from './SmartWallet/v1.0.0/SmartWalletContractEthers'
 
@@ -88,13 +88,13 @@ export function getSmartWalletFactoryContractInstance(
 
   switch (smartAccountVersion) {
     case '1.0.0':
-      walletFactoryContract = SmartWalletFactoryFactoryContractV100.connect(
+      walletFactoryContract = SmartWalletContractFactoryV100.connect(
         contractAddress,
         provider
       )
       return new SmartWalletFacoryContractEthers_v1_0_0(walletFactoryContract)
     default:
-      walletFactoryContract = SmartWalletFactoryFactoryContractV100.connect(
+      walletFactoryContract = SmartWalletContractFactoryV100.connect(
         contractAddress,
         provider
       )

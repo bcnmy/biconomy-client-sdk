@@ -1084,6 +1084,8 @@ class SmartAccount extends EventEmitter {
       index
     })
 
+    console.log('walletInfo ', walletInfo);
+
     this.address = walletInfo.smartAccountAddress
 
     const smartAccountState = {

@@ -170,7 +170,7 @@ export class Estimator {
       this.contractUtils.smartWalletFactoryContract[chainId][version].getInterface()
     const encodedEstimateData = estimatorInterface.encodeFunctionData('estimate', [
       this.contractUtils.smartWalletFactoryContract[chainId][version].getAddress(),
-      walletFactoryInterface.encodeFunctionData('deployCounterFactualWallet', [
+      walletFactoryInterface.encodeFunctionData('deployCounterFactualAccount', [
         owner,
         0
       ])
