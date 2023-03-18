@@ -47,20 +47,12 @@ export class LocalRelayer implements IRelayer {
     const { walletFactory, baseWallet } = context
     const { owner, entryPointAddress, fallbackHandlerAddress } = config
     const factoryInterface = walletFactory.getInterface()
-    const baseWalletInterface = baseWallet.getInterface()
-
-    // const walletInterface = SmartWalletFactoryContractV100Interface.getInterface()
-    const initializer = baseWalletInterface.encodeFunctionData("init", [
-      owner,
-      fallbackHandlerAddress,
-    ]);
 
     return {
       to: walletFactory.getAddress(), // from context
       data: factoryInterface.encodeFunctionData(
         factoryInterface.getFunction('deployCounterFactualAccount'),
-        [ baseWallet.getAddress(),
-          initializer,
+        [ owner,
           index]
       )
     }
