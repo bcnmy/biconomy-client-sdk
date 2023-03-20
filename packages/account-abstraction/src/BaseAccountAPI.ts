@@ -14,7 +14,7 @@ import { TransactionDetailsForBatchUserOp } from './TransactionDetailsForUserOp'
 import { resolveProperties } from 'ethers/lib/utils'
 import { IPaymasterAPI } from '@biconomy/core-types' // only use interface
 import { getUserOpHash, NotPromise, packUserOp } from '@biconomy/common'
-import { calcPreVerificationGas, GasOverheads } from './calcPreVerificationGas'
+import { GasOverheads } from './calcPreVerificationGas'
 
 // might make use of this
 export interface BaseApiParams {
@@ -157,6 +157,12 @@ export abstract class BaseAccountAPI {
   abstract signUserOpHash (userOpHash: string): Promise<string>
 
   /**
+   * should cover cost of putting calldata on-chain, and some overhead.
+   * actual overhead depends on the expected bundle size
+   */
+  abstract getPreVerificationGas (userOp: Partial<UserOperation>): Promise<number>
+
+  /**
    * check if the wallet is already deployed.
    */
   async checkAccountDeployed(): Promise<boolean> {
@@ -206,15 +212,6 @@ export abstract class BaseAccountAPI {
    async getVerificationGasLimit (): Promise<BigNumberish> {
     // Verification gas should be max(initGas(wallet deployment), validateUserOp + validatePaymasterUserOp , postOp)
     return 100000
-  }
-
-  /**
-   * should cover cost of putting calldata on-chain, and some overhead.
-   * actual overhead depends on the expected bundle size
-   */
-  async getPreVerificationGas (userOp: Partial<UserOperation>): Promise<number> {
-    const p = await resolveProperties(userOp)
-    return calcPreVerificationGas(p, this.overheads)
   }
 
   /**

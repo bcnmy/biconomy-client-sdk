@@ -1,7 +1,6 @@
 import { BigNumber, BigNumberish } from 'ethers'
 // import { EntryPointContractV100 } from '@biconomy/ethers-lib'
 import { EntryPoint } from '@account-abstraction/contracts'
-
 import { ClientConfig } from './ClientConfig' // added in this design
 import { arrayify, hexConcat } from 'ethers/lib/utils'
 import { Signer } from '@ethersproject/abstract-signer'
@@ -9,10 +8,9 @@ import { TransactionDetailsForUserOp, TransactionDetailsForBatchUserOp } from '.
 import { UserOperation } from '@biconomy/core-types'
 import { BaseApiParams, BaseAccountAPI } from './BaseAccountAPI'
 import { Provider } from '@ethersproject/providers'
-import { WalletFactoryAPI } from './WalletFactoryAPI' // could be renamed smart account factory
 import { BiconomyPaymasterAPI } from './BiconomyPaymasterAPI'
-import { ZERO_ADDRESS } from '@biconomy/core-types'
-import { GasOverheads } from './calcPreVerificationGas'
+import { resolveProperties } from 'ethers/lib/utils'
+import { calcPreVerificationGas, GasOverheads } from './calcPreVerificationGas'
 import { deployCounterFactualEncodedData } from '@biconomy/common'
 
 // may use...
@@ -134,6 +132,15 @@ export class SmartAccountAPI extends BaseAccountAPI {
   //     1000000 // gasLimit for execute call on SmartWallet.sol. TODO: estimate using requiredTxGas
   //   ])
   // }
+
+  /**
+   * should cover cost of putting calldata on-chain, and some overhead.
+   * actual overhead depends on the expected bundle size
+   */
+  async getPreVerificationGas (userOp: Partial<UserOperation>): Promise<number> {
+    const p = await resolveProperties(userOp)
+    return calcPreVerificationGas(p, this.overheads)
+  }
 
   async encodeExecuteCall(target: string, value: BigNumberish, data: string): Promise<string>{
     const walletContract = await this._getSmartAccountContract()
