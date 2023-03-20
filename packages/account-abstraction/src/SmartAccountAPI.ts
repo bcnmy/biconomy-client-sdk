@@ -92,7 +92,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
   }
 
   async nonce(): Promise<BigNumber> {
-    console.log('checking nonce')
+    this.logger.log('checking nonce')
     if (!(await this.checkAccountDeployed())) {
       return BigNumber.from(0)
     }
@@ -150,7 +150,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
       value,
       data,
     ])
-    console.log('encodeData ', encodeData);
+    this.logger.log('encodeData ', encodeData)
     return encodeData
   }
 
@@ -162,14 +162,14 @@ export class SmartAccountAPI extends BaseAccountAPI {
    */
   async createUnsignedUserOp(info: TransactionDetailsForBatchUserOp): Promise<UserOperation> {
     const { callData, callGasLimit } = await this.encodeUserOpCallDataAndGasLimit(info)
-    console.log(callData, callGasLimit);
+    this.logger.log('callData ', callData)
     
 
     const initCode = await this.getInitCode()
-    console.log('initCode ', initCode)
+    this.logger.log('initCode ', initCode)
 
     const initGas = await this.estimateCreationGas(initCode)
-    console.log('initgas estimated is ', initGas)
+    this.logger.log('initgas estimated is ', initGas)
 
     // Review verification gas limit
     // Test tx : https://mumbai.polygonscan.com/tx/0x4d862c501360988e77155c8a28812d1641d2fcca53d266ef3ad189e4a34fcdd0

@@ -35,6 +35,7 @@
   },
   "dependencies": {
     "@biconomy/core-types": "^1.0.0",
+    "@biconomy/common": "^1.0.0",
     "@biconomy/ethers-lib": "^1.0.0",
     "@biconomy/node-client": "^1.0.0",
     "@biconomy/relayer": "^1.0.0",

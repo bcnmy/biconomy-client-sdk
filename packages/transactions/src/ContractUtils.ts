@@ -20,8 +20,10 @@ import { ethers, Signer } from 'ethers'
 import EvmNetworkManager from '@biconomy/ethers-lib'
 import { SmartAccountVersion } from '@biconomy/core-types'
 import { ISmartAccount } from '@biconomy/node-client'
+import { Logger } from '@biconomy/common'
 
 class ContractUtils {
+  private logger = new Logger()
   ethAdapter!: { [chainId: number]: EvmNetworkManager }
 
   smartWalletContract!: { [chainId: number]: { [version: string]: SmartWalletContract } }
@@ -61,14 +63,14 @@ class ContractUtils {
     this.multiSendCallOnlyContract[walletInfo.chainId] = {}
     this.fallbackGasTankContract[walletInfo.chainId] = {}
     const version = walletInfo.version
-    console.log('version ', version);
+    this.logger.log('version ', version);
     
     this.smartWalletFactoryContract[walletInfo.chainId][version] = getSmartWalletFactoryContract(
       version,
       this.ethAdapter[walletInfo.chainId],
       walletInfo.factoryAddress
     )
-    console.log('factoryAddress ',  walletInfo.factoryAddress);
+    this.logger.log('factoryAddress ', walletInfo.factoryAddress)
 
     // NOTE/TODO : attached address is not wallet address yet
     this.smartWalletContract[walletInfo.chainId][version] = getSmartWalletContract(
@@ -76,7 +78,7 @@ class ContractUtils {
       this.ethAdapter[walletInfo.chainId],
       walletInfo.smartAccountAddress
     )
-    console.log('smartAccountAddress ',  walletInfo.smartAccountAddress);
+    this.logger.log('smartAccountAddress ', walletInfo.smartAccountAddress)
 
 
     this.multiSendContract[walletInfo.chainId][version] = getMultiSendContract(
@@ -100,8 +102,7 @@ class ContractUtils {
       this.ethAdapter[walletInfo.chainId],
       chaininfo.fallBackGasTankAddress
     )
-    console.log('fallBackGasTankAddress ',  chaininfo.fallBackGasTankAddress);
-
+    this.logger.log('fallBackGasTankAddress ',  chaininfo.fallBackGasTankAddress);
     }
 
   // initializeContracts(

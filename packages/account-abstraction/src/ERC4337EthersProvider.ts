@@ -12,11 +12,13 @@ import { UserOperation } from '@biconomy/core-types'
 import { BaseAccountAPI } from './BaseAccountAPI'
 import { ClientMessenger } from 'messaging-sdk'
 import WebSocket from 'isomorphic-ws'
+import { Logger } from '@biconomy/common'
 
 export class ERC4337EthersProvider extends BaseProvider {
   initializedBlockNumber!: number
-  
+
   readonly signer: ERC4337EthersSigner
+  private logger = new Logger()
 
   constructor(
     readonly config: ClientConfig,
@@ -65,13 +67,13 @@ export class ERC4337EthersProvider extends BaseProvider {
     return await super.getTransaction(transactionHash)
   }
 
-  async getTransactionReceipt (transactionHash: string | Promise<string>): Promise<TransactionReceipt> {
+  async getTransactionReceipt(
+    transactionHash: string | Promise<string>
+  ): Promise<TransactionReceipt> {
     const userOpHash = await transactionHash
     const sender = await this.getSenderAccountAddress()
     return await new Promise<TransactionReceipt>((resolve, reject) => {
-      new UserOperationEventListener(
-        resolve, reject, this.entryPoint, sender, userOpHash
-      ).start()
+      new UserOperationEventListener(resolve, reject, this.entryPoint, sender, userOpHash).start()
     })
   }
 
@@ -84,7 +86,7 @@ export class ERC4337EthersProvider extends BaseProvider {
     confirmations?: number,
     timeout?: number
   ): Promise<TransactionReceipt> {
-    console.log(confirmations)
+    this.logger.log('waitForTransaction', { transactionHash, confirmations, timeout })
     const sender = await this.getSenderAccountAddress()
 
     return await new Promise<TransactionReceipt>((resolve, reject) => {
@@ -101,7 +103,6 @@ export class ERC4337EthersProvider extends BaseProvider {
     })
   }
 
-
   // fabricate a response (using messaging SDK) in a format usable by ethers users...
   async constructUserOpTransactionResponse(
     userOp1: UserOperation,
@@ -115,10 +116,9 @@ export class ERC4337EthersProvider extends BaseProvider {
     if (!clientMessenger.socketClient.isConnected()) {
       try {
         await clientMessenger.connect()
-        console.log('connect success')
+        this.logger.log('socket connection success', { socketServerUrl })
       } catch (err) {
-        console.log('socket connection failure')
-        console.log(err)
+        this.logger.error('socket connection failure', err)
       }
     }
 
@@ -131,13 +131,11 @@ export class ERC4337EthersProvider extends BaseProvider {
           onMined: (tx: any) => {
             const txId = tx.transactionId
             clientMessenger.unsubscribe(txId)
-            console.log(
-              `Tx Hash mined message received at client ${JSON.stringify({
-                transactionId: txId,
-                hash: tx.transactionHash,
-                receipt: tx.receipt
-              })}`
-            )
+            this.logger.log('Tx Hash mined message received at client', {
+              transactionId: txId,
+              hash: tx.transactionHash,
+              receipt: tx.receipt
+            })
             const receipt: TransactionReceipt = tx.receipt
             engine &&
               engine.emit('txMined', {
@@ -165,9 +163,8 @@ export class ERC4337EthersProvider extends BaseProvider {
       data: hexValue(userOp.callData),
       chainId: this.config.chainId,
       wait: async (confirmations?: number): Promise<TransactionReceipt> => {
-        console.log(confirmations)
+        this.logger.log('wait confirmations', { confirmations })
         const transactionReceipt = waitPromise.then((receipt: TransactionReceipt) => {
-          // console.log('received tx receipt ', receipt)
           return receipt
         })
         if (userOp.initCode.length !== 0) {

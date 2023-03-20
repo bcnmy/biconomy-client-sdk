@@ -8,11 +8,13 @@ import { ERC4337EthersProvider } from './ERC4337EthersProvider'
 import { ClientConfig } from './ClientConfig'
 import { HttpRpcClient } from './HttpRpcClient'
 import { UserOperation } from '@biconomy/core-types'
+import { Logger } from '@biconomy/common'
 import { BaseAccountAPI } from './BaseAccountAPI'
 import { ClientMessenger } from 'messaging-sdk'
 import WebSocket from 'isomorphic-ws'
 export class ERC4337EthersSigner extends Signer {
   // TODO: we have 'erc4337provider', remove shared dependencies or avoid two-way reference
+  private logger = new Logger()
   constructor(
     readonly config: ClientConfig,
     readonly originalSigner: Signer,
@@ -39,23 +41,22 @@ export class ERC4337EthersSigner extends Signer {
     if (!clientMessenger.socketClient.isConnected()) {
       try {
         await clientMessenger.connect()
-        console.log('connect success')
+        this.logger.log('socket connection success', { socketServerUrl })
       } catch (err) {
-        console.log('socket connection failure')
-        console.log(err)
+        this.logger.error('socket connection failure', err)
       }
     }
 
-    console.log('received transaction ', transaction)
+    this.logger.log('received transaction ', transaction)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const customData: any = transaction.customData
-    console.log(customData)
+    this.logger.log('customData', customData)
 
     // customise gasLimit help dapps to supply gasLimit of their choice
     if (customData && (customData.isBatchedToMultiSend || !customData.isDeployed)) {
       if (customData.appliedGasLimit) {
         transaction.gasLimit = customData.appliedGasLimit
-        console.log('gaslimit applied from custom data...', transaction.gasLimit)
+        this.logger.log('gaslimit applied from custom data...', transaction.gasLimit)
       }
     }
 
@@ -82,14 +83,13 @@ export class ERC4337EthersSigner extends Signer {
         gasLimit: transaction.gasLimit
       })
     }
-    console.log('signed userOp ', userOperation)
+    this.logger.log('signed userOp ', userOperation)
 
     let bundlerServiceResponse: any
 
     try {
       bundlerServiceResponse = await this.httpRpcClient.sendUserOpToBundler(userOperation)
-      console.log('bundlerServiceResponse')
-      console.log(bundlerServiceResponse)
+      this.logger.log('bundlerServiceResponse', bundlerServiceResponse)
     } catch (error) {
       // console.error('sendUserOpToBundler failed', error)
       throw this.unwrapError(error)
@@ -101,12 +101,10 @@ export class ERC4337EthersSigner extends Signer {
           if (tx) {
             const txHash = tx.transactionHash
             const txId = tx.transactionId
-            console.log(
-              `Tx Hash generated message received at client ${JSON.stringify({
-                transactionId: txId,
-                hash: txHash
-              })}`
-            )
+            this.logger.log('Tx Hash generated message received at client', {
+              transactionId: txId,
+              hash: txHash
+            })
             engine &&
               engine.emit('txHashGenerated', {
                 id: tx.transactionId,
@@ -119,12 +117,10 @@ export class ERC4337EthersSigner extends Signer {
           if (tx) {
             const txHash = tx.transactionHash
             const txId = tx.transactionId
-            console.log(
-              `Tx Hash changed message received at client ${JSON.stringify({
-                transactionId: txId,
-                hash: txHash
-              })}`
-            )
+            this.logger.log('Tx Hash changed message received at client', {
+              transactionId: txId,
+              hash: txHash
+            })
             engine &&
               engine.emit('txHashChanged', {
                 id: tx.transactionId,
@@ -135,7 +131,7 @@ export class ERC4337EthersSigner extends Signer {
         },
         onError: async (tx: any) => {
           if (tx) {
-            console.log(`Error message received at client is ${tx}`)
+            this.logger.error('Error message received at client', tx)
             const err = tx.error
             const txId = tx.transactionId
             clientMessenger.unsubscribe(txId)
@@ -175,14 +171,13 @@ export class ERC4337EthersSigner extends Signer {
     if (!clientMessenger.socketClient.isConnected()) {
       try {
         await clientMessenger.connect()
-        console.log('connect success')
+        this.logger.log('socket connection success', { socketServerUrl })
       } catch (err) {
-        console.log('socket connection failure')
-        console.log(err)
+        this.logger.error('socket connection failure', err)
       }
     }
 
-    console.log('received transaction ', transactions)
+    this.logger.log('received transaction ', transactions)
    
     let userOperation: UserOperation
       // Removing populate transaction all together
@@ -190,8 +185,6 @@ export class ERC4337EthersSigner extends Signer {
 
       transactions.map(this.verifyAllNecessaryFields)
 
-      console.log('fields verified');
-      
 
       // let target = transactions.map(({ target }) => target)
      
@@ -204,14 +197,13 @@ export class ERC4337EthersSigner extends Signer {
         data,
         value,
       })
-    console.log('signed userOp ', userOperation)
+    this.logger.log('signed userOp ', userOperation)
 
     let bundlerServiceResponse: any
 
     try {
       bundlerServiceResponse = await this.httpRpcClient.sendUserOpToBundler(userOperation)
-      console.log('bundlerServiceResponse')
-      console.log(bundlerServiceResponse)
+      this.logger.log('bundlerServiceResponse', bundlerServiceResponse)
     } catch (error) {
       // console.error('sendUserOpToBundler failed', error)
       throw this.unwrapError(error)
@@ -223,12 +215,10 @@ export class ERC4337EthersSigner extends Signer {
           if (tx) {
             const txHash = tx.transactionHash
             const txId = tx.transactionId
-            console.log(
-              `Tx Hash generated message received at client ${JSON.stringify({
-                transactionId: txId,
-                hash: txHash
-              })}`
-            )
+            this.logger.log('Tx Hash generated message received at client', {
+              transactionId: txId,
+              hash: txHash
+            })
             engine &&
               engine.emit('txHashGenerated', {
                 id: tx.transactionId,
@@ -241,12 +231,10 @@ export class ERC4337EthersSigner extends Signer {
           if (tx) {
             const txHash = tx.transactionHash
             const txId = tx.transactionId
-            console.log(
-              `Tx Hash changed message received at client ${JSON.stringify({
-                transactionId: txId,
-                hash: txHash
-              })}`
-            )
+            this.logger.log('Tx Hash changed message received at client', {
+              transactionId: txId,
+              hash: txHash
+            })
             engine &&
               engine.emit('txHashChanged', {
                 id: tx.transactionId,
@@ -257,7 +245,7 @@ export class ERC4337EthersSigner extends Signer {
         },
         onError: async (tx: any) => {
           if (tx) {
-            console.log(`Error message received at client is ${tx}`)
+            this.logger.error('Error message received at client', tx)
             const err = tx.error
             const txId = tx.transactionId
             clientMessenger.unsubscribe(txId)
@@ -317,7 +305,7 @@ export class ERC4337EthersSigner extends Signer {
   }
 
   connect (provider: Provider): Signer {
-    console.log(provider)
+    this.logger.log('changing providers connect called', provider)
     throw new Error('changing providers is not supported')
   }
 
@@ -333,7 +321,7 @@ export class ERC4337EthersSigner extends Signer {
   }
 
   async signTransaction (transaction: Deferrable<TransactionRequest>): Promise<string> {
-    console.log(transaction)
+    this.logger.log('signTransaction called', transaction)
     throw new Error('not implemented')
   }
 

@@ -68,9 +68,7 @@ export class SmartAccountProvider extends BaseProvider {
   // TODO
   // Helper for fabricating a response in a format usable by ethers users...
   async constructSmartAccountTransactionResponse(
-    tx: IWalletTransaction
   ): Promise<TransactionResponse | null> {
-    console.log(tx)
     return null
   }
 

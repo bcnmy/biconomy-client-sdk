@@ -1,7 +1,6 @@
 import { TransactionResponse } from '@ethersproject/providers'
 import { Signer as AbstractSigner, ethers } from 'ethers'
 import { IRelayer } from '.'
-import { Contract } from 'ethers'
 import {
   DeployWallet,
   FeeOptionsResponse,
@@ -9,12 +8,13 @@ import {
   RelayResponse,
   GasLimit
 } from '@biconomy/core-types'
+import { Logger } from '@biconomy/common'
 import { MetaTransaction, encodeMultiSend } from './utils/MultiSend'
-
 // You can configure your own signer with gas held to send out test transactions or some sponsored transactions by plugging it into SmartAccount package
 // Not meant to use for production environment for transaction ordering.
 export class LocalRelayer implements IRelayer {
   private signer: AbstractSigner
+  private logger = new Logger()
   // TODO : review members
   // private txnOptions: TransactionRequest
 
@@ -101,8 +101,7 @@ export class LocalRelayer implements IRelayer {
         to: multiSendCall.getAddress(),
         data: txnData
       }
-      console.log('finaRawTx')
-      console.log(finalRawRx)
+      this.logger.log('finalRawTx', finalRawRx)
 
       const tx = this.signer.sendTransaction({
         ...finalRawRx,
@@ -120,7 +119,7 @@ export class LocalRelayer implements IRelayer {
   }
 
   async getFeeOptions(chainId: number): Promise<FeeOptionsResponse> {
-    console.log('requested fee options for chain ', chainId)
+    this.logger.log('requested fee options for chain ', chainId)
     // Mock response for local relayer to adhere with the interface!
     const feeOptions: FeeOptionsResponse = {
       msg: 'all ok',

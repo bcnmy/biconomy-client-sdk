@@ -10,9 +10,11 @@ import {
   IFeeRefundV1_0_1,
   SmartAccountState
 } from '@biconomy/core-types'
+import { Logger } from '@biconomy/common'
 import { PrepareRefundTransactionsDto, PrepareRefundTransactionDto } from './Types'
 
 export class Estimator {
+  private logger = new Logger()
   nodeClient!: NodeClient
 
   contractUtils!: ContractUtils
@@ -41,7 +43,7 @@ export class Estimator {
         version,
         owner: smartAccountState.owner
       })
-      console.log('estimateWalletDeployment ', estimateWalletDeployment)
+      this.logger.log('estimateWalletDeployment ', estimateWalletDeployment)
 
       estimatedGasUsed += estimateWalletDeployment
     }
@@ -79,7 +81,7 @@ export class Estimator {
     )
     const noAuthEstimate =
       Number(ethCallOverrideResponse.data.gas) + Number(ethCallOverrideResponse.data.txBaseGas)
-    console.log('no auth no refund estimate', noAuthEstimate)
+    this.logger.warn('no auth no refund estimate', noAuthEstimate)
 
     estimatedGasUsed += noAuthEstimate
 
@@ -104,7 +106,7 @@ export class Estimator {
         version,
         owner: smartAccountState.owner
       })
-      console.log('estimateWalletDeployment ', estimateWalletDeployment)
+      this.logger.log('estimateWalletDeployment ', estimateWalletDeployment)
       estimatedGasUsed += estimateWalletDeployment
     }
 
@@ -141,7 +143,7 @@ export class Estimator {
     )
     const noAuthEstimate =
       Number(ethCallOverrideResponse.data.gas) + Number(ethCallOverrideResponse.data.txBaseGas)
-    console.log('no auth no refund estimate', noAuthEstimate)
+      this.logger.log('no auth no refund estimate', noAuthEstimate)
 
     estimatedGasUsed += noAuthEstimate
 
@@ -175,13 +177,13 @@ export class Estimator {
         0
       ])
     ])
-    console.log('encodedEstimate ', encodedEstimateData)
+    this.logger.log('encodedEstimate ', encodedEstimateData)
     const deployCostresponse = await this.nodeClient.estimateExternalGas({
       chainId,
       encodedData: encodedEstimateData
     })
     const estimateWalletDeployment = Number(deployCostresponse.data.gas)
-    console.log('estimateWalletDeployment ', estimateWalletDeployment)
+    this.logger.log('estimateWalletDeployment ', estimateWalletDeployment)
     return estimateWalletDeployment
   }
 }

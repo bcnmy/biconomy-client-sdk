@@ -3,6 +3,7 @@ import { BigNumber, ethers } from 'ethers'
 import { IFallbackRelayer } from '.'
 
 import { RelayTransaction, FallbackRelayerOptions, GasLimit, ChainId } from '@biconomy/core-types'
+import { Logger } from '@biconomy/common'
 import { HttpMethod, sendRequest } from './utils/HttpRequests'
 import { ClientMessenger } from 'messaging-sdk'
 import WebSocket, { EventEmitter } from 'isomorphic-ws'
@@ -15,6 +16,7 @@ export class FallbackRelayer implements IFallbackRelayer {
   #relayServiceBaseUrl: string
   #relayerServiceUrl: string
   #dappAPIKey: string
+  private logger = new Logger()
 
   relayerNodeEthersProvider!: { [chainId: number]: JsonRpcProvider }
 
@@ -47,10 +49,9 @@ export class FallbackRelayer implements IFallbackRelayer {
     if (!clientMessenger.socketClient.isConnected()) {
       try {
         await clientMessenger.connect()
-        console.log('connect success')
+        this.logger.log('socket connection success')
       } catch (err) {
-        console.log('socket connection failure')
-        console.log(err)
+        this.logger.error('socket connection failure', err)
       }
     }
 
@@ -81,7 +82,7 @@ export class FallbackRelayer implements IFallbackRelayer {
         jsonrpc: '2.0'
       }
     })
-    console.log('rest relayer: ', response)
+    this.logger.log('rest relayer: ', response)
 
     if (response.data) {
       const transactionId = response.data.transactionId
@@ -93,13 +94,11 @@ export class FallbackRelayer implements IFallbackRelayer {
             onMined: (tx: any) => {
               const txId = tx.transactionId
               clientMessenger.unsubscribe(txId)
-              console.log(
-                `Tx Hash mined message received at client ${JSON.stringify({
-                  transactionId: txId,
-                  hash: tx.transactionHash,
-                  receipt: tx.receipt
-                })}`
-              )
+              this.logger.log('Tx Hash mined message received at client', {
+                transactionId: txId,
+                hash: tx.transactionHash,
+                receipt: tx.receipt
+              })
               const receipt: TransactionReceipt = tx.receipt
               engine &&
                 engine.emit('txMined', {
@@ -121,13 +120,11 @@ export class FallbackRelayer implements IFallbackRelayer {
         onMined: (tx: any) => {
           const txId = tx.transactionId
           clientMessenger.unsubscribe(txId)
-          console.log(
-            `Tx Hash mined message received at client ${JSON.stringify({
-              transactionId: txId,
-              hash: tx.transactionHash,
-              receipt: tx.receipt
-            })}`
-          )
+          this.logger.log('Tx Hash mined message received at client', {
+            transactionId: txId,
+            hash: tx.transactionHash,
+            receipt: tx.receipt
+          })
           engine.emit('txMined', {
             msg: 'txn mined',
             id: txId,
@@ -138,14 +135,12 @@ export class FallbackRelayer implements IFallbackRelayer {
         onHashGenerated: async (tx: any) => {
           const txHash = tx.transactionHash
           const txId = tx.transactionId
-          console.log(
-            `Tx Hash generated message received at client ${JSON.stringify({
-              transactionId: txId,
-              hash: txHash
-            })}`
-          )
+          this.logger.log('Tx Hash generated message received at client', {
+            transactionId: txId,
+            hash: txHash
+          })
+          this.logger.log(`Receive time for transaction id ${txId}: ${Date.now()}`)
 
-          console.log(`Receive time for transaction id ${txId}: ${Date.now()}`)
           engine.emit('txHashGenerated', {
             id: tx.transactionId,
             hash: tx.transactionHash,
@@ -156,12 +151,10 @@ export class FallbackRelayer implements IFallbackRelayer {
           if (tx) {
             const txHash = tx.transactionHash
             const txId = tx.transactionId
-            console.log(
-              `Tx Hash changed message received at client ${JSON.stringify({
-                transactionId: txId,
-                hash: txHash
-              })}`
-            )
+            this.logger.log('Tx Hash changed message received at client', {
+              transactionId: txId,
+              hash: txHash
+            })
             engine.emit('txHashChanged', {
               id: tx.transactionId,
               hash: tx.transactionHash,
@@ -170,7 +163,7 @@ export class FallbackRelayer implements IFallbackRelayer {
           }
         },
         onError: async (tx: any) => {
-          console.log(`Error message received at client is ${tx}`)
+          this.logger.error('Error message received at client', tx)
           const err = tx.error
           const txId = tx.transactionId
           clientMessenger.unsubscribe(txId)
@@ -194,7 +187,7 @@ export class FallbackRelayer implements IFallbackRelayer {
         data: hexValue(signedTx.rawTx.data || '0x'),
         chainId: signedTx.rawTx.chainId,
         wait: async (confirmations?: number): Promise<TransactionReceipt> => {
-          console.log(confirmations)
+          this.logger.log('wait confirmations', confirmations)
           const transactionReceipt = waitPromise.then((receipt: TransactionReceipt) => {
             return receipt
           })

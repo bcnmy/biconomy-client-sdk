@@ -1,12 +1,12 @@
 import { BigNumberish, Contract, utils } from 'ethers'
-
-import { IMetaTransaction, IWalletTransaction, Transaction } from '@biconomy/core-types'
-
 import { AddressZero } from '@ethersproject/constants'
+import { IMetaTransaction, IWalletTransaction, Transaction } from '@biconomy/core-types'
+import { Logger } from '@biconomy/common'
 
 export class Utils {
+  private logger = new Logger()
   constructor() {
-    console.log('Utils Class Initialized')
+    this.logger.log('Utils initialized')
   }
 
   buildSmartAccountTransaction = (template: {
