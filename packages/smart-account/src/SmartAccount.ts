@@ -32,7 +32,6 @@ import {
   ZERO_ADDRESS,
   IFallbackAPI
 } from '@biconomy/core-types'
-import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import NodeClient, {
   ISmartAccount,
   ChainConfig,
@@ -74,8 +73,6 @@ import {
 
 import { BigNumber, ethers, Signer } from 'ethers'
 import { Transaction } from '@biconomy/core-types'
-
-let isLogsEnabled = false
 
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount extends EventEmitter {
@@ -137,9 +134,6 @@ class SmartAccount extends EventEmitter {
   // Note: Could remove WalletProvider later on
   constructor(signerOrProvider: Web3Provider | Signer, config?: Partial<SmartAccountConfig>) {
     super()
-    if (config && config.debug === true) {
-      isLogsEnabled = true
-    }
     this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
 
     if (!this.#smartAccountConfig.activeNetworkId) {
@@ -1169,7 +1163,6 @@ export const DefaultSmartAccountConfig: SmartAccountConfig = {
       providerUrl: 'https://polygon-mainnet.g.alchemy.com/v2/6Tn--QDkp1vRBXzRV3Cc8fLXayr5Yoij'
     }
   ],
-  debug: false
 }
 
 export default SmartAccount
