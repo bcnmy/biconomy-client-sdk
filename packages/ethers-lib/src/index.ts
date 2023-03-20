@@ -7,7 +7,7 @@ export { MultiSendContractV100__factory as MultiSendContractV100 } from '../type
 
 export { MultiSendCallOnlyContractV100__factory as MultiSendCallOnlyContractV100 } from '../typechain/src/ethers-v5/v1.0.0/factories/MultiSendCallOnlyContractV100__factory'
 
-export { SmartWalletFactoryContractV100__factory as SmartWalletFactoryFactoryContractV100 } from '../typechain/src/ethers-v5/v1.0.0/factories/SmartWalletFactoryContractV100__factory'
+export { SmartWalletFactoryContractV100__factory as SmartWalletContractFactoryV100 } from '../typechain/src/ethers-v5/v1.0.0/factories/SmartWalletFactoryContractV100__factory'
 
 export { EntryPointContractV100__factory as EntryPointFactoryContractV100 } from '../typechain/src/ethers-v5/v1.0.0/factories/EntryPointContractV100__factory'
 

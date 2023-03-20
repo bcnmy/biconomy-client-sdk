@@ -218,7 +218,7 @@ class ContractUtils {
     // ) {
     //   this.smartAccountState.address = await this.smartWalletFactoryContract[chainId][
     //     version
-    //   ].getAddressForCounterfactualWallet(owner, 0)
+    //   ].getAddressForCounterFactualAccount(owner, 0)
     //   this.smartAccountState.version = currentVersion
     //   this.smartAccountState.chainId = currentChainId
 

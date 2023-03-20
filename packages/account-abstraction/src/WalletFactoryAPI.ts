@@ -31,13 +31,12 @@ export class WalletFactoryAPI {
       owner,
       handlerAddress,
     ]);
-    // these would be deployCounterfactualWallet
+    // these would be deployCounterFactualAccount
     const factory = new Contract(factoryAddress, [
-      'function deployCounterFactualWallet(address _implementation, bytes memory initializer, uint256 _index) returns(address)'
+      'function deployCounterFactualAccount(address _owner, uint256 _index) returns(address)'
     ])
-    const encodedData = factory.interface.encodeFunctionData('deployCounterFactualWallet', [
-      implementationAddress,
-      initializer,
+    const encodedData = factory.interface.encodeFunctionData('deployCounterFactualAccount', [
+      owner,
       index
     ])
     return encodedData

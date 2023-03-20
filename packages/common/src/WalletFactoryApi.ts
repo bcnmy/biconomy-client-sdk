@@ -16,26 +16,32 @@ export async function getWalletInfo(
   if (!smartAccountInfo.data || smartAccountInfo.data.length == 0) {
     throw new Error("No Smart Account Found against supplied EOA");
   }
+  const walletInfo = smartAccountInfo.data
+  if ( walletInfo.length === 0 )
+  throw new Error('No Wallet Info Found against supplied data')
   // check wallet is deployed on not
-  let wallet = _.filter(smartAccountInfo.data, { 'isDeployed': true })
-  if (wallet.length == 0){
+  let wallet = _.filter(walletInfo, { 'isDeployed': true })
+  if (wallet.length > 0){
     // filtering wallet base on deployed status and latest deployed wallet on chain
-    let walletLists = _.filter(smartAccountInfo.data, { chainId: chainId })
-    walletLists = _.orderBy(walletLists, ['createdAt'], 'desc')
+    let walletLists = _.filter(wallet, { chainId: chainId })
+    if (walletLists.length > 0){
+      return walletLists[0]
+    }
+    walletLists = _.orderBy(wallet, ['createdAt'], 'desc')
     return walletLists[0]
   }
-  return wallet[0]
+  return walletInfo[0]
 }
 
 export async function deployCounterFactualEncodedData(initializerDto: InitializerDto) {
   let { index } = initializerDto
   index = index ? index : 0
   const walletInfo = await getWalletInfo(initializerDto)
-  // these would be deployCounterfactualWallet
+  // these would be deployCounterFactualAccount
   const factory = new Contract(walletInfo.factoryAddress, [
-    'function deployCounterFactualWallet(address _owner, uint256 _index) returns(address)'
+    'function deployCounterFactualAccount(address _owner, uint256 _index) returns(address)'
   ])
-  const encodedData = factory.interface.encodeFunctionData('deployCounterFactualWallet', [
+  const encodedData = factory.interface.encodeFunctionData('deployCounterFactualAccount', [
     walletInfo.owner,
     index
   ])
