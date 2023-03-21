@@ -14,7 +14,6 @@ import { Logger } from '@biconomy/common'
 import { PrepareRefundTransactionsDto, PrepareRefundTransactionDto } from './Types'
 
 export class Estimator {
-  private logger = new Logger()
   nodeClient!: NodeClient
 
   contractUtils!: ContractUtils
@@ -43,7 +42,7 @@ export class Estimator {
         version,
         owner: smartAccountState.owner
       })
-      this.logger.log('estimateWalletDeployment ', estimateWalletDeployment)
+      Logger.log('estimateWalletDeployment ', estimateWalletDeployment)
 
       estimatedGasUsed += estimateWalletDeployment
     }
@@ -81,7 +80,7 @@ export class Estimator {
     )
     const noAuthEstimate =
       Number(ethCallOverrideResponse.data.gas) + Number(ethCallOverrideResponse.data.txBaseGas)
-    this.logger.warn('no auth no refund estimate', noAuthEstimate)
+    Logger.warn('no auth no refund estimate', noAuthEstimate)
 
     estimatedGasUsed += noAuthEstimate
 
@@ -106,7 +105,7 @@ export class Estimator {
         version,
         owner: smartAccountState.owner
       })
-      this.logger.log('estimateWalletDeployment ', estimateWalletDeployment)
+      Logger.log('estimateWalletDeployment ', estimateWalletDeployment)
       estimatedGasUsed += estimateWalletDeployment
     }
 
@@ -143,7 +142,7 @@ export class Estimator {
     )
     const noAuthEstimate =
       Number(ethCallOverrideResponse.data.gas) + Number(ethCallOverrideResponse.data.txBaseGas)
-      this.logger.log('no auth no refund estimate', noAuthEstimate)
+      Logger.log('no auth no refund estimate', noAuthEstimate)
 
     estimatedGasUsed += noAuthEstimate
 
@@ -177,13 +176,13 @@ export class Estimator {
         0
       ])
     ])
-    this.logger.log('encodedEstimate ', encodedEstimateData)
+    Logger.log('encodedEstimate ', encodedEstimateData)
     const deployCostresponse = await this.nodeClient.estimateExternalGas({
       chainId,
       encodedData: encodedEstimateData
     })
     const estimateWalletDeployment = Number(deployCostresponse.data.gas)
-    this.logger.log('estimateWalletDeployment ', estimateWalletDeployment)
+    Logger.log('estimateWalletDeployment ', estimateWalletDeployment)
     return estimateWalletDeployment
   }
 }

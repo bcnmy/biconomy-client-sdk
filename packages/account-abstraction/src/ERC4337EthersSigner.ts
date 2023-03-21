@@ -14,7 +14,6 @@ import { ClientMessenger } from 'messaging-sdk'
 import WebSocket from 'isomorphic-ws'
 export class ERC4337EthersSigner extends Signer {
   // TODO: we have 'erc4337provider', remove shared dependencies or avoid two-way reference
-  private logger = new Logger()
   constructor(
     readonly config: ClientConfig,
     readonly originalSigner: Signer,
@@ -41,22 +40,22 @@ export class ERC4337EthersSigner extends Signer {
     if (!clientMessenger.socketClient.isConnected()) {
       try {
         await clientMessenger.connect()
-        this.logger.log('socket connection success', { socketServerUrl })
+        Logger.log('socket connection success', { socketServerUrl })
       } catch (err) {
-        this.logger.error('socket connection failure', err)
+        Logger.error('socket connection failure', err)
       }
     }
 
-    this.logger.log('received transaction ', transaction)
+    Logger.log('received transaction ', transaction)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const customData: any = transaction.customData
-    this.logger.log('customData', customData)
+    Logger.log('customData', customData)
 
     // customise gasLimit help dapps to supply gasLimit of their choice
     if (customData && (customData.isBatchedToMultiSend || !customData.isDeployed)) {
       if (customData.appliedGasLimit) {
         transaction.gasLimit = customData.appliedGasLimit
-        this.logger.log('gaslimit applied from custom data...', transaction.gasLimit)
+        Logger.log('gaslimit applied from custom data...', transaction.gasLimit)
       }
     }
 
@@ -83,13 +82,13 @@ export class ERC4337EthersSigner extends Signer {
         gasLimit: transaction.gasLimit
       })
     }
-    this.logger.log('signed userOp ', userOperation)
+    Logger.log('signed userOp ', userOperation)
 
     let bundlerServiceResponse: any
 
     try {
       bundlerServiceResponse = await this.httpRpcClient.sendUserOpToBundler(userOperation)
-      this.logger.log('bundlerServiceResponse', bundlerServiceResponse)
+      Logger.log('bundlerServiceResponse', bundlerServiceResponse)
     } catch (error) {
       // console.error('sendUserOpToBundler failed', error)
       throw this.unwrapError(error)
@@ -101,7 +100,7 @@ export class ERC4337EthersSigner extends Signer {
           if (tx) {
             const txHash = tx.transactionHash
             const txId = tx.transactionId
-            this.logger.log('Tx Hash generated message received at client', {
+            Logger.log('Tx Hash generated message received at client', {
               transactionId: txId,
               hash: txHash
             })
@@ -117,7 +116,7 @@ export class ERC4337EthersSigner extends Signer {
           if (tx) {
             const txHash = tx.transactionHash
             const txId = tx.transactionId
-            this.logger.log('Tx Hash changed message received at client', {
+            Logger.log('Tx Hash changed message received at client', {
               transactionId: txId,
               hash: txHash
             })
@@ -131,7 +130,7 @@ export class ERC4337EthersSigner extends Signer {
         },
         onError: async (tx: any) => {
           if (tx) {
-            this.logger.error('Error message received at client', tx)
+            Logger.error('Error message received at client', tx)
             const err = tx.error
             const txId = tx.transactionId
             clientMessenger.unsubscribe(txId)
@@ -171,13 +170,13 @@ export class ERC4337EthersSigner extends Signer {
     if (!clientMessenger.socketClient.isConnected()) {
       try {
         await clientMessenger.connect()
-        this.logger.log('socket connection success', { socketServerUrl })
+        Logger.log('socket connection success', { socketServerUrl })
       } catch (err) {
-        this.logger.error('socket connection failure', err)
+        Logger.error('socket connection failure', err)
       }
     }
 
-    this.logger.log('received transaction ', transactions)
+    Logger.log('received transaction ', transactions)
    
     let userOperation: UserOperation
       // Removing populate transaction all together
@@ -197,13 +196,13 @@ export class ERC4337EthersSigner extends Signer {
         data,
         value,
       })
-    this.logger.log('signed userOp ', userOperation)
+    Logger.log('signed userOp ', userOperation)
 
     let bundlerServiceResponse: any
 
     try {
       bundlerServiceResponse = await this.httpRpcClient.sendUserOpToBundler(userOperation)
-      this.logger.log('bundlerServiceResponse', bundlerServiceResponse)
+      Logger.log('bundlerServiceResponse', bundlerServiceResponse)
     } catch (error) {
       // console.error('sendUserOpToBundler failed', error)
       throw this.unwrapError(error)
@@ -215,7 +214,7 @@ export class ERC4337EthersSigner extends Signer {
           if (tx) {
             const txHash = tx.transactionHash
             const txId = tx.transactionId
-            this.logger.log('Tx Hash generated message received at client', {
+            Logger.log('Tx Hash generated message received at client', {
               transactionId: txId,
               hash: txHash
             })
@@ -231,7 +230,7 @@ export class ERC4337EthersSigner extends Signer {
           if (tx) {
             const txHash = tx.transactionHash
             const txId = tx.transactionId
-            this.logger.log('Tx Hash changed message received at client', {
+            Logger.log('Tx Hash changed message received at client', {
               transactionId: txId,
               hash: txHash
             })
@@ -245,7 +244,7 @@ export class ERC4337EthersSigner extends Signer {
         },
         onError: async (tx: any) => {
           if (tx) {
-            this.logger.error('Error message received at client', tx)
+            Logger.error('Error message received at client', tx)
             const err = tx.error
             const txId = tx.transactionId
             clientMessenger.unsubscribe(txId)
@@ -305,7 +304,7 @@ export class ERC4337EthersSigner extends Signer {
   }
 
   connect (provider: Provider): Signer {
-    this.logger.log('changing providers connect called', provider)
+    Logger.log('changing providers connect called', provider)
     throw new Error('changing providers is not supported')
   }
 
@@ -321,7 +320,7 @@ export class ERC4337EthersSigner extends Signer {
   }
 
   async signTransaction (transaction: Deferrable<TransactionRequest>): Promise<string> {
-    this.logger.log('signTransaction called', transaction)
+    Logger.log('signTransaction called', transaction)
     throw new Error('not implemented')
   }
 

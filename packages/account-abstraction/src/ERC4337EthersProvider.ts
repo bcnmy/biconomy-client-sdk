@@ -18,7 +18,6 @@ export class ERC4337EthersProvider extends BaseProvider {
   initializedBlockNumber!: number
 
   readonly signer: ERC4337EthersSigner
-  private logger = new Logger()
 
   constructor(
     readonly config: ClientConfig,
@@ -86,7 +85,7 @@ export class ERC4337EthersProvider extends BaseProvider {
     confirmations?: number,
     timeout?: number
   ): Promise<TransactionReceipt> {
-    this.logger.log('waitForTransaction', { transactionHash, confirmations, timeout })
+    Logger.log('waitForTransaction', { transactionHash, confirmations, timeout })
     const sender = await this.getSenderAccountAddress()
 
     return await new Promise<TransactionReceipt>((resolve, reject) => {
@@ -116,9 +115,9 @@ export class ERC4337EthersProvider extends BaseProvider {
     if (!clientMessenger.socketClient.isConnected()) {
       try {
         await clientMessenger.connect()
-        this.logger.log('socket connection success', { socketServerUrl })
+        Logger.log('socket connection success', { socketServerUrl })
       } catch (err) {
-        this.logger.error('socket connection failure', err)
+        Logger.error('socket connection failure', err)
       }
     }
 
@@ -131,7 +130,7 @@ export class ERC4337EthersProvider extends BaseProvider {
           onMined: (tx: any) => {
             const txId = tx.transactionId
             clientMessenger.unsubscribe(txId)
-            this.logger.log('Tx Hash mined message received at client', {
+            Logger.log('Tx Hash mined message received at client', {
               transactionId: txId,
               hash: tx.transactionHash,
               receipt: tx.receipt
@@ -163,7 +162,7 @@ export class ERC4337EthersProvider extends BaseProvider {
       data: hexValue(userOp.callData),
       chainId: this.config.chainId,
       wait: async (confirmations?: number): Promise<TransactionReceipt> => {
-        this.logger.log('wait confirmations', { confirmations })
+        Logger.log('wait confirmations', { confirmations })
         const transactionReceipt = waitPromise.then((receipt: TransactionReceipt) => {
           return receipt
         })

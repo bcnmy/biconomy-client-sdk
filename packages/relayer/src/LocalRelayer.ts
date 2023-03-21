@@ -14,7 +14,6 @@ import { MetaTransaction, encodeMultiSend } from './utils/MultiSend'
 // Not meant to use for production environment for transaction ordering.
 export class LocalRelayer implements IRelayer {
   private signer: AbstractSigner
-  private logger = new Logger()
   // TODO : review members
   // private txnOptions: TransactionRequest
 
@@ -101,7 +100,7 @@ export class LocalRelayer implements IRelayer {
         to: multiSendCall.getAddress(),
         data: txnData
       }
-      this.logger.log('finalRawTx', finalRawRx)
+      Logger.log('finalRawTx', finalRawRx)
 
       const tx = this.signer.sendTransaction({
         ...finalRawRx,
@@ -119,7 +118,7 @@ export class LocalRelayer implements IRelayer {
   }
 
   async getFeeOptions(chainId: number): Promise<FeeOptionsResponse> {
-    this.logger.log('requested fee options for chain ', chainId)
+    Logger.log('requested fee options for chain ', chainId)
     // Mock response for local relayer to adhere with the interface!
     const feeOptions: FeeOptionsResponse = {
       msg: 'all ok',

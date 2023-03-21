@@ -4,9 +4,8 @@ import { IMetaTransaction, IWalletTransaction, Transaction } from '@biconomy/cor
 import { Logger } from '@biconomy/common'
 
 export class Utils {
-  private logger = new Logger()
   constructor() {
-    this.logger.log('Utils initialized')
+    Logger.log('Utils initialized')
   }
 
   buildSmartAccountTransaction = (template: {

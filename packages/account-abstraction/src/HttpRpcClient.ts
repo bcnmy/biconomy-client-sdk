@@ -10,7 +10,6 @@ import { Logger, deepHexlify } from '@biconomy/common'
 const debug = Debug('aa.rpc')
 export class HttpRpcClient {
   private readonly userOpJsonRpcProvider: JsonRpcProvider
-  private logger = new Logger()
 
   // initializing: Promise<void>
 
@@ -71,7 +70,7 @@ export class HttpRpcClient {
       }
     })
 
-    this.logger.log('rest relayer : response', response)
+    Logger.log('rest relayer : response', response)
     if (response && response.data) {
       const transactionId = response.data.transactionId
       const connectionUrl = response.data.connectionUrl

@@ -3,6 +3,7 @@ import { TransactionReceipt } from '@ethersproject/providers'
 import { EntryPoint } from '@account-abstraction/contracts'
 import { defaultAbiCoder } from 'ethers/lib/utils'
 import Debug from 'debug'
+import { Logger } from '@biconomy/common'
 
 const debug = Debug('aa.listener')
 
@@ -54,7 +55,7 @@ export class UserOperationEventListener {
   }
 
   async listenerCallback(this: any, ...param: any): Promise<void> {
-    this.logger.log('listenerCallback', { param })
+    Logger.log('listenerCallback', { param })
     const event = arguments[arguments.length - 1] as Event
     if (event.args == null) {
       console.error('got event without args', event)
@@ -62,7 +63,7 @@ export class UserOperationEventListener {
     }
     // TODO: can this happen? we register to event by userOpHash..
     if (event.args.userOpHash !== this.userOpHash) {
-      this.logger.log(
+      Logger.log(
         `== event with wrong userOpHash: sender/nonce: event.${event.args.sender as string}@${
           event.args.nonce.toString() as string
         }!= userOp.${this.sender as string}@${parseInt(this.nonce?.toString())}`

@@ -148,7 +148,7 @@ class SmartAccount extends EventEmitter {
     if (config) {
       const customNetworkConfig: NetworkConfig[] = config.networkConfig || []
       networkConfig = _.unionBy(customNetworkConfig, networkConfig, 'chainId')
-      this.logger.log('Merged network config values', networkConfig)
+      Logger.log('Merged network config values', networkConfig)
       this.#smartAccountConfig = { ...this.#smartAccountConfig, ...config }
       this.#smartAccountConfig.networkConfig = networkConfig
     }
@@ -159,7 +159,7 @@ class SmartAccount extends EventEmitter {
     } else if (Provider.isProvider(signerOrProvider)) {
       this.signer = new SmartAccountSigner(signerOrProvider)
     } else {
-      this.logger.log('signer or provider is not valid')
+      Logger.error('signer or provider is not valid')
     }
     this.nodeClient = new NodeClient({ txServiceUrl: this.#smartAccountConfig.backendUrl })
     this.relayer = new RestRelayer({
@@ -170,7 +170,6 @@ class SmartAccount extends EventEmitter {
     this.chainConfig = []
   }
 
-  private logger = new Logger()
 
   getConfig(): SmartAccountConfig {
     return this.#smartAccountConfig
@@ -188,9 +187,9 @@ class SmartAccount extends EventEmitter {
   }
 
   getProviderUrl(network: ChainConfig): string {
-    this.logger.log('after init smartAccountConfig.networkConfig', this.#smartAccountConfig.networkConfig)
+    Logger.log('after init smartAccountConfig.networkConfig', this.#smartAccountConfig.networkConfig)
     const networkConfig: NetworkConfig[] = this.#smartAccountConfig.networkConfig
-    this.logger.log(`networkConfig state is`, networkConfig)
+    Logger.log(`networkConfig state is`, networkConfig)
     let providerUrl =
       networkConfig.find((element: NetworkConfig) => element.chainId === network.chainId)
         ?.providerUrl || ''
@@ -213,13 +212,13 @@ class SmartAccount extends EventEmitter {
     try {
       exist = this.contractUtils.smartWalletContract[chainId][this.DEFAULT_VERSION].getContract()
     } catch (err) {
-      this.logger.log('Chain config contract not loaded ', chainId)
+      Logger.log('Chain config contract not loaded ', chainId)
     }
     if (!exist) {
       const network = this.chainConfig.find((element: ChainConfig) => element.chainId === chainId)
       if (!network) return
       const providerUrl = this.getProviderUrl(network)
-      this.logger.log('init at chain', chainId)
+      Logger.log('init at chain', chainId)
       let walletInfo: ISmartAccount
 
       // if (!this.address) {
@@ -229,7 +228,7 @@ class SmartAccount extends EventEmitter {
         version: this.DEFAULT_VERSION
       })
       this.address = walletInfo.smartAccountAddress
-      this.logger.log('smart wallet address is ', this.address)
+      Logger.log('smart wallet address is ', this.address)
       // }
 
       const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
@@ -383,21 +382,21 @@ class SmartAccount extends EventEmitter {
       const txnData = multiSendCall
         .getInterface()
         .encodeFunctionData('multiSend', [encodeMultiSend(txs)])
-      this.logger.log('txnData', txnData)
+      Logger.log('txnData', txnData)
 
       // update fallbackUserOp with target and multiSend call data
       fallbackUserOp.target = multiSendCall.getAddress()
       fallbackUserOp.callData = txnData
     }
 
-    this.logger.log('fallbackUserOp before', fallbackUserOp)
+    Logger.log('fallbackUserOp before', fallbackUserOp)
     // send fallback user operation to signing service to get signature and dappIdentifier
     const signingServiceResponse = await this.signingService.getDappIdentifierAndSign(
       fallbackUserOp
     )
     fallbackUserOp.dappIdentifier = signingServiceResponse.dappIdentifier
     fallbackUserOp.signature = signingServiceResponse.signature
-    this.logger.log('fallbackUserOp after', fallbackUserOp)
+    Logger.log('fallbackUserOp after', fallbackUserOp)
 
     const handleFallBackData = await fallbackGasTank.populateTransaction.handleFallbackUserOp(
       fallbackUserOp
@@ -513,7 +512,7 @@ class SmartAccount extends EventEmitter {
     try {
       const { data } = await this.nodeClient.isFallbackEnabled()
       isFallbackEnabled = data.enable_fallback_flow
-      this.logger.log('isFallbackEnabled', data.enable_fallback_flow)
+      Logger.log('isFallbackEnabled', data.enable_fallback_flow)
     } catch (error) {
       console.error('isFallbackEnabled', error)
     }
@@ -859,7 +858,7 @@ class SmartAccount extends EventEmitter {
       relayTrx.gasLimit = gasLimit
     }
     const relayResponse: RelayResponse = await this.relayer.relay(relayTrx, this)
-    this.logger.log('relayResponse', relayResponse)
+    Logger.log('relayResponse', relayResponse)
     if (relayResponse.transactionId) {
       return relayResponse.transactionId
     }
@@ -1064,7 +1063,7 @@ class SmartAccount extends EventEmitter {
       index
     })
 
-    this.logger.log('walletInfo ', walletInfo)
+    Logger.log('walletInfo ', walletInfo)
 
     this.address = walletInfo.smartAccountAddress
 

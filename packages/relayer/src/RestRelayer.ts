@@ -23,7 +23,6 @@ import WebSocket, { EventEmitter } from 'isomorphic-ws'
 export class RestRelayer implements IRelayer {
   #relayServiceBaseUrl: string
   #socketServerUrl: string
-  private logger = new Logger()
 
   relayerNodeEthersProvider!: { [chainId: number]: JsonRpcProvider }
 
@@ -77,7 +76,7 @@ export class RestRelayer implements IRelayer {
 
     if (!clientMessenger.socketClient.isConnected()) {
       await clientMessenger.connect()
-      this.logger.log('socket connect success')
+      Logger.log('socket connect success')
     }
 
     const { config, signedTx, context, gasLimit } = relayTransaction
@@ -126,7 +125,7 @@ export class RestRelayer implements IRelayer {
       finalRawRx = signedTx.rawTx
     }
 
-    this.logger.log('finalRawTx', finalRawRx)
+    Logger.log('finalRawTx', finalRawRx)
 
     // based on the flag make rpc call to relayer code service with necessary rawTx data
     const response: any = await sendRequest({
@@ -161,7 +160,7 @@ export class RestRelayer implements IRelayer {
         onMined: (tx: any) => {
           const txId = tx.transactionId
           clientMessenger.unsubscribe(txId)
-          this.logger.log('Tx Hash mined message received at client', {
+          Logger.log('Tx Hash mined message received at client', {
             transactionId: txId,
             hash: tx.transactionHash,
             receipt: tx.receipt
@@ -176,12 +175,11 @@ export class RestRelayer implements IRelayer {
         onHashGenerated: async (tx: any) => {
           const txHash = tx.transactionHash
           const txId = tx.transactionId
-          this.logger.log('Tx Hash generated message received at client ', {
+          Logger.log('Tx Hash generated message received at client ', {
             transactionId: txId,
             hash: txHash
           })
 
-          this.logger.log('Receive time for transaction id', Date.now())
           engine.emit('txHashGenerated', {
             id: tx.transactionId,
             hash: tx.transactionHash,
@@ -192,7 +190,7 @@ export class RestRelayer implements IRelayer {
           if (tx) {
             const txHash = tx.transactionHash
             const txId = tx.transactionId
-            this.logger.log('Tx Hash changed message received at client ', {
+            Logger.log('Tx Hash changed message received at client ', {
               transactionId: txId,
               hash: txHash
             })
@@ -204,7 +202,7 @@ export class RestRelayer implements IRelayer {
           }
         },
         onError: async (tx: any) => {
-          this.logger.error('Error message received at client', tx)
+          Logger.error('Error message received at client', tx)
           const err = tx.error
           const txId = tx.transactionId
           clientMessenger.unsubscribe(txId)

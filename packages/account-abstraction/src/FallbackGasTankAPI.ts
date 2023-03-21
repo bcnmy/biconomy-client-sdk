@@ -7,7 +7,6 @@ import { Logger } from '@biconomy/common'
  * Verifying and Signing fallback gasless transactions
  */
 export class FallbackGasTankAPI implements IFallbackAPI {
-  private logger = new Logger()
   constructor(readonly signingServiceUrl: string, readonly dappAPIKey: string) {
     this.signingServiceUrl = signingServiceUrl
     this.dappAPIKey = dappAPIKey
@@ -45,7 +44,7 @@ export class FallbackGasTankAPI implements IFallbackAPI {
         throw new Error('Error in fallback signing api')
       }
     } catch (err) {
-      this.logger.error('Error in fallback signing api', err)
+      Logger.error('Error in fallback signing api', err)
       throw new Error('Error in fallback signing api')
     }
   }

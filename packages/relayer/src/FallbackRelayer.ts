@@ -16,7 +16,6 @@ export class FallbackRelayer implements IFallbackRelayer {
   #relayServiceBaseUrl: string
   #relayerServiceUrl: string
   #dappAPIKey: string
-  private logger = new Logger()
 
   relayerNodeEthersProvider!: { [chainId: number]: JsonRpcProvider }
 
@@ -49,9 +48,9 @@ export class FallbackRelayer implements IFallbackRelayer {
     if (!clientMessenger.socketClient.isConnected()) {
       try {
         await clientMessenger.connect()
-        this.logger.log('socket connection success')
+        Logger.log('socket connection success')
       } catch (err) {
-        this.logger.error('socket connection failure', err)
+        Logger.error('socket connection failure', err)
       }
     }
 
@@ -82,7 +81,7 @@ export class FallbackRelayer implements IFallbackRelayer {
         jsonrpc: '2.0'
       }
     })
-    this.logger.log('rest relayer: ', response)
+    Logger.log('rest relayer: ', response)
 
     if (response.data) {
       const transactionId = response.data.transactionId
@@ -94,7 +93,7 @@ export class FallbackRelayer implements IFallbackRelayer {
             onMined: (tx: any) => {
               const txId = tx.transactionId
               clientMessenger.unsubscribe(txId)
-              this.logger.log('Tx Hash mined message received at client', {
+              Logger.log('Tx Hash mined message received at client', {
                 transactionId: txId,
                 hash: tx.transactionHash,
                 receipt: tx.receipt
@@ -120,7 +119,7 @@ export class FallbackRelayer implements IFallbackRelayer {
         onMined: (tx: any) => {
           const txId = tx.transactionId
           clientMessenger.unsubscribe(txId)
-          this.logger.log('Tx Hash mined message received at client', {
+          Logger.log('Tx Hash mined message received at client', {
             transactionId: txId,
             hash: tx.transactionHash,
             receipt: tx.receipt
@@ -135,11 +134,11 @@ export class FallbackRelayer implements IFallbackRelayer {
         onHashGenerated: async (tx: any) => {
           const txHash = tx.transactionHash
           const txId = tx.transactionId
-          this.logger.log('Tx Hash generated message received at client', {
+          Logger.log('Tx Hash generated message received at client', {
             transactionId: txId,
             hash: txHash
           })
-          this.logger.log(`Receive time for transaction id ${txId}: ${Date.now()}`)
+          Logger.log(`Receive time for transaction id ${txId}: ${Date.now()}`)
 
           engine.emit('txHashGenerated', {
             id: tx.transactionId,
@@ -151,7 +150,7 @@ export class FallbackRelayer implements IFallbackRelayer {
           if (tx) {
             const txHash = tx.transactionHash
             const txId = tx.transactionId
-            this.logger.log('Tx Hash changed message received at client', {
+            Logger.log('Tx Hash changed message received at client', {
               transactionId: txId,
               hash: txHash
             })
@@ -163,7 +162,7 @@ export class FallbackRelayer implements IFallbackRelayer {
           }
         },
         onError: async (tx: any) => {
-          this.logger.error('Error message received at client', tx)
+          Logger.error('Error message received at client', tx)
           const err = tx.error
           const txId = tx.transactionId
           clientMessenger.unsubscribe(txId)
@@ -187,7 +186,7 @@ export class FallbackRelayer implements IFallbackRelayer {
         data: hexValue(signedTx.rawTx.data || '0x'),
         chainId: signedTx.rawTx.chainId,
         wait: async (confirmations?: number): Promise<TransactionReceipt> => {
-          this.logger.log('wait confirmations', confirmations)
+          Logger.log('wait confirmations', confirmations)
           const transactionReceipt = waitPromise.then((receipt: TransactionReceipt) => {
             return receipt
           })

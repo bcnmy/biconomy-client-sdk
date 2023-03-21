@@ -14,7 +14,6 @@ interface HttpRequest {
   headers?: object
 }
 export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRequest): Promise<T> {
-  const logger = new Logger()
   const response = await fetch(url, {
     method,
     headers: {
@@ -24,15 +23,15 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
     },
     body: JSON.stringify(body)
   })
-  logger.log('http response ', response)
+  Logger.log('http response ', response)
   
   let jsonResponse
   try {
     jsonResponse = await response.json()
   } catch (error) {
-    logger.log('error ', error)
+    Logger.log('error ', error)
     if (!response.ok) {
-      logger.error('http response ', response)
+      Logger.error('http response ', response)
       
       throw new Error(response.statusText)
     }

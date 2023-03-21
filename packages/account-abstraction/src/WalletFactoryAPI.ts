@@ -12,14 +12,13 @@ export class WalletFactoryAPI {
     implementationAddress: string,
     index: number
   ): Promise<string> {
-    const logger = new Logger()
     const walletInfo = await getWalletInfo({
       chainId,
       owner,
       txServiceUrl,
       index
     })
-    logger.log('walletInfo ', walletInfo)
+    Logger.log('walletInfo ', walletInfo)
     if ( walletInfo.isDeployed ){
       handlerAddress = walletInfo.handlerAddress
       implementationAddress = walletInfo.implementationAddress

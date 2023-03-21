@@ -13,7 +13,7 @@ import { WalletFactoryAPI } from './WalletFactoryAPI' // could be renamed smart 
 import { BiconomyPaymasterAPI } from './BiconomyPaymasterAPI'
 import { ZERO_ADDRESS } from '@biconomy/core-types'
 import { GasOverheads } from './calcPreVerificationGas'
-import { deployCounterFactualEncodedData } from '@biconomy/common'
+import { Logger, deployCounterFactualEncodedData } from '@biconomy/common'
 
 // may use...
 export interface SmartAccountApiParams extends BaseApiParams {
@@ -92,7 +92,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
   }
 
   async nonce(): Promise<BigNumber> {
-    this.logger.log('checking nonce')
+    Logger.log('checking nonce')
     if (!(await this.checkAccountDeployed())) {
       return BigNumber.from(0)
     }
@@ -150,7 +150,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
       value,
       data,
     ])
-    this.logger.log('encodeData ', encodeData)
+    Logger.log('encodeData ', encodeData)
     return encodeData
   }
 
@@ -162,14 +162,14 @@ export class SmartAccountAPI extends BaseAccountAPI {
    */
   async createUnsignedUserOp(info: TransactionDetailsForBatchUserOp): Promise<UserOperation> {
     const { callData, callGasLimit } = await this.encodeUserOpCallDataAndGasLimit(info)
-    this.logger.log('callData ', callData)
+    Logger.log('callData ', callData)
     
 
     const initCode = await this.getInitCode()
-    this.logger.log('initCode ', initCode)
+    Logger.log('initCode ', initCode)
 
     const initGas = await this.estimateCreationGas(initCode)
-    this.logger.log('initgas estimated is ', initGas)
+    Logger.log('initgas estimated is ', initGas)
 
     // Review verification gas limit
     // Test tx : https://mumbai.polygonscan.com/tx/0x4d862c501360988e77155c8a28812d1641d2fcca53d266ef3ad189e4a34fcdd0

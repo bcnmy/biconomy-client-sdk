@@ -63,8 +63,6 @@ export abstract class BaseAccountAPI {
    */
   accountContract!: SmartWalletContractV100 //possibly rename to account 
 
-  logger = new Logger();
-
   /**
    * base constructor.
    * subclass SHOULD add parameters that define the owner (signer) of this wallet
@@ -168,7 +166,7 @@ export abstract class BaseAccountAPI {
     }
     const senderAddressCode = await this.provider.getCode(this.getAccountAddress())
     if (senderAddressCode.length > 2) {
-      this.logger.log('Smart account Contract already deployed at', this.senderAddress)
+      Logger.log('Smart account Contract already deployed at', this.senderAddress)
       this.isDeployed = true
     } else {
     }
@@ -260,9 +258,9 @@ export abstract class BaseAccountAPI {
 
     let callGasLimit = BigNumber.from(0)
 
-    this.logger.log('detailsForUserOp.gasLimit ', detailsForUserOp.gasLimit);
+    Logger.log('detailsForUserOp.gasLimit ', detailsForUserOp.gasLimit);
     if (!detailsForUserOp.gasLimit){
-        this.logger.log('GasLimit is not defined', this.getAccountAddress());
+        Logger.log('GasLimit is not defined', this.getAccountAddress());
         callGasLimit = (await this.provider.estimateGas({
           from: this.entryPoint.address,
           to: this.getAccountAddress(),
@@ -319,7 +317,7 @@ export abstract class BaseAccountAPI {
    * @param userOp the UserOperation to sign (with signature field ignored)
    */
   async signUserOp(userOp: UserOperation): Promise<UserOperation> {
-    this.logger.log('signUserOp', userOp)
+    Logger.log('signUserOp', userOp)
     const userOpHash = await this.getUserOpHash(userOp)
     const signature = await this.signUserOpHash(userOpHash)
     return {
