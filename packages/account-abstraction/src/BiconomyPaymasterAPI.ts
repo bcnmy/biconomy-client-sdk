@@ -2,6 +2,7 @@ import { resolveProperties } from '@ethersproject/properties'
 import { UserOperation } from '@biconomy/core-types'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
 import { IPaymasterAPI } from '@biconomy/core-types'
+import { Logger } from '@biconomy/common'
 
 /**
  * Verifying Paymaster API supported via Biconomy dahsboard to enable Gasless transactions
@@ -36,8 +37,7 @@ export class BiconomyPaymasterAPI implements IPaymasterAPI {
         body: { userOp: userOp }
       })
 
-      console.log('******** ||||| *********')
-      console.log('verifying and signing service response', result)
+      Logger.log('verifying and signing service response', result)
 
       if (result && result.data && result.statusCode === 200) {
         return result.data.paymasterAndData

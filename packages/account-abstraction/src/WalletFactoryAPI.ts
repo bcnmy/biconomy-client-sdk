@@ -1,5 +1,5 @@
 import { Contract } from 'ethers'
-import { getWalletInfo } from '@biconomy/common'
+import { Logger, getWalletInfo } from '@biconomy/common'
 import { ChainId } from '@biconomy/core-types'
 // review // rename to SmartAccountFactoryAPI
 export class WalletFactoryAPI {
@@ -18,7 +18,7 @@ export class WalletFactoryAPI {
       txServiceUrl,
       index
     })
-    console.log('walletInfo ', walletInfo);
+    Logger.log('walletInfo ', walletInfo)
     if ( walletInfo.isDeployed ){
       handlerAddress = walletInfo.handlerAddress
       implementationAddress = walletInfo.implementationAddress
