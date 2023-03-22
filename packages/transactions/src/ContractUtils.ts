@@ -6,7 +6,8 @@ import {
   MultiSendCallOnlyContract,
   SmartAccountContext,
   SmartAccountState,
-  FallbackGasTankContract
+  FallbackGasTankContract,
+  DefaultCallbackHandlerContract
 } from '@biconomy/core-types'
 import { ChainConfig } from '@biconomy/node-client'
 import {
@@ -14,7 +15,8 @@ import {
   getMultiSendContract,
   getMultiSendCallOnlyContract,
   getSmartWalletContract,
-  getFallbackGasTankContract
+  getFallbackGasTankContract,
+  getDefaultCallbackHandlerContract
 } from './utils/FetchContractsInfo'
 import { ethers, Signer } from 'ethers'
 import EvmNetworkManager from '@biconomy/ethers-lib'
@@ -34,6 +36,8 @@ class ContractUtils {
   }
 
   fallbackGasTankContract!: { [chainId: number]: { [version: string]: FallbackGasTankContract } }
+
+  defaultCallbackHandlerContract!: { [chainId: number]: { [version: string]: DefaultCallbackHandlerContract } }
 
   smartAccountState!: SmartAccountState
 
@@ -60,6 +64,7 @@ class ContractUtils {
     this.multiSendContract[walletInfo.chainId] = {}
     this.multiSendCallOnlyContract[walletInfo.chainId] = {}
     this.fallbackGasTankContract[walletInfo.chainId] = {}
+    this.defaultCallbackHandlerContract[walletInfo.chainId] = {}
     const version = walletInfo.version
     console.log('version ', version);
     
@@ -101,6 +106,14 @@ class ContractUtils {
       chaininfo.fallBackGasTankAddress
     )
     console.log('fallBackGasTankAddress ',  chaininfo.fallBackGasTankAddress);
+
+    this.defaultCallbackHandlerContract[walletInfo.chainId][version] = getDefaultCallbackHandlerContract(
+      version,
+      this.ethAdapter[walletInfo.chainId],
+      walletInfo.fallBackHandlerAddress
+    )
+    console.log('defaultCallbackHandlerAddress ',  walletInfo.fallBackHandlerAddress);
+    // 
 
     }
 
@@ -246,8 +259,17 @@ class ContractUtils {
   ) {
     let walletContract = this.smartWalletContract[chainId][version].getContract()
     return walletContract.attach(address)
-
   }
+
+  attachCallbackHandlerContract(
+    chainId: ChainId,
+    version: SmartAccountVersion,
+    address: string
+  ) {
+    let handlerContract = this.defaultCallbackHandlerContract[chainId][version].getContract()
+    return handlerContract.attach(address)
+  }
+
 }
 
 export default ContractUtils

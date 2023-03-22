@@ -47,6 +47,14 @@ export function getFallbackGasTankContract(
   return ethAdapter.getFallbackGasTankContract(smartAccountVersion, address)
 }
 
+export function getDefaultCallbackHandlerContract(
+  smartAccountVersion: SmartAccountVersion,
+  ethAdapter: EthersAdapter,
+  address: string
+): FallbackGasTankContract {
+  return ethAdapter.getDefaultCallbackHandlerContract(smartAccountVersion, address)
+}
+
 export function findChainById(chainId: ChainId, chainConfig: ChainConfig[]): ChainConfig {
   const currentChainInfo = chainConfig.find((n: ChainConfig) => {
     return n.chainId === chainId

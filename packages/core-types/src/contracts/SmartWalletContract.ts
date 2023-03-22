@@ -8,6 +8,7 @@ import { SmartAccountVersion } from '../Types'
 import { BigNumber } from '@ethersproject/bignumber'
 import { Interface } from '@ethersproject/abi'
 import { Contract } from '@ethersproject/contracts'
+import { BytesLike } from 'ethers'
 
 export interface SmartWalletContract {
   getAddress(): string
@@ -19,6 +20,7 @@ export interface SmartWalletContract {
   getVersion(): Promise<SmartAccountVersion>
   getNonce(batchId: number): Promise<BigNumber>
   nonce(): Promise<BigNumber>
+  isValidSignature(_dataHash: string, _signature: string): Promise<BytesLike>
   getTransactionHash(smartAccountTrxData: IWalletTransaction): Promise<string>
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   execTransaction(
