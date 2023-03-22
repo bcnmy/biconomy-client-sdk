@@ -69,6 +69,14 @@ export function calcPreVerificationGas (userOp: Partial<NotPromise<UserOperation
 
   const packed = arrayify(packUserOp(p, false))
   const lengthInWord = (packed.length + 31) / 32;
+  /**
+   * general explanation
+   * 21000 base gas
+   * ~ 18300 gas per userOp : corresponds to _validateAccountAndPaymasterValidationData() method, 
+   * Some lines in _handlePostOp() after actualGasCost calculation and compensate() method called in handleOps() method
+   * plus any gas overhead that can't be tracked on-chain 
+   * (if bundler needs to charge the premium one way is to increase this value for ops to sign)
+   */
   const callDataCost = packed.map(x => x === 0 ? ov.zeroByte : ov.nonZeroByte).reduce((sum, x) => sum + x)
   const ret = Math.round(
     callDataCost +
