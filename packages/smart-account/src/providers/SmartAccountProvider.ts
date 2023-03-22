@@ -57,7 +57,6 @@ export class SmartAccountProvider extends BaseProvider {
   }
 
   async getTransaction(transactionHash: string | Promise<string>): Promise<TransactionResponse> {
-    // TODO
     // Getting wallet transaction
     return await super.getTransaction(transactionHash)
   }
@@ -65,7 +64,6 @@ export class SmartAccountProvider extends BaseProvider {
   // Could be
   // getTransactionReceipt
 
-  // TODO
   // Helper for fabricating a response in a format usable by ethers users...
   async constructSmartAccountTransactionResponse(
     tx: IWalletTransaction

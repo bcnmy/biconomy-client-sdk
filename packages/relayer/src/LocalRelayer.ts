@@ -15,7 +15,6 @@ import { MetaTransaction, encodeMultiSend } from './utils/MultiSend'
 // Not meant to use for production environment for transaction ordering.
 export class LocalRelayer implements IRelayer {
   private signer: AbstractSigner
-  // TODO : review members
   // private txnOptions: TransactionRequest
 
   constructor(signer: AbstractSigner) {
@@ -27,7 +26,6 @@ export class LocalRelayer implements IRelayer {
   // Defines a type DeployWallet that takes config, context for SCW in this context
   async deployWallet(deployWallet: DeployWallet): Promise<TransactionResponse> {
     // checkd if already deployed
-    // TODO : Review for index and ownership transfer case
     const { config, context, index = 0 } = deployWallet
     const { isDeployed } = config
     if ( isDeployed ) {

@@ -26,7 +26,6 @@ export class RestRelayer implements IRelayer {
   relayerNodeEthersProvider!: { [chainId: number]: JsonRpcProvider }
 
   constructor(options: RestRelayerOptions) {
-    // TODO : Rename url to relayerServiceUrl
     const { url, socketServerUrl } = options
     this.relayerNodeEthersProvider = {}
     this.#relayServiceBaseUrl = url
@@ -66,7 +65,6 @@ export class RestRelayer implements IRelayer {
     }
   }
 
-  // todo: modify this dto to accept a flag isFallbackEnabled
   // if the wallet is deployed baseGas would be coming as part of struct in rawtx
   async relay(relayTransaction: RelayTransaction, engine: EventEmitter): Promise<RelayResponse> {
     const socketServerUrl = this.#socketServerUrl

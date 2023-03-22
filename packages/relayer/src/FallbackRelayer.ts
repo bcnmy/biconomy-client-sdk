@@ -183,7 +183,6 @@ export class FallbackRelayer implements IFallbackRelayer {
         }
       })
 
-      // TODO: confirm return type
       return {
         hash: transactionId, // transactionId, can get orignal txHash by wait promise or event
         confirmations: 0,

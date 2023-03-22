@@ -36,12 +36,9 @@ export class HttpRpcClient {
     }
   }
 
-  // TODO : add version of HttpRpcClient || interface in RPC relayer to sendSCWTransactionToRelayer
-
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   async sendUserOpToBundler(userOp1: UserOperation): Promise<any> {
     // await this.initializing
-    // TODO comes from own config
     const hexifiedUserOp = deepHexlify(await resolveProperties(userOp1))
 
     const jsonRequestData: [UserOperation, string] = [hexifiedUserOp, this.entryPointAddress]
@@ -53,7 +50,6 @@ export class HttpRpcClient {
       const metaData = {
         dappAPIKey: this.dappAPIKey
       }
-      // TODO : evaluate this for other bundler clients not operating a Dapp dashboard
       params = [hexifiedUserOp, this.entryPointAddress, this.chainId, metaData]
     } else {
       params = [hexifiedUserOp, this.entryPointAddress, this.chainId]
