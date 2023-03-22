@@ -39,6 +39,7 @@
   "dependencies": {
     "@account-abstraction/contracts": "^0.5.0",
     "@biconomy/core-types": "^1.0.0",
+    "@biconomy/node-client": "^1.0.0",
     "@biconomy/ethers-lib": "^1.0.0",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/bytes": "^5.7.0",
