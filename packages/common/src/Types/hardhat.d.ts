@@ -17,10 +17,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.BaseAccount__factory>;
     getContractFactory(
-      name: "BaseWallet",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.BaseWallet__factory>;
-    getContractFactory(
       name: "IAccount",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IAccount__factory>;
@@ -37,17 +33,9 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IStakeManager__factory>;
     getContractFactory(
-      name: "IWallet",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IWallet__factory>;
-    getContractFactory(
       name: "SimpleAccount",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.SimpleAccount__factory>;
-    getContractFactory(
-      name: "SimpleWallet",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.SimpleWallet__factory>;
     getContractFactory(
       name: "IERC1822Proxiable",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -83,11 +71,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.BaseAccount>;
     getContractAt(
-      name: "BaseWallet",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.BaseWallet>;
-    getContractAt(
       name: "IAccount",
       address: string,
       signer?: ethers.Signer
@@ -108,20 +91,10 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IStakeManager>;
     getContractAt(
-      name: "IWallet",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IWallet>;
-    getContractAt(
       name: "SimpleAccount",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.SimpleAccount>;
-    getContractAt(
-      name: "SimpleWallet",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.SimpleWallet>;
     getContractAt(
       name: "IERC1822Proxiable",
       address: string,
