@@ -70,7 +70,6 @@ class ContractUtils {
     )
     console.log('factoryAddress ',  walletInfo.factoryAddress);
 
-    // NOTE/TODO : attached address is not wallet address yet
     this.smartWalletContract[walletInfo.chainId][version] = getSmartWalletContract(
       version,
       this.ethAdapter[walletInfo.chainId],

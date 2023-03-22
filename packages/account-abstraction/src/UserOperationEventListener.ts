@@ -60,7 +60,6 @@ export class UserOperationEventListener {
       console.error('got event without args', event)
       return
     }
-    // TODO: can this happen? we register to event by userOpHash..
     if (event.args.userOpHash !== this.userOpHash) {
       console.log(`== event with wrong userOpHash: sender/nonce: event.${event.args.sender as string}@${event.args.nonce.toString() as string}!= userOp.${this.sender as string}@${parseInt(this.nonce?.toString())}`)
       return

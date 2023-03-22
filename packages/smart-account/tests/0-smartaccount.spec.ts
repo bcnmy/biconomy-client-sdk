@@ -2082,7 +2082,6 @@ describe('Wallet integration', function () {
       expect(context.baseWallet).to.be.equal(smartAccount.smartAccount())
       expect(context.walletFactory).to.be.equal(smartAccount.factory())
       expect(context.multiSend).to.be.equal(smartAccount.multiSend())
-      // todo review
       // expect(context.multiSendCall).to.be.equal(smartAccount.multiSendCall())
     })
 

@@ -12,7 +12,6 @@ import { BaseAccountAPI } from './BaseAccountAPI'
 import { ClientMessenger } from 'messaging-sdk'
 import WebSocket from 'isomorphic-ws'
 export class ERC4337EthersSigner extends Signer {
-  // TODO: we have 'erc4337provider', remove shared dependencies or avoid two-way reference
   constructor(
     readonly config: ClientConfig,
     readonly originalSigner: Signer,
@@ -156,10 +155,6 @@ export class ERC4337EthersSigner extends Signer {
       bundlerServiceResponse.transactionId,
       engine
     )
-    // const receipt = await transactionResponse.wait()
-    // console.log('transactionResponse in sendTransaction', receipt)
-
-    // TODO: handle errors - transaction that is "rejected" by bundler is _not likely_ to ever resolve its "wait()"
     return transactionResponse
   }
 
@@ -281,7 +276,6 @@ export class ERC4337EthersSigner extends Signer {
     // const receipt = await transactionResponse.wait()
     // console.log('transactionResponse in sendTransaction', receipt)
 
-    // TODO: handle errors - transaction that is "rejected" by bundler is _not likely_ to ever resolve its "wait()"
     return transactionResponse
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -291,7 +285,6 @@ export class ERC4337EthersSigner extends Signer {
       let paymasterInfo: string = ''
       let failedOpMessage: string | undefined = errorBody?.error?.message
       if (failedOpMessage?.includes('FailedOp') === true) {
-        // TODO: better error extraction methods will be needed
         const matched = failedOpMessage.match(/FailedOp\((.*)\)/)
         if (matched != null) {
           const split = matched[1].split(',')
