@@ -163,6 +163,12 @@ export abstract class BaseAccountAPI {
   abstract getPreVerificationGas (userOp: Partial<UserOperation>): Promise<number>
 
   /**
+   * return maximum gas used for verification.
+   * NOTE: createUnsignedUserOp will add to this value the cost of creation, if the contract is not yet created.
+   */
+  abstract getVerificationGasLimit (): Promise<BigNumberish> 
+
+  /**
    * check if the wallet is already deployed.
    */
   async checkAccountDeployed(): Promise<boolean> {
@@ -203,15 +209,6 @@ export abstract class BaseAccountAPI {
       return await this.getAccountInitCode()
     }
     return '0x'
-  }
-
-  /**
-   * return maximum gas used for verification.
-   * NOTE: createUnsignedUserOp will add to this value the cost of creation, if the contract is not yet created.
-   */
-   async getVerificationGasLimit (): Promise<BigNumberish> {
-    // Verification gas should be max(initGas(wallet deployment), validateUserOp + validatePaymasterUserOp , postOp)
-    return 100000
   }
 
   /**
@@ -259,6 +256,8 @@ export abstract class BaseAccountAPI {
     console.log('detailsForUserOp.gasLimit ', detailsForUserOp.gasLimit);
     if (!detailsForUserOp.gasLimit){
         console.log('GasLimit is not defined');
+        // TODO : error handling
+        // Capture the failure and throw message
         callGasLimit = (await this.provider.estimateGas({
           from: this.entryPoint.address,
           to: this.getAccountAddress(),
