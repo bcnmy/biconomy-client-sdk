@@ -14,7 +14,7 @@ import { TransactionDetailsForBatchUserOp } from './TransactionDetailsForUserOp'
 import { resolveProperties } from 'ethers/lib/utils'
 import { IPaymasterAPI } from '@biconomy/core-types' // only use interface
 import { getUserOpHash, NotPromise, packUserOp } from '@biconomy/common'
-import { calcPreVerificationGas, GasOverheads } from './calcPreVerificationGas'
+import { GasOverheads } from './calcPreVerificationGas'
 
 // might make use of this
 export interface BaseApiParams {
@@ -157,6 +157,18 @@ export abstract class BaseAccountAPI {
   abstract signUserOpHash (userOpHash: string): Promise<string>
 
   /**
+   * should cover cost of putting calldata on-chain, and some overhead.
+   * actual overhead depends on the expected bundle size
+   */
+  abstract getPreVerificationGas (userOp: Partial<UserOperation>): Promise<number>
+
+  /**
+   * return maximum gas used for verification.
+   * NOTE: createUnsignedUserOp will add to this value the cost of creation, if the contract is not yet created.
+   */
+  abstract getVerificationGasLimit (): Promise<BigNumberish> 
+
+  /**
    * check if the wallet is already deployed.
    */
   async checkAccountDeployed(): Promise<boolean> {
@@ -197,23 +209,6 @@ export abstract class BaseAccountAPI {
       return await this.getAccountInitCode()
     }
     return '0x'
-  }
-
-  /**
-   * return maximum gas used for verification.
-   * NOTE: createUnsignedUserOp will add to this value the cost of creation, if the contract is not yet created.
-   */
-   async getVerificationGasLimit (): Promise<BigNumberish> {
-    return 100000
-  }
-
-  /**
-   * should cover cost of putting calldata on-chain, and some overhead.
-   * actual overhead depends on the expected bundle size
-   */
-  async getPreVerificationGas (userOp: Partial<UserOperation>): Promise<number> {
-    const p = await resolveProperties(userOp)
-    return calcPreVerificationGas(p, this.overheads)
   }
 
   /**
@@ -261,6 +256,8 @@ export abstract class BaseAccountAPI {
     console.log('detailsForUserOp.gasLimit ', detailsForUserOp.gasLimit);
     if (!detailsForUserOp.gasLimit){
         console.log('GasLimit is not defined');
+        // TODO : error handling
+        // Capture the failure and throw message
         callGasLimit = (await this.provider.estimateGas({
           from: this.entryPoint.address,
           to: this.getAccountAddress(),

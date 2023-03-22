@@ -16,27 +16,16 @@ import { TransactionRequest } from '@ethersproject/providers'
 
 export class SmartAccountSigner extends EthersSigner implements TypedDataSigner {
   readonly provider: JsonRpcProvider
-  // todo : later
-  //readonly sender: JsonRpcSender
   readonly defaultChainId: number | undefined
 
   constructor(provider: JsonRpcProvider, defaultChainId?: number) {
     super()
     this.provider = provider
     this.defaultChainId = defaultChainId
-    // todo : later
     //this.sender = new JsonRpcSender(provider)
   }
 
   _address!: string
-
-  // May have
-  // _relayer
-
-  // Might have
-  // _context: not smartAccountContext but the addresses of contracts from SmartAccountState
-
-  // todo : later
   /**
    * Note: When you do getAddress it could use provider.getAddress / provider.getSmartAccountAddress or directly access SmartAccountAPI
    */
@@ -59,9 +48,6 @@ export class SmartAccountSigner extends EthersSigner implements TypedDataSigner 
     return signature
   }
 
-  // Review getProvider
-
-  // todo : implement sendTransaction
 
   // signMessage matches implementation from ethers JsonRpcSigner for compatibility
   async signMessage(message: BytesLike): Promise<string> {

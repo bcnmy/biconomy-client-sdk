@@ -1,7 +1,6 @@
 import { BigNumber, BigNumberish } from 'ethers'
 // import { EntryPointContractV100 } from '@biconomy/ethers-lib'
 import { EntryPoint } from '@account-abstraction/contracts'
-
 import { ClientConfig } from './ClientConfig' // added in this design
 import { arrayify, hexConcat } from 'ethers/lib/utils'
 import { Signer } from '@ethersproject/abstract-signer'
@@ -9,10 +8,9 @@ import { TransactionDetailsForUserOp, TransactionDetailsForBatchUserOp } from '.
 import { UserOperation } from '@biconomy/core-types'
 import { BaseApiParams, BaseAccountAPI } from './BaseAccountAPI'
 import { Provider } from '@ethersproject/providers'
-import { WalletFactoryAPI } from './WalletFactoryAPI' // could be renamed smart account factory
 import { BiconomyPaymasterAPI } from './BiconomyPaymasterAPI'
-import { ZERO_ADDRESS } from '@biconomy/core-types'
-import { GasOverheads } from './calcPreVerificationGas'
+import { resolveProperties } from 'ethers/lib/utils'
+import { calcPreVerificationGas, GasOverheads } from './calcPreVerificationGas'
 import { deployCounterFactualEncodedData } from '@biconomy/common'
 
 // may use...
@@ -21,6 +19,37 @@ export interface SmartAccountApiParams extends BaseApiParams {
   factoryAddress?: string
   index?: number
 }
+
+export interface VerificationGasLimits {
+  /**
+   * per userOp gasLimit for validateUserOp()
+   * called from entrypoint to the account
+   * should consider max execution
+   */
+  validateUserOpGas: number
+
+  /**
+   * per userOp gasLimit for validatePaymasterUserOp()
+   * called from entrypoint to the paymaster
+   * should consider max execution
+   */
+  validatePaymasterUserOpGas: number
+
+  /**
+   * per userOp gasLimit for postOp()
+   * called from entrypoint to the paymaster
+   * should consider max execution for paymaster/s this account may use
+   */
+  postOpGas: number
+}
+
+export const DefaultGasLimits: VerificationGasLimits = {
+  validateUserOpGas: 61943,
+  validatePaymasterUserOpGas: 25101,
+  postOpGas: 10877,
+}
+
+
 
 /**
  * An implementation of the BaseWalletAPI using the SmartWalletContract contract.
@@ -135,6 +164,39 @@ export class SmartAccountAPI extends BaseAccountAPI {
   //   ])
   // }
 
+  /**
+   * should cover cost of putting calldata on-chain, and some overhead.
+   * actual overhead depends on the expected bundle size
+   */
+  async getPreVerificationGas (userOp: Partial<UserOperation>): Promise<number> {
+    const p = await resolveProperties(userOp)
+    return calcPreVerificationGas(p, this.overheads)
+  }
+
+   /**
+   * return maximum gas used for verification.
+   * NOTE: createUnsignedUserOp will add to this value the cost of creation, if the contract is not yet created.
+   */
+   async getVerificationGasLimit (): Promise<BigNumberish> {
+    // Verification gas should be max(initGas(wallet deployment) + validateUserOp + validatePaymasterUserOp , postOp)
+    const initCode = await this.getInitCode()
+
+    const initGas = await this.estimateCreationGas(initCode)
+    console.log('initgas estimated is ', initGas)
+
+    let verificationGasLimit = initGas;
+    const validateUserOpGas = DefaultGasLimits.validatePaymasterUserOpGas + DefaultGasLimits.validateUserOpGas;
+    const postOpGas = DefaultGasLimits.postOpGas;
+
+    verificationGasLimit = BigNumber.from(validateUserOpGas).add(initGas);
+
+    
+    if(BigNumber.from(postOpGas).gt(verificationGasLimit)) {
+      verificationGasLimit = postOpGas;
+    }
+    return verificationGasLimit
+  }
+
   async encodeExecuteCall(target: string, value: BigNumberish, data: string): Promise<string>{
     const walletContract = await this._getSmartAccountContract()
     return walletContract.interface.encodeFunctionData('executeCall', [
@@ -163,18 +225,10 @@ export class SmartAccountAPI extends BaseAccountAPI {
   async createUnsignedUserOp(info: TransactionDetailsForBatchUserOp): Promise<UserOperation> {
     const { callData, callGasLimit } = await this.encodeUserOpCallDataAndGasLimit(info)
     console.log(callData, callGasLimit);
-    
 
     const initCode = await this.getInitCode()
-    console.log('initCode ', initCode)
-
-    const initGas = await this.estimateCreationGas(initCode)
-    console.log('initgas estimated is ', initGas)
-
-    // Review verification gas limit
-    // Test tx : https://mumbai.polygonscan.com/tx/0x4d862c501360988e77155c8a28812d1641d2fcca53d266ef3ad189e4a34fcdd0
-    const verificationGasLimit = BigNumber.from(await this.getVerificationGasLimit())
-    .add(initGas)
+    
+    const verificationGasLimit = BigNumber.from(await this.getVerificationGasLimit());
 
     let {
       maxFeePerGas,
@@ -211,7 +265,6 @@ export class SmartAccountAPI extends BaseAccountAPI {
       this.paymasterAPI == null ? '0x' : await this.paymasterAPI.getPaymasterAndData(partialUserOp)
     return {
       ...partialUserOp,
-      // preVerificationGas: this.getPreVerificationGas(partialUserOp),
       signature: ''
     }
   }
