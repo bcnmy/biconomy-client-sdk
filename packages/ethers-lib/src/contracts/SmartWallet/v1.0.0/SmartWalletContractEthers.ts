@@ -12,6 +12,7 @@ import { SmartWalletContractV100 as SmartWalletContract_TypeChain } from '../../
 import { SmartWalletContractV100Interface } from '../../../../typechain/src/ethers-v5/v1.0.0/SmartWalletContractV100'
 import { Interface } from 'ethers/lib/utils'
 import { Contract } from '@ethersproject/contracts'
+import { BytesLike } from 'ethers'
 class SmartWalletContractEthers implements SmartWalletContract {
   constructor(public contract: SmartWalletContract_TypeChain) {}
 
@@ -46,6 +47,11 @@ class SmartWalletContractEthers implements SmartWalletContract {
   async nonce(): Promise<BigNumber> {
     return await this.contract.nonce()
   }
+
+  async isValidSignature(_dataHash: string, _signature: string): Promise<BytesLike> {
+    return this.contract.isValidSignature(_dataHash, _signature)
+  }
+
   async getTransactionHash(smartAccountTrxData: IWalletTransaction): Promise<string> {
     return this.contract.getTransactionHash(
       smartAccountTrxData.to,
