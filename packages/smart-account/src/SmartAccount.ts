@@ -54,7 +54,7 @@ import TransactionManager, {
 import EventEmitter from 'events'
 import { TransactionResponse } from '@ethersproject/providers'
 import { SmartAccountSigner } from './signers/SmartAccountSigner'
-import { DevelopmentConfig, ProductionConfig } from './config'
+import { DevelopmentConfig, StagingConfig, ProductionConfig } from './config'
 // AA
 import {
   newProvider,
@@ -142,6 +142,10 @@ class SmartAccount extends EventEmitter {
     else if (env && env === Environments.DEV){
       Logger.log('Client connected to testing environment');
       this.#smartAccountConfig = { ...DevelopmentConfig }
+    }
+    else{
+      console.log('Client connected to STAGING');
+      this.#smartAccountConfig = { ...StagingConfig }
     }
 
     if (!this.#smartAccountConfig.activeNetworkId) {
