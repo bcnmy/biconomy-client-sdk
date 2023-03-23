@@ -54,7 +54,7 @@ import TransactionManager, {
 import EventEmitter from 'events'
 import { TransactionResponse } from '@ethersproject/providers'
 import { SmartAccountSigner } from './signers/SmartAccountSigner'
-import { MainNetConfig, StagingConfig, DevNetConfig } from './config'
+import { DevelopmentConfig, ProductionConfig } from './config'
 // AA
 import {
   newProvider,
@@ -133,23 +133,17 @@ class SmartAccount extends EventEmitter {
   // Note: Could remove WalletProvider later on
   constructor(signerOrProvider: Web3Provider | Signer, config?: Partial<SmartAccountConfig>) {
     super()
-    const env = config?.environment ?? Environments.STAGING
+    const env = config?.environment ?? Environments.PROD
+    
+    if (!env || env === Environments.PROD){
+      Logger.log('Client connected to production environment');
+      this.#smartAccountConfig = { ...ProductionConfig }
+    }
+    else if (env && env === Environments.DEV){
+      Logger.log('Client connected to testing environment');
+      this.#smartAccountConfig = { ...DevelopmentConfig }
+    }
 
-    console.log('env ', env);
-    
-    
-    if (!env || env === Environments.MAINNET){
-      console.log('Client connected to mainnet');
-      this.#smartAccountConfig = { ...MainNetConfig }
-    }
-    else if (env && env === Environments.DEVNET){
-      console.log('Client connected to DEVNET');
-      this.#smartAccountConfig = { ...DevNetConfig }
-    }
-    else{
-      console.log('Client connected to STAGING');
-      this.#smartAccountConfig = { ...StagingConfig }
-    }
     if (!this.#smartAccountConfig.activeNetworkId) {
       throw Error('active chain needs to be specified')
     }

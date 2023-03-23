@@ -12,9 +12,8 @@ import { Signer } from 'ethers'
 import { IPaymasterAPI } from 'AccountAbstractionTypes'
 
 export enum Environments {
-  STAGING = 'STAGING',
-  MAINNET = 'MAINNET',
-  DEVNET = 'DEVNET'
+  DEV = "DEVELOPMENT", // Strictly testnets
+  PROD = "PRODUCTION", // Has all mainnet and testnet config
 }
 
 export interface SmartAccountConfig {
