@@ -85,7 +85,6 @@ export class FallbackRelayer implements IFallbackRelayer {
 
     if (response.data) {
       const transactionId = response.data.transactionId
-      // const connectionUrl = response.data.connectionUrl
 
       const waitPromise = new Promise<TransactionReceipt>((resolve, reject) => {
         if (clientMessenger && clientMessenger.socketClient.isConnected()) {

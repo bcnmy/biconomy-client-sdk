@@ -49,7 +49,6 @@ export abstract class BaseAccountAPI {
   private senderAddress!: string
   private isDeployed = false
 
-  // may need...
   // entryPoint connected to "zero" address. allowed to make static calls (e.g. to getSenderAddress)
   // private readonly entryPointView: EntryPoint
 
@@ -77,7 +76,6 @@ export abstract class BaseAccountAPI {
     readonly accountAddress?: string,
     readonly overheads?: Partial<GasOverheads>
   ) {
-    // may need...
     // factory "connect" define the contract address. the contract "connect" defines the "from" address.
     // this.entryPointView = EntryPoint__factory.connect(entryPointAddress, provider).connect(ethers.constants.AddressZero)
   }

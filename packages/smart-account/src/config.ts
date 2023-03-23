@@ -80,7 +80,7 @@ export const DevelopmentConfig: SmartAccountConfig = {
       ChainId.BSC_TESTNET
     ],
     signType: SignTypeMethod.EIP712_SIGN,
-    // TODO // Can be all staging Urls
+    // TODO // Can be all dev Urls
     backendUrl: 'https://sdk-backend.staging.biconomy.io/v1',
     relayerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
     socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
