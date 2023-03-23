@@ -4,7 +4,7 @@ import { EntryPoint } from '@account-abstraction/contracts'
 import { ClientConfig } from './ClientConfig' // added in this design
 import { arrayify, hexConcat } from 'ethers/lib/utils'
 import { Signer } from '@ethersproject/abstract-signer'
-import { TransactionDetailsForUserOp, TransactionDetailsForBatchUserOp } from './TransactionDetailsForUserOp'
+import { TransactionDetailsForBatchUserOp } from './TransactionDetailsForUserOp'
 import { UserOperation } from '@biconomy/core-types'
 import { BaseApiParams, BaseAccountAPI } from './BaseAccountAPI'
 import { Provider } from '@ethersproject/providers'
@@ -52,14 +52,11 @@ export const DefaultGasLimits: VerificationGasLimits = {
 
 
 /**
- * An implementation of the BaseWalletAPI using the SmartWalletContract contract.
+ * An implementation of the BaseAccountAPI using the (biconomy) SmartAccount contract.
  * - contract deployer gets "entrypoint", "owner" addresses and "index" nonce
  * - owner signs requests using normal "Ethereum Signed Message" (ether's signer.signMessage())
  * - nonce method is "nonce()"
  */
-
-// Should be maintain SmartAccountAPI
-// Review
 export class SmartAccountAPI extends BaseAccountAPI {
   /**
    * base constructor.
@@ -101,16 +98,6 @@ export class SmartAccountAPI extends BaseAccountAPI {
    * this value holds the "factory" address, followed by this wallet's information
    */
   async getAccountInitCode(): Promise<string> {
-    // can rename it smart account factory
-    // const deployWalletCallData = await WalletFactoryAPI.deployWalletTransactionCallData(
-    //   this.clientConfig.txServiceUrl,
-    //   (await this.provider.getNetwork()).chainId,
-    //   this.factoryAddress,
-    //   await this.owner.getAddress(),
-    //   this.handlerAddress,
-    //   this.implementationAddress,
-    //   0
-    // )
     const deployWalletCallData = await deployCounterFactualEncodedData({
       chainId: (await this.provider.getNetwork()).chainId,
       owner: await this.owner.getAddress(),
@@ -129,40 +116,6 @@ export class SmartAccountAPI extends BaseAccountAPI {
     const nonce = await walletContract.nonce()
     return nonce
   }
-
-  // review
-  // could be plain nonce method if we don't go with batch id
-  /*async getNonce (): Promise<BigNumber> {
-    if (await this.checkAccountDeployed()) {
-      return BigNumber.from(0)
-    }
-    const accountContract = await this._getSmartAccountContract()
-    return await accountContract.nonce()
-  }*/
-
-
-  // /**
-  //  * encode a method call from entryPoint to our contract
-  //  * @param target
-  //  * @param value
-  //  * @param data
-  //  */
-  // async encodeExecute(
-  //   target: string,
-  //   value: BigNumberish,
-  //   data: string,
-  //   isDelegateCall: boolean
-  // ): Promise<string> {
-  //   const walletContract = await this._getSmartAccountContract()
-
-  //   return walletContract.interface.encodeFunctionData('execFromEntryPoint', [
-  //     target,
-  //     value,
-  //     data,
-  //     isDelegateCall ? 1 : 0,
-  //     1000000 // gasLimit for execute call on SmartWallet.sol. TODO: estimate using requiredTxGas
-  //   ])
-  // }
 
   /**
    * should cover cost of putting calldata on-chain, and some overhead.
