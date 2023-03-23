@@ -117,20 +117,17 @@ class SmartAccount extends EventEmitter {
   owner!: string
 
   // Address of the smart contract wallet common between all chains
-  // @review
   address!: string
 
   smartAccountState!: SmartAccountState
 
-  // provider type could be WalletProviderLike / ExternalProvider
-  // Can expose recommended provider classes through the SDK
-  // Note: If required Dapp devs can just pass on the signer in future
+  // WIP
+  // Could expose recommended provider classes through the SDK
 
   /**
    * Constructor for the Smart Account. If config is not provided it makes Smart Account available using default configuration
    * If you wish to use your own backend server and relayer service, pass the URLs here
    */
-  // Note: Could remove WalletProvider later on
   constructor(signerOrProvider: Web3Provider | Signer, config?: Partial<SmartAccountConfig>) {
     super()
     const env = config?.environment ?? Environments.PROD
@@ -308,7 +305,7 @@ class SmartAccount extends EventEmitter {
     return this
   }
 
-  // Nice to have
+  // WIP
   // Optional methods for connecting paymaster
   // Optional methods for connecting another bundler
 
@@ -583,9 +580,7 @@ class SmartAccount extends EventEmitter {
   }
 
   // Only to deploy wallet using connected paymaster
-  // Review involvement of Dapp API Key
   public async deployWalletUsingPaymaster(): Promise<TransactionResponse> {
-    // can pass chainId
     const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
     const transaction = {
       to: ZERO_ADDRESS,
@@ -612,21 +607,15 @@ class SmartAccount extends EventEmitter {
     return this
   }
 
-  // Review inputs as chainId is already part of Dto
   public async getAlltokenBalances(
     balancesDto: BalancesDto,
-    chainId: ChainId = this.#smartAccountConfig.activeNetworkId
   ): Promise<BalancesResponse> {
-    if (!balancesDto.chainId) balancesDto.chainId = chainId
     return this.nodeClient.getAlltokenBalances(balancesDto)
   }
 
-  // Review inputs as chainId is already part of Dto
   public async getTotalBalanceInUsd(
     balancesDto: BalancesDto,
-    chainId: ChainId = this.#smartAccountConfig.activeNetworkId
   ): Promise<UsdBalanceResponse> {
-    if (!balancesDto.chainId) balancesDto.chainId = chainId
     return this.nodeClient.getTotalBalanceInUsd(balancesDto)
   }
 
@@ -675,7 +664,7 @@ class SmartAccount extends EventEmitter {
 
   /**
    *
-   * @notice personal sign is used currently (// @todo Signer should be able to use _typedSignData)
+   * @notice personal sign is used currently (Signer should be able to use _typedSignData)
    * @param tx IWalletTransaction Smart Account Transaction object prepared
    * @param chainId optional chainId
    * @returns:string Signature
@@ -707,10 +696,9 @@ class SmartAccount extends EventEmitter {
       signature += data.slice(2)
     }
     return signature
-    // return this.signer.signTransaction(signTransactionDto)
   }
 
-  // This would be a implementation on user sponsorship provider
+  // This would be a implementation on non-aa4337 provider
   /**
    * Prepares encoded wallet transaction, gets signature from the signer and dispatches to the blockchain using relayer
    * @param tx IWalletTransaction Smart Account Transaction object prepared
@@ -727,7 +715,6 @@ class SmartAccount extends EventEmitter {
     const rawTx: RawTransactionType = {
       to: tx.to,
       data: tx.data,
-      value: 0, // review
       chainId: chainId
     }
 
@@ -855,7 +842,6 @@ class SmartAccount extends EventEmitter {
     if (gasLimit) {
       relayTrx.gasLimit = gasLimit
     }
-    // todo : review gasLimit passed to relay endpoint
     if (!isDeployed) {
       gasLimit = {
         hex: '0x1E8480',
@@ -998,11 +984,6 @@ class SmartAccount extends EventEmitter {
     })
   }
 
-  async prepareDeployAndPayFees(chainId?: ChainId) {
-    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
-    return this.transactionManager.prepareDeployAndPayFees(chainId, this.DEFAULT_VERSION)
-  }
-
   // Onboarding scenario where assets inside counterfactual smart account pays for it's deployment
   async deployAndPayFees(chainId: ChainId, feeQuote: FeeQuote): Promise<string> {
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
@@ -1043,10 +1024,9 @@ class SmartAccount extends EventEmitter {
     return this.contractUtils.multiSendContract[chainId][this.DEFAULT_VERSION]
   }
 
-  // Note: expose getMultiSend(), getMultiSendCall()
+  // WIP
+  // expose getMultiSend(), getMultiSendCall()
 
-  // Note: get Address method should not be here as we are passing smart account state
-  // Marked for deletion
   async getAddress(
     addressForCounterFactualWalletDto: AddressForCounterFactualWalletDto
   ): Promise<ISmartAccount> {
@@ -1081,7 +1061,6 @@ class SmartAccount extends EventEmitter {
 
   /**
    * Allows one to check if the smart account is already deployed on requested chainOd
-   * @review
    * @notice the check is made on Wallet Factory state with current address in Smart Account state
    * @param chainId optional chainId : Default is current active
    * @returns
@@ -1092,7 +1071,6 @@ class SmartAccount extends EventEmitter {
   }
 
   /**
-   * @review for owner
    * @param chainId requested chain : default is active chain
    * @returns object containing infromation (owner, relevant contract addresses, isDeployed) about Smart Account for requested chain
    */

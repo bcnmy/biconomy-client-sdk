@@ -2328,11 +2328,9 @@ describe('Wallet integration', function () {
       }
     })
 
-    // Next // TODO
+    // WIP
     // Test cases for forward transaction mocking responses from rest relayer
     // createRefundTransaction (+Batch)
-    // prepareDeployAndPayFees
-    // deployAndPayFees
     // createRefundTransaction (+Batch)
     // estimateDeployments etc while mocking response form backend client
 

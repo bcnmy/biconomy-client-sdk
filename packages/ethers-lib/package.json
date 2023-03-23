@@ -49,7 +49,7 @@
     "@nomiclabs/hardhat-ethers": "^2.1.0",
     "@openzeppelin/contracts": "^4.6.0",
     "scw-contracts-v1.0.0": "npm:@biconomy-devx/wallet-contracts@1.0.0",
-    "fallback-contracts-v1.0.0": "npm:fallback-gastank@1.0.2"
+    "fallback-contracts-v1.0.0": "npm:fallback-gastank@1.0.3"
   },
   "peerDependencies": {
     "ethers": "^5.5.3"
