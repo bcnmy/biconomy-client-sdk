@@ -10,12 +10,11 @@ export const ProductionConfig: SmartAccountConfig = {
       ChainId.MAINNET
     ],
     signType: SignTypeMethod.EIP712_SIGN,
-    // TODO // Use all production URLs
-    backendUrl: 'https://sdk-backend.staging.biconomy.io/v1',
-    relayerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
-    socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
-    bundlerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
-    biconomySigningServiceUrl: 'https://paymaster-signing-service.staging.biconomy.io/api/v1/sign',
+    backendUrl: 'https://sdk-backend.prod.biconomy.io/v1',
+    relayerUrl: 'https://sdk-relayer.prod.biconomy.io/api/v1/relay',
+    socketServerUrl: 'wss://sdk-testing-ws.prod.biconomy.io/connection/websocket',
+    bundlerUrl: 'https://sdk-relayer.prod.biconomy.io/api/v1/relay',
+    biconomySigningServiceUrl: 'https://paymaster-signing-service.prod.biconomy.io/api/v1/sign',
     networkConfig: [
       {
         chainId: ChainId.GOERLI,
@@ -49,7 +48,6 @@ export const StagingConfig: SmartAccountConfig = {
       ChainId.BSC_TESTNET
     ],
     signType: SignTypeMethod.EIP712_SIGN,
-    // TODO // Can be all staging Urls
     backendUrl: 'https://sdk-backend.staging.biconomy.io/v1',
     relayerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
     socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
@@ -80,12 +78,11 @@ export const DevelopmentConfig: SmartAccountConfig = {
       ChainId.BSC_TESTNET
     ],
     signType: SignTypeMethod.EIP712_SIGN,
-    // TODO // Can be all dev Urls
-    backendUrl: 'https://sdk-backend.staging.biconomy.io/v1',
-    relayerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
-    socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
-    bundlerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
-    biconomySigningServiceUrl: 'https://paymaster-signing-service.staging.biconomy.io/api/v1/sign',
+    backendUrl: 'https://sdk-backend.dev.biconomy.io/v1',
+    relayerUrl: 'https://sdk-relayer.dev.biconomy.io/api/v1/relay',
+    socketServerUrl: 'wss://sdk-testing-ws.dev.biconomy.io/connection/websocket',
+    bundlerUrl: 'https://sdk-relayer.dev.biconomy.io/api/v1/relay',
+    biconomySigningServiceUrl: 'https://paymaster-signing-service.dev.biconomy.io/api/v1/sign',
     networkConfig: [
       {
         chainId: ChainId.GOERLI,
