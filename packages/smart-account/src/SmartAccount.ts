@@ -75,7 +75,7 @@ let isLogsEnabled = false
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount extends EventEmitter {
   // By default latest version
-  DEFAULT_VERSION: SmartAccountVersion = '1.0.0'
+  DEFAULT_VERSION: SmartAccountVersion = '1.0.1'
 
   // Smart Account Context provies relevant contract instances for chainId asked (default is current active chain)
   context!: { [chainId: number]: SmartAccountContext }
