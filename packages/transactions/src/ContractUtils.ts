@@ -37,7 +37,7 @@ class ContractUtils {
 
   fallbackGasTankContract!: { [chainId: number]: { [version: string]: FallbackGasTankContract } }
 
-  defaultCallbackHandlerContract!: { [chainId: number]: { [version: string]: DefaultCallbackHandlerContract } }
+  // defaultCallbackHandlerContract!: { [chainId: number]: { [version: string]: DefaultCallbackHandlerContract } }
 
   smartAccountState!: SmartAccountState
 
@@ -48,6 +48,7 @@ class ContractUtils {
     this.multiSendCallOnlyContract = {}
     this.smartWalletFactoryContract = {}
     this.fallbackGasTankContract = {}
+    //this.defaultCallbackHandlerContract = {}
   }
 
   initializeContracts( signer: Signer,
@@ -64,7 +65,7 @@ class ContractUtils {
     this.multiSendContract[walletInfo.chainId] = {}
     this.multiSendCallOnlyContract[walletInfo.chainId] = {}
     this.fallbackGasTankContract[walletInfo.chainId] = {}
-    this.defaultCallbackHandlerContract[walletInfo.chainId] = {}
+    //this.defaultCallbackHandlerContract[walletInfo.chainId] = {}
     const version = walletInfo.version
     console.log('version ', version);
     
@@ -106,12 +107,12 @@ class ContractUtils {
     )
     console.log('fallBackGasTankAddress ',  chaininfo.fallBackGasTankAddress);
 
-    this.defaultCallbackHandlerContract[walletInfo.chainId][version] = getDefaultCallbackHandlerContract(
+    /*this.defaultCallbackHandlerContract[walletInfo.chainId][version] = getDefaultCallbackHandlerContract(
       version,
       this.ethAdapter[walletInfo.chainId],
       walletInfo.fallBackHandlerAddress
     )
-    console.log('defaultCallbackHandlerAddress ',  walletInfo.fallBackHandlerAddress);
+    console.log('defaultCallbackHandlerAddress ',  walletInfo.fallBackHandlerAddress);*/
     // 
 
     }
@@ -260,14 +261,14 @@ class ContractUtils {
     return walletContract.attach(address)
   }
 
-  attachCallbackHandlerContract(
+  /*attachCallbackHandlerContract(
     chainId: ChainId,
     version: SmartAccountVersion,
     address: string
   ) {
     let handlerContract = this.defaultCallbackHandlerContract[chainId][version].getContract()
     return handlerContract.attach(address)
-  }
+  }*/
 
 }
 

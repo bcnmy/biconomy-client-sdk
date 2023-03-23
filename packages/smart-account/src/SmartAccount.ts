@@ -27,7 +27,7 @@ import {
   FeeQuote,
   RelayResponse,
   SmartAccountConfig,
-  Enviornments,
+  Environments,
   NetworkConfig,
   ZERO_ADDRESS,
   IFallbackAPI
@@ -75,7 +75,7 @@ let isLogsEnabled = false
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount extends EventEmitter {
   // By default latest version
-  DEFAULT_VERSION: SmartAccountVersion = '1.0.1'
+  DEFAULT_VERSION: SmartAccountVersion = '1.0.0'
 
   // Smart Account Context provies relevant contract instances for chainId asked (default is current active chain)
   context!: { [chainId: number]: SmartAccountContext }
@@ -134,16 +134,16 @@ class SmartAccount extends EventEmitter {
     if (config && config.debug === true) {
       isLogsEnabled = true
     }
-    const env = config?.enviornment ?? Enviornments.STAGING
+    const env = config?.environment ?? Environments.STAGING
 
     console.log('env ', env);
     
     
-    if (!env || env === Enviornments.MAINNET){
+    if (!env || env === Environments.MAINNET){
       console.log('Client connected to mainnet');
       this.#smartAccountConfig = { ...MainNetConfig }
     }
-    else if (env && env === Enviornments.DEVNET){
+    else if (env && env === Environments.DEVNET){
       console.log('Client connected to DEVNET');
       this.#smartAccountConfig = { ...DevNetConfig }
     }

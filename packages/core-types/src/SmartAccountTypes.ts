@@ -11,7 +11,7 @@ import { GasLimit } from './TransactionTypes'
 import { Signer } from 'ethers'
 import { IPaymasterAPI } from 'AccountAbstractionTypes'
 
-export enum Enviornments {
+export enum Environments {
   STAGING = 'STAGING',
   MAINNET = 'MAINNET',
   DEVNET = 'DEVNET'
@@ -29,7 +29,7 @@ export interface SmartAccountConfig {
   biconomySigningServiceUrl?: string
   bundlerUrl?: string
   debug?: boolean
-  enviornment?: Enviornments 
+  environment?: Environments 
 }
 
 export enum SignTypeMethod {
