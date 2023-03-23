@@ -33,7 +33,6 @@ export const MainNetConfig: SmartAccountConfig = {
         providerUrl: 'https://polygon-mainnet.g.alchemy.com/v2/6Tn--QDkp1vRBXzRV3Cc8fLXayr5Yoij'
       }
     ],
-    debug: false
   }
 
 export const StagingConfig: SmartAccountConfig = {
@@ -69,7 +68,6 @@ export const StagingConfig: SmartAccountConfig = {
         providerUrl: 'https://polygon-mainnet.g.alchemy.com/v2/6Tn--QDkp1vRBXzRV3Cc8fLXayr5Yoij'
       }
     ],
-    debug: false
 }
 
 export const DevNetConfig: SmartAccountConfig = {
@@ -105,5 +103,4 @@ export const DevNetConfig: SmartAccountConfig = {
         providerUrl: 'https://polygon-mainnet.g.alchemy.com/v2/6Tn--QDkp1vRBXzRV3Cc8fLXayr5Yoij'
       }
     ],
-    debug: false
 }
