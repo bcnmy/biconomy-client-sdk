@@ -3,6 +3,7 @@ import { TransactionReceipt } from '@ethersproject/providers'
 import { EntryPoint } from '@account-abstraction/contracts'
 import { defaultAbiCoder } from 'ethers/lib/utils'
 import Debug from 'debug'
+import { Logger } from '@biconomy/common'
 
 const debug = Debug('aa.listener')
 
@@ -16,7 +17,7 @@ export class UserOperationEventListener {
   resolved: boolean = false
   boundLisener: (this: any, ...param: any) => void
 
-  constructor (
+  constructor(
     readonly resolve: (t: TransactionReceipt) => void,
     readonly reject: (reason?: any) => void,
     readonly entryPoint: EntryPoint,
@@ -33,7 +34,7 @@ export class UserOperationEventListener {
     }, this.timeout ?? DEFAULT_TRANSACTION_TIMEOUT)
   }
 
-  start (): void {
+  start(): void {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     const filter = this.entryPoint.filters.UserOperationEvent(this.userOpHash)
     // listener takes time... first query directly:
@@ -48,20 +49,24 @@ export class UserOperationEventListener {
     }, 30000)
   }
 
-  stop (): void {
+  stop(): void {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     this.entryPoint.off('UserOperationEvent', this.boundLisener)
   }
 
-  async listenerCallback (this: any, ...param: any): Promise<void> {
-    console.log(param)
+  async listenerCallback(this: any, ...param: any): Promise<void> {
+    Logger.log('listenerCallback', { param })
     const event = arguments[arguments.length - 1] as Event
     if (event.args == null) {
       console.error('got event without args', event)
       return
     }
     if (event.args.userOpHash !== this.userOpHash) {
-      console.log(`== event with wrong userOpHash: sender/nonce: event.${event.args.sender as string}@${event.args.nonce.toString() as string}!= userOp.${this.sender as string}@${parseInt(this.nonce?.toString())}`)
+      Logger.log(
+        `== event with wrong userOpHash: sender/nonce: event.${event.args.sender as string}@${
+          event.args.nonce.toString() as string
+        }!= userOp.${this.sender as string}@${parseInt(this.nonce?.toString())}`
+      )
       return
     }
 
@@ -79,10 +84,13 @@ export class UserOperationEventListener {
     this.resolved = true
   }
 
-  async extractFailureReason (receipt: TransactionReceipt): Promise<void> {
+  async extractFailureReason(receipt: TransactionReceipt): Promise<void> {
     debug('mark tx as failed')
     receipt.status = 0
-    const revertReasonEvents = await this.entryPoint.queryFilter(this.entryPoint.filters.UserOperationRevertReason(this.userOpHash, this.sender), receipt.blockHash)
+    const revertReasonEvents = await this.entryPoint.queryFilter(
+      this.entryPoint.filters.UserOperationRevertReason(this.userOpHash, this.sender),
+      receipt.blockHash
+    )
     if (revertReasonEvents[0] != null) {
       let message = revertReasonEvents[0].args.revertReason
       if (message.startsWith('0x08c379a0')) {
@@ -90,8 +98,7 @@ export class UserOperationEventListener {
         message = defaultAbiCoder.decode(['string'], '0x' + message.substring(10)).toString()
       }
       debug(`rejecting with reason: ${message}`)
-      this.reject(new Error(`UserOp failed with reason: ${message}`)
-      )
+      this.reject(new Error(`UserOp failed with reason: ${message}`))
     }
   }
 }

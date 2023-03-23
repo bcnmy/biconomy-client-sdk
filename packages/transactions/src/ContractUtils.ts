@@ -22,6 +22,7 @@ import { ethers, Signer } from 'ethers'
 import EvmNetworkManager from '@biconomy/ethers-lib'
 import { SmartAccountVersion } from '@biconomy/core-types'
 import { ISmartAccount } from '@biconomy/node-client'
+import { Logger } from '@biconomy/common'
 
 class ContractUtils {
   ethAdapter!: { [chainId: number]: EvmNetworkManager }
@@ -67,21 +68,21 @@ class ContractUtils {
     this.fallbackGasTankContract[walletInfo.chainId] = {}
     //this.defaultCallbackHandlerContract[walletInfo.chainId] = {}
     const version = walletInfo.version
-    console.log('version ', version);
+    Logger.log('version ', version);
     
     this.smartWalletFactoryContract[walletInfo.chainId][version] = getSmartWalletFactoryContract(
       version,
       this.ethAdapter[walletInfo.chainId],
       walletInfo.factoryAddress
     )
-    console.log('factoryAddress ',  walletInfo.factoryAddress);
+    Logger.log('factoryAddress ', walletInfo.factoryAddress)
 
     this.smartWalletContract[walletInfo.chainId][version] = getSmartWalletContract(
       version,
       this.ethAdapter[walletInfo.chainId],
       walletInfo.smartAccountAddress
     )
-    console.log('smartAccountAddress ',  walletInfo.smartAccountAddress);
+    Logger.log('smartAccountAddress ', walletInfo.smartAccountAddress)
 
 
     this.multiSendContract[walletInfo.chainId][version] = getMultiSendContract(

@@ -5,7 +5,7 @@ import { hexValue, resolveProperties } from 'ethers/lib/utils'
 import { UserOperation } from '@biconomy/core-types'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
 import Debug from 'debug'
-import { deepHexlify } from '@biconomy/common'
+import { Logger, deepHexlify } from '@biconomy/common'
 
 const debug = Debug('aa.rpc')
 export class HttpRpcClient {
@@ -66,8 +66,7 @@ export class HttpRpcClient {
       }
     })
 
-    console.log('rest relayer : response')
-    console.log(response)
+    Logger.log('rest relayer : response', response)
     if (response && response.data) {
       const transactionId = response.data.transactionId
       const connectionUrl = response.data.connectionUrl

@@ -11,6 +11,7 @@ import {
   GasLimit,
   ChainId
 } from '@biconomy/core-types'
+import { Logger } from '@biconomy/common'
 import { MetaTransaction, encodeMultiSend } from './utils/MultiSend'
 import { HttpMethod, sendRequest } from './utils/HttpRequests'
 import { ClientMessenger } from 'messaging-sdk'
@@ -73,7 +74,7 @@ export class RestRelayer implements IRelayer {
 
     if (!clientMessenger.socketClient.isConnected()) {
       await clientMessenger.connect()
-      console.log('connect success')
+      Logger.log('socket connect success')
     }
 
     const { config, signedTx, context, gasLimit } = relayTransaction
@@ -122,8 +123,7 @@ export class RestRelayer implements IRelayer {
       finalRawRx = signedTx.rawTx
     }
 
-    console.log('finaRawTx')
-    console.log(finalRawRx)
+    Logger.log('finalRawTx', finalRawRx)
 
     // based on the flag make rpc call to relayer code service with necessary rawTx data
     const response: any = await sendRequest({
@@ -158,13 +158,11 @@ export class RestRelayer implements IRelayer {
         onMined: (tx: any) => {
           const txId = tx.transactionId
           clientMessenger.unsubscribe(txId)
-          console.log(
-            `Tx Hash mined message received at client ${JSON.stringify({
-              transactionId: txId,
-              hash: tx.transactionHash,
-              receipt: tx.receipt
-            })}`
-          )
+          Logger.log('Tx Hash mined message received at client', {
+            transactionId: txId,
+            hash: tx.transactionHash,
+            receipt: tx.receipt
+          })
           engine.emit('txMined', {
             msg: 'txn mined',
             id: txId,
@@ -175,14 +173,11 @@ export class RestRelayer implements IRelayer {
         onHashGenerated: async (tx: any) => {
           const txHash = tx.transactionHash
           const txId = tx.transactionId
-          console.log(
-            `Tx Hash generated message received at client ${JSON.stringify({
-              transactionId: txId,
-              hash: txHash
-            })}`
-          )
+          Logger.log('Tx Hash generated message received at client ', {
+            transactionId: txId,
+            hash: txHash
+          })
 
-          console.log(`Receive time for transaction id ${txId}: ${Date.now()}`)
           engine.emit('txHashGenerated', {
             id: tx.transactionId,
             hash: tx.transactionHash,
@@ -193,12 +188,10 @@ export class RestRelayer implements IRelayer {
           if (tx) {
             const txHash = tx.transactionHash
             const txId = tx.transactionId
-            console.log(
-              `Tx Hash changed message received at client ${JSON.stringify({
-                transactionId: txId,
-                hash: txHash
-              })}`
-            )
+            Logger.log('Tx Hash changed message received at client ', {
+              transactionId: txId,
+              hash: txHash
+            })
             engine.emit('txHashChanged', {
               id: tx.transactionId,
               hash: tx.transactionHash,
@@ -207,7 +200,7 @@ export class RestRelayer implements IRelayer {
           }
         },
         onError: async (tx: any) => {
-          console.log(`Error message received at client is ${tx}`)
+          Logger.error('Error message received at client', tx)
           const err = tx.error
           const txId = tx.transactionId
           clientMessenger.unsubscribe(txId)

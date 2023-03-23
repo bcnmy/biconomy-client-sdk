@@ -1,4 +1,5 @@
 import fetch from 'node-fetch'
+import { Logger } from '@biconomy/common'
 
 export enum HttpMethod {
   Get = 'get',
@@ -22,15 +23,15 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
     },
     body: JSON.stringify(body)
   })
-  console.log('response ', response);
+  Logger.log('http response ', response)
   
   let jsonResponse
   try {
     jsonResponse = await response.json()
   } catch (error) {
-    console.log('error ', error)
+    Logger.log('error ', error)
     if (!response.ok) {
-      console.log(JSON.stringify(response));
+      Logger.error('http response ', response)
       
       throw new Error(response.statusText)
     }

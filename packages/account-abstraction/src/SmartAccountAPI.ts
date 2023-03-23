@@ -11,7 +11,7 @@ import { Provider } from '@ethersproject/providers'
 import { BiconomyPaymasterAPI } from './BiconomyPaymasterAPI'
 import { resolveProperties } from 'ethers/lib/utils'
 import { calcPreVerificationGas, GasOverheads } from './calcPreVerificationGas'
-import { deployCounterFactualEncodedData } from '@biconomy/common'
+import { Logger, deployCounterFactualEncodedData } from '@biconomy/common'
 
 // may use...
 export interface SmartAccountApiParams extends BaseApiParams {
@@ -121,7 +121,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
   }
 
   async nonce(): Promise<BigNumber> {
-    console.log('checking nonce')
+    Logger.log('checking nonce')
     if (!(await this.checkAccountDeployed())) {
       return BigNumber.from(0)
     }
@@ -212,7 +212,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
       value,
       data,
     ])
-    console.log('encodeData ', encodeData);
+    Logger.log('encodeData ', encodeData)
     return encodeData
   }
 

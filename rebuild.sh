@@ -43,6 +43,11 @@ rm -rf packages/web3-auth/yarn.lock
 rm -rf packages/web3-auth/package-lock.json
 rm -rf packages/web3-auth/dist
 
+rm -rf packages/web3-auth-native/node_modules
+rm -rf packages/web3-auth-native/yarn.lock
+rm -rf packages/web3-auth-native/package-lock.json
+rm -rf packages/web3-auth-native/dist
+
 rm -rf packages/transak/node_modules
 rm -rf packages/transak/yarn.lock
 rm -rf packages/transak/package-lock.json

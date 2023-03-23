@@ -13,7 +13,7 @@ import {
 import { TransactionDetailsForBatchUserOp } from './TransactionDetailsForUserOp'
 import { resolveProperties } from 'ethers/lib/utils'
 import { IPaymasterAPI } from '@biconomy/core-types' // only use interface
-import { getUserOpHash, NotPromise, packUserOp } from '@biconomy/common'
+import { Logger, getUserOpHash, NotPromise, packUserOp } from '@biconomy/common'
 import { GasOverheads } from './calcPreVerificationGas'
 
 // might make use of this
@@ -178,7 +178,7 @@ export abstract class BaseAccountAPI {
     }
     const senderAddressCode = await this.provider.getCode(this.getAccountAddress())
     if (senderAddressCode.length > 2) {
-      console.log(`Smart account Contract already deployed at ${this.senderAddress}`)
+      Logger.log('Smart account Contract already deployed at', this.senderAddress)
       this.isDeployed = true
     } else {
     }
@@ -253,7 +253,7 @@ export abstract class BaseAccountAPI {
 
     let callGasLimit = BigNumber.from(0)
 
-    console.log('detailsForUserOp.gasLimit ', detailsForUserOp.gasLimit);
+    Logger.log('detailsForUserOp.gasLimit ', detailsForUserOp.gasLimit);
     if (!detailsForUserOp.gasLimit){
         console.log('GasLimit is not defined');
         // TODO : error handling
@@ -314,7 +314,7 @@ export abstract class BaseAccountAPI {
    * @param userOp the UserOperation to sign (with signature field ignored)
    */
   async signUserOp(userOp: UserOperation): Promise<UserOperation> {
-    console.log('inside signUserOp')
+    Logger.log('signUserOp', userOp)
     const userOpHash = await this.getUserOpHash(userOp)
     const signature = await this.signUserOpHash(userOpHash)
     return {

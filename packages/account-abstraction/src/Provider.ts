@@ -50,6 +50,5 @@ export async function newProvider(
     entryPoint,
     smartWalletAPI
   ).init()
-  console.log('initialisation completed in provider')
   return ethProvider
 }

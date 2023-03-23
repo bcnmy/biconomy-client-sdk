@@ -1,6 +1,7 @@
 import { resolveProperties } from '@ethersproject/properties'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
 import { IFallbackAPI, FallbackUserOperation, FallbackApiResponse } from '@biconomy/core-types'
+import { Logger } from '@biconomy/common'
 
 /**
  * Verifying and Signing fallback gasless transactions
@@ -43,7 +44,7 @@ export class FallbackGasTankAPI implements IFallbackAPI {
         throw new Error('Error in fallback signing api')
       }
     } catch (err) {
-      console.log('Error in fallback signing api', err)
+      Logger.error('Error in fallback signing api', err)
       throw new Error('Error in fallback signing api')
     }
   }

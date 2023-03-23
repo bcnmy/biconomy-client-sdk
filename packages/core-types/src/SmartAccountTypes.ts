@@ -28,7 +28,6 @@ export interface SmartAccountConfig {
   entryPointAddress?: string
   biconomySigningServiceUrl?: string
   bundlerUrl?: string
-  debug?: boolean
   environment?: Environments 
 }
 
