@@ -78,11 +78,11 @@ export const DevelopmentConfig: SmartAccountConfig = {
       ChainId.BSC_TESTNET
     ],
     signType: SignTypeMethod.EIP712_SIGN,
-    backendUrl: 'https://sdk-backend.dev.biconomy.io/v1',
-    relayerUrl: 'https://sdk-relayer.dev.biconomy.io/api/v1/relay',
-    socketServerUrl: 'wss://sdk-testing-ws.dev.biconomy.io/connection/websocket',
-    bundlerUrl: 'https://sdk-relayer.dev.biconomy.io/api/v1/relay',
-    biconomySigningServiceUrl: 'https://paymaster-signing-service.dev.biconomy.io/api/v1/sign',
+    backendUrl: 'https://sdk-backend.test.biconomy.io/v1',
+    relayerUrl: 'https://sdk-relayer.test.biconomy.io/api/v1/relay',
+    socketServerUrl: 'wss://sdk-testing-ws.test.biconomy.io/connection/websocket',
+    bundlerUrl: 'https://sdk-relayer.test.biconomy.io/api/v1/relay',
+    biconomySigningServiceUrl: 'https://paymaster-signing-service.test.biconomy.io/api/v1/sign',
     networkConfig: [
       {
         chainId: ChainId.GOERLI,
