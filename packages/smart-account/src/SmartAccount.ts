@@ -27,7 +27,7 @@ import {
   FeeQuote,
   RelayResponse,
   SmartAccountConfig,
-  IMetaTransaction,
+  Environments,
   NetworkConfig,
   ZERO_ADDRESS,
   IFallbackAPI
@@ -54,7 +54,7 @@ import TransactionManager, {
 import EventEmitter from 'events'
 import { TransactionResponse } from '@ethersproject/providers'
 import { SmartAccountSigner } from './signers/SmartAccountSigner'
-
+import { DevelopmentConfig, StagingConfig, ProductionConfig } from './config'
 // AA
 import {
   newProvider,
@@ -117,24 +117,33 @@ class SmartAccount extends EventEmitter {
   owner!: string
 
   // Address of the smart contract wallet common between all chains
-  // @review
   address!: string
 
-  // TODO : review from contractUtils
   smartAccountState!: SmartAccountState
 
-  // provider type could be WalletProviderLike / ExternalProvider
-  // Can expose recommended provider classes through the SDK
-  // Note: If required Dapp devs can just pass on the signer in future
+  // WIP
+  // Could expose recommended provider classes through the SDK
 
   /**
    * Constructor for the Smart Account. If config is not provided it makes Smart Account available using default configuration
    * If you wish to use your own backend server and relayer service, pass the URLs here
    */
-  // Note: Could remove WalletProvider later on
   constructor(signerOrProvider: Web3Provider | Signer, config?: Partial<SmartAccountConfig>) {
     super()
-    this.#smartAccountConfig = { ...DefaultSmartAccountConfig }
+    const env = config?.environment ?? Environments.PROD
+    
+    if (!env || env === Environments.PROD){
+      Logger.log('Client connected to production environment');
+      this.#smartAccountConfig = { ...ProductionConfig }
+    }
+    else if (env && env === Environments.DEV){
+      Logger.log('Client connected to testing environment');
+      this.#smartAccountConfig = { ...DevelopmentConfig }
+    }
+    else{
+      console.log('Client connected to STAGING');
+      this.#smartAccountConfig = { ...StagingConfig }
+    }
 
     if (!this.#smartAccountConfig.activeNetworkId) {
       throw Error('active chain needs to be specified')
@@ -296,7 +305,7 @@ class SmartAccount extends EventEmitter {
     return this
   }
 
-  // Nice to have
+  // WIP
   // Optional methods for connecting paymaster
   // Optional methods for connecting another bundler
 
@@ -571,10 +580,7 @@ class SmartAccount extends EventEmitter {
   }
 
   // Only to deploy wallet using connected paymaster
-  // Todo : Add return type
-  // Review involvement of Dapp API Key
   public async deployWalletUsingPaymaster(): Promise<TransactionResponse> {
-    // can pass chainId
     const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
     const transaction = {
       to: ZERO_ADDRESS,
@@ -582,7 +588,6 @@ class SmartAccount extends EventEmitter {
     }
     const response = await aaSigner.sendTransaction(transaction, true)
     return response
-    // Todo: make sense of this response and return hash to the user
   }
 
   /**
@@ -602,23 +607,15 @@ class SmartAccount extends EventEmitter {
     return this
   }
 
-  // Todo
-  // Review inputs as chainId is already part of Dto
   public async getAlltokenBalances(
     balancesDto: BalancesDto,
-    chainId: ChainId = this.#smartAccountConfig.activeNetworkId
   ): Promise<BalancesResponse> {
-    if (!balancesDto.chainId) balancesDto.chainId = chainId
     return this.nodeClient.getAlltokenBalances(balancesDto)
   }
 
-  // Todo
-  // Review inputs as chainId is already part of Dto
   public async getTotalBalanceInUsd(
     balancesDto: BalancesDto,
-    chainId: ChainId = this.#smartAccountConfig.activeNetworkId
   ): Promise<UsdBalanceResponse> {
-    if (!balancesDto.chainId) balancesDto.chainId = chainId
     return this.nodeClient.getTotalBalanceInUsd(balancesDto)
   }
 
@@ -628,7 +625,6 @@ class SmartAccount extends EventEmitter {
     return this.nodeClient.getSmartAccountsByOwner(smartAccountByOwnerDto)
   }
 
-  //Todo add description
   public async getTransactionByAddress(
     chainId: number,
     address: string
@@ -657,7 +653,6 @@ class SmartAccount extends EventEmitter {
 
   /**
    * Allows to change default active chain of the Smart Account
-   * @todo make a check if chain is supported in config
    * @param chainId
    * @returns self/this
    */
@@ -669,7 +664,7 @@ class SmartAccount extends EventEmitter {
 
   /**
    *
-   * @notice personal sign is used currently (// @todo Signer should be able to use _typedSignData)
+   * @notice personal sign is used currently (Signer should be able to use _typedSignData)
    * @param tx IWalletTransaction Smart Account Transaction object prepared
    * @param chainId optional chainId
    * @returns:string Signature
@@ -701,10 +696,9 @@ class SmartAccount extends EventEmitter {
       signature += data.slice(2)
     }
     return signature
-    // return this.signer.signTransaction(signTransactionDto)
   }
 
-  // This would be a implementation on user sponsorship provider
+  // This would be a implementation on non-aa4337 provider
   /**
    * Prepares encoded wallet transaction, gets signature from the signer and dispatches to the blockchain using relayer
    * @param tx IWalletTransaction Smart Account Transaction object prepared
@@ -721,7 +715,6 @@ class SmartAccount extends EventEmitter {
     const rawTx: RawTransactionType = {
       to: tx.to,
       data: tx.data,
-      value: 0, // review
       chainId: chainId
     }
 
@@ -849,7 +842,6 @@ class SmartAccount extends EventEmitter {
     if (gasLimit) {
       relayTrx.gasLimit = gasLimit
     }
-    // todo : review gasLimit passed to relay endpoint
     if (!isDeployed) {
       gasLimit = {
         hex: '0x1E8480',
@@ -892,7 +884,6 @@ class SmartAccount extends EventEmitter {
    *
    * @param prepareRefundTransactionsDto
    */
-  // TODO: Rename method to getFeeOptionsForBatch
   async prepareRefundTransactionBatch(
     prepareRefundTransactionsDto: PrepareRefundTransactionsDto
   ): Promise<FeeQuote[]> {
@@ -912,7 +903,6 @@ class SmartAccount extends EventEmitter {
   // Other helpers go here for pre build (feeOptions and quotes from relayer) , build and execution of refund type transactions
   /**
    * Prepares compatible IWalletTransaction object based on Transaction Request
-   * @todo Rename based on other variations to prepare transaction
    * @notice This transaction is with fee refund (smart account pays using it's own assets accepted by relayers)
    * @param refundTransactionDto
    * @returns
@@ -935,12 +925,10 @@ class SmartAccount extends EventEmitter {
 
   /**
    * Prepares compatible IWalletTransaction object based on Transaction Request
-   * @todo Rename based on other variations to prepare transaction
    * @notice This transaction is without fee refund (gasless)
    * @param transactionDto
    * @returns
    */
-  // Todo : Marked for deletion
   async createTransaction(transactionDto: TransactionDto): Promise<IWalletTransaction> {
     let { version, batchId = 1, chainId } = transactionDto
     const { transaction } = transactionDto
@@ -952,14 +940,12 @@ class SmartAccount extends EventEmitter {
 
   /**
    * Prepares compatible IWalletTransaction object based on Transaction Request
-   * @todo Write test case and limit batch size based on test results in scw-contracts
    * @notice This transaction is without fee refund (gasless)
    * @param transaction
    * @param batchId
    * @param chainId
    * @returns
    */
-  // Todo: Marked for deletion
   async createTransactionBatch(
     transactionBatchDto: TransactionBatchDto
   ): Promise<IWalletTransaction> {
@@ -978,7 +964,6 @@ class SmartAccount extends EventEmitter {
 
   /**
    * Prepares compatible IWalletTransaction object based on Transaction Request
-   * @todo Rename based on other variations to prepare transaction
    * @notice This transaction is with fee refund (smart account pays using it's own assets accepted by relayers)
    * @param refundTransactionBatchDto
    * @returns
@@ -999,11 +984,6 @@ class SmartAccount extends EventEmitter {
     })
   }
 
-  async prepareDeployAndPayFees(chainId?: ChainId) {
-    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
-    return this.transactionManager.prepareDeployAndPayFees(chainId, this.DEFAULT_VERSION)
-  }
-
   // Onboarding scenario where assets inside counterfactual smart account pays for it's deployment
   async deployAndPayFees(chainId: ChainId, feeQuote: FeeQuote): Promise<string> {
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
@@ -1015,8 +995,6 @@ class SmartAccount extends EventEmitter {
     const txHash = await this.sendTransaction({ tx: transaction })
     return txHash
   }
-
-  // Todo: sendSignedTransaction (only applies for Refund transaction )
 
   /**
    *
@@ -1046,11 +1024,9 @@ class SmartAccount extends EventEmitter {
     return this.contractUtils.multiSendContract[chainId][this.DEFAULT_VERSION]
   }
 
-  // Note: expose getMultiSend(), getMultiSendCall()
+  // WIP
+  // expose getMultiSend(), getMultiSendCall()
 
-  // TODO
-  // Note: get Address method should not be here as we are passing smart account state
-  // Marked for deletion
   async getAddress(
     addressForCounterFactualWalletDto: AddressForCounterFactualWalletDto
   ): Promise<ISmartAccount> {
@@ -1085,7 +1061,6 @@ class SmartAccount extends EventEmitter {
 
   /**
    * Allows one to check if the smart account is already deployed on requested chainOd
-   * @review
    * @notice the check is made on Wallet Factory state with current address in Smart Account state
    * @param chainId optional chainId : Default is current active
    * @returns
@@ -1096,7 +1071,6 @@ class SmartAccount extends EventEmitter {
   }
 
   /**
-   * @review for owner
    * @param chainId requested chain : default is active chain
    * @returns object containing infromation (owner, relevant contract addresses, isDeployed) about Smart Account for requested chain
    */
@@ -1127,41 +1101,5 @@ class SmartAccount extends EventEmitter {
 }
 
 // Current default config
-// TODO/NOTE : Goerli and Mumbai as test networks and remove others
-export const DefaultSmartAccountConfig: SmartAccountConfig = {
-  activeNetworkId: ChainId.POLYGON_MUMBAI, //Update later
-  supportedNetworksIds: [
-    ChainId.GOERLI,
-    ChainId.POLYGON_MUMBAI,
-    ChainId.POLYGON_MAINNET,
-    ChainId.BSC_TESTNET
-  ],
-  signType: SignTypeMethod.EIP712_SIGN,
-  backendUrl: 'https://sdk-backend.staging.biconomy.io/v1',
-  relayerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
-  socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
-  bundlerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
-  biconomySigningServiceUrl: 'https://paymaster-signing-service.staging.biconomy.io/api/v1/sign',
-  // TODO : has to be public provider urls (local config / backend node)
-  networkConfig: [
-    {
-      chainId: ChainId.GOERLI,
-      providerUrl: 'https://eth-goerli.alchemyapi.io/v2/lmW2og_aq-OXWKYRoRu-X6Yl6wDQYt_2'
-    },
-    {
-      chainId: ChainId.POLYGON_MUMBAI,
-      providerUrl: 'https://polygon-mumbai.g.alchemy.com/v2/Q4WqQVxhEEmBYREX22xfsS2-s5EXWD31'
-    },
-    {
-      chainId: ChainId.BSC_TESTNET,
-      providerUrl:
-        'https://wandering-broken-tree.bsc-testnet.quiknode.pro/7992da20f9e4f97c2a117bea9af37c1c266f63ec/'
-    },
-    {
-      chainId: ChainId.POLYGON_MAINNET,
-      providerUrl: 'https://polygon-mainnet.g.alchemy.com/v2/6Tn--QDkp1vRBXzRV3Cc8fLXayr5Yoij'
-    }
-  ],
-}
 
 export default SmartAccount

@@ -5,6 +5,7 @@ import { TransactionResponse } from '@ethersproject/providers'
 import { ChainId, IWalletTransaction } from '@biconomy/core-types'
 
 // Note: WIP. Not used by SmartAccount at the moment
+// deadcode
 
 /*export class SmartAccountProvider extends Web3Provider { //implements JsonRpcHandler
 
@@ -57,7 +58,6 @@ export class SmartAccountProvider extends BaseProvider {
   }
 
   async getTransaction(transactionHash: string | Promise<string>): Promise<TransactionResponse> {
-    // TODO
     // Getting wallet transaction
     return await super.getTransaction(transactionHash)
   }
@@ -65,7 +65,6 @@ export class SmartAccountProvider extends BaseProvider {
   // Could be
   // getTransactionReceipt
 
-  // TODO
   // Helper for fabricating a response in a format usable by ethers users...
   async constructSmartAccountTransactionResponse(
   ): Promise<TransactionResponse | null> {

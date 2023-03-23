@@ -11,7 +11,7 @@ export type RawTransactionType = {
   maxPriorityFeePerGas?: string | BigNumber
   gasLimit?: string
   to: string
-  value: BigNumberish
+  value?: BigNumberish
   data?: string
   chainId: number
   nonce?: number | string

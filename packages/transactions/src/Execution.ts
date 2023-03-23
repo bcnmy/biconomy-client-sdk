@@ -19,8 +19,6 @@ export const EIP_DOMAIN = {
   ]
 }
 
-// todo
-// Create a method that returns EIP712_ACCOUNT_TX_TYPE based on the version passed
 export const EIP712_ACCOUNT_TX_TYPE = {
   // "AccountTx(address to,uint256 value,bytes data,uint8 operation,uint256 targetTxGas,uint256 baseGas,uint256 gasPrice,address gasToken,address refundReceiver,uint256 nonce)"
   AccountTx: [
@@ -37,8 +35,6 @@ export const EIP712_ACCOUNT_TX_TYPE = {
     { type: "uint256", name: "nonce" },
   ]
 }
-
-// TODO: { EIP712_SMART_ACCOUNT_MESSAGE_TYPE } needs to be change to { EIP712_SAFE_MESSAGE_TYPE }  
 
 export const EIP712_SMART_ACCOUNT_MESSAGE_TYPE = {
   // "SmartAccountMessage(bytes message)"

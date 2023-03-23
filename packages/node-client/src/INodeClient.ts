@@ -92,7 +92,6 @@ interface INodeClient {
   /**
    * About: This is generic method to estimate gas on any contract call done using GasEstimator contract
    * Can be used to estimate gas before sending final transaction.
-   * Purpose: Currently used in smart account methods deployAndPayFees / prepareDeployandPayFees
    * @param estimateExternalGasDto
    */
   estimateExternalGas(estimateExternalGasDto: EstimateExternalGasDto): Promise<EstimateGasResponse>

@@ -17,11 +17,9 @@ import SmartAccount from '../SmartAccount'
 
 export abstract class Signer extends AbstractSigner {
   abstract getProvider(chainId?: number): Promise<JsonRpcProvider | undefined>
-  // Review
+
   abstract getRelayer(chainId?: number): Promise<IRelayer | undefined>
 
-  // signMessage .....
-  // Review
   abstract signMessage(message: BytesLike, chainId?: ChainId): Promise<string>
 
   // signTypedData ..

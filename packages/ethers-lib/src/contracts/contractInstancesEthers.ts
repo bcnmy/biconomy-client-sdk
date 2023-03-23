@@ -21,6 +21,9 @@ import EntryPointEthersContract_v1_0_0 from './EntryPointContract/v1.0.0/EntryPo
 import { FallbackGasTankContractV100__factory as FallbackGasTankContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/FallbackGasTankContractV100__factory'
 import FallbackGasTankEthersContract_v1_0_0 from './FallbackGasTank/v1.0.0/FallbackGasTankEthersContract'
 
+import { DefaultCallbackHandlerV100__factory as DefaultCallbackHandlerContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/DefaultCallbackHandlerV100__factory'
+import DefaultCallbackHandlerEthersContract_v1_0_0 from './DefaultCallbackHandlerContract/v1.0.0/DefaultCallbackHandlerEthersContract'
+
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { SmartAccountVersion } from '@biconomy/core-types'
 
@@ -134,5 +137,22 @@ export function getFallbackGasTankContractInstance(
     default:
       fallbackGasTankContract = FallbackGasTankContractV100.connect(contractAddress, provider)
       return new FallbackGasTankEthersContract_v1_0_0(fallbackGasTankContract)
+  }
+}
+
+export function getDefaultCallbackHandlerInstance(
+  smartAccountVersion: SmartAccountVersion,
+  contractAddress: string,
+  provider: JsonRpcProvider
+): DefaultCallbackHandlerEthersContract_v1_0_0 {
+  let defaultCallbackHandlerContract
+
+  switch (smartAccountVersion) {
+    case '1.0.0':
+      defaultCallbackHandlerContract = DefaultCallbackHandlerContractV100.connect(contractAddress, provider)
+      return new DefaultCallbackHandlerEthersContract_v1_0_0(defaultCallbackHandlerContract)
+    default:
+      defaultCallbackHandlerContract = DefaultCallbackHandlerContractV100.connect(contractAddress, provider)
+      return new DefaultCallbackHandlerEthersContract_v1_0_0(defaultCallbackHandlerContract)
   }
 }

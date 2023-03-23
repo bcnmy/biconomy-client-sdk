@@ -2082,7 +2082,6 @@ describe('Wallet integration', function () {
       expect(context.baseWallet).to.be.equal(smartAccount.smartAccount())
       expect(context.walletFactory).to.be.equal(smartAccount.factory())
       expect(context.multiSend).to.be.equal(smartAccount.multiSend())
-      // todo review
       // expect(context.multiSendCall).to.be.equal(smartAccount.multiSendCall())
     })
 
@@ -2329,11 +2328,9 @@ describe('Wallet integration', function () {
       }
     })
 
-    // Next // TODO
+    // WIP
     // Test cases for forward transaction mocking responses from rest relayer
     // createRefundTransaction (+Batch)
-    // prepareDeployAndPayFees
-    // deployAndPayFees
     // createRefundTransaction (+Batch)
     // estimateDeployments etc while mocking response form backend client
 

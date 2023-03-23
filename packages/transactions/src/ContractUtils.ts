@@ -6,7 +6,8 @@ import {
   MultiSendCallOnlyContract,
   SmartAccountContext,
   SmartAccountState,
-  FallbackGasTankContract
+  FallbackGasTankContract,
+  DefaultCallbackHandlerContract
 } from '@biconomy/core-types'
 import { ChainConfig } from '@biconomy/node-client'
 import {
@@ -14,7 +15,8 @@ import {
   getMultiSendContract,
   getMultiSendCallOnlyContract,
   getSmartWalletContract,
-  getFallbackGasTankContract
+  getFallbackGasTankContract,
+  getDefaultCallbackHandlerContract
 } from './utils/FetchContractsInfo'
 import { ethers, Signer } from 'ethers'
 import EvmNetworkManager from '@biconomy/ethers-lib'
@@ -35,6 +37,7 @@ class ContractUtils {
   }
 
   fallbackGasTankContract!: { [chainId: number]: { [version: string]: FallbackGasTankContract } }
+  //defaultCallbackHandlerContract!: { [chainId: number]: { [version: string]: DefaultCallbackHandlerContract } }
 
   smartAccountState!: SmartAccountState
 
@@ -45,6 +48,7 @@ class ContractUtils {
     this.multiSendCallOnlyContract = {}
     this.smartWalletFactoryContract = {}
     this.fallbackGasTankContract = {}
+    //this.defaultCallbackHandlerContract = {}
   }
 
   initializeContracts( signer: Signer,
@@ -61,6 +65,7 @@ class ContractUtils {
     this.multiSendContract[walletInfo.chainId] = {}
     this.multiSendCallOnlyContract[walletInfo.chainId] = {}
     this.fallbackGasTankContract[walletInfo.chainId] = {}
+    //this.defaultCallbackHandlerContract[walletInfo.chainId] = {}
     const version = walletInfo.version
     Logger.log('version ', version);
     
@@ -69,99 +74,40 @@ class ContractUtils {
       this.ethAdapter[walletInfo.chainId],
       walletInfo.factoryAddress
     )
-    Logger.log('factoryAddress ', walletInfo.factoryAddress)
+    Logger.log('Factory Address ', walletInfo.factoryAddress)
 
-    // NOTE/TODO : attached address is not wallet address yet
     this.smartWalletContract[walletInfo.chainId][version] = getSmartWalletContract(
       version,
       this.ethAdapter[walletInfo.chainId],
       walletInfo.smartAccountAddress
     )
-    Logger.log('smartAccountAddress ', walletInfo.smartAccountAddress)
-
+    Logger.log('SmartAccount Address ', walletInfo.smartAccountAddress)
 
     this.multiSendContract[walletInfo.chainId][version] = getMultiSendContract(
       version,
       this.ethAdapter[walletInfo.chainId],
       chaininfo.multiSend[chaininfo.multiSend.length - 1].address
     )
-    // console.log('multiSend ',  chaininfo.multiSend[Number(version)].address);
-
 
     this.multiSendCallOnlyContract[walletInfo.chainId][version] = getMultiSendCallOnlyContract(
       version,
       this.ethAdapter[walletInfo.chainId],
       chaininfo.multiSendCall[chaininfo.multiSendCall.length - 1].address
     )
-    // console.log('multiSendCall ',  chaininfo.multiSendCall[chaininfo.multiSendCall.length].address);
-
 
     this.fallbackGasTankContract[walletInfo.chainId][Number(version)] = getFallbackGasTankContract(
       version,
       this.ethAdapter[walletInfo.chainId],
       chaininfo.fallBackGasTankAddress
     )
-    Logger.log('fallBackGasTankAddress ',  chaininfo.fallBackGasTankAddress);
-    }
 
-  // initializeContracts(
-  //   signer: Signer,
-  //   readProvider: ethers.providers.JsonRpcProvider,
-  //   chaininfo: ChainConfig
-  // ) {
-  //   // We get the addresses using chainConfig fetched from backend node
+    /*this.defaultCallbackHandlerContract[walletInfo.chainId][version] = getDefaultCallbackHandlerContract(
+      version,
+      this.ethAdapter[walletInfo.chainId],
+      walletInfo.fallBackHandlerAddress
+    )*/
 
-  //   const smartWallet = chaininfo.wallet
-  //   const smartWalletFactoryAddress = chaininfo.walletFactory
-  //   const fallbackGasTankAddress = chaininfo.fallBackGasTankAddress
-  //   const multiSend = chaininfo.multiSend
-  //   const multiSendCall = chaininfo.multiSendCall
-  //   this.ethAdapter[chaininfo.chainId] = new EvmNetworkManager({
-  //     ethers,
-  //     signer,
-  //     provider: readProvider
-  //   })
-
-  //   this.smartWalletFactoryContract[chaininfo.chainId] = {}
-  //   this.smartWalletContract[chaininfo.chainId] = {}
-  //   this.multiSendContract[chaininfo.chainId] = {}
-  //   this.multiSendCallOnlyContract[chaininfo.chainId] = {}
-  //   this.fallbackGasTankContract[chaininfo.chainId] = {}
-
-  //   for (let index = 0; index < smartWallet.length; index++) {
-  //     const version = smartWallet[index].version
-
-  //     this.smartWalletFactoryContract[chaininfo.chainId][version] = getSmartWalletFactoryContract(
-  //       version,
-  //       this.ethAdapter[chaininfo.chainId],
-  //       smartWalletFactoryAddress[index].address
-  //     )
-  //     // NOTE/TODO : attached address is not wallet address yet
-  //     this.smartWalletContract[chaininfo.chainId][version] = getSmartWalletContract(
-  //       version,
-  //       this.ethAdapter[chaininfo.chainId],
-  //       smartWallet[index].address
-  //     )
-
-  //     this.multiSendContract[chaininfo.chainId][version] = getMultiSendContract(
-  //       version,
-  //       this.ethAdapter[chaininfo.chainId],
-  //       multiSend[index].address
-  //     )
-
-  //     this.multiSendCallOnlyContract[chaininfo.chainId][version] = getMultiSendCallOnlyContract(
-  //       version,
-  //       this.ethAdapter[chaininfo.chainId],
-  //       multiSendCall[index].address
-  //     )
-
-  //     this.fallbackGasTankContract[chaininfo.chainId][version] = getFallbackGasTankContract(
-  //       version,
-  //       this.ethAdapter[chaininfo.chainId],
-  //       fallbackGasTankAddress
-  //     )
-  //   }
-  // }
+  }
 
   async isDeployed(chainId: ChainId, address: string): Promise<boolean> {
     return await this.ethAdapter[chainId].isContractDeployed(address)
@@ -175,7 +121,6 @@ class ContractUtils {
    * @returns object containing relevant contract instances
    */
   getSmartAccountContext(
-    // smartAccountVersion: SmartAccountVersion = this.DEFAULT_VERSION,
     chainId: ChainId,
     version: SmartAccountVersion
   ): SmartAccountContext {
@@ -195,48 +140,7 @@ class ContractUtils {
 
   getSmartAccountState(
   ): SmartAccountState {
-    // smartAccountState: SmartAccountState,
-    // currentVersion?: string,
-    // currentChainId?: ChainId
-    // console.log(smartAccountState, currentVersion, currentChainId);
     return this.smartAccountState
-    // const { address, owner, chainId, version } = smartAccountState
-
-    // if (!currentVersion) {
-    //   currentVersion = version
-    // }
-
-    // if (!currentChainId) {
-    //   currentChainId = chainId
-    // }
-
-    // if (!this.smartAccountState) {
-    //   this.smartAccountState = smartAccountState
-    // } else if (
-    //   this.smartAccountState.version !== currentVersion ||
-    //   this.smartAccountState.chainId !== currentChainId
-    // ) {
-    //   this.smartAccountState.address = await this.smartWalletFactoryContract[chainId][
-    //     version
-    //   ].getAddressForCounterFactualAccount(owner, 0)
-    //   this.smartAccountState.version = currentVersion
-    //   this.smartAccountState.chainId = currentChainId
-
-    //   this.smartAccountState.isDeployed = await this.isDeployed(
-    //     this.smartAccountState.chainId,
-    //     address
-    //   ) // could be set as state in init
-    //   const contractsByVersion = findContractAddressesByVersion(
-    //     this.smartAccountState.version,
-    //     this.smartAccountState.chainId,
-    //     this.chainConfig
-    //   )
-    //     ; (this.smartAccountState.entryPointAddress = contractsByVersion.entryPointAddress || ''),
-    //       (this.smartAccountState.fallbackHandlerAddress =
-    //         contractsByVersion.fallBackHandlerAddress || '')
-    // }
-
-    // return this.smartAccountState
   }
 
   attachWalletContract(
@@ -246,7 +150,6 @@ class ContractUtils {
   ) {
     let walletContract = this.smartWalletContract[chainId][version].getContract()
     return walletContract.attach(address)
-
   }
 }
 

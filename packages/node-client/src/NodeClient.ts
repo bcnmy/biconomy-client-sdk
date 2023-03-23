@@ -30,15 +30,11 @@ export interface NodeClientConfig {
 class NodeClient implements INodeClient {
   #txServiceBaseUrl: string
 
-  // Review
-  // Removed ethAdapter
   constructor({ txServiceUrl }: NodeClientConfig) {
     this.#txServiceBaseUrl = getTxServiceBaseUrl(txServiceUrl)
-    // this.#ethAdapter = ethAdapter
   }
 
   /**
-   * Returns the list of supported chains and their configurations
    *
    * @returns The list of Network info
    */

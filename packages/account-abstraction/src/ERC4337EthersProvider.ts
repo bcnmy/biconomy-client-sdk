@@ -54,15 +54,12 @@ export class ERC4337EthersProvider extends BaseProvider {
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   async perform(method: string, params: any): Promise<any> {
     if (method === 'sendTransaction' || method === 'getTransactionReceipt') {
-      // TODO: do we need 'perform' method to be available at all?
-      // there is nobody out there to use it for ERC-4337 methods yet, we have nothing to override in fact.
       throw new Error('Should not get here. Investigate.')
     }
     return await this.originalProvider.perform(method, params)
   }
 
   async getTransaction(transactionHash: string | Promise<string>): Promise<TransactionResponse> {
-    // TODO
     return await super.getTransaction(transactionHash)
   }
 
