@@ -31,7 +31,7 @@ export const ProductionConfig: SmartAccountConfig = {
       {
         chainId: ChainId.BSC_TESTNET,
         providerUrl:
-          'https://wandering-broken-tree.bsc-testnet.quiknode.pro/7992da20f9e4f97c2a117bea9af37c1c266f63ec/'
+          'https://data-seed-prebsc-1-s1.binance.org:8545'
       },
       {
         chainId: ChainId.POLYGON_MAINNET,
@@ -65,7 +65,7 @@ export const StagingConfig: SmartAccountConfig = {
       {
         chainId: ChainId.BSC_TESTNET,
         providerUrl:
-          'https://wandering-broken-tree.bsc-testnet.quiknode.pro/7992da20f9e4f97c2a117bea9af37c1c266f63ec/'
+          'https://data-seed-prebsc-1-s1.binance.org:8545'
       }
     ],
 }
@@ -95,7 +95,7 @@ export const DevelopmentConfig: SmartAccountConfig = {
       {
         chainId: ChainId.BSC_TESTNET,
         providerUrl:
-          'https://wandering-broken-tree.bsc-testnet.quiknode.pro/7992da20f9e4f97c2a117bea9af37c1c266f63ec/'
+          'https://data-seed-prebsc-1-s1.binance.org:8545'
       }
     ],
 }
