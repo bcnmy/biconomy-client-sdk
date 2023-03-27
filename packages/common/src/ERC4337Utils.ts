@@ -8,9 +8,14 @@ const debug = Debug('aa.utils')
 
 // UserOperation is the first parameter of validateUseOp
 const validateUserOpMethod = 'simulateValidation'
-const UserOpType = entryPointAbi.find(entry => entry.name === validateUserOpMethod)?.inputs[0]
+const UserOpType = entryPointAbi.find((entry) => entry.name === validateUserOpMethod)?.inputs[0]
 if (UserOpType == null) {
-  throw new Error(`unable to find method ${validateUserOpMethod} in EP ${entryPointAbi.filter(x => x.type === 'function').map(x => x.name).join(',')}`)
+  throw new Error(
+    `unable to find method ${validateUserOpMethod} in EP ${entryPointAbi
+      .filter((x) => x.type === 'function')
+      .map((x) => x.name)
+      .join(',')}`
+  )
 }
 
 export const AddressZero = ethers.constants.AddressZero
@@ -20,9 +25,13 @@ export type NotPromise<T> = {
   [P in keyof T]: Exclude<T[P], Promise<any>>
 }
 
-function encode (typevalues: Array<{ type: string, val: any }>, forSignature: boolean): string {
-  const types = typevalues.map(typevalue => typevalue.type === 'bytes' && forSignature ? 'bytes32' : typevalue.type)
-  const values = typevalues.map((typevalue) => typevalue.type === 'bytes' && forSignature ? keccak256(typevalue.val) : typevalue.val)
+function encode(typevalues: Array<{ type: string; val: any }>, forSignature: boolean): string {
+  const types = typevalues.map((typevalue) =>
+    typevalue.type === 'bytes' && forSignature ? 'bytes32' : typevalue.type
+  )
+  const values = typevalues.map((typevalue) =>
+    typevalue.type === 'bytes' && forSignature ? keccak256(typevalue.val) : typevalue.val
+  )
   return defaultAbiCoder.encode(types, values)
 }
 
@@ -32,7 +41,7 @@ function encode (typevalues: Array<{ type: string, val: any }>, forSignature: bo
  * @param forSignature "true" if the hash is needed to calculate the getUserOpHash()
  *  "false" to pack entire UserOp, for calculating the calldata cost of putting it on-chain.
  */
-export function packUserOp (op: NotPromise<UserOperationStruct>, forSignature = true): string {
+export function packUserOp(op: NotPromise<UserOperationStruct>, forSignature = true): string {
   if (forSignature) {
     // lighter signature scheme (must match UserOperation#pack): do encode a zero-length signature, but strip afterwards the appended zero-length value
     const userOpType = {
@@ -87,19 +96,26 @@ export function packUserOp (op: NotPromise<UserOperationStruct>, forSignature = 
     }
     // console.log('hard-coded userOpType', userOpType)
     // console.log('from ABI userOpType', UserOpType)
-    let encoded = defaultAbiCoder.encode([userOpType as any], [{
-      ...op,
-      signature: '0x'
-    }])
+    let encoded = defaultAbiCoder.encode(
+      [userOpType as any],
+      [
+        {
+          ...op,
+          signature: '0x'
+        }
+      ]
+    )
     // remove leading word (total length) and trailing word (zero-length signature)
     encoded = '0x' + encoded.slice(66, encoded.length - 64)
     return encoded
   }
 
-  const typevalues = (UserOpType as any).components.map((c: { name: keyof typeof op, type: string }) => ({
-    type: c.type,
-    val: op[c.name]
-  }))
+  const typevalues = (UserOpType as any).components.map(
+    (c: { name: keyof typeof op; type: string }) => ({
+      type: c.type,
+      val: op[c.name]
+    })
+  )
   return encode(typevalues, forSignature)
 }
 
@@ -112,11 +128,16 @@ export function packUserOp (op: NotPromise<UserOperationStruct>, forSignature = 
  * @param entryPoint
  * @param chainId
  */
-export function getUserOpHash (op: NotPromise<UserOperationStruct>, entryPoint: string, chainId: number): string {
+export function getUserOpHash(
+  op: NotPromise<UserOperationStruct>,
+  entryPoint: string,
+  chainId: number
+): string {
   const userOpHash = keccak256(packUserOp(op, true))
   const enc = defaultAbiCoder.encode(
     ['bytes32', 'address', 'uint256'],
-    [userOpHash, entryPoint, chainId])
+    [userOpHash, entryPoint, chainId]
+  )
   return keccak256(enc)
 }
 
@@ -132,13 +153,16 @@ interface DecodedError {
 /**
  * decode bytes thrown by revert as Error(message) or FailedOp(opIndex,paymaster,message)
  */
-export function decodeErrorReason (error: string): DecodedError | undefined {
+export function decodeErrorReason(error: string): DecodedError | undefined {
   debug('decoding', error)
   if (error.startsWith(ErrorSig)) {
     const [message] = defaultAbiCoder.decode(['string'], '0x' + error.substring(10))
     return { message }
   } else if (error.startsWith(FailedOpSig)) {
-    let [opIndex, paymaster, message] = defaultAbiCoder.decode(['uint256', 'address', 'string'], '0x' + error.substring(10))
+    let [opIndex, paymaster, message] = defaultAbiCoder.decode(
+      ['uint256', 'address', 'string'],
+      '0x' + error.substring(10)
+    )
     message = `FailedOp: ${message as string}`
     if (paymaster.toString() !== ethers.constants.AddressZero) {
       message = `${message as string} (paymaster ${paymaster as string})`
@@ -160,7 +184,7 @@ export function decodeErrorReason (error: string): DecodedError | undefined {
  * tested on geth, hardhat-node
  * usage: entryPoint.handleOps().catch(decodeError)
  */
-export function rethrowError (e: any): any {
+export function rethrowError(e: any): any {
   let error = e
   let parent = e
   if (error?.error != null) {
@@ -170,13 +194,17 @@ export function rethrowError (e: any): any {
     parent = error
     error = error.data
   }
-  const decoded = typeof error === 'string' && error.length > 2 ? decodeErrorReason(error) : undefined
+  const decoded =
+    typeof error === 'string' && error.length > 2 ? decodeErrorReason(error) : undefined
   if (decoded != null) {
     e.message = decoded.message
 
     if (decoded.opIndex != null) {
       // helper for chai: convert our FailedOp error into "Error(msg)"
-      const errorWithMsg = hexConcat([ErrorSig, defaultAbiCoder.encode(['string'], [decoded.message])])
+      const errorWithMsg = hexConcat([
+        ErrorSig,
+        defaultAbiCoder.encode(['string'], [decoded.message])
+      ])
       // modify in-place the error object:
       parent.data = errorWithMsg
     }
@@ -188,7 +216,7 @@ export function rethrowError (e: any): any {
  * hexlify all members of object, recursively
  * @param obj
  */
-export function deepHexlify (obj: any): any {
+export function deepHexlify(obj: any): any {
   if (typeof obj === 'function') {
     return undefined
   }
@@ -198,11 +226,13 @@ export function deepHexlify (obj: any): any {
     return hexlify(obj).replace(/^0x0/, '0x')
   }
   if (Array.isArray(obj)) {
-    return obj.map(member => deepHexlify(member))
+    return obj.map((member) => deepHexlify(member))
   }
-  return Object.keys(obj)
-    .reduce((set, key) => ({
+  return Object.keys(obj).reduce(
+    (set, key) => ({
       ...set,
       [key]: deepHexlify(obj[key])
-    }), {})
+    }),
+    {}
+  )
 }

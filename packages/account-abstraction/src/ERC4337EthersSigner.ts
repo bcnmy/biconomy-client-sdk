@@ -75,8 +75,8 @@ export class ERC4337EthersSigner extends Signer {
       this.verifyAllNecessaryFields(transaction)
 
       userOperation = await this.smartAccountAPI.createSignedUserOp({
-        target: transaction.to ? [transaction.to] :  [ethers.constants.AddressZero],
-        data: transaction.data?.toString() ? [transaction.data?.toString()]: ['0x'],
+        target: transaction.to ? [transaction.to] : [ethers.constants.AddressZero],
+        data: transaction.data?.toString() ? [transaction.data?.toString()] : ['0x'],
         value: transaction.value ? [transaction.value] : [0],
         gasLimit: transaction.gasLimit
       })
@@ -157,7 +157,6 @@ export class ERC4337EthersSigner extends Signer {
     transactions: TransactionRequest[],
     engine?: any // EventEmitter
   ): Promise<TransactionResponse> {
-
     const socketServerUrl = this.config.socketServerUrl
 
     const clientMessenger = new ClientMessenger(socketServerUrl, WebSocket)
@@ -172,25 +171,24 @@ export class ERC4337EthersSigner extends Signer {
     }
 
     Logger.log('received transaction ', transactions)
-   
+
     let userOperation: UserOperation
-      // Removing populate transaction all together
-      // const tx: TransactionRequest = await this.populateTransaction(transaction)
+    // Removing populate transaction all together
+    // const tx: TransactionRequest = await this.populateTransaction(transaction)
 
-      transactions.map(this.verifyAllNecessaryFields)
+    transactions.map(this.verifyAllNecessaryFields)
 
+    // let target = transactions.map(({ target }) => target)
 
-      // let target = transactions.map(({ target }) => target)
-     
-      const target = transactions.map((element) => element.to ?? ethers.constants.AddressZero)
-      const data = transactions.map((element) => element.data ?? '0x')
-      const value = transactions.map((element) => element.value ?? BigNumber.from(0))
+    const target = transactions.map((element) => element.to ?? ethers.constants.AddressZero)
+    const data = transactions.map((element) => element.data ?? '0x')
+    const value = transactions.map((element) => element.value ?? BigNumber.from(0))
 
-      userOperation = await this.smartAccountAPI.createSignedUserOp({
-        target,
-        data,
-        value,
-      })
+    userOperation = await this.smartAccountAPI.createSignedUserOp({
+      target,
+      data,
+      value
+    })
     Logger.log('signed userOp ', userOperation)
 
     let bundlerServiceResponse: any
@@ -266,10 +264,10 @@ export class ERC4337EthersSigner extends Signer {
     return transactionResponse
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  unwrapError (errorIn: any): Error {
+  unwrapError(errorIn: any): Error {
     if (errorIn.body != null) {
       const errorBody = JSON.parse(errorIn.body)
-      let paymasterInfo: string = ''
+      let paymasterInfo = ''
       let failedOpMessage: string | undefined = errorBody?.error?.message
       if (failedOpMessage?.includes('FailedOp') === true) {
         const matched = failedOpMessage.match(/FailedOp\((.*)\)/)
@@ -279,14 +277,16 @@ export class ERC4337EthersSigner extends Signer {
           failedOpMessage = split[2]
         }
       }
-      const error = new Error(`The bundler has failed to include UserOperation in a batch: ${failedOpMessage} ${paymasterInfo})`)
+      const error = new Error(
+        `The bundler has failed to include UserOperation in a batch: ${failedOpMessage} ${paymasterInfo})`
+      )
       error.stack = errorIn.stack
       return error
     }
     return errorIn
   }
 
-  verifyAllNecessaryFields (transactionRequest: TransactionRequest): void {
+  verifyAllNecessaryFields(transactionRequest: TransactionRequest): void {
     if (transactionRequest.to == null) {
       throw new Error('Missing call target')
     }
@@ -296,28 +296,28 @@ export class ERC4337EthersSigner extends Signer {
     }
   }
 
-  connect (provider: Provider): Signer {
+  connect(provider: Provider): Signer {
     Logger.log('changing providers connect called', provider)
     throw new Error('changing providers is not supported')
   }
 
-  async getAddress (): Promise<string> {
+  async getAddress(): Promise<string> {
     if (this.address == null) {
       this.address = await this.erc4337provider.getSenderAccountAddress()
     }
     return this.address
   }
 
-  async signMessage (message: Bytes | string): Promise<string> {
+  async signMessage(message: Bytes | string): Promise<string> {
     return await this.originalSigner.signMessage(message)
   }
 
-  async signTransaction (transaction: Deferrable<TransactionRequest>): Promise<string> {
+  async signTransaction(transaction: Deferrable<TransactionRequest>): Promise<string> {
     Logger.log('signTransaction called', transaction)
     throw new Error('not implemented')
   }
 
-  async signUserOperation (userOperation: UserOperation): Promise<string> {
+  async signUserOperation(userOperation: UserOperation): Promise<string> {
     const message = await this.smartAccountAPI.getUserOpHash(userOperation)
     return await this.originalSigner.signMessage(message)
   }

@@ -51,15 +51,17 @@ class ContractUtils {
     //this.defaultCallbackHandlerContract = {}
   }
 
-  initializeContracts( signer: Signer,
+  initializeContracts(
+    signer: Signer,
     readProvider: ethers.providers.JsonRpcProvider,
     walletInfo: ISmartAccount,
-    chaininfo: ChainConfig){
-      this.ethAdapter[walletInfo.chainId] = new EvmNetworkManager({
-        ethers,
-        signer,
-        provider: readProvider
-      })
+    chaininfo: ChainConfig
+  ) {
+    this.ethAdapter[walletInfo.chainId] = new EvmNetworkManager({
+      ethers,
+      signer,
+      provider: readProvider
+    })
     this.smartWalletFactoryContract[walletInfo.chainId] = {}
     this.smartWalletContract[walletInfo.chainId] = {}
     this.multiSendContract[walletInfo.chainId] = {}
@@ -67,8 +69,8 @@ class ContractUtils {
     this.fallbackGasTankContract[walletInfo.chainId] = {}
     //this.defaultCallbackHandlerContract[walletInfo.chainId] = {}
     const version = walletInfo.version
-    Logger.log('version ', version);
-    
+    Logger.log('version ', version)
+
     this.smartWalletFactoryContract[walletInfo.chainId][version] = getSmartWalletFactoryContract(
       version,
       this.ethAdapter[walletInfo.chainId],
@@ -106,7 +108,6 @@ class ContractUtils {
       this.ethAdapter[walletInfo.chainId],
       walletInfo.fallBackHandlerAddress
     )*/
-
   }
 
   async isDeployed(chainId: ChainId, address: string): Promise<boolean> {
@@ -120,10 +121,7 @@ class ContractUtils {
    * @param chainId requested chain : default is active chain
    * @returns object containing relevant contract instances
    */
-  getSmartAccountContext(
-    chainId: ChainId,
-    version: SmartAccountVersion
-  ): SmartAccountContext {
+  getSmartAccountContext(chainId: ChainId, version: SmartAccountVersion): SmartAccountContext {
     const context: SmartAccountContext = {
       baseWallet: this.smartWalletContract[chainId][version],
       walletFactory: this.smartWalletFactoryContract[chainId][version],
@@ -134,21 +132,16 @@ class ContractUtils {
     return context
   }
 
-  setSmartAccountState(smartAccountState: SmartAccountState): void{
+  setSmartAccountState(smartAccountState: SmartAccountState): void {
     this.smartAccountState = smartAccountState
   }
 
-  getSmartAccountState(
-  ): SmartAccountState {
+  getSmartAccountState(): SmartAccountState {
     return this.smartAccountState
   }
 
-  attachWalletContract(
-    chainId: ChainId,
-    version: SmartAccountVersion,
-    address: string
-  ) {
-    let walletContract = this.smartWalletContract[chainId][version].getContract()
+  attachWalletContract(chainId: ChainId, version: SmartAccountVersion, address: string) {
+    const walletContract = this.smartWalletContract[chainId][version].getContract()
     return walletContract.attach(address)
   }
 }

@@ -1,5 +1,5 @@
 import { BigNumberish } from 'ethers'
-import { BytesLike } from "@ethersproject/bytes";
+import { BytesLike } from '@ethersproject/bytes'
 
 export interface TransactionDetailsForUserOp {
   target: string
@@ -20,4 +20,3 @@ export interface TransactionDetailsForBatchUserOp {
   maxFeePerGas?: BigNumberish
   maxPriorityFeePerGas?: BigNumberish
 }
-

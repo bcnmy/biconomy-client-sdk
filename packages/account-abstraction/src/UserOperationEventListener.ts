@@ -7,14 +7,14 @@ import { Logger } from '@biconomy/common'
 
 const debug = Debug('aa.listener')
 
-const DEFAULT_TRANSACTION_TIMEOUT: number = 10000
+const DEFAULT_TRANSACTION_TIMEOUT = 10000
 
 /**
  * This class encapsulates Ethers.js listener function and necessary UserOperation details to
  * discover a TransactionReceipt for the operation.
  */
 export class UserOperationEventListener {
-  resolved: boolean = false
+  resolved = false
   boundLisener: (this: any, ...param: any) => void
 
   constructor(

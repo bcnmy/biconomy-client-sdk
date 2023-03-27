@@ -66,8 +66,7 @@ export class SmartAccountProvider extends BaseProvider {
   // getTransactionReceipt
 
   // Helper for fabricating a response in a format usable by ethers users...
-  async constructSmartAccountTransactionResponse(
-  ): Promise<TransactionResponse | null> {
+  async constructSmartAccountTransactionResponse(): Promise<TransactionResponse | null> {
     return null
   }
 

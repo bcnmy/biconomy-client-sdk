@@ -40,7 +40,7 @@ export function getSmartWalletContractInstance(
       return new SmartWalletContractEthers_v1_0_0(walletContract)
     default:
       walletContract = SmartWalletContractV100.connect(contractAddress, provider)
-      return new SmartWalletContractEthers_v1_0_0(walletContract)  
+      return new SmartWalletContractEthers_v1_0_0(walletContract)
   }
 }
 
@@ -50,7 +50,7 @@ export function getMultiSendContractInstance(
   contractAddress: string,
   // signer: Signer
   provider: JsonRpcProvider
-): MultiSendEthersContract_v1_0_0{
+): MultiSendEthersContract_v1_0_0 {
   let multiSendContract
 
   switch (smartAccountVersion) {
@@ -60,7 +60,6 @@ export function getMultiSendContractInstance(
     default:
       multiSendContract = MultiSendContractV100.connect(contractAddress, provider)
       return new MultiSendEthersContract_v1_0_0(multiSendContract)
-  
   }
 }
 
@@ -69,7 +68,7 @@ export function getMultiSendCallOnlyContractInstance(
   contractAddress: string,
   // signer: Signer
   provider: JsonRpcProvider
-): MultiSendCallOnlyEthersContract_v1_0_0{
+): MultiSendCallOnlyEthersContract_v1_0_0 {
   let multiSendCallContract
 
   switch (smartAccountVersion) {
@@ -86,21 +85,15 @@ export function getSmartWalletFactoryContractInstance(
   smartAccountVersion: SmartAccountVersion,
   contractAddress: string,
   provider: JsonRpcProvider
-): SmartWalletFacoryContractEthers_v1_0_0{
+): SmartWalletFacoryContractEthers_v1_0_0 {
   let walletFactoryContract
 
   switch (smartAccountVersion) {
     case '1.0.0':
-      walletFactoryContract = SmartWalletContractFactoryV100.connect(
-        contractAddress,
-        provider
-      )
+      walletFactoryContract = SmartWalletContractFactoryV100.connect(contractAddress, provider)
       return new SmartWalletFacoryContractEthers_v1_0_0(walletFactoryContract)
     default:
-      walletFactoryContract = SmartWalletContractFactoryV100.connect(
-        contractAddress,
-        provider
-      )
+      walletFactoryContract = SmartWalletContractFactoryV100.connect(contractAddress, provider)
       return new SmartWalletFacoryContractEthers_v1_0_0(walletFactoryContract)
   }
 }
@@ -109,7 +102,7 @@ export function getEntryPointFactoryContractInstance(
   smartAccountVersion: SmartAccountVersion,
   contractAddress: string,
   provider: JsonRpcProvider
-): EntryPointEthersContract_v1_0_0{
+): EntryPointEthersContract_v1_0_0 {
   let walletFactoryContract
 
   switch (smartAccountVersion) {
@@ -149,10 +142,16 @@ export function getDefaultCallbackHandlerInstance(
 
   switch (smartAccountVersion) {
     case '1.0.0':
-      defaultCallbackHandlerContract = DefaultCallbackHandlerContractV100.connect(contractAddress, provider)
+      defaultCallbackHandlerContract = DefaultCallbackHandlerContractV100.connect(
+        contractAddress,
+        provider
+      )
       return new DefaultCallbackHandlerEthersContract_v1_0_0(defaultCallbackHandlerContract)
     default:
-      defaultCallbackHandlerContract = DefaultCallbackHandlerContractV100.connect(contractAddress, provider)
+      defaultCallbackHandlerContract = DefaultCallbackHandlerContractV100.connect(
+        contractAddress,
+        provider
+      )
       return new DefaultCallbackHandlerEthersContract_v1_0_0(defaultCallbackHandlerContract)
   }
 }

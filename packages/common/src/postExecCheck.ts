@@ -5,11 +5,22 @@ import Debug from 'debug'
 
 const debug = Debug('aa.postExec')
 
-export async function postExecutionDump (entryPoint: EntryPoint, userOpHash: string): Promise<void> {
+export async function postExecutionDump(entryPoint: EntryPoint, userOpHash: string): Promise<void> {
   const { gasPaid, gasUsed, success, userOp } = await postExecutionCheck(entryPoint, userOpHash)
   /// / debug dump:
-  debug('==== used=', gasUsed, 'paid', gasPaid, 'over=', gasPaid - gasUsed,
-    'callLen=', userOp.callData.length, 'initLen=', userOp.initCode.length, success ? 'success' : 'failed')
+  debug(
+    '==== used=',
+    gasUsed,
+    'paid',
+    gasPaid,
+    'over=',
+    gasPaid - gasUsed,
+    'callLen=',
+    userOp.callData.length,
+    'initLen=',
+    userOp.initCode.length,
+    success ? 'success' : 'failed'
+  )
 }
 
 /**
@@ -20,7 +31,10 @@ export async function postExecutionDump (entryPoint: EntryPoint, userOpHash: str
  * @param entryPoint
  * @param userOpHash
  */
-export async function postExecutionCheck (entryPoint: EntryPoint, userOpHash: string): Promise<{
+export async function postExecutionCheck(
+  entryPoint: EntryPoint,
+  userOpHash: string
+): Promise<{
   gasUsed: number
   gasPaid: number
   success: boolean
@@ -37,10 +51,7 @@ export async function postExecutionCheck (entryPoint: EntryPoint, userOpHash: st
   const tx = await req[0].getTransaction()
   const { ops } = entryPoint.interface.decodeFunctionData('handleOps', tx.data)
   const userOp = await resolveProperties(ops[0] as UserOperationStruct)
-  const {
-    actualGasUsed,
-    success
-  } = req[0].args
+  const { actualGasUsed, success } = req[0].args
   const gasPaid = actualGasUsed.toNumber()
   const gasUsed = transactionReceipt.gasUsed.toNumber()
   return {

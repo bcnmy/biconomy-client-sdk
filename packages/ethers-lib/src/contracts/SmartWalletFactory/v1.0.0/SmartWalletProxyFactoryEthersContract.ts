@@ -23,20 +23,12 @@ class SmartWalletFactoryContractEthers implements SmartWalletFactoryContract {
     this.contract.attach(address)
   }
 
-  async deployCounterFactualAccount(
-    owner: string,
-    index: number
-  ): Promise<ITransactionResult> {
-    const resultSet = await this.contract.deployCounterFactualAccount(
-      owner,
-      index
-    )
+  async deployCounterFactualAccount(owner: string, index: number): Promise<ITransactionResult> {
+    const resultSet = await this.contract.deployCounterFactualAccount(owner, index)
     return toTxResult(resultSet)
   }
 
-  async deployAccount(
-    owner: string,
-  ): Promise<ITransactionResult> {
+  async deployAccount(owner: string): Promise<ITransactionResult> {
     const resultSet = await this.contract.deployAccount(owner)
     return toTxResult(resultSet)
   }

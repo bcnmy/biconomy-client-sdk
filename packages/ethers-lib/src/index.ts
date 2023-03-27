@@ -15,7 +15,10 @@ export { EntryPointContractV100 } from '../typechain/src/ethers-v5/v1.0.0/EntryP
 
 export { SmartWalletContractV100 } from '../typechain/src/ethers-v5/v1.0.0/SmartWalletContractV100'
 
-export { SmartWalletFactoryContractV100, SmartWalletFactoryContractV100Interface } from '../typechain/src/ethers-v5/v1.0.0/SmartWalletFactoryContractV100'
+export {
+  SmartWalletFactoryContractV100,
+  SmartWalletFactoryContractV100Interface
+} from '../typechain/src/ethers-v5/v1.0.0/SmartWalletFactoryContractV100'
 
 import EntryPointEthersContract_v1_0_0 from './contracts/EntryPointContract/v1.0.0/EntryPointEthersContract'
 

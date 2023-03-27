@@ -131,17 +131,15 @@ class SmartAccount extends EventEmitter {
   constructor(signerOrProvider: Web3Provider | Signer, config?: Partial<SmartAccountConfig>) {
     super()
     const env = config?.environment ?? Environments.PROD
-    
-    if (!env || env === Environments.PROD){
-      Logger.log('Client connected to production environment');
+
+    if (!env || env === Environments.PROD) {
+      Logger.log('Client connected to production environment')
       this.#smartAccountConfig = { ...ProductionConfig }
-    }
-    else if (env && env === Environments.DEV){
-      Logger.log('Client connected to testing environment');
+    } else if (env && env === Environments.DEV) {
+      Logger.log('Client connected to testing environment')
       this.#smartAccountConfig = { ...DevelopmentConfig }
-    }
-    else{
-      console.log('Client connected to STAGING');
+    } else {
+      console.log('Client connected to STAGING')
       this.#smartAccountConfig = { ...StagingConfig }
     }
 
@@ -179,7 +177,6 @@ class SmartAccount extends EventEmitter {
     this.chainConfig = []
   }
 
-
   getConfig(): SmartAccountConfig {
     return this.#smartAccountConfig
   }
@@ -196,7 +193,10 @@ class SmartAccount extends EventEmitter {
   }
 
   getProviderUrl(network: ChainConfig): string {
-    Logger.log('after init smartAccountConfig.networkConfig', this.#smartAccountConfig.networkConfig)
+    Logger.log(
+      'after init smartAccountConfig.networkConfig',
+      this.#smartAccountConfig.networkConfig
+    )
     const networkConfig: NetworkConfig[] = this.#smartAccountConfig.networkConfig
     Logger.log(`networkConfig state is`, networkConfig)
     let providerUrl =
@@ -322,7 +322,7 @@ class SmartAccount extends EventEmitter {
     const transaction = await this.createTransaction(transactionDto)
 
     // create instance of SmartWallet contracts
-    let walletContract = this.contractUtils.attachWalletContract(
+    const walletContract = this.contractUtils.attachWalletContract(
       chainId,
       this.DEFAULT_VERSION,
       this.address
@@ -342,14 +342,14 @@ class SmartAccount extends EventEmitter {
       refundReceiver: transaction.refundReceiver
     }
 
-    let execTransactionData = await walletContract.interface.encodeFunctionData('execTransaction', [
-      transaction,
-      refundInfo,
-      signature
-    ])
+    const execTransactionData = await walletContract.interface.encodeFunctionData(
+      'execTransaction',
+      [transaction, refundInfo, signature]
+    )
 
     // create instance of fallbackGasTank contracts to get nonce
-    let fallbackGasTank = this.contractUtils.fallbackGasTankContract[chainId][version].getContract()
+    const fallbackGasTank =
+      this.contractUtils.fallbackGasTankContract[chainId][version].getContract()
     const gasTankNonce = await fallbackGasTank.getNonce(this.address)
 
     const isDeployed = await this.contractUtils.isDeployed(chainId, this.address)
@@ -565,7 +565,7 @@ class SmartAccount extends EventEmitter {
     let { chainId } = transactionBatchDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
 
-    let { transactions } = transactionBatchDto
+    const { transactions } = transactionBatchDto
 
     const aaSigner = this.aaProvider[chainId].getSigner()
 
@@ -607,15 +607,11 @@ class SmartAccount extends EventEmitter {
     return this
   }
 
-  public async getAlltokenBalances(
-    balancesDto: BalancesDto,
-  ): Promise<BalancesResponse> {
+  public async getAlltokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse> {
     return this.nodeClient.getAlltokenBalances(balancesDto)
   }
 
-  public async getTotalBalanceInUsd(
-    balancesDto: BalancesDto,
-  ): Promise<UsdBalanceResponse> {
+  public async getTotalBalanceInUsd(balancesDto: BalancesDto): Promise<UsdBalanceResponse> {
     return this.nodeClient.getTotalBalanceInUsd(balancesDto)
   }
 
@@ -672,7 +668,7 @@ class SmartAccount extends EventEmitter {
   async signTransaction(signTransactionDto: SignTransactionDto): Promise<string> {
     const { chainId = this.#smartAccountConfig.activeNetworkId, tx } = signTransactionDto
     const signatureType = this.#smartAccountConfig.signType
-    let walletContract = this.contractUtils.attachWalletContract(
+    const walletContract = this.contractUtils.attachWalletContract(
       chainId,
       this.DEFAULT_VERSION,
       this.address
@@ -734,7 +730,7 @@ class SmartAccount extends EventEmitter {
       refundReceiver: tx.refundReceiver
     }
 
-    let walletContract = this.contractUtils.attachWalletContract(
+    const walletContract = this.contractUtils.attachWalletContract(
       chainId,
       this.DEFAULT_VERSION,
       this.address
@@ -813,7 +809,7 @@ class SmartAccount extends EventEmitter {
       refundReceiver: tx.refundReceiver
     }
 
-    let walletContract = this.contractUtils.attachWalletContract(
+    const walletContract = this.contractUtils.attachWalletContract(
       chainId,
       this.DEFAULT_VERSION,
       this.address

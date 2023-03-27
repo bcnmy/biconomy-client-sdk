@@ -12,9 +12,9 @@ import { Signer } from 'ethers'
 import { IPaymasterAPI } from './AccountAbstractionTypes'
 
 export enum Environments {
-  DEV = "DEVELOPMENT", // Strictly testnets
-  QA = "STAGING", // Teset networks staging
-  PROD = "PRODUCTION", // Has all mainnet and testnet config
+  DEV = 'DEVELOPMENT', // Strictly testnets
+  QA = 'STAGING', // Teset networks staging
+  PROD = 'PRODUCTION' // Has all mainnet and testnet config
 }
 
 export interface SmartAccountConfig {
@@ -28,7 +28,7 @@ export interface SmartAccountConfig {
   entryPointAddress?: string
   biconomySigningServiceUrl?: string
   bundlerUrl?: string
-  environment?: Environments 
+  environment?: Environments
 }
 
 export enum SignTypeMethod {

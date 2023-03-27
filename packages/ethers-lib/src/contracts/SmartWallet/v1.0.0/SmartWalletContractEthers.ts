@@ -43,7 +43,7 @@ class SmartWalletContractEthers implements SmartWalletContract {
   async getNonce(batchId: number): Promise<BigNumber> {
     return await this.contract.getNonce(batchId)
   }
-  
+
   async nonce(): Promise<BigNumber> {
     return await this.contract.nonce()
   }

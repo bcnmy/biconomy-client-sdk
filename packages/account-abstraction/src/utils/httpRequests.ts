@@ -38,13 +38,13 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
     return jsonResponse as T
   }
   if (jsonResponse.error) {
-    throw new Error(jsonResponse.error);
+    throw new Error(jsonResponse.error)
   }
   if (jsonResponse.message) {
-    throw new Error(jsonResponse.message);
+    throw new Error(jsonResponse.message)
   }
   if (jsonResponse.msg) {
-    throw new Error(jsonResponse.msg);
+    throw new Error(jsonResponse.msg)
   }
   if (jsonResponse.data) {
     throw new Error(jsonResponse.data)

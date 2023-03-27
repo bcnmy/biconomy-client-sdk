@@ -19,10 +19,7 @@ export async function newProvider(
   fallbackHandlerAddress: string,
   factoryAddress: string
 ): Promise<ERC4337EthersProvider> {
-  const entryPoint = EntryPoint__factory.connect(
-    config.entryPointAddress,
-    originalProvider
-  )
+  const entryPoint = EntryPoint__factory.connect(config.entryPointAddress, originalProvider)
   // Initial SimpleWallet instance is not deployed and exists just for the interface
   // const simpleWalletDeployer = await DeterministicDeployer.deploy(SimpleAccountDeployer__factory.bytecode)
   const smartWalletAPI = new SmartAccountAPI(

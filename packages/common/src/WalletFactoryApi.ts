@@ -4,9 +4,7 @@ import { Contract } from 'ethers'
 
 import * as _ from 'lodash'
 
-export async function getWalletInfo(
-  initializerDto: InitializerDto
-): Promise<ISmartAccount> {
+export async function getWalletInfo(initializerDto: InitializerDto): Promise<ISmartAccount> {
   const { chainId, owner, txServiceUrl } = initializerDto
 
   const smartAccountInfo = await new NodeClient({ txServiceUrl }).getSmartAccountsByOwner({
@@ -14,17 +12,16 @@ export async function getWalletInfo(
     chainId
   })
   if (!smartAccountInfo.data || smartAccountInfo.data.length == 0) {
-    throw new Error("No Smart Account Found against supplied EOA");
+    throw new Error('No Smart Account Found against supplied EOA')
   }
   const walletInfo = smartAccountInfo.data
-  if ( walletInfo.length === 0 )
-  throw new Error('No Wallet Info Found against supplied data')
+  if (walletInfo.length === 0) throw new Error('No Wallet Info Found against supplied data')
   // check wallet is deployed on not
-  let wallet = _.filter(walletInfo, { 'isDeployed': true })
-  if (wallet.length > 0){
+  const wallet = _.filter(walletInfo, { isDeployed: true })
+  if (wallet.length > 0) {
     // filtering wallet base on deployed status and latest deployed wallet on chain
     let walletLists = _.filter(wallet, { chainId: chainId })
-    if (walletLists.length > 0){
+    if (walletLists.length > 0) {
       return walletLists[0]
     }
     walletLists = _.orderBy(wallet, ['createdAt'], 'desc')

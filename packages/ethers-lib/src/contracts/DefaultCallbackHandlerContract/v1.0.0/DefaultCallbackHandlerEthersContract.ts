@@ -16,7 +16,6 @@ class DefaultCallbackHandlerEthersContract implements DefaultCallbackHandlerCont
   getContract(): Contract {
     return this.contract
   }
-
 }
 
 export default DefaultCallbackHandlerEthersContract

@@ -48,7 +48,6 @@ export class SmartAccountSigner extends EthersSigner implements TypedDataSigner 
     return signature
   }
 
-
   // signMessage matches implementation from ethers JsonRpcSigner for compatibility
   async signMessage(message: BytesLike): Promise<string> {
     if (!this.provider) {

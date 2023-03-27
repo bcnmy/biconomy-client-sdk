@@ -95,10 +95,7 @@ export class Estimator {
     const { chainId, version } = prepareRefundTransactionsDto
     let estimatedGasUsed = 0
     // Check if available from current state
-    const isDeployed = await this.contractUtils.isDeployed(
-      chainId,
-      smartAccountState.address
-    )
+    const isDeployed = await this.contractUtils.isDeployed(chainId, smartAccountState.address)
     if (!isDeployed) {
       const estimateWalletDeployment = await this.estimateSmartAccountDeployment({
         chainId,
@@ -142,7 +139,7 @@ export class Estimator {
     )
     const noAuthEstimate =
       Number(ethCallOverrideResponse.data.gas) + Number(ethCallOverrideResponse.data.txBaseGas)
-      Logger.log('no auth no refund estimate', noAuthEstimate)
+    Logger.log('no auth no refund estimate', noAuthEstimate)
 
     estimatedGasUsed += noAuthEstimate
 
@@ -154,7 +151,7 @@ export class Estimator {
     const estimatorInterface = new ethers.utils.Interface(GasEstimator.abi)
     const encodedEstimateData = estimatorInterface.encodeFunctionData('estimate', [target, data])
 
-    let estimateGasUsedResponse = await this.nodeClient.estimateExternalGas({
+    const estimateGasUsedResponse = await this.nodeClient.estimateExternalGas({
       chainId,
       encodedData: encodedEstimateData
     })
@@ -165,16 +162,12 @@ export class Estimator {
     estimateSmartAccountDeploymentDto: EstimateSmartAccountDeploymentDto
   ): Promise<number> {
     const estimatorInterface = new ethers.utils.Interface(GasEstimator.abi)
-    const { chainId, version, owner } =
-      estimateSmartAccountDeploymentDto
+    const { chainId, version, owner } = estimateSmartAccountDeploymentDto
     const walletFactoryInterface =
       this.contractUtils.smartWalletFactoryContract[chainId][version].getInterface()
     const encodedEstimateData = estimatorInterface.encodeFunctionData('estimate', [
       this.contractUtils.smartWalletFactoryContract[chainId][version].getAddress(),
-      walletFactoryInterface.encodeFunctionData('deployCounterFactualAccount', [
-        owner,
-        0
-      ])
+      walletFactoryInterface.encodeFunctionData('deployCounterFactualAccount', [owner, 0])
     ])
     Logger.log('encodedEstimate ', encodedEstimateData)
     const deployCostresponse = await this.nodeClient.estimateExternalGas({

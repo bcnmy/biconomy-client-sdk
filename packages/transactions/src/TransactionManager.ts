@@ -142,7 +142,7 @@ class TransactionManager {
     }
     Logger.log('nonce: ', nonce)
 
-    let operation = isDelegate ? 1 : 0
+    const operation = isDelegate ? 1 : 0
 
     const walletTx: IWalletTransaction = this.utils.buildSmartAccountTransaction({
       to: transaction.to,
@@ -381,10 +381,7 @@ class TransactionManager {
 
     // NOTE : If the wallet is not deployed yet then nonce would be zero
     let nonce = 0
-    const isDeployed = await this.contractUtils.isDeployed(
-      chainId,
-      smartAccountState.address
-    )
+    const isDeployed = await this.contractUtils.isDeployed(chainId, smartAccountState.address)
     if (isDeployed) {
       nonce = (await walletContract.getNonce(batchId)).toNumber()
     } else {

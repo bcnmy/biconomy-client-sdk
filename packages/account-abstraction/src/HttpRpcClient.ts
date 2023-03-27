@@ -27,12 +27,14 @@ export class HttpRpcClient {
   }
 
   // review : bundler needs to support this
-  async validateChainId (): Promise<void> {
+  async validateChainId(): Promise<void> {
     // validate chainId is in sync with expected chainid
     const chain = await this.userOpJsonRpcProvider.send('eth_chainId', [])
     const bundlerChain = parseInt(chain)
     if (bundlerChain !== this.chainId) {
-      throw new Error(`bundler ${this.bundlerUrl} is on chainId ${bundlerChain}, but provider is on chainId ${this.chainId}`)
+      throw new Error(
+        `bundler ${this.bundlerUrl} is on chainId ${bundlerChain}, but provider is on chainId ${this.chainId}`
+      )
     }
   }
 
@@ -82,21 +84,31 @@ export class HttpRpcClient {
     }
   }
 
-  async estimateUserOpGas (userOp1: Partial<UserOperation>): Promise<string> {
+  async estimateUserOpGas(userOp1: Partial<UserOperation>): Promise<string> {
     // await this.initializing
     const hexifiedUserOp = deepHexlify(await resolveProperties(userOp1))
     const jsonRequestData: [UserOperation, string] = [hexifiedUserOp, this.entryPointAddress]
     // await this.printUserOperation('eth_estimateUserOperationGas', jsonRequestData)
-    return await this.userOpJsonRpcProvider
-      .send('eth_estimateUserOperationGas', [hexifiedUserOp, this.entryPointAddress])
+    return await this.userOpJsonRpcProvider.send('eth_estimateUserOperationGas', [
+      hexifiedUserOp,
+      this.entryPointAddress
+    ])
   }
 
-  private async printUserOperation (method: string, [userOp1, entryPointAddress]: [UserOperation, string]): Promise<void> {
+  private async printUserOperation(
+    method: string,
+    [userOp1, entryPointAddress]: [UserOperation, string]
+  ): Promise<void> {
     const userOp = await resolveProperties(userOp1)
-    debug('sending', method, {
-      ...userOp
-      // initCode: (userOp.initCode ?? '').length,
-      // callData: (userOp.callData ?? '').length
-    }, entryPointAddress)
+    debug(
+      'sending',
+      method,
+      {
+        ...userOp
+        // initCode: (userOp.initCode ?? '').length,
+        // callData: (userOp.callData ?? '').length
+      },
+      entryPointAddress
+    )
   }
 }

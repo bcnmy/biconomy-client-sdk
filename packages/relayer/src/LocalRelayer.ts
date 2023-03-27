@@ -27,7 +27,7 @@ export class LocalRelayer implements IRelayer {
     // checkd if already deployed
     const { config, context, index = 0 } = deployWallet
     const { isDeployed } = config
-    if ( isDeployed ) {
+    if (isDeployed) {
       throw new Error('Smart Account is Already Deployed')
     }
     const walletDeployTxn = this.prepareWalletDeploy({ config, context, index })
@@ -49,8 +49,7 @@ export class LocalRelayer implements IRelayer {
       to: walletFactory.getAddress(), // from context
       data: factoryInterface.encodeFunctionData(
         factoryInterface.getFunction('deployCounterFactualAccount'),
-        [ owner,
-          index]
+        [owner, index]
       )
     }
   }

@@ -1,5 +1,5 @@
 import { UserOperation } from '@biconomy/core-types' // review
-import { NotPromise, packUserOp } from '@biconomy/common'  // '@account-abstraction/utils'
+import { NotPromise, packUserOp } from '@biconomy/common' // '@account-abstraction/utils'
 import { arrayify, hexlify } from 'ethers/lib/utils'
 
 export interface GasOverheads {
@@ -58,7 +58,10 @@ export const DefaultGasOverheads: GasOverheads = {
  * @param userOp filled userOp to calculate. The only possible missing fields can be the signature and preVerificationGas itself
  * @param overheads gas overheads to use, to override the default values
  */
-export function calcPreVerificationGas (userOp: Partial<NotPromise<UserOperation>>, overheads?: Partial<GasOverheads>): number {
+export function calcPreVerificationGas(
+  userOp: Partial<NotPromise<UserOperation>>,
+  overheads?: Partial<GasOverheads>
+): number {
   const ov = { ...DefaultGasOverheads, ...(overheads ?? {}) }
   const p: NotPromise<UserOperation> = {
     // dummy values, in case the UserOp is incomplete.
@@ -68,21 +71,20 @@ export function calcPreVerificationGas (userOp: Partial<NotPromise<UserOperation
   } as any
 
   const packed = arrayify(packUserOp(p, false))
-  const lengthInWord = (packed.length + 31) / 32;
+  const lengthInWord = (packed.length + 31) / 32
   /**
    * general explanation
    * 21000 base gas
-   * ~ 18300 gas per userOp : corresponds to _validateAccountAndPaymasterValidationData() method, 
+   * ~ 18300 gas per userOp : corresponds to _validateAccountAndPaymasterValidationData() method,
    * Some lines in _handlePostOp() after actualGasCost calculation and compensate() method called in handleOps() method
-   * plus any gas overhead that can't be tracked on-chain 
+   * plus any gas overhead that can't be tracked on-chain
    * (if bundler needs to charge the premium one way is to increase this value for ops to sign)
    */
-  const callDataCost = packed.map(x => x === 0 ? ov.zeroByte : ov.nonZeroByte).reduce((sum, x) => sum + x)
+  const callDataCost = packed
+    .map((x) => (x === 0 ? ov.zeroByte : ov.nonZeroByte))
+    .reduce((sum, x) => sum + x)
   const ret = Math.round(
-    callDataCost +
-    ov.fixed / ov.bundleSize +
-    ov.perUserOp +
-    ov.perUserOpWord * lengthInWord
+    callDataCost + ov.fixed / ov.bundleSize + ov.perUserOp + ov.perUserOpWord * lengthInWord
   )
   return ret
 }

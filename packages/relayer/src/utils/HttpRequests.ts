@@ -24,7 +24,7 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
     body: JSON.stringify(body)
   })
   Logger.log('http response ', response)
-  
+
   let jsonResponse
   try {
     jsonResponse = await response.json()
@@ -32,7 +32,7 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
     Logger.log('error ', error)
     if (!response.ok) {
       Logger.error('http response ', response)
-      
+
       throw new Error(response.statusText)
     }
   }
@@ -41,13 +41,13 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
     return jsonResponse as T
   }
   if (jsonResponse.error) {
-    throw new Error(jsonResponse.error);
+    throw new Error(jsonResponse.error)
   }
   if (jsonResponse.message) {
-    throw new Error(jsonResponse.message);
+    throw new Error(jsonResponse.message)
   }
   if (jsonResponse.msg) {
-    throw new Error(jsonResponse.msg);
+    throw new Error(jsonResponse.msg)
   }
   if (jsonResponse.data) {
     throw new Error(jsonResponse.data)
