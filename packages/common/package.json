@@ -28,6 +28,7 @@
     "lint-fix": "eslint -f unix . --fix",
     "watch-tsc": "tsc -w --preserveWatchOutput",
     "tsc": "tsc",
+    "test": "hardhat test",
     "unbuild": "rimraf dist *.tsbuildinfo",
     "build": "rimraf dist && tsc && hardhat compile",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
