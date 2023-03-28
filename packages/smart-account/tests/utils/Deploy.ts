@@ -1,21 +1,28 @@
 import { Contract, ethers } from 'ethers'
 
 // import { SmartWalletContract } from '@biconomy/core-types'
-const SmartWalletArtifact = require('../../../ethers-lib/artifacts/contracts/V1.0.1.sol/SmartWalletContract_v1_0_1.json')
-const WalletFactoryArtifact = require('../../../ethers-lib/artifacts/contracts/V1.0.1.sol/SmartWalletFactoryContract_v1_0_1.json')
-const MultiSendArtifact = require('../../../ethers-lib/artifacts/contracts/V1.0.1.sol/MultiSendContract_v1_0_1.json')
-const MultiSendCallOnlyArtifact = require('../../../ethers-lib/artifacts/contracts/V1.0.1.sol/MultiSendCallOnlyContract_v1_0_1.json')
+const EntryPointArtifact = require('../../../ethers-lib/artifacts/contracts/V1.0.0.sol/EntryPointContract_v1_0_0.json')
+const SmartWalletArtifact = require('../../../ethers-lib/artifacts/contracts/V1.0.0.sol/SmartWalletContract_v1_0_0.json')
+const WalletFactoryArtifact = require('../../../ethers-lib/artifacts/contracts/V1.0.0.sol/SmartWalletFactoryContract_v1_0_0.json')
+const MultiSendArtifact = require('../../../ethers-lib/artifacts/contracts/V1.0.0.sol/MultiSendContract_v1_0_0.json')
+const MultiSendCallOnlyArtifact = require('../../../ethers-lib/artifacts/contracts/V1.0.0.sol/MultiSendCallOnlyContract_v1_0_0.json')
 
 export async function deployWalletContracts(
   signer: ethers.Signer
-): Promise<[Contract, Contract, Contract, Contract]> {
+): Promise<[Contract, Contract, Contract, Contract, Contract]> {
   // could get these from type chain
+
+  const entryPoint = (await new ethers.ContractFactory(
+    EntryPointArtifact.abi,
+    EntryPointArtifact.bytecode,
+    signer
+  ).deploy()) as unknown as Contract
 
   const smartWallet = (await new ethers.ContractFactory(
     SmartWalletArtifact.abi,
     SmartWalletArtifact.bytecode,
     signer
-  ).deploy()) as unknown as Contract
+  ).deploy(entryPoint.address)) as unknown as Contract
 
   const walletFactory = (await new ethers.ContractFactory(
     WalletFactoryArtifact.abi,
@@ -35,5 +42,5 @@ export async function deployWalletContracts(
     signer
   ).deploy()) as unknown as Contract
 
-  return [smartWallet, walletFactory, multiSend, multiSendCallOnly]
+  return [smartWallet, walletFactory, multiSend, multiSendCallOnly, entryPoint]
 }

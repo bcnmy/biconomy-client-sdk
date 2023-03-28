@@ -59,7 +59,7 @@ describe('Wallet integration', function () {
   describe('Smart account usage and basic actions', () => {
     beforeEach(async () => {
       // adds entry point, multiSendCall and fallbackHandler
-      const [smartWallet, walletFactory, multiSend, multiSendCallOnly] =
+      const [smartWallet, walletFactory, multiSend, multiSendCallOnly, entryPoint] =
         await deployWalletContracts(ethnode.signer!)
 
       console.log('base wallet deployed at : ', smartWallet.address)
