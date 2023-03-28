@@ -74,7 +74,6 @@ describe('SmartAccount unit tests', () => {
       expect(balanceArr.data).to.be.an('array')
 
       const balanceTotal = await smartAccount.getTotalBalanceInUsd(balanceParams)
-      console.log('balance', balanceTotal.data.totalBalance)
       expect(balanceTotal.data.totalBalance).to.be.equal(0)
     })
   })

@@ -1,7 +1,6 @@
 import { Deferrable, defineReadOnly } from '@ethersproject/properties'
 import { Provider, TransactionRequest, TransactionResponse } from '@ethersproject/providers'
 import { Signer } from '@ethersproject/abstract-signer'
-import { EntryPointFactoryContractV100 } from '@biconomy/ethers-lib'
 import { ethers } from 'ethers'
 import { BigNumber, Bytes } from 'ethers'
 import { ERC4337EthersProvider } from './ERC4337EthersProvider'
@@ -129,7 +128,7 @@ export class ERC4337EthersSigner extends Signer {
         },
         onError: async (tx: any) => {
           if (tx) {
-            Logger.error('Error message received at client', tx)
+            Logger.error('Error message received at client', JSON.stringify(tx))
             const err = tx.error
             const txId = tx.transactionId
             clientMessenger.unsubscribe(txId)
@@ -140,6 +139,7 @@ export class ERC4337EthersSigner extends Signer {
                 error: err,
                 msg: 'txn hash generated'
               })
+            throw new Error(err)
           }
         }
       })
@@ -237,7 +237,7 @@ export class ERC4337EthersSigner extends Signer {
         },
         onError: async (tx: any) => {
           if (tx) {
-            Logger.error('Error message received at client', tx)
+            Logger.error('Error message received at client', JSON.stringify(tx))
             const err = tx.error
             const txId = tx.transactionId
             clientMessenger.unsubscribe(txId)
@@ -248,6 +248,7 @@ export class ERC4337EthersSigner extends Signer {
                 error: err,
                 msg: 'txn hash generated'
               })
+            throw new Error(err)
           }
         }
       })

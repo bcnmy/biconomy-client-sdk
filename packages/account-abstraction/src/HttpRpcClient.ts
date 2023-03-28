@@ -1,6 +1,6 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { ethers } from 'ethers'
-import { hexValue, resolveProperties } from 'ethers/lib/utils'
+import { resolveProperties } from 'ethers/lib/utils'
 
 import { UserOperation } from '@biconomy/core-types'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
