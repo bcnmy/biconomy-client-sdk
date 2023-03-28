@@ -193,6 +193,8 @@ export type ISmartAccount = {
   fallBackHandlerAddress: string
   owner: string
   factoryAddress: string
+  createdAt: number
+  updatedAt: number
 }
 
 export type IBalances = {
