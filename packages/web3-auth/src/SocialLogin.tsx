@@ -228,7 +228,6 @@ class SocialLogin {
       return
     }
     try {
-      // console.log('signing in with email', email)
       const web3authProvider = await this.web3auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
         loginProvider: 'email_passwordless',
         login_hint: email

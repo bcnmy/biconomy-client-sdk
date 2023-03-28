@@ -9,6 +9,7 @@
     "clean": "lerna clean",
     "unbuild": "lerna run unbuild",
     "build": "lerna run build --stream --npm-client=yarn",
+    "test": "lerna run test --stream --npm-client=yarn",
     "test:ci": "FORCE_COLOR=1 lerna run test:ci --stream --npm-client=yarn",
     "format": "lerna run format --npm-client=yarn",
     "postinstall": "cd packages/ethers-lib; hardhat compile",

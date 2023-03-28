@@ -139,7 +139,7 @@ class SmartAccount extends EventEmitter {
       Logger.log('Client connected to testing environment')
       this.#smartAccountConfig = { ...DevelopmentConfig }
     } else {
-      console.log('Client connected to STAGING')
+      Logger.log('Client connected to STAGING')
       this.#smartAccountConfig = { ...StagingConfig }
     }
 

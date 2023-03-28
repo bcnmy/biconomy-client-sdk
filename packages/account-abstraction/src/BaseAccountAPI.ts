@@ -1,15 +1,11 @@
-import { ethers, BigNumber, BigNumberish } from 'ethers'
+import { BigNumber, BigNumberish } from 'ethers'
 import { Provider } from '@ethersproject/providers'
 import { UserOperation } from '@biconomy/core-types' // review
 import { ClientConfig } from './ClientConfig' // ClientConfig is needed in this design
 import { BytesLike } from '@ethersproject/bytes'
 import { EntryPoint } from '@account-abstraction/contracts'
 
-import {
-  EntryPointContractV100,
-  SmartWalletFactoryV100,
-  SmartWalletContractV100
-} from '@biconomy/ethers-lib'
+import { SmartWalletFactoryV100, SmartWalletContractV100 } from '@biconomy/ethers-lib'
 import { TransactionDetailsForBatchUserOp } from './TransactionDetailsForUserOp'
 import { resolveProperties } from 'ethers/lib/utils'
 import { IPaymasterAPI } from '@biconomy/core-types' // only use interface
@@ -259,7 +255,6 @@ export abstract class BaseAccountAPI {
 
     Logger.log('detailsForUserOp.gasLimit ', detailsForUserOp.gasLimit)
     if (!detailsForUserOp.gasLimit) {
-      console.log('GasLimit is not defined')
       // TODO : error handling
       // Capture the failure and throw message
       callGasLimit = await this.provider.estimateGas({

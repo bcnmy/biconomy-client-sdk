@@ -24,9 +24,7 @@ export async function getWalletInfo(initializerDto: InitializerDto): Promise<ISm
     if (walletLists.length > 0) {
       return walletLists[0]
     }
-    walletLists = wallet.sort(
-      (objA, objB) => objB.createdAt - objA.createdAt
-    )
+    walletLists = wallet.sort((objA, objB) => objB.createdAt - objA.createdAt)
     return walletLists[0]
   }
   return walletInfo[0]
