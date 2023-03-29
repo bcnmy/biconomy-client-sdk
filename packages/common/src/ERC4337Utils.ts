@@ -21,6 +21,7 @@ if (UserOpType == null) {
 export const AddressZero = ethers.constants.AddressZero
 
 // reverse "Deferrable" or "PromiseOrValue" fields
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 export type NotPromise<T> = {
   [P in keyof T]: Exclude<T[P], Promise<any>>
 }
@@ -159,10 +160,12 @@ export function decodeErrorReason(error: string): DecodedError | undefined {
     const [message] = defaultAbiCoder.decode(['string'], '0x' + error.substring(10))
     return { message }
   } else if (error.startsWith(FailedOpSig)) {
-    let [opIndex, paymaster, message] = defaultAbiCoder.decode(
+    const resultSet = defaultAbiCoder.decode(
       ['uint256', 'address', 'string'],
       '0x' + error.substring(10)
     )
+    let [paymaster, message] = resultSet
+    const [opIndex] = resultSet
     message = `FailedOp: ${message as string}`
     if (paymaster.toString() !== ethers.constants.AddressZero) {
       message = `${message as string} (paymaster ${paymaster as string})`

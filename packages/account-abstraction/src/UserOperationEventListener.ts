@@ -15,8 +15,10 @@ const DEFAULT_TRANSACTION_TIMEOUT = 10000
  */
 export class UserOperationEventListener {
   resolved = false
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   boundLisener: (this: any, ...param: any) => void
 
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   constructor(
     readonly resolve: (t: TransactionReceipt) => void,
     readonly reject: (reason?: any) => void,
@@ -56,7 +58,7 @@ export class UserOperationEventListener {
 
   async listenerCallback(this: any, ...param: any): Promise<void> {
     Logger.log('listenerCallback', { param })
-    const event = arguments[arguments.length - 1] as Event
+    const event = param[param.length - 1] as Event
     if (event.args == null) {
       console.error('got event without args', event)
       return

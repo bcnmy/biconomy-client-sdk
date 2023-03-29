@@ -192,6 +192,7 @@ export abstract class BaseAccountAPI {
     // this method attempts to be generic
     try {
       await this.entryPoint.callStatic.getSenderAddress(initCode)
+      /* eslint-disable  @typescript-eslint/no-explicit-any */
     } catch (e: any) {
       return e.errorArgs.sender
     }

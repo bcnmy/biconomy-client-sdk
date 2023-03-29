@@ -43,7 +43,7 @@ export class HttpRpcClient {
     // await this.initializing
     const hexifiedUserOp = deepHexlify(await resolveProperties(userOp1))
 
-    const jsonRequestData: [UserOperation, string] = [hexifiedUserOp, this.entryPointAddress]
+    // const jsonRequestData: [UserOperation, string] = [hexifiedUserOp, this.entryPointAddress]
     // await this.printUserOperation('eth_sendUserOperation', jsonRequestData)
 
     let params
@@ -87,7 +87,7 @@ export class HttpRpcClient {
   async estimateUserOpGas(userOp1: Partial<UserOperation>): Promise<string> {
     // await this.initializing
     const hexifiedUserOp = deepHexlify(await resolveProperties(userOp1))
-    const jsonRequestData: [UserOperation, string] = [hexifiedUserOp, this.entryPointAddress]
+    // const jsonRequestData: [UserOperation, string] = [hexifiedUserOp, this.entryPointAddress]
     // await this.printUserOperation('eth_estimateUserOperationGas', jsonRequestData)
     return await this.userOpJsonRpcProvider.send('eth_estimateUserOperationGas', [
       hexifiedUserOp,

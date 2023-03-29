@@ -125,6 +125,7 @@ export class RestRelayer implements IRelayer {
     Logger.log('finalRawTx', finalRawRx)
 
     // based on the flag make rpc call to relayer code service with necessary rawTx data
+    /* eslint-disable  @typescript-eslint/no-explicit-any */
     const response: any = await sendRequest({
       url: `${this.#relayServiceBaseUrl}`,
       method: HttpMethod.Post,
@@ -154,6 +155,7 @@ export class RestRelayer implements IRelayer {
       const connectionUrl = response.data.connectionUrl
 
       clientMessenger.createTransactionNotifier(transactionId, {
+        /* eslint-disable  @typescript-eslint/no-explicit-any */
         onMined: (tx: any) => {
           const txId = tx.transactionId
           clientMessenger.unsubscribe(txId)
@@ -169,6 +171,7 @@ export class RestRelayer implements IRelayer {
             receipt: tx.receipt
           })
         },
+        /* eslint-disable  @typescript-eslint/no-explicit-any */
         onHashGenerated: async (tx: any) => {
           const txHash = tx.transactionHash
           const txId = tx.transactionId
@@ -183,6 +186,7 @@ export class RestRelayer implements IRelayer {
             msg: 'txn hash generated'
           })
         },
+        /* eslint-disable  @typescript-eslint/no-explicit-any */
         onHashChanged: async (tx: any) => {
           if (tx) {
             const txHash = tx.transactionHash
@@ -198,6 +202,7 @@ export class RestRelayer implements IRelayer {
             })
           }
         },
+        /* eslint-disable  @typescript-eslint/no-explicit-any */
         onError: async (tx: any) => {
           Logger.error('Error message received at client', tx)
           const err = tx.error

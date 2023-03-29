@@ -93,8 +93,9 @@ export const smartAccountSignTypedData = async (
   SmartAccountTx: IWalletTransaction,
   chainId?: BigNumberish
 ): Promise<SmartAccountSignature> => {
-  if (!chainId && !signer.provider) throw Error('Provider required to retrieve chainId')
-  const cid = chainId || (await signer.provider!.getNetwork()).chainId
+  if (!chainId && !signer?.provider) throw Error('Provider required to retrieve chainId')
+  /* eslint-disable  @typescript-eslint/no-non-null-assertion */
+  const cid = chainId ?? (await signer.provider!.getNetwork())?.chainId
   const signerAddress = await signer.getAddress()
   return {
     signer: signerAddress,
@@ -121,7 +122,8 @@ export const smartAccountSignMessage = async (
   SmartAccountTx: IWalletTransaction,
   chainId: ChainId
 ): Promise<SmartAccountSignature> => {
-  const cid = chainId ? chainId : (await signer.provider!.getNetwork()).chainId
+  if (!chainId && !signer?.provider) throw Error('Provider required to retrieve chainId')
+  const cid = chainId ?? (await signer.provider!.getNetwork()).chainId
   if (!cid) {
     throw Error('smartAccountSignMessage: Chain Id Not Found')
   }

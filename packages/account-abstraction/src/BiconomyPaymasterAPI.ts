@@ -30,6 +30,7 @@ export class BiconomyPaymasterAPI implements IPaymasterAPI {
       userOp.paymasterAndData = '0x'
 
       // move dappAPIKey in headers
+      /* eslint-disable  @typescript-eslint/no-explicit-any */
       const result: any = await sendRequest({
         url: `${this.signingServiceUrl}/user-op`,
         method: HttpMethod.Post,
