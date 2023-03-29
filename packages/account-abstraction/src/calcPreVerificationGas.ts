@@ -63,6 +63,7 @@ export function calcPreVerificationGas(
   overheads?: Partial<GasOverheads>
 ): number {
   const ov = { ...DefaultGasOverheads, ...(overheads ?? {}) }
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   const p: NotPromise<UserOperation> = {
     // dummy values, in case the UserOp is incomplete.
     preVerificationGas: 21000, // dummy value, just for calldata cost

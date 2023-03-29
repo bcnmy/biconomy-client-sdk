@@ -6,8 +6,7 @@ import {
   MultiSendCallOnlyContract,
   SmartAccountContext,
   SmartAccountState,
-  FallbackGasTankContract,
-  DefaultCallbackHandlerContract
+  FallbackGasTankContract
 } from '@biconomy/core-types'
 import { ChainConfig } from '@biconomy/node-client'
 import {
@@ -15,8 +14,7 @@ import {
   getMultiSendContract,
   getMultiSendCallOnlyContract,
   getSmartWalletContract,
-  getFallbackGasTankContract,
-  getDefaultCallbackHandlerContract
+  getFallbackGasTankContract
 } from './utils/FetchContractsInfo'
 import { ethers, Signer } from 'ethers'
 import EvmNetworkManager from '@biconomy/ethers-lib'

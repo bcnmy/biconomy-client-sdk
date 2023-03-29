@@ -26,6 +26,7 @@ export class ERC4337EthersSigner extends Signer {
   address?: string
 
   // This one is called by Contract. It signs the request and passes in to Provider to be sent.
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   async sendTransaction(
     transaction: TransactionRequest,
     walletDeployOnly = false,
@@ -172,7 +173,6 @@ export class ERC4337EthersSigner extends Signer {
 
     Logger.log('received transaction ', transactions)
 
-    let userOperation: UserOperation
     // Removing populate transaction all together
     // const tx: TransactionRequest = await this.populateTransaction(transaction)
 
@@ -184,7 +184,7 @@ export class ERC4337EthersSigner extends Signer {
     const data = transactions.map((element) => element.data ?? '0x')
     const value = transactions.map((element) => element.value ?? BigNumber.from(0))
 
-    userOperation = await this.smartAccountAPI.createSignedUserOp({
+    const userOperation = await this.smartAccountAPI.createSignedUserOp({
       target,
       data,
       value

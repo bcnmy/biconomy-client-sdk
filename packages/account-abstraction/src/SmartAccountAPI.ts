@@ -191,7 +191,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
         maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? undefined
       }
     }
-
+    /* eslint-disable  @typescript-eslint/no-explicit-any */
     const partialUserOp: any = {
       sender: await this.getAccountAddress(),
       nonce: await this.nonce(),

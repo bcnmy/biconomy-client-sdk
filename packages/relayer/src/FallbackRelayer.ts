@@ -60,6 +60,7 @@ export class FallbackRelayer implements IFallbackRelayer {
     const finalRawRx = signedTx.rawTx
 
     // based on the flag make rpc call to relayer code service with necessary rawTx data
+    /* eslint-disable  @typescript-eslint/no-explicit-any */
     const response: any = await sendRequest({
       url: `${this.#relayServiceBaseUrl}`,
       method: HttpMethod.Post,
@@ -89,6 +90,7 @@ export class FallbackRelayer implements IFallbackRelayer {
       const waitPromise = new Promise<TransactionReceipt>((resolve, reject) => {
         if (clientMessenger && clientMessenger.socketClient.isConnected()) {
           clientMessenger.createTransactionNotifier(transactionId, {
+            /* eslint-disable  @typescript-eslint/no-explicit-any */
             onMined: (tx: any) => {
               const txId = tx.transactionId
               clientMessenger.unsubscribe(txId)
@@ -107,6 +109,7 @@ export class FallbackRelayer implements IFallbackRelayer {
                 })
               resolve(receipt)
             },
+            /* eslint-disable  @typescript-eslint/no-explicit-any */
             onError: async (err: any) => {
               reject(err)
             }
@@ -115,6 +118,7 @@ export class FallbackRelayer implements IFallbackRelayer {
       })
 
       clientMessenger.createTransactionNotifier(transactionId, {
+        /* eslint-disable  @typescript-eslint/no-explicit-any */
         onMined: (tx: any) => {
           const txId = tx.transactionId
           clientMessenger.unsubscribe(txId)
@@ -130,6 +134,7 @@ export class FallbackRelayer implements IFallbackRelayer {
             receipt: tx.receipt
           })
         },
+        /* eslint-disable  @typescript-eslint/no-explicit-any */
         onHashGenerated: async (tx: any) => {
           const txHash = tx.transactionHash
           const txId = tx.transactionId
@@ -145,6 +150,7 @@ export class FallbackRelayer implements IFallbackRelayer {
             msg: 'txn hash generated'
           })
         },
+        /* eslint-disable  @typescript-eslint/no-explicit-any */
         onHashChanged: async (tx: any) => {
           if (tx) {
             const txHash = tx.transactionHash
@@ -160,6 +166,7 @@ export class FallbackRelayer implements IFallbackRelayer {
             })
           }
         },
+        /* eslint-disable  @typescript-eslint/no-explicit-any */
         onError: async (tx: any) => {
           Logger.error('Error message received at client', tx)
           const err = tx.error

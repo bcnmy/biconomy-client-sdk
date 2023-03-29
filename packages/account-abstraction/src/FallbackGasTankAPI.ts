@@ -30,6 +30,7 @@ export class FallbackGasTankAPI implements IFallbackAPI {
       fallbackUserOp.signature = '0x'
 
       // move dappAPIKey in headers
+      /* eslint-disable  @typescript-eslint/no-explicit-any */
       const result: any = await sendRequest({
         url: `${this.signingServiceUrl}/fallback-user-op`,
         method: HttpMethod.Post,

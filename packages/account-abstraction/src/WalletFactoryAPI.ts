@@ -22,13 +22,8 @@ export class WalletFactoryAPI {
     if (walletInfo.isDeployed) {
       handlerAddress = walletInfo.handlerAddress
       implementationAddress = walletInfo.implementationAddress
+      Logger.log(handlerAddress, implementationAddress)
     }
-    const implementation = new Contract(implementationAddress, [
-      'function init(address _owner, address _handler)'
-    ])
-    // const walletInterface = SmartWalletFactoryContractV100Interface.getInterface()
-    const initializer = implementation.interface.encodeFunctionData('init', [owner, handlerAddress])
-    // these would be deployCounterFactualAccount
     const factory = new Contract(factoryAddress, [
       'function deployCounterFactualAccount(address _owner, uint256 _index) returns(address)'
     ])
