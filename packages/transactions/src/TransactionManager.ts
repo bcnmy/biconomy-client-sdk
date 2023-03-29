@@ -83,41 +83,6 @@ class TransactionManager {
     return this.nodeClient
   }
 
-  // Onboarding scenario where assets inside counterfactual smart account pays for it's deployment
-  async deployAndPayFees(
-    chainId: ChainId,
-    version: string,
-    feeQuote: FeeQuote
-  ): Promise<IWalletTransaction> {
-    const token = feeQuote.address
-    const offset = feeQuote.offset || 1
-    const feeReceiver = feeQuote.refundReceiver || DEFAULT_FEE_RECEIVER
-
-    const smartAccountState = await this.contractUtils.getSmartAccountState()
-
-    const estimateWalletDeployment = await this.estimateSmartAccountDeployment({
-      chainId: chainId,
-      version,
-      owner: smartAccountState.owner
-    })
-    // do estimations here or pass on payment and use feeQuote fully!
-    let feesToPay = (feeQuote.tokenGasPrice * (estimateWalletDeployment + 77369)) / offset
-    feesToPay = parseInt(feesToPay.toString())
-
-    const tx = {
-      to: token,
-      data: encodeTransfer(feeReceiver, Number(feesToPay))
-    }
-
-    const transaction = await this.createTransaction({
-      version,
-      transaction: tx,
-      batchId: 0,
-      chainId: chainId
-    })
-    return transaction
-  }
-
   /**
    * Prepares compatible IWalletTransaction object based on Transaction Request
    * @notice This transaction is without fee refund (gasless)
@@ -125,7 +90,8 @@ class TransactionManager {
    * @returns
    */
   async createTransaction(transactionDto: TransactionDto): Promise<IWalletTransaction> {
-    const { transaction, batchId = 1, chainId, version } = transactionDto
+    const { transaction, chainId, version } = transactionDto
+    const batchId = 1 // fixed nonce space for forward
 
     const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract()
     const isDelegate = transactionDto.transaction.to === multiSendContract.address ? true : false
@@ -159,15 +125,15 @@ class TransactionManager {
    * Prepares compatible IWalletTransaction object based on Transaction Request
    * @notice This transaction is without fee refund (gasless)
    * @param transaction
-   * @param batchId
    * @param chainId
    * @returns
    */
   async createTransactionBatch(
     transactionBatchDto: TransactionBatchDto
   ): Promise<IWalletTransaction> {
-    const { transactions, batchId = 1, chainId, version } = transactionBatchDto
+    const { transactions, chainId, version } = transactionBatchDto
     // NOTE : If the wallet is not deployed yet then nonce would be zero
+    const batchId = 1 //fixed nonce space for forward
 
     const smartAccountState = await this.contractUtils.getSmartAccountState()
     let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()
@@ -204,7 +170,7 @@ class TransactionManager {
   }
 
   async estimateTransaction(prepareTransactionDto: PrepareRefundTransactionDto): Promise<number> {
-    const { transaction, batchId, chainId, version } = prepareTransactionDto
+    const { transaction, chainId, version } = prepareTransactionDto
 
     const smartAccountState = await this.contractUtils.getSmartAccountState()
 
@@ -212,7 +178,7 @@ class TransactionManager {
     // const state = await this.getSmartAccountState(chainId);
 
     // try catch
-    const tx = await this.createTransaction({ version, transaction, batchId, chainId: chainId })
+    const tx = await this.createTransaction({ version, transaction, chainId: chainId })
 
     // try catch
     const estimatedGasUsed = await this.estimator.estimateTransaction(
@@ -232,7 +198,7 @@ class TransactionManager {
   async prepareRefundTransaction(
     prepareRefundTransactionDto: PrepareRefundTransactionDto
   ): Promise<FeeQuote[]> {
-    const { transaction, batchId, chainId, version } = prepareRefundTransactionDto
+    const { transaction, chainId, version } = prepareRefundTransactionDto
 
     const gasPriceQuotesResponse: FeeOptionsResponse = await this.relayer.getFeeOptions(chainId)
     const feeOptionsAvailable: Array<TokenData> = gasPriceQuotesResponse.data.response
@@ -245,7 +211,6 @@ class TransactionManager {
     const estimatedGasUsed: number = await this.estimateTransaction({
       version,
       transaction,
-      batchId,
       chainId: chainId
     })
 
@@ -277,13 +242,12 @@ class TransactionManager {
   async estimateTransactionBatch(
     prepareRefundTransactionsDto: PrepareRefundTransactionsDto
   ): Promise<number> {
-    const { transactions, batchId, chainId, version } = prepareRefundTransactionsDto
+    const { transactions, chainId, version } = prepareRefundTransactionsDto
 
     const smartAccountState = await this.contractUtils.getSmartAccountState()
     const tx = await this.createTransactionBatch({
       version,
       transactions,
-      batchId,
       chainId: chainId
     })
     // try catch
@@ -304,7 +268,7 @@ class TransactionManager {
   async prepareRefundTransactionBatch(
     prepareRefundTransactionsDto: PrepareRefundTransactionsDto
   ): Promise<FeeQuote[]> {
-    const { transactions, batchId, chainId, version } = prepareRefundTransactionsDto
+    const { transactions, chainId, version } = prepareRefundTransactionsDto
     const gasPriceQuotesResponse: FeeOptionsResponse = await this.relayer.getFeeOptions(chainId)
 
     const feeOptionsAvailable: Array<TokenData> = gasPriceQuotesResponse.data.response
@@ -320,7 +284,6 @@ class TransactionManager {
     const estimatedGasUsed: number = await this.estimateTransactionBatch({
       version,
       transactions,
-      batchId,
       chainId: chainId
     })
 
@@ -371,7 +334,8 @@ class TransactionManager {
   async createRefundTransaction(
     refundTransactionDto: RefundTransactionDto
   ): Promise<IWalletTransaction> {
-    const { transaction, feeQuote, batchId = 1, chainId, version } = refundTransactionDto
+    const { transaction, feeQuote, chainId, version } = refundTransactionDto
+    const batchId = 1 // Fixed nonce space for forward
 
     const smartAccountState = await this.contractUtils.getSmartAccountState()
     let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()
@@ -513,7 +477,8 @@ class TransactionManager {
   async createRefundTransactionBatch(
     refundTransactionBatchDto: RefundTransactionBatchDto
   ): Promise<IWalletTransaction> {
-    const { transactions, feeQuote, batchId = 1, chainId, version } = refundTransactionBatchDto
+    const { transactions, feeQuote, chainId, version } = refundTransactionBatchDto
+    const batchId = 1 // Fixed nonce space for Forward
     const smartAccountState = await this.contractUtils.getSmartAccountState()
     let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()
     const connectedWallet = smartAccountState.address
