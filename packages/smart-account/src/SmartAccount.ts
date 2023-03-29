@@ -260,6 +260,9 @@ class SmartAccount extends EventEmitter {
         new ethers.providers.JsonRpcProvider(providerUrl),
         {
           dappAPIKey: clientConfig.dappAPIKey || '',
+          // Review: default false
+          // could come from global set config or method level when we implement fee mode
+          strictSponsorshipMode: false,
           biconomySigningServiceUrl: this.#smartAccountConfig.biconomySigningServiceUrl || '',
           socketServerUrl: this.#smartAccountConfig.socketServerUrl || '',
           entryPointAddress: this.#smartAccountConfig.entryPointAddress
