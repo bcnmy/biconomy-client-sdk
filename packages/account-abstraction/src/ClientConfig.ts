@@ -9,5 +9,6 @@ export interface ClientConfig {
   bundlerUrl: string
   chainId: number
   txServiceUrl: string
+  strictSponsorshipMode?: boolean // review
   // not using accountAddress in client config
 }
