@@ -22,13 +22,17 @@ import {
 } from './types/Web3AuthConfig'
 
 function createLoginModal(socialLogin: SocialLogin) {
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   const root = createRoot((document as any).getElementById('w3a-modal'))
   root.render(<UI socialLogin={socialLogin} />)
 }
 
 class SocialLogin {
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   walletDiv: any
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   walletIframe: any
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   iWin: any = false
   iframeInitialized = false
   isInit = false
@@ -128,7 +132,7 @@ class SocialLogin {
   getProvider() {
     return this.provider
   }
-
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   private _createIframe(iframeContainerDiv: any) {
     this.walletIframe = document.createElement('iframe')
     this.walletIframe.style.display = 'none'
@@ -323,7 +327,7 @@ const getSocialLoginSDK = async (socialLoginDTO?: Partial<SocialLoginDTO>) => {
   initializedSocialLogin = socialLoginSDK
   return socialLoginSDK
 }
-
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 const socialLoginSDK: SocialLogin = new SocialLogin()
 ;(window as any).socialLoginSDK = socialLoginSDK
 

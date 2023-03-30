@@ -44,6 +44,7 @@ export class SmartAccountSigner extends EthersSigner implements TypedDataSigner 
     if (!this.provider) {
       throw new Error('missing provider')
     }
+    /* eslint-disable  @typescript-eslint/no-explicit-any */
     const signature: any = await this.provider.send('eth_signTransaction', [transaction])
     return signature
   }
@@ -59,6 +60,7 @@ export class SmartAccountSigner extends EthersSigner implements TypedDataSigner 
   }
 
   // signTypedData matches implementation from ethers JsonRpcSigner for compatibility
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   async signTypedData(
     domain: TypedDataDomain,
     types: Record<string, Array<TypedDataField>>,
@@ -92,9 +94,9 @@ export class SmartAccountSigner extends EthersSigner implements TypedDataSigner 
   }
 
   connect(_provider: JsonRpcProvider): SmartAccountSigner {
-    // if (provider) {
-    //   return new SmartAccountSigner(provider)
-    // }
+    if (_provider) {
+      return new SmartAccountSigner(_provider)
+    }
     throw new Error('unsupported: cannot get JSON-RPC Signer connection')
   }
 }

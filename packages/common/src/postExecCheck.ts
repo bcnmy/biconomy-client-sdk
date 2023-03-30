@@ -43,6 +43,7 @@ export async function postExecutionCheck(
   const req = await entryPoint.queryFilter(entryPoint.filters.UserOperationEvent(userOpHash))
   if (req.length === 0) {
     debug('postExecutionCheck: failed to read event (not mined)')
+    /* eslint-disable @typescript-eslint/ban-ts-comment */
     // @ts-ignore
     return { gasUsed: 0, gasPaid: 0, success: false, userOp: {} }
   }

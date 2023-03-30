@@ -1,6 +1,6 @@
-import SocialLogin from "./SoicalLogin";
+import SocialLogin from './SoicalLogin'
 
-export default SocialLogin;
-export * from "./types/IWebBrowser";
-export * from "./types/sdk";
-export * from "./types/State";
+export default SocialLogin
+export * from './types/IWebBrowser'
+export * from './types/sdk'
+export * from './types/State'
