@@ -1,7 +1,7 @@
 import { ChainId, SmartAccountConfig, SignTypeMethod } from '@biconomy/core-types'
 
 export const ProductionConfig: SmartAccountConfig = {
-  activeNetworkId: ChainId.MAINNET,
+  activeNetworkId: ChainId.POLYGON_MAINNET,
   supportedNetworksIds: [
     ChainId.GOERLI,
     ChainId.POLYGON_MUMBAI,
@@ -41,7 +41,12 @@ export const ProductionConfig: SmartAccountConfig = {
 
 export const StagingConfig: SmartAccountConfig = {
   activeNetworkId: ChainId.POLYGON_MUMBAI,
-  supportedNetworksIds: [ChainId.GOERLI, ChainId.POLYGON_MUMBAI, ChainId.BSC_TESTNET],
+  supportedNetworksIds: [
+    ChainId.GOERLI,
+    ChainId.POLYGON_MUMBAI,
+    ChainId.BSC_TESTNET,
+    ChainId.POLYGON_MAINNET
+  ],
   signType: SignTypeMethod.EIP712_SIGN,
   backendUrl: 'https://sdk-backend.staging.biconomy.io/v1',
   relayerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
@@ -60,6 +65,10 @@ export const StagingConfig: SmartAccountConfig = {
     {
       chainId: ChainId.BSC_TESTNET,
       providerUrl: 'https://data-seed-prebsc-1-s1.binance.org:8545'
+    },
+    {
+      chainId: ChainId.POLYGON_MAINNET,
+      providerUrl: 'https://polygon-mainnet.g.alchemy.com/v2/6Tn--QDkp1vRBXzRV3Cc8fLXayr5Yoij'
     }
   ]
 }
