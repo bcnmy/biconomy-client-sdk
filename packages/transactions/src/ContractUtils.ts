@@ -95,7 +95,7 @@ class ContractUtils {
       chaininfo.multiSendCall[chaininfo.multiSendCall.length - 1].address
     )
 
-    this.fallbackGasTankContract[walletInfo.chainId][Number(version)] = getFallbackGasTankContract(
+    this.fallbackGasTankContract[walletInfo.chainId][version] = getFallbackGasTankContract(
       version,
       this.ethAdapter[walletInfo.chainId],
       chaininfo.fallBackGasTankAddress

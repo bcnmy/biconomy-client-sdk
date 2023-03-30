@@ -42,7 +42,7 @@ import NodeClient, {
   BalancesDto,
   UsdBalanceResponse
 } from '@biconomy/node-client'
-import { Provider, Web3Provider } from '@ethersproject/providers'
+import { JsonRpcProvider, Provider, Web3Provider } from '@ethersproject/providers'
 import { IRelayer, RestRelayer, FallbackRelayer, IFallbackRelayer } from '@biconomy/relayer'
 import * as _ from 'lodash'
 import TransactionManager, {
@@ -91,7 +91,7 @@ class SmartAccount extends EventEmitter {
   // Chain configurations fetched from backend
   chainConfig!: ChainConfig[]
 
-  provider!: Web3Provider
+  provider!: JsonRpcProvider
 
   // 4337Provider
   aaProvider!: { [chainId: number]: ERC4337EthersProvider }
@@ -238,6 +238,7 @@ class SmartAccount extends EventEmitter {
       Logger.log('smart wallet address is ', this.address)
 
       const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
+      this.provider = readProvider
       this.contractUtils.initializeContracts(this.signer, readProvider, walletInfo, network)
 
       const clientConfig = await this.getNetworkConfigValues(network.chainId)
@@ -369,7 +370,7 @@ class SmartAccount extends EventEmitter {
 
       const { multiSendCall, walletFactory } = this.getSmartAccountContext(chainId)
       const deployWalletEncodedData = await deployCounterFactualEncodedData({
-        chainId: (await this.provider.getNetwork()).chainId,
+        chainId: (await this.provider.getNetwork())?.chainId,
         owner: await this.owner,
         txServiceUrl: this.#smartAccountConfig.backendUrl,
         index: 0
