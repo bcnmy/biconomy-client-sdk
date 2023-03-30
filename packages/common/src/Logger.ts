@@ -24,7 +24,7 @@ class Logger {
     const logMessage = `\x1b[35m[${timestamp}]\x1b[0m \x1b[36m${message}\x1b[0m:`
 
     if (Logger.isDebug) {
-      console.log(logMessage, value)
+      console.log(logMessage, value || '')
     }
   }
 
@@ -33,7 +33,7 @@ class Logger {
     const warnMessage = `\x1b[35m[${timestamp}]\x1b[0m \x1b[33mWARN\x1b[0m: \x1b[36m${message}\x1b[0m`
 
     if (Logger.isDebug) {
-      console.warn(`${warnMessage} ${value}`)
+      console.warn(warnMessage, value || '')
     }
   }
 
@@ -42,7 +42,7 @@ class Logger {
     const errorMessage = `\x1b[35m[${timestamp}]\x1b[0m \x1b[31mERROR\x1b[0m: \x1b[36m${message}\x1b[0m`
 
     if (Logger.isDebug) {
-      console.error(`${errorMessage} ${value}`)
+      console.error(errorMessage, value || '')
     }
   }
 }
