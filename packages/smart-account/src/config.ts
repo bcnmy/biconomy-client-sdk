@@ -12,7 +12,7 @@ export const ProductionConfig: SmartAccountConfig = {
   signType: SignTypeMethod.EIP712_SIGN,
   backendUrl: 'https://sdk-backend.prod.biconomy.io/v1',
   relayerUrl: 'https://sdk-relayer.prod.biconomy.io/api/v1/relay',
-  socketServerUrl: 'wss://sdk-testing-ws.prod.biconomy.io/connection/websocket',
+  socketServerUrl: 'wss://sdk-ws.prod.biconomy.io/connection/websocket',
   bundlerUrl: 'https://sdk-relayer.prod.biconomy.io/api/v1/relay',
   biconomySigningServiceUrl: 'https://paymaster-signing-service.prod.biconomy.io/api/v1/sign',
   networkConfig: [
