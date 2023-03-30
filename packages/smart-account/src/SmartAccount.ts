@@ -682,7 +682,6 @@ class SmartAccount extends EventEmitter {
   /**
    * Prepares encoded wallet transaction, gets signature from the signer and dispatches to the blockchain using relayer
    * @param tx IWalletTransaction Smart Account Transaction object prepared
-   * @param batchId optional nonce space for parallel processing
    * @param chainId optional chainId
    * @returns transactionId : transaction identifier
    */
@@ -847,15 +846,13 @@ class SmartAccount extends EventEmitter {
     prepareRefundTransactionDto: PrepareRefundTransactionDto
   ): Promise<FeeQuote[]> {
     let { version, chainId } = prepareRefundTransactionDto
-    const { batchId = 1 } = prepareRefundTransactionDto
     const { transaction } = prepareRefundTransactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
     return this.transactionManager.prepareRefundTransaction({
       chainId,
       version,
-      transaction,
-      batchId
+      transaction
     })
   }
 
@@ -869,8 +866,6 @@ class SmartAccount extends EventEmitter {
     prepareRefundTransactionsDto: PrepareRefundTransactionsDto
   ): Promise<FeeQuote[]> {
     let { version, chainId } = prepareRefundTransactionsDto
-    const { batchId = 1 } = prepareRefundTransactionsDto
-
     const { transactions } = prepareRefundTransactionsDto
 
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
@@ -878,7 +873,6 @@ class SmartAccount extends EventEmitter {
     return this.transactionManager.prepareRefundTransactionBatch({
       version,
       chainId,
-      batchId,
       transactions
     })
   }
@@ -894,14 +888,12 @@ class SmartAccount extends EventEmitter {
     refundTransactionDto: RefundTransactionDto
   ): Promise<IWalletTransaction> {
     let { version, chainId } = refundTransactionDto
-    const { batchId = 1 } = refundTransactionDto
     const { transaction, feeQuote } = refundTransactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
     return this.transactionManager.createRefundTransaction({
       version,
       transaction,
-      batchId,
       chainId,
       feeQuote
     })
@@ -920,14 +912,13 @@ class SmartAccount extends EventEmitter {
 
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
-    return this.transactionManager.createTransaction({ chainId, version, batchId, transaction })
+    return this.transactionManager.createTransaction({ chainId, version, transaction })
   }
 
   /**
    * Prepares compatible IWalletTransaction object based on Transaction Request
    * @notice This transaction is without fee refund (gasless)
    * @param transaction
-   * @param batchId
    * @param chainId
    * @returns
    */
@@ -943,8 +934,7 @@ class SmartAccount extends EventEmitter {
     return this.transactionManager.createTransactionBatch({
       version,
       transactions,
-      chainId,
-      batchId
+      chainId
     })
   }
 
@@ -958,7 +948,6 @@ class SmartAccount extends EventEmitter {
     refundTransactionBatchDto: RefundTransactionBatchDto
   ): Promise<IWalletTransaction> {
     let { version, chainId } = refundTransactionBatchDto
-    const { batchId = 1 } = refundTransactionBatchDto
     const { transactions, feeQuote } = refundTransactionBatchDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
@@ -966,21 +955,8 @@ class SmartAccount extends EventEmitter {
       version,
       transactions,
       chainId,
-      batchId,
       feeQuote
     })
-  }
-
-  // Onboarding scenario where assets inside counterfactual smart account pays for it's deployment
-  async deployAndPayFees(chainId: ChainId, feeQuote: FeeQuote): Promise<string> {
-    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
-    const transaction = await this.transactionManager.deployAndPayFees(
-      chainId,
-      this.DEFAULT_VERSION,
-      feeQuote
-    )
-    const txHash = await this.sendTransaction({ tx: transaction })
-    return txHash
   }
 
   /**
