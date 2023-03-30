@@ -10,7 +10,7 @@ import { HttpRpcClient } from './HttpRpcClient'
 import { EntryPoint } from '@account-abstraction/contracts'
 import { UserOperation } from '@biconomy/core-types'
 import { BaseAccountAPI } from './BaseAccountAPI'
-import { ClientMessenger } from 'messaging-sdk'
+import { ClientMessenger } from '@biconomy/gasless-messaging-sdk'
 import WebSocket from 'isomorphic-ws'
 import { Logger } from '@biconomy/common'
 

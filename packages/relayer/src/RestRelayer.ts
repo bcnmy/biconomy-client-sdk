@@ -14,7 +14,7 @@ import {
 import { Logger } from '@biconomy/common'
 import { MetaTransaction, encodeMultiSend } from './utils/MultiSend'
 import { HttpMethod, sendRequest } from './utils/HttpRequests'
-import { ClientMessenger } from 'messaging-sdk'
+import { ClientMessenger } from '@biconomy/gasless-messaging-sdk'
 import WebSocket, { EventEmitter } from 'isomorphic-ws'
 
 /**
