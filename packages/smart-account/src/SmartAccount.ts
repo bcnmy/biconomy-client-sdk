@@ -686,6 +686,7 @@ class SmartAccount extends EventEmitter {
    * @param chainId optional chainId
    * @returns transactionId : transaction identifier
    */
+  // TODO: single method. can have types as aa-4337 and non-4337. can have fee modes based on types
   async sendTransaction(sendTransactionDto: SendTransactionDto): Promise<string> {
     let { chainId } = sendTransactionDto
     const { tx } = sendTransactionDto
@@ -764,6 +765,7 @@ class SmartAccount extends EventEmitter {
     return ''
   }
 
+  // TODO: single method. can have types as aa-4337 and non-4337. can have fee modes based on types
   async sendSignedTransaction(sendSignedTransactionDto: SendSignedTransactionDto): Promise<string> {
     let { chainId } = sendSignedTransactionDto
     const { tx, signature } = sendSignedTransactionDto
@@ -843,6 +845,7 @@ class SmartAccount extends EventEmitter {
    *
    * @param prepareRefundTransactionDto
    */
+  // TODO: rename to getFeeQuotes
   async prepareRefundTransaction(
     prepareRefundTransactionDto: PrepareRefundTransactionDto
   ): Promise<FeeQuote[]> {
@@ -865,6 +868,7 @@ class SmartAccount extends EventEmitter {
    *
    * @param prepareRefundTransactionsDto
    */
+  // TODO: rename to getFeeQuotes // can keep single method for batch and single tx
   async prepareRefundTransactionBatch(
     prepareRefundTransactionsDto: PrepareRefundTransactionsDto
   ): Promise<FeeQuote[]> {
@@ -969,18 +973,6 @@ class SmartAccount extends EventEmitter {
       batchId,
       feeQuote
     })
-  }
-
-  // Onboarding scenario where assets inside counterfactual smart account pays for it's deployment
-  async deployAndPayFees(chainId: ChainId, feeQuote: FeeQuote): Promise<string> {
-    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
-    const transaction = await this.transactionManager.deployAndPayFees(
-      chainId,
-      this.DEFAULT_VERSION,
-      feeQuote
-    )
-    const txHash = await this.sendTransaction({ tx: transaction })
-    return txHash
   }
 
   /**
