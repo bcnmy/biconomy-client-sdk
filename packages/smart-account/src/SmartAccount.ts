@@ -908,7 +908,6 @@ class SmartAccount extends EventEmitter {
   async createTransaction(transactionDto: TransactionDto): Promise<IWalletTransaction> {
     let { version, chainId } = transactionDto
     const { transaction } = transactionDto
-    const { batchId = 1 } = transactionDto
 
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
@@ -927,7 +926,6 @@ class SmartAccount extends EventEmitter {
   ): Promise<IWalletTransaction> {
     let { version, chainId } = transactionBatchDto
     const { transactions } = transactionBatchDto
-    const { batchId = 1 } = transactionBatchDto
 
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
