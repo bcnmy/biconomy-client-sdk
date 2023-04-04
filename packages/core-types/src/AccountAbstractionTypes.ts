@@ -13,5 +13,3 @@ export type PaymasterConfig = {
 export interface IFallbackAPI {
   getDappIdentifierAndSign(userOp: Partial<UserOperation>): Promise<FallbackApiResponse>
 }
-
-

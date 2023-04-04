@@ -266,8 +266,12 @@ export abstract class BaseAccountAPI {
         })
       } catch (error) {
         Logger.error(' Call Gas Limit Estimation Failed ')
-        if (detailsForUserOp && detailsForUserOp.target.length === 1 &&
-          detailsForUserOp.target[0] !== AddressZero) {
+        // Todo: review
+        if (
+          detailsForUserOp &&
+          detailsForUserOp.target.length === 1 &&
+          detailsForUserOp.target[0] !== AddressZero
+        ) {
           callGasLimit = BigNumber.from(500000)
         }
       }

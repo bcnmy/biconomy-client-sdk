@@ -12,6 +12,7 @@ import { BiconomyPaymasterAPI } from './BiconomyPaymasterAPI'
 import { resolveProperties } from 'ethers/lib/utils'
 import { calcPreVerificationGas, GasOverheads } from './calcPreVerificationGas'
 import { Logger, deployCounterFactualEncodedData } from '@biconomy/common'
+import { ethers } from 'ethers/lib'
 
 // may use...
 export interface SmartAccountApiParams extends BaseApiParams {
@@ -189,6 +190,8 @@ export class SmartAccountAPI extends BaseAccountAPI {
     let { maxFeePerGas, maxPriorityFeePerGas } = info
     if (maxFeePerGas == null || maxPriorityFeePerGas == null) {
       const feeData = await this.provider.getFeeData()
+      Logger.log('EIP1559 feeData', feeData)
+      // Can do based on non EIP1559 chainId
       if (maxFeePerGas == null) {
         maxFeePerGas = feeData.maxFeePerGas ?? feeData.gasPrice ?? undefined
       }
@@ -196,7 +199,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
         maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? feeData.gasPrice ?? undefined
       }
     }
-    if ( !maxFeePerGas ||  !maxPriorityFeePerGas ){
+    if (!maxFeePerGas || !maxPriorityFeePerGas) {
       throw new Error('maxFeePerGas or maxPriorityFeePerGas values cannot be null')
     }
     /* eslint-disable  @typescript-eslint/no-explicit-any */

@@ -56,6 +56,8 @@ export class BiconomyPaymasterAPI implements IPaymasterAPI {
       }
     } catch (err: any) {
       if (!this.paymasterConfig.strictSponsorshipMode) {
+        Logger.log('sending paymasterAndData 0x')
+        Logger.log('Reason ', err.toString())
         return '0x'
       }
       Logger.error('Error in verifying gas sponsorship.', err.toString())
