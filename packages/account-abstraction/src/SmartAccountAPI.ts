@@ -192,6 +192,18 @@ export class SmartAccountAPI extends BaseAccountAPI {
     if (maxFeePerGas == null || maxPriorityFeePerGas == null) {
       const feeData = await this.provider.getFeeData()
       Logger.log('EIP1559 feeData', feeData)
+      // Can do based on non EIP1559 chainId
+      if (feeData && !feeData.maxFeePerGas) {
+        if (feeData.gasPrice) {
+          maxFeePerGas = feeData.gasPrice
+          maxPriorityFeePerGas = feeData.gasPrice
+        } else {
+          const gasPrice = await this.provider.getGasPrice()
+          Logger.log('gasPrice from provider ', gasPrice)
+          maxFeePerGas = gasPrice
+          maxPriorityFeePerGas = gasPrice
+        }
+      }
       // review
       // defaults to typical polygon values
       if (maxFeePerGas == null) {
@@ -201,6 +213,10 @@ export class SmartAccountAPI extends BaseAccountAPI {
         maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? ethers.BigNumber.from('35000000000')
       }
     }
+
+    Logger.log('fees being used: maxFeePerGas ', maxFeePerGas)
+    Logger.log('fees being used: maxPriorityFeePerGas ', maxPriorityFeePerGas)
+
     /* eslint-disable  @typescript-eslint/no-explicit-any */
     const partialUserOp: any = {
       sender: await this.getAccountAddress(),
