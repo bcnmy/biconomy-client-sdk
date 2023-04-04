@@ -155,9 +155,7 @@ class SmartAccount extends EventEmitter {
     if (config) {
       const customNetworkConfig: NetworkConfig[] = config.networkConfig || []
 
-      if ( customNetworkConfig.length == 0 )
-      networkConfig = networkConfig
-      else{
+      if ( customNetworkConfig.length !== 0 ){
         const mergedNetworkConfig = _.merge(_.keyBy(customNetworkConfig, 'chainId'), _.keyBy(networkConfig, 'chainId'))
         networkConfig = _.values(mergedNetworkConfig)
       }
