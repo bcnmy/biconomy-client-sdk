@@ -655,6 +655,11 @@ class SmartAccount extends EventEmitter {
     return this
   }
 
+  // TODO: single method. can have types as aa-4337 and non-4337. can have fee modes based on types
+  /*async signTransaction() {
+
+  }*/
+
   /**
    *
    * @notice personal sign is used currently (Signer should be able to use _typedSignData)
