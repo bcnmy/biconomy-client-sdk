@@ -19,6 +19,7 @@ export const ProductionConfig: SmartAccountConfig = {
     {
       chainId: ChainId.GOERLI,
       providerUrl: 'https://eth-goerli.alchemyapi.io/v2/lmW2og_aq-OXWKYRoRu-X6Yl6wDQYt_2'
+      // dappAPIKey: ''
     },
     {
       chainId: ChainId.MAINNET,

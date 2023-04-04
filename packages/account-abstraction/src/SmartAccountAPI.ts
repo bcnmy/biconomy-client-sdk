@@ -12,6 +12,7 @@ import { BiconomyPaymasterAPI } from './BiconomyPaymasterAPI'
 import { resolveProperties } from 'ethers/lib/utils'
 import { calcPreVerificationGas, GasOverheads } from './calcPreVerificationGas'
 import { Logger, deployCounterFactualEncodedData } from '@biconomy/common'
+import { ethers } from 'ethers/lib'
 
 // may use...
 export interface SmartAccountApiParams extends BaseApiParams {
@@ -186,14 +187,18 @@ export class SmartAccountAPI extends BaseAccountAPI {
 
     const verificationGasLimit = BigNumber.from(await this.getVerificationGasLimit())
 
+    // review : one can externally send to override
     let { maxFeePerGas, maxPriorityFeePerGas } = info
     if (maxFeePerGas == null || maxPriorityFeePerGas == null) {
       const feeData = await this.provider.getFeeData()
+      Logger.log('EIP1559 feeData', feeData)
+      // review
+      // defaults to typical polygon values
       if (maxFeePerGas == null) {
-        maxFeePerGas = feeData.maxFeePerGas ?? undefined
+        maxFeePerGas = feeData.maxFeePerGas ?? ethers.BigNumber.from('100000000000')
       }
       if (maxPriorityFeePerGas == null) {
-        maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? undefined
+        maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? ethers.BigNumber.from('35000000000')
       }
     }
     /* eslint-disable  @typescript-eslint/no-explicit-any */

@@ -154,6 +154,7 @@ class SmartAccount extends EventEmitter {
 
     if (config) {
       const customNetworkConfig: NetworkConfig[] = config.networkConfig || []
+      Logger.log('Custom network config', customNetworkConfig)
       networkConfig = _.unionBy(customNetworkConfig, networkConfig, 'chainId')
       Logger.log('Merged network config values', networkConfig)
       this.#smartAccountConfig = { ...this.#smartAccountConfig, ...config }
@@ -193,17 +194,17 @@ class SmartAccount extends EventEmitter {
   }
 
   getProviderUrl(network: ChainConfig): string {
-    Logger.log(
-      'after init smartAccountConfig.networkConfig',
-      this.#smartAccountConfig.networkConfig
-    )
+    Logger.log('smartAccountConfig.networkConfig', this.#smartAccountConfig.networkConfig)
     const networkConfig: NetworkConfig[] = this.#smartAccountConfig.networkConfig
     Logger.log(`networkConfig state is`, networkConfig)
     let providerUrl =
       networkConfig.find((element: NetworkConfig) => element.chainId === network.chainId)
         ?.providerUrl || ''
-
-    if (!providerUrl) providerUrl = network.providerUrl
+    Logger.log('provider url in unioned network config ', providerUrl)
+    if (!providerUrl) {
+      Logger.log('using rpc url from chain seed ', network.providerUrl)
+      providerUrl = network.providerUrl
+    }
     return providerUrl
   }
 
