@@ -9,7 +9,7 @@ import { SmartWalletFactoryV100, SmartWalletContractV100 } from '@biconomy/ether
 import { TransactionDetailsForBatchUserOp } from './TransactionDetailsForUserOp'
 import { resolveProperties } from 'ethers/lib/utils'
 import { IPaymasterAPI } from '@biconomy/core-types' // only use interface
-import { Logger, getUserOpHash, NotPromise, packUserOp } from '@biconomy/common'
+import { Logger, getUserOpHash, NotPromise, packUserOp, AddressZero } from '@biconomy/common'
 import { GasOverheads } from './calcPreVerificationGas'
 
 // might make use of this
@@ -258,12 +258,20 @@ export abstract class BaseAccountAPI {
     if (!detailsForUserOp.gasLimit) {
       // TODO : error handling
       // Capture the failure and throw message
-      callGasLimit = await this.provider.estimateGas({
-        from: this.entryPoint.address,
-        to: this.getAccountAddress(),
-        data: callData
-      })
-      // if wallet is not deployed we need to multiply estimated limit to 3 times to get accurate callGasLimit
+      try {
+        callGasLimit = await this.provider.estimateGas({
+          from: this.entryPoint.address,
+          to: this.getAccountAddress(),
+          data: callData
+        })
+      } catch (error) {
+        Logger.error(' Call Gas Limit Estimation Failed ')
+        if (detailsForUserOp && detailsForUserOp.target.length === 1 &&
+          detailsForUserOp.target[0] !== AddressZero) {
+          callGasLimit = BigNumber.from(500000)
+        }
+      }
+      // if wallet is not deployed giving a hardcoded value
       if (!this.isDeployed) callGasLimit = callGasLimit.add(500000)
     } else {
       callGasLimit = BigNumber.from(detailsForUserOp.gasLimit)

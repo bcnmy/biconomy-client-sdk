@@ -190,11 +190,14 @@ export class SmartAccountAPI extends BaseAccountAPI {
     if (maxFeePerGas == null || maxPriorityFeePerGas == null) {
       const feeData = await this.provider.getFeeData()
       if (maxFeePerGas == null) {
-        maxFeePerGas = feeData.maxFeePerGas ?? undefined
+        maxFeePerGas = feeData.maxFeePerGas ?? feeData.gasPrice ?? undefined
       }
       if (maxPriorityFeePerGas == null) {
-        maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? undefined
+        maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? feeData.gasPrice ?? undefined
       }
+    }
+    if ( !maxFeePerGas ||  !maxPriorityFeePerGas ){
+      throw new Error('maxFeePerGas or maxPriorityFeePerGas values cannot be null')
     }
     /* eslint-disable  @typescript-eslint/no-explicit-any */
     const partialUserOp: any = {
