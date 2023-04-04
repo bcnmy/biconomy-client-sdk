@@ -42,7 +42,7 @@ import NodeClient, {
   BalancesDto,
   UsdBalanceResponse
 } from '@biconomy/node-client'
-import { Provider, Web3Provider } from '@ethersproject/providers'
+import { JsonRpcProvider, Provider, Web3Provider } from '@ethersproject/providers'
 import { IRelayer, RestRelayer, FallbackRelayer, IFallbackRelayer } from '@biconomy/relayer'
 import * as _ from 'lodash'
 import TransactionManager, {
@@ -91,7 +91,7 @@ class SmartAccount extends EventEmitter {
   // Chain configurations fetched from backend
   chainConfig!: ChainConfig[]
 
-  provider!: Web3Provider
+  provider!: JsonRpcProvider
 
   // 4337Provider
   aaProvider!: { [chainId: number]: ERC4337EthersProvider }
@@ -238,6 +238,7 @@ class SmartAccount extends EventEmitter {
       Logger.log('smart wallet address is ', this.address)
 
       const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
+      this.provider = readProvider
       this.contractUtils.initializeContracts(this.signer, readProvider, walletInfo, network)
 
       const clientConfig = await this.getNetworkConfigValues(network.chainId)
@@ -257,6 +258,9 @@ class SmartAccount extends EventEmitter {
         new ethers.providers.JsonRpcProvider(providerUrl),
         {
           dappAPIKey: clientConfig.dappAPIKey || '',
+          // Review: default false
+          // could come from global set config or method level when we implement fee mode
+          strictSponsorshipMode: false,
           biconomySigningServiceUrl: this.#smartAccountConfig.biconomySigningServiceUrl || '',
           socketServerUrl: this.#smartAccountConfig.socketServerUrl || '',
           entryPointAddress: this.#smartAccountConfig.entryPointAddress
@@ -366,7 +370,7 @@ class SmartAccount extends EventEmitter {
 
       const { multiSendCall, walletFactory } = this.getSmartAccountContext(chainId)
       const deployWalletEncodedData = await deployCounterFactualEncodedData({
-        chainId: (await this.provider.getNetwork()).chainId,
+        chainId: (await this.provider.getNetwork())?.chainId,
         owner: await this.owner,
         txServiceUrl: this.#smartAccountConfig.backendUrl,
         index: 0
@@ -675,6 +679,12 @@ class SmartAccount extends EventEmitter {
       const { data } = await smartAccountSignTypedData(this.signer, walletContract, tx, chainId)
       signature += data.slice(2)
     }
+    const potentiallyIncorrectV = parseInt(signature.slice(-2), 16)
+    if (![27, 28].includes(potentiallyIncorrectV)) {
+      const correctV = potentiallyIncorrectV + 27
+      signature = signature.slice(0, -2) + correctV.toString(16)
+    }
+    Logger.log('non-4337 flow signature: ', signature)
     return signature
   }
 
@@ -682,7 +692,6 @@ class SmartAccount extends EventEmitter {
   /**
    * Prepares encoded wallet transaction, gets signature from the signer and dispatches to the blockchain using relayer
    * @param tx IWalletTransaction Smart Account Transaction object prepared
-   * @param batchId optional nonce space for parallel processing
    * @param chainId optional chainId
    * @returns transactionId : transaction identifier
    */
@@ -850,15 +859,13 @@ class SmartAccount extends EventEmitter {
     prepareRefundTransactionDto: PrepareRefundTransactionDto
   ): Promise<FeeQuote[]> {
     let { version, chainId } = prepareRefundTransactionDto
-    const { batchId = 1 } = prepareRefundTransactionDto
     const { transaction } = prepareRefundTransactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
     return this.transactionManager.prepareRefundTransaction({
       chainId,
       version,
-      transaction,
-      batchId
+      transaction
     })
   }
 
@@ -873,8 +880,6 @@ class SmartAccount extends EventEmitter {
     prepareRefundTransactionsDto: PrepareRefundTransactionsDto
   ): Promise<FeeQuote[]> {
     let { version, chainId } = prepareRefundTransactionsDto
-    const { batchId = 1 } = prepareRefundTransactionsDto
-
     const { transactions } = prepareRefundTransactionsDto
 
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
@@ -882,7 +887,6 @@ class SmartAccount extends EventEmitter {
     return this.transactionManager.prepareRefundTransactionBatch({
       version,
       chainId,
-      batchId,
       transactions
     })
   }
@@ -898,14 +902,12 @@ class SmartAccount extends EventEmitter {
     refundTransactionDto: RefundTransactionDto
   ): Promise<IWalletTransaction> {
     let { version, chainId } = refundTransactionDto
-    const { batchId = 1 } = refundTransactionDto
     const { transaction, feeQuote } = refundTransactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
     return this.transactionManager.createRefundTransaction({
       version,
       transaction,
-      batchId,
       chainId,
       feeQuote
     })
@@ -920,18 +922,16 @@ class SmartAccount extends EventEmitter {
   async createTransaction(transactionDto: TransactionDto): Promise<IWalletTransaction> {
     let { version, chainId } = transactionDto
     const { transaction } = transactionDto
-    const { batchId = 1 } = transactionDto
 
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
-    return this.transactionManager.createTransaction({ chainId, version, batchId, transaction })
+    return this.transactionManager.createTransaction({ chainId, version, transaction })
   }
 
   /**
    * Prepares compatible IWalletTransaction object based on Transaction Request
    * @notice This transaction is without fee refund (gasless)
    * @param transaction
-   * @param batchId
    * @param chainId
    * @returns
    */
@@ -940,15 +940,13 @@ class SmartAccount extends EventEmitter {
   ): Promise<IWalletTransaction> {
     let { version, chainId } = transactionBatchDto
     const { transactions } = transactionBatchDto
-    const { batchId = 1 } = transactionBatchDto
 
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
     return this.transactionManager.createTransactionBatch({
       version,
       transactions,
-      chainId,
-      batchId
+      chainId
     })
   }
 
@@ -962,7 +960,6 @@ class SmartAccount extends EventEmitter {
     refundTransactionBatchDto: RefundTransactionBatchDto
   ): Promise<IWalletTransaction> {
     let { version, chainId } = refundTransactionBatchDto
-    const { batchId = 1 } = refundTransactionBatchDto
     const { transactions, feeQuote } = refundTransactionBatchDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
@@ -970,7 +967,6 @@ class SmartAccount extends EventEmitter {
       version,
       transactions,
       chainId,
-      batchId,
       feeQuote
     })
   }

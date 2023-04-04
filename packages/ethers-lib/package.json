@@ -48,8 +48,8 @@
     "@gnosis.pm/safe-core-sdk-utils": "^1.1.0",
     "@nomiclabs/hardhat-ethers": "^2.1.0",
     "@openzeppelin/contracts": "^4.6.0",
-    "scw-contracts-v1.0.0": "npm:@biconomy-devx/wallet-contracts@1.0.0",
-    "fallback-contracts-v1.0.0": "npm:fallback-gastank@1.0.3"
+    "scw-contracts-v1.0.0": "npm:@biconomy-devx/wallet-contracts@1.0.1",
+    "fallback-contracts-v1.0.0": "npm:@biconomy-devx/fallback-gastank@1.0.0"
   },
   "peerDependencies": {
     "ethers": "^5.5.3"

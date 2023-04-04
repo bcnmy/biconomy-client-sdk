@@ -79,13 +79,18 @@ export class SmartAccountAPI extends BaseAccountAPI {
     overheads?: Partial<GasOverheads>
   ) {
     super(provider, entryPoint, clientConfig, accountAddress, overheads)
-    if (clientConfig.customPaymasterAPI) {
+    if (!clientConfig.dappAPIKey || clientConfig.dappAPIKey === '') {
+      this.paymasterAPI = undefined
+    } else if (clientConfig.customPaymasterAPI) {
       this.paymasterAPI = clientConfig.customPaymasterAPI
     } else {
-      this.paymasterAPI = new BiconomyPaymasterAPI(
-        clientConfig.biconomySigningServiceUrl,
-        clientConfig.dappAPIKey
-      )
+      this.paymasterAPI = new BiconomyPaymasterAPI({
+        signingServiceUrl: clientConfig.biconomySigningServiceUrl,
+        dappAPIKey: clientConfig.dappAPIKey,
+        strictSponsorshipMode: clientConfig.strictSponsorshipMode
+          ? clientConfig.strictSponsorshipMode
+          : false
+      })
     }
   }
 
@@ -207,8 +212,9 @@ export class SmartAccountAPI extends BaseAccountAPI {
     const preVerificationGas = await this.getPreVerificationGas(partialUserOp)
     partialUserOp.preVerificationGas = preVerificationGas
 
-    partialUserOp.paymasterAndData =
-      this.paymasterAPI == null ? '0x' : await this.paymasterAPI.getPaymasterAndData(partialUserOp)
+    partialUserOp.paymasterAndData = !this.paymasterAPI
+      ? '0x'
+      : await this.paymasterAPI.getPaymasterAndData(partialUserOp)
     return {
       ...partialUserOp,
       signature: ''

@@ -9,7 +9,7 @@ import { HttpRpcClient } from './HttpRpcClient'
 import { UserOperation } from '@biconomy/core-types'
 import { Logger } from '@biconomy/common'
 import { BaseAccountAPI } from './BaseAccountAPI'
-import { ClientMessenger } from 'messaging-sdk'
+import { ClientMessenger } from '@biconomy/gasless-messaging-sdk'
 import WebSocket from 'isomorphic-ws'
 export class ERC4337EthersSigner extends Signer {
   constructor(

@@ -5,7 +5,7 @@ import { IFallbackRelayer } from '.'
 import { RelayTransaction, FallbackRelayerOptions, GasLimit, ChainId } from '@biconomy/core-types'
 import { Logger } from '@biconomy/common'
 import { HttpMethod, sendRequest } from './utils/HttpRequests'
-import { ClientMessenger } from 'messaging-sdk'
+import { ClientMessenger } from '@biconomy/gasless-messaging-sdk'
 import WebSocket, { EventEmitter } from 'isomorphic-ws'
 import { hexValue } from 'ethers/lib/utils'
 

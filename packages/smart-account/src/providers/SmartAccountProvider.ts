@@ -74,6 +74,6 @@ export class SmartAccountProvider extends BaseProvider {
 
   // Could be extra method waitForTransaction()
   //{
-  // This will poll on transactionId provided by the relayer, over the socket using messaging-sdk
+  // This will poll on transactionId provided by the relayer, over the socket using @biconomy/gasless-messaging-sdk
   //}
 }
