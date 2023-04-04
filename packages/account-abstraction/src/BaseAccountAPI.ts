@@ -312,10 +312,19 @@ export abstract class BaseAccountAPI {
    * Sign the filled userOp.
    * @param userOp the UserOperation to sign (with signature field ignored)
    */
+  // Note: could be moved in Account specific API class
+  // for example BiconomySmartAccountAPI could reject if length is not accurate
   async signUserOp(userOp: UserOperation): Promise<UserOperation> {
     Logger.log('signUserOp', userOp)
     const userOpHash = await this.getUserOpHash(userOp)
-    const signature = await this.signUserOpHash(userOpHash)
+    let signature = await this.signUserOpHash(userOpHash)
+    const potentiallyIncorrectV = parseInt(signature.slice(-2), 16)
+    if (![27, 28].includes(potentiallyIncorrectV)) {
+      const correctV = potentiallyIncorrectV + 27
+      signature = signature.slice(0, -2) + correctV.toString(16)
+    }
+    if (signature.slice(0, 2) !== '0x') signature = '0x' + signature
+    Logger.log('userOp signature: ', signature)
     return {
       ...userOp,
       signature
