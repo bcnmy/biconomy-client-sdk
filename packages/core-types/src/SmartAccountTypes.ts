@@ -27,6 +27,7 @@ export interface SmartAccountConfig {
   networkConfig: NetworkConfig[]
   entryPointAddress?: string
   biconomySigningServiceUrl?: string
+  strictSponsorshipMode?: boolean
   bundlerUrl?: string
   environment?: Environments
 }
@@ -83,45 +84,45 @@ export type InitializerDto = {
   txServiceUrl: string
 }
 
-export type SignTransactionDto = {
+export type SignDirectAccountTransactionDto = {
   version?: string
   tx: IWalletTransaction
   chainId?: ChainId
   signer: Signer
 }
 
-export type SendTransactionDto = {
+export type SendTransactionWithFeeQuoteDto = {
   tx: IWalletTransaction
   chainId?: ChainId
   gasLimit?: GasLimit
 }
 
-export type SendSignedTransactionDto = {
+export type SendSignedTransactionWithFeeQuoteDto = {
   tx: IWalletTransaction
   chainId?: ChainId
   gasLimit?: GasLimit
   signature: string
 }
 
-export type PrepareRefundTransactionDto = {
+export type GetFeeQuotesDto = {
   version?: string
   transaction: Transaction
   chainId?: ChainId
 }
 
-export type PrepareRefundTransactionsDto = {
+export type GetFeeQuotesForBatchDto = {
   version?: string
   transactions: Transaction[]
   chainId?: ChainId
 }
 
-export type RefundTransactionDto = {
+export type CreateTransactionWithFeeQuoteDto = {
   version?: string
   transaction: Transaction
   feeQuote: FeeQuote
   chainId?: ChainId
 }
-export type RefundTransactionBatchDto = {
+export type CreateTransactionBatchWithFeeQuoteDto = {
   version?: string
   transactions: Transaction[]
   feeQuote: FeeQuote

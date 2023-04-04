@@ -5,7 +5,7 @@ import {
 } from '@ethersproject/abstract-signer'
 
 // ChainId , SmartAccountContext, SmartAccountConfig, SmartAccountState from @biconomy/core-types
-import { ChainId, SignTransactionDto } from '@biconomy/core-types'
+import { ChainId, SignDirectAccountTransactionDto } from '@biconomy/core-types'
 
 import { JsonRpcProvider, TransactionResponse } from '@ethersproject/providers'
 // Might as well be RpcRelayer
@@ -37,11 +37,13 @@ export abstract class Signer extends AbstractSigner {
   abstract sendTransaction(
     transaction: Deferrable<TransactionRequest>,
     engine?: SmartAccount
-  ): // sendTransactionDto: SendTransactionDto
+  ): // sendTransactionWithFeeQuoteDto: SendTransactionWithFeeQuoteDto
   Promise<TransactionResponse> // Could be transaction hash or receipt // TBD but it must follow AbstractSigner
 
   // We might as well (just) have sendTransactionBatch that takes array of transactions / sendTransactionsDto
 
   // Signs the transaction with original signer...
-  abstract signTransaction(signTransactionDto: SignTransactionDto): Promise<string>
+  abstract signTransaction(
+    signDirectAccountTransactionDto: SignDirectAccountTransactionDto
+  ): Promise<string>
 }
