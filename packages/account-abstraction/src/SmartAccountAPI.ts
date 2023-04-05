@@ -11,7 +11,11 @@ import { Provider } from '@ethersproject/providers'
 import { BiconomyPaymasterAPI } from './BiconomyPaymasterAPI'
 import { resolveProperties } from 'ethers/lib/utils'
 import { calcPreVerificationGas, GasOverheads } from './calcPreVerificationGas'
-import { Logger, deployCounterFactualEncodedData } from '@biconomy/common'
+import {
+  Logger,
+  deployCounterFactualEncodedData,
+  EIP1559_UNSUPPORTED_NETWORKS
+} from '@biconomy/common'
 import { ethers } from 'ethers/lib'
 
 // may use...
@@ -103,7 +107,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
    */
   async getAccountInitCode(): Promise<string> {
     const deployWalletCallData = await deployCounterFactualEncodedData({
-      chainId: (await this.provider.getNetwork()).chainId,
+      chainId: (await this.provider.getNetwork()).chainId, // Could be this.clientConfig.chainId
       owner: await this.owner.getAddress(),
       txServiceUrl: this.clientConfig.txServiceUrl,
       index: this.index
@@ -188,20 +192,31 @@ export class SmartAccountAPI extends BaseAccountAPI {
     const verificationGasLimit = BigNumber.from(await this.getVerificationGasLimit())
 
     let { maxFeePerGas, maxPriorityFeePerGas } = info
+    // Note: Custom should be equal if it's for non EIP1559
+
     if (maxFeePerGas == null || maxPriorityFeePerGas == null) {
       const feeData = await this.provider.getFeeData()
       Logger.log('EIP1559 feeData', feeData)
+      const chainId = this.clientConfig.chainId
+      Logger.log('chainId is', chainId)
       // Can do based on non EIP1559 chainId
+      if (EIP1559_UNSUPPORTED_NETWORKS.includes(chainId)) {
+        maxFeePerGas = feeData.gasPrice ?? (await this.provider.getGasPrice()) ?? undefined
+        maxPriorityFeePerGas = feeData.gasPrice ?? (await this.provider.getGasPrice()) ?? undefined
+      }
       if (maxFeePerGas == null) {
-        maxFeePerGas = feeData.maxFeePerGas ?? feeData.gasPrice ?? undefined
+        maxFeePerGas = feeData.maxFeePerGas ?? undefined // ethers.BigNumber.from('100000000000')
       }
       if (maxPriorityFeePerGas == null) {
-        maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? feeData.gasPrice ?? undefined
+        maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? undefined // ethers.BigNumber.from('35000000000')
       }
     }
     if (!maxFeePerGas || !maxPriorityFeePerGas) {
       throw new Error('maxFeePerGas or maxPriorityFeePerGas values cannot be null')
     }
+
+    Logger.log('fees being used: maxFeePerGas ', maxFeePerGas)
+    Logger.log('fees being used: maxPriorityFeePerGas ', maxPriorityFeePerGas)
     /* eslint-disable  @typescript-eslint/no-explicit-any */
     const partialUserOp: any = {
       sender: await this.getAccountAddress(),

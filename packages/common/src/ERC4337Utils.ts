@@ -3,6 +3,7 @@ import { UserOperationStruct } from '@account-abstraction/contracts'
 import { abi as entryPointAbi } from '@account-abstraction/contracts/artifacts/IEntryPoint.json'
 import { ethers } from 'ethers'
 import Debug from 'debug'
+import { ChainId } from '@biconomy/core-types'
 
 const debug = Debug('aa.utils')
 
@@ -19,6 +20,8 @@ if (UserOpType == null) {
 }
 
 export const AddressZero = ethers.constants.AddressZero
+
+export const EIP1559_UNSUPPORTED_NETWORKS: Array<ChainId> = [97, 56]
 
 // reverse "Deferrable" or "PromiseOrValue" fields
 /* eslint-disable  @typescript-eslint/no-explicit-any */
