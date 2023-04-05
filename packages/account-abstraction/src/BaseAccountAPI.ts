@@ -265,15 +265,8 @@ export abstract class BaseAccountAPI {
           data: callData
         })
       } catch (error) {
-        Logger.error(' Call Gas Limit Estimation Failed ')
-        // Todo: review
-        if (
-          detailsForUserOp &&
-          detailsForUserOp.target.length === 1 &&
-          detailsForUserOp.target[0] !== AddressZero
-        ) {
-          callGasLimit = BigNumber.from(500000)
-        }
+        Logger.error(' Call Gas Limit Estimation Failed with error', error)
+        throw new Error(' Call Gas Limit Estimation Failed ')
       }
       // if wallet is not deployed giving a hardcoded value
       if (!this.isDeployed) callGasLimit = callGasLimit.add(500000)
