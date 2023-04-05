@@ -691,6 +691,12 @@ class SmartAccount extends EventEmitter {
       const { data } = await smartAccountSignTypedData(this.signer, walletContract, tx, chainId)
       signature += data.slice(2)
     }
+    const potentiallyIncorrectV = parseInt(signature.slice(-2), 16)
+    if (![27, 28].includes(potentiallyIncorrectV)) {
+      const correctV = potentiallyIncorrectV + 27
+      signature = signature.slice(0, -2) + correctV.toString(16)
+    }
+    Logger.log('non-4337 flow signature: ', signature)
     return signature
   }
 
