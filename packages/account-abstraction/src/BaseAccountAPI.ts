@@ -253,23 +253,30 @@ export abstract class BaseAccountAPI {
     }
 
     let callGasLimit = BigNumber.from(0)
+    // if wallet is not deployed giving a hardcoded value
+    if (!this.isDeployed) {
+      callGasLimit = BigNumber.from(600000)
+      return {
+        callData,
+        callGasLimit
+      }
+    }
 
     Logger.log('detailsForUserOp.gasLimit ', detailsForUserOp.gasLimit)
     if (!detailsForUserOp.gasLimit) {
-      // TODO : error handling
-      // Capture the failure and throw message
+      const chainId = this.clientConfig.chainId
+      Logger.log('chainId is ', chainId)
       try {
         callGasLimit = await this.provider.estimateGas({
           from: this.entryPoint.address,
-          to: this.getAccountAddress(),
+          to: await this.getAccountAddress(),
           data: callData
         })
-      } catch (error) {
-        Logger.error(' Call Gas Limit Estimation Failed with error', error)
+      } catch (error: any) {
+        Logger.log('gas estimation failed for chainId ', chainId)
+        Logger.error(' Call Gas Limit Estimation Failed with error', error.toString())
         throw new Error(' Call Gas Limit Estimation Failed ')
       }
-      // if wallet is not deployed giving a hardcoded value
-      if (!this.isDeployed) callGasLimit = callGasLimit.add(500000)
     } else {
       callGasLimit = BigNumber.from(detailsForUserOp.gasLimit)
     }
