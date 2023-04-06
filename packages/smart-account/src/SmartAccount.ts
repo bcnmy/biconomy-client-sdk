@@ -1,11 +1,11 @@
 import {
-  SignDirectAccountTransactionDto,
-  SendTransactionWithFeeQuoteDto,
-  SendSignedTransactionWithFeeQuoteDto,
+  SignUserPaidTransactionDto,
+  SendUserPaidTransactionDto,
+  SendUserPaidSignedTransactionDto,
   GetFeeQuotesDto,
   GetFeeQuotesForBatchDto,
-  CreateTransactionWithFeeQuoteDto,
-  CreateTransactionBatchWithFeeQuoteDto,
+  CreateUserPaidTransactionDto,
+  CreateUserPaidTransactionBatchDto,
   TransactionDto,
   TransactionBatchDto,
   ExecTransaction,
@@ -327,7 +327,7 @@ class SmartAccount extends EventEmitter {
       this.address
     )
 
-    const signature = await this.signDirectAccountTransaction({
+    const signature = await this.signUserPaidTransaction({
       version: this.DEFAULT_VERSION,
       tx: transaction,
       chainId,
@@ -667,11 +667,11 @@ class SmartAccount extends EventEmitter {
    * @param chainId optional chainId
    * @returns:string Signature
    */
-  async signDirectAccountTransaction(
-    signDirectAccountTransactionDto: SignDirectAccountTransactionDto
+  async signUserPaidTransaction(
+    signUserPaidTransactionDto: SignUserPaidTransactionDto
   ): Promise<string> {
     const { chainId = this.#smartAccountConfig.activeNetworkId, tx } =
-      signDirectAccountTransactionDto
+      signUserPaidTransactionDto
     const signatureType = this.#smartAccountConfig.signType
     const walletContract = this.contractUtils.attachWalletContract(
       chainId,
@@ -703,13 +703,13 @@ class SmartAccount extends EventEmitter {
    * @returns transactionId : transaction identifier
    */
   // Forward transaction // rename options: sendDirectTransactionWithFeeQuote
-  async sendTransactionWithFeeQuote(
-    sendTransactionWithFeeQuoteDto: SendTransactionWithFeeQuoteDto
+  async sendUserPaidTransaction(
+    sendUserPaidTransactionDto: SendUserPaidTransactionDto
   ): Promise<string> {
-    let { chainId } = sendTransactionWithFeeQuoteDto
-    const { tx } = sendTransactionWithFeeQuoteDto
+    let { chainId } = sendUserPaidTransactionDto
+    const { tx } = sendUserPaidTransactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
-    let { gasLimit } = sendTransactionWithFeeQuoteDto
+    let { gasLimit } = sendUserPaidTransactionDto
     const isDeployed = await this.contractUtils.isDeployed(chainId, this.address)
     const rawTx: RawTransactionType = {
       to: tx.to,
@@ -739,7 +739,7 @@ class SmartAccount extends EventEmitter {
       this.address
     )
 
-    const signature = await this.signDirectAccountTransaction({
+    const signature = await this.signUserPaidTransaction({
       version: this.DEFAULT_VERSION,
       tx,
       chainId,
@@ -789,12 +789,12 @@ class SmartAccount extends EventEmitter {
   }*/
 
   async sendSignedTransactionWithFeeQuote(
-    sendSignedTransactionWithFeeQuoteDto: SendSignedTransactionWithFeeQuoteDto
+    sendUserPaidSignedTransactionDto: SendUserPaidSignedTransactionDto
   ): Promise<string> {
-    let { chainId } = sendSignedTransactionWithFeeQuoteDto
-    const { tx, signature } = sendSignedTransactionWithFeeQuoteDto
+    let { chainId } = sendUserPaidSignedTransactionDto
+    const { tx, signature } = sendUserPaidSignedTransactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
-    let { gasLimit } = sendSignedTransactionWithFeeQuoteDto
+    let { gasLimit } = sendUserPaidSignedTransactionDto
     const isDeployed = await this.contractUtils.isDeployed(chainId, this.address)
     const rawTx: RawTransactionType = {
       to: tx.to,
@@ -907,18 +907,18 @@ class SmartAccount extends EventEmitter {
   /**
    * Prepares compatible IWalletTransaction object based on Transaction Request
    * @notice This transaction is with fee refund (smart account pays using it's own assets accepted by relayers)
-   * @param createTransactionWithFeeQuoteDto
+   * @param createUserPaidTransactionDto
    * @returns
    */
   // options : createSCWTransactionWithFeeQuote / invokeAccountWithFeeQuote / createDirectSCWTransaction
-  async createTransactionWithFeeQuote(
-    createTransactionWithFeeQuoteDto: CreateTransactionWithFeeQuoteDto
+  async createUserPaidTransaction(
+    createUserPaidTransactionDto: CreateUserPaidTransactionDto
   ): Promise<IWalletTransaction> {
-    let { version, chainId } = createTransactionWithFeeQuoteDto
-    const { transaction, feeQuote } = createTransactionWithFeeQuoteDto
+    let { version, chainId } = createUserPaidTransactionDto
+    const { transaction, feeQuote } = createUserPaidTransactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
-    return this.transactionManager.createTransactionWithFeeQuote({
+    return this.transactionManager.createUserPaidTransaction({
       version,
       transaction,
       chainId,
@@ -966,17 +966,17 @@ class SmartAccount extends EventEmitter {
   /**
    * Prepares compatible IWalletTransaction object based on Transaction Request
    * @notice This transaction is with fee refund (smart account pays using it's own assets accepted by relayers)
-   * @param createTransactionBatchWithFeeQuoteDto
+   * @param createUserPaidTransactionBatchDto
    * @returns
    */
-  async createTransactionBatchWithFeeQuote(
-    createTransactionBatchWithFeeQuoteDto: CreateTransactionBatchWithFeeQuoteDto
+  async createUserPaidTransactionBatch(
+    createUserPaidTransactionBatchDto: CreateUserPaidTransactionBatchDto
   ): Promise<IWalletTransaction> {
-    let { version, chainId } = createTransactionBatchWithFeeQuoteDto
-    const { transactions, feeQuote } = createTransactionBatchWithFeeQuoteDto
+    let { version, chainId } = createUserPaidTransactionBatchDto
+    const { transactions, feeQuote } = createUserPaidTransactionBatchDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
-    return this.transactionManager.createTransactionBatchWithFeeQuote({
+    return this.transactionManager.createUserPaidTransactionBatch({
       version,
       transactions,
       chainId,

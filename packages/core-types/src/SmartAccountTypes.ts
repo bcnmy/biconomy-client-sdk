@@ -84,20 +84,20 @@ export type InitializerDto = {
   txServiceUrl: string
 }
 
-export type SignDirectAccountTransactionDto = {
+export type SignUserPaidTransactionDto = {
   version?: string
   tx: IWalletTransaction
   chainId?: ChainId
   signer: Signer
 }
 
-export type SendTransactionWithFeeQuoteDto = {
+export type SendUserPaidTransactionDto = {
   tx: IWalletTransaction
   chainId?: ChainId
   gasLimit?: GasLimit
 }
 
-export type SendSignedTransactionWithFeeQuoteDto = {
+export type SendUserPaidSignedTransactionDto = {
   tx: IWalletTransaction
   chainId?: ChainId
   gasLimit?: GasLimit
@@ -116,13 +116,13 @@ export type GetFeeQuotesForBatchDto = {
   chainId?: ChainId
 }
 
-export type CreateTransactionWithFeeQuoteDto = {
+export type CreateUserPaidTransactionDto = {
   version?: string
   transaction: Transaction
   feeQuote: FeeQuote
   chainId?: ChainId
 }
-export type CreateTransactionBatchWithFeeQuoteDto = {
+export type CreateUserPaidTransactionBatchDto = {
   version?: string
   transactions: Transaction[]
   feeQuote: FeeQuote

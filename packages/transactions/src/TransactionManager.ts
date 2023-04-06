@@ -20,8 +20,8 @@ import {
   GetFeeQuotesDto,
   TransactionDto,
   TransactionBatchDto,
-  CreateTransactionBatchWithFeeQuoteDto,
-  CreateTransactionWithFeeQuoteDto
+  CreateUserPaidTransactionBatchDto,
+  CreateUserPaidTransactionDto
 } from './Types'
 import EvmNetworkManager from '@biconomy/ethers-lib'
 import { Estimator } from './Estimator'
@@ -326,13 +326,13 @@ class TransactionManager {
   /**
    * Prepares compatible IWalletTransaction object based on Transaction Request
    * @notice This transaction is with fee refund (smart account pays using it's own assets accepted by relayers)
-   * @param createTransactionWithFeeQuoteDto
+   * @param createUserPaidTransactionDto
    * @returns
    */
-  async createTransactionWithFeeQuote(
-    createTransactionWithFeeQuoteDto: CreateTransactionWithFeeQuoteDto
+  async createUserPaidTransaction(
+    createUserPaidTransactionDto: CreateUserPaidTransactionDto
   ): Promise<IWalletTransaction> {
-    const { transaction, feeQuote, chainId, version } = createTransactionWithFeeQuoteDto
+    const { transaction, feeQuote, chainId, version } = createUserPaidTransactionDto
     const batchId = 1 // Fixed nonce space for forward
 
     const smartAccountState = await this.contractUtils.getSmartAccountState()
@@ -469,13 +469,13 @@ class TransactionManager {
   /**
    * Prepares compatible IWalletTransaction object based on Transaction Request
    * @notice This transaction is with fee refund (smart account pays using it's own assets accepted by relayers)
-   * @param createTransactionBatchWithFeeQuoteDto
+   * @param createUserPaidTransactionBatchDto
    * @returns
    */
-  async createTransactionBatchWithFeeQuote(
-    createTransactionBatchWithFeeQuoteDto: CreateTransactionBatchWithFeeQuoteDto
+  async createUserPaidTransactionBatch(
+    createUserPaidTransactionBatchDto: CreateUserPaidTransactionBatchDto
   ): Promise<IWalletTransaction> {
-    const { transactions, feeQuote, chainId, version } = createTransactionBatchWithFeeQuoteDto
+    const { transactions, feeQuote, chainId, version } = createUserPaidTransactionBatchDto
     const batchId = 1 // Fixed nonce space for Forward
     const smartAccountState = await this.contractUtils.getSmartAccountState()
     let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()

@@ -12,13 +12,13 @@ export type GetFeeQuotesForBatchDto = {
   chainId: ChainId
 }
 
-export type CreateTransactionWithFeeQuoteDto = {
+export type CreateUserPaidTransactionDto = {
   version: string
   transaction: Transaction
   feeQuote: FeeQuote
   chainId: ChainId
 }
-export type CreateTransactionBatchWithFeeQuoteDto = {
+export type CreateUserPaidTransactionBatchDto = {
   version: string
   transactions: Transaction[]
   feeQuote: FeeQuote
