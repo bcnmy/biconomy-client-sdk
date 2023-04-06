@@ -174,7 +174,7 @@ export abstract class BaseAccountAPI {
       // already deployed. no need to check anymore.
       return this.isDeployed
     }
-    const senderAddressCode = await this.provider.getCode(this.getAccountAddress())
+    const senderAddressCode = await this.provider.getCode(await this.getAccountAddress())
     if (senderAddressCode.length > 2) {
       Logger.log('Smart account Contract already deployed at', this.senderAddress)
       this.isDeployed = true
@@ -253,8 +253,13 @@ export abstract class BaseAccountAPI {
     }
 
     let callGasLimit = BigNumber.from(0)
-    // if wallet is not deployed giving a hardcoded value
+    // If wallet is not deployed giving a hardcoded value
+
+    // first set the actual status by calling this below
+    await this.checkAccountDeployed()
+
     if (!this.isDeployed) {
+      // Review
       callGasLimit = BigNumber.from(600000)
       return {
         callData,

@@ -49,7 +49,7 @@ export interface VerificationGasLimits {
 }
 
 export const DefaultGasLimits: VerificationGasLimits = {
-  validateUserOpGas: 61943,
+  validateUserOpGas: 71943,
   validatePaymasterUserOpGas: 25101,
   postOpGas: 10877
 }
