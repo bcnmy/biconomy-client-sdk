@@ -9,7 +9,7 @@ import { SmartWalletFactoryV100, SmartWalletContractV100 } from '@biconomy/ether
 import { TransactionDetailsForBatchUserOp } from './TransactionDetailsForUserOp'
 import { resolveProperties } from 'ethers/lib/utils'
 import { IPaymasterAPI } from '@biconomy/core-types' // only use interface
-import { Logger, getUserOpHash, NotPromise, packUserOp } from '@biconomy/common'
+import { Logger, getUserOpHash, NotPromise, packUserOp, AddressZero } from '@biconomy/common'
 import { GasOverheads } from './calcPreVerificationGas'
 
 // might make use of this
@@ -253,18 +253,30 @@ export abstract class BaseAccountAPI {
     }
 
     let callGasLimit = BigNumber.from(0)
+    // if wallet is not deployed giving a hardcoded value
+    if (!this.isDeployed) {
+      callGasLimit = BigNumber.from(600000)
+      return {
+        callData,
+        callGasLimit
+      }
+    }
 
     Logger.log('detailsForUserOp.gasLimit ', detailsForUserOp.gasLimit)
     if (!detailsForUserOp.gasLimit) {
-      // TODO : error handling
-      // Capture the failure and throw message
-      callGasLimit = await this.provider.estimateGas({
-        from: this.entryPoint.address,
-        to: this.getAccountAddress(),
-        data: callData
-      })
-      // if wallet is not deployed we need to multiply estimated limit to 3 times to get accurate callGasLimit
-      if (!this.isDeployed) callGasLimit = callGasLimit.add(500000)
+      const chainId = this.clientConfig.chainId
+      Logger.log('chainId is ', chainId)
+      try {
+        callGasLimit = await this.provider.estimateGas({
+          from: this.entryPoint.address,
+          to: await this.getAccountAddress(),
+          data: callData
+        })
+      } catch (error: any) {
+        Logger.log('gas estimation failed for chainId ', chainId)
+        Logger.error(' Call Gas Limit Estimation Failed with error', error.toString())
+        throw new Error(' Call Gas Limit Estimation Failed ')
+      }
     } else {
       callGasLimit = BigNumber.from(detailsForUserOp.gasLimit)
     }
