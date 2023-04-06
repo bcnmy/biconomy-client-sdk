@@ -21,7 +21,7 @@ if (UserOpType == null) {
 
 export const AddressZero = ethers.constants.AddressZero
 
-export const EIP1559_UNSUPPORTED_NETWORKS: Array<ChainId> = [97, 56]
+export const EIP1559_UNSUPPORTED_NETWORKS: Array<ChainId> = [97, 56, 1442, 1101]
 
 // reverse "Deferrable" or "PromiseOrValue" fields
 /* eslint-disable  @typescript-eslint/no-explicit-any */
