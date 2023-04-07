@@ -1,0 +1,72 @@
+{
+  "name": "@biconomy/web3-auth-native",
+  "version": "1.0.0",
+  "description": "web3-auth expo react-native for biconomy sdk.",
+  "main": "dist/web3AuthNative.cjs.js",
+  "module": "dist/web3AuthNative.esm.js",
+  "source": "src/index.ts",
+  "types": "dist/types/index.d.ts",
+  "keywords": [
+    "legos",
+    "batching",
+    "one-click",
+    "cross-chain",
+    "web3auth",
+    "react-native"
+  ],
+  "author": "livingrockrises <chirag@biconomy.io>",
+  "homepage": "https://github.com/bcnmy/biconomy-client-sdk#readme",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "start": "torus-scripts start",
+    "build": "torus-scripts build",
+    "lint:ts": "eslint --fix 'src/**/*.ts'",
+    "prepack": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bcnmy/biconomy-client-sdk.git"
+  },
+  "dependencies": {
+    "@biconomy/node-client": "^1.0.0",
+    "@toruslabs/openlogin-jrpc": "^2.9.0",
+    "@toruslabs/openlogin-utils": "^2.1.0",
+    "base64url": "^3.0.1",
+    "buffer": "^6.0.3",
+    "loglevel": "^1.8.1",
+    "react-native-url-polyfill": "^1.3.0"
+  },
+  "peerDependencies": {
+    "react-native": "*",
+    "@babel/runtime": "^7.x"
+  },
+  "devDependencies": {
+    "react-native": "~0.68.2",
+    "@babel/runtime": "^7.20.1",
+    "@toruslabs/openlogin": "^2.8.0",
+    "@toruslabs/torus-scripts": "^1.3.0",
+    "@toruslabs/eslint-config-typescript": "1.2.0",
+    "@typescript-eslint/eslint-plugin": "^5.44.0",
+    "@typescript-eslint/parser": "^5.44.0",
+    "@types/node": "^16",
+    "@types/react-native": "^0.69.3",
+    "eslint": "^8.28.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-mocha": "^10.1.0",
+    "eslint-plugin-n": "^15.5.1",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-simple-import-sort": "^8.0.0",
+    "eslint-plugin-tsdoc": "^0.2.17",
+    "husky": "^8.0.2",
+    "lint-staged": "^13.0.3",
+    "prettier": "^2.8.0",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.9.3"
+  }
+}

@@ -4,7 +4,7 @@ import {
   SmartWalletContract,
   IWalletTransaction,
   ExecTransaction,
-  IFeeRefundV1_0_0,
+  IFeeRefundV1_0_1,
   ITransactionResult
 } from '@biconomy/core-types'
 import { toTxResult } from '../../../utils'
@@ -12,6 +12,7 @@ import { SmartWalletContractV100 as SmartWalletContract_TypeChain } from '../../
 import { SmartWalletContractV100Interface } from '../../../../typechain/src/ethers-v5/v1.0.0/SmartWalletContractV100'
 import { Interface } from 'ethers/lib/utils'
 import { Contract } from '@ethersproject/contracts'
+import { BytesLike } from 'ethers'
 class SmartWalletContractEthers implements SmartWalletContract {
   constructor(public contract: SmartWalletContract_TypeChain) {}
 
@@ -42,6 +43,15 @@ class SmartWalletContractEthers implements SmartWalletContract {
   async getNonce(batchId: number): Promise<BigNumber> {
     return await this.contract.getNonce(batchId)
   }
+
+  async nonce(): Promise<BigNumber> {
+    return await this.contract.nonce()
+  }
+
+  async isValidSignature(_dataHash: string, _signature: string): Promise<BytesLike> {
+    return this.contract.isValidSignature(_dataHash, _signature)
+  }
+
   async getTransactionHash(smartAccountTrxData: IWalletTransaction): Promise<string> {
     return this.contract.getTransactionHash(
       smartAccountTrxData.to,
@@ -51,6 +61,7 @@ class SmartWalletContractEthers implements SmartWalletContract {
       smartAccountTrxData.targetTxGas,
       smartAccountTrxData.baseGas,
       smartAccountTrxData.gasPrice,
+      smartAccountTrxData.tokenGasPriceFactor,
       smartAccountTrxData.gasToken,
       smartAccountTrxData.refundReceiver,
       smartAccountTrxData.nonce
@@ -59,15 +70,12 @@ class SmartWalletContractEthers implements SmartWalletContract {
 
   async execTransaction(
     _tx: ExecTransaction,
-    batchId: number,
-    refundInfo: IFeeRefundV1_0_0,
+    refundInfo: IFeeRefundV1_0_1,
     signatures: string
   ): Promise<ITransactionResult> {
-    // review: Gas estimation could come in here
-    const txResponse = await this.contract.execTransaction(_tx, batchId, refundInfo, signatures)
+    const txResponse = await this.contract.execTransaction(_tx, refundInfo, signatures)
     return toTxResult(txResponse)
   }
-
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   encode: SmartWalletContractV100Interface['encodeFunctionData'] = (
     methodName: any,

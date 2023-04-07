@@ -5,27 +5,27 @@ import { HardhatUserConfig } from 'hardhat/types'
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   solidity: {
-     compilers: [
+    compilers: [
       {
-        version: "0.8.4",
+        version: "0.8.17",
         settings: {
-          optimizer: { enabled: true, runs: 200 },
-        },
-      },
-      {
-        version: "0.8.7",
-        settings: {
-          optimizer: { enabled: true, runs: 200 },
+          optimizer: { enabled: true, runs: 800 },
         },
       },
       {
         version: "0.8.12",
         settings: {
+          optimizer: { enabled: true, runs: 800 },
+        },
+      },
+      {
+        version: "0.8.9",
+        settings: {
           optimizer: { enabled: true, runs: 200 },
         },
       },
       {
-        version: "0.4.23",
+        version: "0.8.4",
         settings: {
           optimizer: { enabled: true, runs: 200 },
         },
@@ -34,27 +34,6 @@ const config: HardhatUserConfig = {
         version: "0.6.2",
         settings: {
           optimizer: { enabled: true, runs: 200 },
-        },
-      },
-      {
-        version: "0.7.6",
-        settings: {
-          optimizer: { enabled: true, runs: 200 },
-        },
-      },
-      {
-        version: "0.5.12",
-        settings: {
-          optimizer: { enabled: true, runs: 200 },
-        },
-      },
-      {
-        version: "0.6.12",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
         },
       },
     ],

@@ -3,6 +3,8 @@ import { SmartWalletContract } from 'contracts/SmartWalletContract'
 import { MultiSendContract } from '../contracts/MultiSendContract'
 import { MultiSendCallOnlyContract } from '../contracts/MultiSendCallOnlyContract'
 import { SmartWalletFactoryContract } from '../contracts/SmartWalletFactoryContract'
+import { DefaultCallbackHandlerContract } from '../contracts/DefaultCallbackHandlerContract'
+import { FallbackGasTankContract } from '../contracts/FallbackGasTankContract'
 import { Eip3770Address, SmartAccountVersion } from '../Types'
 
 export interface IEvmNetworkManagerTransaction {
@@ -31,6 +33,14 @@ export interface IEvmNetworkManager {
     smartAccountVersion: SmartAccountVersion,
     address: string
   ): SmartWalletFactoryContract
+  getDefaultCallbackHandlerContract(
+    smartAccountVersion: SmartAccountVersion,
+    address: string
+  ): DefaultCallbackHandlerContract
+  getFallbackGasTankContract(
+    smartAccountVersion: SmartAccountVersion,
+    address: string
+  ): FallbackGasTankContract
   getContractCode(address: string): Promise<string>
   isContractDeployed(address: string): Promise<boolean>
   /* eslint-disable  @typescript-eslint/no-explicit-any */

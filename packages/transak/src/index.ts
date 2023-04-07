@@ -5,6 +5,7 @@ import { ITransakDto, environments } from 'interface'
 
 class TransakSDK {
   apiKey: string
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   transak: any
 
   constructor(environment: environments, transakData: ITransakDto = {}) {
@@ -26,6 +27,7 @@ class TransakSDK {
   init() {
     try {
       this.transak.init()
+      /* eslint-disable  @typescript-eslint/no-explicit-any */
     } catch (err: any) {
       console.error(err)
       throw new Error('Error while init transakSDK')

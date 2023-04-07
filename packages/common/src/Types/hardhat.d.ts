@@ -13,9 +13,13 @@ import * as Contracts from ".";
 declare module "hardhat/types/runtime" {
   interface HardhatEthersHelpers extends HardhatEthersHelpersBase {
     getContractFactory(
-      name: "BaseWallet",
+      name: "BaseAccount",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.BaseWallet__factory>;
+    ): Promise<Contracts.BaseAccount__factory>;
+    getContractFactory(
+      name: "IAccount",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IAccount__factory>;
     getContractFactory(
       name: "IAggregator",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -29,13 +33,29 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IStakeManager__factory>;
     getContractFactory(
-      name: "IWallet",
+      name: "SimpleAccount",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IWallet__factory>;
+    ): Promise<Contracts.SimpleAccount__factory>;
     getContractFactory(
-      name: "SimpleWallet",
+      name: "IERC1822Proxiable",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.SimpleWallet__factory>;
+    ): Promise<Contracts.IERC1822Proxiable__factory>;
+    getContractFactory(
+      name: "IBeacon",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IBeacon__factory>;
+    getContractFactory(
+      name: "ERC1967Upgrade",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ERC1967Upgrade__factory>;
+    getContractFactory(
+      name: "Initializable",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Initializable__factory>;
+    getContractFactory(
+      name: "UUPSUpgradeable",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.UUPSUpgradeable__factory>;
     getContractFactory(
       name: "SampleRecipient",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -46,10 +66,15 @@ declare module "hardhat/types/runtime" {
     ): Promise<Contracts.SingletonFactory__factory>;
 
     getContractAt(
-      name: "BaseWallet",
+      name: "BaseAccount",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.BaseWallet>;
+    ): Promise<Contracts.BaseAccount>;
+    getContractAt(
+      name: "IAccount",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IAccount>;
     getContractAt(
       name: "IAggregator",
       address: string,
@@ -66,15 +91,35 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IStakeManager>;
     getContractAt(
-      name: "IWallet",
+      name: "SimpleAccount",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.IWallet>;
+    ): Promise<Contracts.SimpleAccount>;
     getContractAt(
-      name: "SimpleWallet",
+      name: "IERC1822Proxiable",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.SimpleWallet>;
+    ): Promise<Contracts.IERC1822Proxiable>;
+    getContractAt(
+      name: "IBeacon",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IBeacon>;
+    getContractAt(
+      name: "ERC1967Upgrade",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ERC1967Upgrade>;
+    getContractAt(
+      name: "Initializable",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Initializable>;
+    getContractAt(
+      name: "UUPSUpgradeable",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.UUPSUpgradeable>;
     getContractAt(
       name: "SampleRecipient",
       address: string,

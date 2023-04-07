@@ -7,9 +7,5 @@ export interface EntryPointContract {
   getSenderAddress(initCode: BytesLike): Promise<ITransactionResult>
   getContract(): Contract
   handleOps(userOperations: UserOperation[], beneficiary: string): Promise<ITransactionResult>
-  simulateValidation(
-    userOperation: UserOperation,
-    offChainSigCheck: boolean
-  ): Promise<ITransactionResult>
-  getRequestId(userOperation: UserOperation): Promise<string>
+  simulateValidation(userOperation: UserOperation): Promise<ITransactionResult>
 }

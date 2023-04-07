@@ -17,7 +17,8 @@ import {
   UsdBalanceResponse,
   EstimateGasResponse,
   SCWTransactionResponse,
-  WhiteListSignatureResponse
+  WhiteListSignatureResponse,
+  IsFallbackEnabledResponse
 } from './types/NodeClientTypes'
 
 interface INodeClient {
@@ -91,7 +92,6 @@ interface INodeClient {
   /**
    * About: This is generic method to estimate gas on any contract call done using GasEstimator contract
    * Can be used to estimate gas before sending final transaction.
-   * Purpose: Currently used in smart account methods deployAndPayFees / prepareDeployandPayFees
    * @param estimateExternalGasDto
    */
   estimateExternalGas(estimateExternalGasDto: EstimateExternalGasDto): Promise<EstimateGasResponse>
@@ -114,6 +114,12 @@ interface INodeClient {
    * Purpose: Returns the signature used in init
    */
   whitelistUrl(origin: string): Promise<WhiteListSignatureResponse>
+
+  /**
+   * About: Is fallback enabled in backend
+   * Purpose: Returns a boolean value
+   */
+  isFallbackEnabled(): Promise<IsFallbackEnabledResponse>
 
   /**
    * About : Estimating the gas for inner transaction for undeployed wallet

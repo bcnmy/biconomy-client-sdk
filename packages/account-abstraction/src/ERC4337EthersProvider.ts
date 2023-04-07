@@ -2,18 +2,21 @@ import { BaseProvider, TransactionReceipt, TransactionResponse } from '@etherspr
 import { BigNumber, Signer } from 'ethers'
 import { Network } from '@ethersproject/networks'
 import { hexValue, resolveProperties } from 'ethers/lib/utils'
-import { getRequestId } from '@biconomy/common'
+import { getUserOpHash } from '@biconomy/common'
 import { ClientConfig } from './ClientConfig'
 import { ERC4337EthersSigner } from './ERC4337EthersSigner'
 import { UserOperationEventListener } from './UserOperationEventListener'
 import { HttpRpcClient } from './HttpRpcClient'
 import { EntryPoint } from '@account-abstraction/contracts'
 import { UserOperation } from '@biconomy/core-types'
-import { BaseWalletAPI } from './BaseWalletAPI'
-import { ClientMessenger } from 'messaging-sdk'
+import { BaseAccountAPI } from './BaseAccountAPI'
+import { ClientMessenger } from '@biconomy/gasless-messaging-sdk'
 import WebSocket from 'isomorphic-ws'
+import { Logger } from '@biconomy/common'
 
 export class ERC4337EthersProvider extends BaseProvider {
+  initializedBlockNumber!: number
+
   readonly signer: ERC4337EthersSigner
 
   constructor(
@@ -22,7 +25,7 @@ export class ERC4337EthersProvider extends BaseProvider {
     readonly originalProvider: BaseProvider,
     readonly httpRpcClient: HttpRpcClient,
     readonly entryPoint: EntryPoint,
-    readonly smartWalletAPI: BaseWalletAPI // instead of here we could actually make one in SmartAccount.ts and provide
+    readonly smartAccountAPI: BaseAccountAPI // instead of here we could actually make one in SmartAccount.ts and provide
   ) {
     super({
       name: 'ERC-4337 Custom Network',
@@ -33,12 +36,14 @@ export class ERC4337EthersProvider extends BaseProvider {
       originalSigner,
       this,
       httpRpcClient,
-      smartWalletAPI
+      smartAccountAPI
     )
   }
 
   async init(): Promise<this> {
-    await this.smartWalletAPI.init()
+    // await this.httpRpcClient.validateChainId()
+    this.initializedBlockNumber = await this.originalProvider.getBlockNumber()
+    await this.smartAccountAPI.init()
     return this
   }
 
@@ -49,30 +54,27 @@ export class ERC4337EthersProvider extends BaseProvider {
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   async perform(method: string, params: any): Promise<any> {
     if (method === 'sendTransaction' || method === 'getTransactionReceipt') {
-      // TODO: do we need 'perform' method to be available at all?
-      // there is nobody out there to use it for ERC-4337 methods yet, we have nothing to override in fact.
       throw new Error('Should not get here. Investigate.')
     }
     return await this.originalProvider.perform(method, params)
   }
 
   async getTransaction(transactionHash: string | Promise<string>): Promise<TransactionResponse> {
-    // TODO
     return await super.getTransaction(transactionHash)
   }
 
   async getTransactionReceipt(
     transactionHash: string | Promise<string>
   ): Promise<TransactionReceipt> {
-    const requestId = await transactionHash
-    const sender = await this.getSenderWalletAddress()
+    const userOpHash = await transactionHash
+    const sender = await this.getSenderAccountAddress()
     return await new Promise<TransactionReceipt>((resolve, reject) => {
-      new UserOperationEventListener(resolve, reject, this.entryPoint, sender, requestId).start()
+      new UserOperationEventListener(resolve, reject, this.entryPoint, sender, userOpHash).start()
     })
   }
 
-  async getSenderWalletAddress(): Promise<string> {
-    return await this.smartWalletAPI.getWalletAddress()
+  async getSenderAccountAddress(): Promise<string> {
+    return await this.smartAccountAPI.getAccountAddress()
   }
 
   async waitForTransaction(
@@ -80,8 +82,8 @@ export class ERC4337EthersProvider extends BaseProvider {
     confirmations?: number,
     timeout?: number
   ): Promise<TransactionReceipt> {
-    console.log(confirmations)
-    const sender = await this.getSenderWalletAddress()
+    Logger.log('waitForTransaction', { transactionHash, confirmations, timeout })
+    const sender = await this.getSenderAccountAddress()
 
     return await new Promise<TransactionReceipt>((resolve, reject) => {
       const listener = new UserOperationEventListener(
@@ -97,42 +99,6 @@ export class ERC4337EthersProvider extends BaseProvider {
     })
   }
 
-  // fabricate a response (using UserOperation events and requestId match filter) in a format usable by ethers users...
-
-  /*async constructUserOpTransactionResponse(userOp1: UserOperation): Promise<TransactionResponse> {
-    const userOp = await resolveProperties(userOp1)
-    const requestId = getRequestId(userOp, this.config.entryPointAddress, this.config.chainId)
-    const waitPromise = new Promise<TransactionReceipt>((resolve, reject) => {
-      new UserOperationEventListener(
-        resolve,
-        reject,
-        this.entryPoint,
-        userOp.sender,
-        requestId,
-        userOp.nonce
-      ).start()
-    })
-    return {
-      hash: requestId,
-      confirmations: 0,
-      from: userOp.sender,
-      nonce: BigNumber.from(userOp.nonce).toNumber(),
-      gasLimit: BigNumber.from(userOp.callGasLimit), // ??
-      value: BigNumber.from(0),
-      data: hexValue(userOp.callData), // should extract the actual called method from this "execFromEntryPoint()" call
-      chainId: this.config.chainId,
-      wait: async (confirmations?: number): Promise<TransactionReceipt> => {
-        console.log(confirmations)
-        const transactionReceipt = await waitPromise
-        if (userOp.initCode.length !== 0) {
-          // checking if the wallet has been deployed by the transaction; it must be if we are here
-          await !this.smartWalletAPI.checkWalletDeployed()
-        }
-        return transactionReceipt
-      }
-    }
-  }*/
-
   // fabricate a response (using messaging SDK) in a format usable by ethers users...
   async constructUserOpTransactionResponse(
     userOp1: UserOperation,
@@ -146,15 +112,14 @@ export class ERC4337EthersProvider extends BaseProvider {
     if (!clientMessenger.socketClient.isConnected()) {
       try {
         await clientMessenger.connect()
-        console.log('connect success')
+        Logger.log('socket connection success', { socketServerUrl })
       } catch (err) {
-        console.log('socket connection failure')
-        console.log(err)
+        Logger.error('socket connection failure', err)
       }
     }
 
     const userOp = await resolveProperties(userOp1)
-    const requestId = getRequestId(userOp, this.config.entryPointAddress, this.config.chainId)
+    const userOpHash = getUserOpHash(userOp, this.config.entryPointAddress, this.config.chainId)
 
     const waitPromise = new Promise<TransactionReceipt>((resolve, reject) => {
       if (clientMessenger && clientMessenger.socketClient.isConnected()) {
@@ -162,13 +127,11 @@ export class ERC4337EthersProvider extends BaseProvider {
           onMined: (tx: any) => {
             const txId = tx.transactionId
             clientMessenger.unsubscribe(txId)
-            console.log(
-              `Tx Hash mined message received at client ${JSON.stringify({
-                transactionId: txId,
-                hash: tx.transactionHash,
-                receipt: tx.receipt
-              })}`
-            )
+            Logger.log('Tx Hash mined message received at client', {
+              transactionId: txId,
+              hash: tx.transactionHash,
+              receipt: tx.receipt
+            })
             const receipt: TransactionReceipt = tx.receipt
             engine &&
               engine.emit('txMined', {
@@ -187,23 +150,22 @@ export class ERC4337EthersProvider extends BaseProvider {
     })
 
     return {
-      hash: requestId, // or transactionId // or watcher like wait()
+      hash: userOpHash, // or transactionId // or watcher like wait()
       confirmations: 0,
       from: userOp.sender,
       nonce: BigNumber.from(userOp.nonce).toNumber(),
       gasLimit: BigNumber.from(userOp.callGasLimit), // ??
       value: BigNumber.from(0),
-      data: hexValue(userOp.callData), // should extract the actual called method from this "execFromEntryPoint()" call
+      data: hexValue(userOp.callData),
       chainId: this.config.chainId,
       wait: async (confirmations?: number): Promise<TransactionReceipt> => {
-        console.log(confirmations)
+        Logger.log('wait confirmations', { confirmations })
         const transactionReceipt = waitPromise.then((receipt: TransactionReceipt) => {
-          // console.log('received tx receipt ', receipt)
           return receipt
         })
         if (userOp.initCode.length !== 0) {
           // checking if the wallet has been deployed by the transaction; it must be if we are here
-          await this.smartWalletAPI.checkWalletDeployed()
+          await this.smartAccountAPI.checkAccountDeployed()
         }
         return transactionReceipt
       }

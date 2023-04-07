@@ -15,7 +15,9 @@ import {
   getMultiSendContractInstance,
   getMultiSendCallOnlyContractInstance,
   getSmartWalletContractInstance,
-  getSmartWalletFactoryContractInstance
+  getSmartWalletFactoryContractInstance,
+  getFallbackGasTankContractInstance,
+  getDefaultCallbackHandlerInstance
 } from './contracts/contractInstancesEthers'
 type Ethers = typeof ethers
 
@@ -98,13 +100,32 @@ class EvmNetworkManager implements IEvmNetworkManager {
     return getSmartWalletFactoryContractInstance(smartAccountVersion, address, this.#provider)
   }
 
+  getFallbackGasTankContract(smartAccountVersion: SmartAccountVersion, address: string) {
+    if (!address) {
+      throw new Error('Invalid Fallback Gas Tank contract address')
+    }
+    return getFallbackGasTankContractInstance(smartAccountVersion, address, this.#provider)
+  }
+
+  getDefaultCallbackHandlerContract(smartAccountVersion: SmartAccountVersion, address: string) {
+    if (!address) {
+      throw new Error('Invalid Default Callback Handler contract address')
+    }
+    return getDefaultCallbackHandlerInstance(smartAccountVersion, address, this.#provider)
+  }
+
   async getContractCode(address: string): Promise<string> {
     return this.#provider.getCode(address)
   }
 
   async isContractDeployed(address: string): Promise<boolean> {
-    const contractCode = await this.#provider.getCode(address)
-    return contractCode !== '0x'
+    let contractCode
+    try {
+      contractCode = await this.#provider.getCode(address)
+      return contractCode !== '0x'
+    } catch (error) {
+      throw new Error('Unable to get Contract details')
+    }
   }
 
   async getTransaction(transactionHash: string): Promise<TransactionResponse> {

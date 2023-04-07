@@ -9,7 +9,13 @@ import { MultiSendCallOnlyContract } from './contracts/MultiSendCallOnlyContract
 import { SmartWalletContract } from './contracts/SmartWalletContract'
 import { GasLimit } from './TransactionTypes'
 import { Signer } from 'ethers'
-import { IPaymasterAPI } from 'AccountAbstractionTypes'
+import { IPaymasterAPI } from './AccountAbstractionTypes'
+
+export enum Environments {
+  DEV = 'DEVELOPMENT', // Strictly testnets
+  QA = 'STAGING', // Teset networks staging
+  PROD = 'PRODUCTION' // Has all mainnet and testnet config
+}
 
 export interface SmartAccountConfig {
   activeNetworkId: ChainId
@@ -21,8 +27,9 @@ export interface SmartAccountConfig {
   networkConfig: NetworkConfig[]
   entryPointAddress?: string
   biconomySigningServiceUrl?: string
+  strictSponsorshipMode?: boolean
   bundlerUrl?: string
-  debug?: boolean
+  environment?: Environments
 }
 
 export enum SignTypeMethod {
@@ -49,8 +56,6 @@ export type EstimateSmartAccountDeploymentDto = {
   chainId: ChainId
   version: string
   owner: string
-  entryPointAddress: string
-  fallbackHandlerAddress: string
 }
 
 export type SmartAccountState = {
@@ -60,6 +65,7 @@ export type SmartAccountState = {
   owner: string // multichain (EVM)
   isDeployed: boolean // chain specific
   entryPointAddress: string // chain specific?
+  implementationAddress: string
   fallbackHandlerAddress: string // chain specific?
 }
 
@@ -70,67 +76,67 @@ export type AddressForCounterFactualWalletDto = {
   version: string
 }
 
-export type SignTransactionDto = {
+export type InitializerDto = {
+  index?: number
+  chainId: ChainId
+  version?: string
+  owner: string
+  txServiceUrl: string
+}
+
+export type SignUserPaidTransactionDto = {
   version?: string
   tx: IWalletTransaction
   chainId?: ChainId
   signer: Signer
 }
 
-export type SendTransactionDto = {
+export type SendUserPaidTransactionDto = {
   tx: IWalletTransaction
-  batchId?: number
   chainId?: ChainId
   gasLimit?: GasLimit
 }
 
-export type SendSignedTransactionDto = {
+export type SendUserPaidSignedTransactionDto = {
   tx: IWalletTransaction
-  batchId?: number
   chainId?: ChainId
   gasLimit?: GasLimit
   signature: string
 }
 
-export type PrepareRefundTransactionDto = {
+export type GetFeeQuotesDto = {
   version?: string
   transaction: Transaction
-  batchId?: number
   chainId?: ChainId
 }
 
-export type PrepareRefundTransactionsDto = {
+export type GetFeeQuotesForBatchDto = {
   version?: string
   transactions: Transaction[]
-  batchId?: number
   chainId?: ChainId
 }
 
-export type RefundTransactionDto = {
+export type CreateUserPaidTransactionDto = {
   version?: string
   transaction: Transaction
   feeQuote: FeeQuote
-  batchId?: number
   chainId?: ChainId
 }
-export type RefundTransactionBatchDto = {
+export type CreateUserPaidTransactionBatchDto = {
   version?: string
   transactions: Transaction[]
   feeQuote: FeeQuote
-  batchId?: number
   chainId?: ChainId
 }
 
 export type TransactionDto = {
   version?: string
   transaction: Transaction
-  batchId?: number
   chainId?: ChainId
 }
 
 export type TransactionBatchDto = {
   version?: string
   transactions: Transaction[]
-  batchId?: number
   chainId?: ChainId
 }

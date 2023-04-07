@@ -2,9 +2,10 @@ import { Web3Provider, BaseProvider } from '@ethersproject/providers'
 import { SmartAccountSigner } from '../signers/SmartAccountSigner'
 import { Signer } from 'ethers'
 import { TransactionResponse } from '@ethersproject/providers'
-import { ChainId, IWalletTransaction } from '@biconomy/core-types'
+import { ChainId } from '@biconomy/core-types'
 
 // Note: WIP. Not used by SmartAccount at the moment
+// deadcode
 
 /*export class SmartAccountProvider extends Web3Provider { //implements JsonRpcHandler
 
@@ -57,7 +58,6 @@ export class SmartAccountProvider extends BaseProvider {
   }
 
   async getTransaction(transactionHash: string | Promise<string>): Promise<TransactionResponse> {
-    // TODO
     // Getting wallet transaction
     return await super.getTransaction(transactionHash)
   }
@@ -65,12 +65,8 @@ export class SmartAccountProvider extends BaseProvider {
   // Could be
   // getTransactionReceipt
 
-  // TODO
   // Helper for fabricating a response in a format usable by ethers users...
-  async constructSmartAccountTransactionResponse(
-    tx: IWalletTransaction
-  ): Promise<TransactionResponse | null> {
-    console.log(tx)
+  async constructSmartAccountTransactionResponse(): Promise<TransactionResponse | null> {
     return null
   }
 
@@ -78,6 +74,6 @@ export class SmartAccountProvider extends BaseProvider {
 
   // Could be extra method waitForTransaction()
   //{
-  // This will poll on transactionId provided by the relayer, over the socket using messaging-sdk
+  // This will poll on transactionId provided by the relayer, over the socket using @biconomy/gasless-messaging-sdk
   //}
 }

@@ -1,44 +1,38 @@
 import { Transaction, ChainId, FeeQuote } from '@biconomy/core-types'
 
-export type PrepareRefundTransactionDto = {
+export type GetFeeQuotesDto = {
   version: string
   transaction: Transaction
-  batchId: number
   chainId: ChainId
 }
 
-export type PrepareRefundTransactionsDto = {
+export type GetFeeQuotesForBatchDto = {
   version: string
   transactions: Transaction[]
-  batchId: number
   chainId: ChainId
 }
 
-export type RefundTransactionDto = {
+export type CreateUserPaidTransactionDto = {
   version: string
   transaction: Transaction
   feeQuote: FeeQuote
-  batchId: number
   chainId: ChainId
 }
-export type RefundTransactionBatchDto = {
+export type CreateUserPaidTransactionBatchDto = {
   version: string
   transactions: Transaction[]
   feeQuote: FeeQuote
-  batchId: number
   chainId: ChainId
 }
 
 export type TransactionDto = {
   version: string
   transaction: Transaction
-  batchId: number
   chainId: ChainId
 }
 
 export type TransactionBatchDto = {
   version: string
   transactions: Transaction[]
-  batchId: number
   chainId: ChainId
 }

@@ -10,7 +10,8 @@ import {
   IFeeRefundV1_0_1,
   SmartAccountState
 } from '@biconomy/core-types'
-import { PrepareRefundTransactionsDto, PrepareRefundTransactionDto } from './Types'
+import { Logger } from '@biconomy/common'
+import { GetFeeQuotesForBatchDto, GetFeeQuotesDto } from './Types'
 
 export class Estimator {
   nodeClient!: NodeClient
@@ -24,7 +25,7 @@ export class Estimator {
   }
 
   async estimateTransaction(
-    prepareTransactionDto: PrepareRefundTransactionDto,
+    prepareTransactionDto: GetFeeQuotesDto,
     createdTransaction: IWalletTransaction,
     smartAccountState: SmartAccountState
   ): Promise<number> {
@@ -33,18 +34,15 @@ export class Estimator {
     // Check if available from current state
     const isDeployed = await this.contractUtils.isDeployed(
       chainId,
-      version,
       smartAccountState.address // SmartAccountState
     )
     if (!isDeployed) {
       const estimateWalletDeployment = await this.estimateSmartAccountDeployment({
         chainId,
         version,
-        owner: smartAccountState.owner, // SmartAccountState
-        entryPointAddress: smartAccountState.entryPointAddress, // SmartAccountState
-        fallbackHandlerAddress: smartAccountState.fallbackHandlerAddress // SmartAccountState
+        owner: smartAccountState.owner
       })
-      console.log('estimateWalletDeployment ', estimateWalletDeployment)
+      Logger.log('estimateWalletDeployment ', estimateWalletDeployment)
 
       estimatedGasUsed += estimateWalletDeployment
     }
@@ -82,7 +80,7 @@ export class Estimator {
     )
     const noAuthEstimate =
       Number(ethCallOverrideResponse.data.gas) + Number(ethCallOverrideResponse.data.txBaseGas)
-    console.log('no auth no refund estimate', noAuthEstimate)
+    Logger.warn('no auth no refund estimate', noAuthEstimate)
 
     estimatedGasUsed += noAuthEstimate
 
@@ -90,27 +88,21 @@ export class Estimator {
   }
 
   async estimateTransactionBatch(
-    prepareRefundTransactionsDto: PrepareRefundTransactionsDto,
+    getFeeQuotesForBatchDto: GetFeeQuotesForBatchDto,
     createdTransaction: IWalletTransaction,
     smartAccountState: SmartAccountState
   ): Promise<number> {
-    const { chainId, version } = prepareRefundTransactionsDto
+    const { chainId, version } = getFeeQuotesForBatchDto
     let estimatedGasUsed = 0
     // Check if available from current state
-    const isDeployed = await this.contractUtils.isDeployed(
-      chainId,
-      version,
-      smartAccountState.address
-    )
+    const isDeployed = await this.contractUtils.isDeployed(chainId, smartAccountState.address)
     if (!isDeployed) {
       const estimateWalletDeployment = await this.estimateSmartAccountDeployment({
         chainId,
         version,
-        owner: smartAccountState.owner,
-        entryPointAddress: smartAccountState.entryPointAddress,
-        fallbackHandlerAddress: smartAccountState.fallbackHandlerAddress
+        owner: smartAccountState.owner
       })
-      console.log('estimateWalletDeployment ', estimateWalletDeployment)
+      Logger.log('estimateWalletDeployment ', estimateWalletDeployment)
       estimatedGasUsed += estimateWalletDeployment
     }
 
@@ -147,37 +139,43 @@ export class Estimator {
     )
     const noAuthEstimate =
       Number(ethCallOverrideResponse.data.gas) + Number(ethCallOverrideResponse.data.txBaseGas)
-    console.log('no auth no refund estimate', noAuthEstimate)
+    Logger.log('no auth no refund estimate', noAuthEstimate)
 
     estimatedGasUsed += noAuthEstimate
 
     return estimatedGasUsed
   }
 
+  // Generic function to estimate gas used for any contract call
+  async estimateGasUsed(target: string, data: string, chainId: number): Promise<number> {
+    const estimatorInterface = new ethers.utils.Interface(GasEstimator.abi)
+    const encodedEstimateData = estimatorInterface.encodeFunctionData('estimate', [target, data])
+
+    const estimateGasUsedResponse = await this.nodeClient.estimateExternalGas({
+      chainId,
+      encodedData: encodedEstimateData
+    })
+    return Number(estimateGasUsedResponse.data.gas)
+  }
+
   async estimateSmartAccountDeployment(
     estimateSmartAccountDeploymentDto: EstimateSmartAccountDeploymentDto
   ): Promise<number> {
     const estimatorInterface = new ethers.utils.Interface(GasEstimator.abi)
-    const { chainId, version, owner, entryPointAddress, fallbackHandlerAddress } =
-      estimateSmartAccountDeploymentDto
+    const { chainId, version, owner } = estimateSmartAccountDeploymentDto
     const walletFactoryInterface =
       this.contractUtils.smartWalletFactoryContract[chainId][version].getInterface()
     const encodedEstimateData = estimatorInterface.encodeFunctionData('estimate', [
       this.contractUtils.smartWalletFactoryContract[chainId][version].getAddress(),
-      walletFactoryInterface.encodeFunctionData('deployCounterFactualWallet', [
-        owner,
-        entryPointAddress,
-        fallbackHandlerAddress,
-        0
-      ])
+      walletFactoryInterface.encodeFunctionData('deployCounterFactualAccount', [owner, 0])
     ])
-    console.log('encodedEstimate ', encodedEstimateData)
+    Logger.log('encodedEstimate ', encodedEstimateData)
     const deployCostresponse = await this.nodeClient.estimateExternalGas({
       chainId,
       encodedData: encodedEstimateData
     })
     const estimateWalletDeployment = Number(deployCostresponse.data.gas)
-    console.log('estimateWalletDeployment ', estimateWalletDeployment)
+    Logger.log('estimateWalletDeployment ', estimateWalletDeployment)
     return estimateWalletDeployment
   }
 }

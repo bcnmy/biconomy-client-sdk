@@ -35,12 +35,13 @@
   },
   "dependencies": {
     "@biconomy/core-types": "^1.0.0",
+    "@biconomy/common": "^1.0.0",
     "@biconomy/ethers-lib": "^1.0.0",
     "@biconomy/node-client": "^1.0.0",
     "@biconomy/relayer": "^1.0.0",
     "@ethersproject/abstract-signer": "^5.6.2",
     "@ethersproject/constants": "^5.6.1",
     "ethereumjs-util": "^7.1.5",
-    "ethers": "^5.6.9"
+    "ethers": "^5.7.0"
   }
 }

@@ -1,4 +1,5 @@
 import fetch from 'node-fetch'
+import { Logger } from '@biconomy/common'
 
 export enum HttpMethod {
   Get = 'get',
@@ -12,7 +13,6 @@ interface HttpRequest {
   body?: Record<string, any>
   headers?: object
 }
-
 export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRequest): Promise<T> {
   const response = await fetch(url, {
     method,
@@ -23,18 +23,31 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
     },
     body: JSON.stringify(body)
   })
+  Logger.log('http response ', response)
 
   let jsonResponse
   try {
     jsonResponse = await response.json()
   } catch (error) {
+    Logger.log('error ', error)
     if (!response.ok) {
+      Logger.error('http response ', response)
+
       throw new Error(response.statusText)
     }
   }
 
   if (response.ok) {
     return jsonResponse as T
+  }
+  if (jsonResponse.error) {
+    throw new Error(jsonResponse.error)
+  }
+  if (jsonResponse.message) {
+    throw new Error(jsonResponse.message)
+  }
+  if (jsonResponse.msg) {
+    throw new Error(jsonResponse.msg)
   }
   if (jsonResponse.data) {
     throw new Error(jsonResponse.data)

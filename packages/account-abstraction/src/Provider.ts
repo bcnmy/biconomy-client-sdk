@@ -1,8 +1,7 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
-
-// import { EntryPoint__factory } from '@account-abstraction/contracts'
-
-import { EntryPointFactoryContractV101 } from '@biconomy/ethers-lib'
+// import { EntryPointFactoryContractV100 } from '@biconomy/ethers-lib'
+// import { EntryPoint } from '@account-abstraction/contracts'
+import { EntryPoint__factory } from '@account-abstraction/contracts'
 
 import { ClientConfig } from './ClientConfig'
 import { SmartAccountAPI } from './SmartAccountAPI'
@@ -16,20 +15,19 @@ export async function newProvider(
   config: ClientConfig,
   originalSigner: Signer = originalProvider.getSigner(),
   walletAddress: string,
+  implementationAddress: string,
   fallbackHandlerAddress: string,
   factoryAddress: string
 ): Promise<ERC4337EthersProvider> {
-  const entryPoint = EntryPointFactoryContractV101.connect(
-    config.entryPointAddress,
-    originalProvider
-  )
+  const entryPoint = EntryPoint__factory.connect(config.entryPointAddress, originalProvider)
   // Initial SimpleWallet instance is not deployed and exists just for the interface
-  // const simpleWalletDeployer = await DeterministicDeployer.deploy(SimpleWalletDeployer__factory.bytecode)
+  // const simpleWalletDeployer = await DeterministicDeployer.deploy(SimpleAccountDeployer__factory.bytecode)
   const smartWalletAPI = new SmartAccountAPI(
     originalProvider,
     entryPoint,
     config,
     walletAddress,
+    implementationAddress,
     originalSigner,
     fallbackHandlerAddress,
     factoryAddress,
@@ -49,6 +47,5 @@ export async function newProvider(
     entryPoint,
     smartWalletAPI
   ).init()
-  console.log('initialisation completed in provider')
   return ethProvider
 }
