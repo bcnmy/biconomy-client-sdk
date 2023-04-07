@@ -11,7 +11,7 @@ import {
   SmartAccountState
 } from '@biconomy/core-types'
 import { Logger } from '@biconomy/common'
-import { PrepareRefundTransactionsDto, PrepareRefundTransactionDto } from './Types'
+import { GetFeeQuotesForBatchDto, GetFeeQuotesDto } from './Types'
 
 export class Estimator {
   nodeClient!: NodeClient
@@ -25,7 +25,7 @@ export class Estimator {
   }
 
   async estimateTransaction(
-    prepareTransactionDto: PrepareRefundTransactionDto,
+    prepareTransactionDto: GetFeeQuotesDto,
     createdTransaction: IWalletTransaction,
     smartAccountState: SmartAccountState
   ): Promise<number> {
@@ -88,11 +88,11 @@ export class Estimator {
   }
 
   async estimateTransactionBatch(
-    prepareRefundTransactionsDto: PrepareRefundTransactionsDto,
+    getFeeQuotesForBatchDto: GetFeeQuotesForBatchDto,
     createdTransaction: IWalletTransaction,
     smartAccountState: SmartAccountState
   ): Promise<number> {
-    const { chainId, version } = prepareRefundTransactionsDto
+    const { chainId, version } = getFeeQuotesForBatchDto
     let estimatedGasUsed = 0
     // Check if available from current state
     const isDeployed = await this.contractUtils.isDeployed(chainId, smartAccountState.address)

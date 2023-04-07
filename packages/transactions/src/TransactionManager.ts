@@ -16,12 +16,12 @@ import {
   SmartAccountState
 } from '@biconomy/core-types'
 import {
-  PrepareRefundTransactionsDto,
-  PrepareRefundTransactionDto,
+  GetFeeQuotesForBatchDto,
+  GetFeeQuotesDto,
   TransactionDto,
   TransactionBatchDto,
-  RefundTransactionBatchDto,
-  RefundTransactionDto
+  CreateUserPaidTransactionBatchDto,
+  CreateUserPaidTransactionDto
 } from './Types'
 import EvmNetworkManager from '@biconomy/ethers-lib'
 import { Estimator } from './Estimator'
@@ -169,7 +169,7 @@ class TransactionManager {
     return walletTx
   }
 
-  async estimateTransaction(prepareTransactionDto: PrepareRefundTransactionDto): Promise<number> {
+  async estimateTransaction(prepareTransactionDto: GetFeeQuotesDto): Promise<number> {
     const { transaction, chainId, version } = prepareTransactionDto
 
     const smartAccountState = await this.contractUtils.getSmartAccountState()
@@ -193,12 +193,10 @@ class TransactionManager {
   // We can also show list of transactions to be processed (decodeContractCall)
   /**
    *
-   * @param prepareRefundTransactionDto
+   * @param getFeeQuotesDto
    */
-  async prepareRefundTransaction(
-    prepareRefundTransactionDto: PrepareRefundTransactionDto
-  ): Promise<FeeQuote[]> {
-    const { transaction, chainId, version } = prepareRefundTransactionDto
+  async getFeeQuotes(getFeeQuotesDto: GetFeeQuotesDto): Promise<FeeQuote[]> {
+    const { transaction, chainId, version } = getFeeQuotesDto
 
     const gasPriceQuotesResponse: FeeOptionsResponse = await this.relayer.getFeeOptions(chainId)
     const feeOptionsAvailable: Array<TokenData> = gasPriceQuotesResponse.data.response
@@ -240,9 +238,9 @@ class TransactionManager {
   }
 
   async estimateTransactionBatch(
-    prepareRefundTransactionsDto: PrepareRefundTransactionsDto
+    getFeeQuotesForBatchDto: GetFeeQuotesForBatchDto
   ): Promise<number> {
-    const { transactions, chainId, version } = prepareRefundTransactionsDto
+    const { transactions, chainId, version } = getFeeQuotesForBatchDto
 
     const smartAccountState = await this.contractUtils.getSmartAccountState()
     const tx = await this.createTransactionBatch({
@@ -252,7 +250,7 @@ class TransactionManager {
     })
     // try catch
     const estimatedGasUsed = await this.estimator.estimateTransactionBatch(
-      prepareRefundTransactionsDto,
+      getFeeQuotesForBatchDto,
       tx,
       smartAccountState
     )
@@ -263,12 +261,12 @@ class TransactionManager {
   // We can also show list of transactions to be processed (decodeContractCall)
   /**
    *
-   * @param prepareRefundTransactionsDto
+   * @param getFeeQuotesForBatchDto
    */
-  async prepareRefundTransactionBatch(
-    prepareRefundTransactionsDto: PrepareRefundTransactionsDto
+  async getFeeQuotesForBatch(
+    getFeeQuotesForBatchDto: GetFeeQuotesForBatchDto
   ): Promise<FeeQuote[]> {
-    const { transactions, chainId, version } = prepareRefundTransactionsDto
+    const { transactions, chainId, version } = getFeeQuotesForBatchDto
     const gasPriceQuotesResponse: FeeOptionsResponse = await this.relayer.getFeeOptions(chainId)
 
     const feeOptionsAvailable: Array<TokenData> = gasPriceQuotesResponse.data.response
@@ -328,13 +326,13 @@ class TransactionManager {
   /**
    * Prepares compatible IWalletTransaction object based on Transaction Request
    * @notice This transaction is with fee refund (smart account pays using it's own assets accepted by relayers)
-   * @param refundTransactionDto
+   * @param createUserPaidTransactionDto
    * @returns
    */
-  async createRefundTransaction(
-    refundTransactionDto: RefundTransactionDto
+  async createUserPaidTransaction(
+    createUserPaidTransactionDto: CreateUserPaidTransactionDto
   ): Promise<IWalletTransaction> {
-    const { transaction, feeQuote, chainId, version } = refundTransactionDto
+    const { transaction, feeQuote, chainId, version } = createUserPaidTransactionDto
     const batchId = 1 // Fixed nonce space for forward
 
     const smartAccountState = await this.contractUtils.getSmartAccountState()
@@ -471,13 +469,13 @@ class TransactionManager {
   /**
    * Prepares compatible IWalletTransaction object based on Transaction Request
    * @notice This transaction is with fee refund (smart account pays using it's own assets accepted by relayers)
-   * @param refundTransactionBatchDto
+   * @param createUserPaidTransactionBatchDto
    * @returns
    */
-  async createRefundTransactionBatch(
-    refundTransactionBatchDto: RefundTransactionBatchDto
+  async createUserPaidTransactionBatch(
+    createUserPaidTransactionBatchDto: CreateUserPaidTransactionBatchDto
   ): Promise<IWalletTransaction> {
-    const { transactions, feeQuote, chainId, version } = refundTransactionBatchDto
+    const { transactions, feeQuote, chainId, version } = createUserPaidTransactionBatchDto
     const batchId = 1 // Fixed nonce space for Forward
     const smartAccountState = await this.contractUtils.getSmartAccountState()
     let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()

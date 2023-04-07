@@ -15,6 +15,7 @@ export const ProductionConfig: SmartAccountConfig = {
   socketServerUrl: 'wss://sdk-ws.prod.biconomy.io/connection/websocket',
   bundlerUrl: 'https://sdk-relayer.prod.biconomy.io/api/v1/relay',
   biconomySigningServiceUrl: 'https://paymaster-signing-service.prod.biconomy.io/api/v1/sign',
+  strictSponsorshipMode: false,
   networkConfig: [
     {
       chainId: ChainId.GOERLI,
@@ -53,6 +54,7 @@ export const StagingConfig: SmartAccountConfig = {
   socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
   bundlerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
   biconomySigningServiceUrl: 'https://paymaster-signing-service.staging.biconomy.io/api/v1/sign',
+  strictSponsorshipMode: false,
   networkConfig: [
     {
       chainId: ChainId.GOERLI,
@@ -82,6 +84,7 @@ export const DevelopmentConfig: SmartAccountConfig = {
   socketServerUrl: 'wss://sdk-testing-ws.test.biconomy.io/connection/websocket',
   bundlerUrl: 'https://sdk-relayer.test.biconomy.io/api/v1/relay',
   biconomySigningServiceUrl: 'https://paymaster-signing-service.test.biconomy.io/api/v1/sign',
+  strictSponsorshipMode: false,
   networkConfig: [
     {
       chainId: ChainId.GOERLI,

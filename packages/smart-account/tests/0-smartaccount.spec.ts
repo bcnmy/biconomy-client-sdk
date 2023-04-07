@@ -2126,7 +2126,7 @@
 //         transaction: tx
 //       })
 
-//       const signature = await smartAccount.signTransaction({
+//       const signature = await smartAccount.signUserPaidTransaction({
 //         version: smartAccount.DEFAULT_VERSION,
 //         tx: smartAccountTransaction,
 //         chainId: ChainId.GANACHE,
@@ -2236,7 +2236,7 @@
 //         const relayer = new LocalRelayer(eoaSigner)
 //         smartAccount.setRelayer(relayer)
 //         expect(smartAccount.relayer).to.be.equal(relayer)
-//         const hash: string = await smartAccount.sendTransaction({ tx: smartAccountTransaction })
+//         const hash: string = await smartAccount.sendUserPaidTransaction({ tx: smartAccountTransaction })
 
 //         //const receipt: TransactionReceipt = await response.wait(1)
 //         //expect(receipt.status).to.be.equal(1)
@@ -2316,7 +2316,7 @@
 //         const relayer = new LocalRelayer(eoaSigner)
 //         smartAccount.setRelayer(relayer)
 //         expect(smartAccount.relayer).to.be.equal(relayer)
-//         const txHash: string = await smartAccount.sendTransaction({ tx: smartAccountTransaction })
+//         const txHash: string = await smartAccount.sendUserPaidTransaction({ tx: smartAccountTransaction })
 
 //         // TODO : get receipt from hash using provider
 //         // const receipt: TransactionReceipt = await response.wait(1)
@@ -2330,14 +2330,14 @@
 
 //     // WIP
 //     // Test cases for forward transaction mocking responses from rest relayer
-//     // createRefundTransaction (+Batch)
-//     // createRefundTransaction (+Batch)
+//     // createUserPaidTransaction (+Batch)
+//     // createUserPaidTransaction (+Batch)
 //     // estimateDeployments etc while mocking response form backend client
 
 //     // AA Spec
-//     // sendGaslessTransaction
-//     // deployWalletOnly
-//     // sendGaslessTransactionBatch
+//     // sendUserPaidTransaction
+//     // sendTransaction (gasless)
+//     // sendTransactionBatch (gasless)
 //     // connectPaymaster?
 //     // disconnectPaymaster?
 //     // connectBundler?
