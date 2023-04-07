@@ -1011,6 +1011,20 @@ class SmartAccount extends EventEmitter {
 
   /**
    *
+   * @param address EOA address
+   * @param chainId optional chainId
+   * @param index optional index for counterfactual address
+   * @returns SmartAccount address for given EOA address
+   */
+  getSmartAccountAddress(address: string, chainId?: ChainId, index?: number): Promise<string> {
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+    index = index ? index : 0
+    const factoryAddr = this.contractUtils.smartWalletFactoryContract[chainId][this.DEFAULT_VERSION]
+    return factoryAddr.getAddressForCounterFactualAccount(address, index)
+  }
+
+  /**
+   *
    * @param chainId optional chainId
    * @returns Smart Wallet Factory instance for requested chainId
    */
