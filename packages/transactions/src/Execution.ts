@@ -7,7 +7,7 @@ import {
   IFeeRefundV1_0_1,
   IWalletTransaction,
   SmartAccountSignature
-} from '@biconomy/core-types'
+} from '@biconomy-devx/core-types'
 
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import { AddressZero } from '@ethersproject/constants'

@@ -12,7 +12,7 @@ import { OpenloginAdapter } from '@web3auth/openlogin-adapter'
 import { MetamaskAdapter } from '@web3auth/metamask-adapter'
 import { WalletConnectV1Adapter } from '@web3auth/wallet-connect-v1-adapter'
 import QRCodeModal from '@walletconnect/qrcode-modal'
-import NodeClient, { WhiteListSignatureResponse } from '@biconomy/node-client'
+import NodeClient, { WhiteListSignatureResponse } from '@biconomy-devx/node-client'
 
 import UI from './UI'
 import {

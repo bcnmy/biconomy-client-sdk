@@ -1,4 +1,4 @@
-import { MultiSendContract } from '@biconomy/core-types'
+import { MultiSendContract } from '@biconomy-devx/core-types'
 import {
   MultiSendContractV100 as MultiSend_TypeChain,
   MultiSendContractV100Interface

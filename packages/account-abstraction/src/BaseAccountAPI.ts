@@ -1,15 +1,15 @@
 import { BigNumber, BigNumberish } from 'ethers'
 import { Provider } from '@ethersproject/providers'
-import { UserOperation } from '@biconomy/core-types' // review
+import { UserOperation } from '@biconomy-devx/core-types' // review
 import { ClientConfig } from './ClientConfig' // ClientConfig is needed in this design
 import { BytesLike } from '@ethersproject/bytes'
 import { EntryPoint } from '@account-abstraction/contracts'
 
-import { SmartWalletFactoryV100, SmartWalletContractV100 } from '@biconomy/ethers-lib'
+import { SmartWalletFactoryV100, SmartWalletContractV100 } from '@biconomy-devx/ethers-lib'
 import { TransactionDetailsForBatchUserOp } from './TransactionDetailsForUserOp'
 import { resolveProperties } from 'ethers/lib/utils'
-import { IPaymasterAPI } from '@biconomy/core-types' // only use interface
-import { Logger, getUserOpHash, NotPromise, packUserOp, AddressZero } from '@biconomy/common'
+import { IPaymasterAPI } from '@biconomy-devx/core-types' // only use interface
+import { Logger, getUserOpHash, NotPromise, packUserOp, AddressZero } from '@biconomy-devx/common'
 import { GasOverheads } from './calcPreVerificationGas'
 
 // might make use of this

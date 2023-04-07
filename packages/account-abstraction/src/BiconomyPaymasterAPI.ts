@@ -1,8 +1,8 @@
 import { resolveProperties } from '@ethersproject/properties'
-import { UserOperation } from '@biconomy/core-types'
+import { UserOperation } from '@biconomy-devx/core-types'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-import { IPaymasterAPI, PaymasterConfig } from '@biconomy/core-types'
-import { Logger } from '@biconomy/common'
+import { IPaymasterAPI, PaymasterConfig } from '@biconomy-devx/core-types'
+import { Logger } from '@biconomy-devx/common'
 
 /**
  * Verifying Paymaster API supported via Biconomy dahsboard to enable Gasless transactions

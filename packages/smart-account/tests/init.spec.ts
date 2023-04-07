@@ -3,7 +3,7 @@ import { ethers, Signer, Wallet } from 'ethers'
 import { JsonRpcProvider, Web3Provider } from '@ethersproject/providers'
 import hardhat from 'hardhat'
 import { expect } from 'chai'
-import { Environments } from '@biconomy/core-types'
+import { Environments } from '@biconomy-devx/core-types'
 
 type EthereumInstance = {
   chainId?: number

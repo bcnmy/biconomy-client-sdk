@@ -1,5 +1,5 @@
-import { InitializerDto } from '@biconomy/core-types'
-import NodeClient, { ISmartAccount } from '@biconomy/node-client'
+import { InitializerDto } from '@biconomy-devx/core-types'
+import NodeClient, { ISmartAccount } from '@biconomy-devx/node-client'
 import { Contract } from 'ethers'
 
 import * as _ from 'lodash'

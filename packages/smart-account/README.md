@@ -1,4 +1,4 @@
-# `@biconomy/smart-account`
+# `@biconomy-devx/smart-account`
 
 # Biconomy SDK Smart Account
 
@@ -6,17 +6,17 @@ Smart Account is the main package that Dev's can use to create smart contract wa
 
 ## Installation
 
-```yarn add @biconomy/smart-account```
+```yarn add @biconomy-devx/smart-account```
 
 OR
 
-```npm install @biconomy/smart-account ```
+```npm install @biconomy-devx/smart-account ```
 
 ## Usage
 
 ```
 // import package
-import SmartAccount from "@biconomy/smart-account"
+import SmartAccount from "@biconomy-devx/smart-account"
 
 // Get the EOA and provider from you choice of your wallet.
 const { provider, address } = useWeb3AuthContext();
@@ -56,9 +56,9 @@ console.log('isDeployed ', isDeployed)
 # Get Smart Contract Wallet Balances
 
 ```
-import { BalancesDto } from '@biconomy/node-client'
+import { BalancesDto } from '@biconomy-devx/node-client'
 
-import { ChainId } from '@biconomy/core-types'
+import { ChainId } from '@biconomy-devx/core-types'
 
 const balanceParams: BalancesDto =
       {

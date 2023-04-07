@@ -1,4 +1,4 @@
-# `@biconomy/transactions`
+# `@biconomy-devx/transactions`
 
 # Biconomy SDK - Transactions
 

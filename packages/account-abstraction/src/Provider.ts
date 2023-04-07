@@ -1,5 +1,5 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
-// import { EntryPointFactoryContractV100 } from '@biconomy/ethers-lib'
+// import { EntryPointFactoryContractV100 } from '@biconomy-devx/ethers-lib'
 // import { EntryPoint } from '@account-abstraction/contracts'
 import { EntryPoint__factory } from '@account-abstraction/contracts'
 

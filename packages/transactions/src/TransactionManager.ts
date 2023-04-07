@@ -14,7 +14,7 @@ import {
   IFeeRefundHandlePayment,
   EstimateSmartAccountDeploymentDto,
   SmartAccountState
-} from '@biconomy/core-types'
+} from '@biconomy-devx/core-types'
 import {
   GetFeeQuotesForBatchDto,
   GetFeeQuotesDto,
@@ -23,16 +23,16 @@ import {
   CreateUserPaidTransactionBatchDto,
   CreateUserPaidTransactionDto
 } from './Types'
-import EvmNetworkManager from '@biconomy/ethers-lib'
+import EvmNetworkManager from '@biconomy-devx/ethers-lib'
 import { Estimator } from './Estimator'
 
 import INodeClient, {
   EstimateRequiredTxGasDto,
   EstimateHandlePaymentTxGasDto
-} from '@biconomy/node-client'
+} from '@biconomy-devx/node-client'
 
-import { IRelayer } from '@biconomy/relayer'
-import { Logger } from '@biconomy/common'
+import { IRelayer } from '@biconomy-devx/relayer'
+import { Logger } from '@biconomy-devx/common'
 import ContractUtils from './ContractUtils'
 import { Utils } from './Utils'
 class TransactionManager {

@@ -3,7 +3,7 @@ import { UserOperationStruct } from '@account-abstraction/contracts'
 import { abi as entryPointAbi } from '@account-abstraction/contracts/artifacts/IEntryPoint.json'
 import { ethers } from 'ethers'
 import Debug from 'debug'
-import { ChainId } from '@biconomy/core-types'
+import { ChainId } from '@biconomy-devx/core-types'
 
 const debug = Debug('aa.utils')
 

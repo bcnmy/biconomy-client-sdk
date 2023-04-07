@@ -1,5 +1,5 @@
 import { ContractTransaction } from '@ethersproject/contracts'
-import { IBaseTransactionResult } from '@biconomy/core-types'
+import { IBaseTransactionResult } from '@biconomy-devx/core-types'
 
 export interface IEthersTransactionOptions {
   from?: string

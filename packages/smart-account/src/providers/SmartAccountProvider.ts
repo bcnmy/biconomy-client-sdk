@@ -2,7 +2,7 @@ import { Web3Provider, BaseProvider } from '@ethersproject/providers'
 import { SmartAccountSigner } from '../signers/SmartAccountSigner'
 import { Signer } from 'ethers'
 import { TransactionResponse } from '@ethersproject/providers'
-import { ChainId } from '@biconomy/core-types'
+import { ChainId } from '@biconomy-devx/core-types'
 
 // Note: WIP. Not used by SmartAccount at the moment
 // deadcode

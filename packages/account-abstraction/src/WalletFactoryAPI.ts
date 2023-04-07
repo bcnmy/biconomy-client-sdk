@@ -1,6 +1,6 @@
 import { Contract } from 'ethers'
-import { Logger, getWalletInfo } from '@biconomy/common'
-import { ChainId } from '@biconomy/core-types'
+import { Logger, getWalletInfo } from '@biconomy-devx/common'
+import { ChainId } from '@biconomy-devx/core-types'
 // review // rename to SmartAccountFactoryAPI
 export class WalletFactoryAPI {
   static async deployWalletTransactionCallData(

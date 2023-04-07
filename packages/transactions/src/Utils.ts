@@ -1,7 +1,7 @@
 import { BigNumberish, Contract, utils } from 'ethers'
 import { AddressZero } from '@ethersproject/constants'
-import { IMetaTransaction, IWalletTransaction, Transaction } from '@biconomy/core-types'
-import { Logger } from '@biconomy/common'
+import { IMetaTransaction, IWalletTransaction, Transaction } from '@biconomy-devx/core-types'
+import { Logger } from '@biconomy-devx/common'
 
 export class Utils {
   constructor() {

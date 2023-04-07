@@ -1,4 +1,4 @@
-// import { FeeRefund, FeeRefundData, MetaTransactionData } from '@biconomy/core-types'
+// import { FeeRefund, FeeRefundData, MetaTransactionData } from '@biconomy-devx/core-types'
 import {
   EstimateExternalGasDto,
   EstimateRequiredTxGasDto,
