@@ -1016,11 +1016,11 @@ class SmartAccount extends EventEmitter {
    * @param index optional index for counterfactual address
    * @returns SmartAccount address for given EOA address
    */
-  getSmartAccountAddress(address: string, chainId?: ChainId, index?: number): Promise<string> {
+  async getSmartAccountAddress(owner: string, chainId?: ChainId, index?: number): Promise<string> {
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     index = index ? index : 0
     const factoryAddr = this.contractUtils.smartWalletFactoryContract[chainId][this.DEFAULT_VERSION]
-    return factoryAddr.getAddressForCounterFactualAccount(address, index)
+    return await factoryAddr.getAddressForCounterFactualAccount(owner, index)
   }
 
   /**
