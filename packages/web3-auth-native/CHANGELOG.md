@@ -5,9 +5,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ## 2.0.0 (2023-04-07)
 
-**Note:** Version bump only for package @biconomy/ethers-lib
 
+### Features
 
-## 1.0.0 (2023-01-03)
-
-**Note:** Version bump only for package @biconomy/ethers-lib
+* web3-auth-native ([111bf66](https://github.com/bcnmy/biconomy-client-sdk/commit/111bf66134b8519b934895fe51082d22c8805e65))
