@@ -94,6 +94,7 @@ export type EstimateUndeployedContractGasDto = {
 export type SmartAccountByOwnerDto = {
   chainId: number
   owner: string
+  index?: number
 }
 
 export type TokenByChainIdAndAddressDto = {

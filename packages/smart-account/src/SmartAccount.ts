@@ -682,8 +682,7 @@ class SmartAccount extends EventEmitter {
   async signUserPaidTransaction(
     signUserPaidTransactionDto: SignUserPaidTransactionDto
   ): Promise<string> {
-    const { chainId = this.#smartAccountConfig.activeNetworkId, tx } =
-      signUserPaidTransactionDto
+    const { chainId = this.#smartAccountConfig.activeNetworkId, tx } = signUserPaidTransactionDto
     const signatureType = this.#smartAccountConfig.signType
     const walletContract = this.contractUtils.attachWalletContract(
       chainId,
@@ -1016,11 +1015,11 @@ class SmartAccount extends EventEmitter {
    * @param index optional index for counterfactual address
    * @returns SmartAccount address for given EOA address
    */
-  async getSmartAccountAddress(owner: string, chainId?: ChainId, index?: number): Promise<string> {
-    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
-    index = index ? index : 0
+  async getSmartAccountAddress(smartAccountByOwnerDto: SmartAccountByOwnerDto): Promise<string> {
+    const chainId = smartAccountByOwnerDto.chainId ?? this.#smartAccountConfig.activeNetworkId
+    const index = smartAccountByOwnerDto.index ?? 0
     const factoryAddr = this.contractUtils.smartWalletFactoryContract[chainId][this.DEFAULT_VERSION]
-    return await factoryAddr.getAddressForCounterFactualAccount(owner, index)
+    return await factoryAddr.getAddressForCounterFactualAccount(smartAccountByOwnerDto.owner, index)
   }
 
   /**
