@@ -3,7 +3,7 @@ import { TransactionReceipt } from '@ethersproject/providers'
 import { EntryPoint } from '@account-abstraction/contracts'
 import { defaultAbiCoder } from 'ethers/lib/utils'
 import Debug from 'debug'
-import { Logger } from '@biconomy/common'
+import { Logger } from '@biconomy-devx/common'
 
 const debug = Debug('aa.listener')
 

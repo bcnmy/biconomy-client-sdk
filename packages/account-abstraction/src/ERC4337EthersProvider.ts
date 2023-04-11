@@ -2,17 +2,17 @@ import { BaseProvider, TransactionReceipt, TransactionResponse } from '@etherspr
 import { BigNumber, Signer } from 'ethers'
 import { Network } from '@ethersproject/networks'
 import { hexValue, resolveProperties } from 'ethers/lib/utils'
-import { getUserOpHash } from '@biconomy/common'
+import { getUserOpHash } from '@biconomy-devx/common'
 import { ClientConfig } from './ClientConfig'
 import { ERC4337EthersSigner } from './ERC4337EthersSigner'
 import { UserOperationEventListener } from './UserOperationEventListener'
 import { HttpRpcClient } from './HttpRpcClient'
 import { EntryPoint } from '@account-abstraction/contracts'
-import { UserOperation } from '@biconomy/core-types'
+import { UserOperation } from '@biconomy-devx/core-types'
 import { BaseAccountAPI } from './BaseAccountAPI'
 import { ClientMessenger } from '@biconomy/gasless-messaging-sdk'
 import WebSocket from 'isomorphic-ws'
-import { Logger } from '@biconomy/common'
+import { Logger } from '@biconomy-devx/common'
 
 export class ERC4337EthersProvider extends BaseProvider {
   initializedBlockNumber!: number

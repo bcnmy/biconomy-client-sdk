@@ -1,5 +1,5 @@
 {
-  "name": "@biconomy/common",
+  "name": "@biconomy-devx/common",
   "version": "1.0.0",
   "description": "common utils to be used for aa transactions",
   "keywords": [
@@ -39,9 +39,9 @@
   },
   "dependencies": {
     "@account-abstraction/contracts": "^0.5.0",
-    "@biconomy/core-types": "^1.0.0",
-    "@biconomy/node-client": "^1.0.0",
-    "@biconomy/ethers-lib": "^1.0.0",
+    "@biconomy-devx/core-types": "^1.0.0",
+    "@biconomy-devx/ethers-lib": "^1.0.0",
+    "@biconomy-devx/node-client": "^1.0.0",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/bytes": "^5.7.0",
     "@ethersproject/providers": "^5.7.0",
@@ -51,7 +51,7 @@
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",
-    "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "@nomiclabs/hardhat-ethers": "^1.0.0",
     "hardhat": "^2.11.0"
   }
 }

@@ -8,7 +8,7 @@ import {
   IEvmNetworkManagerTransaction,
   SmartAccountVersion,
   SmartWalletContract
-} from '@biconomy/core-types'
+} from '@biconomy-devx/core-types'
 import { validateEip3770Address } from '@gnosis.pm/safe-core-sdk-utils'
 import { ethers } from 'ethers'
 import {

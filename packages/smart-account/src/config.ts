@@ -1,4 +1,4 @@
-import { ChainId, SmartAccountConfig, SignTypeMethod } from '@biconomy/core-types'
+import { ChainId, SmartAccountConfig, SignTypeMethod } from '@biconomy-devx/core-types'
 
 export const ProductionConfig: SmartAccountConfig = {
   activeNetworkId: ChainId.POLYGON_MAINNET,

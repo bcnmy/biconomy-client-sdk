@@ -1,6 +1,6 @@
 import { Contract, ethers } from 'ethers'
 
-// import { SmartWalletContract } from '@biconomy/core-types'
+// import { SmartWalletContract } from '@biconomy-devx/core-types'
 const EntryPointArtifact = require('../../../ethers-lib/artifacts/contracts/V1.0.0.sol/EntryPointContract_v1_0_0.json')
 const SmartWalletArtifact = require('../../../ethers-lib/artifacts/contracts/V1.0.0.sol/SmartWalletContract_v1_0_0.json')
 const WalletFactoryArtifact = require('../../../ethers-lib/artifacts/contracts/V1.0.0.sol/SmartWalletFactoryContract_v1_0_0.json')

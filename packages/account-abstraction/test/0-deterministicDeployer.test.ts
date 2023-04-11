@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { SmartWalletFactoryV100 } from '@biconomy/ethers-lib'
+import { SmartWalletFactoryV100 } from '@biconomy-devx/ethers-lib'
 import hardhat from 'hardhat'
 import { hexValue } from 'ethers/lib/utils'
 import { DeterministicDeployer } from '../src/DeterministicDeployer'

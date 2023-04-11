@@ -7,8 +7,8 @@ import {
   SmartAccountContext,
   SmartAccountState,
   FallbackGasTankContract
-} from '@biconomy/core-types'
-import { ChainConfig } from '@biconomy/node-client'
+} from '@biconomy-devx/core-types'
+import { ChainConfig } from '@biconomy-devx/node-client'
 import {
   getSmartWalletFactoryContract,
   getMultiSendContract,
@@ -17,10 +17,10 @@ import {
   getFallbackGasTankContract
 } from './utils/FetchContractsInfo'
 import { ethers, Signer } from 'ethers'
-import EvmNetworkManager from '@biconomy/ethers-lib'
-import { SmartAccountVersion } from '@biconomy/core-types'
-import { ISmartAccount } from '@biconomy/node-client'
-import { Logger } from '@biconomy/common'
+import EvmNetworkManager from '@biconomy-devx/ethers-lib'
+import { SmartAccountVersion } from '@biconomy-devx/core-types'
+import { ISmartAccount } from '@biconomy-devx/node-client'
+import { Logger } from '@biconomy-devx/common'
 
 class ContractUtils {
   ethAdapter!: { [chainId: number]: EvmNetworkManager }

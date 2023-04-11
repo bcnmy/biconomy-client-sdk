@@ -1,6 +1,6 @@
 import { Contract, utils } from 'ethers'
 import { buildContractCall } from './Execution'
-import { IMetaTransaction, IWalletTransaction } from '@biconomy/core-types'
+import { IMetaTransaction, IWalletTransaction } from '@biconomy-devx/core-types'
 
 const encodeMetaTransaction = (tx: IMetaTransaction): string => {
   const data = utils.arrayify(tx.data)

@@ -1,4 +1,4 @@
-import { IPaymasterAPI } from '@biconomy/core-types'
+import { IPaymasterAPI } from '@biconomy-devx/core-types'
 
 export interface ClientConfig {
   dappAPIKey: string // added by Biconomy

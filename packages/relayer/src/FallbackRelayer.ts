@@ -2,8 +2,8 @@ import { JsonRpcProvider, TransactionReceipt, TransactionResponse } from '@ether
 import { BigNumber, ethers } from 'ethers'
 import { IFallbackRelayer } from '.'
 
-import { RelayTransaction, FallbackRelayerOptions, GasLimit, ChainId } from '@biconomy/core-types'
-import { Logger } from '@biconomy/common'
+import { RelayTransaction, FallbackRelayerOptions, GasLimit, ChainId } from '@biconomy-devx/core-types'
+import { Logger } from '@biconomy-devx/common'
 import { HttpMethod, sendRequest } from './utils/HttpRequests'
 import { ClientMessenger } from '@biconomy/gasless-messaging-sdk'
 import WebSocket, { EventEmitter } from 'isomorphic-ws'

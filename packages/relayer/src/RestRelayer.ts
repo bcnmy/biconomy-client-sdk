@@ -10,8 +10,8 @@ import {
   RelayResponse,
   GasLimit,
   ChainId
-} from '@biconomy/core-types'
-import { Logger } from '@biconomy/common'
+} from '@biconomy-devx/core-types'
+import { Logger } from '@biconomy-devx/common'
 import { MetaTransaction, encodeMultiSend } from './utils/MultiSend'
 import { HttpMethod, sendRequest } from './utils/HttpRequests'
 import { ClientMessenger } from '@biconomy/gasless-messaging-sdk'

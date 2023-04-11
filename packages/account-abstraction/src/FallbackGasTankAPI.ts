@@ -1,7 +1,7 @@
 import { resolveProperties } from '@ethersproject/properties'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-import { IFallbackAPI, FallbackUserOperation, FallbackApiResponse } from '@biconomy/core-types'
-import { Logger } from '@biconomy/common'
+import { IFallbackAPI, FallbackUserOperation, FallbackApiResponse } from '@biconomy-devx/core-types'
+import { Logger } from '@biconomy-devx/common'
 
 /**
  * Verifying and Signing fallback gasless transactions

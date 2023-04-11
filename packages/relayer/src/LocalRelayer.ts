@@ -7,8 +7,8 @@ import {
   RelayTransaction,
   RelayResponse,
   GasLimit
-} from '@biconomy/core-types'
-import { Logger } from '@biconomy/common'
+} from '@biconomy-devx/core-types'
+import { Logger } from '@biconomy-devx/common'
 import { MetaTransaction, encodeMultiSend } from './utils/MultiSend'
 // You can configure your own signer with gas held to send out test transactions or some sponsored transactions by plugging it into SmartAccount package
 // Not meant to use for production environment for transaction ordering.

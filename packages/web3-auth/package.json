@@ -1,5 +1,5 @@
 {
-  "name": "@biconomy/web3-auth",
+  "name": "@biconomy-devx/web3-auth",
   "version": "1.0.0",
   "description": "web3-auth for biconomy sdk",
   "main": "./dist/src/index.js",
@@ -36,7 +36,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@biconomy/node-client": "^1.0.0",
+    "@biconomy-devx/node-client": "^1.0.0",
     "@walletconnect/qrcode-modal": "^1.8.0",
     "@web3auth/base": "^3.0.0",
     "@web3auth/core": "^3.0.0",
@@ -49,7 +49,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@biconomy/node-client": "*",
+    "@biconomy-devx/node-client": "*",
     "@types/react": "^18.0.15",
     "@types/react-dom": "^18.0.6",
     "path": "^0.12.7",

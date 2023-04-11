@@ -1,5 +1,5 @@
 {
-  "name": "@biconomy/relayer",
+  "name": "@biconomy-devx/relayer",
   "version": "1.0.0",
   "description": "relayer client to dispatach transactions on blockchain",
   "keywords": [
@@ -25,13 +25,13 @@
     "lint": "tslint -p tsconfig.json"
   },
   "dependencies": {
-    "@biconomy/core-types": "^1.0.0",
-    "@biconomy/common": "^1.0.0",
+    "@biconomy-devx/common": "^1.0.0",
+    "@biconomy-devx/core-types": "^1.0.0",
+    "@biconomy/gasless-messaging-sdk": "^0.0.3",
     "@ethersproject/providers": "^5.7.0",
     "axios": "^1.3.4",
     "ethers": "^5.7.0",
-    "isomorphic-ws": "^5.0.0",
-    "@biconomy/gasless-messaging-sdk": "^0.0.3"
+    "isomorphic-ws": "^5.0.0"
   },
   "publishConfig": {
     "access": "public"
