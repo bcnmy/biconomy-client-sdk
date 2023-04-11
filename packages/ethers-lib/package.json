@@ -43,13 +43,13 @@
     "access": "public"
   },
   "dependencies": {
-    "@account-abstraction/contracts": "^0.5.0",
-    "@biconomy-devx/core-types": "^1.0.0",
+    "@account-abstraction/contracts": "^0.6.0",
+    "@biconomy/core-types": "^1.0.0",
     "@gnosis.pm/safe-core-sdk-utils": "^1.1.0",
     "@nomiclabs/hardhat-ethers": "^2.1.0",
     "@openzeppelin/contracts": "^4.8.1",
-    "fallback-contracts-v1.0.0": "npm:@biconomy-devx/fallback-gastank-contracts@1.0.0",
-    "scw-contracts-v1.0.0": "npm:@biconomy-devx/account-contracts@1.0.0"
+    "scw-contracts-v1.0.0": "npm:@biconomy-devx/account-contracts@1.0.1",
+    "fallback-contracts-v1.0.0": "npm:@biconomy-devx/fallback-gastank@1.0.0"
   },
   "peerDependencies": {
     "ethers": "^5.7.0"
