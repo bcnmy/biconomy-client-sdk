@@ -7,7 +7,7 @@ import { EntryPoint } from '@account-abstraction/contracts'
 
 import { SmartWalletFactoryV100, SmartWalletContractV100 } from '@biconomy-devx/ethers-lib'
 import { TransactionDetailsForBatchUserOp } from './TransactionDetailsForUserOp'
-import { resolveProperties } from 'ethers/lib/utils'
+import { defaultAbiCoder, keccak256 } from 'ethers/lib/utils'
 import { IPaymasterAPI } from '@biconomy-devx/core-types' // only use interface
 import { Logger, getUserOpHash, NotPromise, packUserOp, AddressZero } from '@biconomy-devx/common'
 import { GasOverheads } from './calcPreVerificationGas'
@@ -298,9 +298,13 @@ export abstract class BaseAccountAPI {
    * @param userOp userOperation, (signature field ignored)
    */
   async getUserOpHash(userOp: UserOperation): Promise<string> {
-    const op = await resolveProperties(userOp)
     const chainId = await this.provider.getNetwork().then((net) => net.chainId)
-    return getUserOpHash(op, this.entryPoint.address, chainId)
+    const userOpHash = keccak256(packUserOp(userOp, true))
+    const enc = defaultAbiCoder.encode(
+      ['bytes32', 'address', 'uint256'],
+      [userOpHash, this.entryPoint.address, chainId]
+    )
+    return keccak256(enc)
   }
 
   /**
