@@ -1,5 +1,5 @@
 import { BigNumber } from '@ethersproject/bignumber'
-import { FallbackGasTankContract } from '@biconomy-devx/core-types'
+import { FallbackGasTankContract } from '@biconomy/core-types'
 import {
   FallbackGasTankContractV100 as Fallback_Type,
   FallbackUserOperationStruct

@@ -2,10 +2,10 @@ import { JsonRpcProvider } from '@ethersproject/providers'
 import { ethers } from 'ethers'
 import { resolveProperties } from 'ethers/lib/utils'
 
-import { UserOperation } from '@biconomy-devx/core-types'
+import { UserOperation } from '@biconomy/core-types'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
 import Debug from 'debug'
-import { Logger, deepHexlify } from '@biconomy-devx/common'
+import { Logger, deepHexlify } from '@biconomy/common'
 
 const debug = Debug('aa.rpc')
 export class HttpRpcClient {

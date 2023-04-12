@@ -1,4 +1,4 @@
-import { SampleRecipient, SampleRecipient__factory } from '@biconomy-devx/common/dist/src/types'
+import { SampleRecipient, SampleRecipient__factory } from '@biconomy/common/dist/src/types'
 import { ethers } from 'hardhat'
 import { ClientConfig, ERC4337EthersProvider, newProvider } from '../src'
 import { EntryPoint, EntryPoint__factory } from '@account-abstraction/contracts'
@@ -12,7 +12,7 @@ import {
   SmartWalletFactoryContractV100,
   EntryPointContractV100,
   SmartWalletContractV100
-} from '@biconomy-devx/ethers-lib'
+} from '@biconomy/ethers-lib'
 
 const provider = ethers.provider
 const signer = provider.getSigner()
@@ -27,7 +27,7 @@ describe('ERC4337EthersSigner, Provider', function () {
   let walletAddress: string
   let baseWalletContract: SmartWalletContractV100
   let walletFactoryContract: SmartWalletFactoryContractV100
-  let walletDeployed = false
+  const walletDeployed = false
   let userSCW: SmartWalletContractV100
   let expectedSCW: string
   let chainId: number

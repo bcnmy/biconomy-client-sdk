@@ -4,7 +4,7 @@ import {
   MetaTransactionData,
   IFeeRefundV1_0_0,
   IFeeRefundV1_0_1
-} from '@biconomy-devx/core-types'
+} from '@biconomy/core-types'
 export type SmartAccountInfoResponse = {
   readonly name: string
   readonly version: string

@@ -1,4 +1,4 @@
-# `@biconomy-devx/relayer`
+# `@biconomy/relayer`
 
 # Biconomy Relayer Client
 

@@ -3,9 +3,9 @@ import { Wallet } from 'ethers'
 import { parseEther } from 'ethers/lib/utils'
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
-import { UserOperation } from '@biconomy-devx/core-types'
+import { UserOperation } from '@biconomy/core-types'
 import { SmartAccountAPI } from '../src'
-import { SampleRecipient, SampleRecipient__factory } from '@biconomy-devx/common/dist/src/types'
+import { SampleRecipient, SampleRecipient__factory } from '@biconomy/common/dist/src/types'
 
 import {
   SmartWalletContractFactoryV100,
@@ -14,7 +14,7 @@ import {
   SmartWalletFactoryContractV100,
   EntryPointContractV100,
   SmartWalletContractV100
-} from '@biconomy-devx/ethers-lib'
+} from '@biconomy/ethers-lib'
 
 const provider = ethers.provider
 const signer = provider.getSigner()
@@ -29,7 +29,7 @@ describe('SmartAccountAPI', async () => {
   let walletAddress: string
   let baseWalletContract: SmartWalletContractV100
   let walletFactoryContract: SmartWalletFactoryContractV100
-  let walletDeployed = false
+  const walletDeployed = false
   let userSCW: SmartWalletContractV100
   let expectedSCW: string
   let chainId: number

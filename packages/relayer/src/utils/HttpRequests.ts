@@ -1,5 +1,5 @@
 import fetch from 'node-fetch'
-import { Logger } from '@biconomy-devx/common'
+import { Logger } from '@biconomy/common'
 
 export enum HttpMethod {
   Get = 'get',

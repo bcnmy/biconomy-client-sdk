@@ -31,7 +31,7 @@ import {
   NetworkConfig,
   ZERO_ADDRESS,
   IFallbackAPI
-} from '@biconomy-devx/core-types'
+} from '@biconomy/core-types'
 import NodeClient, {
   ISmartAccount,
   ChainConfig,
@@ -41,16 +41,16 @@ import NodeClient, {
   BalancesResponse,
   BalancesDto,
   UsdBalanceResponse
-} from '@biconomy-devx/node-client'
+} from '@biconomy/node-client'
 import { JsonRpcProvider, Provider, Web3Provider } from '@ethersproject/providers'
-import { IRelayer, RestRelayer, FallbackRelayer, IFallbackRelayer } from '@biconomy-devx/relayer'
+import { IRelayer, RestRelayer, FallbackRelayer, IFallbackRelayer } from '@biconomy/relayer'
 import * as _ from 'lodash'
 import TransactionManager, {
   ContractUtils,
   encodeMultiSend,
   smartAccountSignMessage,
   smartAccountSignTypedData
-} from '@biconomy-devx/transactions'
+} from '@biconomy/transactions'
 import EventEmitter from 'events'
 import { TransactionResponse } from '@ethersproject/providers'
 import { SmartAccountSigner } from './signers/SmartAccountSigner'
@@ -62,17 +62,17 @@ import {
   FallbackGasTankAPI,
   ERC4337EthersSigner,
   BaseAccountAPI
-} from '@biconomy-devx/account-abstraction'
+} from '@biconomy/account-abstraction'
 import {
   Logger,
   deployCounterFactualEncodedData,
   getWalletInfo,
   updateImplementationEncodedData,
   fallbackHandlerEncodedData
-} from '@biconomy-devx/common'
+} from '@biconomy/common'
 
 import { BigNumber, ethers, Signer } from 'ethers'
-import { Transaction } from '@biconomy-devx/core-types'
+import { Transaction } from '@biconomy/core-types'
 
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount extends EventEmitter {
