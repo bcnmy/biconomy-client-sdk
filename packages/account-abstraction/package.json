@@ -36,7 +36,7 @@
     "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"
   },
   "dependencies": {
-    "@account-abstraction/contracts": "^0.5.0",
+    "@account-abstraction/contracts": "^0.6.0",
     "@account-abstraction/utils": "^0.5.0",
     "@biconomy/common": "^2.0.0",
     "@ethersproject/abstract-provider": "^5.7.0",
@@ -52,13 +52,13 @@
     "solidity-coverage": "^0.7.22"
   },
   "devDependencies": {
-    "@biconomy/common": "^1.0.0",
+    "@biconomy/common": "^2.0.0",
     "@biconomy/core-types": "^2.0.0",
     "@biconomy/ethers-lib": "^2.0.0",
     "@biconomy/transactions": "^2.0.0",
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.3",
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",
-    "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "@nomiclabs/hardhat-ethers": "^1.0.0",
     "chai": "^4.3.6",
     "hardhat": "^2.9.7"
   }

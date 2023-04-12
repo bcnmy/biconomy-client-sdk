@@ -43,7 +43,5 @@ export abstract class Signer extends AbstractSigner {
   // We might as well (just) have sendTransactionBatch that takes array of transactions / sendTransactionsDto
 
   // Signs the transaction with original signer...
-  abstract signTransaction(
-    signUserPaidTransactionDto: SignUserPaidTransactionDto
-  ): Promise<string>
+  abstract signTransaction(signUserPaidTransactionDto: SignUserPaidTransactionDto): Promise<string>
 }

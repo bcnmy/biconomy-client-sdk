@@ -16,7 +16,6 @@ import {
   deployCounterFactualEncodedData,
   EIP1559_UNSUPPORTED_NETWORKS
 } from '@biconomy/common'
-import { ethers } from 'ethers/lib'
 
 // may use...
 export interface SmartAccountApiParams extends BaseApiParams {

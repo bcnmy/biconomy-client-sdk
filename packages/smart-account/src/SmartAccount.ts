@@ -293,9 +293,12 @@ class SmartAccount extends EventEmitter {
   }
 
   async init() {
+    try {
+      this.owner = await this.signer.getAddress()
+    } catch (error) {
+      throw new Error('Invalid Provider, cant get signer address')
+    }
     this.setActiveChain(this.#smartAccountConfig.activeNetworkId)
-
-    this.owner = await this.signer.getAddress()
 
     const chainConfig = (await this.nodeClient.getAllSupportedChains()).data
 
@@ -682,8 +685,7 @@ class SmartAccount extends EventEmitter {
   async signUserPaidTransaction(
     signUserPaidTransactionDto: SignUserPaidTransactionDto
   ): Promise<string> {
-    const { chainId = this.#smartAccountConfig.activeNetworkId, tx } =
-      signUserPaidTransactionDto
+    const { chainId = this.#smartAccountConfig.activeNetworkId, tx } = signUserPaidTransactionDto
     const signatureType = this.#smartAccountConfig.signType
     const walletContract = this.contractUtils.attachWalletContract(
       chainId,
@@ -721,7 +723,7 @@ class SmartAccount extends EventEmitter {
     let { chainId } = sendUserPaidTransactionDto
     const { tx } = sendUserPaidTransactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
-    let { gasLimit } = sendUserPaidTransactionDto
+    const { gasLimit } = sendUserPaidTransactionDto
     const isDeployed = await this.contractUtils.isDeployed(chainId, this.address)
     const rawTx: RawTransactionType = {
       to: tx.to,
@@ -780,13 +782,18 @@ class SmartAccount extends EventEmitter {
     }
     if (gasLimit) {
       relayTrx.gasLimit = gasLimit
+    } else {
+      relayTrx.gasLimit = {
+        hex: '0xC3500',
+        type: 'hex'
+      }
     }
+
     if (!isDeployed) {
-      gasLimit = {
+      relayTrx.gasLimit = {
         hex: '0x1E8480',
         type: 'hex'
       }
-      relayTrx.gasLimit = gasLimit
     }
     const relayResponse: RelayResponse = await this.relayer.relay(relayTrx, this)
     if (relayResponse.transactionId) {
