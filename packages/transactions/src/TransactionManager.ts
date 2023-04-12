@@ -1,6 +1,4 @@
-import { encodeTransfer } from './AccountUtils'
 import {
-  DEFAULT_FEE_RECEIVER,
   IMetaTransaction,
   MetaTransactionData,
   IWalletTransaction,
