@@ -11,9 +11,10 @@ import {
   GasLimit,
   ChainId
 } from '@biconomy/core-types'
+import { Logger } from '@biconomy/common'
 import { MetaTransaction, encodeMultiSend } from './utils/MultiSend'
 import { HttpMethod, sendRequest } from './utils/HttpRequests'
-import { ClientMessenger } from 'messaging-sdk'
+import { ClientMessenger } from '@biconomy/gasless-messaging-sdk'
 import WebSocket, { EventEmitter } from 'isomorphic-ws'
 
 /**
@@ -26,7 +27,6 @@ export class RestRelayer implements IRelayer {
   relayerNodeEthersProvider!: { [chainId: number]: JsonRpcProvider }
 
   constructor(options: RestRelayerOptions) {
-    // TODO : Rename url to relayerServiceUrl
     const { url, socketServerUrl } = options
     this.relayerNodeEthersProvider = {}
     this.#relayServiceBaseUrl = url
@@ -51,19 +51,21 @@ export class RestRelayer implements IRelayer {
     // context: WalletContext
   ): { to: string; data: string } {
     const { config, context, index = 0 } = deployWallet
+
     const { walletFactory } = context
-    const { owner, entryPointAddress, fallbackHandlerAddress } = config
+    const { owner } = config
     const factoryInterface = walletFactory.getInterface()
 
     return {
       to: walletFactory.getAddress(), // from context
       data: factoryInterface.encodeFunctionData(
-        factoryInterface.getFunction('deployCounterFactualWallet'),
-        [owner, entryPointAddress, fallbackHandlerAddress, index]
+        factoryInterface.getFunction('deployCounterFactualAccount'),
+        [owner, index]
       )
     }
   }
 
+  // if the wallet is deployed baseGas would be coming as part of struct in rawtx
   async relay(relayTransaction: RelayTransaction, engine: EventEmitter): Promise<RelayResponse> {
     const socketServerUrl = this.#socketServerUrl
 
@@ -71,7 +73,7 @@ export class RestRelayer implements IRelayer {
 
     if (!clientMessenger.socketClient.isConnected()) {
       await clientMessenger.connect()
-      console.log('connect success')
+      Logger.log('socket connect success')
     }
 
     const { config, signedTx, context, gasLimit } = relayTransaction
@@ -120,24 +122,10 @@ export class RestRelayer implements IRelayer {
       finalRawRx = signedTx.rawTx
     }
 
-    console.log('finaRawTx')
-    console.log(finalRawRx)
+    Logger.log('finalRawTx', finalRawRx)
 
-    // reason : can not capture repsonse from jsonRpcProvider.send()
-    /*const response: any = await this.relayerNodeEthersProvider[chainId].send(
-      'eth_sendSmartContractWalletTransaction',
-      [
-        {
-          ...finalRawRx,
-          gasLimit: (gasLimit as GasLimit).hex,
-          refundInfo: {
-            tokenGasPrice: signedTx.tx.gasPrice,
-            gasToken: signedTx.tx.gasToken
-          }
-        }
-      ]
-    )*/
-
+    // based on the flag make rpc call to relayer code service with necessary rawTx data
+    /* eslint-disable  @typescript-eslint/no-explicit-any */
     const response: any = await sendRequest({
       url: `${this.#relayServiceBaseUrl}`,
       method: HttpMethod.Post,
@@ -167,16 +155,15 @@ export class RestRelayer implements IRelayer {
       const connectionUrl = response.data.connectionUrl
 
       clientMessenger.createTransactionNotifier(transactionId, {
+        /* eslint-disable  @typescript-eslint/no-explicit-any */
         onMined: (tx: any) => {
           const txId = tx.transactionId
           clientMessenger.unsubscribe(txId)
-          console.log(
-            `Tx Hash mined message received at client ${JSON.stringify({
-              transactionId: txId,
-              hash: tx.transactionHash,
-              receipt: tx.receipt
-            })}`
-          )
+          Logger.log('Tx Hash mined message received at client', {
+            transactionId: txId,
+            hash: tx.transactionHash,
+            receipt: tx.receipt
+          })
           engine.emit('txMined', {
             msg: 'txn mined',
             id: txId,
@@ -184,33 +171,30 @@ export class RestRelayer implements IRelayer {
             receipt: tx.receipt
           })
         },
+        /* eslint-disable  @typescript-eslint/no-explicit-any */
         onHashGenerated: async (tx: any) => {
           const txHash = tx.transactionHash
           const txId = tx.transactionId
-          console.log(
-            `Tx Hash generated message received at client ${JSON.stringify({
-              transactionId: txId,
-              hash: txHash
-            })}`
-          )
+          Logger.log('Tx Hash generated message received at client ', {
+            transactionId: txId,
+            hash: txHash
+          })
 
-          console.log(`Receive time for transaction id ${txId}: ${Date.now()}`)
           engine.emit('txHashGenerated', {
             id: tx.transactionId,
             hash: tx.transactionHash,
             msg: 'txn hash generated'
           })
         },
+        /* eslint-disable  @typescript-eslint/no-explicit-any */
         onHashChanged: async (tx: any) => {
           if (tx) {
             const txHash = tx.transactionHash
             const txId = tx.transactionId
-            console.log(
-              `Tx Hash changed message received at client ${JSON.stringify({
-                transactionId: txId,
-                hash: txHash
-              })}`
-            )
+            Logger.log('Tx Hash changed message received at client ', {
+              transactionId: txId,
+              hash: txHash
+            })
             engine.emit('txHashChanged', {
               id: tx.transactionId,
               hash: tx.transactionHash,
@@ -218,8 +202,9 @@ export class RestRelayer implements IRelayer {
             })
           }
         },
+        /* eslint-disable  @typescript-eslint/no-explicit-any */
         onError: async (tx: any) => {
-          console.log(`Error message received at client is ${tx}`)
+          Logger.error('Error message received at client', tx)
           const err = tx.error
           const txId = tx.transactionId
           clientMessenger.unsubscribe(txId)

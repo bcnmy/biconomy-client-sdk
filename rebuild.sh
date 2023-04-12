@@ -16,6 +16,9 @@ rm -rf packages/core-types/package-lock.json
 rm -rf packages/core-types/dist
 
 rm -rf packages/ethers-lib/node_modules
+rm -rf packages/ethers-lib/artifacts
+rm -rf packages/ethers-lib/typechain
+rm -rf packages/ethers-lib/cache
 rm -rf packages/ethers-lib/package-lock.json
 rm -rf packages/ethers-lib/dist
 
@@ -40,6 +43,11 @@ rm -rf packages/web3-auth/node_modules
 rm -rf packages/web3-auth/yarn.lock
 rm -rf packages/web3-auth/package-lock.json
 rm -rf packages/web3-auth/dist
+
+rm -rf packages/web3-auth-native/node_modules
+rm -rf packages/web3-auth-native/yarn.lock
+rm -rf packages/web3-auth-native/package-lock.json
+rm -rf packages/web3-auth-native/dist
 
 rm -rf packages/transak/node_modules
 rm -rf packages/transak/yarn.lock

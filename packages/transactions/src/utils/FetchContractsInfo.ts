@@ -5,7 +5,8 @@ import {
   SmartWalletFactoryContract,
   MultiSendContract,
   MultiSendCallOnlyContract,
-  SmartAccountVersion
+  SmartAccountVersion,
+  FallbackGasTankContract
 } from '@biconomy/core-types'
 
 import EthersAdapter from '@biconomy/ethers-lib'
@@ -37,6 +38,21 @@ export function getSmartWalletContract(
   address: string
 ): SmartWalletContract {
   return ethAdapter.getSmartWalletContract(smartAccountVersion, address)
+}
+export function getFallbackGasTankContract(
+  smartAccountVersion: SmartAccountVersion,
+  ethAdapter: EthersAdapter,
+  address: string
+): FallbackGasTankContract {
+  return ethAdapter.getFallbackGasTankContract(smartAccountVersion, address)
+}
+
+export function getDefaultCallbackHandlerContract(
+  smartAccountVersion: SmartAccountVersion,
+  ethAdapter: EthersAdapter,
+  address: string
+): FallbackGasTankContract {
+  return ethAdapter.getDefaultCallbackHandlerContract(smartAccountVersion, address)
 }
 
 export function findChainById(chainId: ChainId, chainConfig: ChainConfig[]): ChainConfig {

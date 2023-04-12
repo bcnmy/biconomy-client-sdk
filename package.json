@@ -8,7 +8,8 @@
   "scripts": {
     "clean": "lerna clean",
     "unbuild": "lerna run unbuild",
-    "build": "npm install -D nx@latest && lerna run build --stream --npm-client=yarn",
+    "build": "lerna run build --stream --npm-client=yarn",
+    "test": "lerna run test --stream --npm-client=yarn",
     "test:ci": "FORCE_COLOR=1 lerna run test:ci --stream --npm-client=yarn",
     "format": "lerna run format --npm-client=yarn",
     "postinstall": "cd packages/ethers-lib; hardhat compile",
@@ -34,10 +35,11 @@
     "@types/jest": "^28.1.7",
     "@types/mocha": "^9.1.1",
     "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-prettier": "^4.2.1",
     "hardhat": "^2.9.9",
     "lerna": "^5.5.4",
     "lerna-changelog": "^2.2.0",
-    "nx": "^15.4.1",
+    "nx": "^15.8.3",
     "prettier": "2.7.1",
     "rimraf": "^3.0.2",
     "ts-node": "^10.9.1"

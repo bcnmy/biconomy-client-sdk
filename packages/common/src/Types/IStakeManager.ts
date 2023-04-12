@@ -32,13 +32,13 @@ export declare namespace IStakeManager {
     boolean,
     BigNumber,
     number,
-    BigNumber
+    number
   ] & {
     deposit: BigNumber;
     staked: boolean;
     stake: BigNumber;
     unstakeDelaySec: number;
-    withdrawTime: BigNumber;
+    withdrawTime: number;
   };
 }
 
@@ -49,9 +49,7 @@ export interface IStakeManagerInterface extends utils.Interface {
     "balanceOf(address)": FunctionFragment;
     "depositTo(address)": FunctionFragment;
     "getDepositInfo(address)": FunctionFragment;
-    "paymasterStake()": FunctionFragment;
     "unlockStake()": FunctionFragment;
-    "unstakeDelaySec()": FunctionFragment;
     "withdrawStake(address)": FunctionFragment;
     "withdrawTo(address,uint256)": FunctionFragment;
   };
@@ -67,15 +65,7 @@ export interface IStakeManagerInterface extends utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "paymasterStake",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "unlockStake",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "unstakeDelaySec",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -95,15 +85,7 @@ export interface IStakeManagerInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "paymasterStake",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "unlockStake",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "unstakeDelaySec",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -136,7 +118,7 @@ export type DepositedEventFilter = TypedEventFilter<DepositedEvent>;
 
 export type StakeLockedEvent = TypedEvent<
   [string, BigNumber, BigNumber],
-  { account: string; totalStaked: BigNumber; withdrawTime: BigNumber }
+  { account: string; totalStaked: BigNumber; unstakeDelaySec: BigNumber }
 >;
 
 export type StakeLockedEventFilter = TypedEventFilter<StakeLockedEvent>;
@@ -211,15 +193,7 @@ export interface IStakeManager extends BaseContract {
       }
     >;
 
-    paymasterStake(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     unlockStake(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    unstakeDelaySec(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -252,15 +226,7 @@ export interface IStakeManager extends BaseContract {
     overrides?: CallOverrides
   ): Promise<IStakeManager.DepositInfoStructOutput>;
 
-  paymasterStake(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   unlockStake(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  unstakeDelaySec(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -290,11 +256,7 @@ export interface IStakeManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<IStakeManager.DepositInfoStructOutput>;
 
-    paymasterStake(overrides?: CallOverrides): Promise<BigNumber>;
-
     unlockStake(overrides?: CallOverrides): Promise<void>;
-
-    unstakeDelaySec(overrides?: CallOverrides): Promise<number>;
 
     withdrawStake(
       withdrawAddress: string,
@@ -321,12 +283,12 @@ export interface IStakeManager extends BaseContract {
     "StakeLocked(address,uint256,uint256)"(
       account?: string | null,
       totalStaked?: null,
-      withdrawTime?: null
+      unstakeDelaySec?: null
     ): StakeLockedEventFilter;
     StakeLocked(
       account?: string | null,
       totalStaked?: null,
-      withdrawTime?: null
+      unstakeDelaySec?: null
     ): StakeLockedEventFilter;
 
     "StakeUnlocked(address,uint256)"(
@@ -379,15 +341,7 @@ export interface IStakeManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    paymasterStake(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     unlockStake(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    unstakeDelaySec(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -424,15 +378,7 @@ export interface IStakeManager extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    paymasterStake(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     unlockStake(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    unstakeDelaySec(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

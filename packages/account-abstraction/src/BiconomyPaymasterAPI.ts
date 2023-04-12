@@ -1,55 +1,67 @@
 import { resolveProperties } from '@ethersproject/properties'
 import { UserOperation } from '@biconomy/core-types'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-import { IPaymasterAPI } from '@biconomy/core-types'
+import { IPaymasterAPI, PaymasterConfig } from '@biconomy/core-types'
+import { Logger } from '@biconomy/common'
 
 /**
  * Verifying Paymaster API supported via Biconomy dahsboard to enable Gasless transactions
  */
+// TODO: possibly rename to BiconomyVerifyingPaymasterAPI
 export class BiconomyPaymasterAPI implements IPaymasterAPI {
-  constructor(readonly signingServiceUrl: string, readonly dappAPIKey: string) {
-    this.signingServiceUrl = signingServiceUrl
-    this.dappAPIKey = dappAPIKey
+  paymasterConfig: PaymasterConfig
+
+  constructor(paymasterConfig: PaymasterConfig) {
+    this.paymasterConfig = paymasterConfig
   }
 
   async getPaymasterAndData(userOp: Partial<UserOperation>): Promise<string> {
     try {
-      if (!this.dappAPIKey || this.dappAPIKey === '') {
-        return '0x'
-      }
-
       userOp = await resolveProperties(userOp)
       userOp.nonce = Number(userOp.nonce)
       userOp.callGasLimit = Number(userOp.callGasLimit)
       userOp.verificationGasLimit = Number(userOp.verificationGasLimit)
       userOp.maxFeePerGas = Number(userOp.maxFeePerGas)
       userOp.maxPriorityFeePerGas = Number(userOp.maxPriorityFeePerGas)
-      userOp.preVerificationGas = 21000
+      userOp.preVerificationGas = Number(userOp.preVerificationGas)
       userOp.signature = '0x'
       userOp.paymasterAndData = '0x'
 
       // move dappAPIKey in headers
+      /* eslint-disable  @typescript-eslint/no-explicit-any */
       const result: any = await sendRequest({
-        url: `${this.signingServiceUrl}`,
+        url: `${this.paymasterConfig.signingServiceUrl}/user-op`,
         method: HttpMethod.Post,
-        headers: { 'x-api-key': this.dappAPIKey },
+        headers: { 'x-api-key': this.paymasterConfig.dappAPIKey },
         body: { userOp: userOp }
       })
 
-      console.log('******** ||||| *********')
-      console.log('verifying and signing service response', result)
+      Logger.log('verifying and signing service response', result)
 
-      if (result && result.data && result.code === 200) {
+      if (result && result.data && result.statusCode === 200) {
         return result.data.paymasterAndData
       } else {
-        console.log('error in verifying. sending paymasterAndData 0x')
-        console.log(result.error)
+        if (!this.paymasterConfig.strictSponsorshipMode) {
+          return '0x'
+        }
+        // Logger.log(result)
+        // Review: If we will get a different code and result.message
+        if (result.error) {
+          Logger.log(result.error.toString())
+          throw new Error(
+            'Error in verifying gas sponsorship. Reason: '.concat(result.error.toString())
+          )
+        }
+        throw new Error('Error in verifying gas sponsorship. Reason unknown')
       }
-    } catch (err) {
-      console.log('error in signing service response')
-      console.error(err)
-      return '0x'
+    } catch (err: any) {
+      if (!this.paymasterConfig.strictSponsorshipMode) {
+        Logger.log('sending paymasterAndData 0x')
+        Logger.log('Reason ', err.toString())
+        return '0x'
+      }
+      Logger.error('Error in verifying gas sponsorship.', err.toString())
+      throw new Error('Error in verifying gas sponsorship. Reason: '.concat(err.toString()))
     }
-    return '0x'
   }
 }

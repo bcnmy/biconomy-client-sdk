@@ -13,7 +13,6 @@ let counter = 0
 export function createWalletOwner(): Wallet {
   const privateKey = keccak256(Buffer.from(arrayify(BigNumber.from(++counter))))
   return new ethers.Wallet(privateKey, ethers.providers.getDefaultProvider())
-  // return new ethers.Wallet('0x'.padEnd(66, privkeyBase), ethers.provider);
 }
 
 export async function getBalance(address: string): Promise<number> {

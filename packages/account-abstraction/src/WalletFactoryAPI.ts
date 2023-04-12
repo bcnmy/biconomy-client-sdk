@@ -1,21 +1,34 @@
 import { Contract } from 'ethers'
-
+import { Logger, getWalletInfo } from '@biconomy/common'
+import { ChainId } from '@biconomy/core-types'
+// review // rename to SmartAccountFactoryAPI
 export class WalletFactoryAPI {
-  static deployWalletTransactionCallData(
+  static async deployWalletTransactionCallData(
+    txServiceUrl: string,
+    chainId: ChainId,
     factoryAddress: string,
     owner: string,
-    entryPoint: string,
-    handler: string,
+    handlerAddress: string,
+    implementationAddress: string,
     index: number
-  ): string {
-    // these would be deployCounterfactualWallet
-    const factory = new Contract(factoryAddress, [
-      'function deployCounterFactualWallet(address _owner, address _entryPoint, address _handler, uint _index) returns(address)'
-    ])
-    const encodedData = factory.interface.encodeFunctionData('deployCounterFactualWallet', [
+  ): Promise<string> {
+    const walletInfo = await getWalletInfo({
+      chainId,
       owner,
-      entryPoint,
-      handler,
+      txServiceUrl,
+      index
+    })
+    Logger.log('walletInfo ', walletInfo)
+    if (walletInfo.isDeployed) {
+      handlerAddress = walletInfo.handlerAddress
+      implementationAddress = walletInfo.implementationAddress
+      Logger.log(handlerAddress, implementationAddress)
+    }
+    const factory = new Contract(factoryAddress, [
+      'function deployCounterFactualAccount(address _owner, uint256 _index) returns(address)'
+    ])
+    const encodedData = factory.interface.encodeFunctionData('deployCounterFactualAccount', [
+      owner,
       index
     ])
     return encodedData

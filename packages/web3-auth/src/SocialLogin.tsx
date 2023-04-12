@@ -22,13 +22,17 @@ import {
 } from './types/Web3AuthConfig'
 
 function createLoginModal(socialLogin: SocialLogin) {
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   const root = createRoot((document as any).getElementById('w3a-modal'))
   root.render(<UI socialLogin={socialLogin} />)
 }
 
 class SocialLogin {
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   walletDiv: any
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   walletIframe: any
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   iWin: any = false
   iframeInitialized = false
   isInit = false
@@ -128,7 +132,7 @@ class SocialLogin {
   getProvider() {
     return this.provider
   }
-
+  /* eslint-disable  @typescript-eslint/no-explicit-any */
   private _createIframe(iframeContainerDiv: any) {
     this.walletIframe = document.createElement('iframe')
     this.walletIframe.style.display = 'none'
@@ -198,15 +202,18 @@ class SocialLogin {
 
   async socialLogin(loginProvider: string) {
     if (!this.web3auth) {
-      console.log('web3auth not initialized yet')
+      console.info('web3auth not initialized yet')
       return
     }
     try {
       const web3authProvider = await this.web3auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
         loginProvider: loginProvider
       })
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const web3Provider = new ethers.providers.Web3Provider(web3authProvider!)
+      if (!web3authProvider) {
+        console.error('web3authProvider is null')
+        return null
+      }
+      const web3Provider = new ethers.providers.Web3Provider(web3authProvider)
       const signer = web3Provider.getSigner()
       const gotAccount = await signer.getAddress()
       const network = await web3Provider.getNetwork()
@@ -215,22 +222,25 @@ class SocialLogin {
       return web3authProvider
     } catch (error) {
       console.error(error)
-      throw error
+      return error
     }
   }
 
   async emailLogin(email: string) {
     if (!this.web3auth) {
-      console.log('web3auth not initialized yet')
+      console.info('web3auth not initialized yet')
       return
     }
     try {
-      // console.log('signing in with email', email)
       const web3authProvider = await this.web3auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
         loginProvider: 'email_passwordless',
         login_hint: email
       })
-      const web3Provider = new ethers.providers.Web3Provider(web3authProvider!)
+      if (!web3authProvider) {
+        console.error('web3authProvider is null')
+        return null
+      }
+      const web3Provider = new ethers.providers.Web3Provider(web3authProvider)
       const signer = web3Provider.getSigner()
       const gotAccount = await signer.getAddress()
       const network = await web3Provider.getNetwork()
@@ -239,7 +249,7 @@ class SocialLogin {
       return web3authProvider
     } catch (error) {
       console.error(error)
-      throw error
+      return error
     }
   }
 
@@ -250,7 +260,11 @@ class SocialLogin {
     }
     try {
       const web3authProvider = await this.web3auth.connectTo(WALLET_ADAPTERS.METAMASK)
-      const web3Provider = new ethers.providers.Web3Provider(web3authProvider!)
+      if (!web3authProvider) {
+        console.log('web3authProvider is null')
+        return null
+      }
+      const web3Provider = new ethers.providers.Web3Provider(web3authProvider)
       const signer = web3Provider.getSigner()
       const gotAccount = await signer.getAddress()
       const network = await web3Provider.getNetwork()
@@ -259,7 +273,7 @@ class SocialLogin {
       return web3authProvider
     } catch (error) {
       console.error(error)
-      throw error
+      return error
     }
   }
 
@@ -270,7 +284,11 @@ class SocialLogin {
     }
     try {
       const web3authProvider = await this.web3auth.connectTo(WALLET_ADAPTERS.WALLET_CONNECT_V1)
-      const web3Provider = new ethers.providers.Web3Provider(web3authProvider!)
+      if (!web3authProvider) {
+        console.log('web3authProvider is null')
+        return null
+      }
+      const web3Provider = new ethers.providers.Web3Provider(web3authProvider)
       const signer = web3Provider.getSigner()
       const gotAccount = await signer.getAddress()
       const network = await web3Provider.getNetwork()
@@ -279,7 +297,7 @@ class SocialLogin {
       return web3authProvider
     } catch (error) {
       console.error(error)
-      throw error
+      return error
     }
   }
 
@@ -309,7 +327,7 @@ const getSocialLoginSDK = async (socialLoginDTO?: Partial<SocialLoginDTO>) => {
   initializedSocialLogin = socialLoginSDK
   return socialLoginSDK
 }
-
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 const socialLoginSDK: SocialLogin = new SocialLogin()
 ;(window as any).socialLoginSDK = socialLoginSDK
 

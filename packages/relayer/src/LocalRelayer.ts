@@ -1,7 +1,6 @@
 import { TransactionResponse } from '@ethersproject/providers'
 import { Signer as AbstractSigner, ethers } from 'ethers'
 import { IRelayer } from '.'
-
 import {
   DeployWallet,
   FeeOptionsResponse,
@@ -9,13 +8,12 @@ import {
   RelayResponse,
   GasLimit
 } from '@biconomy/core-types'
+import { Logger } from '@biconomy/common'
 import { MetaTransaction, encodeMultiSend } from './utils/MultiSend'
-
 // You can configure your own signer with gas held to send out test transactions or some sponsored transactions by plugging it into SmartAccount package
 // Not meant to use for production environment for transaction ordering.
 export class LocalRelayer implements IRelayer {
   private signer: AbstractSigner
-  // TODO : review members
   // private txnOptions: TransactionRequest
 
   constructor(signer: AbstractSigner) {
@@ -27,12 +25,9 @@ export class LocalRelayer implements IRelayer {
   // Defines a type DeployWallet that takes config, context for SCW in this context
   async deployWallet(deployWallet: DeployWallet): Promise<TransactionResponse> {
     // checkd if already deployed
-    // TODO : Review for index and ownership transfer case
     const { config, context, index = 0 } = deployWallet
-    const { address } = config
-    const { walletFactory } = context
-    const isExist = await walletFactory.isWalletExist(address)
-    if (isExist) {
+    const { isDeployed } = config
+    if (isDeployed) {
       throw new Error('Smart Account is Already Deployed')
     }
     const walletDeployTxn = this.prepareWalletDeploy({ config, context, index })
@@ -47,14 +42,14 @@ export class LocalRelayer implements IRelayer {
     const { config, context, index = 0 } = deployWallet
 
     const { walletFactory } = context
-    const { owner, entryPointAddress, fallbackHandlerAddress } = config
+    const { owner } = config
     const factoryInterface = walletFactory.getInterface()
 
     return {
       to: walletFactory.getAddress(), // from context
       data: factoryInterface.encodeFunctionData(
-        factoryInterface.getFunction('deployCounterFactualWallet'),
-        [owner, entryPointAddress, fallbackHandlerAddress, index]
+        factoryInterface.getFunction('deployCounterFactualAccount'),
+        [owner, index]
       )
     }
   }
@@ -94,8 +89,7 @@ export class LocalRelayer implements IRelayer {
         to: multiSendCall.getAddress(),
         data: txnData
       }
-      console.log('finaRawTx')
-      console.log(finalRawRx)
+      Logger.log('finalRawTx', finalRawRx)
 
       const tx = this.signer.sendTransaction({
         ...finalRawRx,
@@ -113,7 +107,7 @@ export class LocalRelayer implements IRelayer {
   }
 
   async getFeeOptions(chainId: number): Promise<FeeOptionsResponse> {
-    console.log('requested fee options for chain ', chainId)
+    Logger.log('requested fee options for chain ', chainId)
     // Mock response for local relayer to adhere with the interface!
     const feeOptions: FeeOptionsResponse = {
       msg: 'all ok',
