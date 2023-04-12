@@ -22,7 +22,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "nonce",
+    name: "getNonce",
     outputs: [
       {
         internalType: "uint256",

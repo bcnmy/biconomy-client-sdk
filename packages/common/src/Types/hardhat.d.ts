@@ -29,9 +29,17 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IEntryPoint__factory>;
     getContractFactory(
+      name: "INonceManager",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.INonceManager__factory>;
+    getContractFactory(
       name: "IStakeManager",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IStakeManager__factory>;
+    getContractFactory(
+      name: "TokenCallbackHandler",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.TokenCallbackHandler__factory>;
     getContractFactory(
       name: "SimpleAccount",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -56,6 +64,22 @@ declare module "hardhat/types/runtime" {
       name: "UUPSUpgradeable",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.UUPSUpgradeable__factory>;
+    getContractFactory(
+      name: "IERC1155Receiver",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC1155Receiver__factory>;
+    getContractFactory(
+      name: "IERC721Receiver",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC721Receiver__factory>;
+    getContractFactory(
+      name: "IERC777Recipient",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC777Recipient__factory>;
+    getContractFactory(
+      name: "IERC165",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC165__factory>;
     getContractFactory(
       name: "SampleRecipient",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -86,10 +110,20 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IEntryPoint>;
     getContractAt(
+      name: "INonceManager",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.INonceManager>;
+    getContractAt(
       name: "IStakeManager",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IStakeManager>;
+    getContractAt(
+      name: "TokenCallbackHandler",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.TokenCallbackHandler>;
     getContractAt(
       name: "SimpleAccount",
       address: string,
@@ -120,6 +154,26 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.UUPSUpgradeable>;
+    getContractAt(
+      name: "IERC1155Receiver",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC1155Receiver>;
+    getContractAt(
+      name: "IERC721Receiver",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC721Receiver>;
+    getContractAt(
+      name: "IERC777Recipient",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC777Recipient>;
+    getContractAt(
+      name: "IERC165",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC165>;
     getContractAt(
       name: "SampleRecipient",
       address: string,

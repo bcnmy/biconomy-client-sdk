@@ -61,7 +61,7 @@ export interface BaseAccountInterface extends utils.Interface {
   contractName: "BaseAccount";
   functions: {
     "entryPoint()": FunctionFragment;
-    "nonce()": FunctionFragment;
+    "getNonce()": FunctionFragment;
     "validateUserOp((address,uint256,bytes,bytes,uint256,uint256,uint256,uint256,uint256,bytes,bytes),bytes32,uint256)": FunctionFragment;
   };
 
@@ -69,14 +69,14 @@ export interface BaseAccountInterface extends utils.Interface {
     functionFragment: "entryPoint",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "nonce", values?: undefined): string;
+  encodeFunctionData(functionFragment: "getNonce", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "validateUserOp",
     values: [UserOperationStruct, BytesLike, BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "entryPoint", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "nonce", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getNonce", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "validateUserOp",
     data: BytesLike
@@ -115,7 +115,7 @@ export interface BaseAccount extends BaseContract {
   functions: {
     entryPoint(overrides?: CallOverrides): Promise<[string]>;
 
-    nonce(overrides?: CallOverrides): Promise<[BigNumber]>;
+    getNonce(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     validateUserOp(
       userOp: UserOperationStruct,
@@ -127,7 +127,7 @@ export interface BaseAccount extends BaseContract {
 
   entryPoint(overrides?: CallOverrides): Promise<string>;
 
-  nonce(overrides?: CallOverrides): Promise<BigNumber>;
+  getNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
   validateUserOp(
     userOp: UserOperationStruct,
@@ -139,7 +139,7 @@ export interface BaseAccount extends BaseContract {
   callStatic: {
     entryPoint(overrides?: CallOverrides): Promise<string>;
 
-    nonce(overrides?: CallOverrides): Promise<BigNumber>;
+    getNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
     validateUserOp(
       userOp: UserOperationStruct,
@@ -154,7 +154,7 @@ export interface BaseAccount extends BaseContract {
   estimateGas: {
     entryPoint(overrides?: CallOverrides): Promise<BigNumber>;
 
-    nonce(overrides?: CallOverrides): Promise<BigNumber>;
+    getNonce(overrides?: CallOverrides): Promise<BigNumber>;
 
     validateUserOp(
       userOp: UserOperationStruct,
@@ -167,7 +167,7 @@ export interface BaseAccount extends BaseContract {
   populateTransaction: {
     entryPoint(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    nonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     validateUserOp(
       userOp: UserOperationStruct,
