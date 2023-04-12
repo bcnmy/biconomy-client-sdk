@@ -293,9 +293,13 @@ class SmartAccount extends EventEmitter {
   }
 
   async init() {
-    this.setActiveChain(this.#smartAccountConfig.activeNetworkId)
+    try {
+      this.owner = await this.signer.getAddress()
+    } catch (error) {
+      throw new Error('Invalid Provider, cant get signer address')
+    }
 
-    this.owner = await this.signer.getAddress()
+    this.setActiveChain(this.#smartAccountConfig.activeNetworkId)
 
     const chainConfig = (await this.nodeClient.getAllSupportedChains()).data
 
