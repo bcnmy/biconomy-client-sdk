@@ -1,7 +1,10 @@
 import { FallbackApiResponse, UserOperation } from 'Types'
 
 export interface IPaymasterAPI {
-  getPaymasterAndData(userOp: Partial<UserOperation>): Promise<string>
+  getPaymasterAndData(
+    userOp: Partial<UserOperation>,
+    paymasterServiceData?: object
+  ): Promise<string>
 }
 
 export type PaymasterConfig = {

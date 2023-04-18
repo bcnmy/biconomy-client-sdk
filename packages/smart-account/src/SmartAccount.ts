@@ -567,7 +567,11 @@ class SmartAccount extends EventEmitter {
       // if ( isUpdateImpTrx )
       // transactionDto.transaction = updateImplTrx
 
-      response = await aaSigner.sendTransaction(transactionDto.transaction, false)
+      response = await aaSigner.sendTransaction(
+        transactionDto.transaction,
+        false,
+        transactionDto.paymasterServiceData
+      )
     }
     return response
   }
@@ -578,7 +582,7 @@ class SmartAccount extends EventEmitter {
     let { chainId } = transactionBatchDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
 
-    const { transactions } = transactionBatchDto
+    const { transactions, paymasterServiceData } = transactionBatchDto
 
     const aaSigner = this.aaProvider[chainId].getSigner()
 
@@ -587,7 +591,7 @@ class SmartAccount extends EventEmitter {
     if (updateImplTrx.data != '0x') {
       transactions.unshift(updateImplTrx)
     }
-    const response = await aaSigner.sendTransactionBatch(transactions, false)
+    const response = await aaSigner.sendTransactionBatch(transactions, false, paymasterServiceData)
     return response
   }
 

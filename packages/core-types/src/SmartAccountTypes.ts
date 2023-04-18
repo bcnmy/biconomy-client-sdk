@@ -133,10 +133,12 @@ export type TransactionDto = {
   version?: string
   transaction: Transaction
   chainId?: ChainId
+  paymasterServiceData?: object
 }
 
 export type TransactionBatchDto = {
   version?: string
   transactions: Transaction[]
   chainId?: ChainId
+  paymasterServiceData?: object
 }

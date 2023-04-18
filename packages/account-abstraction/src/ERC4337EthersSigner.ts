@@ -30,6 +30,7 @@ export class ERC4337EthersSigner extends Signer {
   async sendTransaction(
     transaction: TransactionRequest,
     walletDeployOnly = false,
+    paymasterServiceData?: object,
     engine?: any // EventEmitter
   ): Promise<TransactionResponse> {
     const socketServerUrl = this.config.socketServerUrl
@@ -62,12 +63,15 @@ export class ERC4337EthersSigner extends Signer {
 
     let userOperation: UserOperation
     if (walletDeployOnly === true) {
-      userOperation = await this.smartAccountAPI.createSignedUserOp({
-        target: [''],
-        data: [''],
-        value: [0],
-        gasLimit: [21000]
-      })
+      userOperation = await this.smartAccountAPI.createSignedUserOp(
+        {
+          target: [''],
+          data: [''],
+          value: [0],
+          gasLimit: [21000]
+        },
+        paymasterServiceData
+      )
     } else {
       // Removing populate transaction all together
       // const tx: TransactionRequest = await this.populateTransaction(transaction)
@@ -156,7 +160,8 @@ export class ERC4337EthersSigner extends Signer {
 
   async sendTransactionBatch(
     transactions: TransactionRequest[],
-    engine?: any // EventEmitter
+    engine?: any, // EventEmitter
+    paymasterServiceData?: object
   ): Promise<TransactionResponse> {
     const socketServerUrl = this.config.socketServerUrl
 
@@ -184,11 +189,14 @@ export class ERC4337EthersSigner extends Signer {
     const data = transactions.map((element) => element.data ?? '0x')
     const value = transactions.map((element) => element.value ?? BigNumber.from(0))
 
-    const userOperation = await this.smartAccountAPI.createSignedUserOp({
-      target,
-      data,
-      value
-    })
+    const userOperation = await this.smartAccountAPI.createSignedUserOp(
+      {
+        target,
+        data,
+        value
+      },
+      paymasterServiceData
+    )
     Logger.log('signed userOp ', userOperation)
 
     let bundlerServiceResponse: any

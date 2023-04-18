@@ -182,7 +182,10 @@ export class SmartAccountAPI extends BaseAccountAPI {
    * - if gas or nonce are missing, read them from the chain (note that we can't fill gaslimit before the wallet is created)
    * @param info
    */
-  async createUnsignedUserOp(info: TransactionDetailsForBatchUserOp): Promise<UserOperation> {
+  async createUnsignedUserOp(
+    info: TransactionDetailsForBatchUserOp,
+    paymasterServiceData?: object
+  ): Promise<UserOperation> {
     const { callData, callGasLimit } = await this.encodeUserOpCallDataAndGasLimit(info)
     console.log(callData, callGasLimit)
 
@@ -234,7 +237,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
 
     partialUserOp.paymasterAndData = !this.paymasterAPI
       ? '0x'
-      : await this.paymasterAPI.getPaymasterAndData(partialUserOp)
+      : await this.paymasterAPI.getPaymasterAndData(partialUserOp, paymasterServiceData)
     return {
       ...partialUserOp,
       signature: ''
