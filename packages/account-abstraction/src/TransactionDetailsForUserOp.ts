@@ -19,4 +19,7 @@ export interface TransactionDetailsForBatchUserOp {
   gasLimit?: BigNumberish
   maxFeePerGas?: BigNumberish
   maxPriorityFeePerGas?: BigNumberish
+  paymasterServiceData?: {
+    webhookData?: object
+  }
 }
