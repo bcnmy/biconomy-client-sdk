@@ -235,7 +235,7 @@ export abstract class BaseAccountAPI {
       ) {
         return {
           callData: '0x',
-          callGasLimit: BigNumber.from('21000')
+          callGasLimit: BigNumber.from(detailsForUserOp?.gasLimit) ?? BigNumber.from(21000)
         }
       }
       const value = parseNumber(detailsForUserOp.value[0]) ?? BigNumber.from(0)

@@ -60,14 +60,14 @@ export class ERC4337EthersSigner extends Signer {
     }
 
     delete transaction.customData
-
+    
     let userOperation: UserOperation
     if (walletDeployOnly === true) {
       userOperation = await this.smartAccountAPI.createSignedUserOp({
         target: [''],
         data: [''],
         value: [0],
-        gasLimit: [21000]
+        gasLimit: transaction.gasLimit
       }, vGasLimit)
     } else {
       // Removing populate transaction all together

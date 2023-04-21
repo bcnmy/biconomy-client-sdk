@@ -501,15 +501,15 @@ class SmartAccount extends EventEmitter {
    * @description this function will let dapp to update Base wallet Implemenation to Latest
    * @returns
    */
-  public async updateFallbackHandler(customGasDto: CustomGasDto): Promise<TransactionResponse> {
+  public async updateFallbackHandler(customGasDto?: CustomGasDto): Promise<TransactionResponse> {
     const chainId = this.#smartAccountConfig.activeNetworkId
     const fallbackHandlerTrx = await this.updateFallBackHandlerTrx(
       this.#smartAccountConfig.activeNetworkId
     )
-    fallbackHandlerTrx.gasLimit = customGasDto.gasLimit
+    fallbackHandlerTrx.gasLimit = customGasDto?.gasLimit
     await this.initializeAtChain(chainId)
     const aaSigner = this.aaProvider[chainId].getSigner()
-    const response = await aaSigner.sendTransaction(fallbackHandlerTrx, false, customGasDto.vGasLimit)
+    const response = await aaSigner.sendTransaction(fallbackHandlerTrx, false, customGasDto?.vGasLimit)
     return response
   }
 
@@ -517,15 +517,15 @@ class SmartAccount extends EventEmitter {
    * @description this function will let dapp to update FallBackHandler to Latest
    * @returns
    */
-  public async updateImplementation(customGasDto: CustomGasDto): Promise<TransactionResponse> {
+  public async updateImplementation(customGasDto?: CustomGasDto): Promise<TransactionResponse> {
     const chainId = this.#smartAccountConfig.activeNetworkId
     const updateImplTrx = await this.updateImplementationTrx(
       this.#smartAccountConfig.activeNetworkId
     )
     await this.initializeAtChain(chainId)
-    updateImplTrx.gasLimit = customGasDto.gasLimit
+    updateImplTrx.gasLimit = customGasDto?.gasLimit
     const aaSigner = this.aaProvider[chainId].getSigner()
-    const response = await aaSigner.sendTransaction(updateImplTrx, false, customGasDto.vGasLimit)
+    const response = await aaSigner.sendTransaction(updateImplTrx, false, customGasDto?.vGasLimit)
     return response
   }
 
@@ -595,14 +595,14 @@ class SmartAccount extends EventEmitter {
   }
 
   // Only to deploy wallet using connected paymaster
-  public async deployWalletUsingPaymaster(customGasDto: CustomGasDto): Promise<TransactionResponse> {
+  public async deployWalletUsingPaymaster(customGasDto?: CustomGasDto): Promise<TransactionResponse> {
     const aaSigner = this.aaProvider[this.#smartAccountConfig.activeNetworkId].getSigner()
     const transaction = {
       to: ZERO_ADDRESS,
       data: '0x',
-      gasLimit: customGasDto.gasLimit
+      gasLimit: customGasDto?.gasLimit
     }
-    const response = await aaSigner.sendTransaction(transaction, true, customGasDto.vGasLimit)
+    const response = await aaSigner.sendTransaction(transaction, true, customGasDto?.vGasLimit)
     return response
   }
 
