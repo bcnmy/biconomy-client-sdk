@@ -79,7 +79,8 @@ export type EstimateHandlePaymentTxGasDto = {
   chainId: number
   version: string
   walletAddress: string
-  feeRefund: IFeeRefundV1_0_0 | IFeeRefundV1_0_1
+  feeRefund: IFeeRefundV1_0_0 | IFeeRefundV1_0_1,
+  byPassEstimation?: boolean
 }
 
 export type EstimateUndeployedContractGasDto = {

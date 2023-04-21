@@ -2,7 +2,7 @@ import { JsonRpcProvider } from '@ethersproject/providers'
 import { ethers } from 'ethers'
 import { resolveProperties } from 'ethers/lib/utils'
 
-import { UserOperation } from '@biconomy/core-types'
+import { UserOperation, UserOpGasPrices } from '@biconomy/core-types'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
 import Debug from 'debug'
 import { Logger, deepHexlify } from '@biconomy/common'
@@ -82,6 +82,21 @@ export class HttpRpcClient {
         error: response.error || 'transaction failed'
       }
     }
+  }
+
+  async getUserOpGasPrices(chainId: number): Promise<UserOpGasPrices>{
+    const response: any = await sendRequest({
+      url: `${this.bundlerUrl}`,
+      method: HttpMethod.Post,
+      body: {
+        method: 'eth_getUserOpGasPrices',
+        params: [chainId],
+        id: 1234,
+        jsonrpc: '2.0'
+      }
+    })
+    Logger.log('getUserOpGasPrices : response', response)
+    return response
   }
 
   async estimateUserOpGas(userOp1: Partial<UserOperation>): Promise<string> {

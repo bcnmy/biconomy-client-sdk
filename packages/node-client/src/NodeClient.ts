@@ -165,6 +165,10 @@ class NodeClient implements INodeClient {
   estimateHandlePaymentGas(
     estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto
   ): Promise<EstimateGasResponse> {
+    const byPass = process.env.BY_PASS_ESTIMATION
+    if ( byPass === 'true' ){
+      estimateHandlePaymentTxGasDto.byPassEstimation = true
+    }
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/estimator/handle-payment`,
       method: HttpMethod.Post,
@@ -185,6 +189,10 @@ class NodeClient implements INodeClient {
   async estimateHandlePaymentGasOverride(
     estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto
   ): Promise<EstimateGasResponse> {
+    const byPass = process.env.BY_PASS_ESTIMATION
+    if ( byPass === 'true' ){
+      estimateHandlePaymentTxGasDto.byPassEstimation = true
+    }
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/estimator/handle-payment-override`,
       method: HttpMethod.Post,

@@ -1,7 +1,7 @@
 import { Deferrable, defineReadOnly } from '@ethersproject/properties'
 import { Provider, TransactionRequest, TransactionResponse } from '@ethersproject/providers'
 import { Signer } from '@ethersproject/abstract-signer'
-import { ethers } from 'ethers'
+import { BigNumberish, ethers } from 'ethers'
 import { BigNumber, Bytes } from 'ethers'
 import { ERC4337EthersProvider } from './ERC4337EthersProvider'
 import { ClientConfig } from './ClientConfig'
@@ -30,7 +30,8 @@ export class ERC4337EthersSigner extends Signer {
   async sendTransaction(
     transaction: TransactionRequest,
     walletDeployOnly = false,
-    engine?: any // EventEmitter
+    vGasLimit?: BigNumber,
+    engine?: any, // EventEmitter
   ): Promise<TransactionResponse> {
     const socketServerUrl = this.config.socketServerUrl
 
@@ -67,7 +68,7 @@ export class ERC4337EthersSigner extends Signer {
         data: [''],
         value: [0],
         gasLimit: [21000]
-      })
+      }, vGasLimit)
     } else {
       // Removing populate transaction all together
       // const tx: TransactionRequest = await this.populateTransaction(transaction)
@@ -79,7 +80,7 @@ export class ERC4337EthersSigner extends Signer {
         data: transaction.data?.toString() ? [transaction.data?.toString()] : ['0x'],
         value: transaction.value ? [transaction.value] : [0],
         gasLimit: transaction.gasLimit
-      })
+      }, vGasLimit)
     }
     Logger.log('signed userOp ', userOperation)
 
@@ -156,7 +157,9 @@ export class ERC4337EthersSigner extends Signer {
 
   async sendTransactionBatch(
     transactions: TransactionRequest[],
-    engine?: any // EventEmitter
+    vGasLimit?: BigNumber,
+    gasLimit?: BigNumber,
+    engine?: any, // EventEmitter
   ): Promise<TransactionResponse> {
     const socketServerUrl = this.config.socketServerUrl
 
@@ -187,8 +190,9 @@ export class ERC4337EthersSigner extends Signer {
     const userOperation = await this.smartAccountAPI.createSignedUserOp({
       target,
       data,
-      value
-    })
+      value,
+      gasLimit
+    }, vGasLimit)
     Logger.log('signed userOp ', userOperation)
 
     let bundlerServiceResponse: any

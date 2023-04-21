@@ -124,7 +124,7 @@ export abstract class BaseAccountAPI {
    * @param info
    */
   // UserOperation = UserOperationStruct // if anything changes changes in core-types
-  abstract createUnsignedUserOp(info: TransactionDetailsForBatchUserOp): Promise<UserOperation>
+  abstract createUnsignedUserOp(info: TransactionDetailsForBatchUserOp, vGasLimit?: BigNumber): Promise<UserOperation>
 
   /**
    * encode the call from entryPoint through our wallet to the target contract.
@@ -356,8 +356,8 @@ export abstract class BaseAccountAPI {
    * helper method: create and sign a user operation.
    * @param info transaction details for the userOp
    */
-  async createSignedUserOp(info: TransactionDetailsForBatchUserOp): Promise<UserOperation> {
-    return await this.signUserOp(await this.createUnsignedUserOp(info))
+  async createSignedUserOp(info: TransactionDetailsForBatchUserOp, vGasLimit?: BigNumber): Promise<UserOperation> {
+    return await this.signUserOp(await this.createUnsignedUserOp(info, vGasLimit))
   }
 
   /**

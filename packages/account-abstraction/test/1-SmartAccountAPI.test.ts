@@ -5,6 +5,7 @@ import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { UserOperation } from '@biconomy/core-types'
 import { SmartAccountAPI } from '../src'
+import { HttpRpcClient } from '../src'
 import { SampleRecipient, SampleRecipient__factory } from '@biconomy/common/dist/src/types'
 
 import {
@@ -23,6 +24,7 @@ const fallBackHandlerAddress = '0xF05217199F1C25604c67993F11a81461Bc97F3Ab' // t
 describe('SmartAccountAPI', async () => {
   let owner: Wallet
   let api: SmartAccountAPI
+  let httpRpcClient: HttpRpcClient
   let entryPoint: EntryPointContractV100
   let beneficiary: string
   let recipient: SampleRecipient
@@ -70,7 +72,14 @@ describe('SmartAccountAPI', async () => {
       txServiceUrl: 'https://sdk-backend.staging.biconomy.io/v1'
     }
     const entryPointClass = EntryPoint__factory.connect(entryPoint.address, signer)
+    httpRpcClient = new HttpRpcClient(
+      clientConfig.bundlerUrl,
+      clientConfig.entryPointAddress,
+      clientConfig.chainId,
+      clientConfig.dappAPIKey
+    )
     api = new SmartAccountAPI(
+      httpRpcClient,
       provider, // can do json rpc provider
       entryPointClass,
       clientConfig,

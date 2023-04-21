@@ -22,7 +22,14 @@ export async function newProvider(
   const entryPoint = EntryPoint__factory.connect(config.entryPointAddress, originalProvider)
   // Initial SimpleWallet instance is not deployed and exists just for the interface
   // const simpleWalletDeployer = await DeterministicDeployer.deploy(SimpleAccountDeployer__factory.bytecode)
+  const httpRpcClient = new HttpRpcClient(
+    config.bundlerUrl,
+    config.entryPointAddress,
+    config.chainId,
+    config.dappAPIKey
+  )
   const smartWalletAPI = new SmartAccountAPI(
+    httpRpcClient,
     originalProvider,
     entryPoint,
     config,
@@ -32,12 +39,6 @@ export async function newProvider(
     fallbackHandlerAddress,
     factoryAddress,
     0
-  )
-  const httpRpcClient = new HttpRpcClient(
-    config.bundlerUrl,
-    config.entryPointAddress,
-    config.chainId,
-    config.dappAPIKey
   )
   const ethProvider = await new ERC4337EthersProvider(
     config,

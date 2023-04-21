@@ -16,6 +16,7 @@ import {
   deployCounterFactualEncodedData,
   EIP1559_UNSUPPORTED_NETWORKS
 } from '@biconomy/common'
+import { HttpRpcClient } from './HttpRpcClient'
 
 // may use...
 export interface SmartAccountApiParams extends BaseApiParams {
@@ -71,6 +72,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
    * @param index nonce value used when creating multiple wallets for the same owner
    */
   constructor(
+    readonly httpRpcClient: HttpRpcClient,
     provider: Provider,
     readonly entryPoint: EntryPoint,
     readonly clientConfig: ClientConfig,
@@ -182,21 +184,23 @@ export class SmartAccountAPI extends BaseAccountAPI {
    * - if gas or nonce are missing, read them from the chain (note that we can't fill gaslimit before the wallet is created)
    * @param info
    */
-  async createUnsignedUserOp(info: TransactionDetailsForBatchUserOp): Promise<UserOperation> {
+  async createUnsignedUserOp(info: TransactionDetailsForBatchUserOp, vGasLimit?: BigNumber): Promise<UserOperation> {
     const { callData, callGasLimit } = await this.encodeUserOpCallDataAndGasLimit(info)
     console.log(callData, callGasLimit)
 
     const initCode = await this.getInitCode()
 
-    const verificationGasLimit = BigNumber.from(await this.getVerificationGasLimit())
+    let verificationGasLimit = vGasLimit
+    if ( !vGasLimit )
+    verificationGasLimit = BigNumber.from(await this.getVerificationGasLimit())
 
     let { maxFeePerGas, maxPriorityFeePerGas } = info
     // Note: Custom should be equal if it's for non EIP1559
+    const chainId = this.clientConfig.chainId
 
     if (maxFeePerGas == null || maxPriorityFeePerGas == null) {
-      const feeData = await this.provider.getFeeData()
-      Logger.log('EIP1559 feeData', feeData)
-      const chainId = this.clientConfig.chainId
+      const feeData = await this.httpRpcClient.getUserOpGasPrices(chainId)
+      Logger.log(' feeData', feeData)
       Logger.log('chainId is', chainId)
       // Can do based on non EIP1559 chainId
       if (EIP1559_UNSUPPORTED_NETWORKS.includes(chainId)) {

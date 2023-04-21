@@ -1,5 +1,5 @@
 // Smart Account Detail Param Types
-
+import { BigNumber } from '@ethersproject/bignumber'
 import { ChainId } from './ChainsTypes'
 import { IWalletTransaction, Transaction } from './TransactionTypes'
 import { FeeQuote } from './Types'
@@ -132,11 +132,19 @@ export type CreateUserPaidTransactionBatchDto = {
 export type TransactionDto = {
   version?: string
   transaction: Transaction
-  chainId?: ChainId
+  chainId?: ChainId,
+  vGasLimit?: BigNumber   //verificationGasLimit
 }
 
 export type TransactionBatchDto = {
   version?: string
   transactions: Transaction[]
-  chainId?: ChainId
+  chainId?: ChainId,
+  vGasLimit?: BigNumber //verificationGasLimit
+  gasLimit?: BigNumber
+}
+
+export type CustomGasDto = {
+  vGasLimit?: BigNumber,
+  gasLimit?: BigNumber
 }
