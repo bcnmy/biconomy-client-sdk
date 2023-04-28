@@ -12,8 +12,8 @@ export const ProductionConfig: SmartAccountConfig = {
     ChainId.ARBITRUM_GOERLI_TESTNET,
     ChainId.ARBITRUM_ONE_MAINNET,
     ChainId.ARBITRUM_NOVA_MAINNET,
-    ChainId.ZKEVM_TESTNET,
-    ChainId.ZKEVM_MAINNET
+    ChainId.POLYGON_ZKEVM_TESTNET,
+    ChainId.POLYGON_ZKEVM_MAINNET
   ],
   signType: SignTypeMethod.EIP712_SIGN,
   backendUrl: 'https://sdk-backend.prod.biconomy.io/v1',
@@ -60,11 +60,11 @@ export const ProductionConfig: SmartAccountConfig = {
       providerUrl: 'https://nova.arbitrum.io/rpc'
     },
     {
-      chainId: ChainId.ZKEVM_TESTNET,
+      chainId: ChainId.POLYGON_ZKEVM_TESTNET,
       providerUrl: 'https://rpc.ankr.com/arbitrum'
     },
     {
-      chainId: ChainId.ZKEVM_MAINNET,
+      chainId: ChainId.POLYGON_ZKEVM_MAINNET,
       providerUrl: 'https://rpc.ankr.com/arbitrum'
     }
   ]
@@ -76,7 +76,7 @@ export const StagingConfig: SmartAccountConfig = {
     ChainId.GOERLI,
     ChainId.POLYGON_MUMBAI,
     ChainId.BSC_TESTNET,
-    ChainId.ZKEVM_TESTNET,
+    ChainId.POLYGON_ZKEVM_TESTNET,
     ChainId.ARBITRUM_GOERLI_TESTNET
   ],
   signType: SignTypeMethod.EIP712_SIGN,
@@ -104,7 +104,7 @@ export const StagingConfig: SmartAccountConfig = {
       providerUrl: 'https://polygon-mainnet.g.alchemy.com/v2/6Tn--QDkp1vRBXzRV3Cc8fLXayr5Yoij'
     },
     {
-      chainId: ChainId.ZKEVM_TESTNET,
+      chainId: ChainId.POLYGON_ZKEVM_TESTNET,
       providerUrl: 'https://rpc.public.zkevm-test.net'
     },
     {
@@ -120,7 +120,7 @@ export const DevelopmentConfig: SmartAccountConfig = {
     ChainId.GOERLI,
     ChainId.POLYGON_MUMBAI,
     ChainId.BSC_TESTNET,
-    ChainId.ZKEVM_TESTNET,
+    ChainId.POLYGON_ZKEVM_TESTNET,
     ChainId.ARBITRUM_GOERLI_TESTNET
   ],
   signType: SignTypeMethod.EIP712_SIGN,
@@ -144,7 +144,7 @@ export const DevelopmentConfig: SmartAccountConfig = {
       providerUrl: 'https://data-seed-prebsc-1-s1.binance.org:8545'
     },
     {
-      chainId: ChainId.ZKEVM_TESTNET,
+      chainId: ChainId.POLYGON_ZKEVM_TESTNET,
       providerUrl: 'https://rpc.public.zkevm-test.net'
     },
     {
