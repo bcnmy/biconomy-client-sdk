@@ -507,7 +507,7 @@ class SmartAccount extends EventEmitter {
     )
     await this.initializeAtChain(chainId)
     const aaSigner = this.aaProvider[chainId].getSigner()
-    const response = await aaSigner.sendTransaction(fallbackHandlerTrx, false)
+    const response = await aaSigner.sendTransaction(fallbackHandlerTrx, false, this)
     return response
   }
 
@@ -522,7 +522,7 @@ class SmartAccount extends EventEmitter {
     )
     await this.initializeAtChain(chainId)
     const aaSigner = this.aaProvider[chainId].getSigner()
-    const response = await aaSigner.sendTransaction(updateImplTrx, false)
+    const response = await aaSigner.sendTransaction(updateImplTrx, false, this)
     return response
   }
 
@@ -573,6 +573,7 @@ class SmartAccount extends EventEmitter {
       response = await aaSigner.sendTransaction(
         transactionDto.transaction,
         false,
+        this,
         transactionDto.paymasterServiceData
       )
     }
@@ -605,7 +606,7 @@ class SmartAccount extends EventEmitter {
       to: ZERO_ADDRESS,
       data: '0x'
     }
-    const response = await aaSigner.sendTransaction(transaction, true)
+    const response = await aaSigner.sendTransaction(transaction, true, this)
     return response
   }
 
