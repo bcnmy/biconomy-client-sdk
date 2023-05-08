@@ -595,7 +595,7 @@ class SmartAccount extends EventEmitter {
     if (updateImplTrx.data != '0x') {
       transactions.unshift(updateImplTrx)
     }
-    const response = await aaSigner.sendTransactionBatch(transactions, false, paymasterServiceData)
+    const response = await aaSigner.sendTransactionBatch(transactions, this, paymasterServiceData)
     return response
   }
 
