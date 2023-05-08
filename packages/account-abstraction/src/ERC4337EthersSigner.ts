@@ -160,8 +160,8 @@ export class ERC4337EthersSigner extends Signer {
 
   async sendTransactionBatch(
     transactions: TransactionRequest[],
-    paymasterServiceData?: object,
-    engine?: any // EventEmitter
+    engine?: any, // EventEmitter
+    paymasterServiceData?: object
   ): Promise<TransactionResponse> {
     const socketServerUrl = this.config.socketServerUrl
 
