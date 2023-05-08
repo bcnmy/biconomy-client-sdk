@@ -231,7 +231,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
     partialUserOp.paymasterAndData = '0x'
     const preVerificationGas = await this.getPreVerificationGas(partialUserOp)
     partialUserOp.preVerificationGas = preVerificationGas
-
+    Logger.log('info.paymasterServiceData', info.paymasterServiceData);
     partialUserOp.paymasterAndData = !this.paymasterAPI
       ? '0x'
       : await this.paymasterAPI.getPaymasterAndData(partialUserOp, info.paymasterServiceData)

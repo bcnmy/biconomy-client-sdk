@@ -561,7 +561,10 @@ class SmartAccount extends EventEmitter {
 
     if (updateImplTrx.data != '0x') {
       batchTrx.push(updateImplTrx, transactionDto.transaction)
-      response = this.sendTransactionBatch({ transactions: batchTrx })
+      response = this.sendTransactionBatch({
+        transactions: batchTrx,
+        paymasterServiceData: transactionDto.paymasterServiceData
+      })
     } else {
       // this case { if ( isUpdateImpTrx ) } will work only when user specifically wanted to just update Base wallet Implementation
       // if ( isUpdateImpTrx )

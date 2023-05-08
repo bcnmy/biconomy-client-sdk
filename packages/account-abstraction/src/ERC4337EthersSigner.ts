@@ -34,6 +34,7 @@ export class ERC4337EthersSigner extends Signer {
     engine?: any // EventEmitter
   ): Promise<TransactionResponse> {
     const socketServerUrl = this.config.socketServerUrl
+    Logger.log('paymasterServiceData', paymasterServiceData)
 
     const clientMessenger = new ClientMessenger(socketServerUrl, WebSocket)
 

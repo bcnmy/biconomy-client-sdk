@@ -36,7 +36,7 @@ export class BiconomyPaymasterAPI implements IPaymasterAPI {
         url: `${this.paymasterConfig.signingServiceUrl}/user-op`,
         method: HttpMethod.Post,
         headers: { 'x-api-key': this.paymasterConfig.dappAPIKey },
-        body: { userOp: userOp, paymasterServiceData }
+        body: { userOp: userOp, paymasterServiceData: paymasterServiceData }
       })
 
       Logger.log('verifying and signing service response', result)
