@@ -933,15 +933,17 @@ class SmartAccount extends EventEmitter {
   async createUserPaidTransaction(
     createUserPaidTransactionDto: CreateUserPaidTransactionDto
   ): Promise<IWalletTransaction> {
-    let { version, chainId } = createUserPaidTransactionDto
+    let { version, chainId, skipEstimation } = createUserPaidTransactionDto
     const { transaction, feeQuote } = createUserPaidTransactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
-    version = version ? version : this.DEFAULT_VERSION
+    version = version ? version : this.DEFAULT_VERSION    
+    skipEstimation = skipEstimation ?? false    
     return this.transactionManager.createUserPaidTransaction({
       version,
       transaction,
       chainId,
-      feeQuote
+      feeQuote,
+      skipEstimation
     })
   }
 
@@ -991,15 +993,17 @@ class SmartAccount extends EventEmitter {
   async createUserPaidTransactionBatch(
     createUserPaidTransactionBatchDto: CreateUserPaidTransactionBatchDto
   ): Promise<IWalletTransaction> {
-    let { version, chainId } = createUserPaidTransactionBatchDto
+    let { version, chainId, skipEstimation } = createUserPaidTransactionBatchDto
     const { transactions, feeQuote } = createUserPaidTransactionBatchDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
+    skipEstimation = skipEstimation ?? false
     return this.transactionManager.createUserPaidTransactionBatch({
       version,
       transactions,
       chainId,
-      feeQuote
+      feeQuote,
+      skipEstimation
     })
   }
 

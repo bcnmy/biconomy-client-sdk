@@ -400,7 +400,8 @@ class TransactionManager {
         chainId: chainId,
         version: version,
         walletAddress: smartAccountState.address,
-        feeRefund: refundDetails
+        feeRefund: refundDetails,
+        skipEstimation: createUserPaidTransactionDto.skipEstimation ? true : false
       }
       const handlePaymentResponse = await this.nodeClient.estimateHandlePaymentGasOverride(
         estimateHandlePaymentGas
@@ -436,7 +437,8 @@ class TransactionManager {
         chainId: chainId,
         version: version,
         walletAddress: smartAccountState.address,
-        feeRefund: refundDetails
+        feeRefund: refundDetails,
+        skipEstimation: createUserPaidTransactionDto.skipEstimation ? true : false
       }
       const handlePaymentResponse = await this.nodeClient.estimateHandlePaymentGas(
         estimateHandlePaymentGas
@@ -559,7 +561,8 @@ class TransactionManager {
         chainId: chainId,
         version: version,
         walletAddress: smartAccountState.address,
-        feeRefund: refundDetails
+        feeRefund: refundDetails,
+        skipEstimation: createUserPaidTransactionBatchDto.skipEstimation ? true : false
       }
 
       const handlePaymentResponse = await this.nodeClient.estimateHandlePaymentGasOverride(
@@ -597,7 +600,8 @@ class TransactionManager {
         chainId: chainId,
         version: version,
         walletAddress: smartAccountState.address,
-        feeRefund: refundDetails
+        feeRefund: refundDetails,
+        skipEstimation: createUserPaidTransactionBatchDto.skipEstimation ? true : false
       }
       const handlePaymentResponse = await this.nodeClient.estimateHandlePaymentGas(
         estimateHandlePaymentGas
