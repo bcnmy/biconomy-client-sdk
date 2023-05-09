@@ -1,7 +1,7 @@
 import { resolveProperties } from '@ethersproject/properties'
 import { UserOperation } from '@biconomy/core-types'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-import { IPaymasterAPI, PaymasterConfig } from '@biconomy/core-types'
+import { IPaymasterAPI, PaymasterConfig, PaymasterServiceDataType } from '@biconomy/core-types'
 import { Logger } from '@biconomy/common'
 
 /**
@@ -17,7 +17,7 @@ export class BiconomyPaymasterAPI implements IPaymasterAPI {
 
   async getPaymasterAndData(
     userOp: Partial<UserOperation>,
-    paymasterServiceData?: object
+    paymasterServiceData?: PaymasterServiceDataType
   ): Promise<string> {
     try {
       userOp = await resolveProperties(userOp)
