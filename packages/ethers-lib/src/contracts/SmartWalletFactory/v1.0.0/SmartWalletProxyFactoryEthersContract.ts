@@ -1,6 +1,6 @@
 import { SmartWalletFactoryContract, ITransactionResult } from '@biconomy/core-types'
 import { toTxResult } from '../../../utils'
-import { SmartWalletFactoryContractV100 as SmartWalletFactoryContract_TypeChain } from '../../../../typechain/src/ethers-v5/v1.0.0/SmartWalletFactoryContractV100'
+import { SmartWalletFactoryContract_v1_0_0 as SmartWalletFactoryContract_TypeChain } from '../../../../typechain/src/ethers-v5/v1.0.0/SmartWalletFactoryContract_v1_0_0'
 import { Interface } from '@ethersproject/abi'
 import { Contract } from '@ethersproject/contracts'
 

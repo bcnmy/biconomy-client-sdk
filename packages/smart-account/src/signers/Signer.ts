@@ -9,7 +9,6 @@ import { ChainId, SignUserPaidTransactionDto } from '@biconomy/core-types'
 
 import { JsonRpcProvider, TransactionResponse } from '@ethersproject/providers'
 // Might as well be RpcRelayer
-import { IRelayer } from '@biconomy/relayer'
 import { BytesLike } from '@ethersproject/bytes'
 import { Deferrable } from 'ethers/lib/utils'
 import { TransactionRequest } from '@ethersproject/providers'
@@ -17,8 +16,6 @@ import SmartAccount from '../SmartAccount'
 
 export abstract class Signer extends AbstractSigner {
   abstract getProvider(chainId?: number): Promise<JsonRpcProvider | undefined>
-
-  abstract getRelayer(chainId?: number): Promise<IRelayer | undefined>
 
   abstract signMessage(message: BytesLike, chainId?: ChainId): Promise<string>
 

@@ -1,8 +1,8 @@
 import { MultiSendCallOnlyContract } from '@biconomy/core-types'
 import {
-  MultiSendCallOnlyContractV100 as MultiSendCallOnly_TypeChain,
-  MultiSendCallOnlyContractV100Interface
-} from '../../../../typechain/src/ethers-v5/v1.0.0/MultiSendCallOnlyContractV100'
+  MultiSendCallOnlyContract_v1_0_0 as MultiSendCallOnly_TypeChain,
+  MultiSendCallOnlyContract_v1_0_0Interface as MultiSendCallOnlyContractV100Interface
+} from '../../../../typechain/src/ethers-v5/v1.0.0/MultiSendCallOnlyContract_v1_0_0'
 import { Contract } from '@ethersproject/contracts'
 import { Interface } from '@ethersproject/abi'
 

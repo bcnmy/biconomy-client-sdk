@@ -1,9 +1,9 @@
 import { BigNumber } from '@ethersproject/bignumber'
 import { FallbackGasTankContract } from '@biconomy/core-types'
 import {
-  FallbackGasTankContractV100 as Fallback_Type,
+  FallbackGasTankContract_v1_0_0 as Fallback_Type,
   FallbackUserOperationStruct
-} from '../../../../typechain/src/ethers-v5/v1.0.0/FallbackGasTankContractV100'
+} from '../../../../typechain/src/ethers-v5/v1.0.0/FallbackGasTankContract_v1_0_0'
 import { Contract } from '@ethersproject/contracts'
 import { Interface } from '@ethersproject/abi'
 

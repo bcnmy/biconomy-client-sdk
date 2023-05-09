@@ -15,7 +15,7 @@ import {
   getMultiSendCallOnlyContract,
   getSmartWalletContract,
   getFallbackGasTankContract
-} from './utils/FetchContractsInfo'
+} from './FetchContractsInfo'
 import { ethers, Signer } from 'ethers'
 import EvmNetworkManager from '@biconomy/ethers-lib'
 import { SmartAccountVersion } from '@biconomy/core-types'
