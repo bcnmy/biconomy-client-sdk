@@ -5,7 +5,7 @@ import { IPaymasterAPI } from 'interfaces/IPaymaster.interface'
 import { getPaymasterAndDataResponse } from './types/paymaster.types'
 
 export class BiconomyPaymasterAPI implements IPaymasterAPI {
-    constructor(readonly paymasterServiceUrl: string, readonly strictSponsorshipMode: boolean) {}
+    constructor(readonly paymasterServiceUrl: string, readonly strictSponsorshipMode?: boolean) {}
 
     /**
      * 
@@ -24,8 +24,6 @@ export class BiconomyPaymasterAPI implements IPaymasterAPI {
         userOp.signature = '0x'
         userOp.paymasterAndData = '0x'
 
-        // move dappAPIKey in headers
-        /* eslint-disable  @typescript-eslint/no-explicit-any */
         const result: getPaymasterAndDataResponse = await sendRequest({
             url: this.paymasterServiceUrl,
             method: HttpMethod.Post,
