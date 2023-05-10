@@ -16,6 +16,7 @@ import {
   deployCounterFactualEncodedData,
   EIP1559_UNSUPPORTED_NETWORKS
 } from '@biconomy/common'
+import { HttpRpcClient } from './HttpRpcClient'
 
 // may use...
 export interface SmartAccountApiParams extends BaseApiParams {
@@ -71,6 +72,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
    * @param index nonce value used when creating multiple wallets for the same owner
    */
   constructor(
+    readonly httpRpcClient: HttpRpcClient,
     provider: Provider,
     readonly entryPoint: EntryPoint,
     readonly clientConfig: ClientConfig,
@@ -188,34 +190,6 @@ export class SmartAccountAPI extends BaseAccountAPI {
 
     const initCode = await this.getInitCode()
 
-    const verificationGasLimit = BigNumber.from(await this.getVerificationGasLimit())
-
-    let { maxFeePerGas, maxPriorityFeePerGas } = info
-    // Note: Custom should be equal if it's for non EIP1559
-
-    if (maxFeePerGas == null || maxPriorityFeePerGas == null) {
-      const feeData = await this.provider.getFeeData()
-      Logger.log('EIP1559 feeData', feeData)
-      const chainId = this.clientConfig.chainId
-      Logger.log('chainId is', chainId)
-      // Can do based on non EIP1559 chainId
-      if (EIP1559_UNSUPPORTED_NETWORKS.includes(chainId)) {
-        maxFeePerGas = feeData.gasPrice ?? (await this.provider.getGasPrice()) ?? undefined
-        maxPriorityFeePerGas = feeData.gasPrice ?? (await this.provider.getGasPrice()) ?? undefined
-      }
-      if (maxFeePerGas == null) {
-        maxFeePerGas = feeData.maxFeePerGas ?? undefined // ethers.BigNumber.from('100000000000')
-      }
-      if (maxPriorityFeePerGas == null) {
-        maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? undefined // ethers.BigNumber.from('35000000000')
-      }
-    }
-    if (!maxFeePerGas || !maxPriorityFeePerGas) {
-      throw new Error('maxFeePerGas or maxPriorityFeePerGas values cannot be null')
-    }
-
-    Logger.log('fees being used: maxFeePerGas ', maxFeePerGas)
-    Logger.log('fees being used: maxPriorityFeePerGas ', maxPriorityFeePerGas)
     /* eslint-disable  @typescript-eslint/no-explicit-any */
     const partialUserOp: any = {
       sender: await this.getAccountAddress(),
@@ -223,14 +197,33 @@ export class SmartAccountAPI extends BaseAccountAPI {
       initCode,
       callData,
       callGasLimit,
-      verificationGasLimit,
-      maxFeePerGas,
-      maxPriorityFeePerGas
+      paymasterAndData: '0x'
     }
 
-    partialUserOp.paymasterAndData = '0x'
-    const preVerificationGas = await this.getPreVerificationGas(partialUserOp)
-    partialUserOp.preVerificationGas = preVerificationGas
+    let { maxFeePerGas, maxPriorityFeePerGas } = info
+    const chainId = this.clientConfig.chainId
+
+    const feeData = await this.httpRpcClient.getUserOpGasAndGasPrices(partialUserOp)
+    Logger.log('feeData', feeData)
+
+    if (EIP1559_UNSUPPORTED_NETWORKS.includes(chainId)) {
+      maxFeePerGas = undefined
+      maxPriorityFeePerGas = undefined
+    } else {
+      // if type 2 transaction, use the gas prices from the user or the default gas price
+      if (!maxFeePerGas)
+        maxFeePerGas = feeData.maxFeePerGas ?? (await this.provider.getGasPrice()) ?? undefined
+      if (!maxPriorityFeePerGas)
+        maxPriorityFeePerGas =
+          feeData.maxPriorityFeePerGas ?? (await this.provider.getGasPrice()) ?? undefined
+    }
+
+    partialUserOp.maxFeePerGas = maxFeePerGas
+    partialUserOp.maxPriorityFeePerGas = maxPriorityFeePerGas
+    partialUserOp.preVerificationGas =
+      feeData.preVerificationGas ?? (await this.getPreVerificationGas(partialUserOp))
+    partialUserOp.verificationGasLimit =
+      feeData.verificationGasLimit ?? BigNumber.from(await this.getVerificationGasLimit())
 
     partialUserOp.paymasterAndData = !this.paymasterAPI
       ? '0x'
