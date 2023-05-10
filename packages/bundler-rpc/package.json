@@ -31,6 +31,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "@biconomy/core-types": "*"
+    "@biconomy/core-types": "*",
+    "@biconomy/common": "*"
   }
 }
