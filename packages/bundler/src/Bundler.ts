@@ -13,6 +13,12 @@ export class Bundler implements IBundler {
         readonly dappAPIKey: string) {
     }
 
+    /**
+     * 
+     * @param chainId 
+     * @description This function will fetch gasPrices from bundler
+     * @returns 
+     */
     async getUserOpGasPrices(chainId: ChainId): Promise<getUserOpGasPricesResponse> {
         const response: any = await sendRequest({
             url: `${this.bundlerUrl}`,
@@ -26,6 +32,12 @@ export class Bundler implements IBundler {
         })
         return response
     }
+    /**
+     * 
+     * @param userOp 
+     * @description This function will send userOp to bundler
+     * @returns 
+     */
     async sendUserOp(userOp: UserOperation): Promise<SendUserOpResponse> {
         const hexifiedUserOp = deepHexlify(await resolveProperties(userOp))
         let params
