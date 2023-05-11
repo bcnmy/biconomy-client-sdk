@@ -2,7 +2,7 @@ import { JsonRpcProvider } from '@ethersproject/providers'
 import { ethers } from 'ethers'
 import { resolveProperties } from 'ethers/lib/utils'
 
-import { UserOperation, UserOpGasAndGasPrices } from '@biconomy/core-types'
+import { UserOperation, UserOpGasFields } from '@biconomy/core-types'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
 import Debug from 'debug'
 import { Logger, deepHexlify } from '@biconomy/common'
@@ -84,12 +84,12 @@ export class HttpRpcClient {
     }
   }
 
-  async getUserOpGasAndGasPrices(userOp: Partial<UserOperation>): Promise<UserOpGasAndGasPrices> {
+  async getUserOpGasAndGasPrices(userOp: Partial<UserOperation>): Promise<UserOpGasFields> {
     const response: any = await sendRequest({
       url: `${this.bundlerUrl}`,
       method: HttpMethod.Post,
       body: {
-        method: 'eth_getUserOpGasAndGasPrices',
+        method: 'eth_getUserOpGasFields',
         params: [userOp, this.entryPointAddress, this.chainId],
         id: 1234,
         jsonrpc: '2.0'

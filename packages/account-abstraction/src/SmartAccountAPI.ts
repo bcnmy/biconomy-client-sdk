@@ -201,25 +201,49 @@ export class SmartAccountAPI extends BaseAccountAPI {
     }
 
     let { maxFeePerGas, maxPriorityFeePerGas } = info
+
+    let feeData: any
     const chainId = this.clientConfig.chainId
+    try {
+      feeData = await this.httpRpcClient.getUserOpGasAndGasPrices(partialUserOp)
 
-    const feeData = await this.httpRpcClient.getUserOpGasAndGasPrices(partialUserOp)
-    Logger.log('feeData', feeData)
+      // only uodate if not provided by the user
+      if (maxFeePerGas == null || maxPriorityFeePerGas == null) {
+        if (EIP1559_UNSUPPORTED_NETWORKS.includes(chainId)) {
+          maxFeePerGas = feeData.gasPrice
+          maxPriorityFeePerGas = feeData.gasPrice
+        } else {
+          // if type 2 transaction, use the gas prices from the user or the default gas price
+          maxFeePerGas = feeData.maxFeePerGas
+          maxPriorityFeePerGas = feeData.maxPriorityFeePerGas
+        }
+      }
+    } catch (e) {
+      Logger.log('error getting feeData', e)
+      Logger.log('setting manual data')
 
-    if (EIP1559_UNSUPPORTED_NETWORKS.includes(chainId)) {
-      maxFeePerGas = undefined
-      maxPriorityFeePerGas = undefined
-    } else {
-      // if type 2 transaction, use the gas prices from the user or the default gas price
-      if (!maxFeePerGas)
-        maxFeePerGas = feeData.maxFeePerGas ?? (await this.provider.getGasPrice()) ?? undefined
-      if (!maxPriorityFeePerGas)
-        maxPriorityFeePerGas =
-          feeData.maxPriorityFeePerGas ?? (await this.provider.getGasPrice()) ?? undefined
+      // only fetch getFeeData if not provided by the user
+      if (maxFeePerGas == null || maxPriorityFeePerGas == null) {
+        const feeData = await this.provider.getFeeData()
+        Logger.log('EIP1559 feeData', feeData)
+        if (EIP1559_UNSUPPORTED_NETWORKS.includes(chainId)) {
+          maxFeePerGas = feeData.gasPrice ?? (await this.provider.getGasPrice()) ?? undefined
+          maxPriorityFeePerGas =
+            feeData.gasPrice ?? (await this.provider.getGasPrice()) ?? undefined
+        }
+        if (maxFeePerGas == null) {
+          maxFeePerGas = feeData.maxFeePerGas ?? undefined // ethers.BigNumber.from('100000000000')
+        }
+        if (maxPriorityFeePerGas == null) {
+          maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? undefined // ethers.BigNumber.from('35000000000')
+        }
+      }
     }
+    Logger.log('feeData', feeData)
 
     partialUserOp.maxFeePerGas = maxFeePerGas
     partialUserOp.maxPriorityFeePerGas = maxPriorityFeePerGas
+
     partialUserOp.preVerificationGas =
       feeData.preVerificationGas ?? (await this.getPreVerificationGas(partialUserOp))
     partialUserOp.verificationGasLimit =

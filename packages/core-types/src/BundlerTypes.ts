@@ -1,4 +1,4 @@
-export type UserOpGasAndGasPrices = {
+export type UserOpGasFields = {
   maxPriorityFeePerGas: string | null
   maxFeePerGas: string | null
   gasPrice: string | null
