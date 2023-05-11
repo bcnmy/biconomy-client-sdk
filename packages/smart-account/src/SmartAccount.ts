@@ -944,8 +944,8 @@ class SmartAccount extends EventEmitter {
     let { version, chainId, skipEstimation } = createUserPaidTransactionDto
     const { transaction, feeQuote } = createUserPaidTransactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
-    version = version ? version : this.DEFAULT_VERSION    
-    skipEstimation = skipEstimation ?? false    
+    version = version ? version : this.DEFAULT_VERSION
+    skipEstimation = skipEstimation ?? false
     return this.transactionManager.createUserPaidTransaction({
       version,
       transaction,
