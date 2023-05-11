@@ -5,7 +5,7 @@ import { ClientConfig } from './ClientConfig' // added in this design
 import { arrayify, hexConcat } from 'ethers/lib/utils'
 import { Signer } from '@ethersproject/abstract-signer'
 import { TransactionDetailsForBatchUserOp } from './TransactionDetailsForUserOp'
-import { UserOperation } from '@biconomy/core-types'
+import { UserOperation, UserOpGasFields } from '@biconomy/core-types'
 import { BaseApiParams, BaseAccountAPI } from './BaseAccountAPI'
 import { Provider } from '@ethersproject/providers'
 import { BiconomyPaymasterAPI } from './BiconomyPaymasterAPI'
@@ -202,7 +202,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
 
     let { maxFeePerGas, maxPriorityFeePerGas } = info
 
-    let feeData: any
+    let feeData: UserOpGasFields | undefined
     const chainId = this.clientConfig.chainId
     try {
       feeData = await this.httpRpcClient.getUserOpGasAndGasPrices(partialUserOp)
@@ -210,44 +210,45 @@ export class SmartAccountAPI extends BaseAccountAPI {
       // only uodate if not provided by the user
       if (maxFeePerGas == null || maxPriorityFeePerGas == null) {
         if (EIP1559_UNSUPPORTED_NETWORKS.includes(chainId)) {
-          maxFeePerGas = feeData.gasPrice
-          maxPriorityFeePerGas = feeData.gasPrice
+          maxFeePerGas = BigNumber.from(feeData.gasPrice)
+          maxPriorityFeePerGas = BigNumber.from(feeData.gasPrice)
         } else {
           // if type 2 transaction, use the gas prices from the user or the default gas price
-          maxFeePerGas = feeData.maxFeePerGas
-          maxPriorityFeePerGas = feeData.maxPriorityFeePerGas
+          maxFeePerGas = BigNumber.from(feeData.maxFeePerGas)
+          maxPriorityFeePerGas = BigNumber.from(feeData.maxPriorityFeePerGas)
         }
       }
-    } catch (e) {
-      Logger.log('error getting feeData', e)
+    } catch (e: any) {
+      Logger.log('error getting feeData', e.message)
       Logger.log('setting manual data')
 
       // only fetch getFeeData if not provided by the user
       if (maxFeePerGas == null || maxPriorityFeePerGas == null) {
-        const feeData = await this.provider.getFeeData()
-        Logger.log('EIP1559 feeData', feeData)
+        const fallbackFeeData = await this.provider.getFeeData()
+        Logger.log('EIP1559 fallbackFeeData', fallbackFeeData)
         if (EIP1559_UNSUPPORTED_NETWORKS.includes(chainId)) {
-          maxFeePerGas = feeData.gasPrice ?? (await this.provider.getGasPrice()) ?? undefined
+          maxFeePerGas =
+            fallbackFeeData.gasPrice ?? (await this.provider.getGasPrice()) ?? undefined
           maxPriorityFeePerGas =
-            feeData.gasPrice ?? (await this.provider.getGasPrice()) ?? undefined
+            fallbackFeeData.gasPrice ?? (await this.provider.getGasPrice()) ?? undefined
         }
         if (maxFeePerGas == null) {
-          maxFeePerGas = feeData.maxFeePerGas ?? undefined // ethers.BigNumber.from('100000000000')
+          maxFeePerGas = fallbackFeeData.maxFeePerGas ?? undefined // ethers.BigNumber.from('100000000000')
         }
         if (maxPriorityFeePerGas == null) {
-          maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? undefined // ethers.BigNumber.from('35000000000')
+          maxPriorityFeePerGas = fallbackFeeData.maxPriorityFeePerGas ?? undefined // ethers.BigNumber.from('35000000000')
         }
       }
     }
     Logger.log('feeData', feeData)
 
-    partialUserOp.maxFeePerGas = maxFeePerGas
-    partialUserOp.maxPriorityFeePerGas = maxPriorityFeePerGas
+    partialUserOp.maxFeePerGas = parseInt(maxFeePerGas?.toString() || '0')
+    partialUserOp.maxPriorityFeePerGas = parseInt(maxPriorityFeePerGas?.toString() || '0')
 
     partialUserOp.preVerificationGas =
-      feeData.preVerificationGas ?? (await this.getPreVerificationGas(partialUserOp))
+      feeData?.preVerificationGas ?? (await this.getPreVerificationGas(partialUserOp))
     partialUserOp.verificationGasLimit =
-      feeData.verificationGasLimit ?? BigNumber.from(await this.getVerificationGasLimit())
+      feeData?.verificationGasLimit ?? parseInt((await this.getVerificationGasLimit()).toString())
 
     partialUserOp.paymasterAndData = !this.paymasterAPI
       ? '0x'
