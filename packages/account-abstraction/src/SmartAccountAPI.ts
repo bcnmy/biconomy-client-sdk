@@ -250,7 +250,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
     partialUserOp.verificationGasLimit =
       feeData?.verificationGasLimit ?? parseInt((await this.getVerificationGasLimit()).toString())
 
-    Logger.log('info.paymasterServiceData', info.paymasterServiceData);
+    Logger.log('info.paymasterServiceData', info.paymasterServiceData)
     partialUserOp.paymasterAndData = !this.paymasterAPI
       ? '0x'
       : await this.paymasterAPI.getPaymasterAndData(partialUserOp, info.paymasterServiceData)
