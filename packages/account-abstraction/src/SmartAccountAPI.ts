@@ -49,8 +49,8 @@ export interface VerificationGasLimits {
 }
 
 export const DefaultGasLimits: VerificationGasLimits = {
-  validateUserOpGas: 71943,
-  validatePaymasterUserOpGas: 25101,
+  validateUserOpGas: 100000,
+  validatePaymasterUserOpGas: 100000,
   postOpGas: 10877
 }
 
@@ -250,9 +250,10 @@ export class SmartAccountAPI extends BaseAccountAPI {
     partialUserOp.verificationGasLimit =
       feeData?.verificationGasLimit ?? parseInt((await this.getVerificationGasLimit()).toString())
 
+    Logger.log('info.paymasterServiceData', info.paymasterServiceData);
     partialUserOp.paymasterAndData = !this.paymasterAPI
       ? '0x'
-      : await this.paymasterAPI.getPaymasterAndData(partialUserOp)
+      : await this.paymasterAPI.getPaymasterAndData(partialUserOp, info.paymasterServiceData)
     return {
       ...partialUserOp,
       signature: ''
