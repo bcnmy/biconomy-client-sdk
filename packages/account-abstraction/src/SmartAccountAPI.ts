@@ -193,10 +193,9 @@ export class SmartAccountAPI extends BaseAccountAPI {
     /* eslint-disable  @typescript-eslint/no-explicit-any */
     const partialUserOp: any = {
       sender: await this.getAccountAddress(),
-      nonce: await this.nonce(),
+      nonce: (await this.nonce()).toHexString(),
       initCode,
       callData,
-      callGasLimit,
       paymasterAndData: '0x'
     }
 
@@ -209,13 +208,14 @@ export class SmartAccountAPI extends BaseAccountAPI {
 
       // only uodate if not provided by the user
       if (maxFeePerGas == null || maxPriorityFeePerGas == null) {
-        if (EIP1559_UNSUPPORTED_NETWORKS.includes(chainId)) {
-          maxFeePerGas = BigNumber.from(feeData.gasPrice)
-          maxPriorityFeePerGas = BigNumber.from(feeData.gasPrice)
-        } else {
+        if (feeData.maxFeePerGas) {
           // if type 2 transaction, use the gas prices from the user or the default gas price
-          maxFeePerGas = BigNumber.from(feeData.maxFeePerGas)
-          maxPriorityFeePerGas = BigNumber.from(feeData.maxPriorityFeePerGas)
+          maxFeePerGas = maxFeePerGas ?? BigNumber.from(feeData.maxFeePerGas)
+          maxPriorityFeePerGas =
+            maxPriorityFeePerGas ?? BigNumber.from(feeData.maxPriorityFeePerGas)
+        } else {
+          maxFeePerGas = maxFeePerGas ?? BigNumber.from(feeData.gasPrice)
+          maxPriorityFeePerGas = maxPriorityFeePerGas ?? BigNumber.from(feeData.gasPrice)          
         }
       }
     } catch (e: any) {
@@ -244,11 +244,12 @@ export class SmartAccountAPI extends BaseAccountAPI {
 
     partialUserOp.maxFeePerGas = parseInt(maxFeePerGas?.toString() || '0')
     partialUserOp.maxPriorityFeePerGas = parseInt(maxPriorityFeePerGas?.toString() || '0')
-
+    partialUserOp.callGasLimit = feeData?.callGasLimit ?? callGasLimit
+    partialUserOp.verificationGasLimit =
+    feeData?.verificationGasLimit ?? await this.getVerificationGasLimit()
     partialUserOp.preVerificationGas =
       feeData?.preVerificationGas ?? (await this.getPreVerificationGas(partialUserOp))
-    partialUserOp.verificationGasLimit =
-      feeData?.verificationGasLimit ?? parseInt((await this.getVerificationGasLimit()).toString())
+    
 
     Logger.log('info.paymasterServiceData', info.paymasterServiceData)
     partialUserOp.paymasterAndData = !this.paymasterAPI
