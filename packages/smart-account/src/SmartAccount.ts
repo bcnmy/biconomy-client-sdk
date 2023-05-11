@@ -792,7 +792,7 @@ class SmartAccount extends EventEmitter {
       relayTrx.gasLimit = gasLimit
     } else {
       relayTrx.gasLimit = {
-        hex: '0xC3500',
+        hex: '0x16E360',
         type: 'hex'
       }
     }
