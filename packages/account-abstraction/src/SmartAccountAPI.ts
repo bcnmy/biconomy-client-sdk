@@ -200,9 +200,12 @@ export class SmartAccountAPI extends BaseAccountAPI {
     }
 
     let { maxFeePerGas, maxPriorityFeePerGas } = info
+    const chainId = this.clientConfig.chainId
+    if (EIP1559_UNSUPPORTED_NETWORKS.includes(chainId) && (maxFeePerGas || maxPriorityFeePerGas)) {
+      throw new Error('EIP1559 is not supported on this network')
+    }
 
     let feeData: UserOpGasFields | undefined
-    const chainId = this.clientConfig.chainId
     try {
       feeData = await this.httpRpcClient.getUserOpGasAndGasPrices(partialUserOp)
 
@@ -215,13 +218,16 @@ export class SmartAccountAPI extends BaseAccountAPI {
             maxPriorityFeePerGas ?? BigNumber.from(feeData.maxPriorityFeePerGas)
         } else {
           maxFeePerGas = maxFeePerGas ?? BigNumber.from(feeData.gasPrice)
-          maxPriorityFeePerGas = maxPriorityFeePerGas ?? BigNumber.from(feeData.gasPrice)          
+          maxPriorityFeePerGas = maxPriorityFeePerGas ?? BigNumber.from(feeData.gasPrice)
         }
       }
     } catch (e: any) {
       Logger.log('error getting feeData', e.message)
       Logger.log('setting manual data')
 
+      // fallback userOp update
+      partialUserOp.nonce = await this.nonce()
+      partialUserOp.callGasLimit = callGasLimit
       // only fetch getFeeData if not provided by the user
       if (maxFeePerGas == null || maxPriorityFeePerGas == null) {
         const fallbackFeeData = await this.provider.getFeeData()
@@ -246,10 +252,9 @@ export class SmartAccountAPI extends BaseAccountAPI {
     partialUserOp.maxPriorityFeePerGas = parseInt(maxPriorityFeePerGas?.toString() || '0')
     partialUserOp.callGasLimit = feeData?.callGasLimit ?? callGasLimit
     partialUserOp.verificationGasLimit =
-    feeData?.verificationGasLimit ?? await this.getVerificationGasLimit()
+      feeData?.verificationGasLimit ?? (await this.getVerificationGasLimit())
     partialUserOp.preVerificationGas =
       feeData?.preVerificationGas ?? (await this.getPreVerificationGas(partialUserOp))
-    
 
     Logger.log('info.paymasterServiceData', info.paymasterServiceData)
     partialUserOp.paymasterAndData = !this.paymasterAPI
