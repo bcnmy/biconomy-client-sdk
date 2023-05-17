@@ -133,7 +133,7 @@ export class ERC4337EthersSigner extends Signer {
         },
         onError: async (tx: any) => {
           if (tx) {
-            Logger.error('Error message received at client', JSON.stringify(tx))
+            Logger.error('Error message received at client', tx)
             const err = tx.error
             const txId = tx.transactionId
             clientMessenger.unsubscribe(txId)
@@ -142,9 +142,15 @@ export class ERC4337EthersSigner extends Signer {
               engine.emit('error', {
                 id: tx.transactionId,
                 error: err,
-                msg: 'txn hash generated'
+                msg: 'error in sending transaction'
               })
-            throw new Error(err)
+            if (err) {
+              throw new Error(err)
+            } else {
+              throw new Error(
+                'Bundler failed to send transaction. Please report with transactionId'
+              )
+            }
           }
         }
       })
@@ -243,7 +249,7 @@ export class ERC4337EthersSigner extends Signer {
         },
         onError: async (tx: any) => {
           if (tx) {
-            Logger.error('Error message received at client', JSON.stringify(tx))
+            Logger.error('Error message received at client', tx)
             const err = tx.error
             const txId = tx.transactionId
             clientMessenger.unsubscribe(txId)
@@ -252,9 +258,15 @@ export class ERC4337EthersSigner extends Signer {
               engine.emit('error', {
                 id: tx.transactionId,
                 error: err,
-                msg: 'txn hash generated'
+                msg: 'error in sending transaction'
               })
-            throw new Error(err)
+            if (err) {
+              throw new Error(err)
+            } else {
+              throw new Error(
+                'Bundler failed to send transaction. Please report with transactionId'
+              )
+            }
           }
         }
       })
