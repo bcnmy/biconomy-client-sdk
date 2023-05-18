@@ -507,7 +507,7 @@ class SmartAccount extends EventEmitter {
     )
     await this.initializeAtChain(chainId)
     const aaSigner = this.aaProvider[chainId].getSigner()
-    const response = await aaSigner.sendTransaction(fallbackHandlerTrx, false)
+    const response = await aaSigner.sendTransaction(fallbackHandlerTrx, false, {}, this)
     return response
   }
 
@@ -522,7 +522,7 @@ class SmartAccount extends EventEmitter {
     )
     await this.initializeAtChain(chainId)
     const aaSigner = this.aaProvider[chainId].getSigner()
-    const response = await aaSigner.sendTransaction(updateImplTrx, false)
+    const response = await aaSigner.sendTransaction(updateImplTrx, false, {}, this)
     return response
   }
 
@@ -561,13 +561,21 @@ class SmartAccount extends EventEmitter {
 
     if (updateImplTrx.data != '0x') {
       batchTrx.push(updateImplTrx, transactionDto.transaction)
-      response = this.sendTransactionBatch({ transactions: batchTrx })
+      response = this.sendTransactionBatch({
+        transactions: batchTrx,
+        paymasterServiceData: transactionDto.paymasterServiceData
+      })
     } else {
       // this case { if ( isUpdateImpTrx ) } will work only when user specifically wanted to just update Base wallet Implementation
       // if ( isUpdateImpTrx )
       // transactionDto.transaction = updateImplTrx
 
-      response = await aaSigner.sendTransaction(transactionDto.transaction, false)
+      response = await aaSigner.sendTransaction(
+        transactionDto.transaction,
+        false,
+        transactionDto.paymasterServiceData,
+        this
+      )
     }
     return response
   }
@@ -578,7 +586,7 @@ class SmartAccount extends EventEmitter {
     let { chainId } = transactionBatchDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
 
-    const { transactions } = transactionBatchDto
+    const { transactions, paymasterServiceData } = transactionBatchDto
 
     const aaSigner = this.aaProvider[chainId].getSigner()
 
@@ -587,7 +595,7 @@ class SmartAccount extends EventEmitter {
     if (updateImplTrx.data != '0x') {
       transactions.unshift(updateImplTrx)
     }
-    const response = await aaSigner.sendTransactionBatch(transactions, false)
+    const response = await aaSigner.sendTransactionBatch(transactions, paymasterServiceData, this)
     return response
   }
 
@@ -598,7 +606,7 @@ class SmartAccount extends EventEmitter {
       to: ZERO_ADDRESS,
       data: '0x'
     }
-    const response = await aaSigner.sendTransaction(transaction, true)
+    const response = await aaSigner.sendTransaction(transaction, true, {}, this)
     return response
   }
 
@@ -784,7 +792,7 @@ class SmartAccount extends EventEmitter {
       relayTrx.gasLimit = gasLimit
     } else {
       relayTrx.gasLimit = {
-        hex: '0xC3500',
+        hex: '0x16E360',
         type: 'hex'
       }
     }
@@ -933,15 +941,17 @@ class SmartAccount extends EventEmitter {
   async createUserPaidTransaction(
     createUserPaidTransactionDto: CreateUserPaidTransactionDto
   ): Promise<IWalletTransaction> {
-    let { version, chainId } = createUserPaidTransactionDto
+    let { version, chainId, skipEstimation } = createUserPaidTransactionDto
     const { transaction, feeQuote } = createUserPaidTransactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
+    skipEstimation = skipEstimation ?? false
     return this.transactionManager.createUserPaidTransaction({
       version,
       transaction,
       chainId,
-      feeQuote
+      feeQuote,
+      skipEstimation
     })
   }
 
@@ -991,15 +1001,17 @@ class SmartAccount extends EventEmitter {
   async createUserPaidTransactionBatch(
     createUserPaidTransactionBatchDto: CreateUserPaidTransactionBatchDto
   ): Promise<IWalletTransaction> {
-    let { version, chainId } = createUserPaidTransactionBatchDto
+    let { version, chainId, skipEstimation } = createUserPaidTransactionBatchDto
     const { transactions, feeQuote } = createUserPaidTransactionBatchDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     version = version ? version : this.DEFAULT_VERSION
+    skipEstimation = skipEstimation ?? false
     return this.transactionManager.createUserPaidTransactionBatch({
       version,
       transactions,
       chainId,
-      feeQuote
+      feeQuote,
+      skipEstimation
     })
   }
 

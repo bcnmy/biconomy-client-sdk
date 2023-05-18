@@ -1,7 +1,7 @@
 import { resolveProperties } from '@ethersproject/properties'
 import { UserOperation } from '@biconomy/core-types'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-import { IPaymasterAPI, PaymasterConfig } from '@biconomy/core-types'
+import { IPaymasterAPI, PaymasterConfig, PaymasterServiceDataType } from '@biconomy/core-types'
 import { Logger } from '@biconomy/common'
 
 /**
@@ -15,7 +15,10 @@ export class BiconomyPaymasterAPI implements IPaymasterAPI {
     this.paymasterConfig = paymasterConfig
   }
 
-  async getPaymasterAndData(userOp: Partial<UserOperation>): Promise<string> {
+  async getPaymasterAndData(
+    userOp: Partial<UserOperation>,
+    paymasterServiceData?: PaymasterServiceDataType
+  ): Promise<string> {
     try {
       userOp = await resolveProperties(userOp)
       userOp.nonce = Number(userOp.nonce)
@@ -33,7 +36,7 @@ export class BiconomyPaymasterAPI implements IPaymasterAPI {
         url: `${this.paymasterConfig.signingServiceUrl}/user-op`,
         method: HttpMethod.Post,
         headers: { 'x-api-key': this.paymasterConfig.dappAPIKey },
-        body: { userOp: userOp }
+        body: { userOp: userOp, paymasterServiceData: paymasterServiceData }
       })
 
       Logger.log('verifying and signing service response', result)

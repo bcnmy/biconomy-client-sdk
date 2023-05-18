@@ -6,7 +6,7 @@ import { BigNumber, Bytes } from 'ethers'
 import { ERC4337EthersProvider } from './ERC4337EthersProvider'
 import { ClientConfig } from './ClientConfig'
 import { HttpRpcClient } from './HttpRpcClient'
-import { UserOperation } from '@biconomy/core-types'
+import { UserOperation, PaymasterServiceDataType } from '@biconomy/core-types'
 import { Logger } from '@biconomy/common'
 import { BaseAccountAPI } from './BaseAccountAPI'
 import { ClientMessenger } from '@biconomy/gasless-messaging-sdk'
@@ -30,9 +30,11 @@ export class ERC4337EthersSigner extends Signer {
   async sendTransaction(
     transaction: TransactionRequest,
     walletDeployOnly = false,
+    paymasterServiceData?: PaymasterServiceDataType,
     engine?: any // EventEmitter
   ): Promise<TransactionResponse> {
     const socketServerUrl = this.config.socketServerUrl
+    Logger.log('paymasterServiceData', paymasterServiceData)
 
     const clientMessenger = new ClientMessenger(socketServerUrl, WebSocket)
 
@@ -66,7 +68,8 @@ export class ERC4337EthersSigner extends Signer {
         target: [''],
         data: [''],
         value: [0],
-        gasLimit: [21000]
+        gasLimit: [21000],
+        paymasterServiceData
       })
     } else {
       // Removing populate transaction all together
@@ -78,7 +81,8 @@ export class ERC4337EthersSigner extends Signer {
         target: transaction.to ? [transaction.to] : [ethers.constants.AddressZero],
         data: transaction.data?.toString() ? [transaction.data?.toString()] : ['0x'],
         value: transaction.value ? [transaction.value] : [0],
-        gasLimit: transaction.gasLimit
+        gasLimit: transaction.gasLimit,
+        paymasterServiceData
       })
     }
     Logger.log('signed userOp ', userOperation)
@@ -129,7 +133,7 @@ export class ERC4337EthersSigner extends Signer {
         },
         onError: async (tx: any) => {
           if (tx) {
-            Logger.error('Error message received at client', JSON.stringify(tx))
+            Logger.error('Error message received at client', tx)
             const err = tx.error
             const txId = tx.transactionId
             clientMessenger.unsubscribe(txId)
@@ -138,9 +142,15 @@ export class ERC4337EthersSigner extends Signer {
               engine.emit('error', {
                 id: tx.transactionId,
                 error: err,
-                msg: 'txn hash generated'
+                msg: 'error in sending transaction'
               })
-            throw new Error(err)
+            if (err) {
+              throw new Error(err)
+            } else {
+              throw new Error(
+                'Bundler failed to send transaction. Please report with transactionId'
+              )
+            }
           }
         }
       })
@@ -156,6 +166,7 @@ export class ERC4337EthersSigner extends Signer {
 
   async sendTransactionBatch(
     transactions: TransactionRequest[],
+    paymasterServiceData?: PaymasterServiceDataType,
     engine?: any // EventEmitter
   ): Promise<TransactionResponse> {
     const socketServerUrl = this.config.socketServerUrl
@@ -187,7 +198,8 @@ export class ERC4337EthersSigner extends Signer {
     const userOperation = await this.smartAccountAPI.createSignedUserOp({
       target,
       data,
-      value
+      value,
+      paymasterServiceData
     })
     Logger.log('signed userOp ', userOperation)
 
@@ -237,7 +249,7 @@ export class ERC4337EthersSigner extends Signer {
         },
         onError: async (tx: any) => {
           if (tx) {
-            Logger.error('Error message received at client', JSON.stringify(tx))
+            Logger.error('Error message received at client', tx)
             const err = tx.error
             const txId = tx.transactionId
             clientMessenger.unsubscribe(txId)
@@ -246,9 +258,15 @@ export class ERC4337EthersSigner extends Signer {
               engine.emit('error', {
                 id: tx.transactionId,
                 error: err,
-                msg: 'txn hash generated'
+                msg: 'error in sending transaction'
               })
-            throw new Error(err)
+            if (err) {
+              throw new Error(err)
+            } else {
+              throw new Error(
+                'Bundler failed to send transaction. Please report with transactionId'
+              )
+            }
           }
         }
       })

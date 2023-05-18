@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2.0.1 (2023-05-18)
+
+
+### Bug Fixes
+
+* build changes related to scw changes ([940d464](https://github.com/bcnmy/biconomy-client-sdk/commit/940d464ee2693cb6478d785564a141441e8e3676))
+
+
+
+
 ## 2.0.0 (2023-04-07)
 
 

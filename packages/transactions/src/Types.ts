@@ -17,12 +17,14 @@ export type CreateUserPaidTransactionDto = {
   transaction: Transaction
   feeQuote: FeeQuote
   chainId: ChainId
+  skipEstimation: boolean
 }
 export type CreateUserPaidTransactionBatchDto = {
   version: string
   transactions: Transaction[]
   feeQuote: FeeQuote
   chainId: ChainId
+  skipEstimation: boolean
 }
 
 export type TransactionDto = {

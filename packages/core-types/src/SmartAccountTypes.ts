@@ -10,6 +10,7 @@ import { SmartWalletContract } from './contracts/SmartWalletContract'
 import { GasLimit } from './TransactionTypes'
 import { Signer } from 'ethers'
 import { IPaymasterAPI } from './AccountAbstractionTypes'
+import { PaymasterServiceDataType } from './PaymasterServiceTypes'
 
 export enum Environments {
   DEV = 'DEVELOPMENT', // Strictly testnets
@@ -121,22 +122,26 @@ export type CreateUserPaidTransactionDto = {
   transaction: Transaction
   feeQuote: FeeQuote
   chainId?: ChainId
+  skipEstimation?: boolean
 }
 export type CreateUserPaidTransactionBatchDto = {
   version?: string
   transactions: Transaction[]
   feeQuote: FeeQuote
   chainId?: ChainId
+  skipEstimation?: boolean
 }
 
 export type TransactionDto = {
   version?: string
   transaction: Transaction
   chainId?: ChainId
+  paymasterServiceData?: PaymasterServiceDataType
 }
 
 export type TransactionBatchDto = {
   version?: string
   transactions: Transaction[]
   chainId?: ChainId
+  paymasterServiceData?: PaymasterServiceDataType
 }

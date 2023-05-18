@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/ethers-lib",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Ethers library adapter to be used by Biconomy SDK",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -44,12 +44,12 @@
   },
   "dependencies": {
     "@account-abstraction/contracts": "^0.6.0",
-    "@biconomy/core-types": "^2.0.0",
+    "@biconomy/core-types": "^2.0.1",
     "@gnosis.pm/safe-core-sdk-utils": "^1.1.0",
     "@nomiclabs/hardhat-ethers": "^2.1.0",
     "@openzeppelin/contracts": "^4.8.1",
     "fallback-contracts-v1.0.0": "npm:@biconomy/fallback-gastank-contracts@1.0.0",
-    "scw-contracts-v1.0.0": "npm:@biconomy/account-contracts@2.0.0"
+    "scw-contracts-v1.0.0": "npm:@biconomy/account-contracts@2.0.1"
   },
   "peerDependencies": {
     "ethers": "^5.7.0"

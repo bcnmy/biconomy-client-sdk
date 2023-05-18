@@ -80,6 +80,7 @@ export type EstimateHandlePaymentTxGasDto = {
   version: string
   walletAddress: string
   feeRefund: IFeeRefundV1_0_0 | IFeeRefundV1_0_1
+  skipEstimation?: boolean
 }
 
 export type EstimateUndeployedContractGasDto = {

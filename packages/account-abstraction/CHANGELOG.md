@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2.0.1 (2023-05-18)
+
+
+### Bug Fixes
+
+* bundler sync changes ([eb9b30d](https://github.com/bcnmy/biconomy-client-sdk/commit/eb9b30d786820b4c9a6a18c72481d0ed3782a22e))
+* logic update ([41c4aec](https://github.com/bcnmy/biconomy-client-sdk/commit/41c4aec8ab5012b7ad362b2870966bd607e38636))
+* bundler estimation endpoint fixes ([a07ea3c](https://github.com/bcnmy/biconomy-client-sdk/commit/a07ea3c41b960a8a41bf2aca40a40e671adde6d6))
+* logging and handling in case of onError listerner from bundler/messaging-sdk ([1a378cd](https://github.com/bcnmy/biconomy-client-sdk/commit/1a378cd5348af9ca0639e0f59e52c27386db1220))
+* accepts webhooks information as part of paymasterServiceData ([6daaf37](https://github.com/bcnmy/biconomy-client-sdk/commit/6daaf37855a13fa6e12fdbab16a7e980b4631475))
+
+
+### Features
+
+* fetching gas prices from bundler ([a0c070b](https://github.com/bcnmy/biconomy-client-sdk/commit/a0c070b04bb6e249388a7d304dad7d08e97810e1))
+
+
+
 ## 2.0.0 (2023-04-07)
 
 
