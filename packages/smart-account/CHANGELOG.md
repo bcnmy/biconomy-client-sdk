@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2.0.1 (2023-05-18)
+
+
+### Bug Fixes
+
+* event subscription fix ([1284d70](https://github.com/bcnmy/biconomy-client-sdk/commit/1284d70313e44139189415ed863acc5c7db77d12))
+* skipEstimation flag for gas ([487f3ae](https://github.com/bcnmy/biconomy-client-sdk/commit/487f3aefe21b2dd4fd46e18bef7168eae3c1ecc1))
+* bump fixed gas limit for forward ([f9f1d8f](https://github.com/bcnmy/biconomy-client-sdk/commit/f9f1d8fa1ffc9e02b28b400a869028f908c16d47))
+
+
+### Features
+
+* chain integrations ([9af2da0](https://github.com/bcnmy/biconomy-client-sdk/commit/9af2da03820a26ac7d21301c32de041ced6c5e43))
+* dto changes for paymaster service webhooks (https://github.com/bcnmy/biconomy-client-sdk/commit/78d552db2c77f94569596c1fff29f7d50b41b96a)
+* logic changed to accept paymasterServiceData ([6daaf37](https://github.com/bcnmy/biconomy-client-sdk/commit/6daaf37855a13fa6e12fdbab16a7e980b4631475))
+
+
+
 ## 2.0.0 (2023-04-07)
 
 
