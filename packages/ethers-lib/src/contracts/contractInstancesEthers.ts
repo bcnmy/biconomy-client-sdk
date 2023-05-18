@@ -1,10 +1,10 @@
-import { SmartWalletContractV100__factory as SmartWalletContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/SmartWalletContractV100__factory'
+import { SmartWalletContract_v1_0_0__factory as SmartWalletContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/SmartWalletContract_v1_0_0__factory'
 
-import { MultiSendContractV100__factory as MultiSendContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/MultiSendContractV100__factory'
+import { MultiSendCallOnlyContract_v1_0_0__factory as MultiSendContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/MultiSendCallOnlyContract_v1_0_0__factory'
 
-import { MultiSendCallOnlyContractV100__factory as MultiSendCallOnlyContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/MultiSendCallOnlyContractV100__factory'
+import { MultiSendCallOnlyContract_v1_0_0__factory as MultiSendCallOnlyContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/MultiSendCallOnlyContract_v1_0_0__factory'
 
-import { SmartWalletFactoryContractV100__factory as SmartWalletContractFactoryV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/SmartWalletFactoryContractV100__factory'
+import { SmartWalletFactoryContract_v1_0_0__factory as SmartWalletContractFactoryV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/SmartWalletFactoryContract_v1_0_0__factory'
 
 import SmartWalletContractEthers_v1_0_0 from './SmartWallet/v1.0.0/SmartWalletContractEthers'
 
@@ -14,14 +14,14 @@ import MultiSendCallOnlyEthersContract_v1_0_0 from './MultiSendCallOnly/v1.0.0/M
 
 import SmartWalletFacoryContractEthers_v1_0_0 from './SmartWalletFactory/v1.0.0/SmartWalletProxyFactoryEthersContract'
 
-import { EntryPointContractV100__factory as EntryPointFactoryContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/EntryPointContractV100__factory'
+import { EntryPointContract_v1_0_0__factory as EntryPointFactoryContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/EntryPointContract_v1_0_0__factory'
 
 import EntryPointEthersContract_v1_0_0 from './EntryPointContract/v1.0.0/EntryPointEthersContract'
 
-import { FallbackGasTankContractV100__factory as FallbackGasTankContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/FallbackGasTankContractV100__factory'
+import { FallbackGasTankContract_v1_0_0__factory as FallbackGasTankContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/FallbackGasTankContract_v1_0_0__factory'
 import FallbackGasTankEthersContract_v1_0_0 from './FallbackGasTank/v1.0.0/FallbackGasTankEthersContract'
 
-import { DefaultCallbackHandlerV100__factory as DefaultCallbackHandlerContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/DefaultCallbackHandlerV100__factory'
+import { DefaultCallbackHandler_v1_0_0__factory as DefaultCallbackHandlerContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/DefaultCallbackHandler_v1_0_0__factory'
 import DefaultCallbackHandlerEthersContract_v1_0_0 from './DefaultCallbackHandlerContract/v1.0.0/DefaultCallbackHandlerEthersContract'
 
 import { JsonRpcProvider } from '@ethersproject/providers'

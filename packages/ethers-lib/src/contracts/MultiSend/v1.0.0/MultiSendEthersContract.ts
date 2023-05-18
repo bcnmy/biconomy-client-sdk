@@ -1,8 +1,8 @@
 import { MultiSendContract } from '@biconomy/core-types'
 import {
-  MultiSendContractV100 as MultiSend_TypeChain,
-  MultiSendContractV100Interface
-} from '../../../../typechain/src/ethers-v5/v1.0.0/MultiSendContractV100'
+  MultiSendContract_v1_0_0 as MultiSend_TypeChain,
+  MultiSendContract_v1_0_0Interface as MultiSendContractV100Interface
+} from '../../../../typechain/src/ethers-v5/v1.0.0/MultiSendContract_v1_0_0'
 import { Contract } from '@ethersproject/contracts'
 import { Interface } from '@ethersproject/abi'
 

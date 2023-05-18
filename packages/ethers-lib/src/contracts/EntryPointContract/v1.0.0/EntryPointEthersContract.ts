@@ -1,5 +1,5 @@
 import { EntryPointContract, UserOperation, ITransactionResult } from '@biconomy/core-types'
-import { EntryPointContractV100 as EntryPointContract_TypeChain } from '../../../../typechain/src/ethers-v5/v1.0.0/EntryPointContractV100'
+import { EntryPointContract_v1_0_0 as EntryPointContract_TypeChain } from '../../../../typechain/src/ethers-v5/v1.0.0/EntryPointContract_v1_0_0'
 import { toTxResult } from '../../../utils'
 import { Contract } from '@ethersproject/contracts'
 import { BytesLike } from 'ethers'
