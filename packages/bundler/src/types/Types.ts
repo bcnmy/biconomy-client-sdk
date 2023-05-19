@@ -1,13 +1,16 @@
-export type SendUserOpResponse = {
-    code: number,
-    message: string,
+export type Bundlerconfig = {
+    bundlerUrl: string,
+    entryPointAddress: string
+}
+
+export type UserOpResponse = {
     data: {
         transactionOd: string,
         connectionUrl: string
     }
 }
 
-export type getUserOpGasPricesResponse = {
+export type UserOpGasPricesResponse = {
     result: {
         preVerificationGas: string,
         verificationGasLimit: string,
