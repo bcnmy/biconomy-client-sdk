@@ -21,20 +21,14 @@ export class Bundler implements IBundler {
      * @description This function will fetch gasPrices from bundler
      * @returns Promise<UserOpGasPricesResponse>
      */
-    async getUserOpGasFields(userOp: Partial<UserOperation>, chainId: ChainId): Promise<UserOpGasFieldsResponse> {
-        // TODO: remove partial userOp logic once bundler start to accept complete userOp for estimation
-        const { nonce, callData, initCode, sender, paymasterAndData } = userOp
-        const partialUserOp = {
-            nonce: nonce ? BigNumber.from(nonce).toHexString() : nonce, callData, initCode, sender, paymasterAndData
-        }
-        console.log('sending userOp to bundler', partialUserOp);
+    async getUserOpGasFields(userOp: Partial<UserOperation>, chainId: ChainId): Promise<UserOpGasPricesResponse> {
         const response: any = await sendRequest({
             url: `${this.bundlerConfig.bundlerUrl}`,
             method: HttpMethod.Post,
             body: {
                 method: 'eth_getUserOpGasFields',
-                params: [partialUserOp, this.bundlerConfig.epAddress, chainId],
-                id: getTimestampInSeconds(),
+                params: [userOp, this.bundlerConfig.epAddress, chainId],
+                id: 1234,
                 jsonrpc: '2.0'
             }
         })
