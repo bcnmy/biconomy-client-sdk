@@ -32,6 +32,8 @@
   },
   "devDependencies": {
     "@biconomy/core-types": "*",
-    "@biconomy/common": "*"
+    "@biconomy/common": "*",
+    "@biconomy/bundler-rpc": "*",
+    "@biconomy/paymaster-service": "*"
   }
 }

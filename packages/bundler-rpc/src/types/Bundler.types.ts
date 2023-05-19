@@ -8,9 +8,7 @@ export type SendUserOpResponse = {
 }
 
 export type getUserOpGasPricesResponse = {
-    code: number,
-    message: string,
-    data: {
+    result: {
         preVerificationGas: string,
         verificationGasLimit: string,
         callGasLimit: string,

@@ -1,3 +1,5 @@
+import { BigNumberish, BytesLike } from "ethers";
+
 export type SmartAccountVersion = '1.0.1' | '1.0.0' | '1.0.2'
 
 export enum OperationType {
@@ -20,17 +22,17 @@ export type RelayResponse = {
   connectionUrl?: string
 }
 export type UserOperation = {
-  sender: string
-  nonce: number
-  initCode: string
-  callData: string
-  callGasLimit: number
-  verificationGasLimit: number
-  preVerificationGas: number
-  maxFeePerGas: number
-  maxPriorityFeePerGas: number
-  paymasterAndData: string
-  signature: string
+  sender: string;
+  nonce: BigNumberish;
+  initCode: BytesLike;
+  callData: BytesLike;
+  callGasLimit: BigNumberish;
+  verificationGasLimit: BigNumberish;
+  preVerificationGas: BigNumberish;
+  maxFeePerGas: BigNumberish;
+  maxPriorityFeePerGas: BigNumberish;
+  paymasterAndData: BytesLike;
+  signature: BytesLike;
 }
 
 export type FallbackUserOperation = {

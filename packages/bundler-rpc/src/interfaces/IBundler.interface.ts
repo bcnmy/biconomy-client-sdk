@@ -2,6 +2,6 @@ import { SendUserOpResponse, getUserOpGasPricesResponse } from "../types/Bundler
 import { ChainId,UserOperation  } from '@biconomy/core-types'
 
 export interface IBundler {
-    getUserOpGasPrices(chainId: ChainId): Promise<getUserOpGasPricesResponse>
-    sendUserOp(userOp: UserOperation): Promise<SendUserOpResponse>
+    getUserOpGasPrices(userOp: Partial<UserOperation>, chainId: ChainId): Promise<getUserOpGasPricesResponse>
+    sendUserOp(userOp: UserOperation, chainId: ChainId): Promise<SendUserOpResponse>
 }

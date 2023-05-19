@@ -4,13 +4,11 @@ import { SendUserOpResponse, getUserOpGasPricesResponse } from "./types/Bundler.
 import { resolveProperties } from 'ethers/lib/utils'
 import { deepHexlify } from '@biconomy/common'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-
+import { BigNumber } from 'ethers'
 export class Bundler implements IBundler {
 
     constructor(readonly bundlerUrl: string,
-        readonly entryPointAddress: string,
-        readonly chainId: ChainId,
-        readonly dappAPIKey: string) {
+        readonly entryPointAddress: string) {
     }
 
     /**
@@ -19,13 +17,20 @@ export class Bundler implements IBundler {
      * @description This function will fetch gasPrices from bundler
      * @returns 
      */
-    async getUserOpGasPrices(chainId: ChainId): Promise<getUserOpGasPricesResponse> {
+    async getUserOpGasPrices(userOp: Partial<UserOperation>, chainId: ChainId): Promise<getUserOpGasPricesResponse> {
+
+        const { nonce, callData, initCode, sender, paymasterAndData } = userOp
+        const partialUserOp = {
+            nonce: nonce ? BigNumber.from(nonce).toHexString() : nonce, callData, initCode, sender, paymasterAndData
+        }
+        console.log('sending userOp to bundler', partialUserOp);
+
         const response: any = await sendRequest({
             url: `${this.bundlerUrl}`,
             method: HttpMethod.Post,
             body: {
-                method: 'eth_getUserOpGasPrices',
-                params: [chainId],
+                method: 'eth_getUserOpGasFields',
+                params: [partialUserOp, this.entryPointAddress, chainId],
                 id: 1234,
                 jsonrpc: '2.0'
             }
@@ -38,19 +43,10 @@ export class Bundler implements IBundler {
      * @description This function will send userOp to bundler
      * @returns 
      */
-    async sendUserOp(userOp: UserOperation): Promise<SendUserOpResponse> {
+    async sendUserOp(userOp: UserOperation, chainId: ChainId): Promise<SendUserOpResponse> {
         const hexifiedUserOp = deepHexlify(await resolveProperties(userOp))
-        let params
-
-        if (this.dappAPIKey && this.dappAPIKey !== '') {
-            const metaData = {
-                dappAPIKey: this.dappAPIKey
-            }
-            params = [hexifiedUserOp, this.entryPointAddress, this.chainId, metaData]
-        } else {
-            params = [hexifiedUserOp, this.entryPointAddress, this.chainId]
-        }
-
+        let params = [hexifiedUserOp, this.entryPointAddress, chainId]
+        console.log('sending userOp to bundler ', params)
         const response: SendUserOpResponse = await sendRequest({
             url: `${this.bundlerUrl}`,
             method: HttpMethod.Post,
@@ -61,6 +57,7 @@ export class Bundler implements IBundler {
                 jsonrpc: '2.0'
             }
         })
+        console.log('bundler response', response);
         return response
     }
 }
