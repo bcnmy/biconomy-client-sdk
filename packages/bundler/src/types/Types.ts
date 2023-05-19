@@ -5,12 +5,12 @@ export type Bundlerconfig = {
 
 export type UserOpResponse = {
     data: {
-        transactionOd: string,
+        transactionId: string,
         connectionUrl: string
     }
 }
 
-export type UserOpGasPricesResponse = {
+export type UserOpGasFieldsResponse = {
     result: {
         preVerificationGas: string,
         verificationGasLimit: string,
