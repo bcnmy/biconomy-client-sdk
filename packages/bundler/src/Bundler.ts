@@ -21,7 +21,7 @@ export class Bundler implements IBundler {
      * @description This function will fetch gasPrices from bundler
      * @returns Promise<UserOpGasPricesResponse>
      */
-    async getUserOpGasFields(userOp: Partial<UserOperation>, chainId: ChainId): Promise<UserOpGasPricesResponse> {
+    async getUserOpGasFields(userOp: Partial<UserOperation>, chainId: ChainId): Promise<UserOpGasFieldsResponse> {
         const response: any = await sendRequest({
             url: `${this.bundlerConfig.bundlerUrl}`,
             method: HttpMethod.Post,
