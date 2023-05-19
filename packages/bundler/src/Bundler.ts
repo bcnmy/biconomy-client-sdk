@@ -2,7 +2,7 @@ import { IBundler } from "./interfaces/IBundler";
 import { UserOperation, ChainId } from '@biconomy/core-types'
 import { Bundlerconfig, UserOpResponse, UserOpGasPricesResponse } from "./types/Types"
 import { resolveProperties } from 'ethers/lib/utils'
-import { deepHexlify } from '@biconomy/common'
+import { deepHexlify, getTimestampInSeconds } from '@biconomy/common'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
 
 /**
@@ -27,7 +27,7 @@ export class Bundler implements IBundler {
             body: {
                 method: 'eth_getUserOpGasFields',
                 params: [userOp, this.bundlerConfig.entryPointAddress, chainId],
-                id: 1234,
+                id: getTimestampInSeconds(),
                 jsonrpc: '2.0'
             }
         })
@@ -37,7 +37,7 @@ export class Bundler implements IBundler {
      * 
      * @param userOp 
      * @description This function will send signed userOp to bundler to get mined on chain
-     * @returns Promise<SendUserOpResponse>
+     * @returns Promise<UserOpResponse>
      */
     async sendUserOp(userOp: UserOperation, chainId: ChainId): Promise<UserOpResponse> {
         const hexifiedUserOp = deepHexlify(await resolveProperties(userOp))
@@ -49,7 +49,7 @@ export class Bundler implements IBundler {
             body: {
                 method: 'eth_sendUserOperation',
                 params: params,
-                id: 1234,
+                id: getTimestampInSeconds(),
                 jsonrpc: '2.0'
             }
         })
