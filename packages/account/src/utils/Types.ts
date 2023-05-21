@@ -1,11 +1,11 @@
 import { Web3Provider } from '@ethersproject/providers'
-
+import { Signer } from 'ethers'
 export type SmartAccountConfig = {
     epAddress: string,
     bundlerUrl?: string
 }
 export type BiconomySmartAccountConfig = {
-    signerOrProvider: Web3Provider,
+    signerOrProvider: Web3Provider | Signer,
     rpcUrl: string,
     epAddress: string,
     factoryAddress: string,

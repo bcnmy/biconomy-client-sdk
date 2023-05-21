@@ -15,5 +15,5 @@ export interface ISmartAccount {
     estimateCreationGas(): Promise<BigNumberish>
     buildUserOp(updateNonce?: boolean): Promise<UserOperation>
     signUserOp(SmartAccountOrUserOperation?: UserOperation | this): Promise<UserOperation>
-    sendUserOp(): Promise<void>
+    sendUserOp(userOperation?: UserOperation): Promise<void>
 }

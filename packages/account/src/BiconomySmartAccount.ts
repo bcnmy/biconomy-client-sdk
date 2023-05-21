@@ -1,4 +1,4 @@
-import { JsonRpcProvider, Web3Provider } from '@ethersproject/providers'
+import { JsonRpcProvider, Web3Provider, Provider } from '@ethersproject/providers'
 import { Signer, ethers, BigNumberish, BytesLike, BigNumber } from 'ethers'
 import { SmartAccount } from './SmartAccount'
 import { BiconomyPaymasterAPI } from '@biconomy/paymaster'
@@ -25,7 +25,14 @@ export class BiconomySmartAccount extends SmartAccount {
       this.provider
     );
     try {
-      this.signer = signerOrProvider.getSigner()
+      if (Signer.isSigner(signerOrProvider)) {
+        this.signer = signerOrProvider
+      } else if (Provider.isProvider(signerOrProvider)) {
+        this.signer = signerOrProvider.getSigner()
+      }
+      else {
+        console.error('signer or provider is not valid')
+      }
     } catch (error) {
       throw new Error("No signer provided")
     }
