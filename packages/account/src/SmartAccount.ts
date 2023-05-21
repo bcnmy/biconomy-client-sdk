@@ -111,8 +111,10 @@ export class SmartAccount implements ISmartAccount {
             const feeData = await this.provider.getFeeData()
             if (EIP1559_UNSUPPORTED_NETWORKS.includes(this.chainId)) {
                 // assign gasPrice to both maxFeePerGas and maxPriorityFeePerGas in case chain does not support Type2 transaction
-                this.userOp.maxFeePerGas = this.userOp.maxPriorityFeePerGas = feeData.gasPrice
+                this.userOp.maxFeePerGas = this.userOp.maxPriorityFeePerGas = feeData.gasPrice ?? await this.provider.getGasPrice()
             } else {
+                if ( !feeData.maxFeePerGas || !feeData.maxPriorityFeePerGas)
+                throw new Error("Unable to get maxFeePerGas and maxPriorityFeePerGas from provider")
                 this.userOp.maxFeePerGas = feeData.maxFeePerGas
                 this.userOp.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas
             }
