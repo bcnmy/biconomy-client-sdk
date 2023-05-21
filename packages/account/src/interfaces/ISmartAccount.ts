@@ -1,7 +1,7 @@
-import { UserOperation  } from '@biconomy/core-types'
+import { UserOperation } from '@biconomy/core-types'
 import { BigNumber, BigNumberish, Signer } from 'ethers'
 
-export interface IAccount {
+export interface ISmartAccount {
     resolveFields(op: Partial<UserOperation>): Promise<Partial<UserOperation>>
     estimateUserOpGas(): Promise<void>
     getPaymasterAndData(): Promise<void>
@@ -13,7 +13,7 @@ export interface IAccount {
     getUserOpHash(userOp: UserOperation): Promise<string>
     getAccountAddress(): string
     estimateCreationGas(): Promise<BigNumberish>
-    buildUserOp(): Promise<UserOperation>
-    signUserOp(): Promise<UserOperation>
+    buildUserOp(updateNonce?: boolean): Promise<UserOperation>
+    signUserOp(SmartAccountOrUserOperation?: UserOperation | this): Promise<UserOperation>
     sendUserOp(): Promise<void>
 }

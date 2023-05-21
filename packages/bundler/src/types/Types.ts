@@ -1,6 +1,6 @@
 export type Bundlerconfig = {
     bundlerUrl: string,
-    entryPointAddress: string
+    epAddress: string
 }
 
 export type UserOpResponse = {

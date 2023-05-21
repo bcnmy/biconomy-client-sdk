@@ -4,6 +4,7 @@ import { Bundlerconfig, UserOpResponse, UserOpGasFieldsResponse } from "./types/
 import { resolveProperties } from 'ethers/lib/utils'
 import { deepHexlify, getTimestampInSeconds } from '@biconomy/common'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
+import { BigNumber } from 'ethers'
 
 /**
  * This class implements IBundler interface. 
@@ -21,12 +22,18 @@ export class Bundler implements IBundler {
      * @returns Promise<UserOpGasPricesResponse>
      */
     async getUserOpGasFields(userOp: Partial<UserOperation>, chainId: ChainId): Promise<UserOpGasFieldsResponse> {
+        // TODO: remove partial userOp logic once bundler start to accept complete userOp for estimation
+        const { nonce, callData, initCode, sender, paymasterAndData } = userOp
+        const partialUserOp = {
+            nonce: nonce ? BigNumber.from(nonce).toHexString() : nonce, callData, initCode, sender, paymasterAndData
+        }
+        console.log('sending userOp to bundler', partialUserOp);
         const response: any = await sendRequest({
             url: `${this.bundlerConfig.bundlerUrl}`,
             method: HttpMethod.Post,
             body: {
                 method: 'eth_getUserOpGasFields',
-                params: [userOp, this.bundlerConfig.entryPointAddress, chainId],
+                params: [partialUserOp, this.bundlerConfig.epAddress, chainId],
                 id: getTimestampInSeconds(),
                 jsonrpc: '2.0'
             }
@@ -41,7 +48,7 @@ export class Bundler implements IBundler {
      */
     async sendUserOp(userOp: UserOperation, chainId: ChainId): Promise<UserOpResponse> {
         const hexifiedUserOp = deepHexlify(await resolveProperties(userOp))
-        let params = [hexifiedUserOp, this.bundlerConfig.entryPointAddress, chainId]
+        let params = [hexifiedUserOp, this.bundlerConfig.epAddress, chainId]
 
         const response: UserOpResponse = await sendRequest({
             url: `${this.bundlerConfig.bundlerUrl}`,
@@ -53,6 +60,7 @@ export class Bundler implements IBundler {
                 jsonrpc: '2.0'
             }
         })
+        console.log('bundler response', response)
         return response
     }
 }

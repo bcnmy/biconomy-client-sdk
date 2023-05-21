@@ -5,7 +5,7 @@ import { IPaymasterAPI } from 'interfaces/IPaymaster'
 import { PaymasterAndDataResponse } from './types/Types'
 
 export class BiconomyPaymasterAPI implements IPaymasterAPI {
-    constructor(readonly paymasterServiceUrl: string, readonly strictSponsorshipMode: boolean) { }
+    constructor(readonly paymasterServiceUrl: string, readonly strictSponsorshipMode?: boolean) { }
 
     /**
      * 

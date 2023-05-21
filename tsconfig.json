@@ -27,7 +27,8 @@
       { "path": "web3-auth" },
       { "path": "web3-auth-native" },
       { "path": "transak" },
-      {"path": "bundler-rpc"},
+      {"path": "bundler"},
+      {"path": "paymaster"},
       {"path": "account"}
     ]
   }

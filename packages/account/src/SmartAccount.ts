@@ -1,18 +1,18 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { ethers, BigNumber, BigNumberish, Signer, BytesLike } from 'ethers'
-import { IAccount } from './interfaces/IAccount'
+import { ISmartAccount } from './interfaces/ISmartAccount'
 import { defaultAbiCoder, keccak256, arrayify } from 'ethers/lib/utils'
 import { UserOperation, ChainId } from '@biconomy/core-types'
 import { calcPreVerificationGas, DefaultGasLimits } from './utils/Preverificaiton'
 import { packUserOp } from '@biconomy/common'
-import { DEFAULT_CALL_GAS_LIMIT, DEFAULT_VERIFICATION_GAS_LIMIT, DEFAULT_PRE_VERIFICATION_GAS } from './utils/Constants'
-import { IBundler, Bundler } from '@biconomy/bundler-rpc'
-import { IPaymasterAPI } from '@biconomy/paymaster-service'
+import { DEFAULT_CALL_GAS_LIMIT, DEFAULT_VERIFICATION_GAS_LIMIT, DEFAULT_PRE_VERIFICATION_GAS, EIP1559_UNSUPPORTED_NETWORKS } from './utils/Constants'
+import { IBundler, Bundler } from '@biconomy/bundler'
+import { IPaymasterAPI } from '@biconomy/paymaster'
 import {
     EntryPoint_v100,
     SmartAccount_v100,
 } from '@biconomy/common'
-
+import { SmartAccountConfig } from './utils/Types'
 export const DEFAULT_USER_OP: UserOperation = {
     sender: ethers.constants.AddressZero,
     nonce: ethers.constants.Zero,
@@ -27,7 +27,7 @@ export const DEFAULT_USER_OP: UserOperation = {
     signature: ethers.utils.hexlify("0x"),
 }
 
-export class Account implements IAccount {
+export class SmartAccount implements ISmartAccount {
     userOp!: UserOperation
     bundler!: IBundler
     paymaster!: IPaymasterAPI
@@ -38,10 +38,14 @@ export class Account implements IAccount {
     chainId!: ChainId
     signer!: Signer
 
-    constructor(readonly epAddress: string, readonly bundlerUrl?: string) {
+    constructor(readonly smartAccountConfig: SmartAccountConfig) {
+        const { bundlerUrl, epAddress } = smartAccountConfig
         this.userOp = { ...DEFAULT_USER_OP }
         if (bundlerUrl)
-            this.bundler = new Bundler(bundlerUrl, epAddress)
+            this.bundler = new Bundler({
+                bundlerUrl,
+                epAddress
+            })
     }
 
     async resolveFields(op: Partial<UserOperation>): Promise<Partial<UserOperation>> {
@@ -99,10 +103,29 @@ export class Account implements IAccount {
     }
 
     async estimateUserOpGas(): Promise<void> {
-        if (!this.bundler || !this.userOp.callData)
-            return
-        const userOpGasEstimatesResonse = await this.bundler.getUserOpGasPrices(this.userOp, this.chainId)
-        console.log('userOpGasEstimatesResonse ', userOpGasEstimatesResonse);        
+        if (!this.userOp.callData)
+            throw new Error("calldata is not present for estimation")
+        if (!this.bundler) {
+            // if no bundler url is provided run offchain logic to assign following values of user
+            // maxFeePerGas, maxPriorityFeePerGas, verificationGasLimit, callGasLimit, preVerificationGas
+            const feeData = await this.provider.getFeeData()
+            if (EIP1559_UNSUPPORTED_NETWORKS.includes(this.chainId)) {
+                // assign gasPrice to both maxFeePerGas and maxPriorityFeePerGas in case chain does not support Type2 transaction
+                this.userOp.maxFeePerGas = this.userOp.maxPriorityFeePerGas = feeData.gasPrice
+            } else {
+                this.userOp.maxFeePerGas = feeData.maxFeePerGas
+                this.userOp.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas
+            }
+            this.userOp.verificationGasLimit = await this.getVerificationGasLimit()
+            this.userOp.callGasLimit = await this.provider.estimateGas({
+                from: this.smartAccountConfig.epAddress,
+                to: this.userOp.sender,
+                data: this.userOp.callData
+              })
+            this.userOp.preVerificationGas = this.getPreVerificationGas(this.userOp)
+        }
+        const userOpGasEstimatesResonse = await this.bundler.getUserOpGasFields(this.userOp, this.chainId)
+        console.log('userOpGasEstimatesResonse ', userOpGasEstimatesResonse);
         const { callGasLimit, verificationGasLimit, preVerificationGas, gasPrice, maxFeePerGas, maxPriorityFeePerGas } = userOpGasEstimatesResonse.result
         if (gasPrice)
             this.userOp.maxFeePerGas = this.userOp.maxPriorityFeePerGas = gasPrice
@@ -117,7 +140,7 @@ export class Account implements IAccount {
 
     async getPaymasterAndData(): Promise<void> {
         console.log('paymaster state ', this.paymaster);
-        
+
         if (this.paymaster) {
             this.userOp.paymasterAndData = await this.paymaster.getPaymasterAndData(this.userOp)
         }
@@ -136,11 +159,13 @@ export class Account implements IAccount {
         this.userOp.callData = ethers.utils.hexlify(val);
         return this;
     }
-    nonce(): Promise<BigNumber> {        
+    nonce(): Promise<BigNumber> {
         return this.proxy.nonce()
     }
 
     async signUserOpHash(userOpHash: string, signer: Signer): Promise<string> {
+        if (!signer)
+            throw new Error("No signer provided to sign userOp")
         return await signer.signMessage(arrayify(userOpHash))
     }
 
@@ -185,10 +210,14 @@ export class Account implements IAccount {
         return await this.provider.estimateGas({ to: deployerAddress, data: deployerCallData })
     }
 
-    async buildUserOp(): Promise<UserOperation>{
-        // TODO: fetch nonce and initCode
+    async buildUserOp(updateNonce?: boolean): Promise<UserOperation> {
+
         this.userOp.nonce = await this.nonce()
         this.userOp.initCode = this.userOp.nonce.eq(0) ? this.initCode : "0x";
+
+        if (updateNonce) {
+            return this.userOp
+        }
 
         console.log('Building userOp');
         await this.estimateUserOpGas()
@@ -196,21 +225,33 @@ export class Account implements IAccount {
         return this.userOp
     }
 
-    async signUserOp(): Promise<UserOperation>{
+    async signUserOp(SmartAccountOrUserOperation?: UserOperation | this): Promise<UserOperation> {
+
+        if (SmartAccountOrUserOperation && !(SmartAccountOrUserOperation instanceof SmartAccount)) {
+            // this check only pass if already created userOperation is supplied that needs to be signed by paymaster service
+            this.userOp = SmartAccountOrUserOperation
+            await this.buildUserOp(true)
+            await this.getPaymasterAndData()
+        }
+
         const userOpHash = await this.getUserOpHash(this.userOp)
         let signature = await this.signUserOpHash(userOpHash, this.signer)
         const potentiallyIncorrectV = parseInt(signature.slice(-2), 16)
         if (![27, 28].includes(potentiallyIncorrectV)) {
-          const correctV = potentiallyIncorrectV + 27
-          signature = signature.slice(0, -2) + correctV.toString(16)
+            const correctV = potentiallyIncorrectV + 27
+            signature = signature.slice(0, -2) + correctV.toString(16)
         }
         if (signature.slice(0, 2) !== '0x') signature = '0x' + signature
         console.log('userOp signature: ', signature)
         this.userOp.signature = signature
+        console.log(this.userOp);
         return this.userOp
     }
-    
-    async sendUserOp(): Promise<void>{
-        await this.bundler.sendUserOp(this.userOp, this.chainId)
+
+    async sendUserOp(userOperation?: UserOperation): Promise<void> {
+        let Op = this.userOp
+        if (userOperation)
+            Op = userOperation
+        await this.bundler.sendUserOp(Op, this.chainId)
     }
 }
