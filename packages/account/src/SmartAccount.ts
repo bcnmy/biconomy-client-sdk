@@ -231,7 +231,7 @@ export class SmartAccount implements ISmartAccount {
 
         if ( SmartAccountOrUserOperation instanceof SmartAccount ){
             // this condition ensure that userOp is not build even the SmartAccountOrUserOperation is of class type object
-            if ( this.userOp.nonce.eq(0) && this.userOp.initCode === '0x')
+            if ( BigNumber.isBigNumber(this.userOp.nonce) && this.userOp.nonce.eq(0) && this.userOp.initCode === '0x')
             await this.buildUserOp()
         }
 
