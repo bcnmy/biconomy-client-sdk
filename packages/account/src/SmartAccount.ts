@@ -229,6 +229,12 @@ export class SmartAccount implements ISmartAccount {
 
     async signUserOp(SmartAccountOrUserOperation?: UserOperation | this): Promise<UserOperation> {
 
+        if ( SmartAccountOrUserOperation instanceof SmartAccount ){
+            // this condition ensure that userOp is not build even the SmartAccountOrUserOperation is of class type object
+            if ( this.userOp.nonce.eq(0) && this.userOp.initCode === '0x')
+            await this.buildUserOp()
+        }
+
         if (SmartAccountOrUserOperation && !(SmartAccountOrUserOperation instanceof SmartAccount)) {
             // this check only pass if already created userOperation is supplied that needs to be signed by paymaster service
             this.userOp = SmartAccountOrUserOperation
