@@ -1,6 +1,6 @@
 export type PaymasterAndDataResponse = {
-    statusCode: number,
-    data: {
-        paymasterAndData: string
-    }
+  statusCode: number
+  data: {
+    paymasterAndData: string
+  }
 }
