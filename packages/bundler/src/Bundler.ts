@@ -43,7 +43,6 @@ export class Bundler implements IBundler {
     async sendUserOp(userOp: UserOperation, chainId: ChainId): Promise<UserOpResponse> {
         const hexifiedUserOp = deepHexlify(await resolveProperties(userOp))
         let params = [hexifiedUserOp, this.bundlerConfig.epAddress, chainId]
-
         const response: UserOpResponse = await sendRequest({
             url: `${this.bundlerConfig.bundlerUrl}`,
             method: HttpMethod.Post,
