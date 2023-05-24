@@ -354,7 +354,6 @@ class SmartAccount extends EventEmitter {
     transactionDto: TransactionDto // TODO: revise DTO as per above
     // isUpdateImpTrx?: Boolean
   ): Promise<TransactionResponse> {
-
     let { chainId } = transactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     // version = version ? version : this.DEFAULT_VERSION
@@ -454,7 +453,6 @@ class SmartAccount extends EventEmitter {
   public async getTransactionByHash(txHash: string): Promise<SCWTransactionResponse> {
     return this.nodeClient.getTransactionByHash(txHash)
   }
-
 
   /**
    * Allows to change default active chain of the Smart Account
