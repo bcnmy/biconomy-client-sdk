@@ -6,7 +6,6 @@ import { PaymasterAndDataResponse } from './types/Types'
 
 export class BiconomyPaymasterAPI implements IPaymasterAPI {
     constructor(readonly paymasterServiceUrl: string, readonly strictSponsorshipMode?: boolean) { }
-
   /**
    *
    * @param userOp
