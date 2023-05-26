@@ -1,6 +1,7 @@
 import { FallbackApiResponse, UserOperation } from 'Types'
 import { PaymasterServiceDataType } from './PaymasterServiceTypes'
 
+// marked for deletion
 export interface IPaymasterAPI {
   getPaymasterAndData(
     userOp: Partial<UserOperation>,
@@ -9,9 +10,9 @@ export interface IPaymasterAPI {
 }
 
 export type PaymasterConfig = {
-  signingServiceUrl: string
-  dappAPIKey: string
+  paymasterUrl: string
   strictSponsorshipMode: boolean
+  // could be added more details. Todo Review: if we're intialising with one instance with fixed token
 }
 
 export interface IFallbackAPI {

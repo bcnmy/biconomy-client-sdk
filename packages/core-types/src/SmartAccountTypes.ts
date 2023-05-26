@@ -27,7 +27,7 @@ export interface SmartAccountConfig {
   signType: SignTypeMethod
   networkConfig: NetworkConfig[]
   entryPointAddress?: string
-  biconomySigningServiceUrl?: string
+  paymasterUrl?: string
   strictSponsorshipMode?: boolean
   bundlerUrl?: string
   environment?: Environments

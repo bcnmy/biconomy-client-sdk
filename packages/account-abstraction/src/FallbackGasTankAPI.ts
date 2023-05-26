@@ -7,8 +7,8 @@ import { Logger } from '@biconomy/common'
  * Verifying and Signing fallback gasless transactions
  */
 export class FallbackGasTankAPI implements IFallbackAPI {
-  constructor(readonly signingServiceUrl: string, readonly dappAPIKey: string) {
-    this.signingServiceUrl = signingServiceUrl
+  constructor(readonly paymasterUrl: string, readonly dappAPIKey: string) {
+    this.paymasterUrl = paymasterUrl
     this.dappAPIKey = dappAPIKey
   }
 
@@ -32,7 +32,7 @@ export class FallbackGasTankAPI implements IFallbackAPI {
       // move dappAPIKey in headers
       /* eslint-disable  @typescript-eslint/no-explicit-any */
       const result: any = await sendRequest({
-        url: `${this.signingServiceUrl}/fallback-user-op`,
+        url: `${this.paymasterUrl}/fallback-user-op`,
         method: HttpMethod.Post,
         headers: { 'x-api-key': this.dappAPIKey },
         body: { fallbackUserOp: fallbackUserOp }

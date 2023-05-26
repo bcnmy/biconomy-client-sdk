@@ -3,16 +3,14 @@ import { UserOperation } from '@biconomy/core-types'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
 import { IPaymasterAPI, PaymasterConfig, PaymasterServiceDataType } from '@biconomy/core-types'
 import { Logger } from '@biconomy/common'
+import { PaymasterAPI } from './PaymasterAPI'
 
 /**
- * Verifying Paymaster API supported via Biconomy dahsboard to enable Gasless transactions
+ * ERC20 Token Paymaster API supported via Biconomy dahsboard to enable Gas payments in ERC20 tokens
  */
-// TODO: possibly rename to BiconomyVerifyingPaymasterAPI
-export class BiconomyPaymasterAPI implements IPaymasterAPI {
-  paymasterConfig: PaymasterConfig
-
-  constructor(paymasterConfig: PaymasterConfig) {
-    this.paymasterConfig = paymasterConfig
+export class BiconomyTokenPaymasterAPI extends PaymasterAPI {
+  constructor(readonly paymasterConfig: PaymasterConfig) {
+    super()
   }
 
   async getPaymasterAndData(
@@ -33,7 +31,7 @@ export class BiconomyPaymasterAPI implements IPaymasterAPI {
       // move dappAPIKey in headers
       /* eslint-disable  @typescript-eslint/no-explicit-any */
       const result: any = await sendRequest({
-        url: `${this.paymasterConfig.signingServiceUrl}/user-op`,
+        url: `${this.paymasterConfig.paymasterUrl}/user-op`,
         method: HttpMethod.Post,
         headers: { 'x-api-key': this.paymasterConfig.dappAPIKey },
         body: { userOp: userOp, paymasterServiceData: paymasterServiceData }

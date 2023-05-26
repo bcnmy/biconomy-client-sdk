@@ -8,7 +8,7 @@ import { TransactionDetailsForBatchUserOp } from './TransactionDetailsForUserOp'
 import { UserOperation, UserOpGasFields } from '@biconomy/core-types'
 import { BaseApiParams, BaseAccountAPI } from './BaseAccountAPI'
 import { Provider } from '@ethersproject/providers'
-import { BiconomyPaymasterAPI } from './BiconomyPaymasterAPI'
+import { BiconomyVerifyingPaymasterAPI } from './BiconomyVerifyingPaymasterAPI'
 import { resolveProperties } from 'ethers/lib/utils'
 import { calcPreVerificationGas, GasOverheads } from './calcPreVerificationGas'
 import {
@@ -17,6 +17,7 @@ import {
   EIP1559_UNSUPPORTED_NETWORKS
 } from '@biconomy/common'
 import { HttpRpcClient } from './HttpRpcClient'
+import { BiconomyTokenPaymasterAPI } from './BiconomyTokenPaymasterAPI'
 
 // may use...
 export interface SmartAccountApiParams extends BaseApiParams {
@@ -84,15 +85,15 @@ export class SmartAccountAPI extends BaseAccountAPI {
     readonly index = 0,
     overheads?: Partial<GasOverheads>
   ) {
+    // Note: todo: clientConfig could itself have PaymasterAPI instead of paymasterUrl or dappAPIKey
     super(provider, entryPoint, clientConfig, accountAddress, overheads)
-    if (!clientConfig.dappAPIKey || clientConfig.dappAPIKey === '') {
+    if (!clientConfig.paymasterUrl || clientConfig.paymasterUrl === '') {
       this.paymasterAPI = undefined
     } else if (clientConfig.customPaymasterAPI) {
       this.paymasterAPI = clientConfig.customPaymasterAPI
     } else {
-      this.paymasterAPI = new BiconomyPaymasterAPI({
-        signingServiceUrl: clientConfig.biconomySigningServiceUrl,
-        dappAPIKey: clientConfig.dappAPIKey,
+      this.paymasterAPI = new BiconomyVerifyingPaymasterAPI({
+        paymasterUrl: clientConfig.paymasterUrl,
         strictSponsorshipMode: clientConfig.strictSponsorshipMode
           ? clientConfig.strictSponsorshipMode
           : false
@@ -185,6 +186,13 @@ export class SmartAccountAPI extends BaseAccountAPI {
    * @param info
    */
   async createUnsignedUserOp(info: TransactionDetailsForBatchUserOp): Promise<UserOperation> {
+    if (this.paymasterAPI instanceof BiconomyTokenPaymasterAPI) {
+      // update calldata accordingly by checking allowance then batching token approval request
+      // possibly paymasterAPI.createTokenApprovalRequest
+      // Note that we would need to know paymaster address and all info we have from config is the URL!
+      // to be done in following method
+    }
+
     const { callData, callGasLimit } = await this.encodeUserOpCallDataAndGasLimit(info)
     console.log(callData, callGasLimit)
 

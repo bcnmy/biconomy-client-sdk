@@ -273,7 +273,7 @@ class SmartAccount extends EventEmitter {
           // Review: default false
           // could come from global set config or method level when we implement fee mode
           strictSponsorshipMode: this.#smartAccountConfig.strictSponsorshipMode || false,
-          biconomySigningServiceUrl: this.#smartAccountConfig.biconomySigningServiceUrl || '',
+          paymasterUrl: this.#smartAccountConfig.paymasterUrl || '',
           socketServerUrl: this.#smartAccountConfig.socketServerUrl || '',
           entryPointAddress: this.#smartAccountConfig.entryPointAddress
             ? this.#smartAccountConfig.entryPointAddress

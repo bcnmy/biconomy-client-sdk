@@ -20,7 +20,7 @@ export const ProductionConfig: SmartAccountConfig = {
   relayerUrl: 'https://sdk-relayer.prod.biconomy.io/api/v1/relay',
   socketServerUrl: 'wss://sdk-ws.prod.biconomy.io/connection/websocket',
   bundlerUrl: 'https://sdk-relayer.prod.biconomy.io/api/v1/relay',
-  biconomySigningServiceUrl: 'https://paymaster-signing-service.prod.biconomy.io/api/v1/sign',
+  paymasterUrl: 'https://paymaster-signing-service.prod.biconomy.io/api/v1/sign',
   strictSponsorshipMode: false,
   networkConfig: [
     {
@@ -84,7 +84,7 @@ export const StagingConfig: SmartAccountConfig = {
   relayerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
   socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
   bundlerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
-  biconomySigningServiceUrl: 'https://paymaster-signing-service.staging.biconomy.io/api/v1/sign',
+  paymasterUrl: 'https://paymaster-signing-service.staging.biconomy.io/api/v1/sign',
   strictSponsorshipMode: false,
   networkConfig: [
     {
@@ -128,7 +128,7 @@ export const DevelopmentConfig: SmartAccountConfig = {
   relayerUrl: 'https://sdk-relayer.test.biconomy.io/api/v1/relay',
   socketServerUrl: 'wss://sdk-testing-ws.test.biconomy.io/connection/websocket',
   bundlerUrl: 'https://sdk-relayer.test.biconomy.io/api/v1/relay',
-  biconomySigningServiceUrl: 'https://paymaster-signing-service.test.biconomy.io/api/v1/sign',
+  paymasterUrl: 'https://paymaster-signing-service.test.biconomy.io/api/v1/sign',
   strictSponsorshipMode: false,
   networkConfig: [
     {
