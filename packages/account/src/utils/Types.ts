@@ -5,10 +5,11 @@ export type SmartAccountConfig = {
     bundlerUrl?: string
 }
 export type BiconomySmartAccountConfig = {
-    signerOrProvider: Web3Provider | Signer,
+    signerOrProvider?: Web3Provider | Signer,
     rpcUrl: string,
     epAddress: string,
     factoryAddress: string,
     bundlerUrl?: string,
-    paymasterUrl?: string
+    paymasterUrl?: string,
+    nodeClientUrl?: string
 }

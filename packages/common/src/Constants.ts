@@ -1,0 +1,1 @@
+export const NODE_CLIENT_URL = 'https://sdk-backend.prod.biconomy.io/v1'
