@@ -790,19 +790,19 @@ class SmartAccount extends EventEmitter {
     }
     if (gasLimit) {
       relayTrx.gasLimit = gasLimit
-    } else {
+    } /*else {
       relayTrx.gasLimit = {
         hex: '0x16E360',
         type: 'hex'
       }
-    }
+    }*/
 
-    if (!isDeployed) {
+    /*if (!isDeployed) {
       relayTrx.gasLimit = {
         hex: '0x1E8480',
         type: 'hex'
       }
-    }
+    }*/
     const relayResponse: RelayResponse = await this.relayer.relay(relayTrx, this)
     if (relayResponse.transactionId) {
       return relayResponse.transactionId

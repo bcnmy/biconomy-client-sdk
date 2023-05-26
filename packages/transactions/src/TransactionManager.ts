@@ -94,7 +94,7 @@ class TransactionManager {
     const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract()
     const isDelegate = transactionDto.transaction.to === multiSendContract.address ? true : false
 
-    const smartAccountState = await this.contractUtils.getSmartAccountState()
+    const smartAccountState = this.contractUtils.getSmartAccountState()
 
     // NOTE : If the wallet is not deployed yet then nonce would be zero
     let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()
@@ -133,7 +133,7 @@ class TransactionManager {
     // NOTE : If the wallet is not deployed yet then nonce would be zero
     const batchId = 1 //fixed nonce space for forward
 
-    const smartAccountState = await this.contractUtils.getSmartAccountState()
+    const smartAccountState = this.contractUtils.getSmartAccountState()
     let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()
     walletContract = walletContract.attach(smartAccountState.address)
 
@@ -170,7 +170,7 @@ class TransactionManager {
   async estimateTransaction(prepareTransactionDto: GetFeeQuotesDto): Promise<number> {
     const { transaction, chainId, version } = prepareTransactionDto
 
-    const smartAccountState = await this.contractUtils.getSmartAccountState()
+    const smartAccountState = this.contractUtils.getSmartAccountState()
 
     // OR just like contractUtils manages context, this class manages state getState(chainId) method
     // const state = await this.getSmartAccountState(chainId);
