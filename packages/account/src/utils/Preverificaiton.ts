@@ -1,7 +1,7 @@
 import { UserOperation } from '@biconomy/core-types' // review
 import { NotPromise, packUserOp } from '@biconomy/common' // '@account-abstraction/utils'
 import { arrayify, hexlify } from 'ethers/lib/utils'
-
+import { BigNumber } from 'ethers'
 export interface GasOverheads {
   /**
    * fixed overhead for entire handleOp bundle.
@@ -90,7 +90,7 @@ export const DefaultGasLimits: VerificationGasLimits = {
 export function calcPreVerificationGas(
   userOp: Partial<NotPromise<UserOperation>>,
   overheads?: Partial<GasOverheads>
-): number {
+): BigNumber {
   const ov = { ...DefaultGasOverheads, ...(overheads ?? {}) }
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   const p: NotPromise<UserOperation> = {
@@ -116,5 +116,5 @@ export function calcPreVerificationGas(
   const ret = Math.round(
     callDataCost + ov.fixed / ov.bundleSize + ov.perUserOp + ov.perUserOpWord * lengthInWord
   )
-  return ret
+  return BigNumber.from(ret)
 }

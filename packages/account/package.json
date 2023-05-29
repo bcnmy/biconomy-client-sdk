@@ -1,12 +1,15 @@
 {
   "name": "@biconomy/account",
   "version": "2.0.0",
-  "description": "This package provides account apis for different 4337 contract account implementations",
+  "description": "This package provides apis for ERC-4337 based smart account implementations",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
   "keywords": [
     "Ethereum",
-    "Gnosis",
+    "Smart Account", 
+    "ERC-4337",
+    "Account Abstraction", 
+    "Smart Contract Wallets",
     "Biconomy",
     "SDK"
   ],
@@ -16,6 +19,7 @@
     "test": "yarn test:concurrently 'yarn test:run'",
     "test:file": "TS_NODE_PROJECT=../../tsconfig.json mocha -r ts-node/register --timeout 30000",
     "test:concurrently": "concurrently -k --success first 'yarn start:ganache > /dev/null'",
+    "test:cov": "jest --coverage",
     "test:run": "yarn test:file tests/**/*.spec.ts",
     "start:ganache": "ganache -m 'direct buyer cliff train rice spirit census refuse glare expire innocent quote'",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
