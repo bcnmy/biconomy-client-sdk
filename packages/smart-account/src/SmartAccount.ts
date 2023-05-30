@@ -29,8 +29,7 @@ import {
   SmartAccountConfig,
   Environments,
   NetworkConfig,
-  ZERO_ADDRESS,
-  IFallbackAPI
+  ZERO_ADDRESS
 } from '@biconomy/core-types'
 import NodeClient, {
   ISmartAccount,
@@ -47,7 +46,6 @@ import { IRelayer, RestRelayer } from '@biconomy/relayer'
 import * as _ from 'lodash'
 import TransactionManager, {
   ContractUtils,
-  encodeMultiSend,
   smartAccountSignMessage,
   smartAccountSignTypedData
 } from '@biconomy/transactions'
@@ -59,13 +57,11 @@ import { DevelopmentConfig, StagingConfig, ProductionConfig } from './config'
 import {
   newProvider,
   ERC4337EthersProvider,
-  FallbackGasTankAPI,
   ERC4337EthersSigner,
   BaseAccountAPI
 } from '@biconomy/account-abstraction'
 import {
   Logger,
-  deployCounterFactualEncodedData,
   getWalletInfo,
   updateImplementationEncodedData,
   fallbackHandlerEncodedData

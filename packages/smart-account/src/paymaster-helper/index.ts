@@ -24,8 +24,8 @@ export async function getPaymaster(
   if (tokenAddress !== undefined) {
     const paymasterAddress = '' // get paymaster address from config or elsewhere api call to paymasterUrl
     if (paymasterAddress !== undefined) {
-      return new BiconomyTokenPaymasterAPI({paymasterUrl: '', strictSponsorshipMode: false})
+      return new BiconomyTokenPaymasterAPI({ paymasterUrl: '', strictSponsorshipMode: false })
     }
   }
-  return new BiconomyVerifyingPaymasterAPI({paymasterUrl:'', strictSponsorshipMode: false})
+  return new BiconomyVerifyingPaymasterAPI({ paymasterUrl: '', strictSponsorshipMode: false })
 }
