@@ -1,7 +1,7 @@
 {
   "name": "@biconomy/particle-auth",
-  "version": "1.0.0",
-  "description": "particle auth for biconomy sdk",
+  "version": "2.0.0",
+  "description": "Particle auth for Biconomy SDK",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
   "keywords": [
