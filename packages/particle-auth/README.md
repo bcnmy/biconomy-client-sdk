@@ -1,4 +1,4 @@
-# `@biconomy/transak`
+# `@biconomy/particle-auth`
 
 > A library to import the particle-auth for web directly from [Biconomy SDK](https://github.com/bcnmy/biconomy-client-sdk)
 
