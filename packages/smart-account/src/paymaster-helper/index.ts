@@ -11,6 +11,12 @@ export async function getPaymaster(
   feeToken?: string
 ): Promise<PaymasterAPI> {
   const tokenAddress = ''
+
+  console.log(paymasterUrl)
+  console.log(chainId)
+  console.log(entryPointAddress)
+  console.log(feeToken)
+
   // todo // review
   // get the tokenAddress based on what is requested
   // we could have token less instance and override when making a request. need to think about this
@@ -18,8 +24,8 @@ export async function getPaymaster(
   if (tokenAddress !== undefined) {
     const paymasterAddress = '' // get paymaster address from config or elsewhere api call to paymasterUrl
     if (paymasterAddress !== undefined) {
-      return new BiconomyTokenPaymasterAPI({})
+      return new BiconomyTokenPaymasterAPI({paymasterUrl: '', strictSponsorshipMode: false})
     }
   }
-  // return new BiconomyVerifyingPaymasterAPI({})
+  return new BiconomyVerifyingPaymasterAPI({paymasterUrl:'', strictSponsorshipMode: false})
 }

@@ -62,20 +62,19 @@ describe('SmartAccountAPI', async () => {
     userSCW = baseWalletContract.attach(expectedSCW)
 
     const clientConfig = {
-      dappAPIKey: '',
       chainId: chainId,
       entryPointAddress: entryPoint.address,
       biconomySigningServiceUrl:
         'https://paymaster-signing-service.staging.biconomy.io/api/v1/sign',
       socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
       bundlerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
-      txServiceUrl: 'https://sdk-backend.staging.biconomy.io/v1'
+      txServiceUrl: 'https://sdk-backend.staging.biconomy.io/v1',
+      paymasterUrl: ''
     }
     httpRpcClient = new HttpRpcClient(
       clientConfig.bundlerUrl,
       clientConfig.entryPointAddress,
-      clientConfig.chainId,
-      clientConfig.dappAPIKey
+      clientConfig.chainId
     )
     const entryPointClass = EntryPoint__factory.connect(entryPoint.address, signer)
     api = new SmartAccountAPI(

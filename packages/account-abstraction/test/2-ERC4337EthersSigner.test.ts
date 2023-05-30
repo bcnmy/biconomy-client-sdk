@@ -59,7 +59,7 @@ describe('ERC4337EthersSigner, Provider', function () {
     userSCW = baseWalletContract.attach(expectedSCW)
 
     const clientConfig = {
-      dappAPIKey: '',
+      paymasterUrl: '',
       chainId: chainId,
       entryPointAddress: entryPoint.address,
       biconomySigningServiceUrl:

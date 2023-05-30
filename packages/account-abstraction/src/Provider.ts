@@ -26,8 +26,7 @@ export async function newProvider(
   const httpRpcClient = new HttpRpcClient(
     config.bundlerUrl,
     config.entryPointAddress,
-    config.chainId,
-    config.dappAPIKey
+    config.chainId
   )
 
   const smartWalletAPI = new SmartAccountAPI(

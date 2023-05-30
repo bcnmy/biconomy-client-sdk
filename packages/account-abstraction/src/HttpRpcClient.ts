@@ -16,8 +16,7 @@ export class HttpRpcClient {
   constructor(
     readonly bundlerUrl: string,
     readonly entryPointAddress: string,
-    readonly chainId: number,
-    readonly dappAPIKey: string // added by Biconomy
+    readonly chainId: number
   ) {
     this.userOpJsonRpcProvider = new ethers.providers.JsonRpcProvider(this.bundlerUrl, {
       name: 'Not actually connected to network, only talking to the Bundler!',
@@ -46,16 +45,7 @@ export class HttpRpcClient {
     // const jsonRequestData: [UserOperation, string] = [hexifiedUserOp, this.entryPointAddress]
     // await this.printUserOperation('eth_sendUserOperation', jsonRequestData)
 
-    let params
-
-    if (this.dappAPIKey && this.dappAPIKey !== '') {
-      const metaData = {
-        dappAPIKey: this.dappAPIKey
-      }
-      params = [hexifiedUserOp, this.entryPointAddress, this.chainId, metaData]
-    } else {
-      params = [hexifiedUserOp, this.entryPointAddress, this.chainId]
-    }
+    const params = [hexifiedUserOp, this.entryPointAddress, this.chainId]
 
     const response: any = await sendRequest({
       url: `${this.bundlerUrl}`,
