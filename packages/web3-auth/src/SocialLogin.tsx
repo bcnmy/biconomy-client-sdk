@@ -13,6 +13,7 @@ import { MetamaskAdapter } from '@web3auth/metamask-adapter'
 import { WalletConnectV1Adapter } from '@web3auth/wallet-connect-v1-adapter'
 import QRCodeModal from '@walletconnect/qrcode-modal'
 import NodeClient, { WhiteListSignatureResponse } from '@biconomy/node-client'
+import { BananaPasskeyEoaSigner } from '@rize-labs/banana-passkey-manager'
 
 import UI from './UI'
 import {
@@ -295,6 +296,33 @@ class SocialLogin {
       console.info(`EOA Address ${gotAccount}\nNetwork: ${network}`)
       this.provider = web3authProvider
       return web3authProvider
+    } catch (error) {
+      console.error(error)
+      return error
+    }
+  }
+
+  async passKeyLogin(username: string) {
+    if (!this.web3auth) {
+      console.log('web3auth not initialized yet')
+      return
+    }
+    try {
+      const web3authProvider = await this.web3auth.connectTo(WALLET_ADAPTERS.WALLET_CONNECT_V1)
+      if (!web3authProvider) {
+        console.log('web3authProvider is null')
+        return null
+      }
+      const web3Provider = new ethers.providers.Web3Provider(web3authProvider)
+      const passKeySigner = new BananaPasskeyEoaSigner(web3Provider)
+
+      //! need to initializes signer with unique username
+      await passKeySigner.init(username)
+      const gotAccount = await passKeySigner.getAddress()
+      const network = await web3Provider.getNetwork()
+      console.info(`EOA Address ${gotAccount}\nNetwork: ${network}`)
+      this.provider = web3authProvider
+      return passKeySigner
     } catch (error) {
       console.error(error)
       return error

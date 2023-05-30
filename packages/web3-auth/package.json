@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@biconomy/node-client": "^2.0.0",
+    "@rize-labs/banana-passkey-manager": "^1.0.0",
     "@walletconnect/qrcode-modal": "^1.8.0",
     "@web3auth/base": "^3.0.0",
     "@web3auth/core": "^3.0.0",

@@ -21,6 +21,7 @@ const container = {
 
 const UI: React.FC<UIPorops> = ({ socialLogin }) => {
   const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
 
   function handleEmailSubmit(event: React.SyntheticEvent) {
     event.preventDefault()
@@ -128,6 +129,21 @@ const UI: React.FC<UIPorops> = ({ socialLogin }) => {
               type="button"
               className="w3a-button w3ajs-external-toggle__button"
               onClick={() => socialLogin.walletConnectLogin()}
+            >
+              Use Wallet Connect
+            </button>
+            <input
+              className="w3a-text-field"
+              type="text"
+              name="username"
+              placeholder="username for wallet"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+            <button
+              type="button"
+              className="w3a-button w3ajs-external-toggle__button"
+              onClick={() => socialLogin.passKeyLogin(username)}
             >
               Use Wallet Connect
             </button>
