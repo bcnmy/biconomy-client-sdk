@@ -381,7 +381,8 @@ class TransactionManager {
         transaction: internalTx
       }
       const response = await this.nodeClient.estimateRequiredTxGasOverride(estimateRequiredTxGas)
-      const requiredTxGasEstimate = Number(response.data.gas) + 700000
+      Logger.log('undeployed case estimated targetTxGas ', response.data.gas)
+      const requiredTxGasEstimate = Number(response.data.gas) + 0
       Logger.log('required txgas estimate (with override) ', requiredTxGasEstimate)
       targetTxGas = requiredTxGasEstimate
 
@@ -540,6 +541,7 @@ class TransactionManager {
 
       // not getting accurate value for undeployed wallet
       // TODO
+      Logger.log('undeployed case estimated targetTxGas ', response.data.gas)
       const requiredTxGasEstimate = Number(response.data.gas) + 700000
       Logger.log('required txgas estimate (with override) ', requiredTxGasEstimate)
       targetTxGas = requiredTxGasEstimate
