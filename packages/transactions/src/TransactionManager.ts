@@ -382,7 +382,7 @@ class TransactionManager {
       }
       const response = await this.nodeClient.estimateRequiredTxGasOverride(estimateRequiredTxGas)
       Logger.log('undeployed case estimated targetTxGas ', response.data.gas)
-      const requiredTxGasEstimate = Number(response.data.gas) + 0
+      const requiredTxGasEstimate = Number(response.data.gas) + 700000
       Logger.log('required txgas estimate (with override) ', requiredTxGasEstimate)
       targetTxGas = requiredTxGasEstimate
 
