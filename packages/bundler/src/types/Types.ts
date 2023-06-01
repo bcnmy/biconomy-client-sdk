@@ -1,10 +1,12 @@
 import { ethers, BigNumber } from 'ethers'
+import { ChainId } from '@biconomy/core-types'
 
 
 export type Bundlerconfig = {
     bundlerUrl: string,
     epAddress: string,
-    dappApiKey: string
+    dappApiKey: string,
+    userOpReceiptIntervals?: { [key in ChainId]?: number }
 }
 
 export type UserOpReceipt = {

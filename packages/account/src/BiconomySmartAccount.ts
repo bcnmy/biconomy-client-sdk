@@ -40,7 +40,8 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       bundlerUrl,
       paymasterUrl,
       nodeClientUrl,
-      dappApiKey
+      dappApiKey,
+      userOpReceiptIntervals
     } = biconomySmartAccountConfig
 
     const _epAddress = epAddress ?? epAddresses.default
@@ -55,7 +56,8 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       this.bundler = new Bundler({
         bundlerUrl,
         epAddress: _epAddress,
-        dappApiKey: _dappApiKey
+        dappApiKey: _dappApiKey,
+        userOpReceiptIntervals
       })
     this.provider = new JsonRpcProvider(rpcUrl)
     this.entryPoint = EntryPoint_v100__factory.connect(_epAddress, this.provider)

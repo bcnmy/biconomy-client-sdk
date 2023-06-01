@@ -5,15 +5,17 @@ import { resolveProperties } from 'ethers/lib/utils'
 import { deepHexlify, getTimestampInSeconds } from '@biconomy/common'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
 import { transformUserOP } from './utils/HelperFunction'
-import { BigNumber } from 'ethers'
+import { UserOpReceiptIntervals } from './utils/Constants'
 /**
  * This class implements IBundler interface. 
  * Implementation sends UserOperation to a bundler URL as per ERC4337 standard. 
  * Checkout the proposal for more details on Bundlers.
  */
 export class Bundler implements IBundler {
-
-    constructor(readonly bundlerConfig: Bundlerconfig) { }
+    UserOpReceiptIntervals: { [key in ChainId]?: number }
+    constructor(readonly bundlerConfig: Bundlerconfig) {
+        this.UserOpReceiptIntervals = {...UserOpReceiptIntervals, ...bundlerConfig.userOpReceiptIntervals}
+     }
 
     /**
      * 
@@ -93,7 +95,7 @@ export class Bundler implements IBundler {
                             clearInterval(intervalId);
                             reject(error);
                         }
-                    }, 1000);
+                    }, this.UserOpReceiptIntervals[chainId]);
                 });
             }
         }

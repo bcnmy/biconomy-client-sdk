@@ -17,7 +17,8 @@ export type BiconomySmartAccountConfig = {
   bundlerUrl?: string
   paymasterUrl?: string
   nodeClientUrl?: string,
-  dappApiKey?: string
+  dappApiKey?: string,
+  userOpReceiptIntervals?: { [key in ChainId]?: number }
 }
 
 export type Overrides = {
