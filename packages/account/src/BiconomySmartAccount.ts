@@ -41,13 +41,15 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       paymasterUrl,
       nodeClientUrl,
       dappApiKey,
-      userOpReceiptIntervals
+      userOpReceiptIntervals,
+      strictSponsorshipMode
     } = biconomySmartAccountConfig
 
     const _epAddress = epAddress ?? epAddresses.default
     const _factoryAddress = factoryAddress ?? factoryAddresses.default
     const _dappApiKey = dappApiKey ?? ''
-
+    const _strictSponsorshipMode = strictSponsorshipMode ?? false
+    const _paymasterUrl = paymasterUrl ?? ''
     super({
       bundlerUrl,
       epAddress: _epAddress
@@ -65,7 +67,13 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     this.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL })
     this.signer = signer
 
-    if (paymasterUrl) this.paymaster = new BiconomyPaymasterAPI(paymasterUrl)
+    if (paymasterUrl) {
+      this.paymaster = new BiconomyPaymasterAPI({
+        paymasterServiceUrl: _paymasterUrl,
+        strictSponsorshipMode: _strictSponsorshipMode,
+        dappAPIKey: _dappApiKey
+      })
+    }
   }
   /**
    * @description This function will initialise BiconomyAccount class state

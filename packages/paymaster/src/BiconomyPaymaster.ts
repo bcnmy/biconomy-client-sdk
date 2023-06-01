@@ -2,10 +2,10 @@ import { sendRequest, HttpMethod } from '@biconomy/common'
 import { resolveProperties } from '@ethersproject/properties'
 import { UserOperation } from '@biconomy/core-types'
 import { IPaymasterAPI } from 'interfaces/IPaymaster'
-import { PaymasterAndDataResponse } from './types/Types'
+import { PaymasterAndDataResponse, PaymasterConfig } from './types/Types'
 
 export class BiconomyPaymasterAPI implements IPaymasterAPI {
-    constructor(readonly paymasterServiceUrl: string, readonly strictSponsorshipMode?: boolean) { }
+    constructor(readonly paymasterConfig: PaymasterConfig) { }
   /**
    *
    * @param userOp
@@ -25,21 +25,22 @@ export class BiconomyPaymasterAPI implements IPaymasterAPI {
       userOp.paymasterAndData = '0x'
 
       const result: PaymasterAndDataResponse = await sendRequest({
-        url: this.paymasterServiceUrl,
+        url: this.paymasterConfig.paymasterServiceUrl,
         method: HttpMethod.Post,
+        headers: { 'x-api-key': this.paymasterConfig.dappAPIKey },
         body: { userOp: userOp }
       })
 
       if (result && result.data && result.statusCode === 200) {
         return result.data.paymasterAndData
       } else {
-        if (!this.strictSponsorshipMode) {
+        if (!this.paymasterConfig.strictSponsorshipMode) {
           return '0x'
         }
       }
     } catch (error) {
       console.log('error while getting paymaster response', error)
-      if (this.strictSponsorshipMode) {
+      if (this.paymasterConfig.strictSponsorshipMode) {
         throw error
       }
     }

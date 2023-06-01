@@ -18,6 +18,7 @@ export type BiconomySmartAccountConfig = {
   paymasterUrl?: string
   nodeClientUrl?: string,
   dappApiKey?: string,
+  strictSponsorshipMode?: boolean
   userOpReceiptIntervals?: { [key in ChainId]?: number }
 }
 
