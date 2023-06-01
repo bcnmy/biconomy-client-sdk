@@ -777,7 +777,11 @@ class SmartAccount extends EventEmitter {
     rawTx.data = execTransaction.data
 
     const state = await this.contractUtils.getSmartAccountState()
-
+    if ( !state.isDeployed ){
+    const isDeployed = await this.isDeployed(chainId)
+    state.isDeployed = isDeployed
+    this.contractUtils.setSmartAccountState(state)
+    }
     const signedTx: SignedTransaction = {
       rawTx,
       tx
@@ -861,6 +865,11 @@ class SmartAccount extends EventEmitter {
     rawTx.data = execTransaction.data
 
     const state = await this.contractUtils.getSmartAccountState()
+    if ( !state.isDeployed ){
+      const isDeployed = await this.isDeployed(chainId)
+      state.isDeployed = isDeployed
+      this.contractUtils.setSmartAccountState(state)
+      }
 
     const signedTx: SignedTransaction = {
       rawTx,
