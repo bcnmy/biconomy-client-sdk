@@ -62,10 +62,34 @@ export abstract class SmartAccount implements ISmartAccount {
     this.validateUserOp(userOp, requiredFields)
 
     // Override gas values in userOp if provided in overrides params
-    if ( overrides ){
-      userOp = {...userOp, ...overrides}
+    if (overrides) {
+      userOp = { ...userOp, ...overrides }
     }
-    
+
+    console.log('userOp in estimation', userOp);
+
+    // Defining the keys that are related that can be overrides
+    const overrideGasFields: UserOperationKey[] = [
+      'maxFeePerGas',
+      'maxPriorityFeePerGas',
+      'verificationGasLimit',
+      'callGasLimit',
+      'preVerificationGas'
+    ];
+
+   // here we are verifying either all necessary gas properties are present in userOp.
+    let skipEstimations = true;
+    for (const key of overrideGasFields) {
+      if (!userOp[key]) {
+        skipEstimations = false;
+        break;
+      }
+    }
+   // If all necessary properties are present in userOp. we will skip estimation and return userOp
+    if (skipEstimations) {
+      return userOp
+    }
+
     if (!this.bundler) {
       if (!this.provider) throw new Error('Provider is not present for making rpc calls')
       // if no bundler url is provided run offchain logic to assign following values of UserOp
@@ -73,8 +97,8 @@ export abstract class SmartAccount implements ISmartAccount {
       const feeData = await this.provider.getFeeData()
       userOp.maxFeePerGas = userOp.maxFeePerGas ?? feeData.maxFeePerGas ?? (await this.provider.getGasPrice())
       userOp.maxPriorityFeePerGas = userOp.maxPriorityFeePerGas ?? feeData.maxPriorityFeePerGas ?? (await this.provider.getGasPrice())
-      if ( userOp.initCode )
-      userOp.verificationGasLimit = userOp.verificationGasLimit ?? await this.getVerificationGasLimit(userOp.initCode)
+      if (userOp.initCode)
+        userOp.verificationGasLimit = userOp.verificationGasLimit ?? await this.getVerificationGasLimit(userOp.initCode)
       userOp.callGasLimit = userOp.callGasLimit ?? await this.provider.estimateGas({
         from: this.smartAccountConfig.epAddress,
         to: userOp.sender,
@@ -90,18 +114,18 @@ export abstract class SmartAccount implements ISmartAccount {
         maxFeePerGas,
         maxPriorityFeePerGas
       } = await this.bundler.getUserOpGasFields(userOp, this.chainId)
-      if ((!userOp.maxFeePerGas &&  !userOp.maxPriorityFeePerGas) && (!maxFeePerGas || !maxPriorityFeePerGas)) {
+      if ((!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas) && (!maxFeePerGas || !maxPriorityFeePerGas)) {
         const feeData = await this.provider.getFeeData()
-        userOp.maxFeePerGas =  feeData.maxFeePerGas ?? (await this.provider.getGasPrice())
-        userOp.maxPriorityFeePerGas =  feeData.maxPriorityFeePerGas ?? (await this.provider.getGasPrice())
+        userOp.maxFeePerGas = feeData.maxFeePerGas ?? (await this.provider.getGasPrice())
+        userOp.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? (await this.provider.getGasPrice())
       }
       else {
         userOp.maxFeePerGas = userOp.maxFeePerGas ?? maxFeePerGas
         userOp.maxPriorityFeePerGas = userOp.maxPriorityFeePerGas ?? maxPriorityFeePerGas
       }
-      userOp.verificationGasLimit = verificationGasLimit
-      userOp.callGasLimit = callGasLimit
-      userOp.preVerificationGas = preVerificationGas
+      userOp.verificationGasLimit = userOp.verificationGasLimit ?? verificationGasLimit
+      userOp.callGasLimit = userOp.callGasLimit ?? callGasLimit
+      userOp.preVerificationGas = userOp.preVerificationGas ?? preVerificationGas
     }
     return userOp
   }
@@ -209,7 +233,7 @@ export abstract class SmartAccount implements ISmartAccount {
     const bundlerResponse = await this.sendUserOp(userOperation)
     return bundlerResponse
   }
-  
+
   /**
    * 
    * @param userOp 
