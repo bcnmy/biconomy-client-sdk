@@ -1,13 +1,22 @@
 import { UserOperation, ChainId } from '@biconomy/core-types'
 import { BigNumber } from 'ethers'
 
+
 export const transformUserOP = (userOp: UserOperation): UserOperation => {
-    const userOperation = {...userOp}
-    userOperation.nonce = BigNumber.from(userOp.nonce).toHexString() ?? userOp.nonce
-    userOperation.callGasLimit = BigNumber.from(userOp.callGasLimit).toHexString() ?? userOp.nonce
-    userOperation.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toHexString() ?? userOp.nonce
-    userOperation.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toHexString() ?? userOp.nonce
-    userOperation.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toHexString() ?? userOp.nonce
-    userOperation.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toHexString() ?? userOp.nonce
-    return userOperation
+    try {
+        const userOperation = { ...userOp }
+        const keys: (keyof UserOperation)[] = [
+            'nonce', 'callGasLimit', 'verificationGasLimit', 'preVerificationGas', 
+            'maxFeePerGas', 'maxPriorityFeePerGas'
+        ];
+        for (const key of keys) {
+            if (userOperation[key] && userOperation[key] !== '0' && userOperation[key] !== '0') {
+                userOperation[key] = BigNumber.from(userOp[key]).toHexString();
+            }
+        }
+        return userOperation;
+    } catch (error) {
+        console.error(`Failed to transform user operation: ${error}`);
+        throw error
+    }
 }

@@ -1,15 +1,29 @@
-import { Web3Provider } from '@ethersproject/providers'
 import { Signer } from 'ethers'
+import { ChainId } from '@biconomy/core-types'
+import { BigNumberish } from 'ethers'
+
+
 export type SmartAccountConfig = {
   epAddress: string
   bundlerUrl?: string
 }
+
 export type BiconomySmartAccountConfig = {
-  signerOrProvider?: Web3Provider | Signer
-  rpcUrl: string
-  epAddress: string
-  factoryAddress: string
+  signer: Signer,
+  rpcUrl?: string,
+  chainId?: ChainId
+  epAddress?: string
+  factoryAddress?: string
   bundlerUrl?: string
   paymasterUrl?: string
-  nodeClientUrl?: string
+  nodeClientUrl?: string,
+  dappApiKey?: string
+}
+
+export type Overrides = {
+  callGasLimit?: BigNumberish,
+  verificationGasLimit?: BigNumberish,
+  preVerificationGas?: BigNumberish,
+  maxFeePerGas?: BigNumberish,
+  maxPriorityFeePerGas?: BigNumberish
 }

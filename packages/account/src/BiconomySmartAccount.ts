@@ -1,6 +1,6 @@
 import { JsonRpcProvider, Web3Provider, Provider } from '@ethersproject/providers'
 import { Signer, ethers, BigNumberish, BytesLike, BigNumber } from 'ethers'
-import { SmartAccount, DEFAULT_USER_OP } from './BaseAccount'
+import { SmartAccount } from './BaseAccount'
 import { BiconomyPaymasterAPI } from '@biconomy/paymaster'
 import {
   NODE_CLIENT_URL,
@@ -9,7 +9,7 @@ import {
   SmartAccountFactory_v100__factory,
   SmartAccount_v100__factory
 } from '@biconomy/common'
-import { BiconomySmartAccountConfig } from './utils/Types'
+import { BiconomySmartAccountConfig, Overrides } from './utils/Types'
 import { UserOperation, Transaction } from '@biconomy/core-types'
 import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
@@ -24,6 +24,7 @@ import {
   SmartAccountsResponse,
   SCWTransactionResponse
 } from '@biconomy/node-client'
+import { epAddresses, factoryAddresses } from './utils/Constants'
 
 export class BiconomySmartAccount extends SmartAccount implements IBiconomySmartAccount {
   private factory: SmartAccountFactory_v100
@@ -32,36 +33,36 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
 
   constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountConfig) {
     const {
-      signerOrProvider,
+      signer,
       rpcUrl,
       epAddress,
       factoryAddress,
       bundlerUrl,
       paymasterUrl,
-      nodeClientUrl
+      nodeClientUrl,
+      dappApiKey
     } = biconomySmartAccountConfig
+
+    const _epAddress = epAddress ?? epAddresses.default
+    const _factoryAddress = factoryAddress ?? factoryAddresses.default
+    const _dappApiKey = dappApiKey ?? ''
+
     super({
       bundlerUrl,
-      epAddress
+      epAddress: _epAddress
     })
     if (bundlerUrl)
       this.bundler = new Bundler({
         bundlerUrl,
-        epAddress
+        epAddress: _epAddress,
+        dappApiKey: _dappApiKey
       })
     this.provider = new JsonRpcProvider(rpcUrl)
-    this.entryPoint = EntryPoint_v100__factory.connect(epAddress, this.provider)
-    this.factory = SmartAccountFactory_v100__factory.connect(factoryAddress, this.provider)
+    this.entryPoint = EntryPoint_v100__factory.connect(_epAddress, this.provider)
+    this.factory = SmartAccountFactory_v100__factory.connect(_factoryAddress, this.provider)
     this.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL })
-    try {
-      if (Signer.isSigner(signerOrProvider)) {
-        this.signer = signerOrProvider
-      } else if (Provider.isProvider(signerOrProvider)) {
-        this.signer = signerOrProvider.getSigner()
-      }
-    } catch (error) {
-      throw new Error('No signer provided')
-    }
+    this.signer = signer
+
     if (paymasterUrl) this.paymaster = new BiconomyPaymasterAPI(paymasterUrl)
   }
   /**
@@ -70,15 +71,16 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
    */
   async init(accountIndex: number = 0): Promise<BiconomySmartAccount> {
     try {
-      this.isProviderDefine()
-      this.isSignerDefine()
+      this.isProviderDefined()
+      this.isSignerDefined()
       this.setAccountIndex(accountIndex)
       this.chainId = await this.provider.getNetwork().then((net) => net.chainId)
       await this.getInitCode(accountIndex)
       const address = await this.getSmartAccountAddress(accountIndex)
       this.proxy = await SmartAccount_v100__factory.connect(address, this.provider)
-    } catch (error: any) {
-      throw Error(error)
+    } catch (error) {
+      console.error(`Failed to call init: ${error}`);
+      throw error
     }
 
     return this
@@ -90,7 +92,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
 
   async getSmartAccountAddress(accountIndex: number = 0): Promise<string> {
     try {
-      this.isSignerDefine()
+      this.isSignerDefined()
       this.getInitCode(accountIndex)
       const address = await this.factory.getAddressForCounterFactualAccount(
         await this.signer.getAddress(),
@@ -117,7 +119,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
    * @returns
    */
   nonce(): Promise<BigNumber> {
-    this.isProxyDefine()
+    this.isProxyDefined()
     return this.proxy.nonce()
   }
   /**
@@ -127,9 +129,10 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
    * @param data represent data associated with transaction
    * @returns
    */
-  getExecuteCallData(to: string, value: BigNumberish, data: BytesLike) {
-    this.isProxyDefine()
-    return this.proxy.interface.encodeFunctionData('executeCall', [to, value, data])
+  getExecuteCallData(to: string, value: BigNumberish, data: BytesLike): string {
+    this.isProxyDefined()
+    const executeCallData = this.proxy.interface.encodeFunctionData('executeCall', [to, value, data])
+    return executeCallData
   }
   /**
    *
@@ -138,37 +141,40 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
    * @param data represent array of data associated with each transaction
    * @returns
    */
-  getExecuteBatchCallData(to: Array<string>, value: Array<BigNumberish>, data: Array<BytesLike>) {
-    this.isProxyDefine()
-    return this.proxy.interface.encodeFunctionData('executeBatchCall', [to, value, data])
+  getExecuteBatchCallData(to: Array<string>, value: Array<BigNumberish>, data: Array<BytesLike>): string {
+    this.isProxyDefined()
+    const executeBatchCallData = this.proxy.interface.encodeFunctionData('executeBatchCall', [to, value, data])
+    return executeBatchCallData
   }
 
-  async buildUserOp(transactions: Transaction[]): Promise<UserOperation> {
+  async buildUserOp(transactions: Transaction[], overrides?: Overrides): Promise<Partial<UserOperation>> {
     const to = transactions.map((element: Transaction) => element.to)
     const data = transactions.map((element: Transaction) => element.data ?? '0x')
     const value = transactions.map((element: Transaction) => element.value ?? BigNumber.from('0'))
-    this.isProxyDefine()
+    this.isProxyDefined()
 
     let callData = ''
     if (transactions.length === 1) {
-      callData = this.proxy.interface.encodeFunctionData('executeCall', [to[0], value[0], data[0]])
+      callData = this.getExecuteCallData(to[0], value[0], data[0])
     } else {
-      callData = this.proxy.interface.encodeFunctionData('executeBatchCall', [to, value, data])
+      callData = this.getExecuteBatchCallData(to, value, data)
     }
 
-    let userOp: UserOperation = { ...DEFAULT_USER_OP }
-    userOp.sender = await this.getSmartAccountAddress()
-    userOp.nonce = await this.nonce()
-    userOp.initCode = userOp.nonce.eq(0) ? await this.getInitCode() : '0x'
-    userOp.callData = callData
+    const nonce = await this.nonce()
+    let userOp: Partial<UserOperation> = {
+      sender: await this.getSmartAccountAddress(),
+      nonce,
+      initCode: nonce.eq(0) ? await this.getInitCode() : '0x',
+      callData: callData
+    }    
 
-    userOp = await this.estimateUserOpGas(userOp)
-    userOp = await this.getPaymasterAndData(userOp)
+    userOp = await this.estimateUserOpGas(userOp, overrides),
+    userOp.paymasterAndData = await this.getPaymasterAndData(userOp)
     return userOp
   }
 
   async getAllTokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse> {
-    return this.nodeClient.getAlltokenBalances(balancesDto)
+    return this.nodeClient.getAllTokenBalances(balancesDto)
   }
 
   async getTotalBalanceInUsd(balancesDto: BalancesDto): Promise<UsdBalanceResponse> {

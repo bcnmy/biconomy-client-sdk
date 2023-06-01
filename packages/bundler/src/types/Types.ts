@@ -3,7 +3,8 @@ import { ethers, BigNumber } from 'ethers'
 
 export type Bundlerconfig = {
     bundlerUrl: string,
-    epAddress: string
+    epAddress: string,
+    dappApiKey: string
 }
 
 export type UserOpReceipt = {
@@ -20,18 +21,35 @@ export type UserOpReceipt = {
   receipt: ethers.providers.TransactionReceipt
 }
 
+export type GetUserOperationResponse = {
+  statusCode: number,
+  message: string,
+  result: UserOpReceipt
+}
+
+
+export type SendUserOperationResponse = {
+  statusCode: number,
+  message: string,
+  result: string
+}
+
 export type UserOpResponse = {
-  result: string,
+  userOpHash: string,
   wait(confirmations?: number): Promise<UserOpReceipt>
 }
 
+
+export type GetUserOpGasFieldsResponse = {
+  statusCode: number,
+  message: string,
+  result: UserOpGasFieldsResponse
+}
+
 export type UserOpGasFieldsResponse = {
-  result: {
     preVerificationGas: string
     verificationGasLimit: string
     callGasLimit: string
     maxPriorityFeePerGas: string
     maxFeePerGas: string
-    gasPrice: string
-  }
 }

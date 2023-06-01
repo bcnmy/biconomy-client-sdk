@@ -5,29 +5,12 @@ import { defaultAbiCoder, keccak256, arrayify, isBytesLike } from 'ethers/lib/ut
 import { UserOperation, ChainId } from '@biconomy/core-types'
 import { calcPreVerificationGas, DefaultGasLimits } from './utils/Preverificaiton'
 import { packUserOp } from '@biconomy/common'
-import {
-  DEFAULT_CALL_GAS_LIMIT,
-  DEFAULT_VERIFICATION_GAS_LIMIT,
-  DEFAULT_PRE_VERIFICATION_GAS,
-  EIP1559_UNSUPPORTED_NETWORKS
-} from './utils/Constants'
+
 import { IBundler, UserOpResponse } from '@biconomy/bundler'
 import { IPaymasterAPI } from '@biconomy/paymaster'
 import { EntryPoint_v100, SmartAccount_v100 } from '@biconomy/common'
-import { SmartAccountConfig } from './utils/Types'
-export const DEFAULT_USER_OP: UserOperation = {
-  sender: ethers.constants.AddressZero,
-  nonce: ethers.constants.Zero,
-  initCode: ethers.utils.hexlify('0x'),
-  callData: ethers.utils.hexlify('0x'),
-  callGasLimit: DEFAULT_CALL_GAS_LIMIT,
-  verificationGasLimit: DEFAULT_VERIFICATION_GAS_LIMIT,
-  preVerificationGas: DEFAULT_PRE_VERIFICATION_GAS,
-  maxFeePerGas: ethers.constants.Zero,
-  maxPriorityFeePerGas: ethers.constants.Zero,
-  paymasterAndData: ethers.utils.hexlify('0x'),
-  signature: ethers.utils.hexlify('0x')
-}
+import { SmartAccountConfig, Overrides } from './utils/Types'
+
 type UserOperationKey = keyof UserOperation
 
 export abstract class SmartAccount implements ISmartAccount {
@@ -40,82 +23,81 @@ export abstract class SmartAccount implements ISmartAccount {
   chainId!: ChainId
   signer!: Signer
 
-  constructor(readonly smartAccountConfig: SmartAccountConfig) {}
+  constructor(readonly smartAccountConfig: SmartAccountConfig) { }
 
-  private validateUserOp(userOp: UserOperation, requiredFields: UserOperationKey[]): boolean {
+  private validateUserOp(userOp: Partial<UserOperation>, requiredFields: UserOperationKey[]): boolean {
     for (let field of requiredFields) {
       if (!userOp[field]) {
-        throw new Error(`${userOp[field]} is missing or have invalid value`)
+        throw new Error(`${field} is missing`)
       }
     }
     return true
   }
 
-  isProxyDefine(): boolean {
+  isProxyDefined(): boolean {
     if (!this.proxy) throw new Error('Proxy is undefined')
 
     return true
   }
 
-  isSignerDefine(): boolean {
+  isSignerDefined(): boolean {
     if (!this.signer) throw new Error('Signer is undefined')
 
     return true
   }
 
-  isProviderDefine(): boolean {
+  isProviderDefined(): boolean {
     if (!this.provider) throw new Error('Provider is undefined')
 
     return true
   }
 
-  async estimateUserOpGas(userOp: UserOperation): Promise<UserOperation> {
+  async estimateUserOpGas(userOp: Partial<UserOperation>, overrides?: Overrides): Promise<Partial<UserOperation>> {
     const requiredFields: UserOperationKey[] = [
       'sender',
       'nonce',
       'initCode',
-      'callData',
-      'callGasLimit',
-      'paymasterAndData'
+      'callData'
     ]
     this.validateUserOp(userOp, requiredFields)
+
+    // Override gas values in userOp if provided in overrides params
+    if ( overrides ){
+      userOp = {...userOp, ...overrides}
+    }
+    
     if (!this.bundler) {
       if (!this.provider) throw new Error('Provider is not present for making rpc calls')
-      // if no bundler url is provided run offchain logic to assign following values of user
+      // if no bundler url is provided run offchain logic to assign following values of UserOp
       // maxFeePerGas, maxPriorityFeePerGas, verificationGasLimit, callGasLimit, preVerificationGas
       const feeData = await this.provider.getFeeData()
-      if (EIP1559_UNSUPPORTED_NETWORKS.includes(this.chainId)) {
-        // assign gasPrice to both maxFeePerGas and maxPriorityFeePerGas in case chain does not support Type2 transaction
-        userOp.maxFeePerGas = userOp.maxPriorityFeePerGas =
-          feeData.gasPrice ?? (await this.provider.getGasPrice())
-      } else {
-        if (!feeData.maxFeePerGas || !feeData.maxPriorityFeePerGas)
-          throw new Error('Unable to get maxFeePerGas and maxPriorityFeePerGas from provider')
-        userOp.maxFeePerGas = feeData.maxFeePerGas
-        userOp.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas
-      }
-      userOp.verificationGasLimit = await this.getVerificationGasLimit(userOp.initCode)
-      userOp.callGasLimit = await this.provider.estimateGas({
+      userOp.maxFeePerGas = userOp.maxFeePerGas ?? feeData.maxFeePerGas ?? (await this.provider.getGasPrice())
+      userOp.maxPriorityFeePerGas = userOp.maxPriorityFeePerGas ?? feeData.maxPriorityFeePerGas ?? (await this.provider.getGasPrice())
+      if ( userOp.initCode )
+      userOp.verificationGasLimit = userOp.verificationGasLimit ?? await this.getVerificationGasLimit(userOp.initCode)
+      userOp.callGasLimit = userOp.callGasLimit ?? await this.provider.estimateGas({
         from: this.smartAccountConfig.epAddress,
         to: userOp.sender,
         data: userOp.callData
       })
-      userOp.preVerificationGas = this.getPreVerificationGas(userOp)
+      userOp.preVerificationGas = userOp.preVerificationGas ?? this.getPreVerificationGas(userOp)
     } else {
       // Making call to bundler to get gas estimations for userOp
-      const gasEstimationResponse = await this.bundler.getUserOpGasFields(userOp, this.chainId)
       const {
         callGasLimit,
         verificationGasLimit,
         preVerificationGas,
-        gasPrice,
         maxFeePerGas,
         maxPriorityFeePerGas
-      } = gasEstimationResponse.result
-      if (gasPrice) userOp.maxFeePerGas = userOp.maxPriorityFeePerGas = gasPrice
+      } = await this.bundler.getUserOpGasFields(userOp, this.chainId)
+      if ((!userOp.maxFeePerGas &&  !userOp.maxPriorityFeePerGas) && (!maxFeePerGas || !maxPriorityFeePerGas)) {
+        const feeData = await this.provider.getFeeData()
+        userOp.maxFeePerGas =  feeData.maxFeePerGas ?? (await this.provider.getGasPrice())
+        userOp.maxPriorityFeePerGas =  feeData.maxPriorityFeePerGas ?? (await this.provider.getGasPrice())
+      }
       else {
-        userOp.maxFeePerGas = maxFeePerGas
-        userOp.maxPriorityFeePerGas = maxPriorityFeePerGas
+        userOp.maxFeePerGas = userOp.maxFeePerGas ?? maxFeePerGas
+        userOp.maxPriorityFeePerGas = userOp.maxPriorityFeePerGas ?? maxPriorityFeePerGas
       }
       userOp.verificationGasLimit = verificationGasLimit
       userOp.callGasLimit = callGasLimit
@@ -124,15 +106,15 @@ export abstract class SmartAccount implements ISmartAccount {
     return userOp
   }
 
-  async getPaymasterAndData(userOp: UserOperation): Promise<UserOperation> {
+  async getPaymasterAndData(userOp: Partial<UserOperation>): Promise<string> {
     if (this.paymaster) {
-      userOp.paymasterAndData = await this.paymaster.getPaymasterAndData(userOp)
+      return this.paymaster.getPaymasterAndData(userOp)
     }
-    return userOp
+    return '0x'
   }
 
   nonce(): Promise<BigNumber> {
-    this.isProxyDefine()
+    this.isProxyDefined()
     return this.proxy.nonce()
   }
 
@@ -153,15 +135,13 @@ export abstract class SmartAccount implements ISmartAccount {
   async getVerificationGasLimit(initCode: BytesLike): Promise<BigNumber> {
     // Verification gas should be max(initGas(wallet deployment) + validateUserOp + validatePaymasterUserOp , postOp)
     const initGas = await this.estimateCreationGas(initCode)
-    console.log('initgas estimated is ', initGas)
 
-    let verificationGasLimit = initGas
     const validateUserOpGas = BigNumber.from(
       DefaultGasLimits.validatePaymasterUserOpGas + DefaultGasLimits.validateUserOpGas
     )
     const postOpGas = BigNumber.from(DefaultGasLimits.postOpGas)
 
-    verificationGasLimit = BigNumber.from(validateUserOpGas).add(initGas)
+    let verificationGasLimit = BigNumber.from(validateUserOpGas).add(initGas)
 
     if (BigNumber.from(postOpGas).gt(verificationGasLimit)) {
       verificationGasLimit = postOpGas
@@ -169,7 +149,7 @@ export abstract class SmartAccount implements ISmartAccount {
     return verificationGasLimit
   }
 
-  async getUserOpHash(userOp: UserOperation): Promise<string> {
+  async getUserOpHash(userOp: Partial<UserOperation>): Promise<string> {
     const userOpHash = keccak256(packUserOp(userOp, true))
     const enc = defaultAbiCoder.encode(
       ['bytes32', 'address', 'uint256'],
@@ -190,7 +170,7 @@ export abstract class SmartAccount implements ISmartAccount {
     return await this.provider.estimateGas({ to: deployerAddress, data: deployerCallData })
   }
 
-  async signUserOp(userOp: UserOperation): Promise<UserOperation> {
+  async signUserOp(userOp: Partial<UserOperation>): Promise<UserOperation> {
     const requiredFields: UserOperationKey[] = [
       'sender',
       'nonce',
@@ -211,14 +191,32 @@ export abstract class SmartAccount implements ISmartAccount {
       const correctV = potentiallyIncorrectV + 27
       signature = signature.slice(0, -2) + correctV.toString(16)
     }
-    if (signature.slice(0, 2) !== '0x') signature = '0x' + signature
-    console.log('userOp signature: ', signature)
+    if (signature.slice(0, 2) !== '0x') {
+      signature = '0x' + signature
+    }
     userOp.signature = signature
-    console.log(userOp)
-    return userOp
+    return userOp as UserOperation
   }
 
-  async sendUserOp(userOp: UserOperation): Promise<UserOpResponse> {
+  /**
+   * 
+   * @param userOp 
+   * @description This function call will take 'unsignedUserOp' as an input, sign it with the owner key, and send it to the bundler.
+   * @returns Promise<UserOpResponse>
+   */
+  async sendUserOp(userOp: Partial<UserOperation>): Promise<UserOpResponse> {
+    let userOperation = await this.signUserOp(userOp)
+    const bundlerResponse = await this.sendUserOp(userOperation)
+    return bundlerResponse
+  }
+  
+  /**
+   * 
+   * @param userOp 
+   * @description This function call will take 'signedUserOp' as input and send it to the bundler for mining.
+   * @returns 
+   */
+  async sendSignedUserOp(userOp: UserOperation): Promise<UserOpResponse> {
     const requiredFields: UserOperationKey[] = [
       'sender',
       'nonce',
@@ -235,11 +233,6 @@ export abstract class SmartAccount implements ISmartAccount {
     this.validateUserOp(userOp, requiredFields)
     if (!this.bundler) throw new Error('Bundler url is not provided')
     const bundlerResponse = await this.bundler.sendUserOp(userOp, this.chainId)
-    return bundlerResponse
-  }
-  async sendSignedUserOp(userOp: UserOperation): Promise<UserOpResponse> {
-    let userOperation = await this.signUserOp(userOp)
-    const bundlerResponse = await this.sendUserOp(userOperation)
     return bundlerResponse
   }
 }

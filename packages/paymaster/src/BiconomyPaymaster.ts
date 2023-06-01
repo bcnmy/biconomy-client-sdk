@@ -38,7 +38,10 @@ export class BiconomyPaymasterAPI implements IPaymasterAPI {
         }
       }
     } catch (error) {
-      console.log('error while getting paymaster response')
+      console.log('error while getting paymaster response', error)
+      if (this.strictSponsorshipMode) {
+        throw error
+      }
     }
     return '0x'
   }

@@ -8,10 +8,11 @@ import {
   SmartAccountsResponse,
   SCWTransactionResponse
 } from '@biconomy/node-client'
+import { Overrides } from '../utils/Types'
 
 export interface IBiconomySmartAccount {
   setAccountIndex(accountIndex: number): void
-  buildUserOp(transactions: Transaction[]): Promise<UserOperation>
+  buildUserOp(transactions: Transaction[], overrides?: Overrides): Promise<Partial<UserOperation>>
   getAllTokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse>
   getTotalBalanceInUsd(balancesDto: BalancesDto): Promise<UsdBalanceResponse>
   getSmartAccountsByOwner(

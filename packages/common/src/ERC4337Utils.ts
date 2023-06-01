@@ -1,9 +1,9 @@
 import { defaultAbiCoder, hexConcat, hexlify, keccak256 } from 'ethers/lib/utils'
-import { UserOperationStruct } from '@account-abstraction/contracts'
+// import { UserOperationStruct } from '@account-abstraction/contracts'
 import { abi as entryPointAbi } from '@account-abstraction/contracts/artifacts/IEntryPoint.json'
 import { ethers } from 'ethers'
 import Debug from 'debug'
-import { ChainId } from '@biconomy/core-types'
+import { ChainId, UserOperation } from '@biconomy/core-types'
 
 const debug = Debug('aa.utils')
 
@@ -45,8 +45,10 @@ export type NotPromise<T> = {
  * @param forSignature "true" if the hash is needed to calculate the getUserOpHash()
  *  "false" to pack entire UserOp, for calculating the calldata cost of putting it on-chain.
  */
-export function packUserOp(op: NotPromise<UserOperationStruct>, forSignature = true): string {
+export function packUserOp(op: Partial<UserOperation>, forSignature = true): string {
   if (forSignature) {
+    if (!op.initCode || !op.callData || !op.paymasterAndData)
+    op.initCode = op.callData = op.paymasterAndData = '0x'
     return defaultAbiCoder.encode(
       [
         'address',
@@ -116,7 +118,7 @@ export function packUserOp(op: NotPromise<UserOperationStruct>, forSignature = t
  * @param chainId
  */
 export function getUserOpHash(
-  op: NotPromise<UserOperationStruct>,
+  op: Partial<UserOperation>,
   entryPoint: string,
   chainId: number
 ): string {

@@ -104,7 +104,7 @@ class NodeClient implements INodeClient {
     })
   }
 
-  async getAlltokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse> {
+  async getAllTokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/smart-accounts/balances`,
       method: HttpMethod.Post,
@@ -126,7 +126,7 @@ class NodeClient implements INodeClient {
    * @description this function will return the signature for your domain
    * @returns
    */
-  async whitelistUrl(origin: string): Promise<WhiteListSignatureResponse> {
+  async whiteListUrl(origin: string): Promise<WhiteListSignatureResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/whitelist`,
       method: HttpMethod.Post,

@@ -80,7 +80,7 @@ interface INodeClient {
    * address could be EOA or SmartAccount
    * @param balancesDto
    */
-  getAlltokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse>
+  getAllTokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse>
 
   /**
    *
@@ -113,7 +113,7 @@ interface INodeClient {
    * About: Whitelist domain by passing the origin domain
    * Purpose: Returns the signature used in init
    */
-  whitelistUrl(origin: string): Promise<WhiteListSignatureResponse>
+  whiteListUrl(origin: string): Promise<WhiteListSignatureResponse>
 
   /**
    * About: Is fallback enabled in backend
