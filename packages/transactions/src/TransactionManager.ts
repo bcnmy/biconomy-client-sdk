@@ -483,7 +483,7 @@ class TransactionManager {
     const connectedWallet = smartAccountState.address
     walletContract = walletContract.attach(connectedWallet)
 
-    const isDeployed = smartAccountState.isDeployed
+    const isDeployed = await this.contractUtils.isDeployed(chainId, smartAccountState.address)
     // await this.contractUtils.isDeployed(chainId, version, smartAccountState.address);
     let additionalBaseGas = 0
 

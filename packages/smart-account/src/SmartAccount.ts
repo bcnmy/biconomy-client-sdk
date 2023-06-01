@@ -32,6 +32,8 @@ import {
   ZERO_ADDRESS,
   IFallbackAPI
 } from '@biconomy/core-types'
+import EvmNetworkManager from '@biconomy/ethers-lib'
+
 import NodeClient, {
   ISmartAccount,
   ChainConfig,
@@ -46,6 +48,7 @@ import { JsonRpcProvider, Provider, Web3Provider } from '@ethersproject/provider
 import { IRelayer, RestRelayer, FallbackRelayer, IFallbackRelayer } from '@biconomy/relayer'
 import * as _ from 'lodash'
 import TransactionManager, {
+  getSmartWalletFactoryContract,
   ContractUtils,
   encodeMultiSend,
   smartAccountSignMessage,
@@ -246,7 +249,6 @@ class SmartAccount extends EventEmitter {
         chainId: network.chainId,
         version: this.DEFAULT_VERSION
       })
-      this.address = walletInfo.smartAccountAddress
       Logger.log('smart wallet address is ', this.address)
 
       const readProvider = new ethers.providers.JsonRpcProvider(providerUrl)
@@ -531,18 +533,18 @@ class SmartAccount extends EventEmitter {
     transactionDto: TransactionDto // TODO: revise DTO as per above
     // isUpdateImpTrx?: Boolean
   ): Promise<TransactionResponse> {
-    let isFallbackEnabled = false
-    try {
-      const { data } = await this.nodeClient.isFallbackEnabled()
-      isFallbackEnabled = data.enable_fallback_flow
-      Logger.log('isFallbackEnabled', data.enable_fallback_flow)
-    } catch (error) {
-      console.error('isFallbackEnabled', error)
-    }
+    // let isFallbackEnabled = false
+    // // try {
+    // //   const { data } = await this.nodeClient.isFallbackEnabled()
+    // //   isFallbackEnabled = data.enable_fallback_flow
+    // //   Logger.log('isFallbackEnabled', data.enable_fallback_flow)
+    // // } catch (error) {
+    // //   console.error('isFallbackEnabled', error)
+    // // }
 
-    if (isFallbackEnabled) {
-      return this.sendFallbackTransaction(transactionDto)
-    }
+    // if (isFallbackEnabled) {
+    //   return this.sendFallbackTransaction(transactionDto)
+    // }
 
     let { chainId } = transactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
@@ -617,13 +619,11 @@ class SmartAccount extends EventEmitter {
    */
   async setSmartAccountVersion(smartAccountVersion: SmartAccountVersion): Promise<SmartAccount> {
     this.DEFAULT_VERSION = smartAccountVersion
-    this.address = (
-      await this.getAddress({
-        index: 0,
-        chainId: this.#smartAccountConfig.activeNetworkId,
-        version: this.DEFAULT_VERSION
-      })
-    ).smartAccountAddress
+    await this.getAddress({
+      index: 0,
+      chainId: this.#smartAccountConfig.activeNetworkId,
+      version: this.DEFAULT_VERSION
+    })
     return this
   }
 
@@ -732,7 +732,6 @@ class SmartAccount extends EventEmitter {
     const { tx } = sendUserPaidTransactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     const { gasLimit } = sendUserPaidTransactionDto
-    const isDeployed = await this.contractUtils.isDeployed(chainId, this.address)
     const rawTx: RawTransactionType = {
       to: tx.to,
       data: tx.data,
@@ -1062,34 +1061,66 @@ class SmartAccount extends EventEmitter {
 
   async getAddress(
     addressForCounterFactualWalletDto: AddressForCounterFactualWalletDto
-  ): Promise<ISmartAccount> {
-    const { index, chainId } = addressForCounterFactualWalletDto
+  ): Promise<SmartAccountState> {
+    const { index, chainId, version } = addressForCounterFactualWalletDto
 
-    const walletInfo = await getWalletInfo({
-      chainId,
-      owner: this.owner,
-      txServiceUrl: this.#smartAccountConfig.backendUrl,
-      index
-    })
+    // const walletInfo = await getWalletInfo({
+    //   chainId,
+    //   owner: this.owner,
+    //   txServiceUrl: this.#smartAccountConfig.backendUrl,
+    //   index
+    // })
 
-    Logger.log('walletInfo ', walletInfo)
-
-    this.address = walletInfo.smartAccountAddress
-
+    console.log(version, index, chainId);
+   
+    const network = this.chainConfig.find((element: ChainConfig) => element.chainId === chainId)
+    if (!network) throw new Error("Could not found network")
     const smartAccountState = {
       chainId: chainId,
-      version: walletInfo.version,
-      address: walletInfo.smartAccountAddress,
+      version: version,
+      address: this.address,
       owner: this.owner,
-      isDeployed: walletInfo.isDeployed, // could be set as state in init
-      entryPointAddress: walletInfo.entryPointAddress,
-      implementationAddress: walletInfo.implementationAddress,
-      fallbackHandlerAddress: walletInfo.fallBackHandlerAddress,
-      factoryAddress: walletInfo.factoryAddress
+      isDeployed: false, // could be set as state in init
+      entryPointAddress: network.entryPoint[network.entryPoint.length - 1].address,
+      implementationAddress: network.wallet[network.wallet.length - 1].address,
+      fallbackHandlerAddress: network.fallBackHandler[network.fallBackHandler.length - 1].address,
+      factoryAddress: network.walletFactory[network.walletFactory.length - 1].address
     }
+
+    let exist
+    try {
+      exist = this.contractUtils.smartWalletContract[chainId][this.DEFAULT_VERSION].getContract()
+      const address = await this.contractUtils.smartWalletFactoryContract[chainId][
+        version
+      ].getAddressForCounterFactualAccount(this.owner, index)
+      this.address = address
+      smartAccountState.isDeployed = await this.isDeployed(chainId)
+    } catch (err) {
+      Logger.log('Chain config contract not loaded ', chainId)
+      const providerUrl = this.getProviderUrl(network)
+      const evmManager = new EvmNetworkManager({
+        ethers,
+        signer: this.signer,
+        provider: new ethers.providers.JsonRpcProvider(providerUrl)
+      })
+      const sVersionType = version as SmartAccountVersion
+      const factoryContract = getSmartWalletFactoryContract(
+        sVersionType,
+        evmManager,
+        smartAccountState.factoryAddress
+      )
+      const address = await factoryContract.getAddressForCounterFactualAccount(this.owner, index)
+      const isDeployed = await evmManager.isContractDeployed(address)
+      console.log(' isDeployed ', isDeployed)
+      smartAccountState.isDeployed = isDeployed
+      this.address = address
+    }
+    smartAccountState.address = this.address
+
     this.contractUtils.setSmartAccountState(smartAccountState)
 
-    return walletInfo
+
+    return smartAccountState
   }
 
   /**
