@@ -5,7 +5,7 @@ import { ChainId } from '@biconomy/core-types'
 export type Bundlerconfig = {
     bundlerUrl: string,
     epAddress: string,
-    dappApiKey: string,
+    apiKey: string,
     userOpReceiptIntervals?: { [key in ChainId]?: number }
 }
 

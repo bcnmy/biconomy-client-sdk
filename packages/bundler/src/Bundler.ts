@@ -39,7 +39,7 @@ export class Bundler implements IBundler {
         console.log('userOp sending for fee estimate ', userOp);
 
         const response: GetUserOpGasFieldsResponse = await sendRequest({
-            url: `${this.bundlerConfig.bundlerUrl}/${chainId}/${this.bundlerConfig.dappApiKey}`,
+            url: `${this.bundlerConfig.bundlerUrl}/${chainId}/${this.bundlerConfig.apiKey}`,
             method: HttpMethod.Post,
             body: {
                 method: 'eth_estimateUserOperationGas',
@@ -71,7 +71,7 @@ export class Bundler implements IBundler {
         const hexifiedUserOp = deepHexlify(await resolveProperties(userOp))
         let params = [hexifiedUserOp, this.bundlerConfig.epAddress]
         const sendUserOperationResponse: SendUserOperationResponse = await sendRequest({
-            url: `${this.bundlerConfig.bundlerUrl}/${chainId}/${this.bundlerConfig.dappApiKey}`,
+            url: `${this.bundlerConfig.bundlerUrl}/${chainId}/${this.bundlerConfig.apiKey}`,
             method: HttpMethod.Post,
             body: {
                 method: 'eth_sendUserOperation',
@@ -86,7 +86,7 @@ export class Bundler implements IBundler {
                 return new Promise<UserOpReceipt>(async (resolve, reject) => {
                     const intervalId = setInterval(async () => {
                         try {
-                            const userOpResponse = await this.getUserOpReceipt(sendUserOperationResponse.result)
+                            const userOpResponse = await this.getUserOpReceipt(sendUserOperationResponse.result, chainId)
                             if (userOpResponse) {
                                 clearInterval(intervalId);
                                 resolve(userOpResponse);
@@ -109,9 +109,9 @@ export class Bundler implements IBundler {
      * @description This function will return userOpReceipt for a specific userOpHash
      * @returns Promise<UserOpReceipt>
      */
-    async getUserOpReceipt(userOpHash: string): Promise<UserOpReceipt> {
+    async getUserOpReceipt(userOpHash: string, chainId: ChainId): Promise<UserOpReceipt> {
         const response: GetUserOperationResponse = await sendRequest({
-            url: `${this.bundlerConfig.bundlerUrl}/${this.bundlerConfig.dappApiKey}`,
+            url: `${this.bundlerConfig.bundlerUrl}/${chainId}/${this.bundlerConfig.apiKey}`,
             method: HttpMethod.Post,
             body: {
                 method: 'eth_getUserOperationReceipt',
@@ -120,7 +120,6 @@ export class Bundler implements IBundler {
                 jsonrpc: '2.0'
             }
         })
-
         const userOpReceipt: UserOpReceipt = response.result
         return userOpReceipt
     }

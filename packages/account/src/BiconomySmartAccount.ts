@@ -58,7 +58,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       this.bundler = new Bundler({
         bundlerUrl,
         epAddress: _epAddress,
-        dappApiKey: _dappApiKey,
+        apiKey: _dappApiKey,
         userOpReceiptIntervals
       })
     this.provider = new JsonRpcProvider(rpcUrl)
