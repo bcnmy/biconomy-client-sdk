@@ -28,25 +28,16 @@ export class BiconomyVerifyingPaymasterAPI extends PaymasterAPI {
       userOp.signature = '0x'
       userOp.paymasterAndData = '0x'
 
-      // move dappAPIKey in headers
-      /* eslint-disable  @typescript-eslint/no-explicit-any */
       const result: any = await sendRequest({
-        url: `${this.paymasterConfig.paymasterUrl}/user-op`,
-        method: HttpMethod.Post,
-        body: { userOp: userOp, paymasterServiceData: paymasterServiceData }
-      })
-
-      // TODO: update with below way shared by PM service team
-      /*const result: any = await sendRequest({
-        url: 'http://localhost:3002/api/v1/80001/LrbQUUcJj.a75cff34-2cf9-4038-80ac-fa1ad21acd90',
+        url: `${this.paymasterConfig.paymasterUrl}`,
         method: HttpMethod.Post,
         body: {
           method: 'pm_sponsorUserOperation',
-          params: [userOp], // paymasterServiceData: paymasterServiceData
+          params: [userOp, paymasterServiceData],
           id: 1234,
           jsonrpc: '2.0'
         }
-      })*/
+      })
 
       Logger.log('verifying and signing service response', result)
 

@@ -77,7 +77,6 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI {
       userOp.signature = '0x'
       userOp.paymasterAndData = '0x'
 
-      // TODO: update with below way shared by PM service team
       const result: any = await sendRequest({
         url: `${this.paymasterConfig.paymasterUrl}`,
         method: HttpMethod.Post,
