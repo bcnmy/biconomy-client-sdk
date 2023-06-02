@@ -46,9 +46,10 @@ export type NotPromise<T> = {
  *  "false" to pack entire UserOp, for calculating the calldata cost of putting it on-chain.
  */
 export function packUserOp(op: Partial<UserOperation>, forSignature = true): string {
+  if (!op.initCode || !op.callData || !op.paymasterAndData)
+    throw new Error('Missing userOp properties')
+
   if (forSignature) {
-    if (!op.initCode || !op.callData || !op.paymasterAndData)
-    op.initCode = op.callData = op.paymasterAndData = '0x'
     return defaultAbiCoder.encode(
       [
         'address',
