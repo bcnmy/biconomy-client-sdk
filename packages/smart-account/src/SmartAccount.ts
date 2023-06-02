@@ -58,7 +58,10 @@ import {
   newProvider,
   ERC4337EthersProvider,
   ERC4337EthersSigner,
-  BaseAccountAPI
+  BaseAccountAPI,
+  PaymasterAPI,
+  BiconomyTokenPaymasterAPI,
+  BiconomyVerifyingPaymasterAPI
 } from '@biconomy/account-abstraction'
 import {
   Logger,
@@ -66,7 +69,6 @@ import {
   updateImplementationEncodedData,
   fallbackHandlerEncodedData
 } from '@biconomy/common'
-
 import { BigNumber, ethers, Signer } from 'ethers'
 import { Transaction } from '@biconomy/core-types'
 
@@ -253,7 +255,7 @@ class SmartAccount extends EventEmitter {
           // Review: default false
           // could come from global set config or method level when we implement fee mode
           strictSponsorshipMode: this.#smartAccountConfig.strictSponsorshipMode || false,
-          paymasterUrl: this.#smartAccountConfig.paymasterUrl || '',
+          paymasterUrl: clientConfig.paymasterUrl || '',
           socketServerUrl: this.#smartAccountConfig.socketServerUrl || '',
           entryPointAddress: this.#smartAccountConfig.entryPointAddress
             ? this.#smartAccountConfig.entryPointAddress
@@ -303,6 +305,58 @@ class SmartAccount extends EventEmitter {
 
   // WIP
   // Optional methods for connecting paymaster
+
+  connectPaymasterUsingUrl(
+    newPaymasterUrl: string,
+    chainId?: ChainId,
+    label?: string
+  ): SmartAccount {
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+
+    const currentPaymaster = this.aaProvider[chainId].smartAccountAPI.paymasterAPI
+    Logger.log('currentPaymaster', currentPaymaster)
+    const accountAPI = this.aaProvider[chainId].smartAccountAPI
+
+    // Without label we could have a way to know from the url if it's token or verifyig..
+
+    if (label && label == 'SPONSORSHIP') {
+      const newPaymaster = new BiconomyVerifyingPaymasterAPI({
+        paymasterUrl: newPaymasterUrl,
+        strictSponsorshipMode: false // Review..
+      })
+      accountAPI.connectPaymaster(newPaymaster)
+    } else if (label && label == 'ERC20') {
+      const newPaymaster = new BiconomyTokenPaymasterAPI({
+        paymasterUrl: newPaymasterUrl,
+        strictSponsorshipMode: false // Review..
+      })
+      accountAPI.connectPaymaster(newPaymaster)
+    } else {
+      // default or throw
+      const newPaymaster = new BiconomyTokenPaymasterAPI({
+        paymasterUrl: newPaymasterUrl,
+        strictSponsorshipMode: false // Review..
+      })
+      accountAPI.connectPaymaster(newPaymaster)
+    }
+
+    return this
+  }
+
+  connectCustomPaymaster(newPaymasterAPI: PaymasterAPI, chainId?: ChainId): SmartAccount {
+    chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
+
+    const currentPaymaster = this.aaProvider[chainId].smartAccountAPI.paymasterAPI
+    Logger.log('currentPaymaster', currentPaymaster)
+    const accountAPI = this.aaProvider[chainId].smartAccountAPI
+
+    if (newPaymasterAPI) {
+      accountAPI.connectPaymaster(newPaymasterAPI)
+    }
+
+    return this
+  }
+
   // Optional methods for connecting another bundler
 
   /**

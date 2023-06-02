@@ -11,6 +11,7 @@ import { Provider } from '@ethersproject/providers'
 import { BiconomyVerifyingPaymasterAPI } from './BiconomyVerifyingPaymasterAPI'
 import { resolveProperties } from 'ethers/lib/utils'
 import { calcPreVerificationGas, GasOverheads } from './calcPreVerificationGas'
+import { Transaction } from '@biconomy/core-types'
 import {
   Logger,
   deployCounterFactualEncodedData,
@@ -19,7 +20,8 @@ import {
 import { HttpRpcClient } from './HttpRpcClient'
 import { BiconomyTokenPaymasterAPI } from './BiconomyTokenPaymasterAPI'
 
-// may use...
+export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
+
 export interface SmartAccountApiParams extends BaseApiParams {
   owner: Signer
   factoryAddress?: string
@@ -92,7 +94,10 @@ export class SmartAccountAPI extends BaseAccountAPI {
     } else if (clientConfig.customPaymasterAPI) {
       this.paymasterAPI = clientConfig.customPaymasterAPI
     } else {
-      this.paymasterAPI = new BiconomyVerifyingPaymasterAPI({
+      // TODO: notice here it would either directly accept the instance
+      // otherwise from paymasterUrl we'd have to find out which instance has to be created
+      // or.. also brainstrom do we need different instances at all?!
+      this.paymasterAPI = new BiconomyTokenPaymasterAPI({
         paymasterUrl: clientConfig.paymasterUrl,
         strictSponsorshipMode: clientConfig.strictSponsorshipMode
           ? clientConfig.strictSponsorshipMode
@@ -186,11 +191,22 @@ export class SmartAccountAPI extends BaseAccountAPI {
    * @param info
    */
   async createUnsignedUserOp(info: TransactionDetailsForBatchUserOp): Promise<UserOperation> {
-    if (this.paymasterAPI instanceof BiconomyTokenPaymasterAPI) {
-      // update calldata accordingly by checking allowance then batching token approval request
-      // possibly paymasterAPI.createTokenApprovalRequest
-      // Note that we would need to know paymaster address and all info we have from config is the URL!
-      // to be done in following method
+
+    Logger.log('info.paymasterServiceData', info.paymasterServiceData)
+
+    if(info.paymasterServiceData && info.paymasterServiceData.tokenPaymasterData && info.paymasterServiceData.tokenPaymasterData.feeTokenAddress && info.paymasterServiceData.tokenPaymasterData.feeTokenAddress != '' && info.paymasterServiceData.tokenPaymasterData.feeTokenAddress != ZERO_ADDRESS) {
+
+      if (this.paymasterAPI instanceof BiconomyTokenPaymasterAPI) {
+        // update calldata accordingly by checking allowance then batching token approval request
+        const erc20Address = info.paymasterServiceData.tokenPaymasterData.feeTokenAddress;
+        const approveTx: Transaction = await this.paymasterAPI.createGasTokenApprovalRequest(erc20Address, this.provider);
+        if(approveTx.to && approveTx.data && approveTx.value) {
+        info.target.unshift(approveTx.to);
+        info.data.unshift(arrayify(approveTx.data)); // review
+        info.value.unshift(approveTx.value);
+        }
+      }
+
     }
 
     const { callData, callGasLimit } = await this.encodeUserOpCallDataAndGasLimit(info)
@@ -264,7 +280,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
     partialUserOp.preVerificationGas =
       feeData?.preVerificationGas ?? (await this.getPreVerificationGas(partialUserOp))
 
-    Logger.log('info.paymasterServiceData', info.paymasterServiceData)
+
     partialUserOp.paymasterAndData = !this.paymasterAPI
       ? '0x'
       : await this.paymasterAPI.getPaymasterAndData(partialUserOp, info.paymasterServiceData)

@@ -8,7 +8,7 @@ import { EntryPoint } from '@account-abstraction/contracts'
 import { SmartWalletFactoryV100, SmartWalletContractV100 } from '@biconomy/ethers-lib'
 import { TransactionDetailsForBatchUserOp } from './TransactionDetailsForUserOp'
 import { defaultAbiCoder, keccak256 } from 'ethers/lib/utils'
-import { IPaymasterAPI } from '@biconomy/core-types' // only use interface
+import { PaymasterAPI } from './PaymasterAPI'
 import { Logger, NotPromise, packUserOp } from '@biconomy/common'
 import { GasOverheads } from './calcPreVerificationGas'
 
@@ -18,7 +18,7 @@ export interface BaseApiParams {
   entryPointAddress: string
   accountAddress?: string
   overheads?: Partial<GasOverheads>
-  paymasterAPI?: IPaymasterAPI
+  paymasterAPI?: PaymasterAPI
 }
 export interface UserOpResult {
   transactionHash: string
@@ -51,7 +51,7 @@ export abstract class BaseAccountAPI {
   /**
    * subclass MAY initialize to support custom paymaster
    */
-  paymasterAPI?: IPaymasterAPI
+  paymasterAPI?: PaymasterAPI
 
   /**
    * our wallet contract.
@@ -77,7 +77,7 @@ export abstract class BaseAccountAPI {
   }
 
   // placeholder to replace paymaster
-  connectPaymaster(newPaymasterAPI: IPaymasterAPI): BaseAccountAPI {
+  connectPaymaster(newPaymasterAPI: PaymasterAPI): BaseAccountAPI {
     this.paymasterAPI = newPaymasterAPI
     return this
   }

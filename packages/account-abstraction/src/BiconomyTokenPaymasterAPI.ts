@@ -1,9 +1,14 @@
 import { resolveProperties } from '@ethersproject/properties'
+import { ethers, BigNumberish } from 'ethers'
 import { UserOperation } from '@biconomy/core-types'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
 import { PaymasterConfig, PaymasterServiceDataType } from '@biconomy/core-types'
 import { Logger } from '@biconomy/common'
 import { PaymasterAPI } from './PaymasterAPI'
+import { ERC20_ABI, ERC20_APPROVAL_AMOUNT, PAYMASTER_ADDRESS } from './constants'
+import { Transaction } from '@biconomy/core-types'
+import { Provider } from '@ethersproject/abstract-provider'
+import { hexifyUserOp } from './utils'
 
 /**
  * ERC20 Token Paymaster API supported via Biconomy dahsboard to enable Gas payments in ERC20 tokens
@@ -13,12 +18,56 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI {
     super()
   }
 
+  async getPaymasterAddress(): Promise<string> {
+    // TODO: update with below way shared by PM service team
+    const result: any = await sendRequest({
+      url: `${this.paymasterConfig.paymasterUrl}`,
+      method: HttpMethod.Post,
+      body: {
+        method: 'pm_supportedPaymasters',
+        params: [],
+        id: 1234,
+        jsonrpc: '2.0'
+      }
+    })
+
+    if (result && result.data && result.statusCode === 200) {
+      return result.data.paymasterAddresses[0] // temp random
+    }
+
+    return PAYMASTER_ADDRESS
+  }
+
+  async getTokeApprovalAmount(feeTokenAddress: string): Promise<BigNumberish> {
+    Logger.log('fee token address ', feeTokenAddress)
+    return ethers.utils.parseUnits('10', 6)
+  }
+
+  async createGasTokenApprovalRequest(
+    feeTokenAddress: string,
+    provider: Provider
+  ): Promise<Transaction> {
+    const erc20 = new ethers.Contract(feeTokenAddress, ERC20_ABI, provider)
+
+    return {
+      to: erc20.address,
+      value: ethers.BigNumber.from(0),
+      data: erc20.interface.encodeFunctionData('approve', [
+        await this.getPaymasterAddress(),
+        ERC20_APPROVAL_AMOUNT[erc20.address]
+      ])
+    }
+  }
+
   async getPaymasterAndData(
     userOp: Partial<UserOperation>,
     paymasterServiceData?: PaymasterServiceDataType
   ): Promise<string> {
     try {
       userOp = await resolveProperties(userOp)
+
+      // userOp = hexifyUserOp(userOp)
+
       userOp.nonce = Number(userOp.nonce)
       userOp.callGasLimit = Number(userOp.callGasLimit)
       userOp.verificationGasLimit = Number(userOp.verificationGasLimit)
@@ -28,31 +77,25 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI {
       userOp.signature = '0x'
       userOp.paymasterAndData = '0x'
 
-      // move dappAPIKey in headers
-      /* eslint-disable  @typescript-eslint/no-explicit-any */
-      const result: any = await sendRequest({
-        url: `${this.paymasterConfig.paymasterUrl}/user-op`,
-        method: HttpMethod.Post,
-        body: { userOp: userOp, paymasterServiceData: paymasterServiceData }
-      })
-
       // TODO: update with below way shared by PM service team
-      /*const result: any = await sendRequest({
-        url: 'http://localhost:3002/api/v1/80001/LrbQUUcJj.a75cff34-2cf9-4038-80ac-fa1ad21acd90',
+      const result: any = await sendRequest({
+        url: `${this.paymasterConfig.paymasterUrl}`,
         method: HttpMethod.Post,
         body: {
           method: 'pm_sponsorUserOperation',
-          params: [userOp], // paymasterServiceData: paymasterServiceData
+          params: [userOp, paymasterServiceData],
           id: 1234,
           jsonrpc: '2.0'
         }
-      })*/
+      })
 
       Logger.log('verifying and signing service response', result)
 
       if (result && result.data && result.statusCode === 200) {
         return result.data.paymasterAndData
       } else {
+        // TODO: decide how strictSponsorshipMode applies here
+        // Usually it could be like fallback from sponsorpship pamaster to ERC20 paymaster
         if (!this.paymasterConfig.strictSponsorshipMode) {
           return '0x'
         }

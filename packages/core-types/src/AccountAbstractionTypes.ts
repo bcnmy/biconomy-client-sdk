@@ -14,7 +14,3 @@ export type PaymasterConfig = {
   strictSponsorshipMode: boolean
   // could be added more details. Todo Review: if we're intialising with one instance with fixed token
 }
-
-export interface IFallbackAPI {
-  getDappIdentifierAndSign(userOp: Partial<UserOperation>): Promise<FallbackApiResponse>
-}

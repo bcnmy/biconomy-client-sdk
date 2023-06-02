@@ -64,8 +64,6 @@ describe('SmartAccountAPI', async () => {
     const clientConfig = {
       chainId: chainId,
       entryPointAddress: entryPoint.address,
-      biconomySigningServiceUrl:
-        'https://paymaster-signing-service.staging.biconomy.io/api/v1/sign',
       socketServerUrl: 'wss://sdk-testing-ws.staging.biconomy.io/connection/websocket',
       bundlerUrl: 'https://sdk-relayer.staging.biconomy.io/api/v1/relay',
       txServiceUrl: 'https://sdk-backend.staging.biconomy.io/v1',

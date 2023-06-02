@@ -43,7 +43,7 @@ export type NetworkConfig = {
   providerUrl?: string // review
   bundlerUrl?: string
   customPaymasterAPI?: IPaymasterAPI
-  dappAPIKey?: string
+  paymasterUrl?: string
 }
 
 export type SmartAccountContext = {
