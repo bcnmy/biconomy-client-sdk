@@ -126,7 +126,7 @@ class NodeClient implements INodeClient {
    * @description this function will return the signature for your domain
    * @returns
    */
-  async whiteListUrl(origin: string): Promise<WhiteListSignatureResponse> {
+  async whitelistUrl(origin: string): Promise<WhiteListSignatureResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/whitelist`,
       method: HttpMethod.Post,

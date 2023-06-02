@@ -95,7 +95,8 @@ export function calcPreVerificationGas(
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   const p: NotPromise<UserOperation> = {
     // dummy values, in case the UserOp is incomplete.
-    preVerificationGas: 21000, // dummy value, just for calldata cost
+    paymasterAndData: '0x',
+    preVerificationGas: BigNumber.from(21000), // dummy value, just for calldata cost
     signature: hexlify(Buffer.alloc(ov.sigSize, 1)), // dummy signature
     ...userOp
   } as any

@@ -1,10 +1,10 @@
 import { ethers, BigNumber } from 'ethers'
-import { ChainId } from '@biconomy/core-types'
+import { ChainId, UserOperation } from '@biconomy/core-types'
 
 
 export type Bundlerconfig = {
     bundlerUrl: string,
-    epAddress: string,
+    entryPointAddress: string,
     apiKey: string,
     userOpReceiptIntervals?: { [key in ChainId]?: number }
 }
@@ -30,7 +30,7 @@ export type GetUserOperationResponse = {
 }
 
 
-export type SendUserOperationResponse = {
+export type SendUserOpResponse = {
   statusCode: number,
   message: string,
   result: string
@@ -42,16 +42,29 @@ export type UserOpResponse = {
 }
 
 
-export type GetUserOpGasFieldsResponse = {
+export type EstimateUserOpGasResponse = {
   statusCode: number,
   message: string,
-  result: UserOpGasFieldsResponse
+  result: UserOpGasResponse
 }
 
-export type UserOpGasFieldsResponse = {
+export type UserOpGasResponse = {
     preVerificationGas: string
     verificationGasLimit: string
     callGasLimit: string
     maxPriorityFeePerGas: string
     maxFeePerGas: string
+}
+
+export type GetUserOpByHashResponse = {
+  statusCode: number,
+  message: string,
+  result: UserOpByHashResponse
+}
+
+export type UserOpByHashResponse = UserOperation & {
+  transactionHash: string
+  blockNumber: number
+  blockHash: string
+  entryPoint: string
 }

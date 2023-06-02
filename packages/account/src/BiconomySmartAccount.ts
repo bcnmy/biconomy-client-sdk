@@ -1,9 +1,9 @@
-import { JsonRpcProvider, Web3Provider, Provider } from '@ethersproject/providers'
-import { Signer, ethers, BigNumberish, BytesLike, BigNumber } from 'ethers'
+import { JsonRpcProvider } from '@ethersproject/providers'
+import {ethers, BigNumberish, BytesLike, BigNumber } from 'ethers'
 import { SmartAccount } from './BaseAccount'
-import { BiconomyPaymasterAPI } from '@biconomy/paymaster'
 import {
   NODE_CLIENT_URL,
+  RPC_PROVIDER_URLS,
   EntryPoint_v100__factory,
   SmartAccountFactory_v100,
   SmartAccountFactory_v100__factory,
@@ -14,7 +14,6 @@ import { UserOperation, Transaction } from '@biconomy/core-types'
 import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
 import { IBiconomySmartAccount } from 'interfaces/IBiconomySmartAccount'
-import { Bundler } from '@biconomy/bundler'
 import {
   SupportedChainsResponse,
   BalancesResponse,
@@ -24,7 +23,7 @@ import {
   SmartAccountsResponse,
   SCWTransactionResponse
 } from '@biconomy/node-client'
-import { epAddresses, factoryAddresses } from './utils/Constants'
+import { ENTRYPOINT_ADDRESSES, BICONOMY_FACTORY_ADDRESSES } from './utils/Constants'
 
 export class BiconomySmartAccount extends SmartAccount implements IBiconomySmartAccount {
   private factory: SmartAccountFactory_v100
@@ -35,45 +34,32 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     const {
       signer,
       rpcUrl,
-      epAddress,
+      entryPointAddress,
       factoryAddress,
-      bundlerUrl,
-      paymasterUrl,
-      nodeClientUrl,
-      dappApiKey,
-      userOpReceiptIntervals,
-      strictSponsorshipMode
+      bundler,
+      paymaster,
+      chainId,
+      nodeClientUrl
     } = biconomySmartAccountConfig
 
-    const _epAddress = epAddress ?? epAddresses.default
-    const _factoryAddress = factoryAddress ?? factoryAddresses.default
-    const _dappApiKey = dappApiKey ?? ''
-    const _strictSponsorshipMode = strictSponsorshipMode ?? false
-    const _paymasterUrl = paymasterUrl ?? ''
+    const _entryPointAddress = entryPointAddress ?? ENTRYPOINT_ADDRESSES.default
+    const _factoryAddress = factoryAddress ?? BICONOMY_FACTORY_ADDRESSES.default
     super({
-      bundlerUrl,
-      epAddress: _epAddress
+      bundler,
+      entryPointAddress: _entryPointAddress
     })
-    if (bundlerUrl)
-      this.bundler = new Bundler({
-        bundlerUrl,
-        epAddress: _epAddress,
-        apiKey: _dappApiKey,
-        userOpReceiptIntervals
-      })
-    this.provider = new JsonRpcProvider(rpcUrl)
-    this.entryPoint = EntryPoint_v100__factory.connect(_epAddress, this.provider)
+    const _rpcUrl = rpcUrl ?? RPC_PROVIDER_URLS[chainId]
+    this.provider = new JsonRpcProvider(_rpcUrl)
+    this.entryPoint = EntryPoint_v100__factory.connect(_entryPointAddress, this.provider)
     this.factory = SmartAccountFactory_v100__factory.connect(_factoryAddress, this.provider)
     this.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL })
     this.signer = signer
 
-    if (paymasterUrl) {
-      this.paymaster = new BiconomyPaymasterAPI({
-        paymasterServiceUrl: _paymasterUrl,
-        strictSponsorshipMode: _strictSponsorshipMode,
-        dappAPIKey: _dappApiKey
-      })
+    if (paymaster) {
+      this.paymaster = paymaster
     }
+    if ( bundler )
+    this.bundler = bundler
   }
   /**
    * @description This function will initialise BiconomyAccount class state
@@ -102,6 +88,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
 
   async getSmartAccountAddress(accountIndex: number = 0): Promise<string> {
     try {
+      // TODO: may be create a state to manage address
       this.isSignerDefined()
       this.getInitCode(accountIndex)
       const address = await this.factory.getAddressForCounterFactualAccount(
@@ -109,8 +96,9 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
         ethers.BigNumber.from(accountIndex)
       )
       return address
-    } catch (error: any) {
-      throw Error(error)
+    } catch (error) {
+      console.error(`Failed to get getSmartAccountAddress: ${error}`);
+      throw error
     }
   }
 
@@ -169,10 +157,11 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     } else {
       callData = this.getExecuteBatchCallData(to, value, data)
     }
-
-    const nonce = await this.nonce()
+    const address = await this.getSmartAccountAddress()
+    const nonce = await this.isAccountDeployed(address) ? await this.nonce() : BigNumber.from(0)
+    
     let userOp: Partial<UserOperation> = {
-      sender: await this.getSmartAccountAddress(),
+      sender: address,
       nonce,
       initCode: nonce.eq(0) ? await this.getInitCode() : '0x',
       callData: callData

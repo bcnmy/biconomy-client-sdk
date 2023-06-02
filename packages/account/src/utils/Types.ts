@@ -1,25 +1,24 @@
 import { Signer } from 'ethers'
 import { ChainId } from '@biconomy/core-types'
 import { BigNumberish } from 'ethers'
+import { IBundler } from '@biconomy/bundler'
+import { IPaymaster } from '@biconomy/paymaster'
 
 
 export type SmartAccountConfig = {
-  epAddress: string
-  bundlerUrl?: string
+  entryPointAddress: string
+  bundler?: IBundler
 }
 
 export type BiconomySmartAccountConfig = {
   signer: Signer,
   rpcUrl?: string,
-  chainId?: ChainId
-  epAddress?: string
+  chainId: ChainId
+  entryPointAddress?: string
   factoryAddress?: string
-  bundlerUrl?: string
-  paymasterUrl?: string
-  nodeClientUrl?: string,
-  dappApiKey?: string,
-  strictSponsorshipMode?: boolean
-  userOpReceiptIntervals?: { [key in ChainId]?: number }
+  bundler?: IBundler
+  paymaster?: IPaymaster
+  nodeClientUrl?: string
 }
 
 export type Overrides = {

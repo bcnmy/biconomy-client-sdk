@@ -1,5 +1,5 @@
 import { UserOperation } from '@biconomy/core-types'
 
-export interface IPaymasterAPI {
+export interface IPaymaster {
   getPaymasterAndData(userOp: Partial<UserOperation>): Promise<string>
 }

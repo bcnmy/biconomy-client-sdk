@@ -110,7 +110,7 @@ class SmartAccount extends EventEmitter {
     }
 
     if (!this.#smartAccountConfig.activeNetworkId) {
-      throw new Error('active chain needs to be specified')
+      throw new Error('Active chain needs to be specified')
     }
 
     if (this.#smartAccountConfig.supportedNetworksIds.length == 0)

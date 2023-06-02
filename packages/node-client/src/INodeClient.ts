@@ -113,7 +113,7 @@ interface INodeClient {
    * About: Whitelist domain by passing the origin domain
    * Purpose: Returns the signature used in init
    */
-  whiteListUrl(origin: string): Promise<WhiteListSignatureResponse>
+  whitelistUrl(origin: string): Promise<WhiteListSignatureResponse>
 
   /**
    * About: Is fallback enabled in backend

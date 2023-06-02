@@ -10,7 +10,7 @@ export const transformUserOP = (userOp: UserOperation): UserOperation => {
             'maxFeePerGas', 'maxPriorityFeePerGas'
         ];
         for (const key of keys) {
-            if (userOperation[key] && userOperation[key] !== '0' && userOperation[key] !== '0') {
+            if (userOperation[key] && userOperation[key] !== '0') {
                 userOperation[key] = BigNumber.from(userOp[key]).toHexString();
             }
         }

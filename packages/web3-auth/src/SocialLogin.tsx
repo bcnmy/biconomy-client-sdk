@@ -59,8 +59,8 @@ class SocialLogin {
     }
   }
 
-  async whiteListUrl(origin: string): Promise<string> {
-    const whiteListUrlResponse: WhiteListSignatureResponse = await this.nodeClient.whiteListUrl(
+  async whitelistUrl(origin: string): Promise<string> {
+    const whiteListUrlResponse: WhiteListSignatureResponse = await this.nodeClient.whitelistUrl(
       origin
     )
     console.log(whiteListUrlResponse.data)

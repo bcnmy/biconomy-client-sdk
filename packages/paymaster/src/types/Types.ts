@@ -6,7 +6,7 @@ export type PaymasterAndDataResponse = {
 }
 
 export type PaymasterConfig = {
-  paymasterServiceUrl: string,
+  paymasterUrl: string,
   strictSponsorshipMode?: boolean,
-  dappAPIKey: string
+  apiKey: string
 }

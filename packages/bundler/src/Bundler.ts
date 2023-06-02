@@ -1,6 +1,6 @@
 import { IBundler } from "./interfaces/IBundler";
 import { UserOperation, ChainId } from '@biconomy/core-types'
-import { GetUserOperationResponse, Bundlerconfig, UserOpResponse, UserOpGasFieldsResponse, UserOpReceipt, SendUserOperationResponse, GetUserOpGasFieldsResponse } from "./types/Types"
+import { GetUserOperationResponse, GetUserOpByHashResponse, Bundlerconfig, UserOpResponse, EstimateUserOpGasResponse, UserOpReceipt, SendUserOpResponse, UserOpGasResponse, UserOpByHashResponse } from "./types/Types"
 import { resolveProperties } from 'ethers/lib/utils'
 import { deepHexlify, getTimestampInSeconds } from '@biconomy/common'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
@@ -14,8 +14,12 @@ import { UserOpReceiptIntervals } from './utils/Constants'
 export class Bundler implements IBundler {
     UserOpReceiptIntervals: { [key in ChainId]?: number }
     constructor(readonly bundlerConfig: Bundlerconfig) {
-        this.UserOpReceiptIntervals = {...UserOpReceiptIntervals, ...bundlerConfig.userOpReceiptIntervals}
-     }
+        this.UserOpReceiptIntervals = { ...UserOpReceiptIntervals, ...bundlerConfig.userOpReceiptIntervals }
+    }
+
+    private getBundlerUrl(chainId: ChainId): string {
+        return `${this.bundlerConfig.bundlerUrl}/${chainId}/${this.bundlerConfig.apiKey}`
+    }
 
     /**
      * 
@@ -23,7 +27,7 @@ export class Bundler implements IBundler {
      * @description This function will fetch gasPrices from bundler
      * @returns Promise<UserOpGasPricesResponse>
      */
-    async getUserOpGasFields(userOp: UserOperation, chainId: ChainId): Promise<UserOpGasFieldsResponse> {
+    async estimateUserOpGas(userOp: UserOperation, chainId: ChainId): Promise<UserOpGasResponse> {
         // TODO: will be removed once full userOp requirement is removed from bundler side
         const dummpyUserop = {
             callGasLimit: '0',
@@ -38,26 +42,28 @@ export class Bundler implements IBundler {
         userOp = transformUserOP(userOperation)
         console.log('userOp sending for fee estimate ', userOp);
 
-        const response: GetUserOpGasFieldsResponse = await sendRequest({
-            url: `${this.bundlerConfig.bundlerUrl}/${chainId}/${this.bundlerConfig.apiKey}`,
+        const bundlerUrl = this.getBundlerUrl(chainId)
+
+        const response: EstimateUserOpGasResponse = await sendRequest({
+            url: bundlerUrl,
             method: HttpMethod.Post,
             body: {
                 method: 'eth_estimateUserOperationGas',
-                params: [userOp, this.bundlerConfig.epAddress],
+                params: [userOp, this.bundlerConfig.entryPointAddress],
                 id: getTimestampInSeconds(),
                 jsonrpc: '2.0'
             }
         })
 
-        const userOpGasFieldsResponse = response.result
-        for (const key in userOpGasFieldsResponse) {
-            if (key === 'maxFeePerGas' || key === 'maxPriorityFeePerGas' || key === 'gasPrice')
+        const userOpGasResponse = response.result
+        for (const key in userOpGasResponse) {
+            if (key === 'maxFeePerGas' || key === 'maxPriorityFeePerGas')
                 continue
-            if (!userOpGasFieldsResponse[key as keyof UserOpGasFieldsResponse]) {
+            if (!userOpGasResponse[key as keyof UserOpGasResponse]) {
                 throw new Error(`Got undefined ${key} from bundler`);
             }
         }
-        return userOpGasFieldsResponse
+        return userOpGasResponse
     }
     /**
      * 
@@ -69,9 +75,10 @@ export class Bundler implements IBundler {
         // transformUserOP will convert all bigNumber values to string
         userOp = transformUserOP(userOp)
         const hexifiedUserOp = deepHexlify(await resolveProperties(userOp))
-        let params = [hexifiedUserOp, this.bundlerConfig.epAddress]
-        const sendUserOperationResponse: SendUserOperationResponse = await sendRequest({
-            url: `${this.bundlerConfig.bundlerUrl}/${chainId}/${this.bundlerConfig.apiKey}`,
+        let params = [hexifiedUserOp, this.bundlerConfig.entryPointAddress]
+        const bundlerUrl = this.getBundlerUrl(chainId)
+        const sendUserOperationResponse: SendUserOpResponse = await sendRequest({
+            url: bundlerUrl,
             method: HttpMethod.Post,
             body: {
                 method: 'eth_sendUserOperation',
@@ -79,15 +86,15 @@ export class Bundler implements IBundler {
                 id: getTimestampInSeconds(),
                 jsonrpc: '2.0'
             }
-        })        
+        })
         let response: UserOpResponse = {
             userOpHash: sendUserOperationResponse.result,
-            wait: (): Promise<UserOpReceipt> => {
+            wait: (confirmations?: number): Promise<UserOpReceipt> => {
                 return new Promise<UserOpReceipt>(async (resolve, reject) => {
                     const intervalId = setInterval(async () => {
                         try {
                             const userOpResponse = await this.getUserOpReceipt(sendUserOperationResponse.result, chainId)
-                            if (userOpResponse) {
+                            if (userOpResponse && userOpResponse.receipt && userOpResponse.receipt.confirmations >= (confirmations || 0)) {
                                 clearInterval(intervalId);
                                 resolve(userOpResponse);
                             }
@@ -106,12 +113,13 @@ export class Bundler implements IBundler {
     /**
      * 
      * @param userOpHash
-     * @description This function will return userOpReceipt for a specific userOpHash
+     * @description This function will return userOpReceipt for a given userOpHash
      * @returns Promise<UserOpReceipt>
      */
     async getUserOpReceipt(userOpHash: string, chainId: ChainId): Promise<UserOpReceipt> {
+        const bundlerUrl = this.getBundlerUrl(chainId)
         const response: GetUserOperationResponse = await sendRequest({
-            url: `${this.bundlerConfig.bundlerUrl}/${chainId}/${this.bundlerConfig.apiKey}`,
+            url: bundlerUrl,
             method: HttpMethod.Post,
             body: {
                 method: 'eth_getUserOperationReceipt',
@@ -122,5 +130,27 @@ export class Bundler implements IBundler {
         })
         const userOpReceipt: UserOpReceipt = response.result
         return userOpReceipt
+    }
+    /**
+     * 
+     * @param userOpHash 
+     * @param chainId
+     * @description this function will return UserOpByHashResponse for given UserOpHash
+     * @returns Promise<UserOpByHashResponse> 
+     */
+    async getUserOpByHash(userOpHash: string, chainId: ChainId): Promise<UserOpByHashResponse> {
+        const bundlerUrl = this.getBundlerUrl(chainId)
+        const response: GetUserOpByHashResponse = await sendRequest({
+            url: bundlerUrl,
+            method: HttpMethod.Post,
+            body: {
+                method: 'eth_getUserOperationByHash',
+                params: [userOpHash],
+                id: getTimestampInSeconds(),
+                jsonrpc: '2.0'
+            }
+        })
+        const userOpByHashResponse: UserOpByHashResponse = response.result
+        return userOpByHashResponse
     }
 }

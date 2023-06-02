@@ -31,7 +31,7 @@ class SoicalLogin {
   }
 
   async whitelistUrl(origin: string): Promise<string> {
-    const whiteListUrlResponse: WhiteListSignatureResponse = await this.nodeClient.whiteListUrl(
+    const whiteListUrlResponse: WhiteListSignatureResponse = await this.nodeClient.whitelistUrl(
       origin
     )
     return whiteListUrlResponse.data
