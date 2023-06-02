@@ -191,19 +191,30 @@ export class SmartAccountAPI extends BaseAccountAPI {
    * @param info
    */
   async createUnsignedUserOp(info: TransactionDetailsForBatchUserOp): Promise<UserOperation> {
-
     Logger.log('info.paymasterServiceData', info.paymasterServiceData)
 
-    if(info.paymasterServiceData && info.paymasterServiceData.tokenPaymasterData && info.paymasterServiceData.tokenPaymasterData.feeTokenAddress && info.paymasterServiceData.tokenPaymasterData.feeTokenAddress != '' && info.paymasterServiceData.tokenPaymasterData.feeTokenAddress != ZERO_ADDRESS) {
-
+    if (
+      info.paymasterServiceData &&
+      info.paymasterServiceData.tokenPaymasterData &&
+      info.paymasterServiceData.tokenPaymasterData.feeTokenAddress &&
+      info.paymasterServiceData.tokenPaymasterData.feeTokenAddress != '' &&
+      info.paymasterServiceData.tokenPaymasterData.feeTokenAddress != ZERO_ADDRESS
+    ) {
       if (this.paymasterAPI instanceof BiconomyTokenPaymasterAPI) {
         // update calldata accordingly by checking allowance then batching token approval request
-        const erc20Address = info.paymasterServiceData.tokenPaymasterData.feeTokenAddress;
-        const approveTx: Transaction = await this.paymasterAPI.createGasTokenApprovalRequest(erc20Address, this.provider);
-        if(approveTx.to && approveTx.data && approveTx.value) {
-        info.target.unshift(approveTx.to);
-        info.data.unshift(arrayify(approveTx.data)); // review
-        info.value.unshift(approveTx.value);
+        const erc20Address = info.paymasterServiceData.tokenPaymasterData.feeTokenAddress
+        Logger.log('erc20 address', erc20Address)
+        const approveTx: Transaction = await this.paymasterAPI.createTokenApprovalRequest(
+          erc20Address,
+          this.provider
+        )
+
+        // May not need to do this always depnding on already given allowance..
+        // ToDO ^
+        if (approveTx.to && approveTx.data && approveTx.value) {
+          info.target.unshift(approveTx.to)
+          info.data.unshift(arrayify(approveTx.data)) // review
+          info.value.unshift(approveTx.value)
         }
       }
 

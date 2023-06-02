@@ -38,23 +38,24 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI {
     return PAYMASTER_ADDRESS
   }
 
-  async getTokeApprovalAmount(feeTokenAddress: string): Promise<BigNumberish> {
+  async getTokenApprovalAmount(feeTokenAddress: string): Promise<BigNumberish> {
     Logger.log('fee token address ', feeTokenAddress)
     return ethers.utils.parseUnits('10', 6)
   }
 
-  async createGasTokenApprovalRequest(
+  async createTokenApprovalRequest(
     feeTokenAddress: string,
     provider: Provider
   ): Promise<Transaction> {
+    // Note: ideally should also check in caller if the approval is already given
     const erc20 = new ethers.Contract(feeTokenAddress, ERC20_ABI, provider)
 
     return {
       to: erc20.address,
       value: ethers.BigNumber.from(0),
       data: erc20.interface.encodeFunctionData('approve', [
-        await this.getPaymasterAddress(),
-        ERC20_APPROVAL_AMOUNT[erc20.address]
+        PAYMASTER_ADDRESS, //await this.getPaymasterAddress(),
+        ERC20_APPROVAL_AMOUNT[erc20.address] // await this.getTokenApprovalAmount(erc20.address)
       ])
     }
   }
