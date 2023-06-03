@@ -4,7 +4,7 @@ import log from 'loglevel'
 import { URL } from 'react-native-url-polyfill'
 
 import { IWebBrowser } from './types/IWebBrowser'
-import { SdkInitParams, SdkLoginParams, SdkLogoutParams, SocialLoginDto} from './types/sdk'
+import { SdkInitParams, SdkLoginParams, SdkLogoutParams, SocialLoginDto } from './types/sdk'
 import { State } from './types/State'
 
 class SocialLogin {
