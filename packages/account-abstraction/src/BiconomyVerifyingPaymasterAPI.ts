@@ -1,21 +1,25 @@
 import { resolveProperties } from '@ethersproject/properties'
 import { UserOperation } from '@biconomy/core-types'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-import { PaymasterConfig, PaymasterServiceDataType } from '@biconomy/core-types'
+import {
+  PaymasterConfig,
+  PaymasterServiceDataType,
+  VerifyingPaymasterData
+} from '@biconomy/core-types'
 import { Logger } from '@biconomy/common'
 import { PaymasterAPI } from './PaymasterAPI'
 
 /**
  * Verifying Paymaster API supported via Biconomy dahsboard to enable Gasless transactions
  */
-export class BiconomyVerifyingPaymasterAPI extends PaymasterAPI {
+export class BiconomyVerifyingPaymasterAPI extends PaymasterAPI<VerifyingPaymasterData> {
   constructor(readonly paymasterConfig: PaymasterConfig) {
     super()
   }
 
   async getPaymasterAndData(
     userOp: Partial<UserOperation>,
-    paymasterServiceData?: PaymasterServiceDataType
+    paymasterServiceData?: VerifyingPaymasterData
   ): Promise<string> {
     try {
       userOp = await resolveProperties(userOp)

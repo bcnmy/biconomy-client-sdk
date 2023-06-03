@@ -2,7 +2,7 @@ import { resolveProperties } from '@ethersproject/properties'
 import { ethers, BigNumberish } from 'ethers'
 import { UserOperation } from '@biconomy/core-types'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-import { PaymasterConfig, PaymasterServiceDataType } from '@biconomy/core-types'
+import { PaymasterConfig, PaymasterServiceDataType, TokenPaymasterData } from '@biconomy/core-types'
 import { Logger } from '@biconomy/common'
 import { PaymasterAPI } from './PaymasterAPI'
 import { ERC20_ABI, ERC20_APPROVAL_AMOUNT, PAYMASTER_ADDRESS } from './constants'
@@ -13,7 +13,7 @@ import { hexifyUserOp } from './utils'
 /**
  * ERC20 Token Paymaster API supported via Biconomy dahsboard to enable Gas payments in ERC20 tokens
  */
-export class BiconomyTokenPaymasterAPI extends PaymasterAPI {
+export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> {
   constructor(readonly paymasterConfig: PaymasterConfig) {
     super()
   }
@@ -62,7 +62,7 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI {
 
   async getPaymasterAndData(
     userOp: Partial<UserOperation>,
-    paymasterServiceData?: PaymasterServiceDataType
+    paymasterServiceData?: TokenPaymasterData
   ): Promise<string> {
     try {
       userOp = await resolveProperties(userOp)

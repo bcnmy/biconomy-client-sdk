@@ -70,7 +70,7 @@ import {
   fallbackHandlerEncodedData
 } from '@biconomy/common'
 import { BigNumber, ethers, Signer } from 'ethers'
-import { Transaction } from '@biconomy/core-types'
+import { Transaction, PaymasterServiceDataType } from '@biconomy/core-types'
 
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount extends EventEmitter {
@@ -323,20 +323,20 @@ class SmartAccount extends EventEmitter {
       const newPaymaster = new BiconomyVerifyingPaymasterAPI({
         paymasterUrl: newPaymasterUrl,
         strictSponsorshipMode: false // Review..
-      })
+      }) as PaymasterAPI<PaymasterServiceDataType>
       accountAPI.connectPaymaster(newPaymaster)
     } else if (label && label == 'ERC20') {
       const newPaymaster = new BiconomyTokenPaymasterAPI({
         paymasterUrl: newPaymasterUrl,
         strictSponsorshipMode: false // Review..
-      })
+      }) as PaymasterAPI<PaymasterServiceDataType>
       accountAPI.connectPaymaster(newPaymaster)
     } else {
       // default or throw
       const newPaymaster = new BiconomyTokenPaymasterAPI({
         paymasterUrl: newPaymasterUrl,
         strictSponsorshipMode: false // Review..
-      })
+      }) as PaymasterAPI<PaymasterServiceDataType>
       accountAPI.connectPaymaster(newPaymaster)
     }
 

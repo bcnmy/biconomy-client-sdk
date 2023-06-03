@@ -1,6 +1,7 @@
 import { PaymasterAPI } from '@biconomy/account-abstraction'
 import { BiconomyVerifyingPaymasterAPI } from '@biconomy/account-abstraction'
 import { BiconomyTokenPaymasterAPI } from '@biconomy/account-abstraction'
+import { PaymasterServiceDataType } from '@biconomy/core-types'
 
 export type SupportedGasToken = 'USDC' | 'TEST_ERC20'
 
@@ -24,8 +25,14 @@ export async function getPaymaster(
   if (tokenAddress !== undefined) {
     const paymasterAddress = '' // get paymaster address from config or elsewhere api call to paymasterUrl
     if (paymasterAddress !== undefined) {
-      return new BiconomyTokenPaymasterAPI({ paymasterUrl: '', strictSponsorshipMode: false })
+      return new BiconomyTokenPaymasterAPI({
+        paymasterUrl: '',
+        strictSponsorshipMode: false
+      }) as PaymasterAPI<PaymasterServiceDataType>
     }
   }
-  return new BiconomyVerifyingPaymasterAPI({ paymasterUrl: '', strictSponsorshipMode: false })
+  return new BiconomyVerifyingPaymasterAPI({
+    paymasterUrl: '',
+    strictSponsorshipMode: false
+  }) as PaymasterAPI<PaymasterServiceDataType>
 }

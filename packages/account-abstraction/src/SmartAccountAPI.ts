@@ -9,9 +9,10 @@ import { UserOperation, UserOpGasFields } from '@biconomy/core-types'
 import { BaseApiParams, BaseAccountAPI } from './BaseAccountAPI'
 import { Provider } from '@ethersproject/providers'
 import { BiconomyVerifyingPaymasterAPI } from './BiconomyVerifyingPaymasterAPI'
+import { PaymasterAPI } from './PaymasterAPI'
 import { resolveProperties } from 'ethers/lib/utils'
 import { calcPreVerificationGas, GasOverheads } from './calcPreVerificationGas'
-import { Transaction } from '@biconomy/core-types'
+import { Transaction, PaymasterServiceDataType } from '@biconomy/core-types'
 import {
   Logger,
   deployCounterFactualEncodedData,
@@ -102,7 +103,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
         strictSponsorshipMode: clientConfig.strictSponsorshipMode
           ? clientConfig.strictSponsorshipMode
           : false
-      })
+      }) as PaymasterAPI<PaymasterServiceDataType>;
     }
   }
 

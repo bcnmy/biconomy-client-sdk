@@ -15,14 +15,10 @@ export interface IPaymasterAPI {
 /**
  * an API to external a UserOperation with paymaster info
  */
-export class PaymasterAPI {
-  /**
-   * @param _userOp a partially-filled UserOperation (without signature and paymasterAndData
-   * @returns the paymasterAndData string
-   */
+export class PaymasterAPI<T = PaymasterServiceDataType> {
   async getPaymasterAndData(
     _userOp: Partial<UserOperation>,
-    _paymasterServiceData?: PaymasterServiceDataType
+    _paymasterServiceData?: T
   ): Promise<string> {
     return '0x'
   }
