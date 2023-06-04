@@ -390,8 +390,8 @@ class TransactionManager {
       // Depending on feeToken provide baseGas! We could use constant value provided by the relayer
 
       const refundDetails: IFeeRefundHandlePayment = {
-        gasUsed: requiredTxGasEstimate,
-        baseGas: requiredTxGasEstimate,
+        gasUsed: 21000,
+        baseGas: 21000,
         gasPrice: feeQuote.tokenGasPrice,
         tokenGasPriceFactor: feeQuote.offset || 1,
         gasToken: feeQuote.address,
@@ -426,8 +426,8 @@ class TransactionManager {
       targetTxGas = requiredTxGasEstimate
 
       const refundDetails: IFeeRefundHandlePayment = {
-        gasUsed: requiredTxGasEstimate,
-        baseGas: requiredTxGasEstimate,
+        gasUsed: 21000,
+        baseGas: 21000,
         gasPrice: feeQuote.tokenGasPrice,
         tokenGasPriceFactor: feeQuote.offset || 1,
         gasToken: feeQuote.address,
@@ -551,8 +551,8 @@ class TransactionManager {
       // Depending on feeToken provide baseGas! We could use constant value provided by the relayer
 
       const refundDetails: IFeeRefundHandlePayment = {
-        gasUsed: requiredTxGasEstimate,
-        baseGas: requiredTxGasEstimate,
+        gasUsed: 21000,
+        baseGas: 21000,
         gasPrice: feeQuote.tokenGasPrice, // this would be token gas price // review
         tokenGasPriceFactor: feeQuote.offset || 1,
         gasToken: feeQuote.address,
@@ -590,8 +590,8 @@ class TransactionManager {
       targetTxGas = requiredTxGasEstimate
 
       const refundDetails: IFeeRefundHandlePayment = {
-        gasUsed: requiredTxGasEstimate,
-        baseGas: requiredTxGasEstimate,
+        gasUsed: 21000,
+        baseGas: 21000,
         gasPrice: feeQuote.tokenGasPrice, // this would be token gas price
         tokenGasPriceFactor: feeQuote.offset || 1,
         gasToken: feeQuote.address,
