@@ -49,6 +49,10 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       entryPointAddress: _entryPointAddress
     })
     const _rpcUrl = rpcUrl ?? RPC_PROVIDER_URLS[chainId]
+    // TODO: throw supported chainid link from documentation
+    if (!rpcUrl){
+      throw new Error(`Chain Id ${chainId} is not supported`)
+    }
     this.provider = new JsonRpcProvider(_rpcUrl)
     this.entryPoint = EntryPoint_v100__factory.connect(_entryPointAddress, this.provider)
     this.factory = SmartAccountFactory_v100__factory.connect(_factoryAddress, this.provider)
@@ -150,6 +154,19 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     const data = transactions.map((element: Transaction) => element.data ?? '0x')
     const value = transactions.map((element: Transaction) => element.value ?? BigNumber.from('0'))
     this.isProxyDefined()
+    // Note: how would we be getting token address
+    // if ( this.paymaster is instanceOf BiconomyTokenPaymaster )
+    // getPaymasterAddress()
+    // getTokenApprovalAmount()
+    // createTokenApprovalRequest(){
+      // check allowance 
+      // maxApprovalAmount - allowance
+      // transactions.push({
+        // to: PAYMASTER_ADDRESS
+        // data: 
+        // value: 0
+      //})
+    //}
 
     let callData = ''
     if (transactions.length === 1) {

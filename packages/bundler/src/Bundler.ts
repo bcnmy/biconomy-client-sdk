@@ -27,7 +27,7 @@ export class Bundler implements IBundler {
      * @description This function will fetch gasPrices from bundler
      * @returns Promise<UserOpGasPricesResponse>
      */
-    async estimateUserOpGas(userOp: UserOperation, chainId: ChainId): Promise<UserOpGasResponse> {
+    async estimateUserOpGas(userOp: UserOperation, chainId?: ChainId): Promise<UserOpGasResponse> {
         // TODO: will be removed once full userOp requirement is removed from bundler side
         const dummpyUserop = {
             callGasLimit: '0',
@@ -93,6 +93,7 @@ export class Bundler implements IBundler {
                 return new Promise<UserOpReceipt>(async (resolve, reject) => {
                     const intervalId = setInterval(async () => {
                         try {
+                             // TODO: implement confirmation logic 
                             const userOpResponse = await this.getUserOpReceipt(sendUserOperationResponse.result, chainId)
                             if (userOpResponse && userOpResponse.receipt && userOpResponse.receipt.confirmations >= (confirmations || 0)) {
                                 clearInterval(intervalId);
