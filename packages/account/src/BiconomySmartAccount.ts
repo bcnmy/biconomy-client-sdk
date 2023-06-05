@@ -52,7 +52,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     const _rpcUrl = rpcUrl ?? RPC_PROVIDER_URLS[chainId]
             
     if (!_rpcUrl){
-      throw new Error(`Chain Id ${chainId} is not supported`)
+      throw new Error(`Chain Id ${chainId} is not supported. Please refer to the following link for supported chains list https://docs.biconomy.io/build-with-biconomy-sdk/gasless-transactions#supported-chains`)
     }
     this.provider = new JsonRpcProvider(_rpcUrl)
     this.entryPoint = EntryPoint_v100__factory.connect(_entryPointAddress, this.provider)
