@@ -29,6 +29,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
   private factory: SmartAccountFactory_v100
   private nodeClient: INodeClient
   private accountIndex!: Number
+  private address!: string
 
   constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountConfig) {
     const {
@@ -48,8 +49,9 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       bundler,
       entryPointAddress: _entryPointAddress
     })
-    const _rpcUrl = rpcUrl ?? RPC_PROVIDER_URLS[chainId]    
-    if (!rpcUrl){
+    const _rpcUrl = rpcUrl ?? RPC_PROVIDER_URLS[chainId]
+            
+    if (!_rpcUrl){
       throw new Error(`Chain Id ${chainId} is not supported`)
     }
     this.provider = new JsonRpcProvider(_rpcUrl)
@@ -72,9 +74,8 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     try {
       this.isProviderDefined()
       this.isSignerDefined()
-      this.setAccountIndex(accountIndex)
+      await this.setAccountIndex(accountIndex)
       this.chainId = await this.provider.getNetwork().then((net) => net.chainId)
-      await this.getInitCode(accountIndex)
     } catch (error) {
       console.error(`Failed to call init: ${error}`);
       throw error
@@ -83,8 +84,10 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     return this
   }
 
-  setAccountIndex(accountIndex: number): void {
+  async setAccountIndex(accountIndex: number): Promise<void> {
     this.accountIndex = accountIndex
+    this.address = await this.getSmartAccountAddress(accountIndex)
+    this.proxy = await SmartAccount_v100__factory.connect(this.address, this.provider)
   }
 
   async getSmartAccountAddress(accountIndex: number = 0): Promise<string> {
@@ -157,14 +160,12 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     } else {
       callData = this.getExecuteBatchCallData(to, value, data)
     }
-    const address = await this.getSmartAccountAddress()
-    this.proxy = await SmartAccount_v100__factory.connect(address, this.provider)
-    const nonce = await this.isAccountDeployed(address) ? await this.nonce() : BigNumber.from(0)
+    const nonce = await this.isAccountDeployed(this.address) ? await this.nonce() : BigNumber.from(0)
     
     let userOp: Partial<UserOperation> = {
-      sender: address,
+      sender: this.address,
       nonce,
-      initCode: nonce.eq(0) ? await this.getInitCode() : '0x',
+      initCode: nonce.eq(0) ? this.initCode : '0x',
       callData: callData
     }    
 

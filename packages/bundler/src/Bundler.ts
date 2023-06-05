@@ -151,7 +151,6 @@ export class Bundler implements IBundler {
      * @returns Promise<UserOpByHashResponse> 
      */
     async getUserOpByHash(userOpHash: string): Promise<UserOpByHashResponse> {
-        const chainId = this.bundlerConfig.chainId
         const bundlerUrl = this.getBundlerUrl()
         const response: GetUserOpByHashResponse = await sendRequest({
             url: bundlerUrl,
