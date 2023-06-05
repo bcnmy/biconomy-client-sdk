@@ -48,8 +48,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       bundler,
       entryPointAddress: _entryPointAddress
     })
-    const _rpcUrl = rpcUrl ?? RPC_PROVIDER_URLS[chainId]
-    // TODO: throw supported chainid link from documentation
+    const _rpcUrl = rpcUrl ?? RPC_PROVIDER_URLS[chainId]    
     if (!rpcUrl){
       throw new Error(`Chain Id ${chainId} is not supported`)
     }
@@ -76,8 +75,6 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       this.setAccountIndex(accountIndex)
       this.chainId = await this.provider.getNetwork().then((net) => net.chainId)
       await this.getInitCode(accountIndex)
-      const address = await this.getSmartAccountAddress(accountIndex)
-      this.proxy = await SmartAccount_v100__factory.connect(address, this.provider)
     } catch (error) {
       console.error(`Failed to call init: ${error}`);
       throw error
@@ -92,7 +89,6 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
 
   async getSmartAccountAddress(accountIndex: number = 0): Promise<string> {
     try {
-      // TODO: may be create a state to manage address
       this.isSignerDefined()
       this.getInitCode(accountIndex)
       const address = await this.factory.getAddressForCounterFactualAccount(
@@ -101,7 +97,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       )
       return address
     } catch (error) {
-      console.error(`Failed to get getSmartAccountAddress: ${error}`);
+      console.error(`Failed to get smart account address: ${error}`);
       throw error
     }
   }
@@ -154,19 +150,6 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     const data = transactions.map((element: Transaction) => element.data ?? '0x')
     const value = transactions.map((element: Transaction) => element.value ?? BigNumber.from('0'))
     this.isProxyDefined()
-    // Note: how would we be getting token address
-    // if ( this.paymaster is instanceOf BiconomyTokenPaymaster )
-    // getPaymasterAddress()
-    // getTokenApprovalAmount()
-    // createTokenApprovalRequest(){
-      // check allowance 
-      // maxApprovalAmount - allowance
-      // transactions.push({
-        // to: PAYMASTER_ADDRESS
-        // data: 
-        // value: 0
-      //})
-    //}
 
     let callData = ''
     if (transactions.length === 1) {
@@ -175,6 +158,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       callData = this.getExecuteBatchCallData(to, value, data)
     }
     const address = await this.getSmartAccountAddress()
+    this.proxy = await SmartAccount_v100__factory.connect(address, this.provider)
     const nonce = await this.isAccountDeployed(address) ? await this.nonce() : BigNumber.from(0)
     
     let userOp: Partial<UserOperation> = {

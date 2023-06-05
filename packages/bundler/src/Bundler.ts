@@ -2,10 +2,12 @@ import { IBundler } from "./interfaces/IBundler";
 import { UserOperation, ChainId } from '@biconomy/core-types'
 import { GetUserOperationResponse, GetUserOpByHashResponse, Bundlerconfig, UserOpResponse, EstimateUserOpGasResponse, UserOpReceipt, SendUserOpResponse, UserOpGasResponse, UserOpByHashResponse } from "./types/Types"
 import { resolveProperties } from 'ethers/lib/utils'
-import { deepHexlify, getTimestampInSeconds } from '@biconomy/common'
+import { deepHexlify, getTimestampInSeconds, RPC_PROVIDER_URLS } from '@biconomy/common'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
 import { transformUserOP } from './utils/HelperFunction'
 import { UserOpReceiptIntervals } from './utils/Constants'
+import { JsonRpcProvider } from '@ethersproject/providers'
+
 /**
  * This class implements IBundler interface. 
  * Implementation sends UserOperation to a bundler URL as per ERC4337 standard. 
@@ -17,8 +19,8 @@ export class Bundler implements IBundler {
         this.UserOpReceiptIntervals = { ...UserOpReceiptIntervals, ...bundlerConfig.userOpReceiptIntervals }
     }
 
-    private getBundlerUrl(chainId: ChainId): string {
-        return `${this.bundlerConfig.bundlerUrl}/${chainId}/${this.bundlerConfig.apiKey}`
+    private getBundlerUrl(): string {
+        return `${this.bundlerConfig.bundlerUrl}/${this.bundlerConfig.chainId}/${this.bundlerConfig.apiKey}`
     }
 
     /**
@@ -27,7 +29,7 @@ export class Bundler implements IBundler {
      * @description This function will fetch gasPrices from bundler
      * @returns Promise<UserOpGasPricesResponse>
      */
-    async estimateUserOpGas(userOp: UserOperation, chainId?: ChainId): Promise<UserOpGasResponse> {
+    async estimateUserOpGas(userOp: UserOperation): Promise<UserOpGasResponse> {
         // TODO: will be removed once full userOp requirement is removed from bundler side
         const dummpyUserop = {
             callGasLimit: '0',
@@ -42,7 +44,7 @@ export class Bundler implements IBundler {
         userOp = transformUserOP(userOperation)
         console.log('userOp sending for fee estimate ', userOp);
 
-        const bundlerUrl = this.getBundlerUrl(chainId)
+        const bundlerUrl = this.getBundlerUrl()
 
         const response: EstimateUserOpGasResponse = await sendRequest({
             url: bundlerUrl,
@@ -71,12 +73,13 @@ export class Bundler implements IBundler {
      * @description This function will send signed userOp to bundler to get mined on chain
      * @returns Promise<UserOpResponse>
      */
-    async sendUserOp(userOp: UserOperation, chainId: ChainId): Promise<UserOpResponse> {
+    async sendUserOp(userOp: UserOperation): Promise<UserOpResponse> {
+        const chainId = this.bundlerConfig.chainId
         // transformUserOP will convert all bigNumber values to string
         userOp = transformUserOP(userOp)
         const hexifiedUserOp = deepHexlify(await resolveProperties(userOp))
         let params = [hexifiedUserOp, this.bundlerConfig.entryPointAddress]
-        const bundlerUrl = this.getBundlerUrl(chainId)
+        const bundlerUrl = this.getBundlerUrl()
         const sendUserOperationResponse: SendUserOpResponse = await sendRequest({
             url: bundlerUrl,
             method: HttpMethod.Post,
@@ -90,12 +93,20 @@ export class Bundler implements IBundler {
         let response: UserOpResponse = {
             userOpHash: sendUserOperationResponse.result,
             wait: (confirmations?: number): Promise<UserOpReceipt> => {
+                const provider = new JsonRpcProvider(RPC_PROVIDER_URLS[chainId])
                 return new Promise<UserOpReceipt>(async (resolve, reject) => {
                     const intervalId = setInterval(async () => {
                         try {
-                             // TODO: implement confirmation logic 
-                            const userOpResponse = await this.getUserOpReceipt(sendUserOperationResponse.result, chainId)
-                            if (userOpResponse && userOpResponse.receipt && userOpResponse.receipt.confirmations >= (confirmations || 0)) {
+                            const userOpResponse = await this.getUserOpReceipt(sendUserOperationResponse.result)
+                            if (userOpResponse && userOpResponse.receipt && userOpResponse.receipt.blockNumber) {
+                                if (confirmations) {
+                                    const latestBlock = await provider.getBlockNumber()
+                                    const confirmedBlocks = latestBlock - userOpResponse.receipt.blockNumber
+                                    if (confirmations >= confirmedBlocks) {
+                                        clearInterval(intervalId);
+                                        resolve(userOpResponse);
+                                    }
+                                }
                                 clearInterval(intervalId);
                                 resolve(userOpResponse);
                             }
@@ -117,8 +128,8 @@ export class Bundler implements IBundler {
      * @description This function will return userOpReceipt for a given userOpHash
      * @returns Promise<UserOpReceipt>
      */
-    async getUserOpReceipt(userOpHash: string, chainId: ChainId): Promise<UserOpReceipt> {
-        const bundlerUrl = this.getBundlerUrl(chainId)
+    async getUserOpReceipt(userOpHash: string): Promise<UserOpReceipt> {
+        const bundlerUrl = this.getBundlerUrl()
         const response: GetUserOperationResponse = await sendRequest({
             url: bundlerUrl,
             method: HttpMethod.Post,
@@ -139,8 +150,9 @@ export class Bundler implements IBundler {
      * @description this function will return UserOpByHashResponse for given UserOpHash
      * @returns Promise<UserOpByHashResponse> 
      */
-    async getUserOpByHash(userOpHash: string, chainId: ChainId): Promise<UserOpByHashResponse> {
-        const bundlerUrl = this.getBundlerUrl(chainId)
+    async getUserOpByHash(userOpHash: string): Promise<UserOpByHashResponse> {
+        const chainId = this.bundlerConfig.chainId
+        const bundlerUrl = this.getBundlerUrl()
         const response: GetUserOpByHashResponse = await sendRequest({
             url: bundlerUrl,
             method: HttpMethod.Post,

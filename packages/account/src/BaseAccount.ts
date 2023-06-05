@@ -113,7 +113,7 @@ export abstract class SmartAccount implements ISmartAccount {
         preVerificationGas,
         maxFeePerGas,
         maxPriorityFeePerGas
-      } = await this.bundler.estimateUserOpGas(userOp, this.chainId)
+      } = await this.bundler.estimateUserOpGas(userOp)
       if ((!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas) && (!maxFeePerGas || !maxPriorityFeePerGas)) {
         const feeData = await this.provider.getFeeData()
         userOp.maxFeePerGas = feeData.maxFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice())
@@ -263,7 +263,7 @@ export abstract class SmartAccount implements ISmartAccount {
     ]
     this.validateUserOp(userOp, requiredFields)
     if (!this.bundler) throw new Error('Bundler is not provided')
-    const bundlerResponse = await this.bundler.sendUserOp(userOp, this.chainId)
+    const bundlerResponse = await this.bundler.sendUserOp(userOp)
     return bundlerResponse
   }
 }

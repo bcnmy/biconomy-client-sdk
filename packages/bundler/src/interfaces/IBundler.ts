@@ -3,10 +3,9 @@ import { ChainId, UserOperation } from '@biconomy/core-types'
 
 export interface IBundler {
     estimateUserOpGas(
-        userOp: Partial<UserOperation>,
-        chainId: ChainId
+        userOp: Partial<UserOperation>
     ): Promise<UserOpGasResponse>
-    sendUserOp(userOp: UserOperation, chainId: ChainId): Promise<UserOpResponse>
-    getUserOpReceipt(userOpHash: string, chainId: ChainId): Promise<UserOpReceipt>
-    getUserOpByHash(userOpHash: string, chainId: ChainId): Promise<UserOpByHashResponse>
+    sendUserOp(userOp: UserOperation): Promise<UserOpResponse>
+    getUserOpReceipt(userOpHash: string): Promise<UserOpReceipt>
+    getUserOpByHash(userOpHash: string): Promise<UserOpByHashResponse>
 }
