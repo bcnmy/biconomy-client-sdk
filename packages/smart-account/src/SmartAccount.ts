@@ -413,7 +413,6 @@ class SmartAccount extends EventEmitter {
     transactionDto: TransactionDto // TODO: revise DTO as per above
     // isUpdateImpTrx?: Boolean
   ): Promise<TransactionResponse> {
-
     let { chainId } = transactionDto
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
     // version = version ? version : this.DEFAULT_VERSION
@@ -645,10 +644,10 @@ class SmartAccount extends EventEmitter {
     rawTx.data = execTransaction.data
 
     const state = await this.contractUtils.getSmartAccountState()
-    if ( !state.isDeployed ){
-    const isDeployed = await this.isDeployed(chainId)
-    state.isDeployed = isDeployed
-    this.contractUtils.setSmartAccountState(state)
+    if (!state.isDeployed) {
+      const isDeployed = await this.isDeployed(chainId)
+      state.isDeployed = isDeployed
+      this.contractUtils.setSmartAccountState(state)
     }
     const signedTx: SignedTransaction = {
       rawTx,
@@ -661,19 +660,7 @@ class SmartAccount extends EventEmitter {
     }
     if (gasLimit) {
       relayTrx.gasLimit = gasLimit
-    } /*else {
-      relayTrx.gasLimit = {
-        hex: '0x16E360',
-        type: 'hex'
-      }
-    }*/
-
-    /*if (!isDeployed) {
-      relayTrx.gasLimit = {
-        hex: '0x1E8480',
-        type: 'hex'
-      }
-    }*/
+    }
     const relayResponse: RelayResponse = await this.relayer.relay(relayTrx, this)
     if (relayResponse.transactionId) {
       return relayResponse.transactionId
@@ -733,11 +720,11 @@ class SmartAccount extends EventEmitter {
     rawTx.data = execTransaction.data
 
     const state = await this.contractUtils.getSmartAccountState()
-    if ( !state.isDeployed ){
+    if (!state.isDeployed) {
       const isDeployed = await this.isDeployed(chainId)
       state.isDeployed = isDeployed
       this.contractUtils.setSmartAccountState(state)
-      }
+    }
 
     const signedTx: SignedTransaction = {
       rawTx,
@@ -948,10 +935,10 @@ class SmartAccount extends EventEmitter {
     //   index
     // })
 
-    console.log(version, index, chainId);
-   
+    console.log(version, index, chainId)
+
     const network = this.chainConfig.find((element: ChainConfig) => element.chainId === chainId)
-    if (!network) throw new Error("Could not found network")
+    if (!network) throw new Error('Could not found network')
     const smartAccountState = {
       chainId: chainId,
       version: version,
@@ -995,7 +982,6 @@ class SmartAccount extends EventEmitter {
     smartAccountState.address = this.address
 
     this.contractUtils.setSmartAccountState(smartAccountState)
-
 
     return smartAccountState
   }
