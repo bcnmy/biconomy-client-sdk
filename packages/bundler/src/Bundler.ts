@@ -2,7 +2,7 @@ import { IBundler } from "./interfaces/IBundler";
 import { UserOperation, ChainId } from '@biconomy/core-types'
 import { GetUserOperationResponse, GetUserOpByHashResponse, Bundlerconfig, UserOpResponse, EstimateUserOpGasResponse, UserOpReceipt, SendUserOpResponse, UserOpGasResponse, UserOpByHashResponse } from "./types/Types"
 import { resolveProperties } from 'ethers/lib/utils'
-import { deepHexlify, getTimestampInSeconds, RPC_PROVIDER_URLS } from '@biconomy/common'
+import { deepHexlify, getTimestampInSeconds, Logger, RPC_PROVIDER_URLS } from '@biconomy/common'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
 import { transformUserOP } from './utils/HelperFunction'
 import { UserOpReceiptIntervals } from './utils/Constants'
@@ -42,7 +42,7 @@ export class Bundler implements IBundler {
         }
         const userOperation = { ...dummpyUserop, ...userOp }
         userOp = transformUserOP(userOperation)
-        console.log('userOp sending for fee estimate ', userOp);
+        Logger.log('userOp sending for fee estimate ', userOp);
 
         const bundlerUrl = this.getBundlerUrl()
 
