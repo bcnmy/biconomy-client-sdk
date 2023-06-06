@@ -13,7 +13,7 @@ export const ERC20_ABI = [
 
 export const USDC_ADDRESS: { [key: number]: string } = {
   137: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-  80001: '0xdA5289fCAAF71d52a80A254da614a192b693e977'
+  80001: '0xda5289fcaaf71d52a80a254da614a192b693e977'
 }
 
 export const ERC20_APPROVAL_AMOUNT: { [key: string]: BigNumberish } = {

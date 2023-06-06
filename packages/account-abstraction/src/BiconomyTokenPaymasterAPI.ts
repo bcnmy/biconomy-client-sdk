@@ -91,8 +91,8 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> 
 
       Logger.log('verifying and signing service response', result)
 
-      if (result && result.data && result.statusCode === 200) {
-        return result.data.paymasterAndData
+      if (result && result.result) {
+        return result.result.tokenPaymasterAndData
       } else {
         // TODO: decide how strictSponsorshipMode applies here
         // Usually it could be like fallback from sponsorpship pamaster to ERC20 paymaster
