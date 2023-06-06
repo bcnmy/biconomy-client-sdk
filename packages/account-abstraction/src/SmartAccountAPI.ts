@@ -88,6 +88,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
     readonly index = 0,
     overheads?: Partial<GasOverheads>
   ) {
+    Logger.log('paymaster url ', clientConfig.paymasterUrl)
     // Note: todo: clientConfig could itself have PaymasterAPI instead of paymasterUrl or dappAPIKey
     super(provider, entryPoint, clientConfig, accountAddress, overheads)
     if (!clientConfig.paymasterUrl || clientConfig.paymasterUrl === '') {
@@ -103,7 +104,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
         strictSponsorshipMode: clientConfig.strictSponsorshipMode
           ? clientConfig.strictSponsorshipMode
           : false
-      }) as PaymasterAPI<PaymasterServiceDataType>;
+      }) as PaymasterAPI<PaymasterServiceDataType>
     }
   }
 
@@ -218,7 +219,6 @@ export class SmartAccountAPI extends BaseAccountAPI {
           info.value.unshift(approveTx.value)
         }
       }
-
     }
 
     const { callData, callGasLimit } = await this.encodeUserOpCallDataAndGasLimit(info)
@@ -291,7 +291,6 @@ export class SmartAccountAPI extends BaseAccountAPI {
       feeData?.verificationGasLimit ?? (await this.getVerificationGasLimit())
     partialUserOp.preVerificationGas =
       feeData?.preVerificationGas ?? (await this.getPreVerificationGas(partialUserOp))
-
 
     partialUserOp.paymasterAndData = !this.paymasterAPI
       ? '0x'

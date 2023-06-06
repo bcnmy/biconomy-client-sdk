@@ -249,6 +249,7 @@ class SmartAccount extends EventEmitter {
 
       const clientConfig = await this.getNetworkConfigValues(network.chainId)
 
+      Logger.log('clientConfig for creating aa provider', clientConfig)
       this.aaProvider[network.chainId] = await newProvider(
         new ethers.providers.JsonRpcProvider(providerUrl),
         {
