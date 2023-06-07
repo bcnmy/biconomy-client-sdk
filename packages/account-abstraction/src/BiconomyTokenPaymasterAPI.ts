@@ -1,8 +1,13 @@
 import { resolveProperties } from '@ethersproject/properties'
 import { ethers, BigNumberish } from 'ethers'
-import { UserOperation } from '@biconomy/core-types'
+import { PaymasterFeeQuote, UserOperation } from '@biconomy/core-types'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-import { PaymasterConfig, PaymasterServiceDataType, TokenPaymasterData } from '@biconomy/core-types'
+import {
+  PaymasterConfig,
+  PaymasterServiceDataType,
+  TokenPaymasterData,
+  FeeTokenData
+} from '@biconomy/core-types'
 import { Logger } from '@biconomy/common'
 import { PaymasterAPI } from './PaymasterAPI'
 import { ERC20_ABI, ERC20_APPROVAL_AMOUNT, PAYMASTER_ADDRESS } from './constants'
@@ -76,13 +81,11 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> 
     }
   }
 
-  // WIP
-  // Response to be defined
-  async getFeeQuotes(
+  async getPaymasterFeeQuotes(
     userOp: Partial<UserOperation>,
     requestedTokens?: string[],
     preferredToken?: string
-  ) {
+  ): Promise<PaymasterFeeQuote[]> {
     Logger.log('preferred token address passed is ', preferredToken)
     let feeTokensArray: string[] = []
     if (requestedTokens && requestedTokens.length != 0) {
@@ -92,6 +95,8 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> 
     // const verificationGasLimit = userOp.verificationGasLimit
     // const preVerificationGas = userOp.preVerificationGas
     // const maxFeePerGas = userOp.maxFeePerGas
+
+    const feeQuotes: Array<PaymasterFeeQuote> = []
 
     const requiredPrefund = ethers.BigNumber.from(userOp.callGasLimit)
       .add(ethers.BigNumber.from(userOp.verificationGasLimit).mul(3))
@@ -113,31 +118,38 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> 
       })
 
       if (response && response.result) {
-        const feeInfo = response.result
-        Logger.log('feeInfo ', feeInfo)
-
-        // sample result
-        /*"result": {
-          "0xda5289fcaaf71d52a80a254da614a192b693e977": {
-              "exchangeRate": 1272265,
-              "decimal": 6,
-              "symbol": "USDC"
-          }
-        }*/
+        Logger.log('feeInfo ', response.result)
+        const feeOptionsAvailable: Array<FeeTokenData> = response.result
 
         // check all objects iterate and populate below calculation for all tokens
 
-        // quote in specific token terms
-        /*requiredPrefund
-          .mul(exchangeRate)
-          .div(ethers.constants.WeiPerEther)
-          .toString()*/
+        feeOptionsAvailable.forEach((feeOption) => {
+          const payment = requiredPrefund
+            .mul(feeOption.exchangeRate)
+            .div(ethers.constants.WeiPerEther)
+            .toNumber()
+
+          const feeQuote = {
+            symbol: feeOption.symbol,
+            tokenAddress: feeOption.tokenAddress,
+            // decimal: feeOption.decimal,
+            // logoUrl: feeOption.logoUrl,
+            payment: payment,
+            premiumMultiplier: feeOption.premiumMultiplier
+          }
+
+          feeQuotes.push(feeQuote)
+        })
+
+        return feeQuotes
       } else {
         // return empty fee quotes or throw
+        return feeQuotes
       }
     } catch (error) {
       Logger.error("can't query fee quotes: ", error)
       // return empty fee quotes or throw
+      return feeQuotes
     }
   }
 
