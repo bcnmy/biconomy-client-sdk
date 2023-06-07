@@ -160,16 +160,18 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     } else {
       callData = this.getExecuteBatchCallData(to, value, data)
     }
-    const nonce = await this.isAccountDeployed(this.address) ? await this.nonce() : BigNumber.from(0)
-    
+    let nonce = BigNumber.from(0)
+    try {
+      nonce = await this.nonce()
+    } catch (error) {
+    }
     let userOp: Partial<UserOperation> = {
       sender: this.address,
       nonce,
       initCode: nonce.eq(0) ? this.initCode : '0x',
       callData: callData
-    }    
-
-    userOp = await this.estimateUserOpGas(userOp, overrides),
+    }
+    userOp = await this.estimateUserOpGas(userOp, overrides)
     userOp.paymasterAndData = await this.getPaymasterAndData(userOp)
     return userOp
   }
