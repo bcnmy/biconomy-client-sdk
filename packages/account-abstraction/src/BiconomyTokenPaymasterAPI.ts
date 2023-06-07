@@ -19,33 +19,49 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> 
   }
 
   async getPaymasterAddress(): Promise<string> {
-    // TODO: update with below way shared by PM service team
-    const result: any = await sendRequest({
-      url: `${this.paymasterConfig.paymasterUrl}`,
-      method: HttpMethod.Post,
-      body: {
-        method: 'pm_supportedPaymasters',
-        params: [],
-        id: 1234,
-        jsonrpc: '2.0'
-      }
-    })
+    try {
+      const response: any = await sendRequest({
+        url: `${this.paymasterConfig.paymasterUrl}`,
+        method: HttpMethod.Post,
+        body: {
+          method: 'pm_getPaymasterType',
+          params: [],
+          id: 4337,
+          jsonrpc: '2.0'
+        }
+      })
 
-    if (result && result.data && result.statusCode === 200) {
-      return result.data.paymasterAddresses[0] // temp random
+      if (response && response.result && response.result.address) {
+        this.paymasterAddress = response.result.address
+      }
+    } catch (error) {
+      Logger.error("can't query paymaster type and address error: ", error)
     }
 
-    return PAYMASTER_ADDRESS
+    return this.paymasterAddress || PAYMASTER_ADDRESS
   }
 
-  async getTokenApprovalAmount(feeTokenAddress: string): Promise<BigNumberish> {
+  async getTokenApprovalAmount(
+    feeTokenAddress: string,
+    maxApprove?: boolean
+  ): Promise<BigNumberish> {
+    if (maxApprove) {
+      return ethers.constants.MaxUint256
+    }
+
+    // check the allowance provided on the paymaster
+    // Todo: make an optional flag if someone wants to provide infitite approval
+    // otherwise we need to give accurate allowance: would need fee quote for this
+
+    // Temp values
     Logger.log('fee token address ', feeTokenAddress)
     return ethers.utils.parseUnits('10', 6)
   }
 
   async createTokenApprovalRequest(
     feeTokenAddress: string,
-    provider: Provider
+    provider: Provider,
+    maxApprove = false
   ): Promise<Transaction> {
     // Note: ideally should also check in caller if the approval is already given
     const erc20 = new ethers.Contract(feeTokenAddress, ERC20_ABI, provider)
@@ -54,9 +70,74 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> 
       to: erc20.address,
       value: ethers.BigNumber.from(0),
       data: erc20.interface.encodeFunctionData('approve', [
-        PAYMASTER_ADDRESS, //await this.getPaymasterAddress(),
-        ERC20_APPROVAL_AMOUNT[erc20.address] // await this.getTokenApprovalAmount(erc20.address)
+        this.paymasterAddress || (await this.getPaymasterAddress()),
+        await this.getTokenApprovalAmount(erc20.address, maxApprove)
       ])
+    }
+  }
+
+  // WIP
+  // Response to be defined
+  async getFeeQuotes(
+    userOp: Partial<UserOperation>,
+    requestedTokens?: string[],
+    preferredToken?: string
+  ) {
+    Logger.log('preferred token address passed is ', preferredToken)
+    let feeTokensArray: string[] = []
+    if (requestedTokens && requestedTokens.length != 0) {
+      feeTokensArray = requestedTokens
+    }
+    // const callGasLimit = userOp.callGasLimit
+    // const verificationGasLimit = userOp.verificationGasLimit
+    // const preVerificationGas = userOp.preVerificationGas
+    // const maxFeePerGas = userOp.maxFeePerGas
+
+    const requiredPrefund = ethers.BigNumber.from(userOp.callGasLimit)
+      .add(ethers.BigNumber.from(userOp.verificationGasLimit).mul(3))
+      .add(ethers.BigNumber.from(userOp.preVerificationGas))
+      .mul(ethers.BigNumber.from(userOp.maxFeePerGas))
+
+    Logger.log('required prefund in wei ', requiredPrefund.toString())
+
+    try {
+      const response: any = await sendRequest({
+        url: `${this.paymasterConfig.paymasterUrl}`,
+        method: HttpMethod.Post,
+        body: {
+          method: 'pm_getFeeQuote',
+          params: feeTokensArray, // As per current API
+          id: 4337,
+          jsonrpc: '2.0'
+        }
+      })
+
+      if (response && response.result) {
+        const feeInfo = response.result
+        Logger.log('feeInfo ', feeInfo)
+
+        // sample result
+        /*"result": {
+          "0xda5289fcaaf71d52a80a254da614a192b693e977": {
+              "exchangeRate": 1272265,
+              "decimal": 6,
+              "symbol": "USDC"
+          }
+        }*/
+
+        // check all objects iterate and populate below calculation for all tokens
+
+        // quote in specific token terms
+        /*requiredPrefund
+          .mul(exchangeRate)
+          .div(ethers.constants.WeiPerEther)
+          .toString()*/
+      } else {
+        // return empty fee quotes or throw
+      }
+    } catch (error) {
+      Logger.error("can't query fee quotes: ", error)
+      // return empty fee quotes or throw
     }
   }
 
@@ -92,7 +173,7 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> 
       Logger.log('verifying and signing service response', result)
 
       if (result && result.result) {
-        return result.result.tokenPaymasterAndData
+        return result.result.paymasterAndData
       } else {
         // TODO: decide how strictSponsorshipMode applies here
         // Usually it could be like fallback from sponsorpship pamaster to ERC20 paymaster

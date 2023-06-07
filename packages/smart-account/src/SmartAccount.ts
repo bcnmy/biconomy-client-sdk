@@ -71,6 +71,7 @@ import {
 } from '@biconomy/common'
 import { BigNumber, ethers, Signer } from 'ethers'
 import { Transaction, PaymasterServiceDataType } from '@biconomy/core-types'
+import { getPaymaster } from './paymaster-helper'
 
 // Create an instance of Smart Account with multi-chain support.
 class SmartAccount extends EventEmitter {
@@ -249,6 +250,13 @@ class SmartAccount extends EventEmitter {
 
       const clientConfig = await this.getNetworkConfigValues(network.chainId)
 
+      let paymasterAPI = undefined
+      if (clientConfig.paymasterUrl) {
+        paymasterAPI = await getPaymaster(clientConfig.paymasterUrl)
+      } else if (clientConfig.customPaymasterAPI) {
+        paymasterAPI = clientConfig.customPaymasterAPI
+      }
+
       Logger.log('clientConfig for creating aa provider', clientConfig)
       this.aaProvider[network.chainId] = await newProvider(
         new ethers.providers.JsonRpcProvider(providerUrl),
@@ -256,14 +264,13 @@ class SmartAccount extends EventEmitter {
           // Review: default false
           // could come from global set config or method level when we implement fee mode
           strictSponsorshipMode: this.#smartAccountConfig.strictSponsorshipMode || false,
-          paymasterUrl: clientConfig.paymasterUrl || '',
+          paymasterAPI: paymasterAPI,
           socketServerUrl: this.#smartAccountConfig.socketServerUrl || '',
           entryPointAddress: this.#smartAccountConfig.entryPointAddress
             ? this.#smartAccountConfig.entryPointAddress
             : network.entryPoint[network.entryPoint.length - 1].address,
           bundlerUrl: clientConfig.bundlerUrl || this.#smartAccountConfig.bundlerUrl || '',
           chainId: network.chainId,
-          customPaymasterAPI: clientConfig.customPaymasterAPI,
           txServiceUrl: this.#smartAccountConfig.backendUrl
         },
         this.signer,
@@ -307,37 +314,18 @@ class SmartAccount extends EventEmitter {
   // WIP
   // Optional methods for connecting paymaster
 
-  connectPaymasterUsingUrl(
+  async connectPaymasterUsingUrl(
     newPaymasterUrl: string,
-    chainId?: ChainId,
-    label?: string
-  ): SmartAccount {
+    chainId?: ChainId
+  ): Promise<SmartAccount> {
     chainId = chainId ? chainId : this.#smartAccountConfig.activeNetworkId
 
     const currentPaymaster = this.aaProvider[chainId].smartAccountAPI.paymasterAPI
     Logger.log('currentPaymaster', currentPaymaster)
     const accountAPI = this.aaProvider[chainId].smartAccountAPI
 
-    // Without label we could have a way to know from the url if it's token or verifyig..
-
-    if (label && label == 'SPONSORSHIP') {
-      const newPaymaster = new BiconomyVerifyingPaymasterAPI({
-        paymasterUrl: newPaymasterUrl,
-        strictSponsorshipMode: false // Review..
-      }) as PaymasterAPI<PaymasterServiceDataType>
-      accountAPI.connectPaymaster(newPaymaster)
-    } else if (label && label == 'ERC20') {
-      const newPaymaster = new BiconomyTokenPaymasterAPI({
-        paymasterUrl: newPaymasterUrl,
-        strictSponsorshipMode: false // Review..
-      }) as PaymasterAPI<PaymasterServiceDataType>
-      accountAPI.connectPaymaster(newPaymaster)
-    } else {
-      // default or throw
-      const newPaymaster = new BiconomyTokenPaymasterAPI({
-        paymasterUrl: newPaymasterUrl,
-        strictSponsorshipMode: false // Review..
-      }) as PaymasterAPI<PaymasterServiceDataType>
+    const newPaymaster = await getPaymaster(newPaymasterUrl)
+    if (newPaymaster) {
       accountAPI.connectPaymaster(newPaymaster)
     }
 

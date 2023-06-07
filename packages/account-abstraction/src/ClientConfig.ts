@@ -1,9 +1,8 @@
-import { IPaymasterAPI } from '@biconomy/core-types'
+import { PaymasterAPI } from './PaymasterAPI'
 
 export interface ClientConfig {
   socketServerUrl: string // added by Biconomy
-  paymasterUrl: string // added by Biconomy
-  customPaymasterAPI?: IPaymasterAPI
+  paymasterAPI?: PaymasterAPI
   entryPointAddress: string
   bundlerUrl: string
   chainId: number

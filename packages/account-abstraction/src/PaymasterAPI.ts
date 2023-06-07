@@ -16,6 +16,8 @@ export interface IPaymasterAPI {
  * an API to external a UserOperation with paymaster info
  */
 export class PaymasterAPI<T = PaymasterServiceDataType> {
+  paymasterAddress?: string
+
   async getPaymasterAndData(
     _userOp: Partial<UserOperation>,
     _paymasterServiceData?: T

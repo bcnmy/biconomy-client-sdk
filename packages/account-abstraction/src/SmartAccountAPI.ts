@@ -88,23 +88,12 @@ export class SmartAccountAPI extends BaseAccountAPI {
     readonly index = 0,
     overheads?: Partial<GasOverheads>
   ) {
-    Logger.log('paymaster url ', clientConfig.paymasterUrl)
-    // Note: todo: clientConfig could itself have PaymasterAPI instead of paymasterUrl or dappAPIKey
     super(provider, entryPoint, clientConfig, accountAddress, overheads)
-    if (!clientConfig.paymasterUrl || clientConfig.paymasterUrl === '') {
+    if (!clientConfig.paymasterAPI) {
       this.paymasterAPI = undefined
-    } else if (clientConfig.customPaymasterAPI) {
-      this.paymasterAPI = clientConfig.customPaymasterAPI
     } else {
-      // TODO: notice here it would either directly accept the instance
-      // otherwise from paymasterUrl we'd have to find out which instance has to be created
-      // or.. also brainstrom do we need different instances at all?!
-      this.paymasterAPI = new BiconomyTokenPaymasterAPI({
-        paymasterUrl: clientConfig.paymasterUrl,
-        strictSponsorshipMode: clientConfig.strictSponsorshipMode
-          ? clientConfig.strictSponsorshipMode
-          : false
-      }) as PaymasterAPI<PaymasterServiceDataType>
+      // here it would either directly accept the instance
+      this.paymasterAPI = clientConfig.paymasterAPI
     }
   }
 
