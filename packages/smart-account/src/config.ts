@@ -61,11 +61,11 @@ export const ProductionConfig: SmartAccountConfig = {
     },
     {
       chainId: ChainId.POLYGON_ZKEVM_TESTNET,
-      providerUrl: 'https://rpc.ankr.com/arbitrum'
+      providerUrl: 'https://rpc.public.zkevm-test.net'
     },
     {
       chainId: ChainId.POLYGON_ZKEVM_MAINNET,
-      providerUrl: 'https://rpc.ankr.com/arbitrum'
+      providerUrl: 'https://rpc.ankr.com/polygon_zkevm'
     }
   ]
 }
