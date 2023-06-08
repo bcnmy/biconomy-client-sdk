@@ -127,7 +127,7 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> 
 
         feeOptionsAvailable.forEach((feeOption: FeeTokenData) => {
           const payment = (
-            (parseFloat(BigNumber.from(feeOption.exchangeRate).toString()) *
+            (parseFloat(feeOption.exchangeRate.toString()) *
               parseFloat(requiredPrefund.toString())) /
             (parseFloat(ethers.constants.WeiPerEther.toString()) *
               parseFloat(ethers.BigNumber.from(10).pow(feeOption.decimal).toString()))
