@@ -37,7 +37,7 @@ export type PaymasterFeeQuote = {
   tokenAddress: string
   decimal?: number
   logoUrl?: string
-  payment: number
+  payment: string
   usdPayment?: number
   premiumMultiplier: number
 }

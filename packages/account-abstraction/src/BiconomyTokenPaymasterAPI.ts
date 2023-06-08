@@ -1,5 +1,5 @@
 import { resolveProperties } from '@ethersproject/properties'
-import { ethers, BigNumberish } from 'ethers'
+import { ethers, BigNumberish, BigNumber } from 'ethers'
 import { PaymasterFeeQuote, UserOperation } from '@biconomy/core-types'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
 import {
@@ -125,11 +125,13 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> 
 
         // check all objects iterate and populate below calculation for all tokens
 
-        feeOptionsAvailable.forEach((feeOption) => {
-          const payment = requiredPrefund
-            .mul(feeOption.exchangeRate)
-            .div(ethers.constants.WeiPerEther)
-            .toNumber()
+        feeOptionsAvailable.forEach((feeOption: FeeTokenData) => {
+          const payment = (
+            (parseFloat(BigNumber.from(feeOption.exchangeRate).toString()) *
+              parseFloat(requiredPrefund.toString())) /
+            (parseFloat(ethers.constants.WeiPerEther.toString()) *
+              parseFloat(ethers.BigNumber.from(10).pow(feeOption.decimal).toString()))
+          ).toFixed(4)
 
           const feeQuote = {
             symbol: feeOption.symbol,
