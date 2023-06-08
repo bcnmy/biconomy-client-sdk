@@ -212,6 +212,7 @@ export class SmartAccountAPI extends BaseAccountAPI {
 
     const { callData, callGasLimit } = await this.encodeUserOpCallDataAndGasLimit(info)
     console.log(callData, callGasLimit)
+    Logger.log('call gas limit for updated batch is ', callGasLimit.toString())
 
     const initCode = await this.getInitCode()
 

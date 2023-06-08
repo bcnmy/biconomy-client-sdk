@@ -33,7 +33,8 @@ export const ProductionConfig: SmartAccountConfig = {
     },
     {
       chainId: ChainId.POLYGON_MUMBAI,
-      providerUrl: 'https://polygon-mumbai.g.alchemy.com/v2/Q4WqQVxhEEmBYREX22xfsS2-s5EXWD31'
+      providerUrl:
+        'https://rpc.ankr.com/polygon_mumbai/a3470f3dd286827d86d813270dcc953e41145ca859df7f931347139cc9ad084c'
     },
     {
       chainId: ChainId.POLYGON_MAINNET,
@@ -93,7 +94,8 @@ export const StagingConfig: SmartAccountConfig = {
     },
     {
       chainId: ChainId.POLYGON_MUMBAI,
-      providerUrl: 'https://polygon-mumbai.g.alchemy.com/v2/Q4WqQVxhEEmBYREX22xfsS2-s5EXWD31'
+      providerUrl:
+        'https://rpc.ankr.com/polygon_mumbai/a3470f3dd286827d86d813270dcc953e41145ca859df7f931347139cc9ad084c'
     },
     {
       chainId: ChainId.BSC_TESTNET,
@@ -137,7 +139,8 @@ export const DevelopmentConfig: SmartAccountConfig = {
     },
     {
       chainId: ChainId.POLYGON_MUMBAI,
-      providerUrl: 'https://polygon-mumbai.g.alchemy.com/v2/Q4WqQVxhEEmBYREX22xfsS2-s5EXWD31'
+      providerUrl:
+        'https://rpc.ankr.com/polygon_mumbai/a3470f3dd286827d86d813270dcc953e41145ca859df7f931347139cc9ad084c'
     },
     {
       chainId: ChainId.BSC_TESTNET,
