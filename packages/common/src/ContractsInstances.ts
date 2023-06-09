@@ -18,7 +18,7 @@ export type GetContractInstanceDto = {
 export function getProxyContractInstance(contractInstanceDto: GetContractInstanceDto): SmartAccount_v100 {
   const { smartAccountType, version, contractAddress, provider } = contractInstanceDto
   switch (version) {
-    case '1.0.0':
+    case 'V1_0_0':
       if (smartAccountType === SmartAccountType.BICONOMY) {
         return SmartAccount_v100__factory.connect(contractAddress, provider);
       }
@@ -34,7 +34,7 @@ export function getFactoryContractInstance(contractInstanceDto: GetContractInsta
   const { smartAccountType, version, contractAddress, provider } = contractInstanceDto
 
   switch (version) {
-    case '1.0.0':
+    case 'V1_0_0':
       if (smartAccountType === SmartAccountType.BICONOMY) {
         return SmartAccountFactory_v100__factory.connect(contractAddress, provider)
       }
