@@ -94,7 +94,7 @@ class TransactionManager {
     const multiSendContract = this.contractUtils.multiSendContract[chainId][version].getContract()
     const isDelegate = transactionDto.transaction.to === multiSendContract.address ? true : false
 
-    const smartAccountState = await this.contractUtils.getSmartAccountState()
+    const smartAccountState = this.contractUtils.getSmartAccountState()
 
     // NOTE : If the wallet is not deployed yet then nonce would be zero
     let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()
@@ -133,7 +133,7 @@ class TransactionManager {
     // NOTE : If the wallet is not deployed yet then nonce would be zero
     const batchId = 1 //fixed nonce space for forward
 
-    const smartAccountState = await this.contractUtils.getSmartAccountState()
+    const smartAccountState = this.contractUtils.getSmartAccountState()
     let walletContract = this.contractUtils.smartWalletContract[chainId][version].getContract()
     walletContract = walletContract.attach(smartAccountState.address)
 
@@ -170,7 +170,7 @@ class TransactionManager {
   async estimateTransaction(prepareTransactionDto: GetFeeQuotesDto): Promise<number> {
     const { transaction, chainId, version } = prepareTransactionDto
 
-    const smartAccountState = await this.contractUtils.getSmartAccountState()
+    const smartAccountState = this.contractUtils.getSmartAccountState()
 
     // OR just like contractUtils manages context, this class manages state getState(chainId) method
     // const state = await this.getSmartAccountState(chainId);
@@ -381,6 +381,7 @@ class TransactionManager {
         transaction: internalTx
       }
       const response = await this.nodeClient.estimateRequiredTxGasOverride(estimateRequiredTxGas)
+      Logger.log('undeployed case estimated targetTxGas ', response.data.gas)
       const requiredTxGasEstimate = Number(response.data.gas) + 700000
       Logger.log('required txgas estimate (with override) ', requiredTxGasEstimate)
       targetTxGas = requiredTxGasEstimate
@@ -389,8 +390,9 @@ class TransactionManager {
       // Depending on feeToken provide baseGas! We could use constant value provided by the relayer
 
       const refundDetails: IFeeRefundHandlePayment = {
-        gasUsed: requiredTxGasEstimate,
-        baseGas: requiredTxGasEstimate,
+        // as we just need estimation any non-zero value works
+        gasUsed: 21000,
+        baseGas: 21000,
         gasPrice: feeQuote.tokenGasPrice,
         tokenGasPriceFactor: feeQuote.offset || 1,
         gasToken: feeQuote.address,
@@ -425,8 +427,9 @@ class TransactionManager {
       targetTxGas = requiredTxGasEstimate
 
       const refundDetails: IFeeRefundHandlePayment = {
-        gasUsed: requiredTxGasEstimate,
-        baseGas: requiredTxGasEstimate,
+        // as we just need estimation any non-zero value works
+        gasUsed: 21000,
+        baseGas: 21000,
         gasPrice: feeQuote.tokenGasPrice,
         tokenGasPriceFactor: feeQuote.offset || 1,
         gasToken: feeQuote.address,
@@ -482,7 +485,7 @@ class TransactionManager {
     const connectedWallet = smartAccountState.address
     walletContract = walletContract.attach(connectedWallet)
 
-    const isDeployed = smartAccountState.isDeployed
+    const isDeployed = await this.contractUtils.isDeployed(chainId, smartAccountState.address)
     // await this.contractUtils.isDeployed(chainId, version, smartAccountState.address);
     let additionalBaseGas = 0
 
@@ -540,6 +543,7 @@ class TransactionManager {
 
       // not getting accurate value for undeployed wallet
       // TODO
+      Logger.log('undeployed case estimated targetTxGas ', response.data.gas)
       const requiredTxGasEstimate = Number(response.data.gas) + 700000
       Logger.log('required txgas estimate (with override) ', requiredTxGasEstimate)
       targetTxGas = requiredTxGasEstimate
@@ -549,8 +553,9 @@ class TransactionManager {
       // Depending on feeToken provide baseGas! We could use constant value provided by the relayer
 
       const refundDetails: IFeeRefundHandlePayment = {
-        gasUsed: requiredTxGasEstimate,
-        baseGas: requiredTxGasEstimate,
+        // as we just need estimation any non-zero value works
+        gasUsed: 21000,
+        baseGas: 21000,
         gasPrice: feeQuote.tokenGasPrice, // this would be token gas price // review
         tokenGasPriceFactor: feeQuote.offset || 1,
         gasToken: feeQuote.address,
@@ -588,8 +593,9 @@ class TransactionManager {
       targetTxGas = requiredTxGasEstimate
 
       const refundDetails: IFeeRefundHandlePayment = {
-        gasUsed: requiredTxGasEstimate,
-        baseGas: requiredTxGasEstimate,
+        // as we just need estimation any non-zero value works
+        gasUsed: 21000,
+        baseGas: 21000,
         gasPrice: feeQuote.tokenGasPrice, // this would be token gas price
         tokenGasPriceFactor: feeQuote.offset || 1,
         gasToken: feeQuote.address,

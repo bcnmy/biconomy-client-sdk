@@ -67,6 +67,7 @@ export type SmartAccountState = {
   isDeployed: boolean // chain specific
   entryPointAddress: string // chain specific?
   implementationAddress: string
+  factoryAddress: string
   fallbackHandlerAddress: string // chain specific?
 }
 

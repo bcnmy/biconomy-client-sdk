@@ -124,6 +124,8 @@ export class RestRelayer implements IRelayer {
 
     Logger.log('finalRawTx', finalRawRx)
 
+    Logger.log('gas limit being sent to the relayer', gasLimit)
+
     // based on the flag make rpc call to relayer code service with necessary rawTx data
     /* eslint-disable  @typescript-eslint/no-explicit-any */
     const response: any = await sendRequest({
