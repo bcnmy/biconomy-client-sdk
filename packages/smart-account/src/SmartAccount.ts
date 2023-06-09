@@ -43,6 +43,7 @@ import NodeClient, {
   UsdBalanceResponse
 } from '@biconomy/node-client'
 import { JsonRpcProvider, Provider, Web3Provider } from '@ethersproject/providers'
+import { utils } from 'ethers'
 import { IRelayer, RestRelayer, FallbackRelayer, IFallbackRelayer } from '@biconomy/relayer'
 import * as _ from 'lodash'
 import TransactionManager, {
@@ -1040,6 +1041,36 @@ class SmartAccount extends EventEmitter {
     index = index ? index : 0
     const factoryAddr = this.contractUtils.smartWalletFactoryContract[chainId][this.DEFAULT_VERSION]
     return await factoryAddr.getAddressForCounterFactualAccount(owner, index)
+  }
+
+  getAddressForCounterFactualAccount(_owner: string, _index: number) {
+    const initABI = 'function init(address _owner, address _handler)'
+    const minimalHandler = '0xa04EeF9bBFd8F64d5218d4f3a3d03e8282810F51'
+    const basicImplementation = '0x00006b7e42e01957da540dc6a8f7c30c4d816af5'
+    const factoryAddress = '0x000000F9eE1842Bb72F6BBDD75E6D3d4e3e9594C'
+    const proxyContractByteCode =
+      '0x608060405234801561001057600080fd5b5060405161012d38038061012d83398101604081905261002f91610090565b6001600160a01b0381166100895760405162461bcd60e51b815260206004820152601e60248201527f496e76616c696420696d706c656d656e746174696f6e20616464726573730000604482015260640160405180910390fd5b30556100c0565b6000602082840312156100a257600080fd5b81516001600160a01b03811681146100b957600080fd5b9392505050565b605f806100ce6000396000f3fe608060405230543660008037600080366000845af43d6000803e8080156024573d6000f35b3d6000fdfea2646970667358221220a7977748230fa5c96134083773f708cfbe78723c07e58051ac6bd8c4877a4d5a64736f6c63430008110033'
+
+    const iface = new utils.Interface([initABI])
+    const initializer = iface.encodeFunctionData('init', [_owner, minimalHandler])
+    const salt = utils.keccak256(
+      utils.solidityPack(['bytes32', 'uint256'], [utils.keccak256(initializer), _index])
+    )
+
+    const deploymentData = utils.solidityPack(
+      ['bytes', 'uint256'],
+      [proxyContractByteCode, basicImplementation]
+    )
+
+    const hash = utils.keccak256(
+      utils.solidityPack(
+        ['bytes1', 'address', 'bytes32', 'bytes32'],
+        ['0xff', factoryAddress, salt, utils.keccak256(deploymentData)]
+      )
+    )
+    const address = '0x' + hash.slice(-40)
+
+    return address
   }
 
   /**
