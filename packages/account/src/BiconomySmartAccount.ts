@@ -93,7 +93,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
   async getSmartAccountAddress(accountIndex: number = 0): Promise<string> {
     try {
       this.isSignerDefined()
-      this.getInitCode(accountIndex)
+      await this.getInitCode(accountIndex)
       const address = await this.factory.getAddressForCounterFactualAccount(
         await this.signer.getAddress(),
         ethers.BigNumber.from(accountIndex)
