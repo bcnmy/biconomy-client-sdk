@@ -164,6 +164,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     try {
       nonce = await this.nonce()
     } catch (error) {
+      // Not throwing this error as nonce would be 0 if this.nonce() throw exception, which is expected flow for undeployed account
     }
     let userOp: Partial<UserOperation> = {
       sender: this.address,
