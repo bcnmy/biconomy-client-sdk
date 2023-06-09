@@ -104,7 +104,7 @@ class NodeClient implements INodeClient {
     })
   }
 
-  async getAlltokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse> {
+  async getAllTokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/smart-accounts/balances`,
       method: HttpMethod.Post,

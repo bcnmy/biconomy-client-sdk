@@ -80,7 +80,7 @@ interface INodeClient {
    * address could be EOA or SmartAccount
    * @param balancesDto
    */
-  getAlltokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse>
+  getAllTokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse>
 
   /**
    *

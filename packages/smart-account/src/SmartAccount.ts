@@ -110,7 +110,7 @@ class SmartAccount extends EventEmitter {
     }
 
     if (!this.#smartAccountConfig.activeNetworkId) {
-      throw Error('active chain needs to be specified')
+      throw new Error('Active chain needs to be specified')
     }
 
     if (this.#smartAccountConfig.supportedNetworksIds.length == 0)
@@ -430,7 +430,7 @@ class SmartAccount extends EventEmitter {
   }
 
   public async getAlltokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse> {
-    return this.nodeClient.getAlltokenBalances(balancesDto)
+    return this.nodeClient.getAllTokenBalances(balancesDto)
   }
 
   public async getTotalBalanceInUsd(balancesDto: BalancesDto): Promise<UsdBalanceResponse> {

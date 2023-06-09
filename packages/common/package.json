@@ -27,10 +27,11 @@
     "hardhat-node": "hardhat node",
     "lint-fix": "eslint -f unix . --fix",
     "watch-tsc": "tsc -w --preserveWatchOutput",
+    "gen:types": "typechain --target=ethers-v5 --out-dir=src/typechain 'abis/*/*.json'",
     "tsc": "tsc",
     "test": "hardhat test",
     "unbuild": "rimraf dist *.tsbuildinfo",
-    "build": "rimraf dist && tsc && hardhat compile",
+    "build": "rimraf dist && npm run gen:types && tsc && hardhat compile",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
     "lint": "tslint -p tsconfig.json"
   },

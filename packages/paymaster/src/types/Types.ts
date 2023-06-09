@@ -4,3 +4,9 @@ export type PaymasterAndDataResponse = {
     paymasterAndData: string
   }
 }
+
+export type PaymasterConfig = {
+  paymasterUrl: string,
+  strictSponsorshipMode?: boolean,
+  apiKey: string
+}
