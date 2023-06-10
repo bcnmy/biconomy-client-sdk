@@ -1,3 +1,16 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## 2.0.1 (2023-06-10)
+
+
+### Bug Fixes
+
+* typo ([0a63ff1](https://github.com/bcnmy/biconomy-client-sdk/commit/0a63ff17bb38b1bc2fd68669b74c2efd5a959d31))
+
+
 ## 2.0.0 (2023-30-05)
 
 ### Features
