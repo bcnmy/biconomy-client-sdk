@@ -1,5 +1,5 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
-import {ethers, BigNumberish, BytesLike, BigNumber } from 'ethers'
+import { ethers, BigNumberish, BytesLike, BigNumber } from 'ethers'
 import { SmartAccount } from './BaseAccount'
 import {
   NODE_CLIENT_URL,
@@ -28,7 +28,7 @@ import { ENTRYPOINT_ADDRESSES, BICONOMY_FACTORY_ADDRESSES } from './utils/Consta
 export class BiconomySmartAccount extends SmartAccount implements IBiconomySmartAccount {
   private factory: SmartAccountFactory_v100
   private nodeClient: INodeClient
-  private accountIndex!: Number
+  private accountIndex!: number
   private address!: string
 
   constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountConfig) {
@@ -50,9 +50,11 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       entryPointAddress: _entryPointAddress
     })
     const _rpcUrl = rpcUrl ?? RPC_PROVIDER_URLS[chainId]
-            
-    if (!_rpcUrl){
-      throw new Error(`Chain Id ${chainId} is not supported. Please refer to the following link for supported chains list https://docs.biconomy.io/build-with-biconomy-sdk/gasless-transactions#supported-chains`)
+
+    if (!_rpcUrl) {
+      throw new Error(
+        `Chain Id ${chainId} is not supported. Please refer to the following link for supported chains list https://docs.biconomy.io/build-with-biconomy-sdk/gasless-transactions#supported-chains`
+      )
     }
     this.provider = new JsonRpcProvider(_rpcUrl)
     this.entryPoint = EntryPoint_v100__factory.connect(_entryPointAddress, this.provider)
@@ -63,21 +65,20 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     if (paymaster) {
       this.paymaster = paymaster
     }
-    if ( bundler )
-    this.bundler = bundler
+    if (bundler) this.bundler = bundler
   }
   /**
    * @description This function will initialise BiconomyAccount class state
    * @returns Promise<BiconomyAccount>
    */
-  async init(accountIndex: number = 0): Promise<BiconomySmartAccount> {
+  async init(accountIndex = 0): Promise<BiconomySmartAccount> {
     try {
       this.isProviderDefined()
       this.isSignerDefined()
       await this.setAccountIndex(accountIndex)
       this.chainId = await this.provider.getNetwork().then((net) => net.chainId)
     } catch (error) {
-      console.error(`Failed to call init: ${error}`);
+      console.error(`Failed to call init: ${error}`)
       throw error
     }
 
@@ -90,7 +91,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     this.proxy = await SmartAccount_v100__factory.connect(this.address, this.provider)
   }
 
-  async getSmartAccountAddress(accountIndex: number = 0): Promise<string> {
+  async getSmartAccountAddress(accountIndex = 0): Promise<string> {
     try {
       this.isSignerDefined()
       await this.getInitCode(accountIndex)
@@ -100,12 +101,12 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       )
       return address
     } catch (error) {
-      console.error(`Failed to get smart account address: ${error}`);
+      console.error(`Failed to get smart account address: ${error}`)
       throw error
     }
   }
 
-  async getInitCode(accountIndex: number = 0): Promise<string> {
+  async getInitCode(accountIndex = 0): Promise<string> {
     this.initCode = ethers.utils.hexConcat([
       this.factory.address,
       this.factory.interface.encodeFunctionData('deployCounterFactualAccount', [
@@ -132,7 +133,11 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
    */
   getExecuteCallData(to: string, value: BigNumberish, data: BytesLike): string {
     this.isProxyDefined()
-    const executeCallData = this.proxy.interface.encodeFunctionData('executeCall', [to, value, data])
+    const executeCallData = this.proxy.interface.encodeFunctionData('executeCall', [
+      to,
+      value,
+      data
+    ])
     return executeCallData
   }
   /**
@@ -142,13 +147,24 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
    * @param data represent array of data associated with each transaction
    * @returns
    */
-  getExecuteBatchCallData(to: Array<string>, value: Array<BigNumberish>, data: Array<BytesLike>): string {
+  getExecuteBatchCallData(
+    to: Array<string>,
+    value: Array<BigNumberish>,
+    data: Array<BytesLike>
+  ): string {
     this.isProxyDefined()
-    const executeBatchCallData = this.proxy.interface.encodeFunctionData('executeBatchCall', [to, value, data])
+    const executeBatchCallData = this.proxy.interface.encodeFunctionData('executeBatchCall', [
+      to,
+      value,
+      data
+    ])
     return executeBatchCallData
   }
 
-  async buildUserOp(transactions: Transaction[], overrides?: Overrides): Promise<Partial<UserOperation>> {
+  async buildUserOp(
+    transactions: Transaction[],
+    overrides?: Overrides
+  ): Promise<Partial<UserOperation>> {
     const to = transactions.map((element: Transaction) => element.to)
     const data = transactions.map((element: Transaction) => element.data ?? '0x')
     const value = transactions.map((element: Transaction) => element.value ?? BigNumber.from('0'))

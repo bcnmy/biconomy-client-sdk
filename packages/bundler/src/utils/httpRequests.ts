@@ -24,7 +24,7 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
     },
     body: JSON.stringify(body)
   })
-  
+
   let jsonResponse
   try {
     jsonResponse = await response.json()
@@ -32,7 +32,7 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
     if (!response.ok) {
       throw new Error(response.statusText)
     }
-  }  
+  }
 
   if (response.ok) {
     return jsonResponse as T

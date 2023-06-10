@@ -4,15 +4,14 @@ import { BigNumberish } from 'ethers'
 import { IBundler } from '@biconomy/bundler'
 import { IPaymaster } from '@biconomy/paymaster'
 
-
 export type SmartAccountConfig = {
   entryPointAddress: string
   bundler?: IBundler
 }
 
 export type BiconomySmartAccountConfig = {
-  signer: Signer,
-  rpcUrl?: string,
+  signer: Signer
+  rpcUrl?: string
   chainId: ChainId
   entryPointAddress?: string
   factoryAddress?: string
@@ -22,9 +21,9 @@ export type BiconomySmartAccountConfig = {
 }
 
 export type Overrides = {
-  callGasLimit?: BigNumberish,
-  verificationGasLimit?: BigNumberish,
-  preVerificationGas?: BigNumberish,
-  maxFeePerGas?: BigNumberish,
+  callGasLimit?: BigNumberish
+  verificationGasLimit?: BigNumberish
+  preVerificationGas?: BigNumberish
+  maxFeePerGas?: BigNumberish
   maxPriorityFeePerGas?: BigNumberish
 }

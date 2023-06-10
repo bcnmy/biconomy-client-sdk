@@ -6,7 +6,7 @@ export type PaymasterAndDataResponse = {
 }
 
 export type PaymasterConfig = {
-  paymasterUrl: string,
-  strictSponsorshipMode?: boolean,
+  paymasterUrl: string
+  strictSponsorshipMode?: boolean
   apiKey: string
 }

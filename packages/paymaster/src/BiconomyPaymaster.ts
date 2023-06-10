@@ -5,7 +5,7 @@ import { IPaymaster } from 'interfaces/IPaymaster'
 import { PaymasterAndDataResponse, PaymasterConfig } from './types/Types'
 
 export class BiconomyPaymaster implements IPaymaster {
-  constructor(readonly paymasterConfig: PaymasterConfig) { }
+  constructor(readonly paymasterConfig: PaymasterConfig) {}
   /**
    *
    * @param userOp
