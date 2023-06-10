@@ -1,3 +1,6 @@
 export * from './interfaces/IPaymaster'
 export * from './types/Types'
-export * from './BiconomyPaymaster'
+export * from './Paymaster'
+export * from './BiconomyVerifyingPaymaster'
+export * from './BiconomyTokenPaymaster'
+export * from './BiconomyGasAbstractionPaymaster'
