@@ -37,6 +37,8 @@ export class Estimator {
       smartAccountState.address // SmartAccountState
     )
     if (!isDeployed) {
+      // FIX-todo
+      // Can be constant value in the configuration - based on chain
       const estimateWalletDeployment = await this.estimateSmartAccountDeployment({
         chainId,
         version,
@@ -55,6 +57,7 @@ export class Estimator {
       targetTxGas: createdTransaction.targetTxGas
     }
 
+    // FIX-todo
     // to avoid failing eth_call override with undeployed wallet
     txn.targetTxGas = 500000
 
@@ -161,7 +164,12 @@ export class Estimator {
   async estimateSmartAccountDeployment(
     estimateSmartAccountDeploymentDto: EstimateSmartAccountDeploymentDto
   ): Promise<number> {
-    const estimatorInterface = new ethers.utils.Interface(GasEstimator.abi)
+    Logger.log('estimateWalletDeployment ', estimateSmartAccountDeploymentDto)
+
+    return 173053
+    // ^ could be chain specific constants
+
+    /*const estimatorInterface = new ethers.utils.Interface(GasEstimator.abi)
     const { chainId, version, owner } = estimateSmartAccountDeploymentDto
     const walletFactoryInterface =
       this.contractUtils.smartWalletFactoryContract[chainId][version].getInterface()
@@ -176,6 +184,6 @@ export class Estimator {
     })
     const estimateWalletDeployment = Number(deployCostresponse.data.gas)
     Logger.log('estimateWalletDeployment ', estimateWalletDeployment)
-    return estimateWalletDeployment
+    return estimateWalletDeployment*/
   }
 }

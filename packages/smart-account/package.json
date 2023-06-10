@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/smart-account",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Biconomy Client SDK types",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -53,11 +53,11 @@
   "dependencies": {
     "@0xsequence/network": "^0.41.0",
     "@biconomy/account-abstraction": "^2.0.1",
-    "@biconomy/core-types": "^2.0.1",
+    "@biconomy/core-types": "^2.0.2",
     "@biconomy/ethers-lib": "^2.0.1",
     "@biconomy/node-client": "^2.0.1",
-    "@biconomy/relayer": "^2.0.0",
-    "@biconomy/transactions": "^2.0.1",
+    "@biconomy/relayer": "^2.0.1",
+    "@biconomy/transactions": "^2.0.2",
     "@ethersproject/bignumber": "^5.6.0",
     "@ethersproject/contracts": "^5.6.0",
     "@ethersproject/providers": "^5.7.0",

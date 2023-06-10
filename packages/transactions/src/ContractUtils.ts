@@ -52,7 +52,7 @@ class ContractUtils {
   initializeContracts(
     signer: Signer,
     readProvider: ethers.providers.JsonRpcProvider,
-    walletInfo: ISmartAccount,
+    walletInfo: SmartAccountState,
     chaininfo: ChainConfig
   ) {
     this.ethAdapter[walletInfo.chainId] = new EvmNetworkManager({
@@ -66,7 +66,7 @@ class ContractUtils {
     this.multiSendCallOnlyContract[walletInfo.chainId] = {}
     this.fallbackGasTankContract[walletInfo.chainId] = {}
     //this.defaultCallbackHandlerContract[walletInfo.chainId] = {}
-    const version = walletInfo.version
+    const version = walletInfo.version as SmartAccountVersion
     Logger.log('version ', version)
 
     this.smartWalletFactoryContract[walletInfo.chainId][version] = getSmartWalletFactoryContract(
@@ -79,9 +79,9 @@ class ContractUtils {
     this.smartWalletContract[walletInfo.chainId][version] = getSmartWalletContract(
       version,
       this.ethAdapter[walletInfo.chainId],
-      walletInfo.smartAccountAddress
+      walletInfo.address
     )
-    Logger.log('SmartAccount Address ', walletInfo.smartAccountAddress)
+    Logger.log('SmartAccount Address ', walletInfo.address)
 
     this.multiSendContract[walletInfo.chainId][version] = getMultiSendContract(
       version,

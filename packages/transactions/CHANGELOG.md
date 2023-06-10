@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2.0.2 (2023-06-10)
+
+
+### Bug Fixes
+
+* comment out hardcoded gas limit in any case + fix value for estimate smart-account deployment + dev notes ([df48ec3](https://github.com/bcnmy/biconomy-client-sdk/commit/df48ec3c04cf44a8f64eb302217655076c6304a4))
+* handle payment params for gas calculation api ([a378840](https://github.com/bcnmy/biconomy-client-sdk/commit/a378840df1b320f942bf3a5b420acf5642076e59))
+
+
 ## 2.0.1 (2023-05-18)
 
 
