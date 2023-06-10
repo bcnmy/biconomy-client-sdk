@@ -14,7 +14,7 @@ import { BigNumberish, ethers } from 'ethers'
 import { BiconomyTokenPaymasterAPI } from './BiconomyTokenPaymaster'
 
 // WIP
-// Hybrid paymaster
+// Hybrid - Generic Gas abstraction paymaster
 // TODO: define return types, base class and interface usage
 // This may inherit from TokenPaymasterAPI
 export class BiconomyGasAbstractionPaymasterAPI extends PaymasterAPI<TokenPaymasterData> {
