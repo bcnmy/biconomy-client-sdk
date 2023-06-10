@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2.0.1 (2023-06-10)
+
+
+### Bug Fixes
+
+* comment out hardcoded gas limit in any case + fix value for estimate smart-account deployment + dev notes ([df48ec3](https://github.com/bcnmy/biconomy-client-sdk/commit/df48ec3c04cf44a8f64eb302217655076c6304a4))
+
+
 ## 2.0.0 (2023-04-07)
 
 
