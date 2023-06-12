@@ -133,7 +133,6 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
   }
 
   async setAccountIndex(accountIndex: number): Promise<void> {
-    this.isInitialized()
     this.accountIndex = accountIndex
     this.address = await this.getSmartAccountAddress(accountIndex)
     await this.setContractsState()

@@ -246,7 +246,7 @@ export abstract class SmartAccount implements ISmartAccount {
    */
   async sendUserOp(userOp: Partial<UserOperation>): Promise<UserOpResponse> {
     let userOperation = await this.signUserOp(userOp)
-    const bundlerResponse = await this.sendUserOp(userOperation)
+    const bundlerResponse = await this.sendSignedUserOp(userOperation)
     return bundlerResponse
   }
 
