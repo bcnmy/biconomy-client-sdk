@@ -11,12 +11,13 @@ import {
   PaymasterServiceDataType
 } from './types/Types'
 import { BigNumberish, ethers } from 'ethers'
-import { BiconomyTokenPaymasterAPI } from './BiconomyTokenPaymaster'
+import { BiconomyTokenPaymaster } from './BiconomyTokenPaymaster'
 
 // WIP
 // Hybrid - Generic Gas abstraction paymaster
 // TODO: define return types, base class and interface usage
 // This may inherit from TokenPaymasterAPI
-export class BiconomyGasAbstractionPaymasterAPI extends PaymasterAPI<TokenPaymasterData> {
+// or May not need it At All
+export class BiconomyGasAbstractionPaymaster extends PaymasterAPI<TokenPaymasterData> {
   // we will be calling pm_getFeeQuoteOrData from here and handle the flow accordingly
 }

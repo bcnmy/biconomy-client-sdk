@@ -42,6 +42,7 @@ export type FeeTokenData = {
   premiumMultiplier: number
   symbol: string
   tokenAddress: string
+  maxGasFee: number
   decimal: number
   logoUrl?: string
   exchangeRate: number

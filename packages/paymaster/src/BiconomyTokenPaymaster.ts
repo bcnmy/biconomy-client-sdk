@@ -12,11 +12,12 @@ import {
   PaymasterServiceDataType
 } from './types/Types'
 import { BigNumberish, ethers } from 'ethers'
+import { hexifyUserOp } from './utils'
 
 /**
  * ERC20 Token Paymaster API supported via Biconomy dahsboard to enable Gas payments in ERC20 tokens
  */
-export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> {
+export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
   constructor(readonly paymasterConfig: PaymasterConfig) {
     super()
   }
@@ -89,6 +90,10 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> 
     preferredToken?: string
   ): Promise<PaymasterFeeQuote[]> {
     Logger.log('preferred token address passed is ', preferredToken)
+
+    Logger.log('userop is ', userOp)
+    // userOp = hexifyUserOp(userOp)
+
     let feeTokensArray: string[] = []
     if (requestedTokens && requestedTokens.length != 0) {
       feeTokensArray = requestedTokens
@@ -113,7 +118,7 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> 
         method: HttpMethod.Post,
         body: {
           method: 'pm_getFeeQuote',
-          params: feeTokensArray, // As per current API
+          params: [userOp, {}], // As per current API
           id: 4337,
           jsonrpc: '2.0'
         }
@@ -121,7 +126,7 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> 
 
       if (response && response.result) {
         Logger.log('feeInfo ', response.result)
-        const feeOptionsAvailable: Array<FeeTokenData> = response.result
+        const feeOptionsAvailable: Array<FeeTokenData> = response.result.feeQuotes
 
         // check all objects iterate and populate below calculation for all tokens
 
