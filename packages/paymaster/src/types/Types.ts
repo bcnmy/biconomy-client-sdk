@@ -56,4 +56,3 @@ export type PaymasterFeeQuote = {
   usdPayment?: number
   premiumMultiplier: number
 }
-

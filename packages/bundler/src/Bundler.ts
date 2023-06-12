@@ -36,26 +36,26 @@ export class Bundler implements IBundler {
     return `${this.bundlerConfig.bundlerUrl}/${this.bundlerConfig.chainId}/${this.bundlerConfig.apiKey}`
   }
 
-    /**
-     * 
-     * @param chainId 
-     * @description This function will fetch gasPrices from bundler
-     * @returns Promise<UserOpGasPricesResponse>
-     */
-    async estimateUserOpGas(userOp: UserOperation): Promise<UserOpGasResponse> {
-        // TODO: will be removed once full userOp requirement is removed from bundler side
-        const dummpyUserop = {
-            callGasLimit: '0',
-            verificationGasLimit: '0',
-            preVerificationGas: '0',
-            maxFeePerGas: '0',
-            maxPriorityFeePerGas: '0',
-            paymasterAndData: '0x',
-            signature: '0x'
-        }
-        const userOperation = { ...dummpyUserop, ...userOp }
-        userOp = transformUserOP(userOperation)
-        Logger.log('userOp sending for fee estimate ', userOp);
+  /**
+   *
+   * @param chainId
+   * @description This function will fetch gasPrices from bundler
+   * @returns Promise<UserOpGasPricesResponse>
+   */
+  async estimateUserOpGas(userOp: UserOperation): Promise<UserOpGasResponse> {
+    // TODO: will be removed once full userOp requirement is removed from bundler side
+    const dummpyUserop = {
+      callGasLimit: '0',
+      verificationGasLimit: '0',
+      preVerificationGas: '0',
+      maxFeePerGas: '0',
+      maxPriorityFeePerGas: '0',
+      paymasterAndData: '0x',
+      signature: '0x'
+    }
+    const userOperation = { ...dummpyUserop, ...userOp }
+    userOp = transformUserOP(userOperation)
+    Logger.log('userOp sending for fee estimate ', userOp)
 
     const bundlerUrl = this.getBundlerUrl()
 
