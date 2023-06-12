@@ -3,6 +3,18 @@ rm -rf package-lock.json
 rm -rf yarn.lock
 rm -rf node_modules
 
+rm -rf packages/account/node_modules
+rm -rf packages/account/package-lock.json
+rm -rf packages/account/dist
+
+rm -rf packages/bundler/node_modules
+rm -rf packages/bundler/package-lock.json
+rm -rf packages/bundler/dist
+
+rm -rf packages/paymaster/node_modules
+rm -rf packages/paymaster/package-lock.json
+rm -rf packages/paymaster/dist
+
 rm -rf packages/account-abstraction/node_modules
 rm -rf packages/account-abstraction/package-lock.json
 rm -rf packages/account-abstraction/dist
