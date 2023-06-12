@@ -142,7 +142,5 @@ export type TransactionBatchDto = {
 }
 
 export enum SmartAccountType {
-  CANDIDE,
-  BICONOMY,
-  SOUL
+  BICONOMY
 }

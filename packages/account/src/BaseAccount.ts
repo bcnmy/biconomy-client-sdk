@@ -30,7 +30,7 @@ export abstract class SmartAccount implements ISmartAccount {
    }
 
 
-  setEntrypointAddress(entryPointAddress: string){
+   setEntryPointAddress(entryPointAddress: string){
     this.smartAccountConfig.entryPointAddress = entryPointAddress
   }
 

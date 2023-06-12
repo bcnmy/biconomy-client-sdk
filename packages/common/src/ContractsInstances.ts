@@ -15,7 +15,7 @@ export type GetContractInstanceDto = {
   provider: JsonRpcProvider
 }
 
-export function getProxyContractInstance(contractInstanceDto: GetContractInstanceDto): SmartAccount_v100 {
+export function getSAProxyContract(contractInstanceDto: GetContractInstanceDto): SmartAccount_v100 {
   const { smartAccountType, version, contractAddress, provider } = contractInstanceDto
   switch (version) {
     case 'V1_0_0':
@@ -30,7 +30,7 @@ export function getProxyContractInstance(contractInstanceDto: GetContractInstanc
 
 }
 
-export function getFactoryContractInstance(contractInstanceDto: GetContractInstanceDto): SmartAccountFactory_v100 {
+export function getSAFactoryContract(contractInstanceDto: GetContractInstanceDto): SmartAccountFactory_v100 {
   const { smartAccountType, version, contractAddress, provider } = contractInstanceDto
 
   switch (version) {
@@ -45,7 +45,7 @@ export function getFactoryContractInstance(contractInstanceDto: GetContractInsta
   throw new Error('Invalid version or smartAccountType provided for factory contract instance');
 }
 
-export function getEntryPointContractInstance(contractInstanceDto: GetContractInstanceDto): EntryPoint_v100 {
+export function getEntryPointContract(contractInstanceDto: GetContractInstanceDto): EntryPoint_v100 {
   const { smartAccountType, version, contractAddress, provider } = contractInstanceDto
 
   switch (version) {

@@ -6,9 +6,9 @@ import {
   NODE_CLIENT_URL,
   RPC_PROVIDER_URLS,
   SmartAccountFactory_v100,
-  getEntryPointContractInstance,
-  getFactoryContractInstance,
-  getProxyContractInstance
+  getEntryPointContract,
+  getSAFactoryContract,
+  getSAProxyContract
 } from '@biconomy/common'
 import { BiconomySmartAccountConfig, Overrides } from './utils/Types'
 import { UserOperation, Transaction, SmartAccountType } from '@biconomy/core-types'
@@ -25,7 +25,7 @@ import {
   SmartAccountsResponse,
   SCWTransactionResponse
 } from '@biconomy/node-client'
-import { ENTRYPOINT_ADDRESSES, BICONOMY_FACTORY_ADDRESSES, BICONOMY_IMPLEMENTATION_ADDRESSES } from './utils/Constants'
+import { ENTRYPOINT_ADDRESSES, BICONOMY_FACTORY_ADDRESSES, BICONOMY_IMPLEMENTATION_ADDRESSES, DEFAULT_ENTRYPOINT_ADDRESS } from './utils/Constants'
 
 export class BiconomySmartAccount extends SmartAccount implements IBiconomySmartAccount {
   private factory!: SmartAccountFactory_v100
@@ -47,7 +47,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       nodeClientUrl
     } = biconomySmartAccountConfig
 
-    const _entryPointAddress = entryPointAddress ?? ENTRYPOINT_ADDRESSES.default
+    const _entryPointAddress = entryPointAddress ?? DEFAULT_ENTRYPOINT_ADDRESS
     super({
       bundler,
       entryPointAddress: _entryPointAddress
@@ -89,41 +89,47 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
 
   private isInitialized(): boolean{
     if (!this.isInited)
-    throw new Error('BiconomySmartAccount is not initialized. Please call BiconomySmartAccount.init() before interacting with any other function')
+    throw new Error('BiconomySmartAccount is not initialized. Please call init() on BiconomySmartAccount before interacting with any other function')
     return true
   }
 
   private setProxyContractState(){
+    if ( !BICONOMY_IMPLEMENTATION_ADDRESSES[this.smartAccountInfo.implementationAddress] )
+    throw new Error('Could not find attach implementation address again your smart account. Please generate support ticket for further investegation.')
     const proxyInstanceDto = {
       smartAccountType: SmartAccountType.BICONOMY,
       version: BICONOMY_IMPLEMENTATION_ADDRESSES[this.address],
       contractAddress: this.address,
       provider: this.provider
     }
-    this.proxy = getProxyContractInstance(proxyInstanceDto)
+    this.proxy = getSAProxyContract(proxyInstanceDto)
   }
 
   private setEntryPointContractState(){
     const _entryPointAddress = this.smartAccountInfo.entryPointAddress
-    this.setEntrypointAddress(_entryPointAddress)
+    this.setEntryPointAddress(_entryPointAddress)
+    if ( !ENTRYPOINT_ADDRESSES[_entryPointAddress] )
+    throw new Error('Could not find attach entrypoint address again your smart account. Please generate support ticket for further investegation.')
     const entryPointInstanceDto = {
       smartAccountType: SmartAccountType.BICONOMY,
       version: ENTRYPOINT_ADDRESSES[_entryPointAddress],
       contractAddress: _entryPointAddress,
       provider: this.provider
     }
-    this.entryPoint = getEntryPointContractInstance(entryPointInstanceDto)
+    this.entryPoint = getEntryPointContract(entryPointInstanceDto)
   }
 
   private setFactoryContractState(){
     const _factoryAddress = this.smartAccountInfo.factoryAddress
+    if ( !BICONOMY_FACTORY_ADDRESSES[_factoryAddress] )
+    throw new Error('Could not find attach factory address again your smart account. Please generate support ticket for further investegation.')
     const factoryInstanceDto = {
       smartAccountType: SmartAccountType.BICONOMY,
       version: BICONOMY_FACTORY_ADDRESSES[_factoryAddress],
       contractAddress: _factoryAddress,
       provider: this.provider
     }
-    this.factory = getFactoryContractInstance(factoryInstanceDto)
+    this.factory = getSAFactoryContract(factoryInstanceDto)
   }
 
   private async setContractsState() {
