@@ -217,14 +217,12 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     } else {
       callData = this.getExecuteBatchCallData(to, value, data)
     }
-
     let nonce = BigNumber.from(0)
     try {
       nonce = await this.nonce()
     } catch (error) {
       // Not throwing this error as nonce would be 0 if this.nonce() throw exception, which is expected flow for undeployed account
     }
-
     let userOp: Partial<UserOperation> = {
       sender: this.address,
       nonce,
