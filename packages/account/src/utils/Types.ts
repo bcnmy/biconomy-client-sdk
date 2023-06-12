@@ -4,6 +4,19 @@ import { BigNumberish } from 'ethers'
 import { IBundler } from '@biconomy/bundler'
 import { IPaymaster } from '@biconomy/paymaster'
 
+
+export type EntrypointAddresses = {
+  [address: string]: string
+}
+
+export type BiconomyFactories = {
+  [address: string]: string
+}
+
+export type BiconomyImplementation = {
+  [address: string]: string
+}
+
 export type SmartAccountConfig = {
   entryPointAddress: string
   bundler?: IBundler

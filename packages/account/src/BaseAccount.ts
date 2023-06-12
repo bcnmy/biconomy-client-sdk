@@ -8,7 +8,7 @@ import { packUserOp } from '@biconomy/common'
 
 import { IBundler, UserOpResponse } from '@biconomy/bundler'
 import { IPaymaster } from '@biconomy/paymaster'
-import { EntryPoint_v100, SmartAccount_v100 } from '@biconomy/common'
+import { EntryPoint_v100, SmartAccount_v100, Logger } from '@biconomy/common'
 import { SmartAccountConfig, Overrides } from './utils/Types'
 
 type UserOperationKey = keyof UserOperation
@@ -18,12 +18,21 @@ export abstract class SmartAccount implements ISmartAccount {
   paymaster!: IPaymaster
   initCode = '0x'
   proxy!: SmartAccount_v100
+  owner!: string
   provider!: JsonRpcProvider
   entryPoint!: EntryPoint_v100
   chainId!: ChainId
   signer!: Signer
+  smartAccountConfig: SmartAccountConfig
 
-  constructor(readonly smartAccountConfig: SmartAccountConfig) {}
+  constructor(_smartAccountConfig: SmartAccountConfig) {
+    this.smartAccountConfig = _smartAccountConfig
+   }
+
+
+   setEntryPointAddress(entryPointAddress: string){
+    this.smartAccountConfig.entryPointAddress = entryPointAddress
+  }
 
   private validateUserOp(
     userOp: Partial<UserOperation>,
@@ -67,7 +76,7 @@ export abstract class SmartAccount implements ISmartAccount {
       userOp = { ...userOp, ...overrides }
     }
 
-    console.log('userOp in estimation', userOp)
+    Logger.log('userOp in estimation', userOp);
 
     // Defining the keys that are related that can be overrides
     const overrideGasFields: UserOperationKey[] = [
@@ -253,8 +262,8 @@ export abstract class SmartAccount implements ISmartAccount {
    * @returns Promise<UserOpResponse>
    */
   async sendUserOp(userOp: Partial<UserOperation>): Promise<UserOpResponse> {
-    const userOperation = await this.signUserOp(userOp)
-    const bundlerResponse = await this.sendUserOp(userOperation)
+    let userOperation = await this.signUserOp(userOp)
+    const bundlerResponse = await this.sendSignedUserOp(userOperation)
     return bundlerResponse
   }
 
