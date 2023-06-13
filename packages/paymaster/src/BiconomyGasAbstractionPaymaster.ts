@@ -4,7 +4,6 @@ import { UserOperation, Transaction } from '@biconomy/core-types'
 import { Provider } from '@ethersproject/abstract-provider'
 import { PaymasterAPI } from './Paymaster'
 import {
-  FeeTokenData,
   PaymasterFeeQuote,
   TokenPaymasterData,
   PaymasterConfig,

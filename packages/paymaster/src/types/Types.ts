@@ -38,22 +38,14 @@ export type SmartAccountData = {
   version: string
 }
 
-export type FeeTokenData = {
-  premiumMultiplier: number
-  symbol: string
-  tokenAddress: string
-  maxGasFee: number
-  decimal: number
-  logoUrl?: string
-  exchangeRate: number
-}
-
 export type PaymasterFeeQuote = {
   symbol: string
   tokenAddress: string
   decimal?: number
   logoUrl?: string
-  payment: string
+  maxGasFee: number
+  maxGasFeeUSD?: number
   usdPayment?: number
   premiumMultiplier: number
+  validUntil?: number
 }

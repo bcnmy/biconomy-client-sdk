@@ -5,7 +5,6 @@ import { Provider } from '@ethersproject/abstract-provider'
 import { PaymasterAPI } from './Paymaster'
 import { ERC20_ABI, ERC20_APPROVAL_AMOUNT, PAYMASTER_ADDRESS } from './constants' // temporary
 import {
-  FeeTokenData,
   PaymasterFeeQuote,
   TokenPaymasterData,
   PaymasterConfig,
@@ -118,7 +117,7 @@ export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
         method: HttpMethod.Post,
         body: {
           method: 'pm_getFeeQuote',
-          params: [userOp, {}], // As per current API
+          params: [userOp, { tokenList: feeTokensArray, preferredToken: preferredToken }], // As per current API
           id: 4337,
           jsonrpc: '2.0'
         }
@@ -126,31 +125,9 @@ export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
 
       if (response && response.result) {
         Logger.log('feeInfo ', response.result)
-        const feeOptionsAvailable: Array<FeeTokenData> = response.result.feeQuotes
-
+        const feeQuotesResponse: Array<PaymasterFeeQuote> = response.result.feeQuotes
         // check all objects iterate and populate below calculation for all tokens
-
-        feeOptionsAvailable.forEach((feeOption: FeeTokenData) => {
-          const payment = (
-            (parseFloat(feeOption.exchangeRate.toString()) *
-              parseFloat(requiredPrefund.toString())) /
-            (parseFloat(ethers.constants.WeiPerEther.toString()) *
-              parseFloat(ethers.BigNumber.from(10).pow(feeOption.decimal).toString()))
-          ).toFixed(4)
-
-          const feeQuote = {
-            symbol: feeOption.symbol,
-            tokenAddress: feeOption.tokenAddress,
-            // decimal: feeOption.decimal,
-            // logoUrl: feeOption.logoUrl,
-            payment: payment,
-            premiumMultiplier: feeOption.premiumMultiplier
-          }
-
-          feeQuotes.push(feeQuote)
-        })
-
-        return feeQuotes
+        return feeQuotesResponse
       } else {
         // return empty fee quotes or throw
         return feeQuotes
