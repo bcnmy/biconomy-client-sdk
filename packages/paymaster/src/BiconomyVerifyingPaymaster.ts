@@ -4,6 +4,7 @@ import { UserOperation } from '@biconomy/core-types'
 import { PaymasterAPI } from './Paymaster'
 import { VerifyingPaymasterData } from './types/Types'
 import { PaymasterAndDataResponse, PaymasterConfig } from './types/Types'
+import { BigNumber } from 'ethers'
 
 /**
  * Verifying Paymaster API supported via Biconomy dahsboard to enable Gasless transactions
@@ -19,18 +20,22 @@ export class BiconomyVerifyingPaymaster extends PaymasterAPI<VerifyingPaymasterD
   ): Promise<string> {
     try {
       userOp = await resolveProperties(userOp)
-      userOp.nonce = Number(userOp.nonce)
-      userOp.callGasLimit = Number(userOp.callGasLimit)
-      userOp.verificationGasLimit = Number(userOp.verificationGasLimit)
-      userOp.maxFeePerGas = Number(userOp.maxFeePerGas)
-      userOp.maxPriorityFeePerGas = Number(userOp.maxPriorityFeePerGas)
-      userOp.preVerificationGas = Number(userOp.preVerificationGas)
+      userOp.nonce = BigNumber.from(userOp.nonce).toHexString()
+      userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toHexString()
+      userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toHexString()
+      userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toHexString()
+      userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toHexString()
+      userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toHexString()
       userOp.signature = '0x'
       userOp.paymasterAndData = '0x'
 
+      Logger.log('userop from Verifying Paymaster ', userOp)
+
+      Logger.log('paymasterServiceData ', paymasterServiceData)
+
       // TODO: define type and review error handling
       // const result: PaymasterAndDataResponse
-      const result: any = await sendRequest({
+      const response: any = await sendRequest({
         url: `${this.paymasterConfig.paymasterUrl}`,
         method: HttpMethod.Post,
         body: {
@@ -41,20 +46,20 @@ export class BiconomyVerifyingPaymaster extends PaymasterAPI<VerifyingPaymasterD
         }
       })
 
-      Logger.log('verifying and signing service response', result)
+      Logger.log('verifying and signing service response', response)
 
-      if (result && result.data && result.statusCode === 200) {
-        return result.data.paymasterAndData
+      if (response && response.result) {
+        return response.result.paymasterAndData
       } else {
         if (!this.paymasterConfig.strictSponsorshipMode) {
           return '0x'
         }
         // Logger.log(result)
-        // Review: If we will get a different code and result.message
-        if (result.error) {
-          Logger.log(result.error.toString())
+        // TODO: Review: If we will get a different code and result.message
+        if (response.error) {
+          Logger.log(response.error.toString())
           throw new Error(
-            'Error in verifying gas sponsorship. Reason: '.concat(result.error.toString())
+            'Error in verifying gas sponsorship. Reason: '.concat(response.error.toString())
           )
         }
         throw new Error('Error in verifying gas sponsorship. Reason unknown')

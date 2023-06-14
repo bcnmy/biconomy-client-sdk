@@ -26,16 +26,17 @@ export type TokenPaymasterData = {
   feeTokenAddress: string
 }
 
+export type SmartAccountData = {
+  name: string
+  version: string
+}
+
 export type VerifyingPaymasterData = {
   webhookData?: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any
   }
-}
-
-export type SmartAccountData = {
-  name: string
-  version: string
+  smartAccountTypeVersionData: SmartAccountData
 }
 
 export type PaymasterFeeQuote = {

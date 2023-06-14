@@ -46,6 +46,7 @@ export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
     return this.paymasterAddress || PAYMASTER_ADDRESS
   }
 
+  // May not be needed at all
   async getTokenApprovalAmount(
     feeTokenAddress: string,
     maxApprove?: boolean
@@ -66,8 +67,9 @@ export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
     return approvalAmount
   }
 
+  // TODO // WIP
   async createTokenApprovalRequest(
-    feeTokenAddress: string,
+    feeTokenAddress: string, // possibly pass a fee quote instead of the address
     provider: Provider,
     maxApprove = false
   ): Promise<Transaction> {
@@ -104,13 +106,6 @@ export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
 
     const feeQuotes: Array<PaymasterFeeQuote> = []
 
-    const requiredPrefund = ethers.BigNumber.from(userOp.callGasLimit)
-      .add(ethers.BigNumber.from(userOp.verificationGasLimit).mul(3))
-      .add(ethers.BigNumber.from(userOp.preVerificationGas))
-      .mul(ethers.BigNumber.from(userOp.maxFeePerGas))
-
-    Logger.log('required prefund in wei ', requiredPrefund.toString())
-
     try {
       const response: any = await sendRequest({
         url: `${this.paymasterConfig.paymasterUrl}`,
@@ -139,6 +134,7 @@ export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
     }
   }
 
+  // TODO // WIP : maybe paymasterData needs full fee quote 
   async getPaymasterAndData(
     userOp: Partial<UserOperation>,
     paymasterServiceData?: TokenPaymasterData
@@ -157,7 +153,7 @@ export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
       userOp.signature = '0x'
       userOp.paymasterAndData = '0x'
 
-      const result: any = await sendRequest({
+      const response: any = await sendRequest({
         url: `${this.paymasterConfig.paymasterUrl}`,
         method: HttpMethod.Post,
         body: {
@@ -168,10 +164,10 @@ export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
         }
       })
 
-      Logger.log('verifying and signing service response', result)
+      Logger.log('verifying and signing service response', response)
 
-      if (result && result.result) {
-        return result.result.paymasterAndData
+      if (response && response.result) {
+        return response.result.paymasterAndData
       } else {
         // TODO: decide how strictSponsorshipMode applies here
         // Usually it could be like fallback from sponsorpship pamaster to ERC20 paymaster
@@ -180,10 +176,10 @@ export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
         }
         // Logger.log(result)
         // Review: If we will get a different code and result.message
-        if (result.error) {
-          Logger.log(result.error.toString())
+        if (response.error) {
+          Logger.log(response.error.toString())
           throw new Error(
-            'Error in verifying gas sponsorship. Reason: '.concat(result.error.toString())
+            'Error in verifying gas sponsorship. Reason: '.concat(response.error.toString())
           )
         }
         throw new Error('Error in verifying gas sponsorship. Reason unknown')
