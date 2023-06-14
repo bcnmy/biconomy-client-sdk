@@ -134,7 +134,7 @@ export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
     }
   }
 
-  // TODO // WIP : maybe paymasterData needs full fee quote 
+  // TODO // WIP : maybe paymasterData needs full fee quote
   async getPaymasterAndData(
     userOp: Partial<UserOperation>,
     paymasterServiceData?: TokenPaymasterData

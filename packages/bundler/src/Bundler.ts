@@ -45,13 +45,14 @@ export class Bundler implements IBundler {
   async estimateUserOpGas(userOp: UserOperation): Promise<UserOpGasResponse> {
     // TODO: will be removed once full userOp requirement is removed from bundler side
     const dummpyUserop = {
-      callGasLimit: '0',
-      verificationGasLimit: '0',
-      preVerificationGas: '0',
+      callGasLimit: '90000',
+      verificationGasLimit: '3000000',
+      preVerificationGas: '46856',
       maxFeePerGas: '0',
       maxPriorityFeePerGas: '0',
       paymasterAndData: '0x',
-      signature: '0x'
+      signature:
+        '0x73c3ac716c487ca34bb858247b5ccf1dc354fbaabdd089af3b2ac8e78ba85a4959a2d76250325bd67c11771c31fccda87c33ceec17cc0de912690521bb95ffcb1b'
     }
     const userOperation = { ...dummpyUserop, ...userOp }
     userOp = transformUserOP(userOperation)
