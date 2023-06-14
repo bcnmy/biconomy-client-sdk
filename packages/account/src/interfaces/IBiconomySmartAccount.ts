@@ -13,7 +13,7 @@ import { BigNumberish, BytesLike } from 'ethers'
 
 
 export interface IBiconomySmartAccount {
-  setAccountIndex(accountIndex: number): void
+  initializeAccountAtIndex(accountIndex: number): void
   getExecuteCallData(to: string, value: BigNumberish, data: BytesLike): string
   getExecuteBatchCallData(to: Array<string>, value: Array<BigNumberish>, data: Array<BytesLike>): string
   buildUserOp(transactions: Transaction[], overrides?: Overrides): Promise<Partial<UserOperation>>
