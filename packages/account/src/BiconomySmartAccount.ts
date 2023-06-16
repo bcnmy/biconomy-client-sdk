@@ -33,7 +33,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
   private accountIndex!: number
   private address!: string
   private smartAccountInfo!: ISmartAccount
-  private isInited!: boolean
+  private _isInitialised!: boolean
 
   constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountConfig) {
     const {
@@ -78,7 +78,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       this.owner = await this.signer.getAddress()
       this.chainId = await this.provider.getNetwork().then((net) => net.chainId)
       await this.initializeAccountAtIndex(accountIndex)
-      this.isInited = true
+      this._isInitialised = true
     } catch (error) {
       Logger.error(`Failed to call init: ${error}`);
       throw error
@@ -88,7 +88,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
   }
 
   private isInitialized(): boolean{
-    if (!this.isInited)
+    if (!this._isInitialised)
     throw new Error('BiconomySmartAccount is not initialized. Please call init() on BiconomySmartAccount instance before interacting with any other function')
     return true
   }
