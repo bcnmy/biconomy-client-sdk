@@ -22,8 +22,22 @@ export type PaymasterServiceDataType = {
   smartAccountData?: SmartAccountData
 }
 
-export type TokenPaymasterData = {
+export type TokenInfo = {
   feeTokenAddress: string
+}
+
+export type SponsorpshipInfo = {
+  webhookData?: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any
+  }
+  smartAccountInfo: SmartAccountData
+}
+
+export type TokenPaymasterData = {
+  mode?: string // todo: should make acceptable enums
+  tokenInfo: TokenInfo
+  sponsorshipInfo?: SponsorpshipInfo
 }
 
 export type SmartAccountData = {
@@ -31,12 +45,11 @@ export type SmartAccountData = {
   version: string
 }
 
+// TODO // to be updated
 export type VerifyingPaymasterData = {
-  webhookData?: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any
-  }
-  smartAccountTypeVersionData: SmartAccountData
+  mode?: string
+  tokenInfo?: TokenInfo // never used for verifying paymaster class
+  sponsorshipInfo?: SponsorpshipInfo
 }
 
 export type PaymasterFeeQuote = {

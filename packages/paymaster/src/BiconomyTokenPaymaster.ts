@@ -10,7 +10,7 @@ import {
   PaymasterConfig,
   PaymasterServiceDataType
 } from './types/Types'
-import { BigNumberish, ethers } from 'ethers'
+import { BigNumberish, BigNumber, ethers } from 'ethers'
 import { hexifyUserOp } from './utils'
 
 /**
@@ -90,6 +90,16 @@ export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
     requestedTokens?: string[],
     preferredToken?: string
   ): Promise<PaymasterFeeQuote[]> {
+    userOp = await resolveProperties(userOp)
+    userOp.nonce = BigNumber.from(userOp.nonce).toHexString()
+    userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toHexString()
+    userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toHexString()
+    userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toHexString()
+    userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toHexString()
+    userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toHexString()
+    userOp.signature = '0x'
+    userOp.paymasterAndData = '0x'
+
     Logger.log('preferred token address passed is ', preferredToken)
 
     Logger.log('userop is ', userOp)
@@ -99,10 +109,6 @@ export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
     if (requestedTokens && requestedTokens.length != 0) {
       feeTokensArray = requestedTokens
     }
-    // const callGasLimit = userOp.callGasLimit
-    // const verificationGasLimit = userOp.verificationGasLimit
-    // const preVerificationGas = userOp.preVerificationGas
-    // const maxFeePerGas = userOp.maxFeePerGas
 
     const feeQuotes: Array<PaymasterFeeQuote> = []
 
@@ -111,8 +117,15 @@ export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
         url: `${this.paymasterConfig.paymasterUrl}`,
         method: HttpMethod.Post,
         body: {
-          method: 'pm_getFeeQuote',
-          params: [userOp, { tokenList: feeTokensArray, preferredToken: preferredToken }], // As per current API
+          method: 'pm_getFeeQuoteOrData',
+          params: [
+            userOp,
+            {
+              mode: 'ERC20',
+              tokenInfo: { tokenList: feeTokensArray, preferredToken: preferredToken } //,
+              // sponsorshipInfo: {}
+            }
+          ], // As per current API
           id: 4337,
           jsonrpc: '2.0'
         }
@@ -141,15 +154,12 @@ export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
   ): Promise<string> {
     try {
       userOp = await resolveProperties(userOp)
-
-      // userOp = hexifyUserOp(userOp)
-
-      userOp.nonce = Number(userOp.nonce)
-      userOp.callGasLimit = Number(userOp.callGasLimit)
-      userOp.verificationGasLimit = Number(userOp.verificationGasLimit)
-      userOp.maxFeePerGas = Number(userOp.maxFeePerGas)
-      userOp.maxPriorityFeePerGas = Number(userOp.maxPriorityFeePerGas)
-      userOp.preVerificationGas = Number(userOp.preVerificationGas)
+      userOp.nonce = BigNumber.from(userOp.nonce).toHexString()
+      userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toHexString()
+      userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toHexString()
+      userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toHexString()
+      userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toHexString()
+      userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toHexString()
       userOp.signature = '0x'
       userOp.paymasterAndData = '0x'
 
