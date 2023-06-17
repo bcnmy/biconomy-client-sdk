@@ -1,20 +1,22 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
-import {ethers, BigNumberish, BytesLike, BigNumber } from 'ethers'
+import { ethers, BigNumberish, BytesLike, BigNumber } from 'ethers'
 import { SmartAccount } from './BaseAccount'
 import {
+  Logger,
   NODE_CLIENT_URL,
   RPC_PROVIDER_URLS,
-  EntryPoint_v100__factory,
   SmartAccountFactory_v100,
-  SmartAccountFactory_v100__factory,
-  SmartAccount_v100__factory
+  getEntryPointContract,
+  getSAFactoryContract,
+  getSAProxyContract
 } from '@biconomy/common'
 import { BiconomySmartAccountConfig, Overrides } from './utils/Types'
-import { UserOperation, Transaction } from '@biconomy/core-types'
+import { UserOperation, Transaction, SmartAccountType } from '@biconomy/core-types'
 import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
 import { IBiconomySmartAccount } from 'interfaces/IBiconomySmartAccount'
 import {
+  ISmartAccount,
   SupportedChainsResponse,
   BalancesResponse,
   BalancesDto,
@@ -23,13 +25,15 @@ import {
   SmartAccountsResponse,
   SCWTransactionResponse
 } from '@biconomy/node-client'
-import { ENTRYPOINT_ADDRESSES, BICONOMY_FACTORY_ADDRESSES } from './utils/Constants'
+import { ENTRYPOINT_ADDRESSES, BICONOMY_FACTORY_ADDRESSES, BICONOMY_IMPLEMENTATION_ADDRESSES, DEFAULT_ENTRYPOINT_ADDRESS } from './utils/Constants'
 
 export class BiconomySmartAccount extends SmartAccount implements IBiconomySmartAccount {
-  private factory: SmartAccountFactory_v100
+  private factory!: SmartAccountFactory_v100
   private nodeClient: INodeClient
-  private accountIndex!: Number
+  private accountIndex!: number
   private address!: string
+  private smartAccountInfo!: ISmartAccount
+  private _isInitialised!: boolean
 
   constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountConfig) {
     const {
@@ -43,28 +47,25 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       nodeClientUrl
     } = biconomySmartAccountConfig
 
-    const _entryPointAddress = entryPointAddress ?? ENTRYPOINT_ADDRESSES.default
-    const _factoryAddress = factoryAddress ?? BICONOMY_FACTORY_ADDRESSES.default
+    const _entryPointAddress = entryPointAddress ?? DEFAULT_ENTRYPOINT_ADDRESS
     super({
       bundler,
       entryPointAddress: _entryPointAddress
     })
     const _rpcUrl = rpcUrl ?? RPC_PROVIDER_URLS[chainId]
-            
-    if (!_rpcUrl){
+
+    if (!_rpcUrl) {
       throw new Error(`Chain Id ${chainId} is not supported. Please refer to the following link for supported chains list https://docs.biconomy.io/build-with-biconomy-sdk/gasless-transactions#supported-chains`)
     }
     this.provider = new JsonRpcProvider(_rpcUrl)
-    this.entryPoint = EntryPoint_v100__factory.connect(_entryPointAddress, this.provider)
-    this.factory = SmartAccountFactory_v100__factory.connect(_factoryAddress, this.provider)
     this.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL })
     this.signer = signer
 
     if (paymaster) {
       this.paymaster = paymaster
     }
-    if ( bundler )
-    this.bundler = bundler
+    if (bundler)
+      this.bundler = bundler
   }
   /**
    * @description This function will initialise BiconomyAccount class state
@@ -74,38 +75,97 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     try {
       this.isProviderDefined()
       this.isSignerDefined()
-      await this.setAccountIndex(accountIndex)
+      this.owner = await this.signer.getAddress()
       this.chainId = await this.provider.getNetwork().then((net) => net.chainId)
+      await this.initializeAccountAtIndex(accountIndex)
+      this._isInitialised = true
     } catch (error) {
-      console.error(`Failed to call init: ${error}`);
+      Logger.error(`Failed to call init: ${error}`);
       throw error
     }
 
     return this
   }
 
-  async setAccountIndex(accountIndex: number): Promise<void> {
+  private isInitialized(): boolean{
+    if (!this._isInitialised)
+    throw new Error('BiconomySmartAccount is not initialized. Please call init() on BiconomySmartAccount instance before interacting with any other function')
+    return true
+  }
+
+  private setProxyContractState(){
+    if ( !BICONOMY_IMPLEMENTATION_ADDRESSES[this.smartAccountInfo.implementationAddress] )
+    throw new Error('Could not find attached implementation address against your smart account. Please raise an issue on https://github.com/bcnmy/biconomy-client-sdk for further investigation.')
+    const proxyInstanceDto = {
+      smartAccountType: SmartAccountType.BICONOMY,
+      version: BICONOMY_IMPLEMENTATION_ADDRESSES[this.address],
+      contractAddress: this.address,
+      provider: this.provider
+    }
+    this.proxy = getSAProxyContract(proxyInstanceDto)
+  }
+
+  private setEntryPointContractState(){
+    const _entryPointAddress = this.smartAccountInfo.entryPointAddress
+    this.setEntryPointAddress(_entryPointAddress)
+    if ( !ENTRYPOINT_ADDRESSES[_entryPointAddress] )
+    throw new Error('Could not find attached entrypoint address against your smart account. Please raise an issue on https://github.com/bcnmy/biconomy-client-sdk for further investigation.')
+    const entryPointInstanceDto = {
+      smartAccountType: SmartAccountType.BICONOMY,
+      version: ENTRYPOINT_ADDRESSES[_entryPointAddress],
+      contractAddress: _entryPointAddress,
+      provider: this.provider
+    }
+    this.entryPoint = getEntryPointContract(entryPointInstanceDto)
+  }
+
+  private setFactoryContractState(){
+    const _factoryAddress = this.smartAccountInfo.factoryAddress
+    if ( !BICONOMY_FACTORY_ADDRESSES[_factoryAddress] )
+    throw new Error('Could not find attached factory address against your smart account. Please raise an issue on https://github.com/bcnmy/biconomy-client-sdk for further investigation.')
+    const factoryInstanceDto = {
+      smartAccountType: SmartAccountType.BICONOMY,
+      version: BICONOMY_FACTORY_ADDRESSES[_factoryAddress],
+      contractAddress: _factoryAddress,
+      provider: this.provider
+    }
+    this.factory = getSAFactoryContract(factoryInstanceDto)
+  }
+
+  private async setContractsState() {
+    this.setProxyContractState()
+    this.setEntryPointContractState()
+    this.setFactoryContractState()
+  }
+
+  async initializeAccountAtIndex(accountIndex: number): Promise<void> {
     this.accountIndex = accountIndex
     this.address = await this.getSmartAccountAddress(accountIndex)
-    this.proxy = await SmartAccount_v100__factory.connect(this.address, this.provider)
+    await this.setContractsState()
+    await this.setInitCode(this.accountIndex)
   }
 
   async getSmartAccountAddress(accountIndex: number = 0): Promise<string> {
     try {
       this.isSignerDefined()
-      await this.getInitCode(accountIndex)
-      const address = await this.factory.getAddressForCounterFactualAccount(
-        await this.signer.getAddress(),
-        ethers.BigNumber.from(accountIndex)
-      )
-      return address
+      let smartAccountsList: ISmartAccount[] = (await this.getSmartAccountsByOwner({
+        chainId: this.chainId,
+        owner: this.owner
+      })).data
+      if ( !smartAccountsList )
+      throw new Error('Failed to get smart account address. Please raise an issue on https://github.com/bcnmy/biconomy-client-sdk for further investigation.')
+      smartAccountsList = smartAccountsList.filter((smartAccount: ISmartAccount) => { return accountIndex === smartAccount.index })
+      if (smartAccountsList.length === 0)
+        throw new Error('Failed to get smart account address. Please raise an issue on https://github.com/bcnmy/biconomy-client-sdk for further investigation.')
+      this.smartAccountInfo = smartAccountsList[0]
+      return this.smartAccountInfo.smartAccountAddress
     } catch (error) {
-      console.error(`Failed to get smart account address: ${error}`);
+      Logger.error(`Failed to get smart account address: ${error}`);
       throw error
     }
   }
 
-  async getInitCode(accountIndex: number = 0): Promise<string> {
+  private async setInitCode(accountIndex: number = 0): Promise<string> {
     this.initCode = ethers.utils.hexConcat([
       this.factory.address,
       this.factory.interface.encodeFunctionData('deployCounterFactualAccount', [
@@ -131,6 +191,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
    * @returns
    */
   getExecuteCallData(to: string, value: BigNumberish, data: BytesLike): string {
+    this.isInitialized()
     this.isProxyDefined()
     const executeCallData = this.proxy.interface.encodeFunctionData('executeCall', [to, value, data])
     return executeCallData
@@ -143,12 +204,16 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
    * @returns
    */
   getExecuteBatchCallData(to: Array<string>, value: Array<BigNumberish>, data: Array<BytesLike>): string {
+    this.isInitialized()
     this.isProxyDefined()
     const executeBatchCallData = this.proxy.interface.encodeFunctionData('executeBatchCall', [to, value, data])
     return executeBatchCallData
   }
 
   async buildUserOp(transactions: Transaction[], overrides?: Overrides): Promise<Partial<UserOperation>> {
+    this.isInitialized()
+    // TODO: validate to, value and data fields
+    // TODO: validate overrides if supplied
     const to = transactions.map((element: Transaction) => element.to)
     const data = transactions.map((element: Transaction) => element.data ?? '0x')
     const value = transactions.map((element: Transaction) => element.value ?? BigNumber.from('0'))
@@ -172,7 +237,9 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       initCode: nonce.eq(0) ? this.initCode : '0x',
       callData: callData
     }
+
     userOp = await this.estimateUserOpGas(userOp, overrides)
+    Logger.log('userOp after estimation ', userOp)
     userOp.paymasterAndData = await this.getPaymasterAndData(userOp)
     return userOp
   }

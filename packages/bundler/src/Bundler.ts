@@ -2,7 +2,7 @@ import { IBundler } from "./interfaces/IBundler";
 import { UserOperation, ChainId } from '@biconomy/core-types'
 import { GetUserOperationResponse, GetUserOpByHashResponse, Bundlerconfig, UserOpResponse, EstimateUserOpGasResponse, UserOpReceipt, SendUserOpResponse, UserOpGasResponse, UserOpByHashResponse } from "./types/Types"
 import { resolveProperties } from 'ethers/lib/utils'
-import { deepHexlify, getTimestampInSeconds, RPC_PROVIDER_URLS } from '@biconomy/common'
+import { deepHexlify, getTimestampInSeconds, Logger, RPC_PROVIDER_URLS } from '@biconomy/common'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
 import { transformUserOP } from './utils/HelperFunction'
 import { UserOpReceiptIntervals } from './utils/Constants'
@@ -30,19 +30,20 @@ export class Bundler implements IBundler {
      * @returns Promise<UserOpGasPricesResponse>
      */
     async estimateUserOpGas(userOp: UserOperation): Promise<UserOpGasResponse> {
-        // TODO: will be removed once full userOp requirement is removed from bundler side
+        // bundler require these dummy values for estimation
+        // TODO: dapp/dev need to take dummy signature as well that we will pass to bundler. as signature depends on smart contract implementation
         const dummpyUserop = {
-            callGasLimit: '0',
-            verificationGasLimit: '0',
-            preVerificationGas: '0',
+            callGasLimit: '90000',
+            verificationGasLimit: '3000000',
+            preVerificationGas: '46856',
             maxFeePerGas: '0',
             maxPriorityFeePerGas: '0',
             paymasterAndData: '0x',
-            signature: '0x'
+            signature: '0x73c3ac716c487ca34bb858247b5ccf1dc354fbaabdd089af3b2ac8e78ba85a4959a2d76250325bd67c11771c31fccda87c33ceec17cc0de912690521bb95ffcb1b'
         }
         const userOperation = { ...dummpyUserop, ...userOp }
         userOp = transformUserOP(userOperation)
-        console.log('userOp sending for fee estimate ', userOp);
+        Logger.log('userOp sending for fee estimate ', userOp);
 
         const bundlerUrl = this.getBundlerUrl()
 

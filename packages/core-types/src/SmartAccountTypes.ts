@@ -140,3 +140,7 @@ export type TransactionBatchDto = {
   transactions: Transaction[]
   chainId?: ChainId
 }
+
+export enum SmartAccountType {
+  BICONOMY
+}

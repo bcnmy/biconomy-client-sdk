@@ -14,4 +14,4 @@ export const RPC_PROVIDER_URLS: { [key in ChainId]?: string } = {
     [ChainId.ARBITRUM_GOERLI_TESTNET] : 'https://goerli-rollup.arbitrum.io/rpc',
     [ChainId.ARBITRUM_ONE_MAINNET] : 'https://rpc.ankr.com/arbitrum',
     [ChainId.ARBITRUM_NOVA_MAINNET] : 'https://nova.arbitrum.io/rpc'
-};
+}
