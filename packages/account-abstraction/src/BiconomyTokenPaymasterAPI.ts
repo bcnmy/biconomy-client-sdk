@@ -2,12 +2,7 @@ import { resolveProperties } from '@ethersproject/properties'
 import { ethers, BigNumberish, BigNumber } from 'ethers'
 import { PaymasterFeeQuote, UserOperation } from '@biconomy/core-types'
 import { HttpMethod, sendRequest } from './utils/httpRequests'
-import {
-  PaymasterConfig,
-  PaymasterServiceDataType,
-  TokenPaymasterData,
-  FeeTokenData
-} from '@biconomy/core-types'
+import { PaymasterConfig, TokenPaymasterData } from '@biconomy/core-types'
 import { Logger } from '@biconomy/common'
 import { PaymasterAPI } from './PaymasterAPI'
 import { ERC20_ABI, ERC20_APPROVAL_AMOUNT, PAYMASTER_ADDRESS } from './constants'
@@ -88,32 +83,42 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> 
     requestedTokens?: string[],
     preferredToken?: string
   ): Promise<PaymasterFeeQuote[]> {
+    userOp = await resolveProperties(userOp)
+    userOp.nonce = BigNumber.from(userOp.nonce).toHexString()
+    userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toHexString()
+    userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toHexString()
+    userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toHexString()
+    userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toHexString()
+    userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toHexString()
+    userOp.signature = '0x'
+    userOp.paymasterAndData = '0x'
+
     Logger.log('preferred token address passed is ', preferredToken)
+
+    Logger.log('userop is ', userOp)
+    // userOp = hexifyUserOp(userOp)
+
     let feeTokensArray: string[] = []
     if (requestedTokens && requestedTokens.length != 0) {
       feeTokensArray = requestedTokens
     }
-    // const callGasLimit = userOp.callGasLimit
-    // const verificationGasLimit = userOp.verificationGasLimit
-    // const preVerificationGas = userOp.preVerificationGas
-    // const maxFeePerGas = userOp.maxFeePerGas
 
     const feeQuotes: Array<PaymasterFeeQuote> = []
-
-    const requiredPrefund = ethers.BigNumber.from(userOp.callGasLimit)
-      .add(ethers.BigNumber.from(userOp.verificationGasLimit).mul(3))
-      .add(ethers.BigNumber.from(userOp.preVerificationGas))
-      .mul(ethers.BigNumber.from(userOp.maxFeePerGas))
-
-    Logger.log('required prefund in wei ', requiredPrefund.toString())
 
     try {
       const response: any = await sendRequest({
         url: `${this.paymasterConfig.paymasterUrl}`,
         method: HttpMethod.Post,
         body: {
-          method: 'pm_getFeeQuote',
-          params: feeTokensArray, // As per current API
+          method: 'pm_getFeeQuoteOrData',
+          params: [
+            userOp,
+            {
+              mode: 'ERC20',
+              tokenInfo: { tokenList: feeTokensArray, preferredToken: preferredToken } //,
+              // sponsorshipInfo: {}
+            }
+          ], // As per current API
           id: 4337,
           jsonrpc: '2.0'
         }
@@ -121,31 +126,9 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> 
 
       if (response && response.result) {
         Logger.log('feeInfo ', response.result)
-        const feeOptionsAvailable: Array<FeeTokenData> = response.result
-
+        const feeQuotesResponse: Array<PaymasterFeeQuote> = response.result.feeQuotes
         // check all objects iterate and populate below calculation for all tokens
-
-        feeOptionsAvailable.forEach((feeOption: FeeTokenData) => {
-          const payment = (
-            (parseFloat(feeOption.exchangeRate.toString()) *
-              parseFloat(requiredPrefund.toString())) /
-            (parseFloat(ethers.constants.WeiPerEther.toString()) *
-              parseFloat(ethers.BigNumber.from(10).pow(feeOption.decimal).toString()))
-          ).toFixed(4)
-
-          const feeQuote = {
-            symbol: feeOption.symbol,
-            tokenAddress: feeOption.tokenAddress,
-            // decimal: feeOption.decimal,
-            // logoUrl: feeOption.logoUrl,
-            payment: payment,
-            premiumMultiplier: feeOption.premiumMultiplier
-          }
-
-          feeQuotes.push(feeQuote)
-        })
-
-        return feeQuotes
+        return feeQuotesResponse
       } else {
         // return empty fee quotes or throw
         return feeQuotes
@@ -163,19 +146,16 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> 
   ): Promise<string> {
     try {
       userOp = await resolveProperties(userOp)
-
-      // userOp = hexifyUserOp(userOp)
-
-      userOp.nonce = Number(userOp.nonce)
-      userOp.callGasLimit = Number(userOp.callGasLimit)
-      userOp.verificationGasLimit = Number(userOp.verificationGasLimit)
-      userOp.maxFeePerGas = Number(userOp.maxFeePerGas)
-      userOp.maxPriorityFeePerGas = Number(userOp.maxPriorityFeePerGas)
-      userOp.preVerificationGas = Number(userOp.preVerificationGas)
+      userOp.nonce = BigNumber.from(userOp.nonce).toHexString()
+      userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toHexString()
+      userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toHexString()
+      userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toHexString()
+      userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toHexString()
+      userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toHexString()
       userOp.signature = '0x'
       userOp.paymasterAndData = '0x'
 
-      const result: any = await sendRequest({
+      const response: any = await sendRequest({
         url: `${this.paymasterConfig.paymasterUrl}`,
         method: HttpMethod.Post,
         body: {
@@ -186,10 +166,10 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> 
         }
       })
 
-      Logger.log('verifying and signing service response', result)
+      Logger.log('verifying and signing service response', response)
 
-      if (result && result.result) {
-        return result.result.paymasterAndData
+      if (response && response.result) {
+        return response.result.paymasterAndData
       } else {
         // TODO: decide how strictSponsorshipMode applies here
         // Usually it could be like fallback from sponsorpship pamaster to ERC20 paymaster
@@ -198,10 +178,10 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> 
         }
         // Logger.log(result)
         // Review: If we will get a different code and result.message
-        if (result.error) {
-          Logger.log(result.error.toString())
+        if (response.error) {
+          Logger.log(response.error.toString())
           throw new Error(
-            'Error in verifying gas sponsorship. Reason: '.concat(result.error.toString())
+            'Error in verifying gas sponsorship. Reason: '.concat(response.error.toString())
           )
         }
         throw new Error('Error in verifying gas sponsorship. Reason unknown')

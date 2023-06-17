@@ -18,9 +18,6 @@ import { EntryPointContractV100__factory as EntryPointFactoryContractV100 } from
 
 import EntryPointEthersContract_v1_0_0 from './EntryPointContract/v1.0.0/EntryPointEthersContract'
 
-import { FallbackGasTankContractV100__factory as FallbackGasTankContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/FallbackGasTankContractV100__factory'
-import FallbackGasTankEthersContract_v1_0_0 from './FallbackGasTank/v1.0.0/FallbackGasTankEthersContract'
-
 import { DefaultCallbackHandlerV100__factory as DefaultCallbackHandlerContractV100 } from '../../typechain/src/ethers-v5/v1.0.0/factories/DefaultCallbackHandlerV100__factory'
 import DefaultCallbackHandlerEthersContract_v1_0_0 from './DefaultCallbackHandlerContract/v1.0.0/DefaultCallbackHandlerEthersContract'
 
@@ -112,24 +109,6 @@ export function getEntryPointFactoryContractInstance(
     default:
       walletFactoryContract = EntryPointFactoryContractV100.connect(contractAddress, provider)
       return new EntryPointEthersContract_v1_0_0(walletFactoryContract)
-  }
-}
-
-export function getFallbackGasTankContractInstance(
-  smartAccountVersion: SmartAccountVersion,
-  contractAddress: string,
-  provider: JsonRpcProvider
-): FallbackGasTankEthersContract_v1_0_0 {
-  let fallbackGasTankContract
-
-  switch (smartAccountVersion) {
-    case '1.0.0':
-      fallbackGasTankContract = FallbackGasTankContractV100.connect(contractAddress, provider)
-      return new FallbackGasTankEthersContract_v1_0_0(fallbackGasTankContract)
-    case '1.0.1':
-    default:
-      fallbackGasTankContract = FallbackGasTankContractV100.connect(contractAddress, provider)
-      return new FallbackGasTankEthersContract_v1_0_0(fallbackGasTankContract)
   }
 }
 

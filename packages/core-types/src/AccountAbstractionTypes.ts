@@ -1,4 +1,4 @@
-import { FallbackApiResponse, UserOperation } from 'Types'
+import { UserOperation } from 'Types'
 import { PaymasterServiceDataType } from './PaymasterServiceTypes'
 
 // marked for deletion

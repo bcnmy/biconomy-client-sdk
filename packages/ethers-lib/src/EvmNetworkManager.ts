@@ -3,20 +3,17 @@ import { Signer } from '@ethersproject/abstract-signer'
 import { BigNumber } from '@ethersproject/bignumber'
 import { JsonRpcProvider } from '@ethersproject/providers'
 import {
-  Eip3770Address,
   IEvmNetworkManager,
   IEvmNetworkManagerTransaction,
   SmartAccountVersion,
   SmartWalletContract
 } from '@biconomy/core-types'
-import { validateEip3770Address } from '@gnosis.pm/safe-core-sdk-utils'
 import { ethers } from 'ethers'
 import {
   getMultiSendContractInstance,
   getMultiSendCallOnlyContractInstance,
   getSmartWalletContractInstance,
   getSmartWalletFactoryContractInstance,
-  getFallbackGasTankContractInstance,
   getDefaultCallbackHandlerInstance
 } from './contracts/contractInstancesEthers'
 type Ethers = typeof ethers
@@ -56,11 +53,6 @@ class EvmNetworkManager implements IEvmNetworkManager {
     return this.#signer
   }
 
-  async getEip3770Address(fullAddress: string): Promise<Eip3770Address> {
-    const chainId = await this.getChainId()
-    return validateEip3770Address(fullAddress, chainId)
-  }
-
   async getBalance(address: string): Promise<BigNumber> {
     return BigNumber.from(await this.#provider.getBalance(address))
   }
@@ -98,13 +90,6 @@ class EvmNetworkManager implements IEvmNetworkManager {
       throw new Error('Invalid Wallet Factory contract address')
     }
     return getSmartWalletFactoryContractInstance(smartAccountVersion, address, this.#provider)
-  }
-
-  getFallbackGasTankContract(smartAccountVersion: SmartAccountVersion, address: string) {
-    if (!address) {
-      throw new Error('Invalid Fallback Gas Tank contract address')
-    }
-    return getFallbackGasTankContractInstance(smartAccountVersion, address, this.#provider)
   }
 
   getDefaultCallbackHandlerContract(smartAccountVersion: SmartAccountVersion, address: string) {

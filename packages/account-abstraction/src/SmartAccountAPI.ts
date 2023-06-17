@@ -187,13 +187,14 @@ export class SmartAccountAPI extends BaseAccountAPI {
     if (
       info.paymasterServiceData &&
       info.paymasterServiceData.tokenPaymasterData &&
-      info.paymasterServiceData.tokenPaymasterData.feeTokenAddress &&
-      info.paymasterServiceData.tokenPaymasterData.feeTokenAddress != '' &&
-      info.paymasterServiceData.tokenPaymasterData.feeTokenAddress != ZERO_ADDRESS
+      info.paymasterServiceData.tokenPaymasterData.tokenInfo &&
+      info.paymasterServiceData.tokenPaymasterData.tokenInfo.feeTokenAddress &&
+      info.paymasterServiceData.tokenPaymasterData.tokenInfo.feeTokenAddress != '' &&
+      info.paymasterServiceData.tokenPaymasterData.tokenInfo.feeTokenAddress != ZERO_ADDRESS
     ) {
       if (this.paymasterAPI instanceof BiconomyTokenPaymasterAPI) {
         // update calldata accordingly by checking allowance then batching token approval request
-        const erc20Address = info.paymasterServiceData.tokenPaymasterData.feeTokenAddress
+        const erc20Address = info.paymasterServiceData.tokenPaymasterData.tokenInfo.feeTokenAddress
         Logger.log('erc20 address', erc20Address)
         const approveTx: Transaction = await this.paymasterAPI.createTokenApprovalRequest(
           erc20Address,

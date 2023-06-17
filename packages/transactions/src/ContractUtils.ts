@@ -5,16 +5,14 @@ import {
   MultiSendContract,
   MultiSendCallOnlyContract,
   SmartAccountContext,
-  SmartAccountState,
-  FallbackGasTankContract
+  SmartAccountState
 } from '@biconomy/core-types'
 import { ChainConfig } from '@biconomy/node-client'
 import {
   getSmartWalletFactoryContract,
   getMultiSendContract,
   getMultiSendCallOnlyContract,
-  getSmartWalletContract,
-  getFallbackGasTankContract
+  getSmartWalletContract
 } from './utils/FetchContractsInfo'
 import { ethers, Signer } from 'ethers'
 import EvmNetworkManager from '@biconomy/ethers-lib'
@@ -34,7 +32,6 @@ class ContractUtils {
     [chainId: number]: { [version: string]: SmartWalletFactoryContract }
   }
 
-  fallbackGasTankContract!: { [chainId: number]: { [version: string]: FallbackGasTankContract } }
   //defaultCallbackHandlerContract!: { [chainId: number]: { [version: string]: DefaultCallbackHandlerContract } }
 
   smartAccountState!: SmartAccountState
@@ -45,7 +42,6 @@ class ContractUtils {
     this.multiSendContract = {}
     this.multiSendCallOnlyContract = {}
     this.smartWalletFactoryContract = {}
-    this.fallbackGasTankContract = {}
     //this.defaultCallbackHandlerContract = {}
   }
 
@@ -64,7 +60,6 @@ class ContractUtils {
     this.smartWalletContract[walletInfo.chainId] = {}
     this.multiSendContract[walletInfo.chainId] = {}
     this.multiSendCallOnlyContract[walletInfo.chainId] = {}
-    this.fallbackGasTankContract[walletInfo.chainId] = {}
     //this.defaultCallbackHandlerContract[walletInfo.chainId] = {}
     const version = walletInfo.version
     Logger.log('version ', version)
@@ -93,12 +88,6 @@ class ContractUtils {
       version,
       this.ethAdapter[walletInfo.chainId],
       chaininfo.multiSendCall[chaininfo.multiSendCall.length - 1].address
-    )
-
-    this.fallbackGasTankContract[walletInfo.chainId][version] = getFallbackGasTankContract(
-      version,
-      this.ethAdapter[walletInfo.chainId],
-      chaininfo.fallBackGasTankAddress
     )
 
     /*this.defaultCallbackHandlerContract[walletInfo.chainId][version] = getDefaultCallbackHandlerContract(

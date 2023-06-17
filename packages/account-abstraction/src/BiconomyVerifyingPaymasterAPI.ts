@@ -32,7 +32,13 @@ export class BiconomyVerifyingPaymasterAPI extends PaymasterAPI<VerifyingPaymast
       userOp.signature = '0x'
       userOp.paymasterAndData = '0x'
 
-      const result: any = await sendRequest({
+      Logger.log('userop from Verifying Paymaster ', userOp)
+
+      Logger.log('paymasterServiceData ', paymasterServiceData)
+
+      // TODO: define type and review error handling
+      // const result: PaymasterAndDataResponse
+      const response: any = await sendRequest({
         url: `${this.paymasterConfig.paymasterUrl}`,
         method: HttpMethod.Post,
         body: {
@@ -43,20 +49,20 @@ export class BiconomyVerifyingPaymasterAPI extends PaymasterAPI<VerifyingPaymast
         }
       })
 
-      Logger.log('verifying and signing service response', result)
+      Logger.log('verifying and signing service response', response)
 
-      if (result && result.data && result.statusCode === 200) {
-        return result.data.paymasterAndData
+      if (response && response.result) {
+        return response.result.paymasterAndData
       } else {
         if (!this.paymasterConfig.strictSponsorshipMode) {
           return '0x'
         }
         // Logger.log(result)
-        // Review: If we will get a different code and result.message
-        if (result.error) {
-          Logger.log(result.error.toString())
+        // TODO: Review: If we will get a different code and result.message
+        if (response.error) {
+          Logger.log(response.error.toString())
           throw new Error(
-            'Error in verifying gas sponsorship. Reason: '.concat(result.error.toString())
+            'Error in verifying gas sponsorship. Reason: '.concat(response.error.toString())
           )
         }
         throw new Error('Error in verifying gas sponsorship. Reason unknown')

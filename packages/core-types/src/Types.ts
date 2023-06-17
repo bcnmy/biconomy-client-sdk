@@ -1,13 +1,10 @@
+import { BigNumberish, BytesLike } from 'ethers'
+
 export type SmartAccountVersion = '1.0.1' | '1.0.0' | '1.0.2'
 
 export enum OperationType {
   Call, // 0
   DelegateCall // 1
-}
-
-export type Eip3770Address = {
-  prefix: string
-  address: string
 }
 
 // review
@@ -21,30 +18,16 @@ export type RelayResponse = {
 }
 export type UserOperation = {
   sender: string
-  nonce: number
-  initCode: string
-  callData: string
-  callGasLimit: number
-  verificationGasLimit: number
-  preVerificationGas: number
-  maxFeePerGas: number
-  maxPriorityFeePerGas: number
-  paymasterAndData: string
-  signature: string
-}
-
-export type FallbackUserOperation = {
-  sender: string
-  target: string
-  nonce: number
-  callData: string
-  callGasLimit: number
-  dappIdentifier: string
-  signature: string
-}
-export type FallbackApiResponse = {
-  dappIdentifier: string
-  signature: string
+  nonce: BigNumberish
+  initCode: BytesLike
+  callData: BytesLike
+  callGasLimit: BigNumberish
+  verificationGasLimit: BigNumberish
+  preVerificationGas: BigNumberish
+  maxFeePerGas: BigNumberish
+  maxPriorityFeePerGas: BigNumberish
+  paymasterAndData: BytesLike
+  signature: BytesLike
 }
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
