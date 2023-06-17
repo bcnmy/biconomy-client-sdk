@@ -75,7 +75,7 @@ export async function getPaymaster(
   Logger.log('paymasterUrl being passed ', paymasterUrl)
 
   try {
-    const response: any = await sendRequest({
+    /*const response: any = await sendRequest({
       url: `${paymasterUrl}`,
       method: HttpMethod.Post,
       body: {
@@ -84,19 +84,19 @@ export async function getPaymaster(
         id: 4337,
         jsonrpc: '2.0'
       }
-    })
+    })*/
 
-    if (response && response.result) {
-      // todo // define enums
-      if (response.result.type == 'TOKEN') {
-        const paymasterAPI = new BiconomyTokenPaymasterAPI({
-          paymasterUrl: paymasterUrl,
-          strictSponsorshipMode: false
-        }) as PaymasterAPI<PaymasterServiceDataType>
+    // if (response && response.result) {
+    // todo // define enums
+    // if (response.result.type == 'TOKEN') {
+    const paymasterAPI = new BiconomyTokenPaymasterAPI({
+      paymasterUrl: paymasterUrl,
+      strictSponsorshipMode: false
+    }) as PaymasterAPI<PaymasterServiceDataType>
 
-        paymasterAPI.paymasterAddress = response.result.address
-        return paymasterAPI
-      } else if (response.result.type == 'VERIFYING') {
+    // paymasterAPI.paymasterAddress = response.result.address
+    return paymasterAPI
+    /*} else if (response.result.type == 'VERIFYING') {
         const paymasterAPI = new BiconomyVerifyingPaymasterAPI({
           paymasterUrl: paymasterUrl,
           strictSponsorshipMode: false
@@ -109,7 +109,7 @@ export async function getPaymaster(
       }
     } else {
       return undefined
-    }
+    }*/
   } catch (error) {
     Logger.error("can't query paymaster type and address error: ", error)
     return undefined

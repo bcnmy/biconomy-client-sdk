@@ -18,7 +18,7 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> 
     super()
   }
 
-  async getPaymasterAddress(): Promise<string> {
+  /*async getPaymasterAddress(): Promise<string> {
     try {
       const response: any = await sendRequest({
         url: `${this.paymasterConfig.paymasterUrl}`,
@@ -39,7 +39,7 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> 
     }
 
     return this.paymasterAddress || PAYMASTER_ADDRESS
-  }
+  }*/
 
   async getTokenApprovalAmount(
     feeTokenAddress: string,
@@ -69,7 +69,8 @@ export class BiconomyTokenPaymasterAPI extends PaymasterAPI<TokenPaymasterData> 
     // Note: ideally should also check in caller if the approval is already given
     const erc20 = new ethers.Contract(feeTokenAddress, ERC20_ABI, provider)
     const approvalAmount = await this.getTokenApprovalAmount(feeTokenAddress, maxApprove)
-    const spender = this.paymasterAddress ? this.paymasterAddress : await this.getPaymasterAddress()
+    // TODO // fix with optional spender as part of request
+    const spender = this.paymasterAddress ? this.paymasterAddress : "" //: await this.getPaymasterAddress()
 
     return {
       to: erc20.address,
