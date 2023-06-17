@@ -38,7 +38,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
   private accountIndex!: number
   private address!: string
   private smartAccountInfo!: ISmartAccount
-  private isInited!: boolean
+  private _isInitialised!: boolean
 
   constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountConfig) {
     const {
@@ -83,8 +83,8 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       this.isSignerDefined()
       this.owner = await this.signer.getAddress()
       this.chainId = await this.provider.getNetwork().then((net) => net.chainId)
-      await this.setAccountIndex(accountIndex)
-      this.isInited = true
+      await this.initializeAccountAtIndex(accountIndex)
+      this._isInitialised = true
     } catch (error) {
       Logger.error(`Failed to call init: ${error}`)
       throw error
@@ -94,9 +94,9 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
   }
 
   private isInitialized(): boolean {
-    if (!this.isInited)
+    if (!this._isInitialised)
       throw new Error(
-        'BiconomySmartAccount is not initialized. Please call init() on BiconomySmartAccount before interacting with any other function'
+        'BiconomySmartAccount is not initialized. Please call init() on BiconomySmartAccount instance before interacting with any other function'
       )
     return true
   }
@@ -104,7 +104,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
   private setProxyContractState() {
     if (!BICONOMY_IMPLEMENTATION_ADDRESSES[this.smartAccountInfo.implementationAddress])
       throw new Error(
-        'Could not find attach implementation address again your smart account. Please generate support ticket for further investegation.'
+        'Could not find attached implementation address against your smart account. Please raise an issue on https://github.com/bcnmy/biconomy-client-sdk for further investigation.'
       )
     const proxyInstanceDto = {
       smartAccountType: SmartAccountType.BICONOMY,
@@ -120,7 +120,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     this.setEntryPointAddress(_entryPointAddress)
     if (!ENTRYPOINT_ADDRESSES[_entryPointAddress])
       throw new Error(
-        'Could not find attach entrypoint address again your smart account. Please generate support ticket for further investegation.'
+        'Could not find attached entrypoint address against your smart account. Please raise an issue on https://github.com/bcnmy/biconomy-client-sdk for further investigation.'
       )
     const entryPointInstanceDto = {
       smartAccountType: SmartAccountType.BICONOMY,
@@ -135,7 +135,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     const _factoryAddress = this.smartAccountInfo.factoryAddress
     if (!BICONOMY_FACTORY_ADDRESSES[_factoryAddress])
       throw new Error(
-        'Could not find attach factory address again your smart account. Please generate support ticket for further investegation.'
+        'Could not find attached factory address against your smart account. Please raise an issue on https://github.com/bcnmy/biconomy-client-sdk for further investigation.'
       )
     const factoryInstanceDto = {
       smartAccountType: SmartAccountType.BICONOMY,
@@ -152,7 +152,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     this.setFactoryContractState()
   }
 
-  async setAccountIndex(accountIndex: number): Promise<void> {
+  async initializeAccountAtIndex(accountIndex: number): Promise<void> {
     this.accountIndex = accountIndex
     this.address = await this.getSmartAccountAddress(accountIndex)
     await this.setContractsState()
@@ -168,10 +168,17 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
           owner: this.owner
         })
       ).data
+      if (!smartAccountsList)
+        throw new Error(
+          'Failed to get smart account address. Please raise an issue on https://github.com/bcnmy/biconomy-client-sdk for further investigation.'
+        )
       smartAccountsList = smartAccountsList.filter((smartAccount: ISmartAccount) => {
         return accountIndex === smartAccount.index
       })
-      if (smartAccountsList.length === 0) throw new Error('Failed to get smart account address')
+      if (smartAccountsList.length === 0)
+        throw new Error(
+          'Failed to get smart account address. Please raise an issue on https://github.com/bcnmy/biconomy-client-sdk for further investigation.'
+        )
       this.smartAccountInfo = smartAccountsList[0]
       return this.smartAccountInfo.smartAccountAddress
     } catch (error) {

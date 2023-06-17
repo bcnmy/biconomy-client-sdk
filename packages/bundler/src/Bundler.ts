@@ -43,7 +43,8 @@ export class Bundler implements IBundler {
    * @returns Promise<UserOpGasPricesResponse>
    */
   async estimateUserOpGas(userOp: UserOperation): Promise<UserOpGasResponse> {
-    // TODO: will be removed once full userOp requirement is removed from bundler side
+    // bundler requires these dummy values for estimation
+    // TODO: dapp/dev need to take dummy signature as well that we will pass to bundler. as signature depends on smart contract implementation
     const dummpyUserop = {
       callGasLimit: '90000',
       verificationGasLimit: '3000000',
