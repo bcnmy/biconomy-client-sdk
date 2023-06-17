@@ -60,6 +60,6 @@ export type PaymasterFeeQuote = {
   maxGasFee: number
   maxGasFeeUSD?: number
   usdPayment?: number
-  premiumMultiplier: number
+  premiumPercentage: number
   validUntil?: number
 }
