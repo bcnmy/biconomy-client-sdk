@@ -16,7 +16,7 @@ type UserOperationKey = keyof UserOperation
 export abstract class SmartAccount implements ISmartAccount {
   bundler!: IBundler
   paymaster!: IPaymaster
-  initCode: string = '0x'
+  initCode = '0x'
   proxy!: SmartAccount_v100
   owner!: string
   provider!: JsonRpcProvider
@@ -27,15 +27,17 @@ export abstract class SmartAccount implements ISmartAccount {
 
   constructor(_smartAccountConfig: SmartAccountConfig) {
     this.smartAccountConfig = _smartAccountConfig
-   }
+  }
 
-
-   setEntryPointAddress(entryPointAddress: string){
+  setEntryPointAddress(entryPointAddress: string) {
     this.smartAccountConfig.entryPointAddress = entryPointAddress
   }
 
-  private validateUserOp(userOp: Partial<UserOperation>, requiredFields: UserOperationKey[]): boolean {
-    for (let field of requiredFields) {
+  private validateUserOp(
+    userOp: Partial<UserOperation>,
+    requiredFields: UserOperationKey[]
+  ): boolean {
+    for (const field of requiredFields) {
       if (!userOp[field]) {
         throw new Error(`${field} is missing`)
       }
@@ -61,13 +63,11 @@ export abstract class SmartAccount implements ISmartAccount {
     return true
   }
 
-  async estimateUserOpGas(userOp: Partial<UserOperation>, overrides?: Overrides): Promise<Partial<UserOperation>> {
-    const requiredFields: UserOperationKey[] = [
-      'sender',
-      'nonce',
-      'initCode',
-      'callData'
-    ]
+  async estimateUserOpGas(
+    userOp: Partial<UserOperation>,
+    overrides?: Overrides
+  ): Promise<Partial<UserOperation>> {
+    const requiredFields: UserOperationKey[] = ['sender', 'nonce', 'initCode', 'callData']
     this.validateUserOp(userOp, requiredFields)
 
     // Override gas values in userOp if provided in overrides params
@@ -75,7 +75,7 @@ export abstract class SmartAccount implements ISmartAccount {
       userOp = { ...userOp, ...overrides }
     }
 
-    Logger.log('userOp in estimation', userOp);
+    Logger.log('userOp in estimation', userOp)
 
     // Defining the keys that are related that can be overrides
     const overrideGasFields: UserOperationKey[] = [
@@ -84,14 +84,14 @@ export abstract class SmartAccount implements ISmartAccount {
       'verificationGasLimit',
       'callGasLimit',
       'preVerificationGas'
-    ];
+    ]
 
     // here we are verifying either all necessary gas properties are present in userOp.
-    let skipEstimations = true;
+    let skipEstimations = true
     for (const key of overrideGasFields) {
       if (!userOp[key]) {
-        skipEstimations = false;
-        break;
+        skipEstimations = false
+        break
       }
     }
     // If all necessary properties are present in userOp. we will skip estimation and return userOp
@@ -104,15 +104,26 @@ export abstract class SmartAccount implements ISmartAccount {
       // if no bundler url is provided run offchain logic to assign following values of UserOp
       // maxFeePerGas, maxPriorityFeePerGas, verificationGasLimit, callGasLimit, preVerificationGas
       const feeData = await this.provider.getFeeData()
-      userOp.maxFeePerGas = userOp.maxFeePerGas ?? feeData.maxFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice())
-      userOp.maxPriorityFeePerGas = userOp.maxPriorityFeePerGas ?? feeData.maxPriorityFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice())
+      userOp.maxFeePerGas =
+        userOp.maxFeePerGas ??
+        feeData.maxFeePerGas ??
+        feeData.gasPrice ??
+        (await this.provider.getGasPrice())
+      userOp.maxPriorityFeePerGas =
+        userOp.maxPriorityFeePerGas ??
+        feeData.maxPriorityFeePerGas ??
+        feeData.gasPrice ??
+        (await this.provider.getGasPrice())
       if (userOp.initCode)
-        userOp.verificationGasLimit = userOp.verificationGasLimit ?? await this.getVerificationGasLimit(userOp.initCode)
-      userOp.callGasLimit = userOp.callGasLimit ?? await this.provider.estimateGas({
-        from: this.smartAccountConfig.entryPointAddress,
-        to: userOp.sender,
-        data: userOp.callData
-      })
+        userOp.verificationGasLimit =
+          userOp.verificationGasLimit ?? (await this.getVerificationGasLimit(userOp.initCode))
+      userOp.callGasLimit =
+        userOp.callGasLimit ??
+        (await this.provider.estimateGas({
+          from: this.smartAccountConfig.entryPointAddress,
+          to: userOp.sender,
+          data: userOp.callData
+        }))
       userOp.preVerificationGas = userOp.preVerificationGas ?? this.getPreVerificationGas(userOp)
     } else {
       // Making call to bundler to get gas estimations for userOp
@@ -123,12 +134,17 @@ export abstract class SmartAccount implements ISmartAccount {
         maxFeePerGas,
         maxPriorityFeePerGas
       } = await this.bundler.estimateUserOpGas(userOp)
-      if ((!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas) && (!maxFeePerGas || !maxPriorityFeePerGas)) {
+      if (
+        !userOp.maxFeePerGas &&
+        !userOp.maxPriorityFeePerGas &&
+        (!maxFeePerGas || !maxPriorityFeePerGas)
+      ) {
         const feeData = await this.provider.getFeeData()
-        userOp.maxFeePerGas = feeData.maxFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice())
-        userOp.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice())
-      }
-      else {
+        userOp.maxFeePerGas =
+          feeData.maxFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice())
+        userOp.maxPriorityFeePerGas =
+          feeData.maxPriorityFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice())
+      } else {
         userOp.maxFeePerGas = userOp.maxFeePerGas ?? maxFeePerGas
         userOp.maxPriorityFeePerGas = userOp.maxPriorityFeePerGas ?? maxPriorityFeePerGas
       }
@@ -239,22 +255,22 @@ export abstract class SmartAccount implements ISmartAccount {
   }
 
   /**
-   * 
-   * @param userOp 
+   *
+   * @param userOp
    * @description This function call will take 'unsignedUserOp' as an input, sign it with the owner key, and send it to the bundler.
    * @returns Promise<UserOpResponse>
    */
   async sendUserOp(userOp: Partial<UserOperation>): Promise<UserOpResponse> {
-    let userOperation = await this.signUserOp(userOp)
+    const userOperation = await this.signUserOp(userOp)
     const bundlerResponse = await this.sendSignedUserOp(userOperation)
     return bundlerResponse
   }
 
   /**
-   * 
-   * @param userOp 
+   *
+   * @param userOp
    * @description This function call will take 'signedUserOp' as input and send it to the bundler
-   * @returns 
+   * @returns
    */
   async sendSignedUserOp(userOp: UserOperation): Promise<UserOpResponse> {
     const requiredFields: UserOperationKey[] = [
