@@ -55,7 +55,7 @@ export type VerifyingPaymasterData = {
 export type PaymasterFeeQuote = {
   symbol: string
   tokenAddress: string
-  decimal?: number
+  decimal: number
   logoUrl?: string
   maxGasFee: number
   maxGasFeeUSD?: number

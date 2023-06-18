@@ -10,7 +10,7 @@ import {
   getSAFactoryContract,
   getSAProxyContract
 } from '@biconomy/common'
-import { BiconomySmartAccountConfig, Overrides } from './utils/Types'
+import { BiconomySmartAccountConfig, Overrides, BiconomyTokenPaymasterRequest } from './utils/Types'
 import { UserOperation, Transaction, SmartAccountType } from '@biconomy/core-types'
 import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
@@ -278,6 +278,32 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     userOp = await this.estimateUserOpGas(userOp, overrides)
     Logger.log('userOp after estimation ', userOp)
     userOp.paymasterAndData = await this.getPaymasterAndData(userOp)
+    return userOp
+  }
+
+  /** Optional method to update the userOp.calldata with batched transaction which approves the paymaster(if required)
+   * with necessary amount*/
+  async buildTokenPaymasterUserOp(
+    userOp: Partial<UserOperation>,
+    tokenPaymasterRequest: BiconomyTokenPaymasterRequest
+  ): Promise<Partial<UserOperation>> {
+    Logger.log('received information about fee token address and quote ', tokenPaymasterRequest)
+    const feeTokenAddress = tokenPaymasterRequest.feeQuote.tokenAddress
+    Logger.log('requested fee token is ', feeTokenAddress)
+
+    const spender = tokenPaymasterRequest.spender // TODO // Review: May fallback to default spender address from constants config
+    Logger.log('fee token approval to be checked and added for spender: ', spender)
+
+    const requiredApproval =
+      tokenPaymasterRequest.feeQuote.maxGasFee * tokenPaymasterRequest.feeQuote.decimal
+    Logger.log('Required allowance in wei ', requiredApproval)
+
+    if (this.paymaster) {
+      Logger.log('No paymaster is attached with the account')
+      // Note: we may still update the callData and callGasLimit
+    } else {
+      // Make a call to paymaster.createTokenApprovalRequest() with necessary details
+    }
     return userOp
   }
 

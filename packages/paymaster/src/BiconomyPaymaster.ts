@@ -3,7 +3,6 @@ import { resolveProperties } from '@ethersproject/properties'
 import { UserOperation, Transaction } from '@biconomy/core-types'
 import { Provider } from '@ethersproject/abstract-provider'
 import { PaymasterAPI } from './Paymaster'
-import { ERC20_ABI, ERC20_APPROVAL_AMOUNT, PAYMASTER_ADDRESS } from './constants' // temporary
 import {
   PaymasterFeeQuote,
   TokenPaymasterData,
@@ -11,11 +10,14 @@ import {
   PaymasterServiceDataType
 } from './types/Types'
 import { BigNumberish, BigNumber, ethers } from 'ethers'
+import { ERC20_ABI, ERC20_APPROVAL_AMOUNT, PAYMASTER_ADDRESS } from './constants' // temporary
 
-/**
- * ERC20 Token Paymaster API supported via Biconomy dahsboard to enable Gas payments in ERC20 tokens
- */
-export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
+// WIP
+// Hybrid - Generic Gas abstraction paymaster
+// TODO: define return types, base class and interface usage
+// This may inherit from TokenPaymasterAPI
+// or May not need it At All
+export class BiconomyPaymaster extends PaymasterAPI<TokenPaymasterData> {
   constructor(readonly paymasterConfig: PaymasterConfig) {
     super()
   }
@@ -67,6 +69,7 @@ export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
   }
 
   // TODO // WIP
+  // along with Provider Required dto: BiconomyTokenPaymasterRequest which has spender, feeQuote and maxApprove flag
   async createTokenApprovalRequest(
     feeTokenAddress: string, // possibly pass a fee quote instead of the address
     provider: Provider,
@@ -84,6 +87,9 @@ export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
     }
   }
 
+  // WIP: notice
+  // Required Dto is different than "PaymasterServiceData"
+  // here it is tokenInfo: -> preferredToken, tokenList (fully in context of token paymaster)
   async getPaymasterFeeQuotes(
     userOp: Partial<UserOperation>,
     requestedTokens?: string[],
@@ -146,10 +152,13 @@ export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
     }
   }
 
-  // TODO // WIP : maybe paymasterData needs full fee quote
+  // async getPaymasterFeeQuotesOrData(userOp: Partial<UserOperation>) {}
+
+  // TODO // WIP : maybe paymasterData needs full fee quote. It could be full fee quote or address.
+  // but the type is different than the one required for feeQuotesOrData..
   async getPaymasterAndData(
     userOp: Partial<UserOperation>,
-    paymasterServiceData?: TokenPaymasterData
+    paymasterServiceData?: TokenPaymasterData // mode is necessary. partial context of token paymaster or verifying
   ): Promise<string> {
     try {
       userOp = await resolveProperties(userOp)
