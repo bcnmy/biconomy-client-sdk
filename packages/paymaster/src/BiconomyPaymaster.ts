@@ -7,17 +7,18 @@ import {
   PaymasterFeeQuote,
   TokenPaymasterData,
   PaymasterConfig,
-  PaymasterServiceDataType
+  PaymasterServiceDataType,
+  BiconomyTokenPaymasterFeeQuoteResponse
 } from './types/Types'
 import { BigNumberish, BigNumber, ethers } from 'ethers'
-import { ERC20_ABI, ERC20_APPROVAL_AMOUNT, PAYMASTER_ADDRESS } from './constants' // temporary
+import { ERC20_ABI } from './constants' // temporary
 import { BiconomyTokenPaymasterRequest } from './types/Types'
 
 // WIP
 // Hybrid - Generic Gas abstraction paymaster
 // TODO: define return types, base class and interface usage
 // This may inherit from TokenPaymasterAPI
-// or May not need it At All
+
 export class BiconomyPaymaster extends PaymasterAPI<TokenPaymasterData> {
   constructor(readonly paymasterConfig: PaymasterConfig) {
     super()
@@ -43,8 +44,10 @@ export class BiconomyPaymaster extends PaymasterAPI<TokenPaymasterData> {
     const feeTokenAddress: string = tokenPaymasterRequest.feeQuote.tokenAddress
     Logger.log('erc20 fee token address ', feeTokenAddress)
 
-    const requiredApproval: number =
-      tokenPaymasterRequest.feeQuote.maxGasFee * tokenPaymasterRequest.feeQuote.decimal
+    const requiredApproval: number = Math.floor(
+      tokenPaymasterRequest.feeQuote.maxGasFee *
+        Math.pow(10, tokenPaymasterRequest.feeQuote.decimal)
+    )
     Logger.log('required approval for erc20 token ', requiredApproval)
     // Fallback to local helper if required
     // await this.getTokenApprovalAmount(tokenPaymasterRequest)
@@ -66,11 +69,12 @@ export class BiconomyPaymaster extends PaymasterAPI<TokenPaymasterData> {
   // WIP: notice
   // Required Dto is different than "PaymasterServiceData"
   // here it is tokenInfo: -> preferredToken, tokenList (fully in context of token paymaster)
+  // we could pass mode as well
   async getPaymasterFeeQuotes(
     userOp: Partial<UserOperation>,
     requestedTokens?: string[],
     preferredToken?: string
-  ): Promise<PaymasterFeeQuote[]> {
+  ): Promise<BiconomyTokenPaymasterFeeQuoteResponse> {
     userOp = await resolveProperties(userOp)
     userOp.nonce = BigNumber.from(userOp.nonce).toHexString()
     userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toHexString()
@@ -102,7 +106,7 @@ export class BiconomyPaymaster extends PaymasterAPI<TokenPaymasterData> {
           params: [
             userOp,
             {
-              mode: 'ERC20',
+              mode: 'ERC20', // TODO // Review can be dynamic
               tokenInfo: { tokenList: feeTokensArray, preferredToken: preferredToken } //,
               // sponsorshipInfo: {}
             }
@@ -115,16 +119,17 @@ export class BiconomyPaymaster extends PaymasterAPI<TokenPaymasterData> {
       if (response && response.result) {
         Logger.log('feeInfo ', response.result)
         const feeQuotesResponse: Array<PaymasterFeeQuote> = response.result.feeQuotes
+        const paymasterAddress: string = response.result.paymasterAddress
         // check all objects iterate and populate below calculation for all tokens
-        return feeQuotesResponse
+        return { feeQuotes: feeQuotesResponse, tokenPaymasterAddress: paymasterAddress }
       } else {
         // return empty fee quotes or throw
-        return feeQuotes
+        return { feeQuotes, tokenPaymasterAddress: '' }
       }
     } catch (error) {
       Logger.error("can't query fee quotes: ", error)
       // return empty fee quotes or throw
-      return feeQuotes
+      return { feeQuotes, tokenPaymasterAddress: '' }
     }
   }
 

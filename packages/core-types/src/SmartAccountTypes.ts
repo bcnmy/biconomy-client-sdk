@@ -42,6 +42,7 @@ export type NetworkConfig = {
   providerUrl?: string // review
   bundlerUrl?: string
   customPaymasterAPI?: IPaymasterAPI
+  // TODO // Review
   dappAPIKey?: string
 }
 

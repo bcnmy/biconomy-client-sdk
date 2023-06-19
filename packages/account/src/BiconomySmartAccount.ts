@@ -14,6 +14,7 @@ import { BiconomySmartAccountConfig, Overrides, BiconomyTokenPaymasterRequest } 
 import { UserOperation, Transaction, SmartAccountType } from '@biconomy/core-types'
 import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
+import { arrayify, hexConcat } from 'ethers/lib/utils'
 import { IBiconomySmartAccount } from 'interfaces/IBiconomySmartAccount'
 import {
   ISmartAccount,
@@ -29,7 +30,8 @@ import {
   ENTRYPOINT_ADDRESSES,
   BICONOMY_FACTORY_ADDRESSES,
   BICONOMY_IMPLEMENTATION_ADDRESSES,
-  DEFAULT_ENTRYPOINT_ADDRESS
+  DEFAULT_ENTRYPOINT_ADDRESS,
+  BICONOMY_ACCOUNT_ABI_V1
 } from './utils/Constants'
 
 export class BiconomySmartAccount extends SmartAccount implements IBiconomySmartAccount {
@@ -287,6 +289,10 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     userOp: Partial<UserOperation>,
     tokenPaymasterRequest: BiconomyTokenPaymasterRequest
   ): Promise<Partial<UserOperation>> {
+    let batchTo: any = []
+    let batchValue: any = []
+    let batchData: any = []
+    let newCallData = userOp.callData
     Logger.log('received information about fee token address and quote ', tokenPaymasterRequest)
     const feeTokenAddress = tokenPaymasterRequest.feeQuote.tokenAddress
     Logger.log('requested fee token is ', feeTokenAddress)
@@ -294,17 +300,100 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     const spender = tokenPaymasterRequest.spender // TODO // Review: May fallback to default spender address from constants config
     Logger.log('fee token approval to be checked and added for spender: ', spender)
 
-    const requiredApproval =
-      tokenPaymasterRequest.feeQuote.maxGasFee * tokenPaymasterRequest.feeQuote.decimal
+    const requiredApproval: number = Math.floor(
+      tokenPaymasterRequest.feeQuote.maxGasFee *
+        Math.pow(10, tokenPaymasterRequest.feeQuote.decimal)
+    )
     Logger.log('Required allowance in wei ', requiredApproval)
 
-    if (this.paymaster) {
+    if (!this.paymaster) {
       Logger.log('No paymaster is attached with the account')
       // Note: we may still update the callData and callGasLimit
     } else {
+      // Review
       // Should be type of TokenPaymaster or BiconomyPaymaster?
       // Make a call to paymaster.createTokenApprovalRequest() with necessary details
-      // const approvalRequest: Transaction = this.paymaster.createTokenApprovalRequest(tokenPaymasterRequest, this.provider)
+      const approvalRequest: Transaction = await this.paymaster.createTokenApprovalRequest(
+        tokenPaymasterRequest,
+        this.provider
+      )
+      Logger.log('approvalRequest is for erc20 token ', approvalRequest.to)
+
+      if (approvalRequest.to == '0x') {
+        return userOp
+      }
+
+      const iFaceSmartWallet = new ethers.utils.Interface(JSON.stringify(BICONOMY_ACCOUNT_ABI_V1))
+      if (!userOp.callData || userOp.callData == '0x') {
+        return userOp
+      }
+      const decodedDataSmartWallet = iFaceSmartWallet.parseTransaction({
+        data: userOp.callData.toString()
+      })
+      if (!decodedDataSmartWallet) {
+        throw new Error('Could not parse call data of smart wallet for userOp')
+      }
+
+      const smartWalletExecFunctionName = decodedDataSmartWallet.name
+
+      if (smartWalletExecFunctionName === 'executeCall') {
+        Logger.log('it was execute Call')
+        const methodArgsSmartWalletExecuteCall = decodedDataSmartWallet.args
+        const toOriginal = methodArgsSmartWalletExecuteCall[0]
+        const valueOriginal = methodArgsSmartWalletExecuteCall[1]
+        const dataOriginal = methodArgsSmartWalletExecuteCall[2]
+
+        Logger.log('batchTo ', batchTo)
+        Logger.log('batchValue ', batchValue)
+        Logger.log('batchData ', batchData)
+
+        Logger.log('toOriginal ', toOriginal)
+        Logger.log('valueOriginal ', valueOriginal)
+        Logger.log('dataOriginal ', dataOriginal)
+
+        batchTo.push(toOriginal)
+        batchValue.push(valueOriginal)
+        batchData.push(dataOriginal)
+
+        Logger.log('batchTo ', batchTo)
+        Logger.log('batchValue ', batchValue)
+        Logger.log('batchData ', batchData)
+
+        if (approvalRequest.to && approvalRequest.data && approvalRequest.value) {
+          batchTo.unshift(approvalRequest.to)
+          batchValue.unshift(approvalRequest.value.toString()) // review
+          batchData.unshift(approvalRequest.data)
+
+          Logger.log('after unshift')
+
+          Logger.log('batchTo ', batchTo)
+          Logger.log('batchValue ', batchValue)
+          Logger.log('batchData ', batchData)
+
+          newCallData = this.getExecuteBatchCallData(batchTo, batchValue, batchData)
+        }
+      } else if (smartWalletExecFunctionName === 'executeBatchCall') {
+        const methodArgsSmartWalletExecuteCall = decodedDataSmartWallet.args
+        batchTo = methodArgsSmartWalletExecuteCall[0]
+        batchValue = methodArgsSmartWalletExecuteCall[1]
+        batchData = methodArgsSmartWalletExecuteCall[2]
+
+        if (approvalRequest.to && approvalRequest.data && approvalRequest.value) {
+          batchTo.unshift(approvalRequest.to)
+          batchValue.unshift(approvalRequest.value) // review
+          batchData.unshift(approvalRequest.data)
+
+          newCallData = this.getExecuteBatchCallData(batchTo, batchValue, batchData)
+        }
+      }
+      let finalUserOp: Partial<UserOperation> = {
+        ...userOp,
+        callData: newCallData
+      }
+
+      finalUserOp = await this.estimateUserOpGas(finalUserOp)
+      Logger.log('userOp after estimation ', finalUserOp)
+      return finalUserOp
     }
     return userOp
   }

@@ -13,6 +13,8 @@ export type PaymasterConfig = {
   strictSponsorshipMode?: boolean // Review if optional and applies to config for all classes
 }
 
+// TODO
+// review // not necessary
 export type PaymasterServiceDataType = {
   tokenPaymasterData?: TokenPaymasterData
   webhookData?: {
@@ -34,6 +36,7 @@ export type SponsorpshipInfo = {
   smartAccountInfo: SmartAccountData
 }
 
+// Note: TODO // If all values are optional here it can be passed for any pm_sponsorUserOperation type request
 export type TokenPaymasterData = {
   mode?: string // todo: should make acceptable enums
   tokenInfo: TokenInfo
@@ -64,8 +67,19 @@ export type PaymasterFeeQuote = {
   validUntil?: number
 }
 
+// TBD
+export type PaymasterFeeQuoteRequest = {
+  requestedTokens?: string[]
+  preferredToken?: string
+}
+
 export type BiconomyTokenPaymasterRequest = {
   feeQuote: PaymasterFeeQuote
   spender: string
   maxApproval?: boolean
+}
+
+export type BiconomyTokenPaymasterFeeQuoteResponse = {
+  feeQuotes: PaymasterFeeQuote[]
+  tokenPaymasterAddress: string // spender
 }

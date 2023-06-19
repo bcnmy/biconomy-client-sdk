@@ -3,12 +3,13 @@ import { resolveProperties } from '@ethersproject/properties'
 import { UserOperation, Transaction } from '@biconomy/core-types'
 import { Provider } from '@ethersproject/abstract-provider'
 import { PaymasterAPI } from './Paymaster'
-import { ERC20_ABI, ERC20_APPROVAL_AMOUNT, PAYMASTER_ADDRESS } from './constants' // temporary
+import { ERC20_ABI, PAYMASTER_ADDRESS } from './constants' // temporary
 import {
   PaymasterFeeQuote,
   TokenPaymasterData,
   PaymasterConfig,
-  PaymasterServiceDataType
+  PaymasterServiceDataType,
+  BiconomyTokenPaymasterFeeQuoteResponse
 } from './types/Types'
 import { BigNumberish, BigNumber, ethers } from 'ethers'
 
@@ -88,7 +89,7 @@ export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
     userOp: Partial<UserOperation>,
     requestedTokens?: string[],
     preferredToken?: string
-  ): Promise<PaymasterFeeQuote[]> {
+  ): Promise<BiconomyTokenPaymasterFeeQuoteResponse> {
     userOp = await resolveProperties(userOp)
     userOp.nonce = BigNumber.from(userOp.nonce).toHexString()
     userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toHexString()
@@ -120,7 +121,7 @@ export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
           params: [
             userOp,
             {
-              mode: 'ERC20',
+              mode: 'ERC20', // TODO // Review
               tokenInfo: { tokenList: feeTokensArray, preferredToken: preferredToken } //,
               // sponsorshipInfo: {}
             }
@@ -133,16 +134,17 @@ export class BiconomyTokenPaymaster extends PaymasterAPI<TokenPaymasterData> {
       if (response && response.result) {
         Logger.log('feeInfo ', response.result)
         const feeQuotesResponse: Array<PaymasterFeeQuote> = response.result.feeQuotes
+        const paymasterAddress: string = response.result.paymasterAddress
         // check all objects iterate and populate below calculation for all tokens
-        return feeQuotesResponse
+        return { feeQuotes: feeQuotesResponse, tokenPaymasterAddress: paymasterAddress }
       } else {
         // return empty fee quotes or throw
-        return feeQuotes
+        return { feeQuotes, tokenPaymasterAddress: '' }
       }
     } catch (error) {
       Logger.error("can't query fee quotes: ", error)
       // return empty fee quotes or throw
-      return feeQuotes
+      return { feeQuotes, tokenPaymasterAddress: '' }
     }
   }
 
