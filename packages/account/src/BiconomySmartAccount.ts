@@ -302,7 +302,9 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       Logger.log('No paymaster is attached with the account')
       // Note: we may still update the callData and callGasLimit
     } else {
+      // Should be type of TokenPaymaster or BiconomyPaymaster?
       // Make a call to paymaster.createTokenApprovalRequest() with necessary details
+      // const approvalRequest: Transaction = this.paymaster.createTokenApprovalRequest(tokenPaymasterRequest, this.provider)
     }
     return userOp
   }

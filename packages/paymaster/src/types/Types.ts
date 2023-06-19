@@ -63,3 +63,9 @@ export type PaymasterFeeQuote = {
   premiumPercentage: number
   validUntil?: number
 }
+
+export type BiconomyTokenPaymasterRequest = {
+  feeQuote: PaymasterFeeQuote
+  spender: string
+  maxApproval?: boolean
+}

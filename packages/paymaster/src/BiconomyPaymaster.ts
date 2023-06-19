@@ -11,6 +11,7 @@ import {
 } from './types/Types'
 import { BigNumberish, BigNumber, ethers } from 'ethers'
 import { ERC20_ABI, ERC20_APPROVAL_AMOUNT, PAYMASTER_ADDRESS } from './constants' // temporary
+import { BiconomyTokenPaymasterRequest } from './types/Types'
 
 // WIP
 // Hybrid - Generic Gas abstraction paymaster
@@ -22,68 +23,43 @@ export class BiconomyPaymaster extends PaymasterAPI<TokenPaymasterData> {
     super()
   }
 
-  async getPaymasterAddress(): Promise<string> {
-    try {
-      // TODO
-      // Define response
-      const response: any = await sendRequest({
-        url: `${this.paymasterConfig.paymasterUrl}`,
-        method: HttpMethod.Post,
-        body: {
-          method: 'pm_getPaymasterType',
-          params: [],
-          id: 4337,
-          jsonrpc: '2.0'
-        }
-      })
-
-      if (response && response.result && response.result.address) {
-        this.paymasterAddress = response.result.address
-      }
-    } catch (error) {
-      Logger.error("can't query paymaster type and address error: ", error)
-    }
-
-    return this.paymasterAddress || PAYMASTER_ADDRESS
-  }
-
   // May not be needed at all
   async getTokenApprovalAmount(
-    feeTokenAddress: string,
-    maxApprove?: boolean
+    tokenPaymasterRequest: BiconomyTokenPaymasterRequest
   ): Promise<BigNumberish> {
-    if (maxApprove) {
+    if (tokenPaymasterRequest.maxApproval) {
       return ethers.constants.MaxUint256
     }
-
-    Logger.log('fee token address in getting approval amount ', feeTokenAddress)
-
-    // check the allowance provided on the paymaster
-    // Todo: make an optional flag if someone wants to provide infitite approval
-    // otherwise we need to give accurate allowance: would need fee quote for this
-
-    // Temp values
-    const approvalAmount = ethers.utils.parseUnits('10', 6)
-    Logger.log('approval amount ', approvalAmount.toString())
-    return approvalAmount
+    return ethers.utils.parseUnits('10', 6)
   }
 
   // TODO // WIP
-  // along with Provider Required dto: BiconomyTokenPaymasterRequest which has spender, feeQuote and maxApprove flag
   async createTokenApprovalRequest(
-    feeTokenAddress: string, // possibly pass a fee quote instead of the address
-    provider: Provider,
-    maxApprove = false
+    tokenPaymasterRequest: BiconomyTokenPaymasterRequest,
+    provider: Provider
   ): Promise<Transaction> {
-    // Note: ideally should also check in caller if the approval is already given
+    // Note: should also check in caller if the approval is already given
+
+    const feeTokenAddress: string = tokenPaymasterRequest.feeQuote.tokenAddress
+    Logger.log('erc20 fee token address ', feeTokenAddress)
+
+    const requiredApproval: number =
+      tokenPaymasterRequest.feeQuote.maxGasFee * tokenPaymasterRequest.feeQuote.decimal
+    Logger.log('required approval for erc20 token ', requiredApproval)
+    // Fallback to local helper if required
+    // await this.getTokenApprovalAmount(tokenPaymasterRequest)
+
+    const spender = tokenPaymasterRequest.spender
+    // fallback to fetch from member
+    // this.paymasterAddress ? this.paymasterAddress : await this.getPaymasterAddress()
+    // Might maintain two fields for token and verifying paymaster addresses
+
     const erc20 = new ethers.Contract(feeTokenAddress, ERC20_ABI, provider)
-    const approvalAmount = await this.getTokenApprovalAmount(feeTokenAddress, maxApprove)
-    const spender = this.paymasterAddress ? this.paymasterAddress : await this.getPaymasterAddress()
 
     return {
       to: erc20.address,
       value: ethers.BigNumber.from(0),
-      data: erc20.interface.encodeFunctionData('approve', [spender, approvalAmount])
+      data: erc20.interface.encodeFunctionData('approve', [spender, requiredApproval.toString()])
     }
   }
 
