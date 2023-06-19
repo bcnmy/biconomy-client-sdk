@@ -1,5 +1,9 @@
 import { UserOperation } from '@biconomy/core-types'
-import { BiconomyTokenPaymasterRequest } from '../types/Types'
+import {
+  BiconomyTokenPaymasterFeeQuoteResponse,
+  BiconomyTokenPaymasterRequest,
+  FeeQuotesOrDataDto
+} from '../types/Types'
 import { Transaction } from '@biconomy/core-types'
 import { Provider } from '@ethersproject/abstract-provider'
 
@@ -10,4 +14,13 @@ export interface IPaymaster {
     tokenPaymasterRequest: BiconomyTokenPaymasterRequest,
     provider: Provider
   ): Promise<Transaction>
+  getPaymasterFeeQuotesOrData(
+    userOp: Partial<UserOperation>,
+    paymasterServiceData: FeeQuotesOrDataDto
+  ): Promise<BiconomyTokenPaymasterFeeQuoteResponse | string>
+  getPaymasterFeeQuotes(
+    userOp: Partial<UserOperation>,
+    requestedTokens?: string[],
+    preferredToken?: string
+  ): Promise<BiconomyTokenPaymasterFeeQuoteResponse>
 }

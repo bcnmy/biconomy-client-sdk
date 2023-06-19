@@ -14,7 +14,6 @@ import { BiconomySmartAccountConfig, Overrides, BiconomyTokenPaymasterRequest } 
 import { UserOperation, Transaction, SmartAccountType } from '@biconomy/core-types'
 import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
-import { arrayify, hexConcat } from 'ethers/lib/utils'
 import { IBiconomySmartAccount } from 'interfaces/IBiconomySmartAccount'
 import {
   ISmartAccount,
