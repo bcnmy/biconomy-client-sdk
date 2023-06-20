@@ -2,7 +2,7 @@ import { sendRequest, HttpMethod } from '@biconomy/common'
 import { resolveProperties } from '@ethersproject/properties'
 import { UserOperation } from '@biconomy/core-types'
 import { IPaymaster } from 'interfaces/IPaymaster'
-import { PaymasterAndDataResponse, PaymasterConfig } from './types/Types'
+import { PaymasterAndDataResponse, PaymasterConfig } from './utils/Types'
 
 export class BiconomyPaymaster implements IPaymaster {
   constructor(readonly paymasterConfig: PaymasterConfig) {}

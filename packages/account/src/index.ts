@@ -1,5 +1,5 @@
 export * from './interfaces/IBaseAccount'
 export * from './utils/Types'
-export * from './BaseAccount'
+export * from './SmartAccount'
 export * from './BiconomySmartAccount'
 export * from './utils/Constants'
