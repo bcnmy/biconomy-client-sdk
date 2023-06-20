@@ -14,17 +14,29 @@ export type PaymasterConfig = {
 }
 
 // TODO
-// review // not necessary
-export type PaymasterServiceDataType = {
-  tokenPaymasterData?: TokenPaymasterData
-  webhookData?: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any
-  }
-  smartAccountData?: SmartAccountData
+// review
+// meant for pm_sponsorUserOperation
+export type SponsorUserOperationDto = {
+  mode: string // todo: should make acceptable enums
+  tokenInfo?: FeeTokenInfo
+  sponsorshipInfo?: SponsorpshipInfo
 }
 
-export type TokenInfo = {
+// TODO
+// review
+// meant for pm_getFeeQuoteOrData
+export type FeeQuotesOrDataDto = {
+  mode?: string // todo: should make acceptable enums
+  tokenInfo?: FeeQuoteParams
+  sponsorshipInfo?: SponsorpshipInfo
+}
+
+export type FeeQuoteParams = {
+  tokenList?: string[]
+  preferredToken?: string
+}
+
+export type FeeTokenInfo = {
   feeTokenAddress: string
 }
 
@@ -36,23 +48,9 @@ export type SponsorpshipInfo = {
   smartAccountInfo: SmartAccountData
 }
 
-// Note: TODO // If all values are optional here it can be passed for any pm_sponsorUserOperation type request
-export type TokenPaymasterData = {
-  mode?: string // todo: should make acceptable enums
-  tokenInfo: TokenInfo
-  sponsorshipInfo?: SponsorpshipInfo
-}
-
 export type SmartAccountData = {
   name: string
   version: string
-}
-
-// TODO // to be updated
-export type VerifyingPaymasterData = {
-  mode?: string
-  tokenInfo?: TokenInfo // never used for verifying paymaster class
-  sponsorshipInfo?: SponsorpshipInfo
 }
 
 export type PaymasterFeeQuote = {
@@ -65,12 +63,6 @@ export type PaymasterFeeQuote = {
   usdPayment?: number
   premiumPercentage: number
   validUntil?: number
-}
-
-// TBD
-export type PaymasterFeeQuoteRequest = {
-  requestedTokens?: string[]
-  preferredToken?: string
 }
 
 export type BiconomyTokenPaymasterRequest = {
