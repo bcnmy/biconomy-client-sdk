@@ -279,7 +279,9 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
 
     userOp = await this.estimateUserOpGas(userOp, overrides)
     Logger.log('userOp after estimation ', userOp)
-    userOp.paymasterAndData = await this.getPaymasterAndData(userOp)
+
+    // Do not populate paymasterAndData as part of buildUserOp as it may not have all necessary details
+    // userOp.paymasterAndData = await this.getPaymasterAndData(userOp)
     return userOp
   }
 
@@ -311,7 +313,6 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       // Note: we may still update the callData and callGasLimit
     } else {
       // Review
-      // Should be type of TokenPaymaster or BiconomyPaymaster?
       // Make a call to paymaster.createTokenApprovalRequest() with necessary details
       const approvalRequest: Transaction = await (
         this.paymaster as IHybridPaymaster
@@ -342,32 +343,14 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
         const valueOriginal = methodArgsSmartWalletExecuteCall[1]
         const dataOriginal = methodArgsSmartWalletExecuteCall[2]
 
-        Logger.log('batchTo ', batchTo)
-        Logger.log('batchValue ', batchValue)
-        Logger.log('batchData ', batchData)
-
-        Logger.log('toOriginal ', toOriginal)
-        Logger.log('valueOriginal ', valueOriginal)
-        Logger.log('dataOriginal ', dataOriginal)
-
         batchTo.push(toOriginal)
         batchValue.push(valueOriginal)
         batchData.push(dataOriginal)
-
-        Logger.log('batchTo ', batchTo)
-        Logger.log('batchValue ', batchValue)
-        Logger.log('batchData ', batchData)
 
         if (approvalRequest.to && approvalRequest.data && approvalRequest.value) {
           batchTo.unshift(approvalRequest.to)
           batchValue.unshift(approvalRequest.value.toString()) // review
           batchData.unshift(approvalRequest.data)
-
-          Logger.log('after unshift')
-
-          Logger.log('batchTo ', batchTo)
-          Logger.log('batchValue ', batchValue)
-          Logger.log('batchData ', batchData)
 
           newCallData = this.getExecuteBatchCallData(batchTo, batchValue, batchData)
         }
