@@ -7,19 +7,19 @@ import {
   PaymasterConfig,
   BiconomyTokenPaymasterFeeQuoteResponse,
   FeeQuotesOrDataDto,
-  SponsorUserOperationDto
+  SponsorUserOperationDto,
+  PaymasterServiceSuccessResponse
 } from './types/Types'
 import { BigNumberish, BigNumber, ethers } from 'ethers'
 import { ERC20_ABI } from './constants' // temporary
 import { BiconomyTokenPaymasterRequest } from './types/Types'
-import { IPaymaster } from './interfaces/IPaymaster'
+import { IHybridPaymaster } from './interfaces/IHybridPaymaster'
 
-// WIP
 // Hybrid - Generic Gas abstraction paymaster
-// TODO: define return types, base class and interface usage
-// This may inherit from TokenPaymasterAPI
-
-export class BiconomyPaymaster implements IPaymaster {
+/**
+ *
+ */
+export class BiconomyPaymaster implements IHybridPaymaster {
   constructor(readonly paymasterConfig: PaymasterConfig) {}
 
   // May not be needed at all
@@ -65,94 +65,12 @@ export class BiconomyPaymaster implements IPaymaster {
     }
   }
 
-  // WIP: notice
-  // Required Dto is different than "PaymasterServiceData"
-  // here it is tokenInfo: -> preferredToken, tokenList (fully in context of token paymaster)
-  // we could pass mode as well
-
-  // pm_getFeeQuoteOrData
-  /*{
-    "mode": "ERC20",
-    "tokenInfo": {
-        "preferredToken": "0xdA5289FCAAF71d52A80A254dA614A192B693e976",
-        "tokenList": [
-            "0xdA5289FCAAF71d52A80A254dA614A192B693e975",
-            "0xda5289fcaaf71d52a80a254da614a192b693e977",
-            "0xeabc4b91d9375796aa4f69cc764a4ab509080a58"
-        ]
-    },
-    "sponsorshipInfo": {
-        "webhookData": {},
-        "smartAccountInfo": {
-            "name": "BICONOMY",
-            "version": "1.0.0"
-        }
-    }
-  }*/
-
-  async getPaymasterFeeQuotes(
-    userOp: Partial<UserOperation>,
-    requestedTokens?: string[],
-    preferredToken?: string
-  ): Promise<BiconomyTokenPaymasterFeeQuoteResponse> {
-    userOp = await resolveProperties(userOp)
-    userOp.nonce = BigNumber.from(userOp.nonce).toHexString()
-    userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toHexString()
-    userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toHexString()
-    userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toHexString()
-    userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toHexString()
-    userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toHexString()
-    userOp.signature = '0x'
-    userOp.paymasterAndData = '0x'
-
-    Logger.log('preferred token address passed is ', preferredToken)
-
-    Logger.log('userop is ', userOp)
-    // userOp = hexifyUserOp(userOp)
-
-    let feeTokensArray: string[] = []
-    if (requestedTokens && requestedTokens.length != 0) {
-      feeTokensArray = requestedTokens
-    }
-
-    const feeQuotes: Array<PaymasterFeeQuote> = []
-
-    try {
-      const response: any = await sendRequest({
-        url: `${this.paymasterConfig.paymasterUrl}`,
-        method: HttpMethod.Post,
-        body: {
-          method: 'pm_getFeeQuoteOrData',
-          params: [
-            userOp,
-            {
-              mode: 'ERC20', // TODO // Review can be dynamic
-              tokenInfo: { tokenList: feeTokensArray, preferredToken: preferredToken } //,
-              // sponsorshipInfo: {}
-            }
-          ], // As per current API
-          id: 4337,
-          jsonrpc: '2.0'
-        }
-      })
-
-      if (response && response.result) {
-        Logger.log('feeInfo ', response.result)
-        const feeQuotesResponse: Array<PaymasterFeeQuote> = response.result.feeQuotes
-        const paymasterAddress: string = response.result.paymasterAddress
-        // check all objects iterate and populate below calculation for all tokens
-        return { feeQuotes: feeQuotesResponse, tokenPaymasterAddress: paymasterAddress }
-      } else {
-        // return empty fee quotes or throw
-        return { feeQuotes, tokenPaymasterAddress: '' }
-      }
-    } catch (error) {
-      Logger.error("can't query fee quotes: ", error)
-      // return empty fee quotes or throw
-      return { feeQuotes, tokenPaymasterAddress: '' }
-    }
-  }
-
+  /**
+   *
+   * @param userOp
+   * @param paymasterServiceData
+   * @returns
+   */
   async getPaymasterFeeQuotesOrData(
     userOp: Partial<UserOperation>,
     paymasterServiceData: FeeQuotesOrDataDto
@@ -215,7 +133,7 @@ export class BiconomyPaymaster implements IPaymaster {
     }
 
     try {
-      const response: any = await sendRequest({
+      const response: PaymasterServiceSuccessResponse = await sendRequest({
         url: `${this.paymasterConfig.paymasterUrl}`,
         method: HttpMethod.Post,
         body: {
@@ -301,7 +219,7 @@ export class BiconomyPaymaster implements IPaymaster {
       userOp.signature = '0x'
       userOp.paymasterAndData = '0x'
 
-      const response: any = await sendRequest({
+      const response: PaymasterServiceSuccessResponse = await sendRequest({
         url: `${this.paymasterConfig.paymasterUrl}`,
         method: HttpMethod.Post,
         body: {
@@ -317,20 +235,8 @@ export class BiconomyPaymaster implements IPaymaster {
       if (response && response.result) {
         return response.result.paymasterAndData
       } else {
-        // TODO: decide how strictSponsorshipMode applies here
-        // Usually it could be like fallback from sponsorpship pamaster to ERC20 paymaster
-        if (!this.paymasterConfig.strictSponsorshipMode) {
-          return '0x'
-        }
-        // Logger.log(result)
-        // Review: If we will get a different code and result.message
-        if (response.error) {
-          Logger.log(response.error.toString())
-          throw new Error(
-            'Error in verifying gas sponsorship. Reason: '.concat(response.error.toString())
-          )
-        }
-        throw new Error('Error in verifying gas sponsorship. Reason unknown')
+        // For consistent return
+        return '0x'
       }
     } catch (err: any) {
       if (!this.paymasterConfig.strictSponsorshipMode) {

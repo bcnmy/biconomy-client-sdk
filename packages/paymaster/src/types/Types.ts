@@ -7,6 +7,24 @@ export type PaymasterAndDataResponse = {
   }
 }
 
+export type PaymasterServiceSuccessResponse = {
+  jsonrpc: string
+  id: number
+  result: any
+}
+
+export type PaymasterServiceErrorResponse = {
+  jsonrpc: string
+  id: number
+  error: JsonRpcError
+}
+
+export type JsonRpcError = {
+  code: string
+  message: string
+  data: any
+}
+
 // TODO
 export type PaymasterConfig = {
   paymasterUrl: string

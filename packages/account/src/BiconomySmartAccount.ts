@@ -14,6 +14,7 @@ import { BiconomySmartAccountConfig, Overrides, BiconomyTokenPaymasterRequest } 
 import { UserOperation, Transaction, SmartAccountType } from '@biconomy/core-types'
 import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
+import { IHybridPaymaster } from '@biconomy/paymaster'
 import { IBiconomySmartAccount } from 'interfaces/IBiconomySmartAccount'
 import {
   ISmartAccount,
@@ -312,10 +313,9 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       // Review
       // Should be type of TokenPaymaster or BiconomyPaymaster?
       // Make a call to paymaster.createTokenApprovalRequest() with necessary details
-      const approvalRequest: Transaction = await this.paymaster.createTokenApprovalRequest(
-        tokenPaymasterRequest,
-        this.provider
-      )
+      const approvalRequest: Transaction = await (
+        this.paymaster as IHybridPaymaster
+      ).createTokenApprovalRequest(tokenPaymasterRequest, this.provider)
       Logger.log('approvalRequest is for erc20 token ', approvalRequest.to)
 
       if (approvalRequest.to == '0x') {
