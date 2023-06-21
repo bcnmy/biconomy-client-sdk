@@ -142,7 +142,7 @@ export class RestRelayer implements IRelayer {
               address: address
             },
             refundInfo: {
-              tokenGasPrice: signedTx.tx.gasPrice,
+              tokenGasPrice: signedTx.tx.gasPrice.toString(),
               gasToken: signedTx.tx.gasToken
             }
           }
