@@ -1,9 +1,5 @@
 import INodeClient from './INodeClient'
 import {
-  EstimateExternalGasDto,
-  EstimateRequiredTxGasDto,
-  EstimateHandlePaymentTxGasDto,
-  EstimateUndeployedContractGasDto,
   SmartAccountByOwnerDto,
   TokenByChainIdAndAddressDto,
   TokenPriceResponse,
@@ -18,7 +14,6 @@ import {
   EstimateGasResponse,
   SCWTransactionResponse,
   WhiteListSignatureResponse,
-  IsFallbackEnabledResponse
 } from './types/NodeClientTypes'
 import { getTxServiceBaseUrl } from './utils'
 import { HttpMethod, sendRequest } from './utils/HttpRequests'
@@ -133,72 +128,6 @@ class NodeClient implements INodeClient {
       body: {
         origin
       }
-    })
-  }
-
-  async isFallbackEnabled(): Promise<IsFallbackEnabledResponse> {
-    return sendRequest({
-      url: `${this.#txServiceBaseUrl}/gasless-fallback-flag`,
-      method: HttpMethod.Get
-    })
-  }
-
-  async estimateExternalGas(
-    estimateExternalGasDto: EstimateExternalGasDto
-  ): Promise<EstimateGasResponse> {
-    return sendRequest({
-      url: `${this.#txServiceBaseUrl}/estimator/external`,
-      method: HttpMethod.Post,
-      body: estimateExternalGasDto
-    })
-  }
-  async estimateRequiredTxGas(
-    estimateRequiredTxGasDto: EstimateRequiredTxGasDto
-  ): Promise<EstimateGasResponse> {
-    return sendRequest({
-      url: `${this.#txServiceBaseUrl}/estimator/required`,
-      method: HttpMethod.Post,
-      body: estimateRequiredTxGasDto
-    })
-  }
-
-  estimateHandlePaymentGas(
-    estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto
-  ): Promise<EstimateGasResponse> {
-    return sendRequest({
-      url: `${this.#txServiceBaseUrl}/estimator/handle-payment`,
-      method: HttpMethod.Post,
-      body: estimateHandlePaymentTxGasDto
-    })
-  }
-
-  async estimateRequiredTxGasOverride(
-    estimateRequiredTxGasDto: EstimateRequiredTxGasDto
-  ): Promise<EstimateGasResponse> {
-    return sendRequest({
-      url: `${this.#txServiceBaseUrl}/estimator/required-override`,
-      method: HttpMethod.Post,
-      body: estimateRequiredTxGasDto
-    })
-  }
-
-  async estimateHandlePaymentGasOverride(
-    estimateHandlePaymentTxGasDto: EstimateHandlePaymentTxGasDto
-  ): Promise<EstimateGasResponse> {
-    return sendRequest({
-      url: `${this.#txServiceBaseUrl}/estimator/handle-payment-override`,
-      method: HttpMethod.Post,
-      body: estimateHandlePaymentTxGasDto
-    })
-  }
-
-  async estimateUndeployedContractGas(
-    estimateUndeployedContractGasDto: EstimateUndeployedContractGasDto
-  ): Promise<EstimateGasResponse> {
-    return sendRequest({
-      url: `${this.#txServiceBaseUrl}/estimator/undeployed`,
-      method: HttpMethod.Post,
-      body: estimateUndeployedContractGasDto
     })
   }
 
