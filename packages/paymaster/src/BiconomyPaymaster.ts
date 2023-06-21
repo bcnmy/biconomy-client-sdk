@@ -22,16 +22,6 @@ import { IHybridPaymaster } from './interfaces/IHybridPaymaster'
 export class BiconomyPaymaster implements IHybridPaymaster {
   constructor(readonly paymasterConfig: PaymasterConfig) {}
 
-  // May not be needed at all
-  async getTokenApprovalAmount(
-    tokenPaymasterRequest: BiconomyTokenPaymasterRequest
-  ): Promise<BigNumberish> {
-    if (tokenPaymasterRequest.maxApproval) {
-      return ethers.constants.MaxUint256
-    }
-    return ethers.utils.parseUnits('10', 6)
-  }
-
   // TODO // WIP
   // Note: maybe rename to createTokenApprovalTransaction
   async createTokenApprovalRequest(
@@ -43,13 +33,12 @@ export class BiconomyPaymaster implements IHybridPaymaster {
     const feeTokenAddress: string = tokenPaymasterRequest.feeQuote.tokenAddress
     Logger.log('erc20 fee token address ', feeTokenAddress)
 
+    // TODO: For some tokens we may need to set allowance to 0 first so that would return batch of transactions
     const requiredApproval: number = Math.floor(
       tokenPaymasterRequest.feeQuote.maxGasFee *
         Math.pow(10, tokenPaymasterRequest.feeQuote.decimal)
     )
     Logger.log('required approval for erc20 token ', requiredApproval)
-    // Fallback to local helper if required
-    // await this.getTokenApprovalAmount(tokenPaymasterRequest)
 
     const spender = tokenPaymasterRequest.spender
     // fallback to fetch from member

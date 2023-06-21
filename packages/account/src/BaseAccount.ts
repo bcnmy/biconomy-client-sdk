@@ -166,6 +166,7 @@ export abstract class SmartAccount implements ISmartAccount {
     }
   }
 
+  // Would only be used if paymaster is attached
   async getPaymasterAndData(userOp: Partial<UserOperation>): Promise<string> {
     if (this.paymaster) {
       return this.paymaster.getPaymasterAndData(userOp)
