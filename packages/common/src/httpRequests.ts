@@ -35,7 +35,14 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
   }
 
   if (response.ok) {
-    return jsonResponse as T
+    if (jsonResponse && jsonResponse.hasOwnProperty('result')) {
+      return jsonResponse as T
+    } else if (jsonResponse && jsonResponse.hasOwnProperty('error')) {
+      const error = jsonResponse.error
+      throw new Error(`JSON-RPC error: code ${error.code}, message: ${error.message}`)
+    } else {
+      throw new Error('Invalid JSON-RPC response')
+    }
   }
   if (jsonResponse.error) {
     throw new Error(jsonResponse.error)
@@ -61,5 +68,5 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
   if (jsonResponse.delegate) {
     throw new Error(jsonResponse.delegate)
   }
-  throw new Error(response.statusText)
+  throw new Error('Request failed with status: ' + response.status + ' ' + response.statusText)
 }

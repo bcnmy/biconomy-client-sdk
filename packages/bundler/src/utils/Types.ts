@@ -67,3 +67,23 @@ export type UserOpByHashResponse = UserOperation & {
   blockHash: string
   entryPoint: string
 }
+
+// May use these types as paert of htt requests utils
+
+export type BundlerSuccessResponse = {
+  jsonrpc: string
+  id: number
+  result: any // Note: Could define specific types for particular known rpc
+}
+
+export type BundlerErrorResponse = {
+  jsonrpc: string
+  id: number
+  error: JsonRpcError
+}
+
+export type JsonRpcError = {
+  code: string
+  message: string
+  data: any
+}
