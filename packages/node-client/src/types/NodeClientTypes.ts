@@ -1,9 +1,6 @@
 import {
   ChainId,
   SmartAccountVersion,
-  MetaTransactionData,
-  IFeeRefundV1_0_0,
-  IFeeRefundV1_0_1
 } from '@biconomy/core-types'
 export type SmartAccountInfoResponse = {
   readonly name: string
@@ -56,40 +53,6 @@ export type WhiteListSignatureResponse = {
   data: string
 }
 
-export type IsFallbackEnabledResponse = {
-  code: number
-  message: string
-  data: {
-    enable_fallback_flow: boolean
-  }
-}
-
-export type EstimateExternalGasDto = {
-  chainId: number
-  encodedData: string
-}
-
-export type EstimateRequiredTxGasDto = {
-  chainId: number
-  walletAddress: string
-  transaction: MetaTransactionData
-}
-
-export type EstimateHandlePaymentTxGasDto = {
-  chainId: number
-  version: string
-  walletAddress: string
-  feeRefund: IFeeRefundV1_0_0 | IFeeRefundV1_0_1
-}
-
-export type EstimateUndeployedContractGasDto = {
-  chainId: number
-  version: string
-  walletAddress: string
-  feeRefund: IFeeRefundV1_0_0 | IFeeRefundV1_0_1
-  transaction: MetaTransactionData
-  signature: string
-}
 
 export type SmartAccountByOwnerDto = {
   chainId: number
@@ -153,9 +116,6 @@ export type SafeInfoResponse = {
   readonly version: string
 }
 
-export type OwnerResponse = {
-  safes: string[]
-}
 
 export type BlockExplorerConfig = {
   address: string

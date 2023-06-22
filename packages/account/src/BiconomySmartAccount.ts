@@ -1,6 +1,6 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { ethers, BigNumberish, BytesLike, BigNumber } from 'ethers'
-import { SmartAccount } from './BaseAccount'
+import { SmartAccount } from './SmartAccount'
 import {
   Logger,
   NODE_CLIENT_URL,

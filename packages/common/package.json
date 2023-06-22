@@ -22,7 +22,6 @@
   },
   "scripts": {
     "clear": "rm -rf dist artifacts cache src/types",
-    "hardhat-compile": "yarn clear && hardhat compile",
     "hardhat-deploy": "hardhat deploy",
     "hardhat-node": "hardhat node",
     "lint-fix": "eslint -f unix . --fix",
@@ -31,7 +30,7 @@
     "tsc": "tsc",
     "test": "hardhat test",
     "unbuild": "rimraf dist *.tsbuildinfo",
-    "build": "rimraf dist && npm run gen:types && tsc && hardhat compile",
+    "build": "rimraf dist && npm run gen:types && tsc",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
     "lint": "tslint -p tsconfig.json"
   },
@@ -41,14 +40,15 @@
   "dependencies": {
     "@account-abstraction/contracts": "^0.6.0",
     "@biconomy/core-types": "^2.0.0",
-    "@biconomy/ethers-lib": "^2.0.0",
     "@biconomy/node-client": "^2.0.0",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/bytes": "^5.7.0",
     "@ethersproject/providers": "^5.7.0",
     "@openzeppelin/contracts": "^4.7.3",
+    "@typechain/ethers-v5": "^10.2.0",
     "debug": "^4.3.4",
-    "ethers": "^5.7.0"
+    "ethers": "^5.7.0",
+    "typechain": "^8.1.1"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",

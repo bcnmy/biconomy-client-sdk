@@ -3,7 +3,7 @@ import {
   UserOpGasResponse,
   UserOpReceipt,
   UserOpByHashResponse
-} from '../types/Types'
+} from '../utils/Types'
 import { ChainId, UserOperation } from '@biconomy/core-types'
 
 export interface IBundler {

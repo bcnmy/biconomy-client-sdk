@@ -10,10 +10,9 @@ import {
   SendUserOpResponse,
   UserOpGasResponse,
   UserOpByHashResponse
-} from './types/Types'
+} from './utils/Types'
 import { resolveProperties } from 'ethers/lib/utils'
-import { deepHexlify, getTimestampInSeconds, Logger, RPC_PROVIDER_URLS } from '@biconomy/common'
-import { HttpMethod, sendRequest } from './utils/httpRequests'
+import { deepHexlify, sendRequest, getTimestampInSeconds, HttpMethod, Logger, RPC_PROVIDER_URLS } from '@biconomy/common'
 import { transformUserOP } from './utils/HelperFunction'
 import { UserOpReceiptIntervals } from './utils/Constants'
 import { JsonRpcProvider } from '@ethersproject/providers'
