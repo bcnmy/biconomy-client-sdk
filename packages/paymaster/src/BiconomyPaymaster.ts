@@ -1,4 +1,4 @@
-import { Logger, sendRequest, HttpMethod } from '@biconomy/common'
+import { Logger, sendRequest, HttpMethod, getTimestampInSeconds } from '@biconomy/common'
 import { resolveProperties } from '@ethersproject/properties'
 import { UserOperation, Transaction } from '@biconomy/core-types'
 import { Provider } from '@ethersproject/abstract-provider'
@@ -28,28 +28,56 @@ export class BiconomyPaymaster implements IHybridPaymaster {
     tokenPaymasterRequest: BiconomyTokenPaymasterRequest,
     provider: Provider
   ): Promise<Transaction> {
-    // TODO
-    // Note: should also check in caller if the approval is already given
-
     const feeTokenAddress: string = tokenPaymasterRequest.feeQuote.tokenAddress
     Logger.log('erc20 fee token address ', feeTokenAddress)
 
-    // TODO?
-    // Note: For some tokens we may need to set allowance to 0 first so that would return batch of transactions and changes the return type to Transaction[]
-    const requiredApproval: number = Math.floor(
-      tokenPaymasterRequest.feeQuote.maxGasFee *
-        Math.pow(10, tokenPaymasterRequest.feeQuote.decimal)
-    )
+    const spender = tokenPaymasterRequest.spender
+    Logger.log('spender address ', spender)
+
+    // TODO
+    // Note: should also check in caller if the approval is already given, if yes return object with address or data 0
+    // Note: we would need userOp here to get the account/owner info to check allowance
+
+    let requiredApproval: BigNumberish = BigNumber.from(0)
+
+    if (tokenPaymasterRequest.maxApproval && tokenPaymasterRequest.maxApproval == true) {
+      requiredApproval = ethers.constants.MaxUint256
+    } else {
+      /*requiredApproval = ethers.BigNumber.from(
+        tokenPaymasterRequest.feeQuote.maxGasFee.toString()
+      ).mul(
+        ethers.BigNumber.from(10).pow(
+          ethers.BigNumber.from(tokenPaymasterRequest.feeQuote.decimal.toString())
+        )
+      )*/
+
+      requiredApproval = BigNumber.from(
+        Math.floor(
+          tokenPaymasterRequest.feeQuote.maxGasFee *
+            Math.pow(10, tokenPaymasterRequest.feeQuote.decimal)
+        )
+      )
+    }
+
     Logger.log('required approval for erc20 token ', requiredApproval)
 
-    const spender = tokenPaymasterRequest.spender
-
     const erc20 = new ethers.Contract(feeTokenAddress, ERC20_ABI, provider)
+
+    // TODO?
+    // Note: For some tokens we may need to set allowance to 0 first so that would return batch of transactions and changes the return type to Transaction[]
+    // In that case we would return two objects in an array, first of them being..
+    /*
+    {
+      to: erc20.address,
+      value: ethers.BigNumber.from(0),
+      data: erc20.interface.encodeFunctionData('approve', [spender, BigNumber.from("0")])
+    }
+    */
 
     return {
       to: erc20.address,
       value: ethers.BigNumber.from(0),
-      data: erc20.interface.encodeFunctionData('approve', [spender, requiredApproval.toString()])
+      data: erc20.interface.encodeFunctionData('approve', [spender, requiredApproval])
     }
   }
 
@@ -139,7 +167,7 @@ export class BiconomyPaymaster implements IHybridPaymaster {
               }
             }
           ], // As per current API
-          id: 4337,
+          id: getTimestampInSeconds(),
           jsonrpc: '2.0'
         }
       })
@@ -190,7 +218,7 @@ export class BiconomyPaymaster implements IHybridPaymaster {
         body: {
           method: 'pm_sponsorUserOperation',
           params: [userOp, paymasterServiceData],
-          id: 1234,
+          id: getTimestampInSeconds(),
           jsonrpc: '2.0'
         }
       })

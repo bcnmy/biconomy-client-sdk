@@ -30,8 +30,7 @@ import {
   ENTRYPOINT_ADDRESSES,
   BICONOMY_FACTORY_ADDRESSES,
   BICONOMY_IMPLEMENTATION_ADDRESSES,
-  DEFAULT_ENTRYPOINT_ADDRESS,
-  BICONOMY_ACCOUNT_ABI_V1
+  DEFAULT_ENTRYPOINT_ADDRESS
 } from './utils/Constants'
 
 export class BiconomySmartAccount extends SmartAccount implements IBiconomySmartAccount {
@@ -323,11 +322,10 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
           return userOp
         }
 
-        const iFaceSmartWallet = new ethers.utils.Interface(JSON.stringify(BICONOMY_ACCOUNT_ABI_V1))
         if (!userOp.callData || userOp.callData == '0x') {
           return userOp
         }
-        const decodedDataSmartWallet = iFaceSmartWallet.parseTransaction({
+        const decodedDataSmartWallet = this.proxy.interface.parseTransaction({
           data: userOp.callData.toString()
         })
         if (!decodedDataSmartWallet) {
