@@ -23,7 +23,7 @@ export const DEFAULT_BICONOMY_IMPLEMENTATION_ADDRESS = '0x00006b7e42e01957da540d
 
 export const EIP1559_UNSUPPORTED_NETWORKS: Array<ChainId> = [97, 56, 1442, 1101]
 
-// TODO // just keep what is necessary
+// Note // maybe just keep what is necessary
 export const BICONOMY_ACCOUNT_ABI_V1 = [
   {
     inputs: [

@@ -13,29 +13,29 @@ import {
   PaymasterMode
 } from './utils/Types'
 import { BigNumberish, BigNumber, ethers } from 'ethers'
-// TODO
-import { ERC20_ABI } from './constants' // temporary
+import { ERC20_ABI } from './constants'
 import { IHybridPaymaster } from './interfaces/IHybridPaymaster'
 
-// Hybrid - Generic Gas abstraction paymaster
+// Hybrid - Generic Gas Abstraction paymaster
 /**
  *
  */
 export class BiconomyPaymaster implements IHybridPaymaster {
   constructor(readonly paymasterConfig: PaymasterConfig) {}
 
-  // TODO // WIP
   // Note: maybe rename to createTokenApprovalTransaction
   async createTokenApprovalRequest(
     tokenPaymasterRequest: BiconomyTokenPaymasterRequest,
     provider: Provider
   ): Promise<Transaction> {
+    // TODO
     // Note: should also check in caller if the approval is already given
 
     const feeTokenAddress: string = tokenPaymasterRequest.feeQuote.tokenAddress
     Logger.log('erc20 fee token address ', feeTokenAddress)
 
-    // TODO: For some tokens we may need to set allowance to 0 first so that would return batch of transactions
+    // TODO?
+    // Note: For some tokens we may need to set allowance to 0 first so that would return batch of transactions and changes the return type to Transaction[]
     const requiredApproval: number = Math.floor(
       tokenPaymasterRequest.feeQuote.maxGasFee *
         Math.pow(10, tokenPaymasterRequest.feeQuote.decimal)
@@ -43,9 +43,6 @@ export class BiconomyPaymaster implements IHybridPaymaster {
     Logger.log('required approval for erc20 token ', requiredApproval)
 
     const spender = tokenPaymasterRequest.spender
-    // fallback to fetch from member
-    // this.paymasterAddress ? this.paymasterAddress : await this.getPaymasterAddress()
-    // Might maintain two fields for token and verifying paymaster addresses
 
     const erc20 = new ethers.Contract(feeTokenAddress, ERC20_ABI, provider)
 
@@ -131,7 +128,7 @@ export class BiconomyPaymaster implements IHybridPaymaster {
           params: [
             userOp,
             {
-              ...(mode !== null && { mode }), // Review can be dynamic
+              ...(mode !== null && { mode }),
               tokenInfo: {
                 tokenList: feeTokensArray,
                 ...(preferredToken !== null && { preferredToken })
@@ -159,18 +156,16 @@ export class BiconomyPaymaster implements IHybridPaymaster {
           return paymasterAndData
         } else {
           // Review
-          return { feeQuotes, tokenPaymasterAddress: '' }
+          return { feeQuotes, tokenPaymasterAddress: ethers.constants.AddressZero }
         }
       } else {
-        // REVIEW
         // return empty fee quotes or throw
-        return { feeQuotes, tokenPaymasterAddress: '' }
+        return { feeQuotes, tokenPaymasterAddress: ethers.constants.AddressZero }
       }
     } catch (error) {
       Logger.error("can't query fee quotes: ", error)
-      // REVIEW
       // return empty fee quotes or throw
-      return { feeQuotes, tokenPaymasterAddress: '' }
+      return { feeQuotes, tokenPaymasterAddress: ethers.constants.AddressZero }
     }
   }
 
@@ -209,13 +204,10 @@ export class BiconomyPaymaster implements IHybridPaymaster {
         return '0x'
       }
     } catch (err: any) {
-      if (!this.paymasterConfig.strictSponsorshipMode) {
-        Logger.log('sending paymasterAndData 0x')
-        Logger.log('Reason ', err.toString())
-        return '0x'
-      }
+      Logger.log('Error in verifying gas sponsorship. sending paymasterAndData 0x')
       Logger.error('Error in verifying gas sponsorship.', err.toString())
-      throw new Error('Error in verifying gas sponsorship. Reason: '.concat(err.toString()))
+      return '0x'
+      // throw new Error('Error in verifying gas sponsorship. Reason: '.concat(err.toString()))
     }
   }
 }

@@ -12,7 +12,14 @@ import {
   UserOpByHashResponse
 } from './utils/Types'
 import { resolveProperties } from 'ethers/lib/utils'
-import { deepHexlify, sendRequest, getTimestampInSeconds, HttpMethod, Logger, RPC_PROVIDER_URLS } from '@biconomy/common'
+import {
+  deepHexlify,
+  sendRequest,
+  getTimestampInSeconds,
+  HttpMethod,
+  Logger,
+  RPC_PROVIDER_URLS
+} from '@biconomy/common'
 import { transformUserOP } from './utils/HelperFunction'
 import { UserOpReceiptIntervals } from './utils/Constants'
 import { JsonRpcProvider } from '@ethersproject/providers'
@@ -43,7 +50,7 @@ export class Bundler implements IBundler {
    */
   async estimateUserOpGas(userOp: UserOperation): Promise<UserOpGasResponse> {
     // bundler requires these dummy values for estimation
-    // TODO: dapp/dev need to take dummy signature as well that we will pass to bundler. as signature depends on smart contract implementation
+    // TODO: dapp/wallet devs need to take dummy signature as well that we will pass to bundler. as signature depends on smart account implementation
     const dummpyUserop = {
       callGasLimit: '90000',
       verificationGasLimit: '3000000',

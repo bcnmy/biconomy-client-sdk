@@ -1,4 +1,4 @@
-import { UserOperation } from '@biconomy/core-types' // review
+import { UserOperation } from '@biconomy/core-types'
 import { NotPromise, packUserOp } from '@biconomy/common' // '@account-abstraction/utils'
 import { arrayify, hexlify } from 'ethers/lib/utils'
 import { BigNumber } from 'ethers'

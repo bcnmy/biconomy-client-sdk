@@ -1,16 +1,7 @@
-// TODO
-// Review this response
-export type PaymasterAndDataResponse = {
-  statusCode: number
-  data: {
-    paymasterAndData: string
-  }
-}
-
 export type PaymasterServiceSuccessResponse = {
   jsonrpc: string
   id: number
-  result: any
+  result: any // Note: Could define specific types for particular known rpc
 }
 
 export type PaymasterServiceErrorResponse = {
@@ -25,27 +16,25 @@ export type JsonRpcError = {
   data: any
 }
 
-// TODO
 export type PaymasterConfig = {
   paymasterUrl: string
-  // Review may not be needed at all
-  strictSponsorshipMode?: boolean // Review if optional and applies to config for all classes
+  // Review: only needed if we need strict paymaster mode
+  // Note: Rename to strictMode or strictPaymasterMode if used at all
+  // strictSponsorshipMode?: boolean
 }
 
-// TODO
-// review
+// review types and naming convention
 // meant for pm_sponsorUserOperation
 export type SponsorUserOperationDto = {
-  mode: PaymasterMode 
+  mode: PaymasterMode
   tokenInfo?: FeeTokenInfo
   sponsorshipInfo?: SponsorpshipInfo
 }
 
-// TODO
-// review
+// review types and naming convention
 // meant for pm_getFeeQuoteOrData
 export type FeeQuotesOrDataDto = {
-  mode?: PaymasterMode // todo: should make acceptable enums
+  mode?: PaymasterMode
   tokenInfo?: FeeQuoteParams
   sponsorshipInfo?: SponsorpshipInfo
 }
