@@ -1,11 +1,4 @@
 import { UserOperation } from '@biconomy/core-types'
-import {
-  BiconomyTokenPaymasterFeeQuoteResponse,
-  BiconomyTokenPaymasterRequest,
-  FeeQuotesOrDataDto
-} from '../types/Types'
-import { Transaction } from '@biconomy/core-types'
-import { Provider } from '@ethersproject/abstract-provider'
 
 
 export interface IPaymaster {

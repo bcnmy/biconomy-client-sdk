@@ -8,11 +8,12 @@ import {
   BiconomyTokenPaymasterFeeQuoteResponse,
   FeeQuotesOrDataDto,
   SponsorUserOperationDto,
-  PaymasterServiceSuccessResponse
-} from './types/Types'
+  PaymasterServiceSuccessResponse,
+  BiconomyTokenPaymasterRequest
+} from './utils/Types'
 import { BigNumberish, BigNumber, ethers } from 'ethers'
+// TODO
 import { ERC20_ABI } from './constants' // temporary
-import { BiconomyTokenPaymasterRequest } from './types/Types'
 import { IHybridPaymaster } from './interfaces/IHybridPaymaster'
 
 // Hybrid - Generic Gas abstraction paymaster

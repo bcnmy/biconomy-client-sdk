@@ -3,7 +3,7 @@ import {
   BiconomyTokenPaymasterFeeQuoteResponse,
   BiconomyTokenPaymasterRequest,
   FeeQuotesOrDataDto
-} from '../types/Types'
+} from '../utils/Types'
 import { Transaction } from '@biconomy/core-types'
 import { Provider } from '@ethersproject/abstract-provider'
 import { IPaymaster } from './IPaymaster'
