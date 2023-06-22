@@ -28,6 +28,7 @@ export type JsonRpcError = {
 // TODO
 export type PaymasterConfig = {
   paymasterUrl: string
+  // Review may not be needed at all
   strictSponsorshipMode?: boolean // Review if optional and applies to config for all classes
 }
 
@@ -35,7 +36,7 @@ export type PaymasterConfig = {
 // review
 // meant for pm_sponsorUserOperation
 export type SponsorUserOperationDto = {
-  mode: string // todo: should make acceptable enums
+  mode: PaymasterMode 
   tokenInfo?: FeeTokenInfo
   sponsorshipInfo?: SponsorpshipInfo
 }
@@ -44,7 +45,7 @@ export type SponsorUserOperationDto = {
 // review
 // meant for pm_getFeeQuoteOrData
 export type FeeQuotesOrDataDto = {
-  mode?: string // todo: should make acceptable enums
+  mode?: PaymasterMode // todo: should make acceptable enums
   tokenInfo?: FeeQuoteParams
   sponsorshipInfo?: SponsorpshipInfo
 }
@@ -92,4 +93,9 @@ export type BiconomyTokenPaymasterRequest = {
 export type BiconomyTokenPaymasterFeeQuoteResponse = {
   feeQuotes: PaymasterFeeQuote[]
   tokenPaymasterAddress: string // spender
+}
+
+export enum PaymasterMode {
+  ERC20 = 'ERC20',
+  SPONSORED = 'SPONSORED'
 }

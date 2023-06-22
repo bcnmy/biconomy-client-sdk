@@ -9,7 +9,8 @@ import {
   FeeQuotesOrDataDto,
   SponsorUserOperationDto,
   PaymasterServiceSuccessResponse,
-  BiconomyTokenPaymasterRequest
+  BiconomyTokenPaymasterRequest,
+  PaymasterMode
 } from './utils/Types'
 import { BigNumberish, BigNumber, ethers } from 'ethers'
 // TODO
@@ -99,7 +100,6 @@ export class BiconomyPaymaster implements IHybridPaymaster {
     }
 
     Logger.log('userop is ', userOp)
-    // userOp = hexifyUserOp(userOp)
 
     if (
       paymasterServiceData.tokenInfo &&
@@ -149,12 +149,12 @@ export class BiconomyPaymaster implements IHybridPaymaster {
 
       if (response && response.result) {
         Logger.log('feeInfo ', response.result)
-        if (response.result.mode == 'ERC20') {
+        if (response.result.mode == PaymasterMode.ERC20) {
           const feeQuotesResponse: Array<PaymasterFeeQuote> = response.result.feeQuotes
           const paymasterAddress: string = response.result.paymasterAddress
           // check all objects iterate and populate below calculation for all tokens
           return { feeQuotes: feeQuotesResponse, tokenPaymasterAddress: paymasterAddress }
-        } else if (response.result.mode == 'SPONSORED') {
+        } else if (response.result.mode == PaymasterMode.SPONSORED) {
           const paymasterAndData: string = response.result.paymasterAndData
           return paymasterAndData
         } else {
@@ -173,26 +173,6 @@ export class BiconomyPaymaster implements IHybridPaymaster {
       return { feeQuotes, tokenPaymasterAddress: '' }
     }
   }
-
-  // async getPaymasterFeeQuotesOrData(userOp: Partial<UserOperation>) {}
-
-  // TODO // WIP : maybe paymasterData needs full fee quote. It could be full fee quote or address.
-  // but the type is different than the one required for feeQuotesOrData..
-
-  // pm_sponsorUserOperation types
-  /*{
-    "mode": "SPONSORED", // mandatory
-    "tokenInfo": {
-        "feeTokenAddress": "0xeabc4b91d9375796aa4f69cc764a4ab509080a58"
-    },
-    "sponsorshipInfo": {
-        "webhookData": {},
-        "smartAccountInfo": {
-            "name": "BICONOMY",
-            "version": "1.0.0"
-        }
-    }
-  }*/
 
   async getPaymasterAndData(
     userOp: Partial<UserOperation>,
