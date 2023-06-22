@@ -183,17 +183,22 @@ export class BiconomyPaymaster implements IHybridPaymaster {
           const paymasterAndData: string = response.result.paymasterAndData
           return paymasterAndData
         } else {
-          // Review
-          return { feeQuotes, tokenPaymasterAddress: ethers.constants.AddressZero }
+          throw new Error('Failed to fetch feeQuote or paymaster data')
         }
       } else {
-        // return empty fee quotes or throw
-        return { feeQuotes, tokenPaymasterAddress: ethers.constants.AddressZero }
+        // Review if any case response.ok could be true and response would be below
+        /*{
+          "statusCode": 500,
+          "message": "Internal server error"
+        }*/
+        // Note: we may not throw if we include strictMode off and return paymasterData '0x'.
+        // pm service could handle this case by case. Needs Review
+        throw new Error('Failed to fetch feeQuote or paymaster data')
       }
-    } catch (error) {
-      Logger.error("can't query fee quotes: ", error)
-      // return empty fee quotes or throw
-      return { feeQuotes, tokenPaymasterAddress: ethers.constants.AddressZero }
+    } catch (error: any) {
+      Logger.error("can't query fee quotes - reason: ", error)
+      // Note: we may not throw if we include strictMode off and return paymasterData '0x'.
+      throw new Error('Failed to fetch feeQuote or paymaster data' + error.toString())
     }
   }
 

@@ -68,5 +68,9 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
   if (jsonResponse.delegate) {
     throw new Error(jsonResponse.delegate)
   }
+  // Review : ref pm service
+  if (jsonResponse.statusCode == 500) {
+    throw new Error(jsonResponse.message)
+  }
   throw new Error('Request failed with status: ' + response.status + ' ' + response.statusText)
 }

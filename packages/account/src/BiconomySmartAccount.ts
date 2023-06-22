@@ -297,11 +297,24 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
 
       let newCallData = userOp.callData
       Logger.log('received information about fee token address and quote ', tokenPaymasterRequest)
+
       const feeTokenAddress = tokenPaymasterRequest.feeQuote.tokenAddress
       Logger.log('requested fee token is ', feeTokenAddress)
 
+      if (!feeTokenAddress || feeTokenAddress == ethers.constants.AddressZero) {
+        Logger.log('Invalid or missing token address')
+        // Could possibly throw
+        return userOp
+      }
+
       const spender = tokenPaymasterRequest.spender
       Logger.log('fee token approval to be checked and added for spender: ', spender)
+
+      if (!spender || spender == ethers.constants.AddressZero) {
+        Logger.log('Invalid or missing spender address')
+        // Could possibly throw
+        return userOp
+      }
 
       const requiredApproval: number = Math.floor(
         tokenPaymasterRequest.feeQuote.maxGasFee *
