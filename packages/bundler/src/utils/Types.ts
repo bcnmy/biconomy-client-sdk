@@ -68,7 +68,7 @@ export type UserOpByHashResponse = UserOperation & {
   entryPoint: string
 }
 
-// May use these types as paert of htt requests utils
+// May use below types as part of http requests utils
 
 export type BundlerSuccessResponse = {
   jsonrpc: string
@@ -80,6 +80,13 @@ export type BundlerErrorResponse = {
   jsonrpc: string
   id: number
   error: JsonRpcError
+}
+
+export type JsonRpcReponse = {
+  jsonrpc: string
+  id: number
+  result?: any
+  error?: JsonRpcError
 }
 
 export type JsonRpcError = {

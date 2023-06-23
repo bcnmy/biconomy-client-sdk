@@ -5,10 +5,10 @@ import { Provider } from '@ethersproject/abstract-provider'
 import {
   PaymasterFeeQuote,
   PaymasterConfig,
-  BiconomyTokenPaymasterFeeQuoteResponse,
+  FeeQuotesOrDataResponse,
   FeeQuotesOrDataDto,
   SponsorUserOperationDto,
-  PaymasterServiceSuccessResponse,
+  JsonRpcResponse,
   BiconomyTokenPaymasterRequest,
   PaymasterMode
 } from './utils/Types'
@@ -16,17 +16,41 @@ import { BigNumberish, BigNumber, ethers } from 'ethers'
 import { ERC20_ABI } from './constants'
 import { IHybridPaymaster } from './interfaces/IHybridPaymaster'
 
-// Hybrid - Generic Gas Abstraction paymaster
 /**
- *
+ * @dev Hybrid - Generic Gas Abstraction paymaster
  */
-export class BiconomyPaymaster implements IHybridPaymaster {
+export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationDto> {
   constructor(readonly paymasterConfig: PaymasterConfig) {}
 
-  // Note: maybe rename to createTokenApprovalTransaction
-  async createTokenApprovalRequest(
+  /**
+   * @dev Prepares the user operation by resolving properties and converting certain values to hexadecimal format.
+   * @param userOp The partial user operation.
+   * @returns A Promise that resolves to the prepared partial user operation.
+   */
+  private async prepareUserOperation(
+    userOp: Partial<UserOperation>
+  ): Promise<Partial<UserOperation>> {
+    userOp = await resolveProperties(userOp)
+    userOp.nonce = BigNumber.from(userOp.nonce).toHexString()
+    userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toHexString()
+    userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toHexString()
+    userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toHexString()
+    userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toHexString()
+    userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toHexString()
+    userOp.signature = '0x'
+    userOp.paymasterAndData = '0x'
+    return userOp
+  }
+
+  /**
+   * @dev Builds a token approval transaction for the Biconomy token paymaster.
+   * @param tokenPaymasterRequest The token paymaster request data. This will include information about chosen feeQuote, spender address and optional flag to provide maxApproval
+   * @param provider Optional provider object.
+   * @returns A Promise that resolves to the built transaction object.
+   */
+  async buildTokenApprovalTransaction(
     tokenPaymasterRequest: BiconomyTokenPaymasterRequest,
-    provider: Provider
+    provider?: Provider
   ): Promise<Transaction> {
     const feeTokenAddress: string = tokenPaymasterRequest.feeQuote.tokenAddress
     Logger.log('erc20 fee token address ', feeTokenAddress)
@@ -34,7 +58,9 @@ export class BiconomyPaymaster implements IHybridPaymaster {
     const spender = tokenPaymasterRequest.spender
     Logger.log('spender address ', spender)
 
-    // TODO
+    Logger.log('provider object passed ', provider)
+
+    // TODO move below notes to separate method
     // Note: should also check in caller if the approval is already given, if yes return object with address or data 0
     // Note: we would need userOp here to get the account/owner info to check allowance
 
@@ -43,16 +69,8 @@ export class BiconomyPaymaster implements IHybridPaymaster {
     if (tokenPaymasterRequest.maxApproval && tokenPaymasterRequest.maxApproval == true) {
       requiredApproval = ethers.constants.MaxUint256
     } else {
-      /*requiredApproval = ethers.BigNumber.from(
-        tokenPaymasterRequest.feeQuote.maxGasFee.toString()
-      ).mul(
-        ethers.BigNumber.from(10).pow(
-          ethers.BigNumber.from(tokenPaymasterRequest.feeQuote.decimal.toString())
-        )
-      )*/
-
       requiredApproval = BigNumber.from(
-        Math.floor(
+        Math.ceil(
           tokenPaymasterRequest.feeQuote.maxGasFee *
             Math.pow(10, tokenPaymasterRequest.feeQuote.decimal)
         )
@@ -61,7 +79,7 @@ export class BiconomyPaymaster implements IHybridPaymaster {
 
     Logger.log('required approval for erc20 token ', requiredApproval)
 
-    const erc20 = new ethers.Contract(feeTokenAddress, ERC20_ABI, provider)
+    const erc20Interface = new ethers.utils.Interface(JSON.stringify(ERC20_ABI))
 
     // TODO?
     // Note: For some tokens we may need to set allowance to 0 first so that would return batch of transactions and changes the return type to Transaction[]
@@ -75,31 +93,23 @@ export class BiconomyPaymaster implements IHybridPaymaster {
     */
 
     return {
-      to: erc20.address,
+      to: feeTokenAddress,
       value: ethers.BigNumber.from(0),
-      data: erc20.interface.encodeFunctionData('approve', [spender, requiredApproval])
+      data: erc20Interface.encodeFunctionData('approve', [spender, requiredApproval])
     }
   }
 
   /**
-   *
-   * @param userOp
-   * @param paymasterServiceData
-   * @returns
+   * @dev Retrieves paymaster fee quotes or data based on the provided user operation and paymaster service data.
+   * @param userOp The partial user operation.
+   * @param paymasterServiceData The paymaster service data containing token information and sponsorship details. Devs can send just the preferred token or array of token addresses in case of mode "ERC20" and sartAccountInfo in case of "sponsored" mode.
+   * @returns A Promise that resolves to the fee quotes or data response.
    */
   async getPaymasterFeeQuotesOrData(
     userOp: Partial<UserOperation>,
     paymasterServiceData: FeeQuotesOrDataDto
-  ): Promise<BiconomyTokenPaymasterFeeQuoteResponse | string> {
-    userOp = await resolveProperties(userOp)
-    userOp.nonce = BigNumber.from(userOp.nonce).toHexString()
-    userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toHexString()
-    userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toHexString()
-    userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toHexString()
-    userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toHexString()
-    userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toHexString()
-    userOp.signature = '0x'
-    userOp.paymasterAndData = '0x'
+  ): Promise<FeeQuotesOrDataResponse> {
+    userOp = await this.prepareUserOperation(userOp)
 
     let mode = null
     let preferredToken = null
@@ -117,38 +127,24 @@ export class BiconomyPaymaster implements IHybridPaymaster {
       // Validation on the mode passed / define allowed enums
     }
 
-    if (paymasterServiceData.tokenInfo) {
-      if (paymasterServiceData.tokenInfo.preferredToken) {
-        Logger.log('passed preferred token is ', paymasterServiceData.tokenInfo.preferredToken)
-        preferredToken = paymasterServiceData.tokenInfo.preferredToken
-      }
-    }
+    preferredToken = paymasterServiceData.tokenInfo?.preferredToken
+      ? paymasterServiceData.tokenInfo.preferredToken
+      : preferredToken
 
     Logger.log('userop is ', userOp)
 
-    if (
-      paymasterServiceData.tokenInfo &&
-      paymasterServiceData.tokenInfo.tokenList &&
-      paymasterServiceData.tokenInfo.tokenList.length != 0
-    ) {
-      feeTokensArray = paymasterServiceData.tokenInfo.tokenList
-    }
+    feeTokensArray = (
+      paymasterServiceData.tokenInfo?.tokenList?.length !== 0
+        ? paymasterServiceData.tokenInfo?.tokenList
+        : feeTokensArray
+    ) as string[]
 
-    const feeQuotes: Array<PaymasterFeeQuote> = []
+    webhookData = paymasterServiceData.sponsorshipInfo?.webhookData ?? webhookData
 
-    if (paymasterServiceData.sponsorshipInfo) {
-      if (paymasterServiceData.sponsorshipInfo.webhookData) {
-        webhookData = paymasterServiceData.sponsorshipInfo.webhookData
-      }
-
-      // Could check here that this must be provided
-      if (paymasterServiceData.sponsorshipInfo.smartAccountInfo) {
-        smartAccountInfo = paymasterServiceData.sponsorshipInfo.smartAccountInfo
-      }
-    }
+    smartAccountInfo = paymasterServiceData.sponsorshipInfo?.smartAccountInfo ?? smartAccountInfo
 
     try {
-      const response: PaymasterServiceSuccessResponse = await sendRequest({
+      const response: JsonRpcResponse = await sendRequest({
         url: `${this.paymasterConfig.paymasterUrl}`,
         method: HttpMethod.Post,
         body: {
@@ -181,7 +177,7 @@ export class BiconomyPaymaster implements IHybridPaymaster {
           return { feeQuotes: feeQuotesResponse, tokenPaymasterAddress: paymasterAddress }
         } else if (response.result.mode == PaymasterMode.SPONSORED) {
           const paymasterAndData: string = response.result.paymasterAndData
-          return paymasterAndData
+          return { paymasterAndData: paymasterAndData }
         } else {
           throw new Error('Failed to fetch feeQuote or paymaster data')
         }
@@ -202,22 +198,20 @@ export class BiconomyPaymaster implements IHybridPaymaster {
     }
   }
 
+  /**
+   * @dev Retrieves the paymaster and data based on the provided user operation and paymaster service data.
+   * @param userOp The partial user operation.
+   * @param paymasterServiceData Optional paymaster service data.
+   * @returns A Promise that resolves to the paymaster and data string.
+   */
   async getPaymasterAndData(
     userOp: Partial<UserOperation>,
     paymasterServiceData?: SponsorUserOperationDto // mode is necessary. partial context of token paymaster or verifying
   ): Promise<string> {
     try {
-      userOp = await resolveProperties(userOp)
-      userOp.nonce = BigNumber.from(userOp.nonce).toHexString()
-      userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toHexString()
-      userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toHexString()
-      userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toHexString()
-      userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toHexString()
-      userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toHexString()
-      userOp.signature = '0x'
-      userOp.paymasterAndData = '0x'
+      userOp = await this.prepareUserOperation(userOp)
 
-      const response: PaymasterServiceSuccessResponse = await sendRequest({
+      const response: JsonRpcResponse = await sendRequest({
         url: `${this.paymasterConfig.paymasterUrl}`,
         method: HttpMethod.Post,
         body: {
@@ -240,6 +234,7 @@ export class BiconomyPaymaster implements IHybridPaymaster {
       Logger.log('Error in verifying gas sponsorship. sending paymasterAndData 0x')
       Logger.error('Error in verifying gas sponsorship.', err.toString())
       return '0x'
+      // depending on strictMode flag
       // throw new Error('Error in verifying gas sponsorship. Reason: '.concat(err.toString()))
     }
   }

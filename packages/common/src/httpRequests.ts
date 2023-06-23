@@ -39,7 +39,7 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
       return jsonResponse as T
     } else if (jsonResponse && jsonResponse.hasOwnProperty('error')) {
       const error = jsonResponse.error
-      throw new Error(`JSON-RPC error: code ${error.code}, message: ${error.message}`)
+      throw new Error(`JSON-RPC error: ${error}`)
     } else {
       throw new Error('Invalid JSON-RPC response')
     }
@@ -70,7 +70,13 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
   }
   // Review : ref pm service
   if (jsonResponse.statusCode == 500) {
-    throw new Error(jsonResponse.message)
+    if (jsonResponse.message) {
+      throw new Error(jsonResponse.message)
+    } else {
+      throw new Error(
+        'Unknown Error: Raise an issue here https://github.com/bcnmy/biconomy-client-sdk/issues with reproduction steps'
+      )
+    }
   }
   throw new Error('Request failed with status: ' + response.status + ' ' + response.statusText)
 }

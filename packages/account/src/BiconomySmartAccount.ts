@@ -14,7 +14,7 @@ import { BiconomySmartAccountConfig, Overrides, BiconomyTokenPaymasterRequest } 
 import { UserOperation, Transaction, SmartAccountType } from '@biconomy/core-types'
 import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
-import { IHybridPaymaster, BiconomyPaymaster } from '@biconomy/paymaster'
+import { IHybridPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from '@biconomy/paymaster'
 import { IBiconomySmartAccount } from 'interfaces/IBiconomySmartAccount'
 import {
   ISmartAccount,
@@ -284,12 +284,49 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     return userOp
   }
 
+  private validateUserOpAndRequest(
+    userOp: Partial<UserOperation>,
+    tokenPaymasterRequest: BiconomyTokenPaymasterRequest
+  ): void {
+    if (!userOp.callData) {
+      throw new Error('Userop callData cannot be undefined')
+    }
+
+    const feeTokenAddress = tokenPaymasterRequest?.feeQuote?.tokenAddress
+    Logger.log('requested fee token is ', feeTokenAddress)
+
+    if (!feeTokenAddress || feeTokenAddress == ethers.constants.AddressZero) {
+      throw new Error(
+        'Invalid or missing token address. Token address must be part of the feeQuote in tokenPaymasterRequest'
+      )
+    }
+
+    const spender = tokenPaymasterRequest?.spender
+    Logger.log('fee token approval to be checked and added for spender: ', spender)
+
+    if (!spender || spender == ethers.constants.AddressZero) {
+      throw new Error(
+        'Invalid or missing spender address. Sepnder address must be part of tokenPaymasterRequest'
+      )
+    }
+  }
+
   /** Optional method to update the userOp.calldata with batched transaction which approves the paymaster spender(if required)
    * with necessary amount*/
+  /**
+   *
+   * @param userOp partial user operation without signature and paymasterAndData
+   * @param tokenPaymasterRequest This dto provides information about fee quote. Fee quote is received from earlier request getFeeQuotesOrData() to the Biconomy paymaster.
+   *  maxFee and token decimals from the quote, along with the spender is required to append approval transaction.
+   * @notice This method should be called when gas is paid in ERC20 token using TokenPaymaster
+   * @description Optional method to update the userOp.calldata with batched transaction which approves the paymaster spender with necessary amount(if required)
+   * @returns updated userOp with new callData, callGasLimit
+   */
   async buildTokenPaymasterUserOp(
     userOp: Partial<UserOperation>,
     tokenPaymasterRequest: BiconomyTokenPaymasterRequest
   ): Promise<Partial<UserOperation>> {
+    this.validateUserOpAndRequest(userOp, tokenPaymasterRequest)
     try {
       let batchTo: Array<string> = []
       let batchValue: Array<string | BigNumberish> = []
@@ -298,46 +335,23 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       let newCallData = userOp.callData
       Logger.log('received information about fee token address and quote ', tokenPaymasterRequest)
 
-      const feeTokenAddress = tokenPaymasterRequest.feeQuote.tokenAddress
-      Logger.log('requested fee token is ', feeTokenAddress)
-
-      if (!feeTokenAddress || feeTokenAddress == ethers.constants.AddressZero) {
-        Logger.log('Invalid or missing token address')
-        // Could possibly throw
-        return userOp
-      }
-
-      const spender = tokenPaymasterRequest.spender
-      Logger.log('fee token approval to be checked and added for spender: ', spender)
-
-      if (!spender || spender == ethers.constants.AddressZero) {
-        Logger.log('Invalid or missing spender address')
-        // Could possibly throw
-        return userOp
-      }
-
-      const requiredApproval: number = Math.floor(
-        tokenPaymasterRequest.feeQuote.maxGasFee *
-          Math.pow(10, tokenPaymasterRequest.feeQuote.decimal)
-      )
-      Logger.log('Required allowance in wei ', requiredApproval)
-
       if (this.paymaster && this.paymaster instanceof BiconomyPaymaster) {
-        // Make a call to paymaster.createTokenApprovalRequest() with necessary details
+        // Make a call to paymaster.buildTokenApprovalTransaction() with necessary details
 
         // Review: might request this form of an array of Transaction
         const approvalRequest: Transaction = await (
-          this.paymaster as IHybridPaymaster
-        ).createTokenApprovalRequest(tokenPaymasterRequest, this.provider)
+          this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
+        ).buildTokenApprovalTransaction(tokenPaymasterRequest, this.provider)
         Logger.log('approvalRequest is for erc20 token ', approvalRequest.to)
 
         if (approvalRequest.data == '0x' || approvalRequest.to == ethers.constants.AddressZero) {
           return userOp
         }
 
-        if (!userOp.callData || userOp.callData == '0x') {
-          return userOp
+        if (!userOp.callData) {
+          throw new Error('Userop callData cannot be undefined')
         }
+
         const decodedDataSmartWallet = this.proxy.interface.parseTransaction({
           data: userOp.callData.toString()
         })
@@ -348,7 +362,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
         const smartWalletExecFunctionName = decodedDataSmartWallet.name
 
         if (smartWalletExecFunctionName === 'executeCall') {
-          Logger.log('it was execute Call')
+          Logger.log('originally an executeCall for Biconomy Account')
           const methodArgsSmartWalletExecuteCall = decodedDataSmartWallet.args
           const toOriginal = methodArgsSmartWalletExecuteCall[0]
           const valueOriginal = methodArgsSmartWalletExecuteCall[1]
@@ -357,34 +371,27 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
           batchTo.push(toOriginal)
           batchValue.push(valueOriginal)
           batchData.push(dataOriginal)
-
-          if (approvalRequest.to && approvalRequest.data && approvalRequest.value) {
-            batchTo.unshift(approvalRequest.to)
-            batchValue.unshift(approvalRequest.value)
-            batchData.unshift(approvalRequest.data)
-
-            newCallData = this.getExecuteBatchCallData(batchTo, batchValue, batchData)
-          }
         } else if (smartWalletExecFunctionName === 'executeBatchCall') {
+          Logger.log('originally an executeBatchCall for Biconomy Account')
           const methodArgsSmartWalletExecuteCall = decodedDataSmartWallet.args
           batchTo = methodArgsSmartWalletExecuteCall[0]
           batchValue = methodArgsSmartWalletExecuteCall[1]
           batchData = methodArgsSmartWalletExecuteCall[2]
+        }
 
-          if (approvalRequest.to && approvalRequest.data && approvalRequest.value) {
-            batchTo.unshift(approvalRequest.to)
-            batchValue.unshift(approvalRequest.value)
-            batchData.unshift(approvalRequest.data)
+        if (approvalRequest.to && approvalRequest.data && approvalRequest.value) {
+          batchTo.unshift(approvalRequest.to)
+          batchValue.unshift(approvalRequest.value)
+          batchData.unshift(approvalRequest.data)
 
-            newCallData = this.getExecuteBatchCallData(batchTo, batchValue, batchData)
-          }
+          newCallData = this.getExecuteBatchCallData(batchTo, batchValue, batchData)
         }
         let finalUserOp: Partial<UserOperation> = {
           ...userOp,
           callData: newCallData
         }
 
-        // Requesting to update gas limits again (especially callGasLimit needs to be updated)
+        // Requesting to update gas limits again (especially callGasLimit needs to be re-calculated)
         finalUserOp = await this.estimateUserOpGas(finalUserOp)
         Logger.log('userOp after estimation ', finalUserOp)
         return finalUserOp

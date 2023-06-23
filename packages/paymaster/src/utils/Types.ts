@@ -1,3 +1,4 @@
+// May be used as strict jso rpc response types
 export type PaymasterServiceSuccessResponse = {
   jsonrpc: string
   id: number
@@ -7,6 +8,14 @@ export type PaymasterServiceSuccessResponse = {
 export type PaymasterServiceErrorResponse = {
   jsonrpc: string
   id: number
+  error: JsonRpcError
+}
+
+// Generic
+export type JsonRpcResponse = {
+  jsonrpc: string
+  id: number
+  result?: any
   error: JsonRpcError
 }
 
@@ -79,9 +88,10 @@ export type BiconomyTokenPaymasterRequest = {
   maxApproval?: boolean
 }
 
-export type BiconomyTokenPaymasterFeeQuoteResponse = {
-  feeQuotes: PaymasterFeeQuote[]
-  tokenPaymasterAddress: string // spender
+export type FeeQuotesOrDataResponse = {
+  feeQuotes?: PaymasterFeeQuote[]
+  tokenPaymasterAddress?: string // spender
+  paymasterAndData?: string
 }
 
 export enum PaymasterMode {
