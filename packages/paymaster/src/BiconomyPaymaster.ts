@@ -216,10 +216,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
       Logger.log('verifying and signing service response', response)
 
       if (response && response.result) {
-        return response.result.paymasterAndData
-      } else {
-        // For consistent return
-        return '0x'
+        return response.result
       }
     } catch (err: any) {
       Logger.log('Error in verifying gas sponsorship. sending paymasterAndData 0x')
@@ -228,5 +225,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
       // depending on strictMode flag
       // throw new Error('Error in verifying gas sponsorship. Reason: '.concat(err.toString()))
     }
+    // Review when including any strict mode
+    throw new Error('Error in verifying gas sponsorship.')
   }
 }
