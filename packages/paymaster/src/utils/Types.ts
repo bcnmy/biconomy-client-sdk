@@ -1,4 +1,4 @@
-// May be used as strict jso rpc response types
+// May be used as strict json rpc response types
 export type PaymasterServiceSuccessResponse = {
   jsonrpc: string
   id: number
@@ -16,7 +16,7 @@ export type JsonRpcResponse = {
   jsonrpc: string
   id: number
   result?: any
-  error: JsonRpcError
+  error?: JsonRpcError
 }
 
 export type JsonRpcError = {

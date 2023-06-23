@@ -178,24 +178,15 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
         } else if (response.result.mode == PaymasterMode.SPONSORED) {
           const paymasterAndData: string = response.result.paymasterAndData
           return { paymasterAndData: paymasterAndData }
-        } else {
-          throw new Error('Failed to fetch feeQuote or paymaster data')
         }
-      } else {
-        // Review if any case response.ok could be true and response would be below
-        /*{
-          "statusCode": 500,
-          "message": "Internal server error"
-        }*/
-        // Note: we may not throw if we include strictMode off and return paymasterData '0x'.
-        // pm service could handle this case by case. Needs Review
-        throw new Error('Failed to fetch feeQuote or paymaster data')
       }
     } catch (error: any) {
       Logger.error("can't query fee quotes - reason: ", error)
       // Note: we may not throw if we include strictMode off and return paymasterData '0x'.
       throw new Error('Failed to fetch feeQuote or paymaster data' + error.toString())
     }
+    // Review when including any strict mode
+    throw new Error('Failed to fetch feeQuote or paymaster data')
   }
 
   /**

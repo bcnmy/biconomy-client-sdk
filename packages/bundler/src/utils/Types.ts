@@ -23,16 +23,20 @@ export type UserOpReceipt = {
   receipt: ethers.providers.TransactionReceipt
 }
 
+// Converted to JsonRpcResponse with strict type
 export type GetUserOperationResponse = {
-  statusCode: number
-  message: string
+  jsonrpc: string
+  id: number
   result: UserOpReceipt
+  error?: JsonRpcError
 }
 
+// Converted to JsonRpcResponse with strict type
 export type SendUserOpResponse = {
-  statusCode: number
-  message: string
+  jsonrpc: string
+  id: number
   result: string
+  error?: JsonRpcError
 }
 
 export type UserOpResponse = {
@@ -40,10 +44,12 @@ export type UserOpResponse = {
   wait(confirmations?: number): Promise<UserOpReceipt>
 }
 
+// Converted to JsonRpcResponse with strict type
 export type EstimateUserOpGasResponse = {
-  statusCode: number
-  message: string
+  jsonrpc: string
+  id: number
   result: UserOpGasResponse
+  error?: JsonRpcError
 }
 
 export type UserOpGasResponse = {
@@ -54,10 +60,12 @@ export type UserOpGasResponse = {
   maxFeePerGas: string
 }
 
+// Converted to JsonRpcResponse with strict type
 export type GetUserOpByHashResponse = {
-  statusCode: number
-  message: string
+  jsonrpc: string
+  id: number
   result: UserOpByHashResponse
+  error?: JsonRpcError
 }
 
 //  TODO: need to verify this type from infinitism bundler, stackup

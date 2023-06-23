@@ -311,8 +311,6 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     }
   }
 
-  /** Optional method to update the userOp.calldata with batched transaction which approves the paymaster spender(if required)
-   * with necessary amount*/
   /**
    *
    * @param userOp partial user operation without signature and paymasterAndData
