@@ -35,31 +35,35 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
   }
 
   if (response.ok) {
-    return jsonResponse as T
+    if (jsonResponse && jsonResponse.hasOwnProperty('result')) {
+      return jsonResponse as T
+    }
   }
-  if (jsonResponse.error) {
+  if (jsonResponse?.error) {
     throw new Error(jsonResponse.error)
   }
-  if (jsonResponse.message) {
+  if (jsonResponse?.message) {
     throw new Error(jsonResponse.message)
   }
-  if (jsonResponse.msg) {
+  if (jsonResponse?.msg) {
     throw new Error(jsonResponse.msg)
   }
-  if (jsonResponse.data) {
+  if (jsonResponse?.data) {
     throw new Error(jsonResponse.data)
   }
-  if (jsonResponse.detail) {
+  if (jsonResponse?.detail) {
     throw new Error(jsonResponse.detail)
   }
-  if (jsonResponse.message) {
+  if (jsonResponse?.message) {
     throw new Error(jsonResponse.message)
   }
-  if (jsonResponse.nonFieldErrors) {
+  if (jsonResponse?.nonFieldErrors) {
     throw new Error(jsonResponse.nonFieldErrors)
   }
-  if (jsonResponse.delegate) {
+  if (jsonResponse?.delegate) {
     throw new Error(jsonResponse.delegate)
   }
-  throw new Error(response.statusText)
+  throw new Error(
+    'Unknown Error: Raise an issue here https://github.com/bcnmy/biconomy-client-sdk/issues with reproduction steps'
+  )
 }

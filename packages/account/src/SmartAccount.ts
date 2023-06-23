@@ -166,6 +166,7 @@ export abstract class SmartAccount implements ISmartAccount {
     }
   }
 
+  // Would only be used if paymaster is attached
   async getPaymasterAndData(userOp: Partial<UserOperation>): Promise<string> {
     if (this.paymaster) {
       return this.paymaster.getPaymasterAndData(userOp)
@@ -261,6 +262,7 @@ export abstract class SmartAccount implements ISmartAccount {
    * @returns Promise<UserOpResponse>
    */
   async sendUserOp(userOp: Partial<UserOperation>): Promise<UserOpResponse> {
+    Logger.log('userOp received in base account ', userOp)
     const userOperation = await this.signUserOp(userOp)
     const bundlerResponse = await this.sendSignedUserOp(userOperation)
     return bundlerResponse
@@ -287,6 +289,7 @@ export abstract class SmartAccount implements ISmartAccount {
       'signature'
     ]
     this.validateUserOp(userOp, requiredFields)
+    Logger.log('userOp validated')
     if (!this.bundler) throw new Error('Bundler is not provided')
     const bundlerResponse = await this.bundler.sendUserOp(userOp)
     return bundlerResponse

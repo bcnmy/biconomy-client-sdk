@@ -10,10 +10,11 @@ import {
   getSAFactoryContract,
   getSAProxyContract
 } from '@biconomy/common'
-import { BiconomySmartAccountConfig, Overrides } from './utils/Types'
+import { BiconomySmartAccountConfig, Overrides, BiconomyTokenPaymasterRequest } from './utils/Types'
 import { UserOperation, Transaction, SmartAccountType } from '@biconomy/core-types'
 import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
+import { IHybridPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from '@biconomy/paymaster'
 import { IBiconomySmartAccount } from 'interfaces/IBiconomySmartAccount'
 import {
   ISmartAccount,
@@ -277,7 +278,127 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
 
     userOp = await this.estimateUserOpGas(userOp, overrides)
     Logger.log('userOp after estimation ', userOp)
-    userOp.paymasterAndData = await this.getPaymasterAndData(userOp)
+
+    // Do not populate paymasterAndData as part of buildUserOp as it may not have all necessary details
+    // userOp.paymasterAndData = await this.getPaymasterAndData(userOp)
+    return userOp
+  }
+
+  private validateUserOpAndRequest(
+    userOp: Partial<UserOperation>,
+    tokenPaymasterRequest: BiconomyTokenPaymasterRequest
+  ): void {
+    if (!userOp.callData) {
+      throw new Error('Userop callData cannot be undefined')
+    }
+
+    const feeTokenAddress = tokenPaymasterRequest?.feeQuote?.tokenAddress
+    Logger.log('requested fee token is ', feeTokenAddress)
+
+    if (!feeTokenAddress || feeTokenAddress == ethers.constants.AddressZero) {
+      throw new Error(
+        'Invalid or missing token address. Token address must be part of the feeQuote in tokenPaymasterRequest'
+      )
+    }
+
+    const spender = tokenPaymasterRequest?.spender
+    Logger.log('fee token approval to be checked and added for spender: ', spender)
+
+    if (!spender || spender == ethers.constants.AddressZero) {
+      throw new Error(
+        'Invalid or missing spender address. Sepnder address must be part of tokenPaymasterRequest'
+      )
+    }
+  }
+
+  /**
+   *
+   * @param userOp partial user operation without signature and paymasterAndData
+   * @param tokenPaymasterRequest This dto provides information about fee quote. Fee quote is received from earlier request getFeeQuotesOrData() to the Biconomy paymaster.
+   *  maxFee and token decimals from the quote, along with the spender is required to append approval transaction.
+   * @notice This method should be called when gas is paid in ERC20 token using TokenPaymaster
+   * @description Optional method to update the userOp.calldata with batched transaction which approves the paymaster spender with necessary amount(if required)
+   * @returns updated userOp with new callData, callGasLimit
+   */
+  async buildTokenPaymasterUserOp(
+    userOp: Partial<UserOperation>,
+    tokenPaymasterRequest: BiconomyTokenPaymasterRequest
+  ): Promise<Partial<UserOperation>> {
+    this.validateUserOpAndRequest(userOp, tokenPaymasterRequest)
+    try {
+      let batchTo: Array<string> = []
+      let batchValue: Array<string | BigNumberish> = []
+      let batchData: Array<string> = []
+
+      let newCallData = userOp.callData
+      Logger.log('received information about fee token address and quote ', tokenPaymasterRequest)
+
+      if (this.paymaster && this.paymaster instanceof BiconomyPaymaster) {
+        // Make a call to paymaster.buildTokenApprovalTransaction() with necessary details
+
+        // Review: might request this form of an array of Transaction
+        const approvalRequest: Transaction = await (
+          this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
+        ).buildTokenApprovalTransaction(tokenPaymasterRequest, this.provider)
+        Logger.log('approvalRequest is for erc20 token ', approvalRequest.to)
+
+        if (approvalRequest.data == '0x' || approvalRequest.to == ethers.constants.AddressZero) {
+          return userOp
+        }
+
+        if (!userOp.callData) {
+          throw new Error('Userop callData cannot be undefined')
+        }
+
+        const decodedDataSmartWallet = this.proxy.interface.parseTransaction({
+          data: userOp.callData.toString()
+        })
+        if (!decodedDataSmartWallet) {
+          throw new Error('Could not parse call data of smart wallet for userOp')
+        }
+
+        const smartWalletExecFunctionName = decodedDataSmartWallet.name
+
+        if (smartWalletExecFunctionName === 'executeCall') {
+          Logger.log('originally an executeCall for Biconomy Account')
+          const methodArgsSmartWalletExecuteCall = decodedDataSmartWallet.args
+          const toOriginal = methodArgsSmartWalletExecuteCall[0]
+          const valueOriginal = methodArgsSmartWalletExecuteCall[1]
+          const dataOriginal = methodArgsSmartWalletExecuteCall[2]
+
+          batchTo.push(toOriginal)
+          batchValue.push(valueOriginal)
+          batchData.push(dataOriginal)
+        } else if (smartWalletExecFunctionName === 'executeBatchCall') {
+          Logger.log('originally an executeBatchCall for Biconomy Account')
+          const methodArgsSmartWalletExecuteCall = decodedDataSmartWallet.args
+          batchTo = methodArgsSmartWalletExecuteCall[0]
+          batchValue = methodArgsSmartWalletExecuteCall[1]
+          batchData = methodArgsSmartWalletExecuteCall[2]
+        }
+
+        if (approvalRequest.to && approvalRequest.data && approvalRequest.value) {
+          batchTo.unshift(approvalRequest.to)
+          batchValue.unshift(approvalRequest.value)
+          batchData.unshift(approvalRequest.data)
+
+          newCallData = this.getExecuteBatchCallData(batchTo, batchValue, batchData)
+        }
+        let finalUserOp: Partial<UserOperation> = {
+          ...userOp,
+          callData: newCallData
+        }
+
+        // Requesting to update gas limits again (especially callGasLimit needs to be re-calculated)
+        finalUserOp = await this.estimateUserOpGas(finalUserOp)
+        Logger.log('userOp after estimation ', finalUserOp)
+        return finalUserOp
+      }
+    } catch (error) {
+      Logger.log('Failed to update userOp. sending back original op')
+      Logger.error('Failed to update callData with error', error)
+      return userOp
+    }
     return userOp
   }
 
