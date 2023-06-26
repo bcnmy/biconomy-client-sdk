@@ -75,28 +75,7 @@ export type UserOpByHashResponse = UserOperation & {
   blockHash: string
   entryPoint: string
 }
-
-// May use below types as part of http requests utils
-
-export type BundlerSuccessResponse = {
-  jsonrpc: string
-  id: number
-  result: any // Note: Could define specific types for particular known rpc
-}
-
-export type BundlerErrorResponse = {
-  jsonrpc: string
-  id: number
-  error: JsonRpcError
-}
-
-export type JsonRpcReponse = {
-  jsonrpc: string
-  id: number
-  result?: any
-  error?: JsonRpcError
-}
-
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 export type JsonRpcError = {
   code: string
   message: string

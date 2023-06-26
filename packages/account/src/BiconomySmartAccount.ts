@@ -42,16 +42,8 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
   private _isInitialised!: boolean
 
   constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountConfig) {
-    const {
-      signer,
-      rpcUrl,
-      entryPointAddress,
-      factoryAddress,
-      bundler,
-      paymaster,
-      chainId,
-      nodeClientUrl
-    } = biconomySmartAccountConfig
+    const { signer, rpcUrl, entryPointAddress, bundler, paymaster, chainId, nodeClientUrl } =
+      biconomySmartAccountConfig
 
     const _entryPointAddress = entryPointAddress ?? DEFAULT_ENTRYPOINT_ADDRESS
     super({

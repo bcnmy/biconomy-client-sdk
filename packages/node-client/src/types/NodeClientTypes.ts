@@ -1,7 +1,4 @@
-import {
-  ChainId,
-  SmartAccountVersion,
-} from '@biconomy/core-types'
+import { ChainId, SmartAccountVersion } from '@biconomy/core-types'
 export type SmartAccountInfoResponse = {
   readonly name: string
   readonly version: string
@@ -52,7 +49,6 @@ export type WhiteListSignatureResponse = {
   message: string
   data: string
 }
-
 
 export type SmartAccountByOwnerDto = {
   chainId: number
@@ -115,7 +111,6 @@ export type SafeInfoResponse = {
   readonly fallbackHandler: string
   readonly version: string
 }
-
 
 export type BlockExplorerConfig = {
   address: string

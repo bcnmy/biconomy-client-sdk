@@ -2,9 +2,6 @@ import { BigNumberish, BytesLike } from 'ethers'
 
 export type SmartAccountVersion = '1.0.1' | '1.0.0' | '1.0.2'
 
-import { ChainId } from './ChainsTypes'
-
-
 export type Transaction = {
   to: string
   value?: BigNumberish
@@ -28,5 +25,3 @@ export type UserOperation = {
 export enum SmartAccountType {
   BICONOMY
 }
-
-

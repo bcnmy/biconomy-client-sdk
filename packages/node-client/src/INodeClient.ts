@@ -11,9 +11,8 @@ import {
   BalancesResponse,
   BalancesDto,
   UsdBalanceResponse,
-  EstimateGasResponse,
   SCWTransactionResponse,
-  WhiteListSignatureResponse,
+  WhiteListSignatureResponse
 } from './types/NodeClientTypes'
 
 interface INodeClient {
@@ -91,11 +90,9 @@ interface INodeClient {
    */
   whitelistUrl(origin: string): Promise<WhiteListSignatureResponse>
 
-
   getTransactionByHash(txHash: string): Promise<SCWTransactionResponse>
 
   getTransactionByAddress(chainId: number, address: string): Promise<SCWTransactionResponse[]>
-
 }
 
 export default INodeClient
