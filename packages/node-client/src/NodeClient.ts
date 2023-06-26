@@ -11,9 +11,8 @@ import {
   BalancesDto,
   BalancesResponse,
   UsdBalanceResponse,
-  EstimateGasResponse,
   SCWTransactionResponse,
-  WhiteListSignatureResponse,
+  WhiteListSignatureResponse
 } from './types/NodeClientTypes'
 import { getTxServiceBaseUrl } from './utils'
 import { HttpMethod, sendRequest } from './utils/HttpRequests'

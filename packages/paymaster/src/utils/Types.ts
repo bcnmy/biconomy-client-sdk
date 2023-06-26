@@ -1,10 +1,3 @@
-// May be used as strict json rpc response types
-export type PaymasterServiceSuccessResponse = {
-  jsonrpc: string
-  id: number
-  result: any // Note: Could define specific types for particular known rpc
-}
-
 export type PaymasterServiceErrorResponse = {
   jsonrpc: string
   id: number
@@ -12,6 +5,7 @@ export type PaymasterServiceErrorResponse = {
 }
 
 // Generic
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 export type JsonRpcResponse = {
   jsonrpc: string
   id: number
@@ -19,6 +13,7 @@ export type JsonRpcResponse = {
   error?: JsonRpcError
 }
 
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 export type JsonRpcError = {
   code: string
   message: string

@@ -32,7 +32,6 @@ export type BiconomySmartAccountConfig = {
   rpcUrl?: string
   chainId: ChainId
   entryPointAddress?: string
-  factoryAddress?: string
   bundler?: IBundler
   paymaster?: IPaymaster
   nodeClientUrl?: string

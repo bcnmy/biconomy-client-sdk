@@ -180,7 +180,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
           return { paymasterAndData: paymasterAndData }
         }
       }
-    } catch (error: any) {
+    } catch (error) {
       Logger.error("can't query fee quotes - reason: ", error)
       // Note: we may not throw if we include strictMode off and return paymasterData '0x'.
       throw new Error('Failed to fetch feeQuote or paymaster data' + error.toString())
@@ -218,7 +218,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
       if (response && response.result) {
         return response.result
       }
-    } catch (err: any) {
+    } catch (err) {
       Logger.log('Error in verifying gas sponsorship. sending paymasterAndData 0x')
       Logger.error('Error in verifying gas sponsorship.', err.toString())
       return '0x'

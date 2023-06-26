@@ -1,5 +1,6 @@
 import { hexValue } from 'ethers/lib/utils'
 
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 export const hexifyUserOp = (resolvedUserOp: any) => {
   return Object.keys(resolvedUserOp)
     .map((key) => {
