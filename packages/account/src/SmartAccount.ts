@@ -7,7 +7,7 @@ import { calcPreVerificationGas, DefaultGasLimits } from './utils/Preverificaito
 import { packUserOp } from '@biconomy/common'
 
 import { IBundler, UserOpResponse } from '@biconomy/bundler'
-import { IPaymaster } from '@biconomy/paymaster'
+import { IPaymaster, PaymasterAndDataResponse } from '@biconomy/paymaster'
 import { EntryPoint_v100, SmartAccount_v100, Logger } from '@biconomy/common'
 import { SmartAccountConfig, Overrides } from './utils/Types'
 
@@ -169,7 +169,9 @@ export abstract class SmartAccount implements ISmartAccount {
   // Would only be used if paymaster is attached
   async getPaymasterAndData(userOp: Partial<UserOperation>): Promise<string> {
     if (this.paymaster) {
-      return this.paymaster.getPaymasterAndData(userOp)
+      const paymasterAndDataResponse: PaymasterAndDataResponse =
+        await this.paymaster.getPaymasterAndData(userOp)
+      return paymasterAndDataResponse.paymasterAndData
     }
     return '0x'
   }

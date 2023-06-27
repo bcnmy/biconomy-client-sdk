@@ -10,7 +10,8 @@ import {
   SponsorUserOperationDto,
   JsonRpcResponse,
   BiconomyTokenPaymasterRequest,
-  PaymasterMode
+  PaymasterMode,
+  PaymasterAndDataResponse
 } from './utils/Types'
 import { BigNumberish, BigNumber, ethers } from 'ethers'
 import { ERC20_ABI } from './constants'
@@ -112,6 +113,10 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     userOp = await this.prepareUserOperation(userOp)
 
     let mode = null
+    const calculateGasLimits = paymasterServiceData.calculateGasLimits
+      ? paymasterServiceData.calculateGasLimits
+      : false
+    Logger.log('calculateGasLimits is ', calculateGasLimits)
     let preferredToken = null
     let feeTokensArray: string[] = []
     // could make below null
@@ -153,6 +158,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
             userOp,
             {
               ...(mode !== null && { mode }),
+              calculateGasLimits: calculateGasLimits,
               tokenInfo: {
                 tokenList: feeTokensArray,
                 ...(preferredToken !== null && { preferredToken })
@@ -177,7 +183,15 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
           return { feeQuotes: feeQuotesResponse, tokenPaymasterAddress: paymasterAddress }
         } else if (response.result.mode == PaymasterMode.SPONSORED) {
           const paymasterAndData: string = response.result.paymasterAndData
-          return { paymasterAndData: paymasterAndData }
+          const preVerificationGas = response.result.preVerificationGas
+          const verificationGasLimit = response.result.verificationGasLimit
+          const callGasLimit = response.result.callGasLimit
+          return {
+            paymasterAndData: paymasterAndData,
+            preVerificationGas: preVerificationGas,
+            verificationGasLimit: verificationGasLimit,
+            callGasLimit: callGasLimit
+          }
         }
       }
     } catch (error) {
@@ -198,8 +212,9 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
   async getPaymasterAndData(
     userOp: Partial<UserOperation>,
     paymasterServiceData?: SponsorUserOperationDto // mode is necessary. partial context of token paymaster or verifying
-  ): Promise<string> {
+  ): Promise<PaymasterAndDataResponse> {
     try {
+      Logger.log('calculateGasLimits is ', paymasterServiceData?.calculateGasLimits)
       userOp = await this.prepareUserOperation(userOp)
 
       const response: JsonRpcResponse = await sendRequest({
@@ -216,12 +231,21 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
       Logger.log('verifying and signing service response', response)
 
       if (response && response.result) {
-        return response.result
+        const paymasterAndData: string = response.result.paymasterAndData
+        const preVerificationGas = response.result.preVerificationGas
+        const verificationGasLimit = response.result.verificationGasLimit
+        const callGasLimit = response.result.callGasLimit
+        return {
+          paymasterAndData: paymasterAndData,
+          preVerificationGas: preVerificationGas,
+          verificationGasLimit: verificationGasLimit,
+          callGasLimit: callGasLimit
+        }
       }
     } catch (err) {
       Logger.log('Error in verifying gas sponsorship. sending paymasterAndData 0x')
       Logger.error('Error in verifying gas sponsorship.', err?.toString())
-      return '0x'
+      return { paymasterAndData: '0x' }
       // depending on strictMode flag
       // throw new Error('Error in verifying gas sponsorship. Reason: '.concat(err.toString()))
     }
