@@ -40,7 +40,12 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
     }
   }
   if (jsonResponse?.error) {
-    throw new Error(jsonResponse.error)
+    const error = jsonResponse.error
+    const errorObject = {
+      code: error.code,
+      message: error.message
+    }
+    throw errorObject
   }
   if (jsonResponse?.message) {
     throw new Error(jsonResponse.message)

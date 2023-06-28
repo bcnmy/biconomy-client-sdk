@@ -194,13 +194,13 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
           }
         }
       }
-    } catch (error) {
-      Logger.error("can't query fee quotes - reason: ", error)
+    } catch (error: any) {
+      Logger.error("can't query fee quotes - reason: ", JSON.stringify(error))
       // Note: we may not throw if we include strictMode off and return paymasterData '0x'.
-      throw new Error('Failed to fetch feeQuote or paymaster data' + error?.toString())
+      throw new Error('Failed to fetch feeQuote or paymaster data ' + error?.message)
     }
     // Review when including any strict mode
-    throw new Error('Failed to fetch feeQuote or paymaster data')
+    throw new Error('Failed to fetch feeQuote or paymaster data - No mode returned in the response')
   }
 
   /**
@@ -242,12 +242,12 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
           callGasLimit: callGasLimit
         }
       }
-    } catch (err) {
+    } catch (error: any) {
       Logger.log('Error in verifying gas sponsorship. sending paymasterAndData 0x')
-      Logger.error('Error in verifying gas sponsorship.', err?.toString())
+      Logger.error('Error in verifying gas sponsorship - reason: ', JSON.stringify(error))
       return { paymasterAndData: '0x' }
       // depending on strictMode flag
-      // throw new Error('Error in verifying gas sponsorship. Reason: '.concat(err.toString()))
+      // throw new Error('Error in verifying gas sponsorship :' + error?.message)
     }
     // Review when including any strict mode
     throw new Error('Error in verifying gas sponsorship.')
