@@ -33,11 +33,11 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
   ): Promise<Partial<UserOperation>> {
     userOp = await resolveProperties(userOp)
     userOp.nonce = BigNumber.from(userOp.nonce).toHexString()
-    userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toHexString()
-    userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toHexString()
+    userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toNumber()
+    userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toNumber()
     userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toHexString()
     userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toHexString()
-    userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toHexString()
+    userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toNumber()
     userOp.signature = '0x'
     userOp.paymasterAndData = '0x'
     return userOp
