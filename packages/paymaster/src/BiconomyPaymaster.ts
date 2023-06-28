@@ -65,17 +65,15 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     // Note: should also check in caller if the approval is already given, if yes return object with address or data 0
     // Note: we would need userOp here to get the account/owner info to check allowance
 
-    let requiredApproval: BigNumberish = BigNumber.from(0)
+    let requiredApproval: BigNumberish = BigNumber.from(0).toString()
 
     if (tokenPaymasterRequest.maxApproval && tokenPaymasterRequest.maxApproval == true) {
       requiredApproval = ethers.constants.MaxUint256
     } else {
-      requiredApproval = BigNumber.from(
-        Math.ceil(
-          tokenPaymasterRequest.feeQuote.maxGasFee *
-            Math.pow(10, tokenPaymasterRequest.feeQuote.decimal)
-        )
-      )
+      requiredApproval = Math.ceil(
+        tokenPaymasterRequest.feeQuote.maxGasFee *
+          Math.pow(10, tokenPaymasterRequest.feeQuote.decimal)
+      ).toString()
     }
 
     Logger.log('required approval for erc20 token ', requiredApproval)
