@@ -1,3 +1,5 @@
+import { BigNumberish } from 'ethers'
+
 export type PaymasterServiceErrorResponse = {
   jsonrpc: string
   id: number
@@ -31,6 +33,7 @@ export type PaymasterConfig = {
 // meant for pm_sponsorUserOperation
 export type SponsorUserOperationDto = {
   mode: PaymasterMode
+  calculateGasLimits?: boolean
   tokenInfo?: FeeTokenInfo
   sponsorshipInfo?: SponsorpshipInfo
 }
@@ -39,6 +42,7 @@ export type SponsorUserOperationDto = {
 // meant for pm_getFeeQuoteOrData
 export type FeeQuotesOrDataDto = {
   mode?: PaymasterMode
+  calculateGasLimits?: boolean
   tokenInfo?: FeeQuoteParams
   sponsorshipInfo?: SponsorpshipInfo
 }
@@ -87,6 +91,16 @@ export type FeeQuotesOrDataResponse = {
   feeQuotes?: PaymasterFeeQuote[]
   tokenPaymasterAddress?: string // spender
   paymasterAndData?: string
+  preVerificationGas?: BigNumberish
+  verificationGasLimit?: BigNumberish
+  callGasLimit?: BigNumberish
+}
+
+export type PaymasterAndDataResponse = {
+  paymasterAndData: string
+  preVerificationGas?: BigNumberish
+  verificationGasLimit?: BigNumberish
+  callGasLimit?: BigNumberish
 }
 
 export enum PaymasterMode {
