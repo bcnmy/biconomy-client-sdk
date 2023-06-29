@@ -40,12 +40,15 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
     }
   }
   if (jsonResponse?.error) {
-    const error = jsonResponse.error
+    // Review: below works well to catch errors for paymaster
+    /*const error = jsonResponse.error
     const errorObject = {
       code: error.code,
       message: error.message
     }
-    throw errorObject
+    throw errorObject*/
+    // Review: Below works well for bundler
+    throw new Error(jsonResponse.error)
   }
   if (jsonResponse?.message) {
     throw new Error(jsonResponse.message)
