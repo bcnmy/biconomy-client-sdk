@@ -1,4 +1,5 @@
 import fetch from 'node-fetch'
+import { Logger } from './Logger'
 
 export enum HttpMethod {
   Get = 'get',
@@ -33,6 +34,7 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
       throw new Error(response.statusText)
     }
   }
+  Logger.log('jsonRpc response ', jsonResponse)
 
   if (response.ok) {
     if (jsonResponse && jsonResponse.hasOwnProperty('result')) {

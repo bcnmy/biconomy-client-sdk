@@ -39,7 +39,7 @@ export class Bundler implements IBundler {
   }
 
   private getBundlerUrl(): string {
-    return `${this.bundlerConfig.bundlerUrl}/${this.bundlerConfig.chainId}`
+    return `${this.bundlerConfig.bundlerUrl}`
   }
 
   /**
