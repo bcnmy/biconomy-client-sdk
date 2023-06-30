@@ -370,9 +370,9 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
         }
 
         if (approvalRequest.to && approvalRequest.data && approvalRequest.value) {
-          batchTo.unshift(approvalRequest.to)
-          batchValue.unshift(approvalRequest.value)
-          batchData.unshift(approvalRequest.data)
+          batchTo = [approvalRequest.to, ...batchTo]
+          batchValue = [approvalRequest.value, ...batchValue]
+          batchData = [approvalRequest.data, ...batchData]
 
           newCallData = this.getExecuteBatchCallData(batchTo, batchValue, batchData)
         }
