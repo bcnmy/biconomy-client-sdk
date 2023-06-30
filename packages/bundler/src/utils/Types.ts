@@ -4,7 +4,6 @@ import { ChainId, UserOperation } from '@biconomy/core-types'
 export type Bundlerconfig = {
   bundlerUrl: string
   entryPointAddress?: string
-  apiKey: string // TODO: needs to be removed
   chainId: ChainId
   userOpReceiptIntervals?: { [key in ChainId]?: number }
 }
