@@ -224,6 +224,7 @@ export abstract class SmartAccount implements ISmartAccount {
   abstract getSmartAccountAddress(accountIndex: number): Promise<string>
 
   async estimateCreationGas(initCode: string): Promise<BigNumber> {
+    if (initCode == null || initCode === '0x') return BigNumber.from('0')
     const deployerAddress = initCode.substring(0, 42)
     const deployerCallData = '0x' + initCode.substring(42)
     return await this.provider.estimateGas({ to: deployerAddress, data: deployerCallData })
