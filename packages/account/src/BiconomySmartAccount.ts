@@ -10,7 +10,12 @@ import {
   getSAFactoryContract,
   getSAProxyContract
 } from '@biconomy/common'
-import { BiconomySmartAccountConfig, Overrides, BiconomyTokenPaymasterRequest } from './utils/Types'
+import {
+  BiconomySmartAccountConfig,
+  Overrides,
+  BiconomyTokenPaymasterRequest,
+  InitilizationData
+} from './utils/Types'
 import { UserOperation, Transaction, SmartAccountType } from '@biconomy/core-types'
 import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
@@ -70,13 +75,25 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
    * @description This function will initialise BiconomyAccount class state
    * @returns Promise<BiconomyAccount>
    */
-  async init(accountIndex = 0): Promise<BiconomySmartAccount> {
+  async init(initilizationData?: InitilizationData): Promise<this> {
     try {
+      let _accountIndex, signerAddress
+      if (initilizationData) {
+        _accountIndex = initilizationData.accountIndex
+        signerAddress = initilizationData.signerAddress
+      }
+
+      if (!_accountIndex) _accountIndex = 0
       this.isProviderDefined()
       this.isSignerDefined()
-      this.owner = await this.signer.getAddress()
+
+      if (signerAddress) {
+        this.owner = signerAddress
+      } else {
+        this.owner = await this.signer.getAddress()
+      }
       this.chainId = await this.provider.getNetwork().then((net) => net.chainId)
-      await this.initializeAccountAtIndex(accountIndex)
+      await this.initializeAccountAtIndex(_accountIndex)
       this._isInitialised = true
     } catch (error) {
       Logger.error(`Failed to call init: ${error}`)
@@ -158,7 +175,8 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       let smartAccountsList: ISmartAccount[] = (
         await this.getSmartAccountsByOwner({
           chainId: this.chainId,
-          owner: this.owner
+          owner: this.owner,
+          index: accountIndex
         })
       ).data
       if (!smartAccountsList)
@@ -184,7 +202,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     this.initCode = ethers.utils.hexConcat([
       this.factory.address,
       this.factory.interface.encodeFunctionData('deployCounterFactualAccount', [
-        await this.signer.getAddress(),
+        this.owner,
         ethers.BigNumber.from(accountIndex)
       ])
     ])

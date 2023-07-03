@@ -8,10 +8,12 @@ import {
   SmartAccountsResponse,
   SCWTransactionResponse
 } from '@biconomy/node-client'
-import { Overrides } from '../utils/Types'
+import { Overrides, InitilizationData } from '../utils/Types'
 import { BigNumberish, BytesLike } from 'ethers'
+import { ISmartAccount } from './ISmartAccount'
 
-export interface IBiconomySmartAccount {
+export interface IBiconomySmartAccount extends ISmartAccount {
+  init(initilizationData?: InitilizationData): Promise<this>
   initializeAccountAtIndex(accountIndex: number): void
   getExecuteCallData(to: string, value: BigNumberish, data: BytesLike): string
   getExecuteBatchCallData(
