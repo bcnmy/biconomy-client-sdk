@@ -24,9 +24,7 @@ export type JsonRpcError = {
 
 export type PaymasterConfig = {
   paymasterUrl: string
-  // Review: only needed if we need strict paymaster mode
-  // Note: Rename to strictMode or strictPaymasterMode if used at all
-  // strictSponsorshipMode?: boolean
+  strictMode?: boolean
 }
 
 // review types and naming convention

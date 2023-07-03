@@ -17,11 +17,22 @@ import { BigNumberish, BigNumber, ethers } from 'ethers'
 import { ERC20_ABI } from './constants'
 import { IHybridPaymaster } from './interfaces/IHybridPaymaster'
 
+const defaultPaymasterConfig: PaymasterConfig = {
+  paymasterUrl: '',
+  strictMode: true // Set your desired default value for strictMode here
+}
 /**
  * @dev Hybrid - Generic Gas Abstraction paymaster
  */
 export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationDto> {
-  constructor(readonly paymasterConfig: PaymasterConfig) {}
+  paymasterConfig: PaymasterConfig
+  constructor(config: PaymasterConfig) {
+    const mergedConfig: PaymasterConfig = {
+      ...defaultPaymasterConfig,
+      ...config
+    }
+    this.paymasterConfig = mergedConfig
+  }
 
   /**
    * @dev Prepares the user operation by resolving properties and converting certain values to hexadecimal format.
@@ -59,7 +70,8 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     const spender = tokenPaymasterRequest.spender
     Logger.log('spender address ', spender)
 
-    Logger.log('provider object passed ', provider)
+    // logging provider object isProvider
+    Logger.log('provider object passed - is provider', provider?._isProvider)
 
     // TODO move below notes to separate method
     // Note: should also check in caller if the approval is already given, if yes return object with address or data 0
@@ -80,10 +92,13 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
 
     const erc20Interface = new ethers.utils.Interface(JSON.stringify(ERC20_ABI))
 
-    // TODO?
-    // Note: For some tokens we may need to set allowance to 0 first so that would return batch of transactions and changes the return type to Transaction[]
-    // In that case we would return two objects in an array, first of them being..
-    /*
+    try {
+      const data = erc20Interface.encodeFunctionData('approve', [spender, requiredApproval])
+
+      // TODO?
+      // Note: For some tokens we may need to set allowance to 0 first so that would return batch of transactions and changes the return type to Transaction[]
+      // In that case we would return two objects in an array, first of them being..
+      /*
     {
       to: erc20.address,
       value: ethers.BigNumber.from(0),
@@ -91,10 +106,14 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     }
     */
 
-    return {
-      to: feeTokenAddress,
-      value: ethers.BigNumber.from(0),
-      data: erc20Interface.encodeFunctionData('approve', [spender, requiredApproval])
+      return {
+        to: feeTokenAddress,
+        value: ethers.BigNumber.from(0),
+        data: data
+      }
+    } catch (error) {
+      Logger.error('Error encoding function data:', error)
+      throw new Error('Failed to encode function data')
     }
   }
 
@@ -108,7 +127,12 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     userOp: Partial<UserOperation>,
     paymasterServiceData: FeeQuotesOrDataDto
   ): Promise<FeeQuotesOrDataResponse> {
-    userOp = await this.prepareUserOperation(userOp)
+    try {
+      userOp = await this.prepareUserOperation(userOp)
+    } catch (err) {
+      Logger.log('Error in prepareUserOperation ', err)
+      throw err
+    }
 
     let mode = null
     const calculateGasLimits = paymasterServiceData.calculateGasLimits
@@ -190,15 +214,36 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
             verificationGasLimit: verificationGasLimit,
             callGasLimit: callGasLimit
           }
+        } else {
+          const errorObject = {
+            code: 417,
+            message: 'Expectation Failed: Invalid mode in Paymaster service response'
+          }
+          throw errorObject
         }
       }
     } catch (error: any) {
-      Logger.error("can't query fee quotes - reason: ", JSON.stringify(error))
+      Logger.log(error.message)
+      Logger.error('Failed to fetch Fee Quotes or Paymaster data - reason: ', JSON.stringify(error))
       // Note: we may not throw if we include strictMode off and return paymasterData '0x'.
-      throw new Error('Failed to fetch feeQuote or paymaster data ' + error?.message)
+      if (
+        !this.paymasterConfig.strictMode &&
+        paymasterServiceData.mode == PaymasterMode.SPONSORED &&
+        error?.message.includes('Smart contract data not found')
+        // can also check based on error.code being -32xxx
+      ) {
+        Logger.log(`Strict mode is ${this.paymasterConfig.strictMode}. sending paymasterAndData 0x`)
+        return {
+          paymasterAndData: '0x',
+          // send below values same as userOp gasLimits
+          preVerificationGas: userOp.preVerificationGas,
+          verificationGasLimit: userOp.verificationGasLimit,
+          callGasLimit: userOp.callGasLimit
+        }
+      }
+      throw error
     }
-    // Review when including any strict mode
-    throw new Error('Failed to fetch feeQuote or paymaster data - No mode returned in the response')
+    throw new Error('Failed to fetch feeQuote or paymaster data')
   }
 
   /**
@@ -211,10 +256,15 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     userOp: Partial<UserOperation>,
     paymasterServiceData?: SponsorUserOperationDto // mode is necessary. partial context of token paymaster or verifying
   ): Promise<PaymasterAndDataResponse> {
+    Logger.log('calculateGasLimits is ', paymasterServiceData?.calculateGasLimits)
     try {
-      Logger.log('calculateGasLimits is ', paymasterServiceData?.calculateGasLimits)
       userOp = await this.prepareUserOperation(userOp)
+    } catch (err) {
+      Logger.log('Error in prepareUserOperation ', err)
+      throw err
+    }
 
+    try {
       const response: JsonRpcResponse = await sendRequest({
         url: `${this.paymasterConfig.paymasterUrl}`,
         method: HttpMethod.Post,
@@ -241,13 +291,24 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
         }
       }
     } catch (error: any) {
-      Logger.log('Error in verifying gas sponsorship. sending paymasterAndData 0x')
-      Logger.error('Error in verifying gas sponsorship - reason: ', JSON.stringify(error))
-      return { paymasterAndData: '0x' }
-      // depending on strictMode flag
-      // throw new Error('Error in verifying gas sponsorship :' + error?.message)
+      Logger.log(error.message)
+      Logger.error('Error in generating paymasterAndData - reason: ', JSON.stringify(error))
+      if (
+        !this.paymasterConfig.strictMode &&
+        error?.message.includes('Smart contract data not found')
+        // can also check based on error.code being -32xxx
+      ) {
+        Logger.log(`Strict mode is ${this.paymasterConfig.strictMode}. sending paymasterAndData 0x`)
+        return {
+          paymasterAndData: '0x',
+          // send below values same as userOp gasLimits
+          preVerificationGas: userOp.preVerificationGas,
+          verificationGasLimit: userOp.verificationGasLimit,
+          callGasLimit: userOp.callGasLimit
+        }
+      }
+      throw error
     }
-    // Review when including any strict mode
-    throw new Error('Error in verifying gas sponsorship.')
+    throw new Error('Error in generating paymasterAndData')
   }
 }
