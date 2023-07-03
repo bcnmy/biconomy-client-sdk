@@ -92,10 +92,13 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
 
     const erc20Interface = new ethers.utils.Interface(JSON.stringify(ERC20_ABI))
 
-    // TODO?
-    // Note: For some tokens we may need to set allowance to 0 first so that would return batch of transactions and changes the return type to Transaction[]
-    // In that case we would return two objects in an array, first of them being..
-    /*
+    try {
+      const data = erc20Interface.encodeFunctionData('approve', [spender, requiredApproval])
+
+      // TODO?
+      // Note: For some tokens we may need to set allowance to 0 first so that would return batch of transactions and changes the return type to Transaction[]
+      // In that case we would return two objects in an array, first of them being..
+      /*
     {
       to: erc20.address,
       value: ethers.BigNumber.from(0),
@@ -103,10 +106,14 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     }
     */
 
-    return {
-      to: feeTokenAddress,
-      value: ethers.BigNumber.from(0),
-      data: erc20Interface.encodeFunctionData('approve', [spender, requiredApproval])
+      return {
+        to: feeTokenAddress,
+        value: ethers.BigNumber.from(0),
+        data: data
+      }
+    } catch (error) {
+      Logger.error('Error encoding function data:', error)
+      throw new Error('Failed to encode function data')
     }
   }
 
@@ -120,7 +127,12 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     userOp: Partial<UserOperation>,
     paymasterServiceData: FeeQuotesOrDataDto
   ): Promise<FeeQuotesOrDataResponse> {
-    userOp = await this.prepareUserOperation(userOp)
+    try {
+      userOp = await this.prepareUserOperation(userOp)
+    } catch (err) {
+      Logger.log('Error in prepareUserOperation ', err)
+      throw err
+    }
 
     let mode = null
     const calculateGasLimits = paymasterServiceData.calculateGasLimits
@@ -244,10 +256,15 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     userOp: Partial<UserOperation>,
     paymasterServiceData?: SponsorUserOperationDto // mode is necessary. partial context of token paymaster or verifying
   ): Promise<PaymasterAndDataResponse> {
+    Logger.log('calculateGasLimits is ', paymasterServiceData?.calculateGasLimits)
     try {
-      Logger.log('calculateGasLimits is ', paymasterServiceData?.calculateGasLimits)
       userOp = await this.prepareUserOperation(userOp)
+    } catch (err) {
+      Logger.log('Error in prepareUserOperation ', err)
+      throw err
+    }
 
+    try {
       const response: JsonRpcResponse = await sendRequest({
         url: `${this.paymasterConfig.paymasterUrl}`,
         method: HttpMethod.Post,
