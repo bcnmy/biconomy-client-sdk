@@ -70,7 +70,7 @@ describe('Node Client tests', function () {
           '0x39f5032f1cd30005aa1e35f04394cabfe7de3b6ae6d95b27edd8556064c287bf61f321fead0cf48ca4405d497cc8fc47fc7ff0b7f5c45baa14090a44f2307d8230'
       }
       const response = await nodeClient.estimateUndeployedContractGas(dto)
-      gasUsed = response.data.gas;
+      gasUsed = response.data.gas
       console.log(response)
       expect(response.code).to.be.equal(200)
     })

@@ -91,9 +91,11 @@ class NodeClient implements INodeClient {
   async getSmartAccountsByOwner(
     smartAccountByOwnerDto: SmartAccountByOwnerDto
   ): Promise<SmartAccountsResponse> {
-    const { chainId, owner } = smartAccountByOwnerDto
+    const { chainId, owner, index } = smartAccountByOwnerDto
     return sendRequest({
-      url: `${this.#txServiceBaseUrl}/smart-accounts/chainId/${chainId}/owner/${owner}`,
+      url: `${
+        this.#txServiceBaseUrl
+      }/smart-accounts/chainId/${chainId}/owner/${owner}/index/${index}`,
       method: HttpMethod.Get
     })
   }

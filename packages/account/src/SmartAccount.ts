@@ -1,6 +1,6 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { BigNumber, Signer, BytesLike } from 'ethers'
-import { ISmartAccount } from './interfaces/IBaseAccount'
+import { ISmartAccount } from './interfaces/ISmartAccount'
 import { defaultAbiCoder, keccak256, arrayify } from 'ethers/lib/utils'
 import { UserOperation, ChainId } from '@biconomy/core-types'
 import { calcPreVerificationGas, DefaultGasLimits } from './utils/Preverificaiton'

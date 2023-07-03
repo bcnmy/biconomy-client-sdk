@@ -44,3 +44,8 @@ export type Overrides = {
   maxFeePerGas?: BigNumberish
   maxPriorityFeePerGas?: BigNumberish
 }
+
+export type InitilizationData = {
+  accountIndex?: number
+  signerAddress?: string
+}
