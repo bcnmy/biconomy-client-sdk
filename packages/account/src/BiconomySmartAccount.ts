@@ -290,7 +290,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     Logger.log('userOp after estimation ', userOp)
 
     // Do not populate paymasterAndData as part of buildUserOp as it may not have all necessary details
-    // userOp.paymasterAndData = await this.getPaymasterAndData(userOp)
+    userOp.paymasterAndData = '0x' // await this.getPaymasterAndData(userOp)
     return userOp
   }
 
