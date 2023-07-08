@@ -154,21 +154,21 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
       // Validation on the mode passed / define allowed enums
     }
 
-    preferredToken = paymasterServiceData.tokenInfo?.preferredToken
-      ? paymasterServiceData.tokenInfo.preferredToken
+    preferredToken = paymasterServiceData?.preferredToken
+      ? paymasterServiceData?.preferredToken
       : preferredToken
 
     Logger.log('userop is ', userOp)
 
     feeTokensArray = (
-      paymasterServiceData.tokenInfo?.tokenList?.length !== 0
-        ? paymasterServiceData.tokenInfo?.tokenList
+      paymasterServiceData?.tokenList?.length !== 0
+        ? paymasterServiceData?.tokenList
         : feeTokensArray
     ) as string[]
 
-    webhookData = paymasterServiceData.sponsorshipInfo?.webhookData ?? webhookData
+    webhookData = paymasterServiceData?.webhookData ?? webhookData
 
-    smartAccountInfo = paymasterServiceData.sponsorshipInfo?.smartAccountInfo ?? smartAccountInfo
+    smartAccountInfo = paymasterServiceData?.smartAccountInfo ?? smartAccountInfo
 
     try {
       const response: JsonRpcResponse = await sendRequest({
@@ -257,7 +257,6 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     userOp: Partial<UserOperation>,
     paymasterServiceData?: SponsorUserOperationDto // mode is necessary. partial context of token paymaster or verifying
   ): Promise<PaymasterAndDataResponse> {
-    Logger.log('calculateGasLimits is ', paymasterServiceData?.calculateGasLimits)
     try {
       userOp = await this.prepareUserOperation(userOp)
     } catch (err) {
@@ -265,13 +264,59 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
       throw err
     }
 
+    if (paymasterServiceData?.mode === undefined) {
+      throw new Error('mode is required in paymasterServiceData')
+    }
+
+    const mode = paymasterServiceData.mode
+    Logger.log('requested mode is ', mode)
+
+    const calculateGasLimits = paymasterServiceData?.calculateGasLimits
+      ? paymasterServiceData.calculateGasLimits
+      : false
+    Logger.log('calculateGasLimits is ', calculateGasLimits)
+
+    let tokenInfo = null
+    // could make below null
+    let smartAccountInfo = {
+      name: 'BICONOMY',
+      version: '1.0.0'
+    }
+    let webhookData = null
+
+    if (mode === PaymasterMode.ERC20) {
+      if (
+        !paymasterServiceData?.feeTokenAddress &&
+        paymasterServiceData?.feeTokenAddress === ethers.constants.AddressZero
+      ) {
+        throw new Error('feeTokenAddress is required and should be non-zero')
+      }
+      tokenInfo = {
+        feeTokenAddress: paymasterServiceData.feeTokenAddress
+      }
+    }
+
+    webhookData = paymasterServiceData?.webhookData ?? webhookData
+    smartAccountInfo = paymasterServiceData?.smartAccountInfo ?? smartAccountInfo
+
     try {
       const response: JsonRpcResponse = await sendRequest({
         url: `${this.paymasterConfig.paymasterUrl}`,
         method: HttpMethod.Post,
         body: {
           method: 'pm_sponsorUserOperation',
-          params: [userOp, paymasterServiceData],
+          params: [
+            userOp,
+            {
+              mode: mode,
+              calculateGasLimits: calculateGasLimits,
+              ...(tokenInfo !== null && { tokenInfo }),
+              sponsorshipInfo: {
+                ...(webhookData !== null && { webhookData }),
+                smartAccountInfo: smartAccountInfo
+              }
+            }
+          ],
           id: getTimestampInSeconds(),
           jsonrpc: '2.0'
         }

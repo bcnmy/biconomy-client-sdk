@@ -32,8 +32,12 @@ export type PaymasterConfig = {
 export type SponsorUserOperationDto = {
   mode: PaymasterMode
   calculateGasLimits?: boolean
-  tokenInfo?: FeeTokenInfo
-  sponsorshipInfo?: SponsorpshipInfo
+  webhookData?: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any
+  }
+  smartAccountInfo?: SmartAccountData
+  feeTokenAddress?: string
 }
 
 // review types and naming convention
@@ -41,8 +45,13 @@ export type SponsorUserOperationDto = {
 export type FeeQuotesOrDataDto = {
   mode?: PaymasterMode
   calculateGasLimits?: boolean
-  tokenInfo?: FeeQuoteParams
-  sponsorshipInfo?: SponsorpshipInfo
+  tokenList?: string[]
+  preferredToken?: string
+  webhookData?: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any
+  }
+  smartAccountInfo?: SmartAccountData
 }
 
 export type FeeQuoteParams = {
