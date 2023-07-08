@@ -264,7 +264,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
       throw err
     }
 
-    if(paymasterServiceData?.mode === undefined) {
+    if (paymasterServiceData?.mode === undefined) {
       throw new Error('mode is required in paymasterServiceData')
     }
 
@@ -284,12 +284,15 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     }
     let webhookData = null
 
-    if(mode === PaymasterMode.ERC20) {
-      if(!paymasterServiceData?.feeTokenAddress && paymasterServiceData?.feeTokenAddress === ethers.constants.AddressZero) {
+    if (mode === PaymasterMode.ERC20) {
+      if (
+        !paymasterServiceData?.feeTokenAddress &&
+        paymasterServiceData?.feeTokenAddress === ethers.constants.AddressZero
+      ) {
         throw new Error('feeTokenAddress is required and should be non-zero')
       }
       tokenInfo = {
-        feeTokenAddress: paymasterServiceData.feeTokenAddress,
+        feeTokenAddress: paymasterServiceData.feeTokenAddress
       }
     }
 
@@ -302,15 +305,18 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
         method: HttpMethod.Post,
         body: {
           method: 'pm_sponsorUserOperation',
-          params: [userOp, {
-            mode: mode,
-            calculateGasLimits: calculateGasLimits,
-            ...(tokenInfo !== null && { tokenInfo }),
-            sponsorshipInfo: {
-              ...(webhookData !== null && { webhookData }),
-              smartAccountInfo: smartAccountInfo
+          params: [
+            userOp,
+            {
+              mode: mode,
+              calculateGasLimits: calculateGasLimits,
+              ...(tokenInfo !== null && { tokenInfo }),
+              sponsorshipInfo: {
+                ...(webhookData !== null && { webhookData }),
+                smartAccountInfo: smartAccountInfo
+              }
             }
-          }],
+          ],
           id: getTimestampInSeconds(),
           jsonrpc: '2.0'
         }
