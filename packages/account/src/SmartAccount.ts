@@ -63,6 +63,8 @@ export abstract class SmartAccount implements ISmartAccount {
     return true
   }
 
+  abstract getDummySignature(): string
+
   async estimateUserOpGas(
     userOp: Partial<UserOperation>,
     overrides?: Overrides
@@ -70,6 +72,7 @@ export abstract class SmartAccount implements ISmartAccount {
     const requiredFields: UserOperationKey[] = ['sender', 'nonce', 'initCode', 'callData']
     this.validateUserOp(userOp, requiredFields)
 
+    const finalUserOp = userOp
     // Override gas values in userOp if provided in overrides params
     if (overrides) {
       userOp = { ...userOp, ...overrides }
@@ -140,19 +143,19 @@ export abstract class SmartAccount implements ISmartAccount {
         (!maxFeePerGas || !maxPriorityFeePerGas)
       ) {
         const feeData = await this.provider.getFeeData()
-        userOp.maxFeePerGas =
+        finalUserOp.maxFeePerGas =
           feeData.maxFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice())
-        userOp.maxPriorityFeePerGas =
+        finalUserOp.maxPriorityFeePerGas =
           feeData.maxPriorityFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice())
       } else {
-        userOp.maxFeePerGas = userOp.maxFeePerGas ?? maxFeePerGas
-        userOp.maxPriorityFeePerGas = userOp.maxPriorityFeePerGas ?? maxPriorityFeePerGas
+        finalUserOp.maxFeePerGas = maxFeePerGas ?? userOp.maxFeePerGas
+        finalUserOp.maxPriorityFeePerGas = maxPriorityFeePerGas ?? userOp.maxPriorityFeePerGas
       }
-      userOp.verificationGasLimit = userOp.verificationGasLimit ?? verificationGasLimit
-      userOp.callGasLimit = userOp.callGasLimit ?? callGasLimit
-      userOp.preVerificationGas = userOp.preVerificationGas ?? preVerificationGas
+      finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit
+      finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit
+      finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas
     }
-    return userOp
+    return finalUserOp
   }
 
   async isAccountDeployed(address: string): Promise<boolean> {

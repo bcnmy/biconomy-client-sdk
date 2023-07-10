@@ -255,6 +255,14 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     return executeBatchCallData
   }
 
+  getDummySignature(): string {
+    return '0x73c3ac716c487ca34bb858247b5ccf1dc354fbaabdd089af3b2ac8e78ba85a4959a2d76250325bd67c11771c31fccda87c33ceec17cc0de912690521bb95ffcb1b'
+  }
+
+  getDummyPaymasterData(): string {
+    return '0x'
+  }
+
   async buildUserOp(
     transactions: Transaction[],
     overrides?: Overrides
@@ -285,6 +293,9 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       initCode: nonce.eq(0) ? this.initCode : '0x',
       callData: callData
     }
+
+    // for this Smart Account dummy ECDSA signature will be used to estimate gas
+    userOp.signature = this.getDummySignature()
 
     userOp = await this.estimateUserOpGas(userOp, overrides)
     Logger.log('userOp after estimation ', userOp)
