@@ -90,7 +90,7 @@ export abstract class SmartAccount implements ISmartAccount {
     ]
 
     // here we are verifying either all necessary gas properties are present in userOp.
-    let skipEstimations = true
+    /*let skipEstimations = true
     for (const key of overrideGasFields) {
       if (!userOp[key]) {
         skipEstimations = false
@@ -100,7 +100,7 @@ export abstract class SmartAccount implements ISmartAccount {
     // If all necessary properties are present in userOp. we will skip estimation and return userOp
     if (skipEstimations) {
       return userOp
-    }
+    }*/
 
     if (!this.bundler) {
       if (!this.provider) throw new Error('Provider is not present for making rpc calls')
