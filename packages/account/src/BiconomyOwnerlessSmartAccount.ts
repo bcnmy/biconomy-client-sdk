@@ -43,6 +43,7 @@ export class BiconomyOwnerlessSmartAccount extends SmartAccount implements IBico
   private nodeClient: INodeClient
   private accountIndex!: number
   private address!: string
+  private moduleAddress!: string
   private smartAccountInfo!: ISmartAccount
   private _isInitialised!: boolean
 
@@ -196,6 +197,16 @@ export class BiconomyOwnerlessSmartAccount extends SmartAccount implements IBico
       Logger.error(`Failed to get smart account address: ${error}`)
       throw error
     }
+  }
+
+  async signUserOp(userOp: Partial<UserOperation>): Promise<UserOperation> {
+    super.signUserOp(userOp)
+    let signatureWithModuleAddress = ethers.utils.defaultAbiCoder.encode(
+      ["bytes", "address"],
+      [userOp.signature, this.moduleAddress]
+    )
+    userOp.signature = signatureWithModuleAddress
+    return userOp as UserOperation
   }
 
   private async setInitCode(accountIndex = 0): Promise<string> {
