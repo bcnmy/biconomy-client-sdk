@@ -49,19 +49,8 @@ export class Bundler implements IBundler {
    * @returns Promise<UserOpGasPricesResponse>
    */
   async estimateUserOpGas(userOp: UserOperation): Promise<UserOpGasResponse> {
-    // bundler requires these dummy values for estimation
-    // TODO: dapp/wallet devs need to take dummy signature as well that we will pass to bundler. as signature depends on smart account implementation
-    const dummpyUserop = {
-      callGasLimit: '90000',
-      verificationGasLimit: '3000000',
-      preVerificationGas: '46856',
-      maxFeePerGas: '0',
-      maxPriorityFeePerGas: '0',
-      paymasterAndData: '0x',
-      signature:
-        '0x73c3ac716c487ca34bb858247b5ccf1dc354fbaabdd089af3b2ac8e78ba85a4959a2d76250325bd67c11771c31fccda87c33ceec17cc0de912690521bb95ffcb1b'
-    }
-    const userOperation = { ...dummpyUserop, ...userOp }
+    const signature = userOp.signature ?? '0x73c3ac716c487ca34bb858247b5ccf1dc354fbaabdd089af3b2ac8e78ba85a4959a2d76250325bd67c11771c31fccda87c33ceec17cc0de912690521bb95ffcb1b'
+    const userOperation = { ...userOp, signature }    
     userOp = transformUserOP(userOperation)
     Logger.log('userOp sending for fee estimate ', userOp)
 
