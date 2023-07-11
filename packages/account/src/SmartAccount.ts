@@ -8,7 +8,7 @@ import { packUserOp } from '@biconomy/common'
 
 import { IBundler, UserOpResponse } from '@biconomy/bundler'
 import { IPaymaster, PaymasterAndDataResponse } from '@biconomy/paymaster'
-import { EntryPoint_v100, SmartAccount_v100, Logger } from '@biconomy/common'
+import { EntryPoint_v100, SmartAccount_v100, SmartAccount_v200, Logger } from '@biconomy/common'
 import { SmartAccountConfig, Overrides } from './utils/Types'
 
 type UserOperationKey = keyof UserOperation
@@ -17,7 +17,7 @@ export abstract class SmartAccount implements ISmartAccount {
   bundler!: IBundler
   paymaster!: IPaymaster
   initCode = '0x'
-  proxy!: SmartAccount_v100
+  proxy!: any
   owner!: string
   provider!: JsonRpcProvider
   entryPoint!: EntryPoint_v100
@@ -99,59 +99,59 @@ export abstract class SmartAccount implements ISmartAccount {
       return userOp
     }
 
-    if (!this.bundler) {
-      if (!this.provider) throw new Error('Provider is not present for making rpc calls')
-      // if no bundler url is provided run offchain logic to assign following values of UserOp
-      // maxFeePerGas, maxPriorityFeePerGas, verificationGasLimit, callGasLimit, preVerificationGas
-      const feeData = await this.provider.getFeeData()
-      userOp.maxFeePerGas =
-        userOp.maxFeePerGas ??
-        feeData.maxFeePerGas ??
-        feeData.gasPrice ??
-        (await this.provider.getGasPrice())
-      userOp.maxPriorityFeePerGas =
-        userOp.maxPriorityFeePerGas ??
-        feeData.maxPriorityFeePerGas ??
-        feeData.gasPrice ??
-        (await this.provider.getGasPrice())
-      if (userOp.initCode)
-        userOp.verificationGasLimit =
-          userOp.verificationGasLimit ?? (await this.getVerificationGasLimit(userOp.initCode))
-      userOp.callGasLimit =
-        userOp.callGasLimit ??
-        (await this.provider.estimateGas({
-          from: this.smartAccountConfig.entryPointAddress,
-          to: userOp.sender,
-          data: userOp.callData
-        }))
-      userOp.preVerificationGas = userOp.preVerificationGas ?? this.getPreVerificationGas(userOp)
-    } else {
-      // Making call to bundler to get gas estimations for userOp
-      const {
-        callGasLimit,
-        verificationGasLimit,
-        preVerificationGas,
-        maxFeePerGas,
-        maxPriorityFeePerGas
-      } = await this.bundler.estimateUserOpGas(userOp)
-      if (
-        !userOp.maxFeePerGas &&
-        !userOp.maxPriorityFeePerGas &&
-        (!maxFeePerGas || !maxPriorityFeePerGas)
-      ) {
-        const feeData = await this.provider.getFeeData()
-        userOp.maxFeePerGas =
-          feeData.maxFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice())
-        userOp.maxPriorityFeePerGas =
-          feeData.maxPriorityFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice())
-      } else {
-        userOp.maxFeePerGas = userOp.maxFeePerGas ?? maxFeePerGas
-        userOp.maxPriorityFeePerGas = userOp.maxPriorityFeePerGas ?? maxPriorityFeePerGas
-      }
-      userOp.verificationGasLimit = userOp.verificationGasLimit ?? verificationGasLimit
-      userOp.callGasLimit = userOp.callGasLimit ?? callGasLimit
-      userOp.preVerificationGas = userOp.preVerificationGas ?? preVerificationGas
-    }
+    // if (!this.bundler) {
+    if (!this.provider) throw new Error('Provider is not present for making rpc calls')
+    // if no bundler url is provided run offchain logic to assign following values of UserOp
+    // maxFeePerGas, maxPriorityFeePerGas, verificationGasLimit, callGasLimit, preVerificationGas
+    const feeData = await this.provider.getFeeData()
+    userOp.maxFeePerGas =
+      userOp.maxFeePerGas ??
+      feeData.maxFeePerGas ??
+      feeData.gasPrice ??
+      (await this.provider.getGasPrice())
+    userOp.maxPriorityFeePerGas =
+      userOp.maxPriorityFeePerGas ??
+      feeData.maxPriorityFeePerGas ??
+      feeData.gasPrice ??
+      (await this.provider.getGasPrice())
+    if (userOp.initCode)
+      userOp.verificationGasLimit =
+        userOp.verificationGasLimit ?? (await this.getVerificationGasLimit(userOp.initCode))
+    userOp.callGasLimit =
+      userOp.callGasLimit ??
+      (await this.provider.estimateGas({
+        from: this.smartAccountConfig.entryPointAddress,
+        to: userOp.sender,
+        data: userOp.callData
+      }))
+    userOp.preVerificationGas = userOp.preVerificationGas ?? this.getPreVerificationGas(userOp)
+    // } else {
+    //   // Making call to bundler to get gas estimations for userOp
+    //   const {
+    //     callGasLimit,
+    //     verificationGasLimit,
+    //     preVerificationGas,
+    //     maxFeePerGas,
+    //     maxPriorityFeePerGas
+    //   } = await this.bundler.estimateUserOpGas(userOp)
+    //   if (
+    //     !userOp.maxFeePerGas &&
+    //     !userOp.maxPriorityFeePerGas &&
+    //     (!maxFeePerGas || !maxPriorityFeePerGas)
+    //   ) {
+    //     const feeData = await this.provider.getFeeData()
+    //     userOp.maxFeePerGas =
+    //       feeData.maxFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice())
+    //     userOp.maxPriorityFeePerGas =
+    //       feeData.maxPriorityFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice())
+    //   } else {
+    //     userOp.maxFeePerGas = userOp.maxFeePerGas ?? maxFeePerGas
+    //     userOp.maxPriorityFeePerGas = userOp.maxPriorityFeePerGas ?? maxPriorityFeePerGas
+    //   }
+    //   userOp.verificationGasLimit = userOp.verificationGasLimit ?? verificationGasLimit
+    //   userOp.callGasLimit = userOp.callGasLimit ?? callGasLimit
+    //   userOp.preVerificationGas = userOp.preVerificationGas ?? preVerificationGas
+    // }
     return userOp
   }
 

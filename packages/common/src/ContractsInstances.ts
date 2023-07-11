@@ -4,9 +4,13 @@ import {
   EntryPoint_v100,
   EntryPoint_v100__factory,
   SmartAccount_v100,
+  SmartAccount_v200,
   SmartAccountFactory_v100,
+  SmartAccountFactory_v200,
   SmartAccountFactory_v100__factory,
-  SmartAccount_v100__factory
+  SmartAccountFactory_v200__factory,
+  SmartAccount_v100__factory,
+  SmartAccount_v200__factory
 } from './typechain'
 
 export type GetContractInstanceDto = {
@@ -16,7 +20,9 @@ export type GetContractInstanceDto = {
   provider: JsonRpcProvider
 }
 
-export function getSAProxyContract(contractInstanceDto: GetContractInstanceDto): SmartAccount_v100 {
+export function getSAProxyContract(
+  contractInstanceDto: GetContractInstanceDto
+): SmartAccount_v100 | SmartAccount_v200 {
   const { smartAccountType, version, contractAddress, provider } = contractInstanceDto
   switch (version) {
     case 'V1_0_0':
@@ -24,15 +30,19 @@ export function getSAProxyContract(contractInstanceDto: GetContractInstanceDto):
         return SmartAccount_v100__factory.connect(contractAddress, provider)
       }
       break
+    case 'V1_0_0':
+      if (smartAccountType === SmartAccountType.BICONOMY) {
+        return SmartAccount_v200__factory.connect(contractAddress, provider)
+      }
+      break
     default:
-      return SmartAccount_v100__factory.connect(contractAddress, provider)
+      return SmartAccount_v200__factory.connect(contractAddress, provider)
   }
   throw new Error('Invalid version or smartAccountType provided for proxy contract instance')
 }
-
 export function getSAFactoryContract(
   contractInstanceDto: GetContractInstanceDto
-): SmartAccountFactory_v100 {
+): SmartAccountFactory_v100 | SmartAccountFactory_v200 {
   const { smartAccountType, version, contractAddress, provider } = contractInstanceDto
 
   switch (version) {
@@ -41,8 +51,13 @@ export function getSAFactoryContract(
         return SmartAccountFactory_v100__factory.connect(contractAddress, provider)
       }
       break
+    case 'V2_0_0':
+      if (smartAccountType === SmartAccountType.BICONOMY) {
+        return SmartAccountFactory_v200__factory.connect(contractAddress, provider)
+      }
+      break
     default:
-      return SmartAccountFactory_v100__factory.connect(contractAddress, provider)
+      return SmartAccountFactory_v200__factory.connect(contractAddress, provider)
   }
   throw new Error('Invalid version or smartAccountType provided for factory contract instance')
 }

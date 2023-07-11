@@ -39,7 +39,7 @@ import {
 } from './utils/Constants'
 
 export class BiconomySmartAccount extends SmartAccount implements IBiconomySmartAccount {
-  private factory!: SmartAccountFactory_v100
+  private factory!: any
   private nodeClient: INodeClient
   private accountIndex!: number
   private address!: string
@@ -198,7 +198,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     }
   }
 
-  private async setInitCode(accountIndex = 0): Promise<string> {
+  protected async setInitCode(accountIndex = 0): Promise<string> {
     this.initCode = ethers.utils.hexConcat([
       this.factory.address,
       this.factory.interface.encodeFunctionData('deployCounterFactualAccount', [
@@ -439,5 +439,12 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
 
   async getAllSupportedChains(): Promise<SupportedChainsResponse> {
     return this.nodeClient.getAllSupportedChains()
+  }
+
+  getSmartAccountInfo() {
+    return this.smartAccountInfo
+  }
+  getFactoryInstance() {
+    return this.factory
   }
 }

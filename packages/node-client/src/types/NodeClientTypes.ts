@@ -147,6 +147,7 @@ export type ISmartAccount = {
   index: number
   implementationAddress: string
   fallBackHandlerAddress: string
+  ecdsaModuleAddress: string
   owner: string
   factoryAddress: string
   createdAt: number
