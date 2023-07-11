@@ -65,14 +65,43 @@ export abstract class SmartAccount implements ISmartAccount {
 
   abstract getDummySignature(): string
 
+  async calculateUserOpGasValues(userOp: Partial<UserOperation>): Promise<Partial<UserOperation>> {
+    if (!this.provider) throw new Error('Provider is not present for making rpc calls')
+    const feeData = await this.provider.getFeeData()
+    userOp.maxFeePerGas =
+      userOp.maxFeePerGas ??
+      feeData.maxFeePerGas ??
+      feeData.gasPrice ??
+      (await this.provider.getGasPrice())
+    userOp.maxPriorityFeePerGas =
+      userOp.maxPriorityFeePerGas ??
+      feeData.maxPriorityFeePerGas ??
+      feeData.gasPrice ??
+      (await this.provider.getGasPrice())
+    if (userOp.initCode)
+      userOp.verificationGasLimit =
+        userOp.verificationGasLimit ?? (await this.getVerificationGasLimit(userOp.initCode))
+    userOp.callGasLimit =
+      userOp.callGasLimit ??
+      (await this.provider.estimateGas({
+        from: this.smartAccountConfig.entryPointAddress,
+        to: userOp.sender,
+        data: userOp.callData
+      }))
+    userOp.preVerificationGas = userOp.preVerificationGas ?? this.getPreVerificationGas(userOp)
+    return userOp
+  }
+
   async estimateUserOpGas(
     userOp: Partial<UserOperation>,
-    overrides?: Overrides
+    overrides?: Overrides,
+    skipBundlerGasEstimation?: boolean
   ): Promise<Partial<UserOperation>> {
     const requiredFields: UserOperationKey[] = ['sender', 'nonce', 'initCode', 'callData']
     this.validateUserOp(userOp, requiredFields)
 
-    const finalUserOp = userOp
+    let finalUserOp = userOp
+    const skipBundlerCall = skipBundlerGasEstimation ?? false
     // Override gas values in userOp if provided in overrides params
     if (overrides) {
       userOp = { ...userOp, ...overrides }
@@ -80,54 +109,11 @@ export abstract class SmartAccount implements ISmartAccount {
 
     Logger.log('userOp in estimation', userOp)
 
-    // Defining the keys that are related that can be overrides
-    const overrideGasFields: UserOperationKey[] = [
-      'maxFeePerGas',
-      'maxPriorityFeePerGas',
-      'verificationGasLimit',
-      'callGasLimit',
-      'preVerificationGas'
-    ]
-
-    // here we are verifying either all necessary gas properties are present in userOp.
-    /*let skipEstimations = true
-    for (const key of overrideGasFields) {
-      if (!userOp[key]) {
-        skipEstimations = false
-        break
-      }
-    }
-    // If all necessary properties are present in userOp. we will skip estimation and return userOp
-    if (skipEstimations) {
-      return userOp
-    }*/
-
-    if (!this.bundler) {
+    if (!this.bundler || skipBundlerCall) {
       if (!this.provider) throw new Error('Provider is not present for making rpc calls')
       // if no bundler url is provided run offchain logic to assign following values of UserOp
       // maxFeePerGas, maxPriorityFeePerGas, verificationGasLimit, callGasLimit, preVerificationGas
-      const feeData = await this.provider.getFeeData()
-      userOp.maxFeePerGas =
-        userOp.maxFeePerGas ??
-        feeData.maxFeePerGas ??
-        feeData.gasPrice ??
-        (await this.provider.getGasPrice())
-      userOp.maxPriorityFeePerGas =
-        userOp.maxPriorityFeePerGas ??
-        feeData.maxPriorityFeePerGas ??
-        feeData.gasPrice ??
-        (await this.provider.getGasPrice())
-      if (userOp.initCode)
-        userOp.verificationGasLimit =
-          userOp.verificationGasLimit ?? (await this.getVerificationGasLimit(userOp.initCode))
-      userOp.callGasLimit =
-        userOp.callGasLimit ??
-        (await this.provider.estimateGas({
-          from: this.smartAccountConfig.entryPointAddress,
-          to: userOp.sender,
-          data: userOp.callData
-        }))
-      userOp.preVerificationGas = userOp.preVerificationGas ?? this.getPreVerificationGas(userOp)
+      finalUserOp = await this.calculateUserOpGasValues(finalUserOp)
     } else {
       // Making call to bundler to get gas estimations for userOp
       const {

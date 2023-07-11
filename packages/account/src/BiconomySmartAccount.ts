@@ -265,7 +265,8 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
 
   async buildUserOp(
     transactions: Transaction[],
-    overrides?: Overrides
+    overrides?: Overrides,
+    skipBundlerGasEstimation?: boolean
   ): Promise<Partial<UserOperation>> {
     this.isInitialized()
     // TODO: validate to, value and data fields
@@ -297,7 +298,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     // for this Smart Account dummy ECDSA signature will be used to estimate gas
     userOp.signature = this.getDummySignature()
 
-    userOp = await this.estimateUserOpGas(userOp, overrides)
+    userOp = await this.estimateUserOpGas(userOp, overrides, skipBundlerGasEstimation)
     Logger.log('userOp after estimation ', userOp)
 
     // Do not populate paymasterAndData as part of buildUserOp as it may not have all necessary details
