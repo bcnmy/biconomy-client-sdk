@@ -10,7 +10,7 @@ type SdkSpecificInitParams = {
   sdkUrl?: string
 }
 
-export type SoicalLoginDto = {
+export type SocialLoginDto = {
   initParams: SdkInitParams
   webBrowser: IWebBrowser
 }
