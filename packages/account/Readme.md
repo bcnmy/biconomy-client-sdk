@@ -46,14 +46,14 @@ const bundler: IBundler = new Bundler({
 
 ERC4337, Account abstraction, introduces the concept of Paymasters. These specialised entities play a pivotal role in revolutionising the traditional gas payment system in EVM transactions. Paymasters, acting as third-party intermediaries, possess the capability to sponsor gas fees for an account, provided specific predefined conditions are satisfied.
 
-**paymasterUrl** you can get this value from biconomy dashboard.
+**paymasterUrl** you can get this value from biconomy dashboard. https://dashboard.biconomy.io
 
 ```typescript
 // This is how you create paymaster instance in your dapp's
 import { IPaymaster, BiconomyPaymaster } from '@biconomy/paymaster'
 
   const paymaster: IPaymaster = new BiconomyPaymaster({
-    paymasterUrl: '' // you can get this value from biconomy dashboard.
+    paymasterUrl: '' // you can get this value from biconomy dashboard. https://dashboard.biconomy.io
   })
 ```
 

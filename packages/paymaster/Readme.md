@@ -25,7 +25,7 @@ yarn add @biconomy/paymaster
 import { IPaymaster, BiconomyPaymaster } from '@biconomy/paymaster'
 
   const paymaster = new BiconomyPaymaster({
-    paymasterUrl: '' // you can get this value from biconomy dashboard.
+    paymasterUrl: '' // you can get this value from biconomy dashboard. https://dashboard.biconomy.io
   })
 ```
 
@@ -93,16 +93,16 @@ import {
 } from '@biconomy-devx/paymaster'
 
 const bundler: IBundler = new Bundler({
-        bundlerUrl: '', // get it from dashboard
+        bundlerUrl: '', // get this bundlerUrl from dashboard https://dashboard.biconomy.io/
         chainId: ChainId.POLYGON_MUMBAI,
         entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS
     })
 
-    const paymaster = new BiconomyPaymaster({
-        paymasterUrl: '' // you can get it from dashboard
+const paymaster = new BiconomyPaymaster({
+        paymasterUrl: '' // get this paymasterUrl from dashboard https://dashboard.biconomy.io/
     });
 
-    const biconomySmartAccountConfig: BiconomySmartAccountConfig = {
+const biconomySmartAccountConfig: BiconomySmartAccountConfig = {
         signer: walletSigner, 
         chainId: ChainId.POLYGON_MUMBAI,
         paymaster: paymaster,
