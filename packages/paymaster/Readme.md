@@ -82,7 +82,7 @@ Here is Token paymaster sponsorship example in typescript
 
 ```typescript
 
-import { BiconomySmartAccount, BiconomySmartAccountConfig, DEFAULT_ENTRYPOINT_ADDRESS } from "@biconomy-devx/account"
+import { BiconomySmartAccount, BiconomySmartAccountConfig, DEFAULT_ENTRYPOINT_ADDRESS } from "@biconomy/account"
 
 import {
     IHybridPaymaster,
@@ -90,7 +90,7 @@ import {
     PaymasterFeeQuote,
     PaymasterMode,
     SponsorUserOperationDto,
-} from '@biconomy-devx/paymaster'
+} from '@biconomy/paymaster'
 
 const bundler: IBundler = new Bundler({
         bundlerUrl: '', // get this bundlerUrl from dashboard https://dashboard.biconomy.io/

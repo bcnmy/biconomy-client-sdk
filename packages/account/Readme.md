@@ -65,7 +65,7 @@ import { IPaymaster, BiconomyPaymaster } from '@biconomy/paymaster'
 | chainId       | This represents the network your smart wallet transactions will be conducted on. Take a look following Link for supported chain id's |
 | rpcUrl        | This represents the EVM node RPC URL you'll interact with, adjustable according to your needs. We recommend to use some private node url for efficient userOp building|
 | paymaster     | you can pass same paymaster instance that you have build in previous step. Alternatively, you can skip this if you are not interested in sponsoring transaction using paymaster|
-|               | Note: if you don’t pass| paymaster instance your smart account need to pay for transaction fee|
+|               | Note: if you don't pass the paymaster instance, your smart account will need funds to pay for transaction fees.|
 | bundler       | You can pass same bundler instance that you have build in previous step. Alternatively, you can skip this if you are only interested in building userOP|
 
 
@@ -130,4 +130,4 @@ const transactionDetail = await userOpResponse.wait(5)
 console.log("transaction detail below")
 console.log(transactionDetail)
 ```
-You can also give confirmation count to wait function to await until transaction reached desired confirmation count
+You can also pass a confirmation count to the wait function in order to await for a specified number of confirmations on the network..
