@@ -86,8 +86,8 @@ export class Bundler implements IBundler {
     const chainId = this.bundlerConfig.chainId
     // transformUserOP will convert all bigNumber values to string
     userOp = transformUserOP(userOp)
-    const hexifiedUserOp = deepHexlify(await resolveProperties(userOp))
-    const params = [hexifiedUserOp, this.bundlerConfig.entryPointAddress]
+    const resolvedUserOp = await resolveProperties(userOp)
+    const params = [resolvedUserOp, this.bundlerConfig.entryPointAddress]
     const bundlerUrl = this.getBundlerUrl()
     const sendUserOperationResponse: SendUserOpResponse = await sendRequest({
       url: bundlerUrl,
