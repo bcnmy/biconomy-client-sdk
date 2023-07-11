@@ -12,7 +12,7 @@ import {
 } from '@biconomy/common'
 import {
   BiconomySmartAccountConfig,
-  Overrides,
+  BuildUserOpDto,
   BiconomyTokenPaymasterRequest,
   InitilizationData
 } from './utils/Types'
@@ -263,13 +263,9 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     return '0x'
   }
 
-  async buildUserOp(
-    transactions: Transaction[],
-    overrides?: Overrides
-  ): Promise<Partial<UserOperation>> {
+  async buildUserOp(buildUserOpDto: BuildUserOpDto): Promise<Partial<UserOperation>> {
     this.isInitialized()
-    // TODO: validate to, value and data fields
-    // TODO: validate overrides if supplied
+    let { transactions, overrides, skipBundlerGasEstimation } = buildUserOpDto
     const to = transactions.map((element: Transaction) => element.to)
     const data = transactions.map((element: Transaction) => element.data ?? '0x')
     const value = transactions.map((element: Transaction) => element.value ?? BigNumber.from('0'))
@@ -297,7 +293,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     // for this Smart Account dummy ECDSA signature will be used to estimate gas
     userOp.signature = this.getDummySignature()
 
-    userOp = await this.estimateUserOpGas(userOp, overrides)
+    userOp = await this.estimateUserOpGas({ userOp, overrides, skipBundlerGasEstimation })
     Logger.log('userOp after estimation ', userOp)
 
     // Do not populate paymasterAndData as part of buildUserOp as it may not have all necessary details
@@ -411,7 +407,10 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
         }
 
         // Requesting to update gas limits again (especially callGasLimit needs to be re-calculated)
-        finalUserOp = await this.estimateUserOpGas(finalUserOp)
+        finalUserOp = await this.estimateUserOpGas({
+          userOp: finalUserOp,
+          skipBundlerGasEstimation: false
+        })
         Logger.log('userOp after estimation ', finalUserOp)
         return finalUserOp
       }

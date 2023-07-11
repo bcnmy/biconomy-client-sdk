@@ -8,7 +8,7 @@ import {
   SmartAccountsResponse,
   SCWTransactionResponse
 } from '@biconomy/node-client'
-import { Overrides, InitilizationData } from '../utils/Types'
+import { InitilizationData, BuildUserOpDto } from '../utils/Types'
 import { BigNumberish, BytesLike } from 'ethers'
 import { ISmartAccount } from './ISmartAccount'
 
@@ -21,7 +21,7 @@ export interface IBiconomySmartAccount extends ISmartAccount {
     value: Array<BigNumberish>,
     data: Array<BytesLike>
   ): string
-  buildUserOp(transactions: Transaction[], overrides?: Overrides): Promise<Partial<UserOperation>>
+  buildUserOp(buildUserOpDto: BuildUserOpDto): Promise<Partial<UserOperation>>
   getAllTokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse>
   getTotalBalanceInUsd(balancesDto: BalancesDto): Promise<UsdBalanceResponse>
   getSmartAccountsByOwner(

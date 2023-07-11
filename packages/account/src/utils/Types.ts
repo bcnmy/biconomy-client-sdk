@@ -1,5 +1,5 @@
 import { Signer } from 'ethers'
-import { ChainId } from '@biconomy/core-types'
+import { ChainId, UserOperation, Transaction } from '@biconomy/core-types'
 import { BigNumberish } from 'ethers'
 import { IBundler } from '@biconomy/bundler'
 import { IPaymaster, PaymasterFeeQuote } from '@biconomy/paymaster'
@@ -48,4 +48,16 @@ export type Overrides = {
 export type InitilizationData = {
   accountIndex?: number
   signerAddress?: string
+}
+
+export type EstimateUserOpGasDto = {
+  userOp: Partial<UserOperation>
+  overrides?: Overrides
+  skipBundlerGasEstimation?: boolean
+}
+
+export type BuildUserOpDto = {
+  transactions: Transaction[]
+  overrides?: Overrides
+  skipBundlerGasEstimation?: boolean
 }
