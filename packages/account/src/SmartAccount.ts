@@ -108,7 +108,7 @@ export abstract class SmartAccount implements ISmartAccount {
     if (!this.bundler || skipBundlerGasEstimation) {
       // if no bundler url is provided run offchain logic to assign following values of UserOp
       // maxFeePerGas, maxPriorityFeePerGas, verificationGasLimit, callGasLimit, preVerificationGas
-      finalUserOp = await this.calculateUserOpGas(userOp)
+      finalUserOp = await this.calculateUserOpGas(finalUserOp)
     } else {
       // Making call to bundler to get gas estimations for userOp
       const {
