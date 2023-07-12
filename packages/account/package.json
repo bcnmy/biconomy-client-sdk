@@ -1,0 +1,44 @@
+{
+  "name": "@biconomy/account",
+  "version": "2.0.0",
+  "description": "This package provides apis for ERC-4337 based smart account implementations",
+  "main": "./dist/src/index.js",
+  "typings": "./dist/src/index.d.ts",
+  "keywords": [
+    "Ethereum",
+    "Smart Account", 
+    "ERC-4337",
+    "Account Abstraction", 
+    "Smart Contract Wallets",
+    "Biconomy",
+    "SDK"
+  ],
+  "scripts": {
+    "unbuild": "rimraf dist *.tsbuildinfo",
+    "build": "rimraf dist && tsc",
+    "test": "yarn test:concurrently 'yarn test:run'",
+    "test:file": "TS_NODE_PROJECT=../../tsconfig.json mocha -r ts-node/register --timeout 30000",
+    "test:concurrently": "concurrently -k --success first 'yarn start:ganache > /dev/null'",
+    "test:cov": "jest --coverage",
+    "test:run": "yarn test:file tests/**/*.spec.ts",
+    "start:ganache": "ganache -m 'direct buyer cliff train rice spirit census refuse glare expire innocent quote'",
+    "format": "prettier --write \"{src,tests}/**/*.ts\"",
+    "lint": "tslint -p tsconfig.json"
+  },
+  "author": "talhamalik883 <talha.malik@biconomy.io>",
+  "license": "MIT",
+  "files": [
+    "dist/*",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@biconomy/core-types": "*",
+    "@biconomy/common": "*",
+    "@biconomy/bundler": "*",
+    "@biconomy/paymaster": "*",
+    "@biconomy/node-client": "*"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "name": "@biconomy/bundler",
+  "version": "2.0.0",
+  "description": "Biconomy Bundler package to interact with any bundler node as per ERC4337 standard",
+  "main": "./dist/src/index.js",
+  "typings": "./dist/src/index.d.ts",
+  "keywords": [
+    "Ethereum",
+    "Bundler", 
+    "Relayer", 
+    "ERC4337", 
+    "Gasless Transaction",
+    "Biconomy",
+    "SDK"
+  ],
+  "scripts": {
+    "unbuild": "rimraf dist *.tsbuildinfo",
+    "build": "rimraf dist && tsc",
+    "test": "yarn test:concurrently 'yarn test:run'",
+    "test:file": "TS_NODE_PROJECT=../../tsconfig.json mocha -r ts-node/register --timeout 30000",
+    "test:concurrently": "concurrently -k --success first 'yarn start:ganache > /dev/null'",
+    "test:run": "yarn test:file tests/**/*.spec.ts",
+    "start:ganache": "ganache -m 'direct buyer cliff train rice spirit census refuse glare expire innocent quote'",
+    "format": "prettier --write \"{src,tests}/**/*.ts\"",
+    "lint": "tslint -p tsconfig.json"
+  },
+  "author": "talhamalik883 <talha.malik@biconomy.io>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bcnmy/biconomy-client-sdk.git"
+  },
+  "license": "MIT",
+  "files": [
+    "dist/*",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@biconomy/core-types": "*",
+    "@biconomy/common": "*"
+  }
+}
