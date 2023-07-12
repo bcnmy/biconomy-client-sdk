@@ -52,17 +52,17 @@ export interface IHybridPaymaster<T> extends IPaymaster {
 
 **getPaymasterAndData**
 
-This function accepts a **`Partial<UserOperation>`** object that includes all properties of **`userOp`** except for the **`signature`** field. It returns **`paymasterAndData`** as part of the **`PaymasterAndDataResponse`**. The **`paymasterAndData`** string is signed by the paymaster's verifier signer, which will eventually result in the payment of your transaction fee by the paymaster.
+This function accepts a **`Partial<UserOperation>`** object that includes all properties of **`userOp`** except for the **`signature`** field. It returns **`paymasterAndData`** as part of the **`PaymasterAndDataResponse`**. The **`paymasterAndData`** string is signed by the paymaster's signer. By signing the string, the paymaster acknowledges their responsibility to cover the transaction fee associated with your request
 
 **buildTokenApprovalTransaction**
 
-This function is specifically used for token paymaster sponsorship. The primary purpose of this function is to create an approve transaction that gets batched with the rest of your transactions. This way, you will be paying the paymaster in ERC20 tokens, which will result in the paymaster paying on your behalf in native tokens.
+This function is specifically used for token paymaster sponsorship. The primary purpose of this function is to create an approve transaction for paymaster that gets batched with the rest of your transactions. 
 
-Note: you don’t need to call this function. it will automatically get **buildTokenPaymasterUserOp** using account package
+Note: You don't need to call this function. It will automatically get called as part of the **`buildTokenPaymasterUserOp`** function call.
 
 **getPaymasterFeeQuotesOrData**
 
-This function is used to fetch quote information or data base on provider userOperation and paymasterServiceData. 
+This function is used to fetch quote information or data based on provider userOperation and paymasterServiceData. 
 
 ```typescript
 const feeQuotesResponse =

@@ -1,5 +1,5 @@
 # Biconomy SDK
-The Biconomy Software Development Kit (SDK) build purely on atop of ERC4337 solution, presents a comprehensive range of solutions, from user onboarding to sustained engagement, specifically designed for decentralised applications (dApps). This SDK functions in a non-custodial fashion, provides a unified solution that enhances the user experience within your dApp.
+The Biconomy Software Development Kit (SDK) build purely on the top of ERC4337 solution, presents a comprehensive range of solutions, from user onboarding to sustained engagement, specifically designed for decentralised applications (dApps). This SDK functions in a non-custodial fashion, provides a unified solution that enhances the user experience within your dApp.
 
 # installation
 Using `npm` package manager
@@ -56,6 +56,8 @@ import { IPaymaster, BiconomyPaymaster } from '@biconomy/paymaster'
     paymasterUrl: '' // you can get this value from biconomy dashboard. https://dashboard.biconomy.io
   })
 ```
+
+Note: One can also create their custom paymaster as long as it implements IPaymaster interface
 
 ## Smart Account instance configuration
 
