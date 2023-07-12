@@ -358,4 +358,19 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     }
     throw new Error('Error in generating paymasterAndData')
   }
+
+  /**
+   *
+   * @param userOp user operation
+   * @param paymasterServiceData optional extra information to be passed to paymaster service
+   * @returns paymasterAndData with valid length but mock signature
+   */
+  async getDummyPaymasterAndData(
+    userOp: Partial<UserOperation>,
+    paymasterServiceData?: SponsorUserOperationDto // mode is necessary. partial context of token paymaster or verifying
+  ): Promise<string> {
+    Logger.log('userOp is ', userOp)
+    Logger.log('paymasterServiceData is ', paymasterServiceData)
+    return '0x'
+  }
 }
