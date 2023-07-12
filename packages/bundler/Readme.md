@@ -1,8 +1,6 @@
 ### Bundler
 
-In the context of  (ERC4337), the concept of a bundler plays a central role in the infrastructure. This concept is integral to the operation of account abstraction across any network that utilizes the Ethereum Virtual Machine (EVM). 
-
-Bundler infrastructure is designed and implemented in accordance with standardised specifications. This standardisation across all bundlers offers a significant advantage, particularly when it comes to interoperability with various tools and services, such as the Biconomy SDK.
+In the context of  (ERC4337), A bundler plays a main role in the infrastructure. This concept is integral to the operation of account abstraction across any network that utilizes the Ethereum Virtual Machine (EVM). 
 
 ## Installation
 
@@ -30,6 +28,8 @@ yarn add @biconomy/bundler
 ```typescript
 // This is how you create bundler instance in your dapp's
 import { IBundler, Bundler } from '@biconomy/bundler'
+
+// Make use of core-types package
 import { ChainId } from "@biconomy/core-types";
 
 const bundler: IBundler = new Bundler({
@@ -58,7 +58,7 @@ Estimate the gas values for a UserOperation. Given UserOperation optionally with
 
 **preVerificationGas** gas overhead of this UserOperation
 **verificationGasLimit** actual gas used by the validation of this UserOperation
-**callGasLimit** value used by inner account execution
+**callGasLimit** limit used to execute userop.callData called from EntryPoint to the Smart Account
                   
                   --------------------------------
 
