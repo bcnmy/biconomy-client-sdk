@@ -43,7 +43,7 @@
   },
   "peerDependencies": {
     "@babel/runtime": "^7.x",
-    "react-native": "^3.0.0-alpha.0"
+    "react-native": "~0.68.2"
   },
   "devDependencies": {
     "@babel/runtime": "^7.20.1",
