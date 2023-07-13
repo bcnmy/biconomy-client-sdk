@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/node-client",
-  "version": "2.0.1",
+  "version": "3.0.0-alpha.0",
   "description": "Node Client that comminucates with indexer service to fetch necessary details for the Smart Account",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -15,7 +15,7 @@
     "build": "yarn rimraf dist && tsc",
     "format": "prettier --write \"{src,tests,e2e}/**/*.ts\"",
     "lint": "tslint -p tsconfig.json",
-    "test": "yarn test:concurrently 'yarn test:run'",
+    "test": "yarn test:run",
     "test:file": "TS_NODE_PROJECT=../../tsconfig.json mocha -r ts-node/register --timeout 30000",
     "test:concurrently": "concurrently -k --success first 'yarn start:ganache > /dev/null'",
     "test:run": "yarn test:file tests/**/*.spec.ts",
@@ -28,10 +28,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@biconomy/core-types": "*",
-    "@gnosis.pm/safe-core-sdk": "^2.1.0",
-    "@gnosis.pm/safe-ethers-lib": "^1.1.0",
-    "@gnosis.pm/safe-web3-lib": "^1.1.0",
+    "@biconomy/core-types": "^3.0.0-alpha.0",
     "@nomiclabs/hardhat-ethers": "^2.1.0",
     "@nomiclabs/hardhat-waffle": "^2.0.3",
     "@nomiclabs/hardhat-web3": "^2.0.0",
@@ -72,9 +69,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@biconomy/core-types": "^2.0.2",
+    "@biconomy/core-types": "^3.0.0-alpha.0",
     "@ethersproject/abstract-signer": "^5.6.0",
-    "@gnosis.pm/safe-core-sdk": "^2.1.0",
     "@nomiclabs/hardhat-ethers": "^2.1.0",
     "node-fetch": "^2.6.6"
   }

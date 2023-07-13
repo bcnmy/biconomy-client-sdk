@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 3.0.0-alpha.0 (2023-07-12)
+
+
+### Bug Fixes
+
+* comment out hardcoded gas limit in any case + fix value for estimate smart-account deployment + dev notes ([df48ec3](https://github.com/bcnmy/biconomy-client-sdk/commit/df48ec3c04cf44a8f64eb302217655076c6304a4))
+* linting ([563befe](https://github.com/bcnmy/biconomy-client-sdk/commit/563befedcc37aee4c531e01809b47e559a33f526))
+* linting ([d2f5f1a](https://github.com/bcnmy/biconomy-client-sdk/commit/d2f5f1afadc2a561c4ef01c0821a25b9d7fe776e))
+
+
+
 ## 2.0.2 (2023-06-10)
 
 

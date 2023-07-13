@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 3.0.0-alpha.0 (2023-07-12)
+
+
+### Bug Fixes
+
+* bundler sync changes ([eb9b30d](https://github.com/bcnmy/biconomy-client-sdk/commit/eb9b30d786820b4c9a6a18c72481d0ed3782a22e))
+
+
 ## 2.0.2 (2023-06-10)
 
 * smart account state types to have factory address added

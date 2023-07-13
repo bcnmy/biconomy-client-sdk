@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/web3-auth-native",
-  "version": "2.0.0",
+  "version": "3.0.0-alpha.0",
   "description": "web3-auth expo react-native for biconomy sdk.",
   "main": "dist/web3AuthNative.cjs.js",
   "module": "dist/web3AuthNative.esm.js",
@@ -33,7 +33,7 @@
     "url": "git+https://github.com/bcnmy/biconomy-client-sdk.git"
   },
   "dependencies": {
-    "@biconomy/node-client": "^2.0.0",
+    "@biconomy/node-client": "^3.0.0-alpha.0",
     "@toruslabs/openlogin-jrpc": "^2.9.0",
     "@toruslabs/openlogin-utils": "^2.1.0",
     "base64url": "^3.0.1",
@@ -43,7 +43,7 @@
   },
   "peerDependencies": {
     "@babel/runtime": "^7.x",
-    "react-native": "*"
+    "react-native": "~0.68.2"
   },
   "devDependencies": {
     "@babel/runtime": "^7.20.1",
