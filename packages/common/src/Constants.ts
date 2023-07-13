@@ -13,5 +13,12 @@ export const RPC_PROVIDER_URLS: { [key in ChainId]?: string } = {
   [ChainId.POLYGON_ZKEVM_MAINNET]: 'https://rpc.ankr.com/polygon_zkevm',
   [ChainId.ARBITRUM_GOERLI_TESTNET]: 'https://goerli-rollup.arbitrum.io/rpc',
   [ChainId.ARBITRUM_ONE_MAINNET]: 'https://rpc.ankr.com/arbitrum',
-  [ChainId.ARBITRUM_NOVA_MAINNET]: 'https://nova.arbitrum.io/rpc'
+  [ChainId.ARBITRUM_NOVA_MAINNET]: 'https://nova.arbitrum.io/rpc',
+  [ChainId.OPTIMISM_MAINNET]: 'https://mainnet.optimism.io',
+  [ChainId.OPTIMISM_GOERLI_TESTNET]: 'https://goerli.optimism.io',
+  [ChainId.AVALANCHE_MAINNET]: 'https://api.avax.network/ext/bc/C/rpc',
+  [ChainId.AVALANCHE_TESTNET]: 'https://api.avax-test.network/ext/bc/C/rpc',
+  [ChainId.MOONBEAM_MAINNET]: 'https://rpc.api.moonbeam.network',
+  [ChainId.BASE_GOERLI_TESTNET]: 'https://goerli.base.org',
+  [ChainId.LINEA_TESTNET]: 'https://rpc.goerli.linea.build'
 }

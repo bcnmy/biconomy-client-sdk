@@ -25,7 +25,7 @@ export enum ChainNames {
   CeloTest = 'celoTest'
 }
 
-// TODO: Update chainId for networks we're planning to support
+// NOTE: Update chainId for networks we're planning to support
 export enum ChainId {
   // Ethereum
   MAINNET = 1,
@@ -39,5 +39,12 @@ export enum ChainId {
   ARBITRUM_GOERLI_TESTNET = 421613,
   ARBITRUM_ONE_MAINNET = 42161,
   ARBITRUM_NOVA_MAINNET = 42170,
+  OPTIMISM_MAINNET = 10,
+  OPTIMISM_GOERLI_TESTNET = 420,
+  AVALANCHE_MAINNET = 43114,
+  AVALANCHE_TESTNET = 43113,
+  MOONBEAM_MAINNET = 1284,
+  BASE_GOERLI_TESTNET = 84531,
+  LINEA_TESTNET = 59140,
   GANACHE = 1337 //Temp
 }
