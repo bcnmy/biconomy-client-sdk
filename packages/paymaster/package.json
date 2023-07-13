@@ -16,7 +16,6 @@
   "scripts": {
     "unbuild": "rimraf dist *.tsbuildinfo",
     "build": "rimraf dist && tsc",
-    "test": "yarn test:concurrently 'yarn test:run'",
     "test:file": "TS_NODE_PROJECT=../../tsconfig.json mocha -r ts-node/register --timeout 30000",
     "test:concurrently": "concurrently -k --success first 'yarn start:ganache > /dev/null'",
     "test:run": "yarn test:file tests/**/*.spec.ts",
@@ -38,7 +37,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "@biconomy/common": "3.0.0-alpha.0",
-    "@biconomy/core-types": "3.0.0-alpha.0"
+    "@biconomy/common": "^3.0.0-alpha.0",
+    "@biconomy/core-types": "^3.0.0-alpha.0"
   }
 }
