@@ -412,6 +412,8 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
         }
 
         // Requesting to update gas limits again (especially callGasLimit needs to be re-calculated)
+        delete finalUserOp.maxFeePerGas
+        delete finalUserOp.maxPriorityFeePerGas
         finalUserOp = await this.estimateUserOpGas(finalUserOp)
         Logger.log('userOp after estimation ', finalUserOp)
         return finalUserOp
