@@ -416,6 +416,12 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
         delete finalUserOp.maxPriorityFeePerGas
         try {
           finalUserOp = await this.estimateUserOpGas(finalUserOp)
+          if (finalUserOp.callGasLimit && finalUserOp.callGasLimit.toNumber() < 0) {
+            return {
+              ...userOp,
+              callData: newCallData
+            }
+          }
           Logger.log('userOp after estimation ', finalUserOp)
         } catch (error) {
           Logger.error('Failed to estimate gas for userOp with updated callData ', error)
