@@ -412,11 +412,9 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
         }
 
         // Requesting to update gas limits again (especially callGasLimit needs to be re-calculated)
-        delete finalUserOp.maxFeePerGas
-        delete finalUserOp.maxPriorityFeePerGas
         try {
           finalUserOp = await this.estimateUserOpGas(finalUserOp)
-          if (finalUserOp.callGasLimit && finalUserOp.callGasLimit.toNumber() < 0) {
+          if (finalUserOp.callGasLimit && finalUserOp.callGasLimit < 0) {
             return {
               ...userOp,
               callData: newCallData
@@ -426,7 +424,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
         } catch (error) {
           Logger.error('Failed to estimate gas for userOp with updated callData ', error)
           Logger.log(
-            'sending updated userOp. calculateGasLimit flaf should be sent to the paymaster to be able to update callGasLimit'
+            'sending updated userOp. calculateGasLimit flag should be sent to the paymaster to be able to update callGasLimit'
           )
         }
         return finalUserOp

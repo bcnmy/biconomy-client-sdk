@@ -115,6 +115,8 @@ export abstract class SmartAccount implements ISmartAccount {
       // maxFeePerGas, maxPriorityFeePerGas, verificationGasLimit, callGasLimit, preVerificationGas
       finalUserOp = await this.calculateUserOpGasValues(finalUserOp)
     } else {
+      delete userOp.maxFeePerGas
+      delete userOp.maxPriorityFeePerGas
       // Making call to bundler to get gas estimations for userOp
       const {
         callGasLimit,
