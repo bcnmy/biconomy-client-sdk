@@ -290,8 +290,10 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     }
     let isDeployed = true
 
-    isDeployed = nonce.eq(0) ? await this.isAccountDeployed(this.address) : true
- 
+    if (nonce.eq(0)) {
+      isDeployed = await this.isAccountDeployed(this.address)
+    }
+
     let userOp: Partial<UserOperation> = {
       sender: this.address,
       nonce,
