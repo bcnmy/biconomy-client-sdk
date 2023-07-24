@@ -414,7 +414,8 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
         // Requesting to update gas limits again (especially callGasLimit needs to be re-calculated)
         try {
           finalUserOp = await this.estimateUserOpGas(finalUserOp)
-          if (finalUserOp.callGasLimit && finalUserOp.callGasLimit < 0) {
+          const cgl = ethers.BigNumber.from(finalUserOp.callGasLimit)
+          if (finalUserOp.callGasLimit && cgl.lt(ethers.BigNumber.from('21000'))) {
             return {
               ...userOp,
               callData: newCallData
