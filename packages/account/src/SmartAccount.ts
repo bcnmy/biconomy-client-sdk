@@ -286,6 +286,7 @@ export abstract class SmartAccount implements ISmartAccount {
     this.validateUserOp(userOp, requiredFields)
     Logger.log('userOp validated')
     if (!this.bundler) throw new Error('Bundler is not provided')
+    Logger.log('userOp being sent to the bundler', userOp)
     const bundlerResponse = await this.bundler.sendUserOp(userOp)
     return bundlerResponse
   }
