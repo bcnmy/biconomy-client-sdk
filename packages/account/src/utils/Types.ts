@@ -43,6 +43,8 @@ export type Overrides = {
   preVerificationGas?: BigNumberish
   maxFeePerGas?: BigNumberish
   maxPriorityFeePerGas?: BigNumberish
+  paymasterData?: string
+  signature?: string
 }
 
 export type InitilizationData = {

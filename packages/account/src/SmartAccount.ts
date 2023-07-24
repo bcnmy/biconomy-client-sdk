@@ -257,6 +257,7 @@ export abstract class SmartAccount implements ISmartAccount {
    */
   async sendUserOp(userOp: Partial<UserOperation>): Promise<UserOpResponse> {
     Logger.log('userOp received in base account ', userOp)
+    delete userOp.signature
     const userOperation = await this.signUserOp(userOp)
     const bundlerResponse = await this.sendSignedUserOp(userOperation)
     return bundlerResponse
