@@ -113,7 +113,7 @@ export abstract class SmartAccount implements ISmartAccount {
       if (!this.provider) throw new Error('Provider is not present for making rpc calls')
       // if no bundler url is provided run offchain logic to assign following values of UserOp
       // maxFeePerGas, maxPriorityFeePerGas, verificationGasLimit, callGasLimit, preVerificationGas
-      finalUserOp = await this.calculateUserOpGasValues(finalUserOp)
+      finalUserOp = await this.calculateUserOpGasValues(userOp)
     } else {
       delete userOp.maxFeePerGas
       delete userOp.maxPriorityFeePerGas
