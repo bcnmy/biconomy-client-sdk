@@ -288,10 +288,16 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     } catch (error) {
       // Not throwing this error as nonce would be 0 if this.nonce() throw exception, which is expected flow for undeployed account
     }
+    let isDeployed = true
+
+    if (nonce.eq(0)) {
+      isDeployed = await this.isAccountDeployed(this.address)
+    }
+
     let userOp: Partial<UserOperation> = {
       sender: this.address,
       nonce,
-      initCode: nonce.eq(0) ? this.initCode : '0x',
+      initCode: !isDeployed ? this.initCode : '0x',
       callData: callData
     }
 
