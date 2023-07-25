@@ -113,8 +113,10 @@ export abstract class SmartAccount implements ISmartAccount {
       if (!this.provider) throw new Error('Provider is not present for making rpc calls')
       // if no bundler url is provided run offchain logic to assign following values of UserOp
       // maxFeePerGas, maxPriorityFeePerGas, verificationGasLimit, callGasLimit, preVerificationGas
-      finalUserOp = await this.calculateUserOpGasValues(finalUserOp)
+      finalUserOp = await this.calculateUserOpGasValues(userOp)
     } else {
+      delete userOp.maxFeePerGas
+      delete userOp.maxPriorityFeePerGas
       // Making call to bundler to get gas estimations for userOp
       const {
         callGasLimit,
@@ -255,6 +257,7 @@ export abstract class SmartAccount implements ISmartAccount {
    */
   async sendUserOp(userOp: Partial<UserOperation>): Promise<UserOpResponse> {
     Logger.log('userOp received in base account ', userOp)
+    delete userOp.signature
     const userOperation = await this.signUserOp(userOp)
     const bundlerResponse = await this.sendSignedUserOp(userOperation)
     return bundlerResponse
@@ -283,6 +286,7 @@ export abstract class SmartAccount implements ISmartAccount {
     this.validateUserOp(userOp, requiredFields)
     Logger.log('userOp validated')
     if (!this.bundler) throw new Error('Bundler is not provided')
+    Logger.log('userOp being sent to the bundler', userOp)
     const bundlerResponse = await this.bundler.sendUserOp(userOp)
     return bundlerResponse
   }

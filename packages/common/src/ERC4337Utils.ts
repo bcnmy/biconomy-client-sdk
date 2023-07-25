@@ -5,7 +5,6 @@ import { ChainId, UserOperation } from '@biconomy/core-types'
 
 const debug = Debug('aa.utils')
 
-
 export const AddressZero = ethers.constants.AddressZero
 
 export const EIP1559_UNSUPPORTED_NETWORKS: Array<ChainId> = [97, 56, 1442, 1101]

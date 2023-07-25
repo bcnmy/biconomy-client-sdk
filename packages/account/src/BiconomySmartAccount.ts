@@ -288,10 +288,16 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     } catch (error) {
       // Not throwing this error as nonce would be 0 if this.nonce() throw exception, which is expected flow for undeployed account
     }
+    let isDeployed = true
+
+    if (nonce.eq(0)) {
+      isDeployed = await this.isAccountDeployed(this.address)
+    }
+
     let userOp: Partial<UserOperation> = {
       sender: this.address,
       nonce,
-      initCode: nonce.eq(0) ? this.initCode : '0x',
+      initCode: !isDeployed ? this.initCode : '0x',
       callData: callData
     }
 
@@ -303,6 +309,8 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
 
     // Do not populate paymasterAndData as part of buildUserOp as it may not have all necessary details
     userOp.paymasterAndData = '0x' // await this.getPaymasterAndData(userOp)
+
+    delete userOp.signature
     return userOp
   }
 
@@ -412,8 +420,22 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
         }
 
         // Requesting to update gas limits again (especially callGasLimit needs to be re-calculated)
-        finalUserOp = await this.estimateUserOpGas(finalUserOp)
-        Logger.log('userOp after estimation ', finalUserOp)
+        try {
+          finalUserOp = await this.estimateUserOpGas(finalUserOp)
+          const cgl = ethers.BigNumber.from(finalUserOp.callGasLimit)
+          if (finalUserOp.callGasLimit && cgl.lt(ethers.BigNumber.from('21000'))) {
+            return {
+              ...userOp,
+              callData: newCallData
+            }
+          }
+          Logger.log('userOp after estimation ', finalUserOp)
+        } catch (error) {
+          Logger.error('Failed to estimate gas for userOp with updated callData ', error)
+          Logger.log(
+            'sending updated userOp. calculateGasLimit flag should be sent to the paymaster to be able to update callGasLimit'
+          )
+        }
         return finalUserOp
       }
     } catch (error) {
