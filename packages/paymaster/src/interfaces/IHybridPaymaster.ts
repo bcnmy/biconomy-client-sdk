@@ -14,6 +14,10 @@ export interface IHybridPaymaster<T> extends IPaymaster {
     userOp: Partial<UserOperation>,
     paymasterServiceData?: T
   ): Promise<PaymasterAndDataResponse>
+  getDummyPaymasterAndData(
+    userOp: Partial<UserOperation>,
+    paymasterServiceData?: T
+  ): Promise<string>
   buildTokenApprovalTransaction(
     tokenPaymasterRequest: BiconomyTokenPaymasterRequest,
     provider: Provider

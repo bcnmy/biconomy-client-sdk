@@ -63,46 +63,10 @@ export abstract class SmartAccount implements ISmartAccount {
     return true
   }
 
-  async estimateUserOpGas(
-    userOp: Partial<UserOperation>,
-    overrides?: Overrides
-  ): Promise<Partial<UserOperation>> {
-    const requiredFields: UserOperationKey[] = ['sender', 'nonce', 'initCode', 'callData']
-    this.validateUserOp(userOp, requiredFields)
+  abstract getDummySignature(): string
 
-    // Override gas values in userOp if provided in overrides params
-    if (overrides) {
-      userOp = { ...userOp, ...overrides }
-    }
-
-    Logger.log('userOp in estimation', userOp)
-
-    // Defining the keys that are related that can be overrides
-    const overrideGasFields: UserOperationKey[] = [
-      'maxFeePerGas',
-      'maxPriorityFeePerGas',
-      'verificationGasLimit',
-      'callGasLimit',
-      'preVerificationGas'
-    ]
-
-    // here we are verifying either all necessary gas properties are present in userOp.
-    let skipEstimations = true
-    for (const key of overrideGasFields) {
-      if (!userOp[key]) {
-        skipEstimations = false
-        break
-      }
-    }
-    // If all necessary properties are present in userOp. we will skip estimation and return userOp
-    if (skipEstimations) {
-      return userOp
-    }
-
-    // if (!this.bundler) {
+  async calculateUserOpGasValues(userOp: Partial<UserOperation>): Promise<Partial<UserOperation>> {
     if (!this.provider) throw new Error('Provider is not present for making rpc calls')
-    // if no bundler url is provided run offchain logic to assign following values of UserOp
-    // maxFeePerGas, maxPriorityFeePerGas, verificationGasLimit, callGasLimit, preVerificationGas
     const feeData = await this.provider.getFeeData()
     userOp.maxFeePerGas =
       userOp.maxFeePerGas ??
@@ -125,34 +89,61 @@ export abstract class SmartAccount implements ISmartAccount {
         data: userOp.callData
       }))
     userOp.preVerificationGas = userOp.preVerificationGas ?? this.getPreVerificationGas(userOp)
-    // } else {
-    //   // Making call to bundler to get gas estimations for userOp
-    //   const {
-    //     callGasLimit,
-    //     verificationGasLimit,
-    //     preVerificationGas,
-    //     maxFeePerGas,
-    //     maxPriorityFeePerGas
-    //   } = await this.bundler.estimateUserOpGas(userOp)
-    //   if (
-    //     !userOp.maxFeePerGas &&
-    //     !userOp.maxPriorityFeePerGas &&
-    //     (!maxFeePerGas || !maxPriorityFeePerGas)
-    //   ) {
-    //     const feeData = await this.provider.getFeeData()
-    //     userOp.maxFeePerGas =
-    //       feeData.maxFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice())
-    //     userOp.maxPriorityFeePerGas =
-    //       feeData.maxPriorityFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice())
-    //   } else {
-    //     userOp.maxFeePerGas = userOp.maxFeePerGas ?? maxFeePerGas
-    //     userOp.maxPriorityFeePerGas = userOp.maxPriorityFeePerGas ?? maxPriorityFeePerGas
-    //   }
-    //   userOp.verificationGasLimit = userOp.verificationGasLimit ?? verificationGasLimit
-    //   userOp.callGasLimit = userOp.callGasLimit ?? callGasLimit
-    //   userOp.preVerificationGas = userOp.preVerificationGas ?? preVerificationGas
-    // }
     return userOp
+  }
+
+  async estimateUserOpGas(
+    userOp: Partial<UserOperation>,
+    overrides?: Overrides,
+    skipBundlerGasEstimation?: boolean
+  ): Promise<Partial<UserOperation>> {
+    const requiredFields: UserOperationKey[] = ['sender', 'nonce', 'initCode', 'callData']
+    this.validateUserOp(userOp, requiredFields)
+
+    let finalUserOp = userOp
+    const skipBundlerCall = skipBundlerGasEstimation ?? false
+    // Override gas values in userOp if provided in overrides params
+    if (overrides) {
+      userOp = { ...userOp, ...overrides }
+    }
+
+    Logger.log('userOp in estimation', userOp)
+
+    if (!this.bundler || skipBundlerCall) {
+      if (!this.provider) throw new Error('Provider is not present for making rpc calls')
+      // if no bundler url is provided run offchain logic to assign following values of UserOp
+      // maxFeePerGas, maxPriorityFeePerGas, verificationGasLimit, callGasLimit, preVerificationGas
+      finalUserOp = await this.calculateUserOpGasValues(userOp)
+    } else {
+      delete userOp.maxFeePerGas
+      delete userOp.maxPriorityFeePerGas
+      // Making call to bundler to get gas estimations for userOp
+      const {
+        callGasLimit,
+        verificationGasLimit,
+        preVerificationGas,
+        maxFeePerGas,
+        maxPriorityFeePerGas
+      } = await this.bundler.estimateUserOpGas(userOp)
+      if (
+        !userOp.maxFeePerGas &&
+        !userOp.maxPriorityFeePerGas &&
+        (!maxFeePerGas || !maxPriorityFeePerGas)
+      ) {
+        const feeData = await this.provider.getFeeData()
+        finalUserOp.maxFeePerGas =
+          feeData.maxFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice())
+        finalUserOp.maxPriorityFeePerGas =
+          feeData.maxPriorityFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice())
+      } else {
+        finalUserOp.maxFeePerGas = maxFeePerGas ?? userOp.maxFeePerGas
+        finalUserOp.maxPriorityFeePerGas = maxPriorityFeePerGas ?? userOp.maxPriorityFeePerGas
+      }
+      finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit
+      finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit
+      finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas
+    }
+    return finalUserOp
   }
 
   async isAccountDeployed(address: string): Promise<boolean> {
@@ -266,6 +257,7 @@ export abstract class SmartAccount implements ISmartAccount {
    */
   async sendUserOp(userOp: Partial<UserOperation>): Promise<UserOpResponse> {
     Logger.log('userOp received in base account ', userOp)
+    delete userOp.signature
     const userOperation = await this.signUserOp(userOp)
     const bundlerResponse = await this.sendSignedUserOp(userOperation)
     return bundlerResponse
@@ -294,6 +286,7 @@ export abstract class SmartAccount implements ISmartAccount {
     this.validateUserOp(userOp, requiredFields)
     Logger.log('userOp validated')
     if (!this.bundler) throw new Error('Bundler is not provided')
+    Logger.log('userOp being sent to the bundler', userOp)
     const bundlerResponse = await this.bundler.sendUserOp(userOp)
     return bundlerResponse
   }

@@ -49,11 +49,9 @@ export class Bundler implements IBundler {
    * @returns Promise<UserOpGasPricesResponse>
    */
   async estimateUserOpGas(userOp: UserOperation): Promise<UserOpGasResponse> {
-    const signature =
-      userOp.signature ??
-      '0x73c3ac716c487ca34bb858247b5ccf1dc354fbaabdd089af3b2ac8e78ba85a4959a2d76250325bd67c11771c31fccda87c33ceec17cc0de912690521bb95ffcb1b'
-    const userOperation = { ...userOp, signature }
-    userOp = transformUserOP(userOperation)
+    // expected dummySig and possibly dummmy paymasterAndData should be provided by the caller
+    // bundler doesn't know account and paymaster implementation
+    userOp = transformUserOP(userOp)
     Logger.log('userOp sending for fee estimate ', userOp)
 
     const bundlerUrl = this.getBundlerUrl()

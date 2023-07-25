@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/paymaster",
-  "version": "2.0.0",
+  "version": "3.1.0-alpha.0",
   "description": "Biconomy Paymaster to interact with Paymaster Services that interacts with ( veriying and token ) paymasters",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -8,7 +8,7 @@
     "Ethereum",
     "Veriying Paymaster",
     "Token Paymaster",
-    "ERC4337", 
+    "ERC4337",
     "Gasless Transaction",
     "Biconomy",
     "SDK"
@@ -16,7 +16,6 @@
   "scripts": {
     "unbuild": "rimraf dist *.tsbuildinfo",
     "build": "rimraf dist && tsc",
-    "test": "yarn test:concurrently 'yarn test:run'",
     "test:file": "TS_NODE_PROJECT=../../tsconfig.json mocha -r ts-node/register --timeout 30000",
     "test:concurrently": "concurrently -k --success first 'yarn start:ganache > /dev/null'",
     "test:run": "yarn test:file tests/**/*.spec.ts",
@@ -38,7 +37,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "@biconomy/core-types": "*",
-    "@biconomy/common": "*"
+    "@biconomy/common": "^3.1.0-alpha.0",
+    "@biconomy/core-types": "^3.1.0-alpha.0"
   }
 }

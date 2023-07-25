@@ -1,4 +1,4 @@
-import SocialLogin from './SoicalLogin'
+import SocialLogin from './SocialLogin'
 
 export default SocialLogin
 export * from './types/IWebBrowser'

@@ -4,10 +4,10 @@ import log from 'loglevel'
 import { URL } from 'react-native-url-polyfill'
 
 import { IWebBrowser } from './types/IWebBrowser'
-import { SdkInitParams, SdkLoginParams, SdkLogoutParams, SoicalLoginDto } from './types/sdk'
+import { SdkInitParams, SdkLoginParams, SdkLogoutParams, SocialLoginDto } from './types/sdk'
 import { State } from './types/State'
 
-class SoicalLogin {
+class SocialLogin {
   initParams: SdkInitParams
 
   webBrowser: IWebBrowser
@@ -18,7 +18,7 @@ class SoicalLogin {
 
   private clientId: string
 
-  constructor(socialLoginDto: SoicalLoginDto) {
+  constructor(socialLoginDto: SocialLoginDto) {
     this.initParams = socialLoginDto.initParams
     if (!this.initParams.sdkUrl) {
       this.initParams.sdkUrl = 'https://sdk.openlogin.com'
@@ -93,4 +93,4 @@ class SoicalLogin {
   }
 }
 
-export default SoicalLogin
+export default SocialLogin

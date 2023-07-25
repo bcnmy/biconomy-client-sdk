@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/common",
-  "version": "2.0.0",
+  "version": "3.1.0-alpha.0",
   "description": "common utils to be used for aa transactions",
   "keywords": [
     "utils"
@@ -28,7 +28,9 @@
     "watch-tsc": "tsc -w --preserveWatchOutput",
     "gen:types": "typechain --target=ethers-v5 --out-dir=src/typechain 'abis/*/*.json'",
     "tsc": "tsc",
-    "test": "hardhat test",
+    "test": "yarn test:file tests/**/*.spec.ts",
+    "test:file": "TS_NODE_PROJECT=../../tsconfig.json mocha -r ts-node/register --timeout 30000",
+    "test:run": "yarn test:file tests/**/*.spec.ts",
     "unbuild": "rimraf dist *.tsbuildinfo",
     "build": "rimraf dist && npm run gen:types && tsc",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
@@ -39,13 +41,14 @@
   },
   "dependencies": {
     "@account-abstraction/contracts": "^0.6.0",
-    "@biconomy/core-types": "^2.0.0",
-    "@biconomy/node-client": "^2.0.0",
+    "@biconomy/core-types": "^3.1.0-alpha.0",
+    "@biconomy/node-client": "^3.0.0-alpha.0",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/bytes": "^5.7.0",
     "@ethersproject/providers": "^5.7.0",
     "@openzeppelin/contracts": "^4.7.3",
     "@typechain/ethers-v5": "^10.2.0",
+    "concurrently": "^7.4.0",
     "debug": "^4.3.4",
     "ethers": "^5.7.0",
     "typechain": "^8.1.1"

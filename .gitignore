@@ -64,6 +64,10 @@ packages/common/package-lock.json
 packages/bundler/package-lock.json
 packages/node-client/package-lock.json
 packages/paymaster/package-lock.json
+packages/particle-auth/package-lock.json
+packages/web3-auth/package-lock.json
+packages/web3-auth-native/package-lock.json
+packages/transak/package-lock.json
 package-lock.json
 yarn.lock
 

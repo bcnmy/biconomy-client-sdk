@@ -1,7 +1,7 @@
 {
-  "name": "@biconomy/transak",
+  "name": "@biconomy/particle-auth",
   "version": "3.0.0-alpha.0",
-  "description": "transak for biconomy sdk",
+  "description": "Particle auth for Biconomy SDK",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
   "keywords": [
@@ -9,7 +9,8 @@
     "batching",
     "one-click",
     "cross-chain",
-    "transak"
+    "particle",
+    "particle-auth"
   ],
   "author": "livingrockrises <chirag@biconomy.io>",
   "homepage": "https://github.com/bcnmy/biconomy-client-sdk#readme",
@@ -35,6 +36,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@transak/transak-sdk": "^1.2.3"
+    "@particle-network/auth": "^0.13.1",
+    "@particle-network/biconomy": "^0.1.0",
+    "@particle-network/provider": "^0.13.1"
   }
 }

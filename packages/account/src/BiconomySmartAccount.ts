@@ -255,9 +255,18 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     return executeBatchCallData
   }
 
+  getDummySignature(): string {
+    return '0x73c3ac716c487ca34bb858247b5ccf1dc354fbaabdd089af3b2ac8e78ba85a4959a2d76250325bd67c11771c31fccda87c33ceec17cc0de912690521bb95ffcb1b'
+  }
+
+  getDummyPaymasterData(): string {
+    return '0x'
+  }
+
   async buildUserOp(
     transactions: Transaction[],
-    overrides?: Overrides
+    overrides?: Overrides,
+    skipBundlerGasEstimation?: boolean
   ): Promise<Partial<UserOperation>> {
     this.isInitialized()
     // TODO: validate to, value and data fields
@@ -279,18 +288,29 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     } catch (error) {
       // Not throwing this error as nonce would be 0 if this.nonce() throw exception, which is expected flow for undeployed account
     }
+    let isDeployed = true
+
+    if (nonce.eq(0)) {
+      isDeployed = await this.isAccountDeployed(this.address)
+    }
+
     let userOp: Partial<UserOperation> = {
       sender: this.address,
       nonce,
-      initCode: nonce.eq(0) ? this.initCode : '0x',
+      initCode: !isDeployed ? this.initCode : '0x',
       callData: callData
     }
 
-    userOp = await this.estimateUserOpGas(userOp, overrides)
+    // for this Smart Account dummy ECDSA signature will be used to estimate gas
+    userOp.signature = this.getDummySignature()
+
+    userOp = await this.estimateUserOpGas(userOp, overrides, skipBundlerGasEstimation)
     Logger.log('userOp after estimation ', userOp)
 
     // Do not populate paymasterAndData as part of buildUserOp as it may not have all necessary details
     userOp.paymasterAndData = '0x' // await this.getPaymasterAndData(userOp)
+
+    delete userOp.signature
     return userOp
   }
 
@@ -400,8 +420,22 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
         }
 
         // Requesting to update gas limits again (especially callGasLimit needs to be re-calculated)
-        finalUserOp = await this.estimateUserOpGas(finalUserOp)
-        Logger.log('userOp after estimation ', finalUserOp)
+        try {
+          finalUserOp = await this.estimateUserOpGas(finalUserOp)
+          const cgl = ethers.BigNumber.from(finalUserOp.callGasLimit)
+          if (finalUserOp.callGasLimit && cgl.lt(ethers.BigNumber.from('21000'))) {
+            return {
+              ...userOp,
+              callData: newCallData
+            }
+          }
+          Logger.log('userOp after estimation ', finalUserOp)
+        } catch (error) {
+          Logger.error('Failed to estimate gas for userOp with updated callData ', error)
+          Logger.log(
+            'sending updated userOp. calculateGasLimit flag should be sent to the paymaster to be able to update callGasLimit'
+          )
+        }
         return finalUserOp
       }
     } catch (error) {
