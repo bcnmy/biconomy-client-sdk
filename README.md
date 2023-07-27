@@ -41,7 +41,7 @@ https://github.com/bcnmy/sdk-examples/blob/modular-sdk-v3/backend-node/README.md
 
 ## Resources
 
-https://docs.biconomy.io/introduction/overview 
+https://docs.biconomy.io/docs/overview 
 
 https://dashboard.biconomy.io/ 
 
