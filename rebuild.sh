@@ -15,6 +15,13 @@ rm -rf packages/paymaster/node_modules
 rm -rf packages/paymaster/package-lock.json
 rm -rf packages/paymaster/dist
 
+rm -rf packages/modules/node_modules
+rm -rf packages/modules/package-lock.json
+rm -rf packages/modules/dist
+
+rm -rf packages/signers/node_modules
+rm -rf packages/signers/package-lock.json
+rm -rf packages/signers/dist
 
 rm -rf packages/common/node_modules
 rm -rf packages/common/package-lock.json
@@ -27,7 +34,6 @@ rm -rf packages/core-types/dist
 rm -rf packages/node-client/node_modules
 rm -rf packages/node-client/package-lock.json
 rm -rf packages/node-client/dist
-
 
 rm -rf packages/web3-auth/node_modules
 rm -rf packages/web3-auth/yarn.lock
