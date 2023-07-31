@@ -42,6 +42,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
   private async prepareUserOperation(
     userOp: Partial<UserOperation>
   ): Promise<Partial<UserOperation>> {
+    // Review
     userOp = await resolveProperties(userOp)
     userOp.nonce = BigNumber.from(userOp.nonce).toHexString()
     userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toString()
@@ -49,7 +50,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toHexString()
     userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toHexString()
     userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toString()
-    userOp.signature = '0x'
+    userOp.signature = userOp.signature || '0x'
     userOp.paymasterAndData = '0x'
     return userOp
   }
@@ -257,6 +258,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     userOp: Partial<UserOperation>,
     paymasterServiceData?: SponsorUserOperationDto // mode is necessary. partial context of token paymaster or verifying
   ): Promise<PaymasterAndDataResponse> {
+    // TODO
     try {
       userOp = await this.prepareUserOperation(userOp)
     } catch (err) {
@@ -298,6 +300,9 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
 
     webhookData = paymasterServiceData?.webhookData ?? webhookData
     smartAccountInfo = paymasterServiceData?.smartAccountInfo ?? smartAccountInfo
+
+
+    // Note: The idea is before calling this below rpc, userOp values presense and types should be in accordance with how we call eth_estimateUseropGas on the bundler
 
     try {
       const response: JsonRpcResponse = await sendRequest({
