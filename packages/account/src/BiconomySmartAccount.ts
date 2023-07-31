@@ -310,7 +310,6 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     // Do not populate paymasterAndData as part of buildUserOp as it may not have all necessary details
     userOp.paymasterAndData = '0x' // await this.getPaymasterAndData(userOp)
 
-    delete userOp.signature
     return userOp
   }
 

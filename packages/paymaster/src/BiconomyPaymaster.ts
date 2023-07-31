@@ -44,22 +44,24 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
   ): Promise<Partial<UserOperation>> {
     // Review
     userOp = await resolveProperties(userOp)
-    userOp.nonce = userOp.nonce ? BigNumber.from(userOp.nonce).toHexString() : undefined
-    userOp.callGasLimit = userOp.callGasLimit
-      ? BigNumber.from(userOp.callGasLimit).toString()
-      : undefined
-    userOp.verificationGasLimit = userOp.verificationGasLimit
-      ? BigNumber.from(userOp.verificationGasLimit).toString()
-      : undefined
-    userOp.maxFeePerGas = userOp.maxFeePerGas
-      ? BigNumber.from(userOp.maxFeePerGas).toHexString()
-      : undefined
-    userOp.maxPriorityFeePerGas = userOp.maxPriorityFeePerGas
-      ? BigNumber.from(userOp.maxPriorityFeePerGas).toHexString()
-      : undefined
-    userOp.preVerificationGas = userOp.preVerificationGas
-      ? BigNumber.from(userOp.preVerificationGas).toString()
-      : undefined
+    if (userOp.nonce) {
+      userOp.nonce = BigNumber.from(userOp.nonce).toHexString()
+    }
+    if (userOp.callGasLimit) {
+      userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toString()
+    }
+    if (userOp.verificationGasLimit) {
+      userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toString()
+    }
+    if (userOp.maxFeePerGas) {
+      userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toHexString()
+    }
+    if (userOp.maxPriorityFeePerGas) {
+      userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toHexString()
+    }
+    if (userOp.preVerificationGas) {
+      userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toString()
+    }
     userOp.signature = userOp.signature || '0x'
     userOp.paymasterAndData = '0x'
     return userOp
