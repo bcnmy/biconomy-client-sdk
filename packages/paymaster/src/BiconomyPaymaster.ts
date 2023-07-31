@@ -44,12 +44,22 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
   ): Promise<Partial<UserOperation>> {
     // Review
     userOp = await resolveProperties(userOp)
-    userOp.nonce = BigNumber.from(userOp.nonce).toHexString()
-    userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toString()
-    userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toString()
-    userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toHexString()
-    userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toHexString()
-    userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toString()
+    userOp.nonce = userOp.nonce ? BigNumber.from(userOp.nonce).toHexString() : undefined
+    userOp.callGasLimit = userOp.callGasLimit
+      ? BigNumber.from(userOp.callGasLimit).toString()
+      : undefined
+    userOp.verificationGasLimit = userOp.verificationGasLimit
+      ? BigNumber.from(userOp.verificationGasLimit).toString()
+      : undefined
+    userOp.maxFeePerGas = userOp.maxFeePerGas
+      ? BigNumber.from(userOp.maxFeePerGas).toHexString()
+      : undefined
+    userOp.maxPriorityFeePerGas = userOp.maxPriorityFeePerGas
+      ? BigNumber.from(userOp.maxPriorityFeePerGas).toHexString()
+      : undefined
+    userOp.preVerificationGas = userOp.preVerificationGas
+      ? BigNumber.from(userOp.preVerificationGas).toString()
+      : undefined
     userOp.signature = userOp.signature || '0x'
     userOp.paymasterAndData = '0x'
     return userOp
@@ -300,7 +310,6 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
 
     webhookData = paymasterServiceData?.webhookData ?? webhookData
     smartAccountInfo = paymasterServiceData?.smartAccountInfo ?? smartAccountInfo
-
 
     // Note: The idea is before calling this below rpc, userOp values presense and types should be in accordance with how we call eth_estimateUseropGas on the bundler
 
