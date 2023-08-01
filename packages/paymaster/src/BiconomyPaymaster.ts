@@ -53,15 +53,11 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     if (userOp.verificationGasLimit) {
       userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toString()
     }
-    if (userOp.maxFeePerGas) {
-      userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toHexString()
-    }
-    if (userOp.maxPriorityFeePerGas) {
-      userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toHexString()
-    }
     if (userOp.preVerificationGas) {
       userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toString()
     }
+    userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toHexString()
+    userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toHexString()
     userOp.signature = userOp.signature || '0x'
     userOp.paymasterAndData = userOp.paymasterAndData || '0x'
     return userOp
