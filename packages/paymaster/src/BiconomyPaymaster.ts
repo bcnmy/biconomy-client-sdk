@@ -63,7 +63,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
       userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toString()
     }
     userOp.signature = userOp.signature || '0x'
-    userOp.paymasterAndData = '0x'
+    userOp.paymasterAndData = userOp.paymasterAndData || '0x'
     return userOp
   }
 
