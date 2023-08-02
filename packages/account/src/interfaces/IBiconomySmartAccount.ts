@@ -11,6 +11,7 @@ import {
 import { Overrides, InitilizationData } from '../utils/Types'
 import { BigNumberish, BytesLike } from 'ethers'
 import { ISmartAccount } from './ISmartAccount'
+import { Signer } from 'ethers'
 
 export interface IBiconomySmartAccount extends ISmartAccount {
   init(initilizationData?: InitilizationData): Promise<this>
@@ -30,4 +31,5 @@ export interface IBiconomySmartAccount extends ISmartAccount {
   getTransactionsByAddress(chainId: number, address: string): Promise<SCWTransactionResponse[]>
   getTransactionByHash(txHash: string): Promise<SCWTransactionResponse>
   getAllSupportedChains(): Promise<SupportedChainsResponse>
+  attachSigner(signer: Signer): Promise<void>
 }
