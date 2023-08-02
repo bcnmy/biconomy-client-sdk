@@ -37,6 +37,7 @@ import {
   BICONOMY_IMPLEMENTATION_ADDRESSES,
   DEFAULT_ENTRYPOINT_ADDRESS
 } from './utils/Constants'
+import { Signer } from 'ethers'
 
 export class BiconomySmartAccount extends SmartAccount implements IBiconomySmartAccount {
   private factory!: SmartAccountFactory_v100
@@ -101,6 +102,15 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     }
 
     return this
+  }
+
+  async attachSigner(_signer: Signer): Promise<void> {
+    try {
+      this.signer = _signer
+      this.owner = await this.signer.getAddress()
+    } catch (error) {
+      throw new Error(`Failed to get signer address`)
+    }
   }
 
   private isInitialized(): boolean {
