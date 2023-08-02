@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 3.1.1-alpha.0 (2023-08-02)
+
+### Features
+
+* Add logger for jsonRpc request([0c40641])(https://github.com/bcnmy/biconomy-client-sdk/commit/39a92fde78033e8dd850596a8a2ae7fc7bda0040)
+
+
+
+
 # 3.1.0-alpha.0 (2023-07-24)
 
 ### Features

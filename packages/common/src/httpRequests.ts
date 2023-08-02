@@ -16,6 +16,7 @@ interface HttpRequest {
 }
 
 export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRequest): Promise<T> {
+  Logger.log('jsonRpc request body ', JSON.stringify(body))
   const response = await fetch(url, {
     method,
     headers: {
