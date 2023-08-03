@@ -136,6 +136,8 @@ export type TokenInfo = {
   updatedAt: Date
 }
 
+// Review: Info received from sdk backend
+// As it seems currently it seems thought only for ECDSA validation module
 export type ISmartAccount = {
   version: SmartAccountVersion
   smartAccountAddress: string

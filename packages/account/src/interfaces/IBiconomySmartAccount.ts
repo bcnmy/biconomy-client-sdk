@@ -1,4 +1,5 @@
 import { UserOperation, Transaction } from '@biconomy/core-types'
+import { UserOpResponse } from '@biconomy/bundler'
 import {
   SupportedChainsResponse,
   BalancesResponse,
@@ -10,18 +11,27 @@ import {
 } from '@biconomy/node-client'
 import { Overrides, InitilizationData } from '../utils/Types'
 import { BigNumberish, BytesLike } from 'ethers'
-import { ISmartAccount } from './ISmartAccount'
+import { IBaseSmartAccount } from './IBaseSmartAccount'
 
-export interface IBiconomySmartAccount extends ISmartAccount {
+export interface IBiconomySmartAccount extends IBaseSmartAccount {
   init(initilizationData?: InitilizationData): Promise<this>
-  initializeAccountAtIndex(accountIndex: number): void
-  getExecuteCallData(to: string, value: BigNumberish, data: BytesLike): string
-  getExecuteBatchCallData(
+  encodeExecute(to: string, value: BigNumberish, data: BytesLike): Promise<string>
+  encodeExecuteBatch(
     to: Array<string>,
     value: Array<BigNumberish>,
     data: Array<BytesLike>
-  ): string
+  ): Promise<string>
   buildUserOp(transactions: Transaction[], overrides?: Overrides): Promise<Partial<UserOperation>>
+  sendUserOp(userOperation: UserOperation): Promise<UserOpResponse>
+  sendSignedUserOp(userOperation: UserOperation): Promise<UserOpResponse>
+
+  // Note: May not be necessary
+  initializeAccountAtIndex(accountIndex: number): void
+
+  // Review: Consider adding and implementing
+  // getFactoryAddress(): Promise<string>
+  // getFactoryAccountInitCode(): Promise<string>
+
   getAllTokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse>
   getTotalBalanceInUsd(balancesDto: BalancesDto): Promise<UsdBalanceResponse>
   getSmartAccountsByOwner(

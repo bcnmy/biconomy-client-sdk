@@ -117,5 +117,9 @@ export function calcPreVerificationGas(
   const ret = Math.round(
     callDataCost + ov.fixed / ov.bundleSize + ov.perUserOp + ov.perUserOpWord * lengthInWord
   )
-  return BigNumber.from(ret)
+  if (ret) {
+    return BigNumber.from(ret)
+  } else {
+    return BigNumber.from(21000)
+  }
 }

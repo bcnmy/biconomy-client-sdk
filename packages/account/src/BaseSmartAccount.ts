@@ -1,7 +1,7 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
-import { BigNumber, Signer, BytesLike } from 'ethers'
-import { ISmartAccount } from './interfaces/ISmartAccount'
+import { IBaseSmartAccount } from './interfaces/IBaseSmartAccount'
 import { defaultAbiCoder, keccak256, arrayify } from 'ethers/lib/utils'
+import { ethers, BigNumberish, Bytes, BytesLike, BigNumber, Signer } from 'ethers'
 import { UserOperation, ChainId } from '@biconomy/core-types'
 import { calcPreVerificationGas, DefaultGasLimits } from './utils/Preverificaiton'
 import { packUserOp } from '@biconomy/common'
@@ -9,23 +9,23 @@ import { packUserOp } from '@biconomy/common'
 import { IBundler, UserOpResponse } from '@biconomy/bundler'
 import { IPaymaster, PaymasterAndDataResponse } from '@biconomy/paymaster'
 import { EntryPoint_v100, SmartAccount_v100, SmartAccount_v200, Logger } from '@biconomy/common'
-import { SmartAccountConfig, Overrides } from './utils/Types'
+import { BaseSmartAccountConfig, Overrides } from './utils/Types'
 
 type UserOperationKey = keyof UserOperation
 
-export abstract class SmartAccount implements ISmartAccount {
+export abstract class BaseSmartAccount implements IBaseSmartAccount {
   bundler!: IBundler
   paymaster!: IPaymaster
   initCode = '0x'
   proxy!: any
   owner!: string
   provider!: JsonRpcProvider
-  entryPoint!: EntryPoint_v100
+  entryPoint!: EntryPoint_v100 // Review if never initialized
   chainId!: ChainId
   signer!: Signer
-  smartAccountConfig: SmartAccountConfig
+  smartAccountConfig: BaseSmartAccountConfig
 
-  constructor(_smartAccountConfig: SmartAccountConfig) {
+  constructor(_smartAccountConfig: BaseSmartAccountConfig) {
     this.smartAccountConfig = _smartAccountConfig
   }
 
@@ -33,10 +33,7 @@ export abstract class SmartAccount implements ISmartAccount {
     this.smartAccountConfig.entryPointAddress = entryPointAddress
   }
 
-  private validateUserOp(
-    userOp: Partial<UserOperation>,
-    requiredFields: UserOperationKey[]
-  ): boolean {
+  validateUserOp(userOp: Partial<UserOperation>, requiredFields: UserOperationKey[]): boolean {
     for (const field of requiredFields) {
       if (!userOp[field]) {
         throw new Error(`${field} is missing`)
@@ -88,7 +85,8 @@ export abstract class SmartAccount implements ISmartAccount {
         to: userOp.sender,
         data: userOp.callData
       }))
-    userOp.preVerificationGas = userOp.preVerificationGas ?? this.getPreVerificationGas(userOp)
+    userOp.preVerificationGas =
+      userOp.preVerificationGas ?? (await this.getPreVerificationGas(userOp))
     return userOp
   }
 
@@ -167,7 +165,7 @@ export abstract class SmartAccount implements ISmartAccount {
     return '0x'
   }
 
-  nonce(): Promise<BigNumber> {
+  getNonce(): Promise<BigNumber> {
     this.isProxyDefined()
     return this.proxy.nonce()
   }
@@ -182,7 +180,30 @@ export abstract class SmartAccount implements ISmartAccount {
     throw new Error('No signer provided to sign userOp')
   }
 
-  getPreVerificationGas(userOp: Partial<UserOperation>): BigNumber {
+  async signMessage(message: Bytes | string): Promise<string> {
+    const dataHash = ethers.utils.arrayify(ethers.utils.hashMessage(message))
+
+    // Review: // Some signers do not return signed data with 0x prefix. make sure the v value is 27/28 instead of 0/1
+    // TODO: make sure if it's valid hexString otherwise append 0x. Also split sig and add +27 to v is v is only 0/1. then stitch it back
+    const sig = await this.signer.signMessage(dataHash)
+
+    // TODO
+    // If the account is undeployed, use ERC-6492
+    // Extend in child classes
+
+    /*if (await this.isAccountDeployed(this.getSmartAccountAddress())) {
+      const coder = new ethers.utils.AbiCoder()
+      sig =
+        coder.encode(
+          ['address', 'bytes', 'bytes'],
+          [<FACTORY_ADDRESS>, <INIT_CODE>, sig]
+        ) + '6492649264926492649264926492649264926492649264926492649264926492' // magic suffix
+    }*/
+
+    return sig
+  }
+
+  async getPreVerificationGas(userOp: Partial<UserOperation>): Promise<BigNumber> {
     return calcPreVerificationGas(userOp)
   }
 

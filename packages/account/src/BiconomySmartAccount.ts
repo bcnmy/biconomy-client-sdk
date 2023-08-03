@@ -1,11 +1,11 @@
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { ethers, BigNumberish, BytesLike, BigNumber } from 'ethers'
-import { SmartAccount } from './SmartAccount'
+import { BaseSmartAccount } from './BaseSmartAccount'
 import {
   Logger,
   NODE_CLIENT_URL,
   RPC_PROVIDER_URLS,
-  SmartAccountFactory_v100,
+  SmartAccountFactory_v100, // Review : usage of this
   getEntryPointContract,
   getSAFactoryContract,
   getSAProxyContract
@@ -38,7 +38,9 @@ import {
   DEFAULT_ENTRYPOINT_ADDRESS
 } from './utils/Constants'
 
-export class BiconomySmartAccount extends SmartAccount implements IBiconomySmartAccount {
+// Note: We might need to name this class and file name 'BiconomySmartAccount' to keep backwards compatibility with published SDK versions
+// BiconomySmartAccountV1
+export class BiconomySmartAccount extends BaseSmartAccount implements IBiconomySmartAccount {
   private factory!: any
   private nodeClient: INodeClient
   private accountIndex!: number
@@ -57,6 +59,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     })
     const _rpcUrl = rpcUrl ?? RPC_PROVIDER_URLS[chainId]
 
+    // Review
     if (!_rpcUrl) {
       throw new Error(
         `Chain Id ${chainId} is not supported. Please refer to the following link for supported chains list https://docs.biconomy.io/build-with-biconomy-sdk/gasless-transactions#supported-chains`
@@ -212,10 +215,14 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
    * @description an overrided function to showcase overriding example
    * @returns
    */
-  nonce(): Promise<BigNumber> {
+  getNonce(): Promise<BigNumber> {
     this.isProxyDefined()
     return this.proxy.nonce()
   }
+
+  // Note: Consider adding methods encodeUserOpCallDataAndGasLimit(), createUnsignedUserOp(), createSignedUserOp() for future compatibility with Provider and Signer for dispatching userOps
+  // TODO
+
   /**
    *
    * @param to { target } address of transaction
@@ -223,7 +230,8 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
    * @param data represent data associated with transaction
    * @returns
    */
-  getExecuteCallData(to: string, value: BigNumberish, data: BytesLike): string {
+  // Review: If we need to promisify this function
+  async encodeExecute(to: string, value: BigNumberish, data: BytesLike): Promise<string> {
     this.isInitialized()
     this.isProxyDefined()
     const executeCallData = this.proxy.interface.encodeFunctionData('executeCall', [
@@ -240,11 +248,12 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
    * @param data represent array of data associated with each transaction
    * @returns
    */
-  getExecuteBatchCallData(
+  // Review: If we need to promisify this function
+  async encodeExecuteBatch(
     to: Array<string>,
     value: Array<BigNumberish>,
     data: Array<BytesLike>
-  ): string {
+  ): Promise<string> {
     this.isInitialized()
     this.isProxyDefined()
     const executeBatchCallData = this.proxy.interface.encodeFunctionData('executeBatchCall', [
@@ -278,15 +287,15 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
 
     let callData = ''
     if (transactions.length === 1) {
-      callData = this.getExecuteCallData(to[0], value[0], data[0])
+      callData = await this.encodeExecute(to[0], value[0], data[0])
     } else {
-      callData = this.getExecuteBatchCallData(to, value, data)
+      callData = await this.encodeExecuteBatch(to, value, data)
     }
     let nonce = BigNumber.from(0)
     try {
-      nonce = await this.nonce()
+      nonce = await this.getNonce()
     } catch (error) {
-      // Not throwing this error as nonce would be 0 if this.nonce() throw exception, which is expected flow for undeployed account
+      // Not throwing this error as nonce would be 0 if this.getNonce() throw exception, which is expected flow for undeployed account
     }
     let isDeployed = true
 
@@ -412,7 +421,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
           batchValue = [approvalRequest.value, ...batchValue]
           batchData = [approvalRequest.data, ...batchData]
 
-          newCallData = this.getExecuteBatchCallData(batchTo, batchValue, batchData)
+          newCallData = await this.encodeExecuteBatch(batchTo, batchValue, batchData)
         }
         let finalUserOp: Partial<UserOperation> = {
           ...userOp,

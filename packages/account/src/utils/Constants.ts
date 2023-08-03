@@ -1,5 +1,5 @@
 import { ChainId } from '@biconomy/core-types'
-import { EntrypointAddresses, BiconomyFactories, BiconomyImplementation } from './Types'
+import { EntrypointAddresses, BiconomyFactories, BiconomyImplementations } from './Types'
 
 // will always be latest entrypoint address
 export const DEFAULT_ENTRYPOINT_ADDRESS = '0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789'
@@ -14,7 +14,7 @@ export const BICONOMY_FACTORY_ADDRESSES: BiconomyFactories = {
   '0x2642d30cebafeb1da6bc6e3c2cfce0e3199eff19': 'V2_0_0'
 }
 
-export const BICONOMY_IMPLEMENTATION_ADDRESSES: BiconomyImplementation = {
+export const BICONOMY_IMPLEMENTATION_ADDRESSES: BiconomyImplementations = {
   '0xf1080f5f874ea8170e423738791e0e9a8aad87fd': 'V2_0_0'
 }
 
