@@ -32,6 +32,8 @@ export interface IBiconomySmartAccount extends IBaseSmartAccount {
   // getFactoryAddress(): Promise<string>
   // getFactoryAccountInitCode(): Promise<string>
 
+  // Not all of below methods need to be part of the interface.
+
   getAllTokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse>
   getTotalBalanceInUsd(balancesDto: BalancesDto): Promise<UsdBalanceResponse>
   getSmartAccountsByOwner(
@@ -40,5 +42,4 @@ export interface IBiconomySmartAccount extends IBaseSmartAccount {
   getTransactionsByAddress(chainId: number, address: string): Promise<SCWTransactionResponse[]>
   getTransactionByHash(txHash: string): Promise<SCWTransactionResponse>
   getAllSupportedChains(): Promise<SupportedChainsResponse>
-  attachSigner(signer: Signer): Promise<void>
 }
