@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 3.1.1-alpha.0 (2023-08-02)
+
+### Features
+
+* letting maxFee and maxPriority not be undefined([46b985c](https://github.com/bcnmy/biconomy-client-sdk/commit/46b985c75fd135f151c9ac4380a65438cccc6f39))
+* passing on paymasterAndData([ae267f1])(https://github.com/bcnmy/biconomy-client-sdk/commit/ae267f1a103f37856eb233a38db7063bfcc4cb45)
+* handle undefined values([e53d4a7])(https://github.com/bcnmy/biconomy-client-sdk/commit/e53d4a78aded8c8802786173daf12b27d445d4a0)
+* handling userOp null values([c89ac42])(https://github.com/bcnmy/biconomy-client-sdk/commit/c89ac42ae1d7fd985ef2396d925cc63ec5cf926b)
+* using signature provided by userop([0c40641])(https://github.com/bcnmy/biconomy-client-sdk/commit/0c40641e4cd6133f7348bb3e3022f8ab78fe299b)
+
+
+
 # 3.1.0-alpha.0 (2023-07-24)
 
 VERSION bump only

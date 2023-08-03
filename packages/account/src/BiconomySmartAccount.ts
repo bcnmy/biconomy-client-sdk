@@ -37,6 +37,7 @@ import {
   BICONOMY_IMPLEMENTATION_ADDRESSES,
   DEFAULT_ENTRYPOINT_ADDRESS
 } from './utils/Constants'
+import { Signer } from 'ethers'
 
 // Note: We might need to name this class and file name 'BiconomySmartAccount' to keep backwards compatibility with published SDK versions
 // BiconomySmartAccountV1
@@ -104,6 +105,15 @@ export class BiconomySmartAccount extends BaseSmartAccount implements IBiconomyS
     }
 
     return this
+  }
+
+  async attachSigner(_signer: Signer): Promise<void> {
+    try {
+      this.signer = _signer
+      this.owner = await this.signer.getAddress()
+    } catch (error) {
+      throw new Error(`Failed to get signer address`)
+    }
   }
 
   private isInitialized(): boolean {
@@ -319,7 +329,6 @@ export class BiconomySmartAccount extends BaseSmartAccount implements IBiconomyS
     // Do not populate paymasterAndData as part of buildUserOp as it may not have all necessary details
     userOp.paymasterAndData = '0x' // await this.getPaymasterAndData(userOp)
 
-    delete userOp.signature
     return userOp
   }
 

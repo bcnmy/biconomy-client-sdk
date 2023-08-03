@@ -40,4 +40,5 @@ export interface IBiconomySmartAccount extends IBaseSmartAccount {
   getTransactionsByAddress(chainId: number, address: string): Promise<SCWTransactionResponse[]>
   getTransactionByHash(txHash: string): Promise<SCWTransactionResponse>
   getAllSupportedChains(): Promise<SupportedChainsResponse>
+  attachSigner(signer: Signer): Promise<void>
 }

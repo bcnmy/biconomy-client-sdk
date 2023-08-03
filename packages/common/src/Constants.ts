@@ -20,5 +20,6 @@ export const RPC_PROVIDER_URLS: { [key in ChainId]?: string } = {
   [ChainId.AVALANCHE_TESTNET]: 'https://api.avax-test.network/ext/bc/C/rpc',
   [ChainId.MOONBEAM_MAINNET]: 'https://rpc.api.moonbeam.network',
   [ChainId.BASE_GOERLI_TESTNET]: 'https://goerli.base.org',
+  [ChainId.BASE_MAINNET]: 'https://developer-access-mainnet.base.org',
   [ChainId.LINEA_TESTNET]: 'https://rpc.goerli.linea.build'
 }

@@ -18,5 +18,6 @@ export const UserOpReceiptIntervals: { [key in ChainId]?: number } = {
   [ChainId.AVALANCHE_TESTNET]: 5000,
   [ChainId.MOONBEAM_MAINNET]: 5000,
   [ChainId.BASE_GOERLI_TESTNET]: 5000,
+  [ChainId.BASE_MAINNET]: 5000,
   [ChainId.LINEA_TESTNET]: 5000
 }
