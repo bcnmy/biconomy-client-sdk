@@ -191,7 +191,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     // If the account is undeployed, use ERC-6492
     // Extend in child classes
 
-    /*if (await this.isAccountDeployed(this.getSmartAccountAddress())) {
+    /*if (!(await this.isAccountDeployed(this.getSmartAccountAddress()))) {
       const coder = new ethers.utils.AbiCoder()
       sig =
         coder.encode(
