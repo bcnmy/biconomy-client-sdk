@@ -225,6 +225,7 @@ export class BiconomySmartAccount extends BaseSmartAccount implements IBiconomyS
    * @description an overrided function to showcase overriding example
    * @returns
    */
+  // Review and remove
   getNonce(): Promise<BigNumber> {
     this.isProxyDefined()
     return this.proxy.nonce()

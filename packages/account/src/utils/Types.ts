@@ -19,7 +19,7 @@ export type BiconomyImplementations = {
 
 // Base Account API params
 export interface BaseSmartAccountConfig {
-  entryPointAddress: string
+  entryPointAddress?: string // Review
   bundler?: IBundler // equivalent to HttpRpcClient
 
   // TODO

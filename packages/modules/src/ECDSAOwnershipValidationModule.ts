@@ -19,7 +19,7 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule /*imple
   }
 
   // Note: other modules may need additional attributes to build init data
-  async getInitData(): Promise<string> {
+  async getAddress(): Promise<string> {
     return await this.signer.getAddress()
   }
 
@@ -27,7 +27,7 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule /*imple
     return await Promise.resolve(this.signer)
   }
 
-  async getEnableData(): Promise<string> {
+  async getInitData(): Promise<string> {
     const ecdsaOwnerAddress = await this.signer.getAddress()
     const ecdsaModuleRegistryAbi = 'function initForSmartAccount(address owner)'
     const ecdsaModuleRegistryInterface = new ethers.utils.Interface([ecdsaModuleRegistryAbi])

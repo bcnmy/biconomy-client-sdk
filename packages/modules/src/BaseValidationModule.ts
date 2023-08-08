@@ -24,7 +24,7 @@ export abstract class BaseValidationModule /*implements*/ {
     this.validAfter = validAfter ?? 0
   }
 
-  getAddress(): string {
+  async getAddress(): Promise<string> {
     return this.moduleAddress
   }
 
