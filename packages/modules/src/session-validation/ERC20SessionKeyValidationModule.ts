@@ -1,20 +1,18 @@
 import { EntryPoint_v100, Logger } from '@biconomy/common'
 import { Signer, ethers } from 'ethers'
 import { Bytes, BytesLike, hexConcat, arrayify, hexZeroPad, hexlify } from 'ethers/lib/utils'
-import { BaseValidationModuleConfig, ECDSAOwnershipValidationModuleConfig } from './utils/Types'
+// import { BaseValidationModuleConfig, ERC20SessionKeyValidationModuleConfig } from './utils/Types'
 import { UserOperation, ChainId } from '@biconomy/core-types'
-import { DEFAULT_ENTRYPOINT_ADDRESS } from './utils/Constants'
-import { BaseValidationModule } from './BaseValidationModule'
+import { DEFAULT_ENTRYPOINT_ADDRESS } from '../utils/Constants'
+import { BaseValidationModule } from '../BaseValidationModule'
 
 // Could be renamed with suffix API
 
-// Note: at the module level enableModule can be diverted from SA class. if using some validationModule other module is to be enabled
-// some checks if module is already enabled on SA can be performed utilising methods from here.
-export class ECDSAOwnershipValidationModule extends BaseValidationModule /*implements*/ {
+/*export class ERC20SessionKeyValidationModule extends BaseValidationModule {
   signer: Signer
-  entryPoint!: EntryPoint_v100 // Maybe IEntryPoint // May be defined in child class
+  entryPoint!: EntryPoint_v100 // Review // Maybe IEntryPoint // May be defined in child class
 
-  constructor(moduleConfig: ECDSAOwnershipValidationModuleConfig) {
+  constructor(moduleConfig: ERC20SessionKeyValidationModuleConfig) {
     super(moduleConfig)
     this.signer = moduleConfig.signer
     // without passing instance we would need provider / rpcUrl and using address to build instance
@@ -52,4 +50,4 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule /*imple
   async signMessage(message: Bytes | string): Promise<string> {
     return await this.signer.signMessage(message)
   }
-}
+}*/

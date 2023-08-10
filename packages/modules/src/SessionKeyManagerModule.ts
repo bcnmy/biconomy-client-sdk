@@ -8,10 +8,13 @@ import { BaseValidationModule } from './BaseValidationModule'
 
 // Could be renamed with suffix API
 
-// Note: at the module level enableModule can be diverted from SA class. if using some validationModule other module is to be enabled
-// some checks if module is already enabled on SA can be performed utilising methods from here.
-export class ECDSAOwnershipValidationModule extends BaseValidationModule /*implements*/ {
+/*export class SessionKeyManagerModule extends BaseValidationModule {
+
+
+
+
   signer: Signer
+  // nodeclient!: INodeClient
   entryPoint!: EntryPoint_v100 // Maybe IEntryPoint // May be defined in child class
 
   constructor(moduleConfig: ECDSAOwnershipValidationModuleConfig) {
@@ -32,6 +35,7 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule /*imple
 
   async getInitData(): Promise<string> {
     const ecdsaOwnerAddress = await this.signer.getAddress()
+    console.log('ecdsaOwnerAddress ', ecdsaOwnerAddress)
     const ecdsaModuleRegistryAbi = 'function initForSmartAccount(address owner)'
     const ecdsaModuleRegistryInterface = new ethers.utils.Interface([ecdsaModuleRegistryAbi])
     const ecdsaOwnershipInitData = ecdsaModuleRegistryInterface.encodeFunctionData(
@@ -52,4 +56,4 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule /*imple
   async signMessage(message: Bytes | string): Promise<string> {
     return await this.signer.signMessage(message)
   }
-}
+}*/

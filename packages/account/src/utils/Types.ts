@@ -64,7 +64,14 @@ export interface BiconomySmartAccountConfig extends BaseSmartAccountConfig {
   // factoryAddress?: string // Good to have. Will evaluate if needed
 }
 
-export interface BiconomySmartAccountV2Config extends BiconomySmartAccountConfig {
+export interface BiconomySmartAccountV2Config {
+  entryPointAddress?: string // Review
+  bundler?: IBundler // equivalent to HttpRpcClient
+  factoryAddress?: string
+  rpcUrl?: string // as good as Provider
+  chainId: ChainId // If optional can be extracted using rpcUrl / Provider
+  paymaster?: IPaymaster // as good as PaymasterAPI. could maybe name the same for modular consistency
+  nodeClientUrl?: string // very specific to Biconomy
   // can be replaced with interface once/if defined
   defaultValidationModule?: BaseValidationModule
   validationModule?: BaseValidationModule

@@ -190,7 +190,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount implements IBiconom
           index: accountIndex
         })
       ).data
-      if (!smartAccountsList)
+      if (smartAccountsList.length == 0)
         throw new Error(
           'Failed to get smart account address. Please raise an issue on https://github.com/bcnmy/biconomy-client-sdk for further investigation.'
         )
@@ -214,7 +214,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount implements IBiconom
     this.initCode = ethers.utils.hexConcat([
       factoryInstance.address,
       factoryInstance.interface.encodeFunctionData('deployCounterFactualAccount', [
-        this.defaultValidationModule.getAddress(),
+        await this.defaultValidationModule.getAddress(),
         await this.defaultValidationModule.getInitData(),
         accountIndex
       ])
@@ -247,7 +247,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount implements IBiconom
     }
     const signatureWithModuleAddress = ethers.utils.defaultAbiCoder.encode(
       ['bytes', 'address'],
-      [userOp.signature, this.validationModule.getAddress()]
+      [userOp.signature, await this.validationModule.getAddress()]
     )
     userOp.signature = signatureWithModuleAddress
     return userOp as UserOperation
@@ -512,6 +512,8 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount implements IBiconom
     smartAccountByOwnerDto: SmartAccountByOwnerDto
   ): Promise<SmartAccountsResponse> {
     return this.nodeClient.getSmartAccountsByOwner(smartAccountByOwnerDto)
+    // Review fetching and maintaining info from SDK backend
+    // Note: maybe if no information is present in backend then get the address as per mode
   }
 
   async getTransactionsByAddress(
