@@ -136,6 +136,12 @@ export type TokenInfo = {
   updatedAt: Date
 }
 
+// Review
+// Info received from sdk backend
+// As it seems currently it seems thought only for ECDSA validation module
+// We should only need to obtain necessary info from backend
+// Adding new modules will require changes here and sdk updates
+
 export type ISmartAccount = {
   version: SmartAccountVersion
   smartAccountAddress: string
