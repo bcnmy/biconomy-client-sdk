@@ -80,15 +80,21 @@ export abstract class SmartAccount implements ISmartAccount {
       (await this.provider.getGasPrice())
     if (userOp.initCode)
       userOp.verificationGasLimit =
-        userOp.verificationGasLimit ?? (await this.getVerificationGasLimit(userOp.initCode))
+        userOp.verificationGasLimit !== null || userOp.verificationGasLimit !== undefined
+          ? userOp.verificationGasLimit
+          : await this.getVerificationGasLimit(userOp.initCode)
     userOp.callGasLimit =
-      userOp.callGasLimit ??
-      (await this.provider.estimateGas({
-        from: this.smartAccountConfig.entryPointAddress,
-        to: userOp.sender,
-        data: userOp.callData
-      }))
-    userOp.preVerificationGas = userOp.preVerificationGas ?? this.getPreVerificationGas(userOp)
+      userOp.callGasLimit !== null || userOp.callGasLimit !== undefined
+        ? userOp.callGasLimit
+        : await this.provider.estimateGas({
+            from: this.smartAccountConfig.entryPointAddress,
+            to: userOp.sender,
+            data: userOp.callData
+          })
+    userOp.preVerificationGas =
+      userOp.preVerificationGas !== null || userOp.preVerificationGas !== undefined
+        ? userOp.preVerificationGas
+        : this.getPreVerificationGas(userOp)
     return userOp
   }
 
