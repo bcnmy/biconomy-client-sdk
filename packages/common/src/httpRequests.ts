@@ -43,18 +43,20 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
     }
     // else
   }
-  const errorObject = { code: response.status, message: response.statusText }
+  const errorObject = { code: response.status, message: response.statusText, data: undefined }
 
   if (jsonResponse?.error) {
     if (typeof jsonResponse.error === 'string') {
       const error = jsonResponse.error
       errorObject.code = response.status
       errorObject.message = error
+      delete errorObject.data
       throw errorObject
     } else if (typeof jsonResponse.error === 'object') {
       const error = jsonResponse.error
       errorObject.code = error?.code
       errorObject.message = error?.message
+      errorObject.data = error?.handleOpsCallData
       throw errorObject
     }
   }
