@@ -11,11 +11,13 @@ export const ENTRYPOINT_ADDRESSES: EntrypointAddresses = {
 // will always be latest factory address
 export const DEFAULT_BICONOMY_FACTORY_ADDRESS = '0x000000f9ee1842bb72f6bbdd75e6d3d4e3e9594c'
 export const BICONOMY_FACTORY_ADDRESSES: BiconomyFactories = {
-  '0x000000f9ee1842bb72f6bbdd75e6d3d4e3e9594c': 'V1_0_0'
+  '0x000000f9ee1842bb72f6bbdd75e6d3d4e3e9594c': 'V1_0_0',
+  '0x2642d30cebafeb1da6bc6e3c2cfce0e3199eff19': 'V2_0_0'
 }
 
 export const BICONOMY_IMPLEMENTATION_ADDRESSES: BiconomyImplementation = {
-  '0x00006b7e42e01957da540dc6a8f7c30c4d816af5': 'V1_0_0'
+  '0x00006b7e42e01957da540dc6a8f7c30c4d816af5': 'V1_0_0',
+  '0xf1080f5f874ea8170e423738791e0e9a8aad87fd': 'V2_0_0'
 }
 
 // will always be latest implementation address
