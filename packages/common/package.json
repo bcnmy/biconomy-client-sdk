@@ -21,7 +21,7 @@
     "url": "git+https://github.com/bcnmy/biconomy-client-sdk.git"
   },
   "scripts": {
-    "clear": "rm -rf dist artifacts cache src/types",
+    "clear": "rm -rf dist artifacts cache src/typechain",
     "hardhat-deploy": "hardhat deploy",
     "hardhat-node": "hardhat node",
     "lint-fix": "eslint -f unix . --fix",
