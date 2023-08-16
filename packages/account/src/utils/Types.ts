@@ -37,6 +37,9 @@ export type BiconomySmartAccountConfig = {
   nodeClientUrl?: string
 }
 
+/*export interface BiconomySmartAccountV2Config {
+}*/
+
 export type Overrides = {
   callGasLimit?: BigNumberish
   verificationGasLimit?: BigNumberish
