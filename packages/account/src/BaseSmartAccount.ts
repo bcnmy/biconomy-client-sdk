@@ -29,7 +29,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
   provider: Provider // Review
 
   // entryPoint connected to "zero" address. allowed to make static calls (e.g. to getSenderAddress)
-  private readonly entryPointView!: EntryPoint
+  private readonly entryPoint!: EntryPoint
 
   constructor(_smartAccountConfig: BaseSmartAccountConfig) {
     this.index = _smartAccountConfig.index ?? 0
@@ -45,10 +45,9 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
 
     // Create an instance of the EntryPoint contract using the provided address and provider (facory "connect" contract address)
     // Then, set the transaction's sender ("from" address) to the zero address (AddressZero). (contract "connect" from address)
-    this.entryPointView = EntryPoint__factory.connect(
-      this.entryPointAddress,
-      this.provider
-    ).connect(ethers.constants.AddressZero)
+    this.entryPoint = EntryPoint__factory.connect(this.entryPointAddress, this.provider).connect(
+      ethers.constants.AddressZero
+    )
   }
 
   async init(): Promise<this> {
@@ -341,7 +340,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     // use entryPoint to query account address (factory can provide a helper method to do the same, but
     // this method attempts to be generic
     try {
-      await this.entryPointView.callStatic.getSenderAddress(initCode)
+      await this.entryPoint.callStatic.getSenderAddress(initCode)
     } catch (e: any) {
       if (e.errorArgs == null) {
         throw e
@@ -416,8 +415,8 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
   ): Promise<string | null> {
     const endtime = Date.now() + timeout
     while (Date.now() < endtime) {
-      const events = await this.entryPointView.queryFilter(
-        this.entryPointView.filters.UserOperationEvent(userOpHash)
+      const events = await this.entryPoint.queryFilter(
+        this.entryPoint.filters.UserOperationEvent(userOpHash)
       )
       if (events.length > 0) {
         return events[0].transactionHash
@@ -431,7 +430,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     const userOpHash = keccak256(packUserOp(userOp, true))
     const enc = defaultAbiCoder.encode(
       ['bytes32', 'address', 'uint256'],
-      [userOpHash, this.entryPointView.address, this.chainId]
+      [userOpHash, this.entryPoint.address, this.chainId]
     )
     return keccak256(enc)
   }
