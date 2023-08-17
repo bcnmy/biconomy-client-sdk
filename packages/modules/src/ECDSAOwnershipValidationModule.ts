@@ -1,4 +1,4 @@
-import { Logger } from '@biconomy/common'
+import { Logger, getUserOpHash } from '@biconomy/common'
 import { EntryPoint, EntryPoint__factory } from '@account-abstraction/contracts'
 import { Signer, ethers } from 'ethers'
 import { Bytes, BytesLike, hexConcat, arrayify, hexZeroPad, hexlify } from 'ethers/lib/utils'
@@ -6,7 +6,6 @@ import { BaseValidationModuleConfig, ECDSAOwnershipValidationModuleConfig } from
 import { UserOperation, ChainId } from '@biconomy/core-types'
 import { DEFAULT_ENTRYPOINT_ADDRESS } from './utils/Constants'
 import { BaseValidationModule } from './BaseValidationModule'
-import { getUserOpHash } from './utils/Utils'
 
 // Could be renamed with suffix API
 export class ECDSAOwnershipValidationModule extends BaseValidationModule {
