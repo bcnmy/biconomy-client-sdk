@@ -23,21 +23,15 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
   overheads?: Partial<GasOverheads>
   entryPointAddress!: string
   accountAddress?: string
-  owner?: Signer // owner is not mandatory for some account implementations
+  // owner?: Signer // owner is not mandatory for some account implementations
   index?: number
   chainId?: ChainId
-  provider: JsonRpcProvider | Provider // Review
+  provider: Provider // Review
 
   // entryPoint connected to "zero" address. allowed to make static calls (e.g. to getSenderAddress)
   private readonly entryPointView!: EntryPoint
 
-  smartAccountConfig: BaseSmartAccountConfig
-
   constructor(_smartAccountConfig: BaseSmartAccountConfig) {
-    // Review
-    this.smartAccountConfig = _smartAccountConfig
-
-    this.owner = _smartAccountConfig.owner
     this.index = _smartAccountConfig.index ?? 0
     this.overheads = _smartAccountConfig.overheads
     this.entryPointAddress = _smartAccountConfig.entryPointAddress ?? DEFAULT_ENTRYPOINT_ADDRESS
@@ -49,7 +43,8 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     this.provider =
       _smartAccountConfig.provider ?? new JsonRpcProvider(RPC_PROVIDER_URLS[this.chainId])
 
-    // factory "connect" define the contract address. the contract "connect" defines the "from" address.
+    // Create an instance of the EntryPoint contract using the provided address and provider (facory "connect" contract address)
+    // Then, set the transaction's sender ("from" address) to the zero address (AddressZero). (contract "connect" from address)
     this.entryPointView = EntryPoint__factory.connect(
       this.entryPointAddress,
       this.provider
@@ -68,7 +63,6 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
   }
 
   setEntryPointAddress(entryPointAddress: string) {
-    this.smartAccountConfig.entryPointAddress = entryPointAddress
     this.entryPointAddress = entryPointAddress
   }
 
@@ -246,7 +240,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     userOp.callGasLimit =
       userOp.callGasLimit ??
       (await this.provider.estimateGas({
-        from: this.smartAccountConfig.entryPointAddress,
+        from: this.entryPointAddress,
         to: userOp.sender,
         data: userOp.callData
       }))

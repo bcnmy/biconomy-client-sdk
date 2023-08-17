@@ -115,7 +115,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return hexConcat([
       this.factory.address,
       this.factory.interface.encodeFunctionData('deployCounterFactualAccount', [
-        this.owner,
+        ethers.constants.AddressZero,
         ethers.BigNumber.from(this.index)
       ])
     ])
@@ -172,12 +172,8 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
   // TODO
   async signUserOpHash(userOpHash: string): Promise<string> {
-    const sig = await this.owner?.signMessage(arrayify(userOpHash))
-    if (sig) {
-      return sig
-    } else {
-      return '0x'
-    }
+    Logger.log('userOpHash ', userOpHash)
+    return '0x'
   }
 
   // TODO

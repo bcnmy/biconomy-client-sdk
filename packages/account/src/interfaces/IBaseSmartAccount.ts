@@ -19,10 +19,4 @@ export interface IBaseSmartAccount extends INon4337Account {
   signUserOpHash(userOpHash: string): Promise<string>
   getUserOpHash(userOp: Partial<UserOperation>): Promise<string>
   getAccountInitCode(): Promise<string>
-
-  // sendUserOp(userOp: UserOperation): Promise<UserOpResponse>
-  // sendSignedUserOp(userOp: UserOperation): Promise<UserOpResponse>
-
-  // Review: conside adding
-  // encodeUserOpCallDataAndGasLimit() (Refer to notes in BiconomySmartAccountV1)
 }

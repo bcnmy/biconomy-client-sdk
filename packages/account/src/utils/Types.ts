@@ -24,9 +24,9 @@ export type SmartAccountConfig = {
 }
 
 export interface BaseSmartAccountConfig {
-  owner?: Signer
+  // owner?: Signer // can be in child classes
   index?: number
-  provider: JsonRpcProvider | Provider
+  provider: Provider
   entryPointAddress: string
   accountAddress?: string
   overheads?: Partial<GasOverheads>
