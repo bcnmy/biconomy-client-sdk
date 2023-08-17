@@ -162,6 +162,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return executeBatchCallData
   }
 
+  // TODO // Query from validation module
   getDummySignature(): string {
     return '0x73c3ac716c487ca34bb858247b5ccf1dc354fbaabdd089af3b2ac8e78ba85a4959a2d76250325bd67c11771c31fccda87c33ceec17cc0de912690521bb95ffcb1b'
   }
@@ -210,4 +211,10 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   async getAllSupportedChains(): Promise<SupportedChainsResponse> {
     return this.nodeClient.getAllSupportedChains()
   }
+
+  // async isModuleEnabled(moduleName: string): boolean {
+
+  // async enableModule(moduleName: string): Promise<UserOperationResponse> {
+
+  // async getEnableModuleData(moduleName: string): Promise<string> {
 }

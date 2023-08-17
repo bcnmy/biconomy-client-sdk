@@ -1,6 +1,8 @@
 import { ChainId } from '@biconomy/core-types'
 import { EntrypointAddresses, BiconomyFactories, BiconomyImplementation } from './Types'
 
+// Review: Note: Might be a good idea to keep reverse mapping for below and also default constants for latest versioned addresses*/
+
 // will always be latest entrypoint address
 export const DEFAULT_ENTRYPOINT_ADDRESS = '0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789'
 export const ENTRYPOINT_ADDRESSES: EntrypointAddresses = {
