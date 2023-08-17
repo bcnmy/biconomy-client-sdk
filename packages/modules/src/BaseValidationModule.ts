@@ -7,20 +7,15 @@ import { DEFAULT_ENTRYPOINT_ADDRESS } from './utils/Constants'
 import { IValidationModule } from './interfaces/IValidationModule'
 
 export abstract class BaseValidationModule implements IValidationModule {
-  moduleAddress: string
   entryPointAddress: string
 
   constructor(moduleConfig: BaseValidationModuleConfig) {
-    const { moduleAddress, entrypointAddress } = moduleConfig
+    const { entrypointAddress } = moduleConfig
 
-    // In child class fetch based on provided version
-    this.moduleAddress = moduleAddress
     this.entryPointAddress = entrypointAddress || DEFAULT_ENTRYPOINT_ADDRESS
   }
 
-  async getAddress(): Promise<string> {
-    return this.moduleAddress
-  }
+  abstract getAddress(): string
 
   setEntryPointAddress(entryPointAddress: string) {
     this.entryPointAddress = entryPointAddress

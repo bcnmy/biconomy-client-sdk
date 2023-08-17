@@ -2,25 +2,41 @@ import { Logger, getUserOpHash } from '@biconomy/common'
 import { EntryPoint, EntryPoint__factory } from '@account-abstraction/contracts'
 import { Signer, ethers } from 'ethers'
 import { Bytes, BytesLike, hexConcat, arrayify, hexZeroPad, hexlify } from 'ethers/lib/utils'
-import { BaseValidationModuleConfig, ECDSAOwnershipValidationModuleConfig } from './utils/Types'
+import {
+  BaseValidationModuleConfig,
+  ECDSAOwnershipValidationModuleConfig,
+  ModuleVersion
+} from './utils/Types'
 import { UserOperation, ChainId } from '@biconomy/core-types'
-import { DEFAULT_ENTRYPOINT_ADDRESS } from './utils/Constants'
+import { DEFAULT_ENTRYPOINT_ADDRESS, ECDSA_MODULE_ADDRESSES_BY_VERSION } from './utils/Constants'
 import { BaseValidationModule } from './BaseValidationModule'
 
 // Could be renamed with suffix API
 export class ECDSAOwnershipValidationModule extends BaseValidationModule {
   owner: Signer
   chainId: ChainId
+  moduleAddress!: string
+  DEFAULT_VERSION: ModuleVersion = 'V1_0_0'
   // entryPoint!: EntryPoint
 
   constructor(moduleConfig: ECDSAOwnershipValidationModuleConfig) {
     super(moduleConfig)
+    if (moduleConfig.moduleAddress) {
+      this.moduleAddress = moduleConfig.moduleAddress
+    } else if (moduleConfig.version) {
+      const moduleAddr = ECDSA_MODULE_ADDRESSES_BY_VERSION[moduleConfig.version]
+      if (!moduleAddr) {
+        throw new Error(`Invalid version ${moduleConfig.version}`)
+      }
+      this.moduleAddress = moduleAddr
+      this.DEFAULT_VERSION = moduleConfig.version as ModuleVersion
+    }
     this.owner = moduleConfig.signer
     this.chainId = moduleConfig.chainId
   }
 
-  async getAddress(): Promise<string> {
-    return await this.owner.getAddress()
+  getAddress(): string {
+    return this.moduleAddress
   }
 
   async getSigner(): Promise<Signer> {

@@ -14,8 +14,20 @@ export type BiconomyFactories = {
   [address: string]: string
 }
 
-export type BiconomyImplementation = {
+export type BiconomyImplementations = {
   [address: string]: string
+}
+
+export type EntrypointAddressesByVersion = {
+  [version: string]: string
+}
+
+export type BiconomyFactoriesByVersion = {
+  [version: string]: string
+}
+
+export type BiconomyImplementationsByVersion = {
+  [version: string]: string
 }
 
 export type SmartAccountConfig = {
