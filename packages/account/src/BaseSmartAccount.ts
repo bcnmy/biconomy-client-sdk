@@ -45,10 +45,9 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
 
     // Create an instance of the EntryPoint contract using the provided address and provider (facory "connect" contract address)
     // Then, set the transaction's sender ("from" address) to the zero address (AddressZero). (contract "connect" from address)
-    this.entryPoint = EntryPoint__factory.connect(
-      this.entryPointAddress,
-      this.provider
-    ).connect(ethers.constants.AddressZero)
+    this.entryPoint = EntryPoint__factory.connect(this.entryPointAddress, this.provider).connect(
+      ethers.constants.AddressZero
+    )
   }
 
   async init(): Promise<this> {
