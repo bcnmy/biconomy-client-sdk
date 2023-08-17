@@ -46,10 +46,8 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     this.bundler = _smartAccountConfig.bundler
     this.chainId = _smartAccountConfig.chainId
 
-    const provider =
+    this.provider =
       _smartAccountConfig.provider ?? new JsonRpcProvider(RPC_PROVIDER_URLS[this.chainId])
-
-    this.provider = provider
 
     // factory "connect" define the contract address. the contract "connect" defines the "from" address.
     this.entryPointView = EntryPoint__factory.connect(
@@ -60,7 +58,9 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
 
   async init(): Promise<this> {
     if ((await this.provider.getCode(this.entryPointAddress)) === '0x') {
-      throw new Error(`entryPoint not deployed at ${this.entryPointAddress}`)
+      throw new Error(
+        `EntryPoint not deployed at ${this.entryPointAddress} at chainId ${this.chainId}}`
+      )
     }
 
     await this.getAccountAddress()
@@ -69,6 +69,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
 
   setEntryPointAddress(entryPointAddress: string) {
     this.smartAccountConfig.entryPointAddress = entryPointAddress
+    this.entryPointAddress = entryPointAddress
   }
 
   private validateUserOp(

@@ -15,15 +15,13 @@ export interface INon4337Account {
 export interface IBaseSmartAccount extends INon4337Account {
   getVerificationGasLimit(initCode: BytesLike): Promise<BigNumberish>
   getPreVerificationGas(userOp: Partial<UserOperation>): Promise<BigNumberish>
-  signUserOp(userOperation: UserOperation): Promise<UserOperation>
+  signUserOp(userOp: UserOperation): Promise<UserOperation>
   signUserOpHash(userOpHash: string): Promise<string>
   getUserOpHash(userOp: Partial<UserOperation>): Promise<string>
+  getAccountInitCode(): Promise<string>
 
-  // sendUserOp(userOperation: UserOperation): Promise<UserOpResponse>
-  // sendSignedUserOp(userOperation: UserOperation): Promise<UserOpResponse>
-
-  // TODO
-  // getAccountInitCode(): Promise<string>
+  // sendUserOp(userOp: UserOperation): Promise<UserOpResponse>
+  // sendSignedUserOp(userOp: UserOperation): Promise<UserOpResponse>
 
   // Review: conside adding
   // encodeUserOpCallDataAndGasLimit() (Refer to notes in BiconomySmartAccountV1)

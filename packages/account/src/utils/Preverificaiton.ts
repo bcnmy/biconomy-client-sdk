@@ -120,6 +120,6 @@ export function calcPreVerificationGas(
   if (ret) {
     return BigNumber.from(ret)
   } else {
-    return BigNumber.from(21000)
+    throw new Error("can't calculate preVerificationGas")
   }
 }
