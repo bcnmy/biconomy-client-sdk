@@ -7,7 +7,7 @@ import { calcPreVerificationGas, DefaultGasLimits } from './utils/Preverificaito
 import { NotPromise, packUserOp } from '@biconomy/common'
 import { IBundler, UserOpResponse } from '@biconomy/bundler'
 import { IPaymaster, PaymasterAndDataResponse } from '@biconomy/paymaster'
-import { EntryPoint_v100, Logger } from '@biconomy/common'
+import { EntryPoint_v005, Logger } from '@biconomy/common'
 import { BaseSmartAccountConfig, Overrides, TransactionDetailsForUserOp } from './utils/Types'
 import { GasOverheads } from './utils/Preverificaiton'
 import { EntryPoint, EntryPoint__factory } from '@account-abstraction/contracts'
@@ -24,7 +24,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
   entryPointAddress!: string
   accountAddress?: string
   // owner?: Signer // owner is not mandatory for some account implementations
-  index?: number
+  index: number
   chainId?: ChainId
   provider: Provider // Review
 
@@ -65,10 +65,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     this.entryPointAddress = entryPointAddress
   }
 
-  private validateUserOp(
-    userOp: Partial<UserOperation>,
-    requiredFields: UserOperationKey[]
-  ): boolean {
+  validateUserOp(userOp: Partial<UserOperation>, requiredFields: UserOperationKey[]): boolean {
     for (const field of requiredFields) {
       if (!userOp[field]) {
         throw new Error(`${field} is missing`)

@@ -8,7 +8,7 @@ import { packUserOp } from '@biconomy/common'
 
 import { IBundler, UserOpResponse } from '@biconomy/bundler'
 import { IPaymaster, PaymasterAndDataResponse } from '@biconomy/paymaster'
-import { EntryPoint_v100, SmartAccount_v100, Logger } from '@biconomy/common'
+import { EntryPoint_v005, SmartAccount_v100, Logger } from '@biconomy/common'
 import { SmartAccountConfig, Overrides } from './utils/Types'
 
 type UserOperationKey = keyof UserOperation
@@ -18,10 +18,10 @@ export abstract class SmartAccount implements ISmartAccount {
   bundler!: IBundler
   paymaster!: IPaymaster
   initCode = '0x'
-  proxy!: SmartAccount_v100
+  proxy!: any
   owner!: string
   provider!: JsonRpcProvider
-  entryPoint!: EntryPoint_v100
+  entryPoint!: EntryPoint_v005
   chainId!: ChainId
   signer!: Signer
   smartAccountConfig: SmartAccountConfig

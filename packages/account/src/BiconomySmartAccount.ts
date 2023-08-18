@@ -40,7 +40,7 @@ import {
 import { Signer } from 'ethers'
 
 export class BiconomySmartAccount extends SmartAccount implements IBiconomySmartAccount {
-  private factory!: SmartAccountFactory_v100
+  private factory!: any
   private nodeClient: INodeClient
   private accountIndex!: number
   private address!: string

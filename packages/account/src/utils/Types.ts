@@ -74,6 +74,10 @@ export type InitilizationData = {
   signerAddress?: string
 }
 
+export type InitializeV2Data = {
+  accountIndex?: number
+}
+
 export interface TransactionDetailsForUserOp {
   target: string
   data: string
