@@ -115,7 +115,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return hexConcat([
       this.factory.address,
       this.factory.interface.encodeFunctionData('deployCounterFactualAccount', [
-        ethers.constants.AddressZero,
+        ethers.constants.AddressZero, // TODO
         ethers.BigNumber.from(this.index)
       ])
     ])

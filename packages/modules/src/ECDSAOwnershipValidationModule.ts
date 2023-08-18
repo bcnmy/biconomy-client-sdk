@@ -2,29 +2,48 @@ import { Logger, getUserOpHash } from '@biconomy/common'
 import { EntryPoint, EntryPoint__factory } from '@account-abstraction/contracts'
 import { Signer, ethers } from 'ethers'
 import { Bytes, BytesLike, hexConcat, arrayify, hexZeroPad, hexlify } from 'ethers/lib/utils'
-import { BaseValidationModuleConfig, ECDSAOwnershipValidationModuleConfig } from './utils/Types'
+import {
+  BaseValidationModuleConfig,
+  ECDSAOwnershipValidationModuleConfig,
+  ModuleVersion
+} from './utils/Types'
 import { UserOperation, ChainId } from '@biconomy/core-types'
-import { DEFAULT_ENTRYPOINT_ADDRESS } from './utils/Constants'
+import {
+  DEFAULT_ENTRYPOINT_ADDRESS,
+  ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION
+} from './utils/Constants'
 import { BaseValidationModule } from './BaseValidationModule'
 
 // Could be renamed with suffix API
 export class ECDSAOwnershipValidationModule extends BaseValidationModule {
-  owner: Signer
+  signer: Signer
   chainId: ChainId
+  moduleAddress!: string
+  version: ModuleVersion = 'V1_0_0'
   // entryPoint!: EntryPoint
 
   constructor(moduleConfig: ECDSAOwnershipValidationModuleConfig) {
     super(moduleConfig)
-    this.owner = moduleConfig.signer
+    if (moduleConfig.moduleAddress) {
+      this.moduleAddress = moduleConfig.moduleAddress
+    } else if (moduleConfig.version) {
+      const moduleAddr = ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION[moduleConfig.version]
+      if (!moduleAddr) {
+        throw new Error(`Invalid version ${moduleConfig.version}`)
+      }
+      this.moduleAddress = moduleAddr
+      this.version = moduleConfig.version as ModuleVersion
+    }
+    this.signer = moduleConfig.signer
     this.chainId = moduleConfig.chainId
   }
 
-  async getAddress(): Promise<string> {
-    return await this.owner.getAddress()
+  getAddress(): string {
+    return this.moduleAddress
   }
 
   async getSigner(): Promise<Signer> {
-    return await Promise.resolve(this.owner)
+    return await Promise.resolve(this.signer)
   }
 
   getDummySignature(): string {
@@ -33,7 +52,7 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
 
   // Note: other modules may need additional attributes to build init data
   async getInitData(): Promise<string> {
-    const ecdsaOwnerAddress = await this.owner.getAddress()
+    const ecdsaOwnerAddress = await this.signer.getAddress()
     const moduleRegistryAbi = 'function initForSmartAccount(address owner)'
     const ecdsaModuleRegistryInterface = new ethers.utils.Interface([moduleRegistryAbi])
     const ecdsaOwnershipInitData = ecdsaModuleRegistryInterface.encodeFunctionData(
@@ -45,10 +64,10 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
 
   async signUserOp(userOp: UserOperation): Promise<string> {
     const userOpHash = getUserOpHash(userOp, this.entryPointAddress, this.chainId)
-    return hexlify(await this.owner.signMessage(arrayify(userOpHash)))
+    return hexlify(await this.signer.signMessage(arrayify(userOpHash)))
   }
 
   async signMessage(message: Bytes | string): Promise<string> {
-    return await this.owner.signMessage(message)
+    return await this.signer.signMessage(message)
   }
 }
