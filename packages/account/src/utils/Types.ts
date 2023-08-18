@@ -6,7 +6,7 @@ import { IPaymaster, PaymasterFeeQuote } from '@biconomy/paymaster'
 import { JsonRpcProvider, Provider } from '@ethersproject/providers'
 import { GasOverheads } from './Preverificaiton'
 
-export type EntrypointAddresses = {
+export type EntryPointAddresses = {
   [address: string]: string
 }
 
@@ -18,15 +18,15 @@ export type BiconomyImplementations = {
   [address: string]: string
 }
 
-export type ENTRY_POINT_ADDRESSES_BY_VERSION = {
+export type EntryPointAddressesByVersion = {
   [version: string]: string
 }
 
-export type BICONOMY_FACTORY_ADDRESSES_BY_VERSION = {
+export type BiconomyFactoriesByVersion = {
   [version: string]: string
 }
 
-export type BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION = {
+export type BiconomyImplementationsByVersion = {
   [version: string]: string
 }
 
