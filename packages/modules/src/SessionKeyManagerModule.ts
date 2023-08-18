@@ -29,7 +29,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
   sessionPubKey?: string // optional global public key
   chainId: ChainId
   moduleAddress!: string
-  DEFAULT_VERSION: ModuleVersion = 'V1_0_0'
+  version: ModuleVersion = 'V1_0_0'
   nodeClient!: INodeClient
   merkleTree!: MerkleTree
   // entryPoint!: EntryPoint
@@ -44,7 +44,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
         throw new Error(`Invalid version ${moduleConfig.version}`)
       }
       this.moduleAddress = moduleAddr
-      this.DEFAULT_VERSION = moduleConfig.version as ModuleVersion
+      this.version = moduleConfig.version as ModuleVersion
     }
     this.sessionSigner = moduleConfig.sessionSigner ?? ethers.Wallet.createRandom()
     this.sessionPubKey = moduleConfig.sessionPubKey

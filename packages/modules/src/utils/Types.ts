@@ -1,10 +1,10 @@
 import { ChainId } from '@biconomy/core-types'
 import { Signer } from 'ethers'
 
-export type ModuleVersion = 'V1_0_0' | 'V1_0_1'
+export type ModuleVersion = 'V1_0_0' // | 'V1_0_1'
 
 export interface BaseValidationModuleConfig {
-  entrypointAddress?: string
+  entryPointAddress?: string
 }
 
 export interface ECDSAOwnershipValidationModuleConfig extends BaseValidationModuleConfig {

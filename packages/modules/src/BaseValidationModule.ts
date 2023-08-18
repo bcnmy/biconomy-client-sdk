@@ -10,9 +10,9 @@ export abstract class BaseValidationModule implements IValidationModule {
   entryPointAddress: string
 
   constructor(moduleConfig: BaseValidationModuleConfig) {
-    const { entrypointAddress } = moduleConfig
+    const { entryPointAddress } = moduleConfig
 
-    this.entryPointAddress = entrypointAddress || DEFAULT_ENTRYPOINT_ADDRESS
+    this.entryPointAddress = entryPointAddress || DEFAULT_ENTRYPOINT_ADDRESS
   }
 
   abstract getAddress(): string
