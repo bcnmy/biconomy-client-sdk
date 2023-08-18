@@ -18,15 +18,15 @@ export type BiconomyImplementations = {
   [address: string]: string
 }
 
-export type EntrypointAddressesByVersion = {
+export type ENTRY_POINT_ADDRESSES_BY_VERSION = {
   [version: string]: string
 }
 
-export type BiconomyFactoriesByVersion = {
+export type BICONOMY_FACTORY_ADDRESSES_BY_VERSION = {
   [version: string]: string
 }
 
-export type BiconomyImplementationsByVersion = {
+export type BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION = {
   [version: string]: string
 }
 
