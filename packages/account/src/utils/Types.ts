@@ -7,7 +7,7 @@ import { BaseValidationModule } from '@biconomy/modules'
 import { JsonRpcProvider, Provider } from '@ethersproject/providers'
 import { GasOverheads } from './Preverificaiton'
 
-export type EntrypointAddresses = {
+export type EntryPointAddresses = {
   [address: string]: string
 }
 
@@ -15,8 +15,20 @@ export type BiconomyFactories = {
   [address: string]: string
 }
 
-export type BiconomyImplementation = {
+export type BiconomyImplementations = {
   [address: string]: string
+}
+
+export type EntryPointAddressesByVersion = {
+  [version: string]: string
+}
+
+export type BiconomyFactoriesByVersion = {
+  [version: string]: string
+}
+
+export type BiconomyImplementationsByVersion = {
+  [version: string]: string
 }
 
 export type SmartAccountConfig = {
