@@ -17,6 +17,9 @@ import { RPC_PROVIDER_URLS } from '@biconomy/common'
 type UserOperationKey = keyof UserOperation
 
 export abstract class BaseSmartAccount implements IBaseSmartAccount {
+  // Review : compare with BaseAccountAPI
+  // private senderAddress!: string
+
   private isDeployed = false
   bundler?: IBundler // httpRpcClient
   paymaster?: IPaymaster // paymasterAPI
@@ -57,7 +60,14 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
       )
     }
 
-    await this.getAccountAddress()
+    // Note: Review
+    // on Init itself since we're already getting account address, mark isDeployed as well!
+
+    if ((await this.provider.getCode(this.getAccountAddress())) === '0x') {
+      this.isDeployed = false
+    } else {
+      this.isDeployed = true
+    }
     return this
   }
 
@@ -309,6 +319,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     return '0x'
   }
 
+  // Review : usage trace of this method. in the order of init and methods called on the Account
   async isAccountDeployed(address: string): Promise<boolean> {
     this.isProviderDefined()
     let contractCode

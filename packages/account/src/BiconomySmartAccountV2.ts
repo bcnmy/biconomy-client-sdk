@@ -4,12 +4,16 @@ import { ethers, BigNumberish, BytesLike, BigNumber } from 'ethers'
 import { BaseSmartAccount } from './BaseSmartAccount'
 import { keccak256, Bytes, arrayify, hexConcat } from 'ethers/lib/utils'
 import { Logger, NODE_CLIENT_URL, RPC_PROVIDER_URLS } from '@biconomy/common'
+
+// Review failure reason for import from '@biconomy-devx/account-contracts-v2/typechain'
+
 import {
-  SmartAccount,
-  SmartAccountFactory,
-  SmartAccount__factory,
-  SmartAccountFactory__factory
-} from '@biconomy-devx/account-contracts-v2/typechain'
+  SmartAccount_v200,
+  SmartAccountFactory_v200,
+  SmartAccount_v200__factory,
+  SmartAccountFactory_v200__factory
+} from '@biconomy/common'
+
 import {
   BiconomySmartAccountConfig,
   Overrides,
@@ -34,6 +38,7 @@ import {
   SCWTransactionResponse
 } from '@biconomy/node-client'
 import { UserOpResponse } from '@biconomy/bundler'
+import { DEFAULT_BICONOMY_FACTORY_ADDRESS } from './utils/Constants'
 
 type UserOperationKey = keyof UserOperation
 export class BiconomySmartAccountV2 extends BaseSmartAccount {
@@ -48,18 +53,20 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
    * our account contract.
    * should support the "execFromEntryPoint" and "nonce" methods
    */
-  accountContract?: SmartAccount
+  accountContract?: SmartAccount_v200
 
   // TODO: both should be V2
 
-  factory?: SmartAccountFactory
+  factory?: SmartAccountFactory_v200
 
   defaultValidationModule: BaseValidationModule
   activeValidationModule: BaseValidationModule
 
   constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountV2Config) {
     super(biconomySmartAccountConfig)
-    this.factoryAddress = biconomySmartAccountConfig.factoryAddress
+    // Review: if it's really needed to supply factory address
+    this.factoryAddress =
+      biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS // This would be fetched from V2
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule!
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -74,9 +81,9 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     this.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL })
   }
 
-  async _getAccountContract(): Promise<SmartAccount> {
+  async _getAccountContract(): Promise<SmartAccount_v200> {
     if (this.accountContract == null) {
-      this.accountContract = SmartAccount__factory.connect(
+      this.accountContract = SmartAccount_v200__factory.connect(
         await this.getAccountAddress(),
         this.provider
       )
@@ -136,6 +143,33 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return BigNumber.from(0)
   }
 
+  // Review
+  // Overridden this method because entryPoint.callStatic.getSenderAddress() based on initCode doesnt always work 
+  // in case of account is deployed you would get AA13 or AA10 
+
+  /**
+   * calculate the account address even before it is deployed
+   */
+  async getCounterFactualAddress(): Promise<string> {
+    // use Factory method instead
+
+    if (this.factory == null) {
+      if (this.factoryAddress != null && this.factoryAddress !== '') {
+        this.factory = SmartAccountFactory_v200__factory.connect(this.factoryAddress, this.provider)
+      } else {
+        throw new Error('no factory to get initCode')
+      }
+    }
+
+    const counterFactualAddress = await this.factory.getAddressForCounterFactualAccount(
+      await this.defaultValidationModule.getAddress(),
+      await this.defaultValidationModule.getInitData(),
+      this.index
+    )
+
+    return counterFactualAddress
+  }
+
   /**
    * return the value to put into the "initCode" field, if the account is not yet deployed.
    * this value holds the "factory" address, followed by this account's information
@@ -143,7 +177,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   async getAccountInitCode(): Promise<string> {
     if (this.factory == null) {
       if (this.factoryAddress != null && this.factoryAddress !== '') {
-        this.factory = SmartAccountFactory__factory.connect(this.factoryAddress, this.provider)
+        this.factory = SmartAccountFactory_v200__factory.connect(this.factoryAddress, this.provider)
       } else {
         throw new Error('no factory to get initCode')
       }
@@ -155,6 +189,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       this.index
     )
 
+    // TODO: interface should work.
     return hexConcat([
       this.factory.address,
       populatedTransaction.data as string
@@ -285,16 +320,16 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       // Not throwing this error as nonce would be 0 if this.getNonce() throw exception, which is expected flow for undeployed account
     }
 
-    // let isDeployed = true
+    // let isDeployed = false
 
-    if (nonce.eq(0)) {
-      // isDeployed = await this.isAccountDeployed(this.accountAddress)
-    }
+    /*if (nonce.eq(0) && this.accountAddress) {
+      isDeployed = await this.isAccountDeployed(this.accountAddress)
+    }*/
 
     let userOp: Partial<UserOperation> = {
       sender: this.accountAddress,
       nonce,
-      initCode: await this.getAccountInitCode(),
+      initCode: await this.getInitCode(),
       callData: callData
     }
 
