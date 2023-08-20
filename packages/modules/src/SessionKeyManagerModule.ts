@@ -1,139 +1,167 @@
-import { Signer, ethers } from 'ethers'
+import { Signer, ethers, BytesLike, Bytes } from 'ethers'
 import MerkleTree from 'merkletreejs'
-import { Logger, getUserOpHash, NODE_CLIENT_URL } from '@biconomy/common'
-import { EntryPoint, EntryPoint__factory } from '@account-abstraction/contracts'
-import {
-  Bytes,
-  BytesLike,
-  hexConcat,
-  arrayify,
-  keccak256,
-  hexZeroPad,
-  hexlify
-} from 'ethers/lib/utils'
-import {
-  BaseValidationModuleConfig,
-  SessionKeyManagerModuleConfig,
-  ModuleVersion
-} from './utils/Types'
+import { getUserOpHash, NODE_CLIENT_URL } from '@biconomy/common'
+import { hexConcat, arrayify, keccak256, hexZeroPad, defaultAbiCoder } from 'ethers/lib/utils'
+import { SessionKeyManagerModuleConfig, ModuleVersion, CreateSessionData } from './utils/Types'
 import { UserOperation, ChainId } from '@biconomy/core-types'
 import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
 import { SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION } from './utils/Constants'
 import { BaseValidationModule } from './BaseValidationModule'
 
-// Could be renamed with suffix API
 export class SessionKeyManagerModule extends BaseValidationModule {
-  // Review
-  sessionSigner!: Signer // optional global signer
-  sessionPubKey?: string // optional global public key
-  chainId: ChainId
-  moduleAddress!: string
+  chainId!: ChainId
   version: ModuleVersion = 'V1_0_0'
+  moduleAddress!: string
   nodeClient!: INodeClient
   merkleTree!: MerkleTree
-  // entryPoint!: EntryPoint
 
-  constructor(moduleConfig: SessionKeyManagerModuleConfig) {
+  /**
+   * This constructor is private. Use the static create method to instantiate SessionKeyManagerModule
+   * @param moduleConfig The configuration for the module
+   * @returns An instance of SessionKeyManagerModule
+   */
+  private constructor(moduleConfig: SessionKeyManagerModuleConfig) {
     super(moduleConfig)
+  }
+
+  /**
+   * Asynchronously creates and initializes an instance of SessionKeyManagerModule
+   * @param moduleConfig The configuration for the module
+   * @returns A Promise that resolves to an instance of SessionKeyManagerModule
+   */
+  public static async create(
+    moduleConfig: SessionKeyManagerModuleConfig
+  ): Promise<SessionKeyManagerModule> {
+    const instance = new SessionKeyManagerModule(moduleConfig)
+
     if (moduleConfig.moduleAddress) {
-      this.moduleAddress = moduleConfig.moduleAddress
+      instance.moduleAddress = moduleConfig.moduleAddress
     } else if (moduleConfig.version) {
       const moduleAddr = SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION[moduleConfig.version]
       if (!moduleAddr) {
         throw new Error(`Invalid version ${moduleConfig.version}`)
       }
-      this.moduleAddress = moduleAddr
-      this.version = moduleConfig.version as ModuleVersion
+      instance.moduleAddress = moduleAddr
+      instance.version = moduleConfig.version as ModuleVersion
     }
-    this.sessionSigner = moduleConfig.sessionSigner ?? ethers.Wallet.createRandom()
-    this.sessionPubKey = moduleConfig.sessionPubKey
-    this.chainId = moduleConfig.chainId
-    // this.entryPoint = ... // May not be needed at all
-    this.nodeClient = new NodeClient({
+    instance.chainId = moduleConfig.chainId
+    instance.nodeClient = new NodeClient({
       txServiceUrl: moduleConfig.nodeClientUrl ?? NODE_CLIENT_URL
     })
-    this.merkleTree = new MerkleTree([hexZeroPad('0x00', 32)], keccak256, { hashLeaves: false })
-  }
-
-  // Session Key Manager Module Address
-  getAddress(): string {
-    return this.moduleAddress
-  }
-
-  async getSigner(): Promise<Signer> {
-    throw new Error('Method not implemented.')
-  }
-
-  // TODO
-  getDummySignature(): string {
-    return '0x0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000d9cf3caaa21db25f16ad6db43eb9932ab77c8e76000000000000000000000000000000000000000000000000000000000000004181d4b4981670cb18f99f0b4a66446df1bf5b204d24cfcb659bf38ba27a4359b5711649ec2423c5e1247245eba2964679b6a1dbb85c992ae40b9b00c6935b02ff1b00000000000000000000000000000000000000000000000000000000000000'
-  }
-
-  // Note: other modules may need additional attributes to build init data
-  async getInitData(): Promise<string> {
-    throw new Error('Method not implemented.')
-  }
-
-  async createSession(): Promise<string> {
-    const sessionKeyModuleAbi = 'function setMerkleRoot(bytes32 _merkleRoot)'
-    const sessionKeyModuleInterface = new ethers.utils.Interface([sessionKeyModuleAbi])
-    const setMerkleRootData = sessionKeyModuleInterface.encodeFunctionData('setMerkleRoot', [
-      await this.getMerkleProof()
-    ])
-    return setMerkleRootData
-  }
-
-  async signUserOp(userOp: UserOperation): Promise<string> {
-    const userOpHash = getUserOpHash(userOp, this.entryPointAddress, this.chainId)
-    //
-    const signature = await this.sessionSigner.signMessage(arrayify(userOpHash))
-    // add validator module address to the signature
-
-    // Review // Should be done on account side
-    const signatureWithModuleAddress = ethers.utils.defaultAbiCoder.encode(
-      ['bytes', 'address'],
-      [signature, this.getAddress()]
-    )
-    userOp.signature = signatureWithModuleAddress
-    // TODO: return userOp or signatureWithModuleAddress?
-    return signatureWithModuleAddress
-  }
-
-  async signMessage(message: Bytes | string): Promise<string> {
-    return await this.sessionSigner.signMessage(message)
-  }
-
-  async getMerkleProof(): Promise<string> {
-    // TODO: use nodeclient / local storage to get merkle proof
-
-    // const merkleProofData = await this.nodeClient.getMerkleProof(
-    //   this.sessionKeyModule,
-    //   this.sessionKey.getAddress()
-    // )
-    // console.log(merkleProofData)
-
-    const merkleProofData: any[] = []
-
-    const merkleTreeInstance = new MerkleTree(merkleProofData, keccak256, {
+    // TODO: use the SessionStorage to get existing session data
+    // const existingSessionData = await getAllSessionData()
+    const existingSessionData: BytesLike[] = []
+    instance.merkleTree = new MerkleTree(existingSessionData, keccak256, {
       sortPairs: false,
       hashLeaves: false
     })
 
-    const validUntil = 0
-    const validAfter = 0
-    const sessionEOA = await this.sessionSigner.getAddress()
-    const sessionKeyData = hexZeroPad(sessionEOA, 20)
-    const newLeafData = hexConcat([
-      hexZeroPad(ethers.utils.hexlify(validUntil), 6),
-      hexZeroPad(ethers.utils.hexlify(validAfter), 6),
-      hexZeroPad(this.getAddress(), 20), // TODO // actually session validation module address
-      sessionKeyData
+    return instance
+  }
+
+  /**
+   * Method to create session data for any module. The session data is used to create a leaf in the merkle tree
+   * @param leafData The data to be used to create session data
+   * @returns The session data
+   */
+  createSessionData = async (leafData: CreateSessionData): Promise<string> => {
+    const sessionKeyModuleAbi = 'function setMerkleRoot(bytes32 _merkleRoot)'
+    const sessionKeyModuleInterface = new ethers.utils.Interface([sessionKeyModuleAbi])
+    const leafDataHex = hexConcat([
+      hexZeroPad(ethers.utils.hexlify(leafData.validUntil), 6),
+      hexZeroPad(ethers.utils.hexlify(leafData.validAfter), 6),
+      hexZeroPad(leafData.sessionValidationModule, 20),
+      leafData.sessionKeyData
     ])
+    const merkleTreeInstance = this.merkleTree
+    merkleTreeInstance.addLeaves([Buffer.from(keccak256(leafDataHex))])
+    const setMerkleRootData = sessionKeyModuleInterface.encodeFunctionData('setMerkleRoot', [
+      merkleTreeInstance.getHexRoot()
+    ])
+    // TODO: update the this.merkleTree?
+    // TODO: add the leafData to the SessionStorage
+    // leafData.sessionID = 'abc'
+    // leafData.status = 'PENDING'
+    // await addSessionData(leafData)
+    return setMerkleRootData
+  }
 
-    // Todo: verify addLeaves expects buffer
-    merkleTreeInstance.addLeaves([Buffer.from(keccak256(newLeafData))])
+  /**
+   * This method is used to sign the user operation using the session signer
+   * @param userOp The user operation to be signed
+   * @param sessionSigner The signer to be used to sign the user operation
+   * @returns The signature of the user operation
+   */
+  async signUserOp(userOp: UserOperation, sessionSigner: Signer): Promise<string> {
+    if (!sessionSigner) {
+      throw new Error('Session signer is not provided.')
+    }
+    // Use the sessionSigner to sign the user operation
+    const userOpHash = getUserOpHash(userOp, this.entryPointAddress, this.chainId)
+    const signature = await sessionSigner.signMessage(arrayify(userOpHash))
 
-    return merkleTreeInstance.getHexRoot()
+    // TODO: Find the leaf index of the provided signer
+    // const sessionSignerData = await getSignerByKey()
+    const sessionSignerData = {
+      validUntil: 0,
+      validAfter: 0,
+      sessionValidationModule: '',
+      sessionKeyData: ''
+    }
+
+    // Generate the padded signature with
+    // (validUntil, validAfter, sessionVerificationModuleAddress, validationData, merkleProof, signature)
+    const paddedSignature = defaultAbiCoder.encode(
+      ['uint48', 'uint48', 'address', 'bytes', 'bytes32[]', 'bytes'],
+      [
+        sessionSignerData.validUntil,
+        sessionSignerData.validAfter,
+        sessionSignerData.sessionValidationModule,
+        sessionSignerData.sessionKeyData,
+        this.merkleTree.getHexRoot(),
+        signature
+      ]
+    )
+
+    // Generate the encoded data with paddedSignature and sessionKeyManagerModuleAddress
+    const signatureWithModuleAddress = ethers.utils.defaultAbiCoder.encode(
+      ['bytes', 'address'],
+      [paddedSignature, this.getAddress()]
+    )
+    return signatureWithModuleAddress
+  }
+
+  /**
+   * @returns SessionKeyManagerModule address
+   */
+  getAddress(): string {
+    return this.moduleAddress
+  }
+
+  /**
+   * @remarks This is the version of the module contract
+   */
+  async getSigner(): Promise<Signer> {
+    throw new Error('Method not implemented.')
+  }
+
+  // TODO: why this is needed?
+  getDummySignature(): string {
+    return '0x0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000d9cf3caaa21db25f16ad6db43eb9932ab77c8e76000000000000000000000000000000000000000000000000000000000000004181d4b4981670cb18f99f0b4a66446df1bf5b204d24cfcb659bf38ba27a4359b5711649ec2423c5e1247245eba2964679b6a1dbb85c992ae40b9b00c6935b02ff1b00000000000000000000000000000000000000000000000000000000000000'
+  }
+
+  /**
+   * @remarks Other modules may need additional attributes to build init data
+   */
+  async getInitData(): Promise<string> {
+    throw new Error('Method not implemented.')
+  }
+
+  /**
+   * @remarks This Module dont have knowledge of signer. So, this method is not implemented
+   */
+  async signMessage(message: Bytes | string): Promise<string> {
+    throw new Error('Method not implemented.')
   }
 }

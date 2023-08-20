@@ -23,6 +23,14 @@ export interface SessionKeyManagerModuleConfig extends BaseValidationModuleConfi
   chainId: ChainId
 }
 
+export interface CreateSessionData {
+  validUntil: number
+  validAfter: number
+  sessionValidationModule: string
+  sessionPublicKey?: string // TODO: verify (not needed)
+  sessionKeyData: string
+}
+
 export interface MultiChainValidationModuleConfig extends BaseValidationModuleConfig {
   moduleAddress?: string
   version?: ModuleVersion
