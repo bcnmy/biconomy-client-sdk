@@ -32,5 +32,5 @@ export interface MultiChainValidationModuleConfig extends BaseValidationModuleCo
 
 export type MultiChainUserOpDto = {
   chainId: ChainId
-  userOp: UserOperation
+  userOp: Partial<UserOperation>
 }

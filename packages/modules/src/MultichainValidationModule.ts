@@ -77,7 +77,7 @@ export class MultiChainValidationModule extends ECDSAOwnershipValidationModule {
 
       // Update userOp with the final signature
       const updatedUserOp: UserOperation = {
-        ...multiChainUserOps[i].userOp,
+        ...(multiChainUserOps[i].userOp as UserOperation),
         signature: signatureWithModuleAddress
       }
 
