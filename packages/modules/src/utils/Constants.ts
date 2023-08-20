@@ -27,6 +27,12 @@ export const SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION = {
   // and so on
 }
 
+export const MULTICHAIN_VALIDATION_MODULE_ADDRESSES_BY_VERSION = {
+  V1_0_0: '0xCCCC01Bef3F9a28814b88aC36a819e96eec47E15'
+  // 'V1_0_1' : '0xd9cf3caaa21db25f16ad6db43eb9932ab77c8e76'
+  // and so on
+}
+
 export const DEFAULT_SESSION_KEY_MODULE = '0x0000000000000000000000000000000000000000'
 
 // similarly others here or in module / signer classes
