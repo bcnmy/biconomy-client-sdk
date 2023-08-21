@@ -59,7 +59,7 @@ export class MultiChainValidationModule extends ECDSAOwnershipValidationModule {
         )
       ])
 
-      leaves.push(leaf)
+      leaves.push(keccak256(leaf))
     }
 
     // Create a new Merkle tree using the leaves array
@@ -70,8 +70,12 @@ export class MultiChainValidationModule extends ECDSAOwnershipValidationModule {
     // Create an array to store updated userOps
     const updatedUserOps: UserOperation[] = []
 
+    Logger.log('merkle root ', merkleTree.getHexRoot())
+
     for (let i = 0; i < leaves.length; i++) {
       const merkleProof = merkleTree.getHexProof(leaves[i])
+
+      Logger.log('merkle proof ', merkleProof)
 
       // Create the moduleSignature
       const moduleSignature = defaultAbiCoder.encode(
