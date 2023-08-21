@@ -21,13 +21,14 @@ export interface SessionKeyManagerModuleConfig extends BaseValidationModuleConfi
   sessionPubKey: string
   nodeClientUrl?: string
   chainId: ChainId
+  smartAccountAddress: string
 }
 
-export interface CreateSessionData {
+export interface CreateSessionDataParams {
   validUntil: number
   validAfter: number
   sessionValidationModule: string
-  sessionPublicKey?: string // TODO: verify (not needed)
+  sessionPublicKey: string
   sessionKeyData: string
 }
 

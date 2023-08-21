@@ -1,13 +1,20 @@
-import { Signer, ethers, BytesLike, Bytes } from 'ethers'
+import { Signer, ethers, Bytes } from 'ethers'
 import MerkleTree from 'merkletreejs'
 import { getUserOpHash, NODE_CLIENT_URL } from '@biconomy/common'
 import { hexConcat, arrayify, keccak256, hexZeroPad, defaultAbiCoder } from 'ethers/lib/utils'
-import { SessionKeyManagerModuleConfig, ModuleVersion, CreateSessionData } from './utils/Types'
+import {
+  SessionKeyManagerModuleConfig,
+  ModuleVersion,
+  CreateSessionDataParams
+} from './utils/Types'
 import { UserOperation, ChainId } from '@biconomy/core-types'
 import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
 import { SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION } from './utils/Constants'
 import { BaseValidationModule } from './BaseValidationModule'
+import { SessionLocalStorage } from 'session-storage/SessionLocalStorage'
+import { SessionSearchParam, SessionStatus } from 'interfaces/ISessionStorage'
+import { generateRandomHex } from 'utils/UID'
 
 export class SessionKeyManagerModule extends BaseValidationModule {
   chainId!: ChainId
@@ -15,6 +22,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
   moduleAddress!: string
   nodeClient!: INodeClient
   merkleTree!: MerkleTree
+  sessionStorageClient!: SessionLocalStorage
 
   /**
    * This constructor is private. Use the static create method to instantiate SessionKeyManagerModule
@@ -49,10 +57,21 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     instance.nodeClient = new NodeClient({
       txServiceUrl: moduleConfig.nodeClientUrl ?? NODE_CLIENT_URL
     })
-    // TODO: use the SessionStorage to get existing session data
-    // const existingSessionData = await getAllSessionData()
-    const existingSessionData: BytesLike[] = []
-    instance.merkleTree = new MerkleTree(existingSessionData, keccak256, {
+
+    instance.sessionStorageClient = new SessionLocalStorage(moduleConfig.smartAccountAddress)
+
+    const existingSessionData = await instance.sessionStorageClient.getAllSessionData()
+    const existingSessionDataLeafs = existingSessionData.map((sessionData) => {
+      const leafDataHex = hexConcat([
+        hexZeroPad(ethers.utils.hexlify(sessionData.validUntil), 6),
+        hexZeroPad(ethers.utils.hexlify(sessionData.validAfter), 6),
+        hexZeroPad(sessionData.sessionValidationModule, 20),
+        sessionData.sessionKeyData
+      ])
+      return Buffer.from(keccak256(leafDataHex))
+    })
+
+    instance.merkleTree = new MerkleTree(existingSessionDataLeafs, keccak256, {
       sortPairs: false,
       hashLeaves: false
     })
@@ -65,7 +84,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @param leafData The data to be used to create session data
    * @returns The session data
    */
-  createSessionData = async (leafData: CreateSessionData): Promise<string> => {
+  createSessionData = async (leafData: CreateSessionDataParams): Promise<string> => {
     const sessionKeyModuleAbi = 'function setMerkleRoot(bytes32 _merkleRoot)'
     const sessionKeyModuleInterface = new ethers.utils.Interface([sessionKeyModuleAbi])
     const leafDataHex = hexConcat([
@@ -74,16 +93,17 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       hexZeroPad(leafData.sessionValidationModule, 20),
       leafData.sessionKeyData
     ])
-    const merkleTreeInstance = this.merkleTree
-    merkleTreeInstance.addLeaves([Buffer.from(keccak256(leafDataHex))])
+    this.merkleTree.addLeaves([Buffer.from(keccak256(leafDataHex))])
     const setMerkleRootData = sessionKeyModuleInterface.encodeFunctionData('setMerkleRoot', [
-      merkleTreeInstance.getHexRoot()
+      this.merkleTree.getHexRoot()
     ])
-    // TODO: update the this.merkleTree?
-    // TODO: add the leafData to the SessionStorage
-    // leafData.sessionID = 'abc'
-    // leafData.status = 'PENDING'
-    // await addSessionData(leafData)
+    const sessionLeafNode = {
+      ...leafData,
+      sessionID: generateRandomHex(),
+      status: 'PENDING' as SessionStatus
+    }
+
+    await this.sessionStorageClient.addSessionData(sessionLeafNode)
     return setMerkleRootData
   }
 
@@ -101,14 +121,9 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     const userOpHash = getUserOpHash(userOp, this.entryPointAddress, this.chainId)
     const signature = await sessionSigner.signMessage(arrayify(userOpHash))
 
-    // TODO: Find the leaf index of the provided signer
-    // const sessionSignerData = await getSignerByKey()
-    const sessionSignerData = {
-      validUntil: 0,
-      validAfter: 0,
-      sessionValidationModule: '',
-      sessionKeyData: ''
-    }
+    const sessionSignerData = await this.sessionStorageClient.getSessionData({
+      sessionPublicKey: await sessionSigner.getAddress()
+    })
 
     // Generate the padded signature with
     // (validUntil, validAfter, sessionVerificationModuleAddress, validationData, merkleProof, signature)
@@ -130,6 +145,16 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       [paddedSignature, this.getAddress()]
     )
     return signatureWithModuleAddress
+  }
+
+  /**
+   * Update the session data pending state to active
+   * @param param The search param to find the session data
+   * @param status The status to be updated
+   * @returns
+   */
+  async updateSessionStatus(param: SessionSearchParam, status: SessionStatus) {
+    this.sessionStorageClient.updateSessionStatus(param, status)
   }
 
   /**
