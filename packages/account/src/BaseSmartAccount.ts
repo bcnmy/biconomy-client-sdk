@@ -394,6 +394,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
    * return the account's address.
    * this value is valid even before deploying the contract.
    */
+  // Review: Probably should accept index as well as we rely on factory!
   async getAccountAddress(): Promise<string> {
     if (this.accountAddress == null) {
       // means it needs deployment

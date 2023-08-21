@@ -4,7 +4,7 @@ import { ethers } from 'ethers'
 import MerkleTree from 'merkletreejs'
 import { ECDSAOwnershipValidationModule } from './ECDSAOwnershipValidationModule'
 import { MULTICHAIN_VALIDATION_MODULE_ADDRESSES_BY_VERSION } from './utils/Constants'
-import { keccak256, arrayify, defaultAbiCoder } from 'ethers/lib/utils'
+import { keccak256, arrayify, defaultAbiCoder, hexConcat, hexZeroPad } from 'ethers/lib/utils'
 import {
   ECDSAOwnershipValidationModuleConfig,
   ModuleVersion,
@@ -42,14 +42,24 @@ export class MultiChainValidationModule extends ECDSAOwnershipValidationModule {
   async signUserOps(multiChainUserOps: MultiChainUserOpDto[]): Promise<UserOperation[]> {
     const leaves: string[] = []
 
+    // TODO
+    const validUntil = 0 // unlimited
+    const validAfter = 0
+
+    // TODO // error handling
+
     // Iterate over each userOp and process them
     for (const multiChainOp of multiChainUserOps) {
-      const userOpHash = getUserOpHash(
-        multiChainOp.userOp,
-        this.entryPointAddress,
-        multiChainOp.chainId
-      )
-      leaves.push(userOpHash)
+      const leaf = hexConcat([
+        hexZeroPad(ethers.utils.hexlify(validUntil), 6),
+        hexZeroPad(ethers.utils.hexlify(validAfter), 6),
+        hexZeroPad(
+          getUserOpHash(multiChainOp.userOp, this.entryPointAddress, multiChainOp.chainId),
+          32
+        )
+      ])
+
+      leaves.push(leaf)
     }
 
     // Create a new Merkle tree using the leaves array
@@ -65,8 +75,8 @@ export class MultiChainValidationModule extends ECDSAOwnershipValidationModule {
 
       // Create the moduleSignature
       const moduleSignature = defaultAbiCoder.encode(
-        ['bytes32', 'bytes32[]', 'bytes'],
-        [merkleTree.getHexRoot(), merkleProof, multichainSignature]
+        ['uint48', 'uint48', 'bytes32', 'bytes32[]', 'bytes'],
+        [validUntil, validAfter, merkleTree.getHexRoot(), merkleProof, multichainSignature]
       )
 
       // add validation module address to the signature
