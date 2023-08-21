@@ -7,14 +7,14 @@ export type SessionLeafNode = {
   validAfter: number
   sessionValidationModule: string
   sessionKeyData: string
-  signerPublicKey: string
-  sessionID: string
+  sessionPublicKey: string
+  sessionID?: string
   status: SessionStatus
 }
 
 export type SessionSearchParam = {
   sessionID?: string
-  signerPublicKey?: string
+  sessionPublicKey?: string
   sessionValidationModule?: string
   status?: SessionStatus
 }
