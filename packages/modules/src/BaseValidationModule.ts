@@ -1,6 +1,6 @@
 import { Signer } from 'ethers'
 import { Bytes } from 'ethers/lib/utils'
-import { BaseValidationModuleConfig } from './utils/Types'
+import { BaseValidationModuleConfig, SessionParams } from './utils/Types'
 import { UserOperation } from '@biconomy/core-types'
 import { DEFAULT_ENTRYPOINT_ADDRESS } from './utils/Constants'
 import { IValidationModule } from './interfaces/IValidationModule'
@@ -27,7 +27,7 @@ export abstract class BaseValidationModule implements IValidationModule {
   // Review naming convention for getter
   abstract getSigner(): Promise<Signer>
 
-  abstract signUserOp(userOperation: UserOperation, signer?: Signer): Promise<string>
+  abstract signUserOp(userOperation: UserOperation, params?: SessionParams): Promise<string>
 
   abstract signMessage(message: Bytes | string): Promise<string>
 }
