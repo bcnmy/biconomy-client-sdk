@@ -41,63 +41,67 @@ export class MultiChainValidationModule extends ECDSAOwnershipValidationModule {
   }
 
   async signUserOps(multiChainUserOps: MultiChainUserOpDto[]): Promise<UserOperation[]> {
-    const leaves: string[] = []
+    try {
+      const leaves: string[] = []
 
-    // TODO
-    const validUntil = 0 // unlimited
-    const validAfter = 0
+      // Iterate over each userOp and process them
+      for (const multiChainOp of multiChainUserOps) {
+        const validUntil = multiChainOp.validUntil ?? 0
+        const validAfter = multiChainOp.validAfter ?? 0
+        const leaf = hexConcat([
+          hexZeroPad(ethers.utils.hexlify(validUntil), 6),
+          hexZeroPad(ethers.utils.hexlify(validAfter), 6),
+          hexZeroPad(
+            getUserOpHash(multiChainOp.userOp, this.entryPointAddress, multiChainOp.chainId),
+            32
+          )
+        ])
 
-    // TODO // error handling
-
-    // Iterate over each userOp and process them
-    for (const multiChainOp of multiChainUserOps) {
-      const leaf = hexConcat([
-        hexZeroPad(ethers.utils.hexlify(validUntil), 6),
-        hexZeroPad(ethers.utils.hexlify(validAfter), 6),
-        hexZeroPad(
-          getUserOpHash(multiChainOp.userOp, this.entryPointAddress, multiChainOp.chainId),
-          32
-        )
-      ])
-
-      leaves.push(keccak256(leaf))
-    }
-
-    // Create a new Merkle tree using the leaves array
-    const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true })
-
-    const multichainSignature = await this.signer.signMessage(arrayify(merkleTree.getHexRoot()))
-
-    // Create an array to store updated userOps
-    const updatedUserOps: UserOperation[] = []
-
-    Logger.log('merkle root ', merkleTree.getHexRoot())
-
-    for (let i = 0; i < leaves.length; i++) {
-      const merkleProof = merkleTree.getHexProof(leaves[i])
-
-      Logger.log('merkle proof ', merkleProof)
-
-      // Create the moduleSignature
-      const moduleSignature = defaultAbiCoder.encode(
-        ['uint48', 'uint48', 'bytes32', 'bytes32[]', 'bytes'],
-        [validUntil, validAfter, merkleTree.getHexRoot(), merkleProof, multichainSignature]
-      )
-
-      // add validation module address to the signature
-      const signatureWithModuleAddress = defaultAbiCoder.encode(
-        ['bytes', 'address'],
-        [moduleSignature, this.getAddress()]
-      )
-
-      // Update userOp with the final signature
-      const updatedUserOp: UserOperation = {
-        ...(multiChainUserOps[i].userOp as UserOperation),
-        signature: signatureWithModuleAddress
+        leaves.push(keccak256(leaf))
       }
 
-      updatedUserOps.push(updatedUserOp)
+      // Create a new Merkle tree using the leaves array
+      const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true })
+
+      const multichainSignature = await this.signer.signMessage(arrayify(merkleTree.getHexRoot()))
+
+      // Create an array to store updated userOps
+      const updatedUserOps: UserOperation[] = []
+
+      Logger.log('merkle root ', merkleTree.getHexRoot())
+
+      for (let i = 0; i < leaves.length; i++) {
+        const merkleProof = merkleTree.getHexProof(leaves[i])
+
+        Logger.log('merkle proof ', merkleProof)
+
+        const validUntil = multiChainUserOps[i].validUntil ?? 0
+        const validAfter = multiChainUserOps[i].validAfter ?? 0
+
+        // Create the moduleSignature
+        const moduleSignature = defaultAbiCoder.encode(
+          ['uint48', 'uint48', 'bytes32', 'bytes32[]', 'bytes'],
+          [validUntil, validAfter, merkleTree.getHexRoot(), merkleProof, multichainSignature]
+        )
+
+        // add validation module address to the signature
+        const signatureWithModuleAddress = defaultAbiCoder.encode(
+          ['bytes', 'address'],
+          [moduleSignature, this.getAddress()]
+        )
+
+        // Update userOp with the final signature
+        const updatedUserOp: UserOperation = {
+          ...(multiChainUserOps[i].userOp as UserOperation),
+          signature: signatureWithModuleAddress
+        }
+
+        updatedUserOps.push(updatedUserOp)
+      }
+      return updatedUserOps
+    } catch (error) {
+      Logger.error('Error in signing multi chain userops', error)
+      throw new Error(JSON.stringify(error))
     }
-    return updatedUserOps
   }
 }
