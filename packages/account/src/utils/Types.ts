@@ -3,6 +3,7 @@ import { ChainId } from '@biconomy/core-types'
 import { BigNumberish } from 'ethers'
 import { IBundler } from '@biconomy/bundler'
 import { IPaymaster, PaymasterFeeQuote } from '@biconomy/paymaster'
+import { BaseValidationModule } from '@biconomy/modules'
 import { JsonRpcProvider, Provider } from '@ethersproject/providers'
 import { GasOverheads } from './Preverificaiton'
 
@@ -38,7 +39,7 @@ export type SmartAccountConfig = {
 export interface BaseSmartAccountConfig {
   // owner?: Signer // can be in child classes
   index?: number
-  provider: Provider
+  provider?: Provider
   entryPointAddress: string
   accountAddress?: string
   overheads?: Partial<GasOverheads>
@@ -67,8 +68,8 @@ export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
   factoryAddress?: string
   rpcUrl?: string // as good as Provider
   nodeClientUrl?: string // very specific to Biconomy
-  defaultValidationModule?: any // for now // BaseValidationModule
-  activeValidationModule?: any // for now // BaseValidationModule
+  defaultValidationModule: BaseValidationModule
+  activeValidationModule: BaseValidationModule
 }
 
 export type Overrides = {
@@ -86,6 +87,10 @@ export type InitilizationData = {
   signerAddress?: string
 }
 
+export type InitializeV2Data = {
+  accountIndex?: number
+}
+
 export interface TransactionDetailsForUserOp {
   target: string
   data: string
@@ -94,4 +99,9 @@ export interface TransactionDetailsForUserOp {
   maxFeePerGas?: BigNumberish
   maxPriorityFeePerGas?: BigNumberish
   nonce?: BigNumberish
+}
+
+export type CounterFactualAddressParam = {
+  index?: number
+  validationModule?: BaseValidationModule
 }

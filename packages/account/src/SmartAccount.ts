@@ -8,7 +8,8 @@ import { packUserOp } from '@biconomy/common'
 
 import { IBundler, UserOpResponse } from '@biconomy/bundler'
 import { IPaymaster, PaymasterAndDataResponse } from '@biconomy/paymaster'
-import { EntryPoint_v100, SmartAccount_v100, Logger } from '@biconomy/common'
+import { Logger } from '@biconomy/common'
+import { IEntryPoint } from '@account-abstraction/contracts'
 import { SmartAccountConfig, Overrides } from './utils/Types'
 
 type UserOperationKey = keyof UserOperation
@@ -18,10 +19,11 @@ export abstract class SmartAccount implements ISmartAccount {
   bundler!: IBundler
   paymaster!: IPaymaster
   initCode = '0x'
-  proxy!: SmartAccount_v100
+  // Ideally proxy should be defined in child class, if it's meant to be of type Biconomy SmartAccount
+  proxy!: any
   owner!: string
   provider!: JsonRpcProvider
-  entryPoint!: EntryPoint_v100
+  entryPoint!: IEntryPoint
   chainId!: ChainId
   signer!: Signer
   smartAccountConfig: SmartAccountConfig

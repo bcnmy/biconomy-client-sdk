@@ -163,7 +163,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       contractAddress: _factoryAddress,
       provider: this.provider
     }
-    this.factory = getSAFactoryContract(factoryInstanceDto)
+    this.factory = getSAFactoryContract(factoryInstanceDto) as SmartAccountFactory_v100
   }
 
   private async setContractsState() {

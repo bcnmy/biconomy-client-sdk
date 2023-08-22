@@ -7,7 +7,7 @@ import { calcPreVerificationGas, DefaultGasLimits } from './utils/Preverificaito
 import { NotPromise, packUserOp } from '@biconomy/common'
 import { IBundler, UserOpResponse } from '@biconomy/bundler'
 import { IPaymaster, PaymasterAndDataResponse } from '@biconomy/paymaster'
-import { EntryPoint_v100, Logger } from '@biconomy/common'
+import { EntryPoint_v005, Logger } from '@biconomy/common'
 import { BaseSmartAccountConfig, Overrides, TransactionDetailsForUserOp } from './utils/Types'
 import { GasOverheads } from './utils/Preverificaiton'
 import { EntryPoint, EntryPoint__factory } from '@account-abstraction/contracts'
@@ -17,6 +17,9 @@ import { RPC_PROVIDER_URLS } from '@biconomy/common'
 type UserOperationKey = keyof UserOperation
 
 export abstract class BaseSmartAccount implements IBaseSmartAccount {
+  // Review : compare with BaseAccountAPI
+  // private senderAddress!: string
+
   private isDeployed = false
   bundler?: IBundler // httpRpcClient
   paymaster?: IPaymaster // paymasterAPI
@@ -24,7 +27,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
   entryPointAddress!: string
   accountAddress?: string
   // owner?: Signer // owner is not mandatory for some account implementations
-  index?: number
+  index: number
   chainId?: ChainId
   provider: Provider // Review
 
@@ -57,7 +60,14 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
       )
     }
 
-    await this.getAccountAddress()
+    // Note: Review
+    // on Init itself since we're already getting account address, mark isDeployed as well!
+
+    if ((await this.provider.getCode(await this.getAccountAddress())) === '0x') {
+      this.isDeployed = false
+    } else {
+      this.isDeployed = true
+    }
     return this
   }
 
@@ -65,10 +75,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     this.entryPointAddress = entryPointAddress
   }
 
-  private validateUserOp(
-    userOp: Partial<UserOperation>,
-    requiredFields: UserOperationKey[]
-  ): boolean {
+  validateUserOp(userOp: Partial<UserOperation>, requiredFields: UserOperationKey[]): boolean {
     for (const field of requiredFields) {
       if (!userOp[field]) {
         throw new Error(`${field} is missing`)
@@ -312,6 +319,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     return '0x'
   }
 
+  // Review : usage trace of this method. in the order of init and methods called on the Account
   async isAccountDeployed(address: string): Promise<boolean> {
     this.isProviderDefined()
     let contractCode
@@ -386,6 +394,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
    * return the account's address.
    * this value is valid even before deploying the contract.
    */
+  // Review: Probably should accept index as well as we rely on factory!
   async getAccountAddress(): Promise<string> {
     if (this.accountAddress == null) {
       // means it needs deployment
