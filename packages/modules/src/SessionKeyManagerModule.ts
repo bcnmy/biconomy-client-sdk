@@ -104,7 +104,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     }
 
     await this.sessionStorageClient.addSessionData(sessionLeafNode)
-    // create a signer if sessionPubKey if not given
+    // TODO: create a signer if sessionPubKey if not given
     return setMerkleRootData
   }
 
@@ -126,8 +126,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       sessionPublicKey: await sessionSigner.getAddress()
     })
 
-    // Generate the padded signature with
-    // (validUntil, validAfter, sessionVerificationModuleAddress, validationData, merkleProof, signature)
+    // Generate the padded signature with (validUntil,validAfter,sessionVerificationModuleAddress,validationData,merkleProof,signature)
     const paddedSignature = defaultAbiCoder.encode(
       ['uint48', 'uint48', 'address', 'bytes', 'bytes32[]', 'bytes'],
       [
@@ -158,7 +157,13 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     this.sessionStorageClient.updateSessionStatus(param, status)
   }
 
-  // clear all pending sessions
+  /**
+   * @remarks This method is used to clear all the pending sessions
+   * @returns
+   */
+  async clearPendingSessions() {
+    this.clearPendingSessions()
+  }
 
   /**
    * @returns SessionKeyManagerModule address
