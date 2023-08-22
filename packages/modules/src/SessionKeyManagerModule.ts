@@ -104,6 +104,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     }
 
     await this.sessionStorageClient.addSessionData(sessionLeafNode)
+    // create a signer if sessionPubKey if not given
     return setMerkleRootData
   }
 
@@ -157,6 +158,8 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     this.sessionStorageClient.updateSessionStatus(param, status)
   }
 
+  // clear all pending sessions
+
   /**
    * @returns SessionKeyManagerModule address
    */
@@ -171,7 +174,10 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     throw new Error('Method not implemented.')
   }
 
-  // TODO: why this is needed?
+  /**
+   * @remarks This is the dummy signature for the module, used in buildUserOp for bundler estimation
+   * @returns Dummy signature
+   */
   getDummySignature(): string {
     return '0x0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000d9cf3caaa21db25f16ad6db43eb9932ab77c8e76000000000000000000000000000000000000000000000000000000000000004181d4b4981670cb18f99f0b4a66446df1bf5b204d24cfcb659bf38ba27a4359b5711649ec2423c5e1247245eba2964679b6a1dbb85c992ae40b9b00c6935b02ff1b00000000000000000000000000000000000000000000000000000000000000'
   }

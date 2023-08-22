@@ -27,7 +27,7 @@ export abstract class BaseValidationModule implements IValidationModule {
   // Review naming convention for getter
   abstract getSigner(): Promise<Signer>
 
-  abstract signUserOp(userOperation: UserOperation, sessionSigner?: Signer): Promise<string>
+  abstract signUserOp(userOperation: UserOperation, signer?: Signer): Promise<string>
 
   abstract signMessage(message: Bytes | string): Promise<string>
 }
