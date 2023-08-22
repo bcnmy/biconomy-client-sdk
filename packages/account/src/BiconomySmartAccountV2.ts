@@ -61,6 +61,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   factory?: SmartAccountFactory_v200
 
   defaultValidationModule: BaseValidationModule
+  // Review: if it must be provided. default can be used as active
   activeValidationModule: BaseValidationModule
 
   constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountV2Config) {
