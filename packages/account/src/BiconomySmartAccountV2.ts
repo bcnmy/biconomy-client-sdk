@@ -20,7 +20,8 @@ import {
   BiconomyTokenPaymasterRequest,
   InitilizationData,
   BiconomySmartAccountV2Config,
-  InitializeV2Data
+  InitializeV2Data,
+  CounterFactualAddressParam
 } from './utils/Types'
 import { BaseValidationModule } from '@biconomy/modules'
 import { UserOperation, Transaction, SmartAccountType } from '@biconomy/core-types'
@@ -144,13 +145,13 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   }
 
   // Review
-  // Overridden this method because entryPoint.callStatic.getSenderAddress() based on initCode doesnt always work 
-  // in case of account is deployed you would get AA13 or AA10 
+  // Overridden this method because entryPoint.callStatic.getSenderAddress() based on initCode doesnt always work
+  // in case of account is deployed you would get AA13 or AA10
 
   /**
    * calculate the account address even before it is deployed
    */
-  async getCounterFactualAddress(): Promise<string> {
+  async getCounterFactualAddress(params?: CounterFactualAddressParam): Promise<string> {
     // use Factory method instead
 
     if (this.factory == null) {
@@ -161,10 +162,13 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       }
     }
 
+    const _defaultAuthModule = params?.validationModule ?? this.defaultValidationModule
+    const _index = params?.index ?? this.index
+
     const counterFactualAddress = await this.factory.getAddressForCounterFactualAccount(
-      await this.defaultValidationModule.getAddress(),
-      await this.defaultValidationModule.getInitData(),
-      this.index
+      await _defaultAuthModule.getAddress(),
+      await _defaultAuthModule.getInitData(),
+      _index
     )
 
     return counterFactualAddress
@@ -213,9 +217,13 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     // this.isProxyDefined()
     const accountContract = await this._getAccountContract()
 
-    const populatedTransaction = await accountContract.populateTransaction.execute(to, value, data)
+    const populatedTransaction = await accountContract.populateTransaction.execute_ncC(
+      to,
+      value,
+      data
+    )
 
-    /*const executeCallData = accountContract.interface.encodeFunctionData('executeCall', [
+    /*const executeCallData = accountContract.interface.encodeFunctionData('execute_ncC', [
       to,
       value,
       data
@@ -238,12 +246,12 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     // this.isInitialized()
     // this.isProxyDefined()
     const accountContract = await this._getAccountContract()
-    const populatedTransaction = await accountContract.populateTransaction.executeBatch(
+    const populatedTransaction = await accountContract.populateTransaction.executeBatch_y6U(
       to,
       value,
       data
     )
-    /*const executeBatchCallData = accountContract.interface.encodeFunctionData('executeBatchCall', [
+    /*const executeBatchCallData = accountContract.interface.encodeFunctionData('executeBatch_y6U', [
       to,
       value,
       data
@@ -337,7 +345,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     userOp.signature = this.getDummySignature()
 
     userOp = await this.estimateUserOpGas(userOp, overrides, skipBundlerGasEstimation)
-    Logger.log('userOp after estimation ', userOp)
+    Logger.log('UserOp after estimation ', userOp)
 
     // Do not populate paymasterAndData as part of buildUserOp as it may not have all necessary details
     userOp.paymasterAndData = '0x' // await this.getPaymasterAndData(userOp)
@@ -346,16 +354,16 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return userOp
   }
 
-  private validateUserOpAndRequest(
+  private validateUserOpAndPaymasterRequest(
     userOp: Partial<UserOperation>,
     tokenPaymasterRequest: BiconomyTokenPaymasterRequest
   ): void {
     if (!userOp.callData) {
-      throw new Error('Userop callData cannot be undefined')
+      throw new Error('UserOp callData cannot be undefined')
     }
 
     const feeTokenAddress = tokenPaymasterRequest?.feeQuote?.tokenAddress
-    Logger.log('requested fee token is ', feeTokenAddress)
+    Logger.log('Requested fee token is ', feeTokenAddress)
 
     if (!feeTokenAddress || feeTokenAddress == ethers.constants.AddressZero) {
       throw new Error(
@@ -364,7 +372,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     }
 
     const spender = tokenPaymasterRequest?.spender
-    Logger.log('fee token approval to be checked and added for spender: ', spender)
+    Logger.log('Spender address is ', spender)
 
     if (!spender || spender == ethers.constants.AddressZero) {
       throw new Error(
@@ -386,14 +394,14 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     userOp: Partial<UserOperation>,
     tokenPaymasterRequest: BiconomyTokenPaymasterRequest
   ): Promise<Partial<UserOperation>> {
-    this.validateUserOpAndRequest(userOp, tokenPaymasterRequest)
+    this.validateUserOpAndPaymasterRequest(userOp, tokenPaymasterRequest)
     try {
       let batchTo: Array<string> = []
       let batchValue: Array<string | BigNumberish> = []
       let batchData: Array<string> = []
 
       let newCallData = userOp.callData
-      Logger.log('received information about fee token address and quote ', tokenPaymasterRequest)
+      Logger.log('Received information about fee token address and quote ', tokenPaymasterRequest)
 
       if (this.paymaster && this.paymaster instanceof BiconomyPaymaster) {
         // Make a call to paymaster.buildTokenApprovalTransaction() with necessary details
@@ -402,30 +410,35 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
         const approvalRequest: Transaction = await (
           this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
         ).buildTokenApprovalTransaction(tokenPaymasterRequest, this.provider)
-        Logger.log('approvalRequest is for erc20 token ', approvalRequest.to)
+        Logger.log('ApprovalRequest is for erc20 token ', approvalRequest.to)
 
         if (approvalRequest.data == '0x' || approvalRequest.to == ethers.constants.AddressZero) {
           return userOp
         }
 
         if (!userOp.callData) {
-          throw new Error('Userop callData cannot be undefined')
+          throw new Error('UserOp callData cannot be undefined')
         }
 
         const account = await this._getAccountContract()
 
-        const decodedDataSmartWallet = account.interface.parseTransaction({
+        const decodedSmartAccountData = account.interface.parseTransaction({
           data: userOp.callData.toString()
         })
-        if (!decodedDataSmartWallet) {
-          throw new Error('Could not parse call data of smart wallet for userOp')
+        if (!decodedSmartAccountData) {
+          throw new Error('Could not parse userOp call data for this smart account')
         }
 
-        const smartWalletExecFunctionName = decodedDataSmartWallet.name
+        const smartAccountExecFunctionName = decodedSmartAccountData.name
 
-        if (smartWalletExecFunctionName === 'executeCall') {
-          Logger.log('originally an executeCall for Biconomy Account')
-          const methodArgsSmartWalletExecuteCall = decodedDataSmartWallet.args
+        Logger.log(
+          `Originally an ${smartAccountExecFunctionName} method call for Biconomy Account V2`
+        )
+        if (
+          smartAccountExecFunctionName === 'execute' ||
+          smartAccountExecFunctionName === 'execute_ncC'
+        ) {
+          const methodArgsSmartWalletExecuteCall = decodedSmartAccountData.args
           const toOriginal = methodArgsSmartWalletExecuteCall[0]
           const valueOriginal = methodArgsSmartWalletExecuteCall[1]
           const dataOriginal = methodArgsSmartWalletExecuteCall[2]
@@ -433,9 +446,11 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
           batchTo.push(toOriginal)
           batchValue.push(valueOriginal)
           batchData.push(dataOriginal)
-        } else if (smartWalletExecFunctionName === 'executeBatchCall') {
-          Logger.log('originally an executeBatchCall for Biconomy Account')
-          const methodArgsSmartWalletExecuteCall = decodedDataSmartWallet.args
+        } else if (
+          smartAccountExecFunctionName === 'executeBatch' ||
+          smartAccountExecFunctionName === 'executeBatch_y6U'
+        ) {
+          const methodArgsSmartWalletExecuteCall = decodedSmartAccountData.args
           batchTo = methodArgsSmartWalletExecuteCall[0]
           batchValue = methodArgsSmartWalletExecuteCall[1]
           batchData = methodArgsSmartWalletExecuteCall[2]
@@ -456,24 +471,24 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
         // Requesting to update gas limits again (especially callGasLimit needs to be re-calculated)
         try {
           finalUserOp = await this.estimateUserOpGas(finalUserOp)
-          const cgl = ethers.BigNumber.from(finalUserOp.callGasLimit)
-          if (finalUserOp.callGasLimit && cgl.lt(ethers.BigNumber.from('21000'))) {
+          const callGasLimit = ethers.BigNumber.from(finalUserOp.callGasLimit)
+          if (finalUserOp.callGasLimit && callGasLimit.lt(ethers.BigNumber.from('21000'))) {
             return {
               ...userOp,
               callData: newCallData
             }
           }
-          Logger.log('userOp after estimation ', finalUserOp)
+          Logger.log('UserOp after estimation ', finalUserOp)
         } catch (error) {
           Logger.error('Failed to estimate gas for userOp with updated callData ', error)
           Logger.log(
-            'sending updated userOp. calculateGasLimit flag should be sent to the paymaster to be able to update callGasLimit'
+            'Sending updated userOp. calculateGasLimit flag should be sent to the paymaster to be able to update callGasLimit'
           )
         }
         return finalUserOp
       }
     } catch (error) {
-      Logger.log('Failed to update userOp. sending back original op')
+      Logger.log('Failed to update userOp. Sending back original op')
       Logger.error('Failed to update callData with error', error)
       return userOp
     }
@@ -543,15 +558,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   // async isModuleEnabled(moduleName: string): boolean {
 
   async enableModule(moduleAddress: string): Promise<UserOpResponse> {
-    const accountContract = await this._getAccountContract()
-    const populatedTransaction = await accountContract.populateTransaction.enableModule(
-      moduleAddress
-    )
-    const tx: Transaction = {
-      to: await this.getAccountAddress(),
-      value: '0',
-      data: populatedTransaction.data as string
-    }
+    const tx: Transaction = await this.getEnableModuleData(moduleAddress)
     const partialUserOp = await this.buildUserOp([tx])
     return this.sendUserOp(partialUserOp)
   }

@@ -100,3 +100,8 @@ export interface TransactionDetailsForUserOp {
   maxPriorityFeePerGas?: BigNumberish
   nonce?: BigNumberish
 }
+
+export type CounterFactualAddressParam = {
+  index?: number
+  validationModule?: BaseValidationModule
+}
