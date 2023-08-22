@@ -40,6 +40,11 @@ export interface ISessionStorage {
   updateSessionStatus(param: SessionSearchParam, status: SessionStatus): Promise<void>
 
   /**
+   * Clears all the pending sessions from the session storage
+   */
+  clearPendingSessions(): Promise<void>
+
+  /**
    * If a signer object is passed, it will be added to the session storage
    * If no signer object is passed, it'll create a random signer and add it to the session storage
    * @param signer Optional signer to be added to the session storage
