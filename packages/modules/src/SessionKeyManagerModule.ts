@@ -1,20 +1,22 @@
-import { Signer, ethers, Bytes } from 'ethers'
+import { Signer, ethers } from 'ethers'
 import MerkleTree from 'merkletreejs'
 import { getUserOpHash, NODE_CLIENT_URL } from '@biconomy/common'
 import { hexConcat, arrayify, keccak256, hexZeroPad, defaultAbiCoder } from 'ethers/lib/utils'
 import {
   SessionKeyManagerModuleConfig,
   ModuleVersion,
-  CreateSessionDataParams
+  CreateSessionDataParams,
+  StorageType,
+  SessionParams
 } from './utils/Types'
 import { UserOperation, ChainId } from '@biconomy/core-types'
 import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
 import { SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION } from './utils/Constants'
+import { generateRandomHex } from './utils/Uid'
 import { BaseValidationModule } from './BaseValidationModule'
-import { SessionLocalStorage } from 'session-storage/SessionLocalStorage'
-import { SessionSearchParam, SessionStatus } from 'interfaces/ISessionStorage'
-import { generateRandomHex } from 'utils/UID'
+import { SessionLocalStorage } from './session-storage/SessionLocalStorage'
+import { ISessionStorage, SessionSearchParam, SessionStatus } from './interfaces/ISessionStorage'
 
 export class SessionKeyManagerModule extends BaseValidationModule {
   chainId!: ChainId
@@ -22,7 +24,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
   moduleAddress!: string
   nodeClient!: INodeClient
   merkleTree!: MerkleTree
-  sessionStorageClient!: SessionLocalStorage
+  sessionStorageClient!: ISessionStorage
 
   /**
    * This constructor is private. Use the static create method to instantiate SessionKeyManagerModule
@@ -58,7 +60,11 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       txServiceUrl: moduleConfig.nodeClientUrl ?? NODE_CLIENT_URL
     })
 
-    instance.sessionStorageClient = new SessionLocalStorage(moduleConfig.smartAccountAddress)
+    if (!moduleConfig.storageType || moduleConfig.storageType === StorageType.LOCAL_STORAGE) {
+      instance.sessionStorageClient = new SessionLocalStorage(moduleConfig.smartAccountAddress)
+    } else {
+      throw new Error('Invalid storage type')
+    }
 
     const existingSessionData = await instance.sessionStorageClient.getAllSessionData()
     const existingSessionDataLeafs = existingSessionData.map((sessionData) => {
@@ -85,8 +91,10 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @returns The session data
    */
   createSessionData = async (leafData: CreateSessionDataParams): Promise<string> => {
-    const sessionKeyModuleAbi = 'function setMerkleRoot(bytes32 _merkleRoot)'
-    const sessionKeyModuleInterface = new ethers.utils.Interface([sessionKeyModuleAbi])
+    const sessionKeyManagerModuleABI = 'function setMerkleRoot(bytes32 _merkleRoot)'
+    const sessionKeyManagerModuleInterface = new ethers.utils.Interface([
+      sessionKeyManagerModuleABI
+    ])
     const leafDataHex = hexConcat([
       hexZeroPad(ethers.utils.hexlify(leafData.validUntil), 6),
       hexZeroPad(ethers.utils.hexlify(leafData.validAfter), 6),
@@ -94,7 +102,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       leafData.sessionKeyData
     ])
     this.merkleTree.addLeaves([Buffer.from(keccak256(leafDataHex))])
-    const setMerkleRootData = sessionKeyModuleInterface.encodeFunctionData('setMerkleRoot', [
+    const setMerkleRootData = sessionKeyManagerModuleInterface.encodeFunctionData('setMerkleRoot', [
       this.merkleTree.getHexRoot()
     ])
     const sessionLeafNode = {
@@ -114,20 +122,32 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @param sessionSigner The signer to be used to sign the user operation
    * @returns The signature of the user operation
    */
-  async signUserOp(userOp: UserOperation, sessionSigner: Signer): Promise<string> {
-    if (!sessionSigner) {
+  async signUserOp(userOp: UserOperation, sessionParam: SessionParams): Promise<string> {
+    const { sessionSigner, sessionID, sessionValidationModule, additionalSessionData } =
+      sessionParam
+    if (!sessionParam.sessionSigner) {
       throw new Error('Session signer is not provided.')
     }
     // Use the sessionSigner to sign the user operation
     const userOpHash = getUserOpHash(userOp, this.entryPointAddress, this.chainId)
     const signature = await sessionSigner.signMessage(arrayify(userOpHash))
 
-    const sessionSignerData = await this.sessionStorageClient.getSessionData({
-      sessionPublicKey: await sessionSigner.getAddress()
-    })
+    let sessionSignerData
+    if (sessionID) {
+      sessionSignerData = await this.sessionStorageClient.getSessionData({
+        sessionID: sessionID
+      })
+    } else if (sessionValidationModule) {
+      sessionSignerData = await this.sessionStorageClient.getSessionData({
+        sessionValidationModule: sessionValidationModule,
+        sessionPublicKey: await sessionSigner.getAddress()
+      })
+    } else {
+      throw new Error('sessionID or sessionValidationModule should be provided.')
+    }
 
     // Generate the padded signature with (validUntil,validAfter,sessionVerificationModuleAddress,validationData,merkleProof,signature)
-    const paddedSignature = defaultAbiCoder.encode(
+    let paddedSignature = defaultAbiCoder.encode(
       ['uint48', 'uint48', 'address', 'bytes', 'bytes32[]', 'bytes'],
       [
         sessionSignerData.validUntil,
@@ -138,6 +158,10 @@ export class SessionKeyManagerModule extends BaseValidationModule {
         signature
       ]
     )
+
+    if (additionalSessionData) {
+      paddedSignature += additionalSessionData
+    }
 
     // Generate the encoded data with paddedSignature and sessionKeyManagerModuleAddress
     const signatureWithModuleAddress = ethers.utils.defaultAbiCoder.encode(
@@ -162,7 +186,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @returns
    */
   async clearPendingSessions() {
-    this.clearPendingSessions()
+    this.sessionStorageClient.clearPendingSessions()
   }
 
   /**
@@ -197,7 +221,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
   /**
    * @remarks This Module dont have knowledge of signer. So, this method is not implemented
    */
-  async signMessage(message: Bytes | string): Promise<string> {
+  async signMessage(): Promise<string> {
     throw new Error('Method not implemented.')
   }
 }

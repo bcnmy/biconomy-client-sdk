@@ -22,6 +22,18 @@ export interface SessionKeyManagerModuleConfig extends BaseValidationModuleConfi
   nodeClientUrl?: string
   chainId: ChainId
   smartAccountAddress: string
+  storageType?: StorageType
+}
+
+export enum StorageType {
+  LOCAL_STORAGE
+}
+
+export type SessionParams = {
+  sessionID?: string
+  sessionSigner: Signer
+  sessionValidationModule?: string
+  additionalSessionData?: string
 }
 
 export interface CreateSessionDataParams {
