@@ -1,22 +1,25 @@
-import { UserOperation, ChainId } from '@biconomy/core-types'
+import { UserOperation } from '@biconomy/core-types'
 import { Logger, getUserOpHash } from '@biconomy/common'
-import { ethers } from 'ethers'
+import { Signer, ethers } from 'ethers'
 import MerkleTree from 'merkletreejs'
-import { ECDSAOwnershipValidationModule } from './ECDSAOwnershipValidationModule'
 import { MULTICHAIN_VALIDATION_MODULE_ADDRESSES_BY_VERSION } from './utils/Constants'
-import { keccak256, arrayify, defaultAbiCoder, hexConcat, hexZeroPad } from 'ethers/lib/utils'
 import {
-  ECDSAOwnershipValidationModuleConfig,
-  ModuleVersion,
-  MultiChainUserOpDto
-} from './utils/Types'
-export class MultiChainValidationModule extends ECDSAOwnershipValidationModule {
-  // Review: this.chainId should not be in spec of this class
-  // May not inherit from ECDSAOwnershipValidationModule
+  keccak256,
+  arrayify,
+  defaultAbiCoder,
+  hexConcat,
+  hexZeroPad,
+  Bytes
+} from 'ethers/lib/utils'
+import { ModuleVersion, MultiChainUserOpDto, MultiChainValidationModuleConfig } from './utils/Types'
+import { BaseValidationModule } from './BaseValidationModule'
+export class MultiChainValidationModule extends BaseValidationModule {
+  signer: Signer
+  moduleAddress!: string
+  version: ModuleVersion = 'V1_0_0'
 
-  constructor(moduleConfig: ECDSAOwnershipValidationModuleConfig) {
+  constructor(moduleConfig: MultiChainValidationModuleConfig) {
     super(moduleConfig)
-
     if (moduleConfig.moduleAddress) {
       this.moduleAddress = moduleConfig.moduleAddress
     } else if (moduleConfig.version) {
@@ -27,6 +30,15 @@ export class MultiChainValidationModule extends ECDSAOwnershipValidationModule {
       this.moduleAddress = moduleAddr
       this.version = moduleConfig.version as ModuleVersion
     }
+    this.signer = moduleConfig.signer
+  }
+
+  getAddress(): string {
+    return this.moduleAddress
+  }
+
+  async getSigner(): Promise<Signer> {
+    return await Promise.resolve(this.signer)
   }
 
   getDummySignature(): string {
@@ -35,8 +47,25 @@ export class MultiChainValidationModule extends ECDSAOwnershipValidationModule {
     return `0x0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000${dynamicPart}000000000000000000000000000000000000000000000000000000000000004181d4b4981670cb18f99f0b4a66446df1bf5b204d24cfcb659bf38ba27a4359b5711649ec2423c5e1247245eba2964679b6a1dbb85c992ae40b9b00c6935b02ff1b00000000000000000000000000000000000000000000000000000000000000`
   }
 
+  // Note: other modules may need additional attributes to build init data
+  async getInitData(): Promise<string> {
+    const ecdsaOwnerAddress = await this.signer.getAddress()
+    const moduleRegistryAbi = 'function initForSmartAccount(address owner)'
+    const ecdsaModuleRegistryInterface = new ethers.utils.Interface([moduleRegistryAbi])
+    const ecdsaOwnershipInitData = ecdsaModuleRegistryInterface.encodeFunctionData(
+      'initForSmartAccount',
+      [ecdsaOwnerAddress]
+    )
+    return ecdsaOwnershipInitData
+  }
+
   async signUserOp(userOp: UserOperation): Promise<string> {
     Logger.log('userOp', userOp)
+    throw new Error('Method not implemented.')
+  }
+
+  async signMessage(message: Bytes | string): Promise<string> {
+    Logger.log('message', message)
     throw new Error('Method not implemented.')
   }
 

@@ -27,7 +27,6 @@ export interface MultiChainValidationModuleConfig extends BaseValidationModuleCo
   moduleAddress?: string
   version?: ModuleVersion
   signer: Signer
-  chainId: ChainId
 }
 
 export type MultiChainUserOpDto = {
