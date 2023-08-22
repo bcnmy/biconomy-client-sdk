@@ -21,6 +21,15 @@ export interface SessionKeyManagerModuleConfig extends BaseValidationModuleConfi
   sessionPubKey: string
   nodeClientUrl?: string
   chainId: ChainId
+  smartAccountAddress: string
+}
+
+export interface CreateSessionDataParams {
+  validUntil: number
+  validAfter: number
+  sessionValidationModule: string
+  sessionPublicKey: string
+  sessionKeyData: string
 }
 
 export interface MultiChainValidationModuleConfig extends BaseValidationModuleConfig {

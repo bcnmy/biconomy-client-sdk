@@ -100,6 +100,12 @@ export class SessionLocalStorage implements ISessionStorage {
     localStorage.setItem(this.getStorageKey('sessions'), JSON.stringify(data))
   }
 
+  async clearPendingSessions(): Promise<void> {
+    const data = this.getSessionStore()
+    data.leafNodes = data.leafNodes.filter((s: SessionLeafNode) => s.status !== 'PENDING')
+    localStorage.setItem(this.getStorageKey('sessions'), JSON.stringify(data))
+  }
+
   async addSigner(signer?: Wallet): Promise<Wallet> {
     const signers = this.getSignerStore()
     if (!signer) {
