@@ -63,7 +63,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     // Note: Review
     // on Init itself since we're already getting account address, mark isDeployed as well!
 
-    if ((await this.provider.getCode(this.getAccountAddress())) === '0x') {
+    if ((await this.provider.getCode(await this.getAccountAddress())) === '0x') {
       this.isDeployed = false
     } else {
       this.isDeployed = true

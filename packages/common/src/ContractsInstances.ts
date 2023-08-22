@@ -1,9 +1,9 @@
 import { SmartAccountType } from '@biconomy/core-types'
 import { JsonRpcProvider } from '@ethersproject/providers'
+import { EntryPoint, IEntryPoint, EntryPoint__factory } from '@account-abstraction/contracts'
 import {
-  // Review
-  EntryPoint_v005,
   EntryPoint_v005__factory,
+  EntryPoint_v006__factory,
   SmartAccount_v100,
   SmartAccount_v200,
   SmartAccountFactory_v100,
@@ -38,7 +38,7 @@ export function getSAProxyContract(
       }
       break
     default:
-      return SmartAccount_v100__factory.connect(contractAddress, provider)
+      return SmartAccount_v200__factory.connect(contractAddress, provider)
   }
   throw new Error('Invalid version or smartAccountType provided for proxy contract instance')
 }
@@ -61,14 +61,12 @@ export function getSAFactoryContract(
       }
       break
     default:
-      return SmartAccountFactory_v100__factory.connect(contractAddress, provider)
+      return SmartAccountFactory_v200__factory.connect(contractAddress, provider)
   }
   throw new Error('Invalid version or smartAccountType provided for factory contract instance')
 }
 
-export function getEntryPointContract(
-  contractInstanceDto: GetContractInstanceDto
-): EntryPoint_v005 {
+export function getEntryPointContract(contractInstanceDto: GetContractInstanceDto): IEntryPoint {
   const { smartAccountType, version, contractAddress, provider } = contractInstanceDto
 
   switch (version) {
@@ -77,8 +75,13 @@ export function getEntryPointContract(
         return EntryPoint_v005__factory.connect(contractAddress, provider)
       }
       break
+    case 'V0_0_6':
+      if (smartAccountType === SmartAccountType.BICONOMY) {
+        return EntryPoint_v006__factory.connect(contractAddress, provider)
+      }
+      break
     default:
-      return EntryPoint_v005__factory.connect(contractAddress, provider)
+      return EntryPoint_v006__factory.connect(contractAddress, provider)
   }
   throw new Error('Invalid version or smartAccountType provided for entrypoint contract instance')
 }

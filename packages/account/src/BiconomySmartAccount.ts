@@ -40,7 +40,7 @@ import {
 import { Signer } from 'ethers'
 
 export class BiconomySmartAccount extends SmartAccount implements IBiconomySmartAccount {
-  private factory!: any
+  private factory!: SmartAccountFactory_v100
   private nodeClient: INodeClient
   private accountIndex!: number
   private address!: string
@@ -163,7 +163,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       contractAddress: _factoryAddress,
       provider: this.provider
     }
-    this.factory = getSAFactoryContract(factoryInstanceDto)
+    this.factory = getSAFactoryContract(factoryInstanceDto) as SmartAccountFactory_v100
   }
 
   private async setContractsState() {
