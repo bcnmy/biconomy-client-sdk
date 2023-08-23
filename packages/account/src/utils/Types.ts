@@ -69,7 +69,7 @@ export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
   rpcUrl?: string // as good as Provider
   nodeClientUrl?: string // very specific to Biconomy
   defaultValidationModule: BaseValidationModule
-  activeValidationModule: BaseValidationModule
+  activeValidationModule?: BaseValidationModule
 }
 
 export type Overrides = {

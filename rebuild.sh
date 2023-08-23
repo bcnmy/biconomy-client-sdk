@@ -29,6 +29,7 @@ rm -rf packages/signers/dist
 rm -rf packages/common/node_modules
 rm -rf packages/common/package-lock.json
 rm -rf packages/common/dist
+rm -rf packages/common/src/typechain
 
 rm -rf packages/core-types/node_modules
 rm -rf packages/core-types/package-lock.json
