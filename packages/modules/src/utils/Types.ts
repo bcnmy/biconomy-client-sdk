@@ -18,7 +18,7 @@ export interface SessionKeyManagerModuleConfig extends BaseValidationModuleConfi
   moduleAddress?: string
   version?: ModuleVersion
   sessionSigner?: Signer
-  sessionPubKey: string
+  sessionPubKey?: string
   nodeClientUrl?: string
   chainId: ChainId
   smartAccountAddress: string
