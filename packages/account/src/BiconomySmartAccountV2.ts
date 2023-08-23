@@ -29,7 +29,6 @@ import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
 import { IHybridPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from '@biconomy/paymaster'
 import {
-  ISmartAccount,
   SupportedChainsResponse,
   BalancesResponse,
   BalancesDto,
@@ -45,8 +44,9 @@ type UserOperationKey = keyof UserOperation
 export class BiconomySmartAccountV2 extends BaseSmartAccount {
   private nodeClient: INodeClient
 
+  // Review: Marked for deletion
   // private smartAccountInfo!: ISmartAccount
-  private _isInitialised!: boolean
+  // private _isInitialised!: boolean
 
   factoryAddress?: string
 
@@ -60,8 +60,9 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
   factory?: SmartAccountFactory_v200
 
+  // Validation module responsible for account deployment initCode. This acts as a default authorization module.
   defaultValidationModule: BaseValidationModule
-  // Review: if it must be provided. default can be used as active
+  // Deployed Smart Account can have more than one module enabled. When sending a transaction activeValidationModule is used to prepare and validate userOp signature.
   activeValidationModule: BaseValidationModule
 
   constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountV2Config) {
@@ -70,9 +71,9 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     this.factoryAddress =
       biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS // This would be fetched from V2
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule!
+    this.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.activeValidationModule = biconomySmartAccountConfig.activeValidationModule!
+    this.activeValidationModule = biconomySmartAccountConfig.activeValidationModule ?? this.defaultValidationModule
 
     const { rpcUrl, nodeClientUrl } = biconomySmartAccountConfig
 
@@ -93,50 +94,30 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return this.accountContract
   }
 
-  /**
-   * @description This function will initialise BiconomyAccount class state
-   * @returns Promise<BiconomyAccountV2>
-   */
-  /*async init(initilizationData?: InitializeV2Data): Promise<this> {
-    try {
-      let _accountIndex
-      if (initilizationData) {
-        _accountIndex = initilizationData.accountIndex
-      }
+  isActiveValidationModuleDefined(): boolean {
+    if (!this.activeValidationModule) throw new Error('Must provide an instance of active validation module.')
+    return true
+  }
 
-      if (!_accountIndex) _accountIndex = 0
-      this.isProviderDefined()
+  isDefaultValidationModuleDefined(): boolean {
+    if (!this.defaultValidationModule) throw new Error('Must provide an instance of default validation module.')
+    return true
+  }
 
-      await this._getAccountContract()
-
-      this.chainId = await this.provider.getNetwork().then((net) => net.chainId)
-      await this.initializeAccountAtIndex(_accountIndex)
-      this._isInitialised = true
-    } catch (error) {
-      Logger.error(`Failed to call init: ${error}`)
-      throw error
+  setActiveValidationModule(validationModule: BaseValidationModule): BiconomySmartAccountV2 {
+    if(validationModule instanceof BaseValidationModule) {
+    this.activeValidationModule = validationModule
     }
-
     return this
   }
 
-  async initializeAccountAtIndex(accountIndex: number): Promise<void> {
-    this.index = accountIndex
-    // TODO // Review should use index
-    this.accountAddress = await this.getAccountAddress()
-    // May not need at all
-    // await this.setContractsState()
+  setDefaultValidationModule(validationModule: BaseValidationModule): BiconomySmartAccountV2 {
+    if(validationModule instanceof BaseValidationModule) {
+    this.defaultValidationModule = validationModule
+    }
+    return this
   }
 
-  private isInitialized(): boolean {
-    if (!this._isInitialised)
-      throw new Error(
-        'BiconomySmartAccountV2 is not initialized. Please call init() on BiconomySmartAccountV2 instance before interacting with any other functions'
-      )
-    return true
-  }*/
-
-  // TODO
   async getNonce(): Promise<BigNumber> {
     if (await this.isAccountDeployed(await this.getAccountAddress())) {
       const accountContract = await this._getAccountContract()
@@ -187,6 +168,8 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
         throw new Error('no factory to get initCode')
       }
     }
+
+    this.isDefaultValidationModuleDefined()
 
     const populatedTransaction = await this.factory.populateTransaction.deployCounterFactualAccount(
       await this.defaultValidationModule.getAddress(),
@@ -262,6 +245,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
   // dummy signature depends on the validation module supplied.
   getDummySignature(): string {
+    this.isActiveValidationModuleDefined()
     return this.activeValidationModule.getDummySignature()
   }
 
@@ -272,6 +256,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   }
 
   async signUserOp(userOp: Partial<UserOperation>): Promise<UserOperation> {
+    this.isActiveValidationModuleDefined()
     const requiredFields: UserOperationKey[] = [
       'sender',
       'nonce',
@@ -497,10 +482,12 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   }
 
   async signUserOpHash(userOpHash: string): Promise<string> {
+    this.isActiveValidationModuleDefined()
     return await this.activeValidationModule.signMessage(arrayify(userOpHash))
   }
 
   async signMessage(message: Bytes | string): Promise<string> {
+    this.isActiveValidationModuleDefined()
     const dataHash = ethers.utils.arrayify(ethers.utils.hashMessage(message))
     let signature = await this.activeValidationModule.signMessage(dataHash)
 
