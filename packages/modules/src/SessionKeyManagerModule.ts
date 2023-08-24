@@ -1,7 +1,8 @@
 import { Signer, ethers } from 'ethers'
 import MerkleTree from 'merkletreejs'
 import { getUserOpHash, NODE_CLIENT_URL } from '@biconomy/common'
-import { hexConcat, arrayify, keccak256, hexZeroPad, defaultAbiCoder } from 'ethers/lib/utils'
+import { hexConcat, arrayify, hexZeroPad, defaultAbiCoder } from 'ethers/lib/utils'
+import { keccak256 } from 'ethereumjs-util'
 import {
   SessionKeyManagerModuleConfig,
   ModuleVersion,
@@ -74,7 +75,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
         hexZeroPad(sessionData.sessionValidationModule, 20),
         sessionData.sessionKeyData
       ])
-      return Buffer.from(keccak256(leafDataHex))
+      return ethers.utils.keccak256(leafDataHex)
     })
 
     instance.merkleTree = new MerkleTree(existingSessionDataLeafs, keccak256, {
@@ -101,7 +102,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       hexZeroPad(leafData.sessionValidationModule, 20),
       leafData.sessionKeyData
     ])
-    this.merkleTree.addLeaves([Buffer.from(keccak256(leafDataHex))])
+    this.merkleTree.addLeaves([ethers.utils.keccak256(leafDataHex) as unknown as Buffer])
     const setMerkleRootData = sessionKeyManagerModuleInterface.encodeFunctionData('setMerkleRoot', [
       this.merkleTree.getHexRoot()
     ])
