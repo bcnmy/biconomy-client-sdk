@@ -59,14 +59,21 @@ export class MultiChainValidationModule extends BaseValidationModule {
     return ecdsaOwnershipInitData
   }
 
-  async signUserOp(userOp: UserOperation): Promise<string> {
-    Logger.log('userOp', userOp)
-    throw new Error('Method not implemented.')
+  async signUserOpHash(userOpHash: string): Promise<string> {
+    const sig = await this.signer.signMessage(arrayify(userOpHash))
+
+    Logger.log('ecdsa signature ', sig)
+
+    const signatureWithModuleAddress = ethers.utils.defaultAbiCoder.encode(
+      ['bytes', 'address'],
+      [sig, this.getAddress()]
+    )
+
+    return signatureWithModuleAddress
   }
 
   async signMessage(message: Bytes | string): Promise<string> {
-    Logger.log('message', message)
-    throw new Error('Method not implemented.')
+    return await this.signer.signMessage(message)
   }
 
   async signUserOps(multiChainUserOps: MultiChainUserOpDto[]): Promise<UserOperation[]> {

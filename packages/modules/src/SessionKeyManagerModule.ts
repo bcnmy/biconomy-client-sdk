@@ -1,7 +1,7 @@
 import { Signer, ethers } from 'ethers'
 import MerkleTree from 'merkletreejs'
-import { getUserOpHash, NODE_CLIENT_URL } from '@biconomy/common'
-import { hexConcat, arrayify, hexZeroPad, defaultAbiCoder } from 'ethers/lib/utils'
+import { NODE_CLIENT_URL, Logger } from '@biconomy/common'
+import { hexConcat, arrayify, hexZeroPad, defaultAbiCoder, Bytes } from 'ethers/lib/utils'
 import { keccak256 } from 'ethereumjs-util'
 import {
   SessionKeyManagerModuleConfig,
@@ -10,7 +10,6 @@ import {
   StorageType,
   SessionParams
 } from './utils/Types'
-import { UserOperation, ChainId } from '@biconomy/core-types'
 import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
 import { SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION } from './utils/Constants'
@@ -20,7 +19,6 @@ import { SessionLocalStorage } from './session-storage/SessionLocalStorage'
 import { ISessionStorage, SessionSearchParam, SessionStatus } from './interfaces/ISessionStorage'
 
 export class SessionKeyManagerModule extends BaseValidationModule {
-  chainId!: ChainId
   version: ModuleVersion = 'V1_0_0'
   moduleAddress!: string
   nodeClient!: INodeClient
@@ -56,7 +54,6 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       instance.moduleAddress = moduleAddr
       instance.version = moduleConfig.version as ModuleVersion
     }
-    instance.chainId = moduleConfig.chainId
     instance.nodeClient = new NodeClient({
       txServiceUrl: moduleConfig.nodeClientUrl ?? NODE_CLIENT_URL
     })
@@ -123,24 +120,22 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @param sessionSigner The signer to be used to sign the user operation
    * @returns The signature of the user operation
    */
-  async signUserOp(userOp: UserOperation, sessionParam: SessionParams): Promise<string> {
-    const { sessionSigner, sessionID, sessionValidationModule, additionalSessionData } =
-      sessionParam
-    if (!sessionParam.sessionSigner) {
+  async signUserOpHash(userOpHash: string, sessionParam?: SessionParams): Promise<string> {
+    if (!(sessionParam && sessionParam.sessionSigner)) {
       throw new Error('Session signer is not provided.')
     }
+    const sessionSigner = sessionParam.sessionSigner
     // Use the sessionSigner to sign the user operation
-    const userOpHash = getUserOpHash(userOp, this.entryPointAddress, this.chainId)
     const signature = await sessionSigner.signMessage(arrayify(userOpHash))
 
     let sessionSignerData
-    if (sessionID) {
+    if (sessionParam?.sessionID) {
       sessionSignerData = await this.sessionStorageClient.getSessionData({
-        sessionID: sessionID
+        sessionID: sessionParam.sessionID
       })
-    } else if (sessionValidationModule) {
+    } else if (sessionParam?.sessionValidationModule) {
       sessionSignerData = await this.sessionStorageClient.getSessionData({
-        sessionValidationModule: sessionValidationModule,
+        sessionValidationModule: sessionParam.sessionValidationModule,
         sessionPublicKey: await sessionSigner.getAddress()
       })
     } else {
@@ -160,8 +155,8 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       ]
     )
 
-    if (additionalSessionData) {
-      paddedSignature += additionalSessionData
+    if (sessionParam?.additionalSessionData) {
+      paddedSignature += sessionParam.additionalSessionData
     }
 
     // Generate the encoded data with paddedSignature and sessionKeyManagerModuleAddress
@@ -222,7 +217,8 @@ export class SessionKeyManagerModule extends BaseValidationModule {
   /**
    * @remarks This Module dont have knowledge of signer. So, this method is not implemented
    */
-  async signMessage(): Promise<string> {
+  async signMessage(message: Bytes | string): Promise<string> {
+    Logger.log('message', message)
     throw new Error('Method not implemented.')
   }
 }

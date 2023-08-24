@@ -15,15 +15,12 @@ import {
 } from '@biconomy/common'
 
 import {
-  BiconomySmartAccountConfig,
   Overrides,
   BiconomyTokenPaymasterRequest,
-  InitilizationData,
   BiconomySmartAccountV2Config,
-  InitializeV2Data,
   CounterFactualAddressParam
 } from './utils/Types'
-import { BaseValidationModule } from '@biconomy/modules'
+import { BaseValidationModule, SessionParams } from '@biconomy/modules'
 import { UserOperation, Transaction, SmartAccountType } from '@biconomy/core-types'
 import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
@@ -73,7 +70,8 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.activeValidationModule = biconomySmartAccountConfig.activeValidationModule ?? this.defaultValidationModule
+    this.activeValidationModule =
+      biconomySmartAccountConfig.activeValidationModule ?? this.defaultValidationModule
 
     const { rpcUrl, nodeClientUrl } = biconomySmartAccountConfig
 
@@ -95,25 +93,27 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   }
 
   isActiveValidationModuleDefined(): boolean {
-    if (!this.activeValidationModule) throw new Error('Must provide an instance of active validation module.')
+    if (!this.activeValidationModule)
+      throw new Error('Must provide an instance of active validation module.')
     return true
   }
 
   isDefaultValidationModuleDefined(): boolean {
-    if (!this.defaultValidationModule) throw new Error('Must provide an instance of default validation module.')
+    if (!this.defaultValidationModule)
+      throw new Error('Must provide an instance of default validation module.')
     return true
   }
 
   setActiveValidationModule(validationModule: BaseValidationModule): BiconomySmartAccountV2 {
-    if(validationModule instanceof BaseValidationModule) {
-    this.activeValidationModule = validationModule
+    if (validationModule instanceof BaseValidationModule) {
+      this.activeValidationModule = validationModule
     }
     return this
   }
 
   setDefaultValidationModule(validationModule: BaseValidationModule): BiconomySmartAccountV2 {
-    if(validationModule instanceof BaseValidationModule) {
-    this.defaultValidationModule = validationModule
+    if (validationModule instanceof BaseValidationModule) {
+      this.defaultValidationModule = validationModule
     }
     return this
   }
@@ -255,7 +255,11 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return '0x'
   }
 
-  async signUserOp(userOp: Partial<UserOperation>): Promise<UserOperation> {
+  // Review: for generic type for moduleSignerInfo in future
+  async signUserOp(
+    userOp: Partial<UserOperation>,
+    moduleSignerInfo?: SessionParams
+  ): Promise<UserOperation> {
     this.isActiveValidationModuleDefined()
     const requiredFields: UserOperationKey[] = [
       'sender',
@@ -272,19 +276,29 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     super.validateUserOp(userOp, requiredFields)
     const userOpHash = await this.getUserOpHash(userOp)
 
-    // Note: we could use signUserOp from validationModule
-    const sig = await this.activeValidationModule.signMessage(arrayify(userOpHash))
+    const sig = await this.activeValidationModule.signUserOpHash(userOpHash, moduleSignerInfo)
 
-    userOp = {
-      ...userOp,
-      signature: sig
-    }
-    const signatureWithModuleAddress = ethers.utils.defaultAbiCoder.encode(
-      ['bytes', 'address'],
-      [userOp.signature, await this.activeValidationModule.getAddress()]
-    )
-    userOp.signature = signatureWithModuleAddress
+    userOp.signature = sig
     return userOp as UserOperation
+  }
+
+  /**
+   *
+   * @param userOp
+   * @param moduleSignerInfo
+   * @description This function call will take 'unsignedUserOp' as an input, sign it with the owner key, and send it to the bundler.
+   * @returns Promise<UserOpResponse>
+   */
+  // Review: for generic type for moduleSignerInfo in future
+  async sendUserOp(
+    userOp: Partial<UserOperation>,
+    moduleSignerInfo?: SessionParams
+  ): Promise<UserOpResponse> {
+    Logger.log('userOp received in base account ', userOp)
+    delete userOp.signature
+    const userOperation = await this.signUserOp(userOp, moduleSignerInfo)
+    const bundlerResponse = await this.sendSignedUserOp(userOperation)
+    return bundlerResponse
   }
 
   async buildUserOp(
@@ -481,9 +495,10 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return userOp
   }
 
-  async signUserOpHash(userOpHash: string): Promise<string> {
+  // Review: for generic type for moduleSignerInfo in future
+  async signUserOpHash(userOpHash: string, moduleSignerInfo?: SessionParams): Promise<string> {
     this.isActiveValidationModuleDefined()
-    return await this.activeValidationModule.signMessage(arrayify(userOpHash))
+    return await this.activeValidationModule.signUserOpHash(userOpHash, moduleSignerInfo)
   }
 
   async signMessage(message: Bytes | string): Promise<string> {
@@ -501,6 +516,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     }
 
     // TODO
+    // Review if need to be added in signUserOpHash methods in validationModule as well
     // If the account is undeployed, use ERC-6492
     // Extend in child classes
     /*if (!(await this.isAccountDeployed(this.getSmartAccountAddress()))) {

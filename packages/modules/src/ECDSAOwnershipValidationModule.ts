@@ -1,26 +1,15 @@
-import { Logger, getUserOpHash } from '@biconomy/common'
-import { EntryPoint, EntryPoint__factory } from '@account-abstraction/contracts'
+import { Logger } from '@biconomy/common'
 import { Signer, ethers } from 'ethers'
-import { Bytes, BytesLike, hexConcat, arrayify, hexZeroPad, hexlify } from 'ethers/lib/utils'
-import {
-  BaseValidationModuleConfig,
-  ECDSAOwnershipValidationModuleConfig,
-  ModuleVersion
-} from './utils/Types'
-import { UserOperation, ChainId } from '@biconomy/core-types'
-import {
-  DEFAULT_ENTRYPOINT_ADDRESS,
-  ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION
-} from './utils/Constants'
+import { Bytes, arrayify } from 'ethers/lib/utils'
+import { ECDSAOwnershipValidationModuleConfig, ModuleVersion } from './utils/Types'
+import { ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION } from './utils/Constants'
 import { BaseValidationModule } from './BaseValidationModule'
 
 // Could be renamed with suffix API
 export class ECDSAOwnershipValidationModule extends BaseValidationModule {
   signer: Signer
-  chainId: ChainId
   moduleAddress!: string
   version: ModuleVersion = 'V1_0_0'
-  // entryPoint!: EntryPoint
 
   constructor(moduleConfig: ECDSAOwnershipValidationModuleConfig) {
     super(moduleConfig)
@@ -35,7 +24,6 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
       this.version = moduleConfig.version as ModuleVersion
     }
     this.signer = moduleConfig.signer
-    this.chainId = moduleConfig.chainId
   }
 
   getAddress(): string {
@@ -64,9 +52,17 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
     return ecdsaOwnershipInitData
   }
 
-  async signUserOp(userOp: UserOperation): Promise<string> {
-    const userOpHash = getUserOpHash(userOp, this.entryPointAddress, this.chainId)
-    return hexlify(await this.signer.signMessage(arrayify(userOpHash)))
+  async signUserOpHash(userOpHash: string): Promise<string> {
+    const sig = await this.signer.signMessage(arrayify(userOpHash))
+
+    Logger.log('ecdsa signature ', sig)
+
+    const signatureWithModuleAddress = ethers.utils.defaultAbiCoder.encode(
+      ['bytes', 'address'],
+      [sig, this.getAddress()]
+    )
+
+    return signatureWithModuleAddress
   }
 
   async signMessage(message: Bytes | string): Promise<string> {
