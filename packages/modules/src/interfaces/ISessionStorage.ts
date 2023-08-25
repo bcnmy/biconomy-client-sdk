@@ -74,4 +74,10 @@ export interface ISessionStorage {
    * Fetch merkle root from the session storage
    */
   getMerkleRoot(): Promise<string>
+
+  /**
+   * Set merkle root in the session storage
+   * @param merkleRoot Merkle root to be set in the session storage
+   */
+  setMerkleRoot(merkleRoot: string): Promise<void>
 }

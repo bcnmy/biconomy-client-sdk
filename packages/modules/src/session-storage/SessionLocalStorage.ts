@@ -145,4 +145,11 @@ export class SessionLocalStorage implements ISessionStorage {
   async getMerkleRoot(): Promise<string> {
     return this.getSessionStore().merkleRoot
   }
+
+  setMerkleRoot(merkleRoot: string): Promise<void> {
+    const data = this.getSessionStore()
+    data.merkleRoot = merkleRoot
+    localStorage.setItem(this.getStorageKey('sessions'), JSON.stringify(data))
+    return Promise.resolve()
+  }
 }

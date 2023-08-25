@@ -113,6 +113,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     }
 
     await this.sessionStorageClient.addSessionData(sessionLeafNode)
+    await this.sessionStorageClient.setMerkleRoot(this.merkleTree.getHexRoot())
     // TODO: create a signer if sessionPubKey if not given
     return setMerkleRootData
   }
