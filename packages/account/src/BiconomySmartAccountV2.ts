@@ -276,9 +276,14 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     super.validateUserOp(userOp, requiredFields)
     const userOpHash = await this.getUserOpHash(userOp)
 
-    const sig = await this.activeValidationModule.signUserOpHash(userOpHash, moduleSignerInfo)
+    const moduleSig = await this.activeValidationModule.signUserOpHash(userOpHash, moduleSignerInfo)
 
-    userOp.signature = sig
+    const signatureWithModuleAddress = ethers.utils.defaultAbiCoder.encode(
+      ['bytes', 'address'],
+      [moduleSig, this.activeValidationModule.getAddress()]
+    )
+
+    userOp.signature = signatureWithModuleAddress
     return userOp as UserOperation
   }
 
@@ -498,7 +503,14 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   // Review: for generic type for moduleSignerInfo in future
   async signUserOpHash(userOpHash: string, moduleSignerInfo?: SessionParams): Promise<string> {
     this.isActiveValidationModuleDefined()
-    return await this.activeValidationModule.signUserOpHash(userOpHash, moduleSignerInfo)
+    const moduleSig = await this.activeValidationModule.signUserOpHash(userOpHash, moduleSignerInfo)
+
+    const signatureWithModuleAddress = ethers.utils.defaultAbiCoder.encode(
+      ['bytes', 'address'],
+      [moduleSig, this.activeValidationModule.getAddress()]
+    )
+
+    return signatureWithModuleAddress
   }
 
   async signMessage(message: Bytes | string): Promise<string> {

@@ -64,12 +64,7 @@ export class MultiChainValidationModule extends BaseValidationModule {
 
     Logger.log('ecdsa signature ', sig)
 
-    const signatureWithModuleAddress = ethers.utils.defaultAbiCoder.encode(
-      ['bytes', 'address'],
-      [sig, this.getAddress()]
-    )
-
-    return signatureWithModuleAddress
+    return sig
   }
 
   async signMessage(message: Bytes | string): Promise<string> {
@@ -120,7 +115,9 @@ export class MultiChainValidationModule extends BaseValidationModule {
           [validUntil, validAfter, merkleTree.getHexRoot(), merkleProof, multichainSignature]
         )
 
+
         // add validation module address to the signature
+        // Note: because accountV2 does not directly call this method.
         const signatureWithModuleAddress = defaultAbiCoder.encode(
           ['bytes', 'address'],
           [moduleSignature, this.getAddress()]

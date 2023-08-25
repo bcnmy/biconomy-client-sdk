@@ -159,12 +159,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       paddedSignature += sessionParam.additionalSessionData
     }
 
-    // Generate the encoded data with paddedSignature and sessionKeyManagerModuleAddress
-    const signatureWithModuleAddress = ethers.utils.defaultAbiCoder.encode(
-      ['bytes', 'address'],
-      [paddedSignature, this.getAddress()]
-    )
-    return signatureWithModuleAddress
+    return paddedSignature
   }
 
   /**

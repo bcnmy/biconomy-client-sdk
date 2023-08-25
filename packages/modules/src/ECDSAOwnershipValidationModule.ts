@@ -57,12 +57,7 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
 
     Logger.log('ecdsa signature ', sig)
 
-    const signatureWithModuleAddress = ethers.utils.defaultAbiCoder.encode(
-      ['bytes', 'address'],
-      [sig, this.getAddress()]
-    )
-
-    return signatureWithModuleAddress
+    return sig
   }
 
   async signMessage(message: Bytes | string): Promise<string> {
