@@ -592,5 +592,10 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return tx
   }
 
+  async isModuleEnabled(moduleName: string): Promise<boolean> {
+    const accountContract = await this._getAccountContract()
+    return await accountContract.isModuleEnabled(moduleName)
+  }
+
   // async getEnableModuleData(moduleName: string): Promise<string> {
 }
