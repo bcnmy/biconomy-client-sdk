@@ -11,7 +11,6 @@ export interface ECDSAOwnershipValidationModuleConfig extends BaseValidationModu
   moduleAddress?: string
   version?: ModuleVersion
   signer: Signer
-  chainId: ChainId
 }
 
 export interface SessionKeyManagerModuleConfig extends BaseValidationModuleConfig {
@@ -20,7 +19,6 @@ export interface SessionKeyManagerModuleConfig extends BaseValidationModuleConfi
   sessionSigner?: Signer
   sessionPubKey?: string
   nodeClientUrl?: string
-  chainId: ChainId
   smartAccountAddress: string
   storageType?: StorageType
 }

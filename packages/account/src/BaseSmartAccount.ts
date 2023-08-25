@@ -125,7 +125,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
    * sign a userOp's hash (userOpHash).
    * @param userOpHash
    */
-  abstract signUserOpHash(userOpHash: string, signer?: Signer): Promise<string>
+  abstract signUserOpHash(userOpHash: string): Promise<string>
 
   abstract signMessage(message: Bytes | string): Promise<string>
 

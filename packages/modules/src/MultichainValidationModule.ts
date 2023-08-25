@@ -59,14 +59,16 @@ export class MultiChainValidationModule extends BaseValidationModule {
     return ecdsaOwnershipInitData
   }
 
-  async signUserOp(userOp: UserOperation): Promise<string> {
-    Logger.log('userOp', userOp)
-    throw new Error('Method not implemented.')
+  async signUserOpHash(userOpHash: string): Promise<string> {
+    const sig = await this.signer.signMessage(arrayify(userOpHash))
+
+    Logger.log('ecdsa signature ', sig)
+
+    return sig
   }
 
   async signMessage(message: Bytes | string): Promise<string> {
-    Logger.log('message', message)
-    throw new Error('Method not implemented.')
+    return await this.signer.signMessage(message)
   }
 
   async signUserOps(multiChainUserOps: MultiChainUserOpDto[]): Promise<UserOperation[]> {
@@ -113,7 +115,9 @@ export class MultiChainValidationModule extends BaseValidationModule {
           [validUntil, validAfter, merkleTree.getHexRoot(), merkleProof, multichainSignature]
         )
 
+
         // add validation module address to the signature
+        // Note: because accountV2 does not directly call this method.
         const signatureWithModuleAddress = defaultAbiCoder.encode(
           ['bytes', 'address'],
           [moduleSignature, this.getAddress()]
