@@ -142,14 +142,12 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       throw new Error('sessionID or sessionValidationModule should be provided.')
     }
 
-    const leafDataHex = ethers.utils.keccak256(
-      hexConcat([
-        sessionSignerData.validUntil,
-        sessionSignerData.validAfter,
-        sessionSignerData.sessionValidationModule,
-        sessionSignerData.sessionKeyData,
-      ])
-    )
+    const leafDataHex = hexConcat([
+      hexZeroPad(ethers.utils.hexlify(sessionSignerData.validUntil), 6),
+      hexZeroPad(ethers.utils.hexlify(sessionSignerData.validAfter), 6),
+      hexZeroPad(sessionSignerData.sessionValidationModule, 20),
+      sessionSignerData.sessionKeyData
+    ])
 
     // Generate the padded signature with (validUntil,validAfter,sessionVerificationModuleAddress,validationData,merkleProof,signature)
     let paddedSignature = defaultAbiCoder.encode(
@@ -159,7 +157,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
         sessionSignerData.validAfter,
         sessionSignerData.sessionValidationModule,
         sessionSignerData.sessionKeyData,
-        this.merkleTree.getHexProof(leafDataHex),
+        this.merkleTree.getHexProof(ethers.utils.keccak256(leafDataHex)),
         signature
       ]
     )
