@@ -76,7 +76,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     })
 
     instance.merkleTree = new MerkleTree(existingSessionDataLeafs, keccak256, {
-      sortPairs: false,
+      sortPairs: true,
       hashLeaves: false
     })
 
@@ -100,6 +100,16 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       leafData.sessionKeyData
     ])
     this.merkleTree.addLeaves([ethers.utils.keccak256(leafDataHex) as unknown as Buffer])
+
+    const leaves = this.merkleTree.getLeaves()
+
+    const newMerkleTree = new MerkleTree(leaves, keccak256, {
+      sortPairs: true,
+      hashLeaves: false
+    })
+
+    this.merkleTree = newMerkleTree
+
     const setMerkleRootData = sessionKeyManagerModuleInterface.encodeFunctionData('setMerkleRoot', [
       this.merkleTree.getHexRoot()
     ])
@@ -158,7 +168,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
         sessionSignerData.validAfter,
         sessionSignerData.sessionValidationModule,
         sessionSignerData.sessionKeyData,
-        this.merkleTree.getHexProof(ethers.utils.keccak256(leafDataHex)),
+        this.merkleTree.getHexProof(ethers.utils.keccak256(leafDataHex) as unknown as Buffer),
         signature
       ]
     )
