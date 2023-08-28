@@ -32,6 +32,7 @@ export type PaymasterConfig = {
 export type SponsorUserOperationDto = {
   mode: PaymasterMode
   calculateGasLimits?: boolean
+  expiryDuration?: number
   webhookData?: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any
@@ -44,6 +45,7 @@ export type SponsorUserOperationDto = {
 // meant for pm_getFeeQuoteOrData
 export type FeeQuotesOrDataDto = {
   mode?: PaymasterMode
+  expiryDuration?: number
   calculateGasLimits?: boolean
   tokenList?: string[]
   preferredToken?: string
