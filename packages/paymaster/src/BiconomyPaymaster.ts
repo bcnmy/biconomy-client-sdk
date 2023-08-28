@@ -44,16 +44,16 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
   ): Promise<Partial<UserOperation>> {
     // Review
     userOp = await resolveProperties(userOp)
-    if (userOp.nonce) {
+    if (userOp.nonce !== null || userOp.nonce !== undefined) {
       userOp.nonce = BigNumber.from(userOp.nonce).toHexString()
     }
-    if (userOp.callGasLimit) {
+    if (userOp.callGasLimit !== null || userOp.callGasLimit !== undefined) {
       userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toString()
     }
-    if (userOp.verificationGasLimit) {
+    if (userOp.verificationGasLimit !== null || userOp.verificationGasLimit !== undefined) {
       userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toString()
     }
-    if (userOp.preVerificationGas) {
+    if (userOp.preVerificationGas !== null || userOp.preVerificationGas !== undefined) {
       userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toString()
     }
     userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toHexString()
@@ -144,6 +144,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     }
 
     let mode = null
+    let expiryDuration = null
     const calculateGasLimits = paymasterServiceData.calculateGasLimits
       ? paymasterServiceData.calculateGasLimits
       : false
@@ -161,6 +162,11 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
       Logger.log('Requested mode is ', paymasterServiceData.mode)
       mode = paymasterServiceData.mode
       // Validation on the mode passed / define allowed enums
+    }
+
+    if (paymasterServiceData.expiryDuration) {
+      Logger.log('Requested expiryDuration is ', paymasterServiceData.expiryDuration)
+      expiryDuration = paymasterServiceData.expiryDuration
     }
 
     preferredToken = paymasterServiceData?.preferredToken
@@ -190,6 +196,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
             {
               ...(mode !== null && { mode }),
               calculateGasLimits: calculateGasLimits,
+              ...(expiryDuration !== null && { expiryDuration }),
               tokenInfo: {
                 tokenList: feeTokensArray,
                 ...(preferredToken !== null && { preferredToken })
@@ -287,6 +294,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     Logger.log('calculateGasLimits is ', calculateGasLimits)
 
     let tokenInfo = null
+    let expiryDuration = null
     // could make below null
     let smartAccountInfo = {
       name: 'BICONOMY',
@@ -308,6 +316,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
 
     webhookData = paymasterServiceData?.webhookData ?? webhookData
     smartAccountInfo = paymasterServiceData?.smartAccountInfo ?? smartAccountInfo
+    expiryDuration = paymasterServiceData?.expiryDuration ?? expiryDuration
 
     // Note: The idea is before calling this below rpc, userOp values presense and types should be in accordance with how we call eth_estimateUseropGas on the bundler
 
@@ -322,6 +331,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
             {
               mode: mode,
               calculateGasLimits: calculateGasLimits,
+              ...(expiryDuration !== null && { expiryDuration }),
               ...(tokenInfo !== null && { tokenInfo }),
               sponsorshipInfo: {
                 ...(webhookData !== null && { webhookData }),
