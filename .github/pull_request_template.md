@@ -1,36 +1,35 @@
-# Description
+## What's the Branch For?
 
-Please include a summary of the changes and the related issue. Please also include relevant motivation and context. List any dependencies that are required for this change.
+-   **Type of Change**: My branch name starts with `features/`, `fixes/`, or `releases/`.
+-   **Who Merges**: If I made this PR, I'll merge it and delete the branch after that.
 
-Fixes # (issue)
+## What Are You Changing?
 
-## Type of change
+Tell us what you're changing and why. Also, if it fixes an issue, mention that issue number.
 
-Please delete options that are not relevant.
+Fixes Issue # (if any)
 
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] This change requires a documentation update
+## What Kind of Change Is It?
 
-# How Has This Been Tested?
+-   Fixing a bug
+-   Adding a new feature
+-   Making a big change that could break things
+-   Updating the documentation
 
-Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration
+## Did You Test It?
 
+Tell us how you tested your changes. If you didn't test, please say so.
 
-**Test Configuration**:
-* Firmware version:
-* Hardware:
-* Toolchain:
-* SDK:
+## Checklist
 
-# Checklist:
+-   My code is neat and clean
+-   I've reviewed my own code to make sure it's good
+-   I've added comments to tricky parts in the code
+-   I've updated any needed documentation
+-   My changes don't cause any new warnings
+-   I've added tests to prove my changes work
+-   All tests pass with my changes
 
-- [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
-- [ ] Any dependent changes have been merged and published in downstream modules
+----------
+
+**Note**: Please remove this text before you submit your PR.
