@@ -3,7 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## 3.1.1-alpha.0 (2023-08-02)
+## 3.0.0 (2023-08-28)
+
+Modular SDK - consists stable version of below updates done in Alphas.
+
+### Features
+
+* base mainnet integration ([c17f5d6](https://github.com/bcnmy/biconomy-client-sdk/commit/c17f5d6c2fe34b106e6d9755f54fab2493db6fbe))
+
+
+
+
+
+## 3.0.0-alpha.0 (2023-08-02)
 
 VERSION bump only
 

@@ -430,6 +430,16 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
 
         // Requesting to update gas limits again (especially callGasLimit needs to be re-calculated)
         try {
+          delete finalUserOp.callGasLimit
+          delete finalUserOp.verificationGasLimit
+          delete finalUserOp.preVerificationGas
+
+          // Maybe send paymasterAndData since we know it's for Token paymaster
+          /*finalUserOp.paymasterAndData =
+            '0x00000f7365ca6c59a2c93719ad53d567ed49c14c000000000000000000000000000000000000000000000000000000000064e3d3890000000000000000000000000000000000000000000000000000000064e3cc81000000000000000000000000af88d065e77c8cc2239327c5edb3a432268e583100000000000000000000000000000f7748595e46527413574a9327942e744e910000000000000000000000000000000000000000000000000000000063ac7f6c000000000000000000000000000000000000000000000000000000000010c8e07bf61410b71700f943499adfd23e50fb16040d587acb0a5e60ac8576cdbb4c8044f00579a1fc3f294e7dc4a5eb557a7193008343aa36225bddcfbd4fd15646031c'*/
+
+          // Review: and handle the case when mock pnd fails with AA31 during simulation.
+
           finalUserOp = await this.estimateUserOpGas(finalUserOp)
           const cgl = ethers.BigNumber.from(finalUserOp.callGasLimit)
           if (finalUserOp.callGasLimit && cgl.lt(ethers.BigNumber.from('21000'))) {
