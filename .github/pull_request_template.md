@@ -1,36 +1,36 @@
-# Description
+# Summary
 
-Please include a summary of the changes and the related issue. Please also include relevant motivation and context. List any dependencies that are required for this change.
+Please provide a brief summary of the changes and the issue number this PR addresses.
 
-Fixes # (issue)
+Related Issue: # (issue number)
 
-## Type of change
+## Change Type
 
-Please delete options that are not relevant.
+- [ ] Bug Fix
+- [ ] Refactor
+- [ ] New Feature
+- [ ] Breaking Change
+- [ ] Documentation Update
+- [ ] Performance Improvement
+- [ ] Other
 
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] This change requires a documentation update
+# Checklist
 
-# How Has This Been Tested?
-
-Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration
-
-
-**Test Configuration**:
-* Firmware version:
-* Hardware:
-* Toolchain:
-* SDK:
-
-# Checklist:
-
-- [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
+- [ ] My code follows this project's style guidelines
+- [ ] I've reviewed my own code
+- [ ] I've added comments for any hard-to-understand areas
+- [ ] I've updated the documentation if necessary
 - [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
-- [ ] Any dependent changes have been merged and published in downstream modules
+- [ ] I've added tests that prove my fix is effective or my feature works
+- [ ] All unit tests pass locally with my changes
+- [ ] Any dependent changes have been merged and published
+
+# Additional Information
+
+Any additional information or context about the PR.
+
+# Branch Naming
+
+Make sure your branch name follows the pattern: `features/`, `fixes/`, or `releases/`.
+
+**Note**: The person creating the PR is responsible for merging and deleting the branch. Ensure the code has been tested, commented, linted, and documents updated if needed.
