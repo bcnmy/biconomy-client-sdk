@@ -12,7 +12,7 @@
     "test": "lerna run test --stream --npm-client=yarn",
     "test:ci": "FORCE_COLOR=1 lerna run test:ci --stream --npm-client=yarn",
     "format": "lerna run format --npm-client=yarn",
-    "prettier": "lerna run prettier --npm-client=npm",
+    "prettier": "npx prettier --write .",
     "diff": "lerna diff",
     "new-version": "lerna version patch --no-git-tag-version --no-push --conventional-commits --yes",
     "lint": "eslint -c .eslintrc.js 'packages/*/src/**/*.{ts,tsx}'",
