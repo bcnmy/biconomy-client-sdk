@@ -19,8 +19,7 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
       - name: Lint sources
-        run:
-          yarn run lint
+        run: yarn run lint
 
   unit_test:
     name: Unit tests

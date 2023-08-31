@@ -1,9 +1,9 @@
 ---
 name: Bug Report
 about: Report a bug to help us improve
-title: ""
+title: ''
 labels: bug, needs-review
-assignees: ""
+assignees: ''
 ---
 
 Thank you for reporting this bug. Please provide as much detail as you can.
@@ -19,4 +19,3 @@ Thank you for reporting this bug. Please provide as much detail as you can.
 #### Steps to Reproduce:
 
 #### Code or Error Messages:
-

@@ -1,6 +1,6 @@
-import { ChainId } from '@biconomy/core-types'
+import { ChainId } from '@biconomy/core-types';
 
-export const NODE_CLIENT_URL = 'https://sdk-backend.prod.biconomy.io/v1'
+export const NODE_CLIENT_URL = 'https://sdk-backend.prod.biconomy.io/v1';
 
 export const RPC_PROVIDER_URLS: { [key in ChainId]?: string } = {
   [ChainId.MAINNET]: 'https://rpc.ankr.com/eth',
@@ -22,4 +22,4 @@ export const RPC_PROVIDER_URLS: { [key in ChainId]?: string } = {
   [ChainId.BASE_GOERLI_TESTNET]: 'https://goerli.base.org',
   [ChainId.BASE_MAINNET]: 'https://developer-access-mainnet.base.org',
   [ChainId.LINEA_TESTNET]: 'https://rpc.goerli.linea.build'
-}
+};

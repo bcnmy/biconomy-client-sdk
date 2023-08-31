@@ -1,9 +1,9 @@
 ---
 name: Feature Request
 about: Suggest a new feature for the project
-title: "Feature: <Your Feature>"
+title: 'Feature: <Your Feature>'
 labels: feature-request, needs-review
-assignees: ""
+assignees: ''
 ---
 
 **Problem You're Facing**
