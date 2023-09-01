@@ -23,6 +23,17 @@ export interface SessionKeyManagerModuleConfig extends BaseValidationModuleConfi
   storageType?: StorageType
 }
 
+export interface BatchedSessionKeyManagerModuleConfig extends BaseValidationModuleConfig {
+  moduleAddress?: string
+  sessionManagerModuleAddress?: string
+  version?: ModuleVersion
+  sessionSigner?: Signer
+  sessionPubKey?: string
+  nodeClientUrl?: string
+  smartAccountAddress: string
+  storageType?: StorageType
+}
+
 export enum StorageType {
   LOCAL_STORAGE
 }

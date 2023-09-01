@@ -26,7 +26,8 @@ export abstract class BaseValidationModule implements IValidationModule {
   // Review naming convention for getter
   abstract getSigner(): Promise<Signer>
 
-  abstract signUserOpHash(userOpHash: string, moduleSignerInfo?: SessionParams): Promise<string>
+  // Review
+  abstract signUserOpHash(userOpHash: string, moduleSignerInfo?: SessionParams[]): Promise<string>
 
   abstract signMessage(message: Bytes | string): Promise<string>
 }

@@ -258,7 +258,8 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   // Review: for generic type for moduleSignerInfo in future
   async signUserOp(
     userOp: Partial<UserOperation>,
-    moduleSignerInfo?: SessionParams
+    // Review
+    moduleSignerInfo?: SessionParams[]
   ): Promise<UserOperation> {
     this.isActiveValidationModuleDefined()
     const requiredFields: UserOperationKey[] = [
@@ -297,7 +298,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   // Review: for generic type for moduleSignerInfo in future
   async sendUserOp(
     userOp: Partial<UserOperation>,
-    moduleSignerInfo?: SessionParams
+    moduleSignerInfo?: SessionParams[]
   ): Promise<UserOpResponse> {
     Logger.log('userOp received in base account ', userOp)
     delete userOp.signature
@@ -500,7 +501,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   }
 
   // Review: for generic type for moduleSignerInfo in future
-  async signUserOpHash(userOpHash: string, moduleSignerInfo?: SessionParams): Promise<string> {
+  async signUserOpHash(userOpHash: string, moduleSignerInfo?: SessionParams[]): Promise<string> {
     this.isActiveValidationModuleDefined()
     const moduleSig = await this.activeValidationModule.signUserOpHash(userOpHash, moduleSignerInfo)
 

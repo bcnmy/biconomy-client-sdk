@@ -4,26 +4,29 @@ import { NODE_CLIENT_URL, Logger } from '@biconomy/common'
 import { hexConcat, arrayify, hexZeroPad, defaultAbiCoder, Bytes } from 'ethers/lib/utils'
 import { keccak256 } from 'ethereumjs-util'
 import {
-  SessionKeyManagerModuleConfig,
   ModuleVersion,
   CreateSessionDataParams,
   StorageType,
-  SessionParams
+  SessionParams,
+  BatchedSessionKeyManagerModuleConfig
 } from './utils/Types'
 import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
 import {
+  BATCHED_SESSION_ROUTER_MODULE_ADDRESSES_BY_VERSION,
   SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION,
-  DEFAULT_SESSION_KEY_MANAGER_MODULE
+  DEFAULT_SESSION_KEY_MANAGER_MODULE,
+  DEFAULT_BATCHED_SESSION_ROUTER_MODULE
 } from './utils/Constants'
 import { generateRandomHex } from './utils/Uid'
 import { BaseValidationModule } from './BaseValidationModule'
 import { SessionLocalStorage } from './session-storage/SessionLocalStorage'
 import { ISessionStorage, SessionSearchParam, SessionStatus } from './interfaces/ISessionStorage'
 
-export class SessionKeyManagerModule extends BaseValidationModule {
+export class BatchedSessionRouterModule extends BaseValidationModule {
   version: ModuleVersion = 'V1_0_0'
   moduleAddress!: string
+  sessionManagerModuleAddress!: string
   nodeClient!: INodeClient
   merkleTree!: MerkleTree
   sessionStorageClient!: ISessionStorage
@@ -33,7 +36,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @param moduleConfig The configuration for the module
    * @returns An instance of SessionKeyManagerModule
    */
-  private constructor(moduleConfig: SessionKeyManagerModuleConfig) {
+  private constructor(moduleConfig: BatchedSessionKeyManagerModuleConfig) {
     super(moduleConfig)
   }
 
@@ -43,22 +46,25 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @returns A Promise that resolves to an instance of SessionKeyManagerModule
    */
   public static async create(
-    moduleConfig: SessionKeyManagerModuleConfig
-  ): Promise<SessionKeyManagerModule> {
-    const instance = new SessionKeyManagerModule(moduleConfig)
+    moduleConfig: BatchedSessionKeyManagerModuleConfig
+  ): Promise<BatchedSessionRouterModule> {
+    const instance = new BatchedSessionRouterModule(moduleConfig)
 
     if (moduleConfig.moduleAddress) {
       instance.moduleAddress = moduleConfig.moduleAddress
     } else if (moduleConfig.version) {
-      const moduleAddr = SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION[moduleConfig.version]
+      const moduleAddr = BATCHED_SESSION_ROUTER_MODULE_ADDRESSES_BY_VERSION[moduleConfig.version]
       if (!moduleAddr) {
         // throw new Error(`Invalid version ${moduleConfig.version}`)
         Logger.error(`Invalid version ${moduleConfig.version}`)
-        instance.moduleAddress = DEFAULT_SESSION_KEY_MANAGER_MODULE
+        instance.moduleAddress = DEFAULT_BATCHED_SESSION_ROUTER_MODULE
       }
       instance.moduleAddress = moduleAddr
       instance.version = moduleConfig.version as ModuleVersion
     }
+
+    instance.sessionManagerModuleAddress =
+      moduleConfig.sessionManagerModuleAddress ?? DEFAULT_SESSION_KEY_MANAGER_MODULE
     instance.nodeClient = new NodeClient({
       txServiceUrl: moduleConfig.nodeClientUrl ?? NODE_CLIENT_URL
     })
@@ -142,58 +148,77 @@ export class SessionKeyManagerModule extends BaseValidationModule {
   /**
    * This method is used to sign the user operation using the session signer
    * @param userOp The user operation to be signed
-   * @param sessionSigner The signer to be used to sign the user operation
+   * @param sessionParams Information about all the sessions to be used to sign the user operation which has a batch execution
    * @returns The signature of the user operation
    */
   async signUserOpHash(userOpHash: string, sessionParams?: SessionParams[]): Promise<string> {
-    if (!sessionParams || sessionParams.length === 0 || sessionParams.length > 1) {
-      throw new Error('Session parameters are not provided or invalid')
-    }
-    const sessionParam = sessionParams[0]
-    if (!(sessionParam && sessionParam.sessionSigner)) {
-      throw new Error('Session signer is not provided.')
-    }
-    const sessionSigner = sessionParam.sessionSigner
-    // Use the sessionSigner to sign the user operation
-    const signature = await sessionSigner.signMessage(arrayify(userOpHash))
-
-    let sessionSignerData
-    if (sessionParam?.sessionID) {
-      sessionSignerData = await this.sessionStorageClient.getSessionData({
-        sessionID: sessionParam.sessionID
-      })
-    } else if (sessionParam?.sessionValidationModule) {
-      sessionSignerData = await this.sessionStorageClient.getSessionData({
-        sessionValidationModule: sessionParam.sessionValidationModule,
-        sessionPublicKey: await sessionSigner.getAddress()
-      })
-    } else {
-      throw new Error('sessionID or sessionValidationModule should be provided.')
+    if (!sessionParams || sessionParams.length === 0) {
+      throw new Error('Session parameters are not provided.')
     }
 
-    const leafDataHex = hexConcat([
-      hexZeroPad(ethers.utils.hexlify(sessionSignerData.validUntil), 6),
-      hexZeroPad(ethers.utils.hexlify(sessionSignerData.validAfter), 6),
-      hexZeroPad(sessionSignerData.sessionValidationModule, 20),
-      sessionSignerData.sessionKeyData
+    const sessionDataArray = []
+    const proofs = []
+
+    // signer must be the same for all the sessions
+    const sessionSigner = sessionParams[0].sessionSigner
+
+    const userOpHashAndModuleAddress = ethers.utils.hexConcat([
+      ethers.utils.hexZeroPad(userOpHash, 32),
+      ethers.utils.hexZeroPad(this.getSessionKeyManagerAddress(), 20)
     ])
 
+    const resultingHash = ethers.utils.keccak256(userOpHashAndModuleAddress)
+
+    const signature = await sessionSigner.signMessage(arrayify(resultingHash))
+
+    for (const sessionParam of sessionParams) {
+      if (!sessionParam.sessionSigner) {
+        throw new Error('Session signer is not provided.')
+      }
+
+      let sessionSignerData
+
+      if (sessionParam.sessionID) {
+        sessionSignerData = await this.sessionStorageClient.getSessionData({
+          sessionID: sessionParam.sessionID
+        })
+      } else if (sessionParam.sessionValidationModule) {
+        sessionSignerData = await this.sessionStorageClient.getSessionData({
+          sessionValidationModule: sessionParam.sessionValidationModule,
+          sessionPublicKey: await sessionSigner.getAddress()
+        })
+      } else {
+        throw new Error('sessionID or sessionValidationModule should be provided.')
+      }
+
+      sessionDataArray.push(sessionSignerData)
+
+      const leafDataHex = hexConcat([
+        hexZeroPad(ethers.utils.hexlify(sessionSignerData.validUntil), 6),
+        hexZeroPad(ethers.utils.hexlify(sessionSignerData.validAfter), 6),
+        hexZeroPad(sessionSignerData.sessionValidationModule, 20),
+        sessionSignerData.sessionKeyData
+      ])
+
+      const proof = this.merkleTree.getHexProof(
+        ethers.utils.keccak256(leafDataHex) as unknown as Buffer
+      )
+      proofs.push(proof)
+    }
+
     // Generate the padded signature with (validUntil,validAfter,sessionVerificationModuleAddress,validationData,merkleProof,signature)
-    let paddedSignature = defaultAbiCoder.encode(
-      ['uint48', 'uint48', 'address', 'bytes', 'bytes32[]', 'bytes'],
+    const paddedSignature = defaultAbiCoder.encode(
+      ['address', 'uint48[]', 'uint48[]', 'address[]', 'bytes[]', 'bytes32[][]', 'bytes'],
       [
-        sessionSignerData.validUntil,
-        sessionSignerData.validAfter,
-        sessionSignerData.sessionValidationModule,
-        sessionSignerData.sessionKeyData,
-        this.merkleTree.getHexProof(ethers.utils.keccak256(leafDataHex) as unknown as Buffer),
+        this.getSessionKeyManagerAddress(),
+        sessionDataArray.map((data) => data.validUntil),
+        sessionDataArray.map((data) => data.validAfter),
+        sessionDataArray.map((data) => data.sessionValidationModule),
+        sessionDataArray.map((data) => data.sessionKeyData),
+        proofs,
         signature
       ]
     )
-
-    if (sessionParam?.additionalSessionData) {
-      paddedSignature += sessionParam.additionalSessionData
-    }
 
     return paddedSignature
   }
@@ -221,6 +246,13 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    */
   getAddress(): string {
     return this.moduleAddress
+  }
+
+  /**
+   * @returns SessionKeyManagerModule address
+   */
+  getSessionKeyManagerAddress(): string {
+    return this.sessionManagerModuleAddress
   }
 
   /**
