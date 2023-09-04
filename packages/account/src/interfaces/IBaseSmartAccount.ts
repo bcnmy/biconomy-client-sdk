@@ -19,4 +19,5 @@ export interface IBaseSmartAccount extends INon4337Account {
   signUserOpHash(userOpHash: string): Promise<string>
   getUserOpHash(userOp: Partial<UserOperation>): Promise<string>
   getAccountInitCode(): Promise<string>
+  getDummySignature(): Promise<string>
 }

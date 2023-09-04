@@ -16,7 +16,13 @@ import { SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION } from './utils/Constants'
 import { generateRandomHex } from './utils/Uid'
 import { BaseValidationModule } from './BaseValidationModule'
 import { SessionLocalStorage } from './session-storage/SessionLocalStorage'
-import { ISessionStorage, SessionSearchParam, SessionStatus } from './interfaces/ISessionStorage'
+import {
+  ISessionStorage,
+  SessionLeafNode,
+  SessionSearchParam,
+  SessionStatus
+} from './interfaces/ISessionStorage'
+import { escapeLeadingUnderscores } from 'typescript'
 
 export class SessionKeyManagerModule extends BaseValidationModule {
   version: ModuleVersion = 'V1_0_0'
@@ -24,6 +30,11 @@ export class SessionKeyManagerModule extends BaseValidationModule {
   nodeClient!: INodeClient
   merkleTree!: MerkleTree
   sessionStorageClient!: ISessionStorage
+  readonly mockEcdsaSessionKeySig: string =
+    '0x73c3ac716c487ca34bb858247b5ccf1dc354fbaabdd089af3b2ac8e78ba85a4959a2d76250325bd67c11771c31fccda87c33ceec17cc0de912690521bb95ffcb1b'
+
+  // Review if necessary to store in this format or some mapping
+  private dummySig!: string
 
   /**
    * This constructor is private. Use the static create method to instantiate SessionKeyManagerModule
@@ -131,27 +142,15 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @param sessionSigner The signer to be used to sign the user operation
    * @returns The signature of the user operation
    */
-  async signUserOpHash(userOpHash: string, sessionParam?: SessionParams): Promise<string> {
-    if (!(sessionParam && sessionParam.sessionSigner)) {
+  async signUserOpHash(userOpHash: string, signerAdditionalInfo?: SessionParams): Promise<string> {
+    if (!(signerAdditionalInfo && signerAdditionalInfo.sessionSigner)) {
       throw new Error('Session signer is not provided.')
     }
-    const sessionSigner = sessionParam.sessionSigner
+    const sessionSigner = signerAdditionalInfo.sessionSigner
     // Use the sessionSigner to sign the user operation
     const signature = await sessionSigner.signMessage(arrayify(userOpHash))
 
-    let sessionSignerData
-    if (sessionParam?.sessionID) {
-      sessionSignerData = await this.sessionStorageClient.getSessionData({
-        sessionID: sessionParam.sessionID
-      })
-    } else if (sessionParam?.sessionValidationModule) {
-      sessionSignerData = await this.sessionStorageClient.getSessionData({
-        sessionValidationModule: sessionParam.sessionValidationModule,
-        sessionPublicKey: await sessionSigner.getAddress()
-      })
-    } else {
-      throw new Error('sessionID or sessionValidationModule should be provided.')
-    }
+    const sessionSignerData = await this.getLeafInfo(signerAdditionalInfo)
 
     const leafDataHex = hexConcat([
       hexZeroPad(ethers.utils.hexlify(sessionSignerData.validUntil), 6),
@@ -173,11 +172,33 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       ]
     )
 
-    if (sessionParam?.additionalSessionData) {
-      paddedSignature += sessionParam.additionalSessionData
+    if (signerAdditionalInfo?.additionalSessionData) {
+      paddedSignature += signerAdditionalInfo.additionalSessionData
     }
 
     return paddedSignature
+  }
+
+  private async getLeafInfo(signerAdditionalInfo: SessionParams): Promise<SessionLeafNode> {
+    if (!(signerAdditionalInfo && signerAdditionalInfo.sessionSigner)) {
+      throw new Error('Session signer is not provided.')
+    }
+    const sessionSigner = signerAdditionalInfo.sessionSigner
+    let sessionSignerData
+    if (signerAdditionalInfo?.sessionID) {
+      sessionSignerData = await this.sessionStorageClient.getSessionData({
+        sessionID: signerAdditionalInfo.sessionID
+      })
+    } else if (signerAdditionalInfo?.sessionValidationModule) {
+      sessionSignerData = await this.sessionStorageClient.getSessionData({
+        sessionValidationModule: signerAdditionalInfo.sessionValidationModule,
+        sessionPublicKey: await sessionSigner.getAddress()
+      })
+    } else {
+      throw new Error('sessionID or sessionValidationModule should be provided.')
+    }
+
+    return sessionSignerData
   }
 
   /**
@@ -216,10 +237,39 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @remarks This is the dummy signature for the module, used in buildUserOp for bundler estimation
    * @returns Dummy signature
    */
-  getDummySignature(): string {
-    const moduleAddress = ethers.utils.getAddress(this.getAddress())
-    const dynamicPart = moduleAddress.substring(2).padEnd(40, '0')
-    return `0x0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000${dynamicPart}000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000db3d753a1da5a6074a9f74f39a0a779d3300000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000016000000000000000000000000000000000000000000000000000000000000001800000000000000000000000000000000000000000000000000000000000000080000000000000000000000000bfe121a6dcf92c49f6c2ebd4f306ba0ba0ab6f1c000000000000000000000000da5289fcaaf71d52a80a254da614a192b693e97700000000000000000000000042138576848e839827585a3539305774d36b96020000000000000000000000000000000000000000000000000000000002faf08000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000041feefc797ef9e9d8a6a41266a85ddf5f85c8f2a3d2654b10b415d348b150dabe82d34002240162ed7f6b7ffbc40162b10e62c3e35175975e43659654697caebfe1c00000000000000000000000000000000000000000000000000000000000000`
+  // Review types : how it can be made generic
+  // instead of search params it could be actual leaf info retrieved beforehand
+  async getDummySignature(additionalInfo?: SessionParams): Promise<string> {
+    Logger.log('moduleSignerInfo ', additionalInfo)
+    if (!additionalInfo) {
+      throw new Error('Session signer is not provided.')
+    }
+    const sessionSignerData = await this.getLeafInfo(additionalInfo)
+    const leafDataHex = hexConcat([
+      hexZeroPad(ethers.utils.hexlify(sessionSignerData.validUntil), 6),
+      hexZeroPad(ethers.utils.hexlify(sessionSignerData.validAfter), 6),
+      hexZeroPad(sessionSignerData.sessionValidationModule, 20),
+      sessionSignerData.sessionKeyData
+    ])
+
+    // Generate the padded signature with (validUntil,validAfter,sessionVerificationModuleAddress,validationData,merkleProof,signature)
+    let paddedSignature = defaultAbiCoder.encode(
+      ['uint48', 'uint48', 'address', 'bytes', 'bytes32[]', 'bytes'],
+      [
+        sessionSignerData.validUntil,
+        sessionSignerData.validAfter,
+        sessionSignerData.sessionValidationModule,
+        sessionSignerData.sessionKeyData,
+        this.merkleTree.getHexProof(ethers.utils.keccak256(leafDataHex) as unknown as Buffer),
+        this.mockEcdsaSessionKeySig
+      ]
+    )
+
+    if (additionalInfo?.additionalSessionData) {
+      paddedSignature += additionalInfo.additionalSessionData
+    }
+
+    return paddedSignature
   }
 
   /**

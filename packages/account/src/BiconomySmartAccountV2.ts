@@ -244,9 +244,11 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   }
 
   // dummy signature depends on the validation module supplied.
-  getDummySignature(): string {
+  // Review: type
+  async getDummySignature(additionalInfo?: SessionParams): Promise<string> {
     this.isActiveValidationModuleDefined()
-    return this.activeValidationModule.getDummySignature()
+    // Review: call it additional information metadata or something
+    return await this.activeValidationModule.getDummySignature(additionalInfo)
   }
 
   // Review:
@@ -306,10 +308,14 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return bundlerResponse
   }
 
+  // TODO
+  // need to actually make this a DTO now..
+  // Review: type ifit can be made generic
   async buildUserOp(
     transactions: Transaction[],
     overrides?: Overrides,
-    skipBundlerGasEstimation?: boolean
+    skipBundlerGasEstimation?: boolean,
+    signerAdditionalInfo?: SessionParams
   ): Promise<Partial<UserOperation>> {
     // Review: may not need at all
     // this.isInitialized()
@@ -347,7 +353,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     }
 
     // for this Smart Account current validation module dummy signature will be used to estimate gas
-    userOp.signature = this.getDummySignature()
+    userOp.signature = await this.getDummySignature(signerAdditionalInfo)
 
     userOp = await this.estimateUserOpGas(userOp, overrides, skipBundlerGasEstimation)
     Logger.log('UserOp after estimation ', userOp)
