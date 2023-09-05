@@ -5,7 +5,7 @@
 ## Usage
 
 ```ts
-import SocialLogin from "@biconomy/web3-auth";
+import SocialLogin from '@biconomy/web3-auth';
 // init wallet
 const socialLoginSDK = new SocialLogin();
 await socialLoginSDK.init();

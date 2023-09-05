@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
-import SocialLogin from './SocialLogin'
+import React, { useState } from 'react';
+import SocialLogin from './SocialLogin';
 
 interface UIPorops {
-  socialLogin: SocialLogin
+  socialLogin: SocialLogin;
 }
 
 const container = {
@@ -17,18 +17,18 @@ const container = {
   borderRadius: 10,
   background: 'black',
   overflow: 'hidden'
-} as React.CSSProperties
+} as React.CSSProperties;
 
 const UI: React.FC<UIPorops> = ({ socialLogin }) => {
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState('');
 
   function handleEmailSubmit(event: React.SyntheticEvent) {
-    event.preventDefault()
-    socialLogin.emailLogin(email)
+    event.preventDefault();
+    socialLogin.emailLogin(email);
   }
 
   function handleEmailChange(event: React.FormEvent<HTMLInputElement>) {
-    setEmail(event.currentTarget.value)
+    setEmail(event.currentTarget.value);
   }
 
   return (
@@ -145,7 +145,7 @@ const UI: React.FC<UIPorops> = ({ socialLogin }) => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default UI
+export default UI;

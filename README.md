@@ -1,4 +1,3 @@
-
 ![Biconomy SDK](https://img.shields.io/badge/Biconomy-SDK-blue.svg) ![TypeScript](https://img.shields.io/badge/-TypeScript-blue) ![Test Coverage](https://img.shields.io/badge/Coverage-45%25-yellow.svg)
 
 # Biconomy SDK: Your Gateway to ERC4337 Account Abstraction & Smart Accounts 🛠️

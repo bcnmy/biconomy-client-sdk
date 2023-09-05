@@ -3,7 +3,7 @@ name: Feature Request
 about: Propose an enhancement or new feature to improve the project
 title: "Feature: <Your Feature>"
 labels: feature-request, needs-review
-assignees: ""
+assignees: ''
 ---
 
 **Problem You're Facing**
