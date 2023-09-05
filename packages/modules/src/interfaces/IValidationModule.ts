@@ -7,5 +7,5 @@ export interface IValidationModule {
   getSigner(): Promise<Signer>
   signUserOpHash(userOpHash: string): Promise<string>
   signMessage(message: Bytes | string): Promise<string>
-  getDummySignature(): string
+  getDummySignature(): Promise<string>
 }

@@ -8,7 +8,7 @@ import {
   ModuleVersion,
   CreateSessionDataParams,
   StorageType,
-  SessionParams
+  ModuleInfo
 } from './utils/Types'
 import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
@@ -19,7 +19,12 @@ import {
 import { generateRandomHex } from './utils/Uid'
 import { BaseValidationModule } from './BaseValidationModule'
 import { SessionLocalStorage } from './session-storage/SessionLocalStorage'
-import { ISessionStorage, SessionSearchParam, SessionStatus } from './interfaces/ISessionStorage'
+import {
+  ISessionStorage,
+  SessionLeafNode,
+  SessionSearchParam,
+  SessionStatus
+} from './interfaces/ISessionStorage'
 
 export class SessionKeyManagerModule extends BaseValidationModule {
   version: ModuleVersion = 'V1_0_0'
@@ -27,6 +32,11 @@ export class SessionKeyManagerModule extends BaseValidationModule {
   nodeClient!: INodeClient
   merkleTree!: MerkleTree
   sessionStorageClient!: ISessionStorage
+  readonly mockEcdsaSessionKeySig: string =
+    '0x73c3ac716c487ca34bb858247b5ccf1dc354fbaabdd089af3b2ac8e78ba85a4959a2d76250325bd67c11771c31fccda87c33ceec17cc0de912690521bb95ffcb1b'
+
+  // Review if necessary to store in this format or some mapping
+  private dummySig!: string
 
   /**
    * This constructor is private. Use the static create method to instantiate SessionKeyManagerModule
@@ -145,31 +155,15 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @param sessionSigner The signer to be used to sign the user operation
    * @returns The signature of the user operation
    */
-  async signUserOpHash(userOpHash: string, sessionParams?: SessionParams[]): Promise<string> {
-    if (!sessionParams || sessionParams.length === 0 || sessionParams.length > 1) {
-      throw new Error('Session parameters are not provided or invalid')
-    }
-    const sessionParam = sessionParams[0]
-    if (!(sessionParam && sessionParam.sessionSigner)) {
+  async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<string> {
+    if (!(params && params.sessionSigner)) {
       throw new Error('Session signer is not provided.')
     }
-    const sessionSigner = sessionParam.sessionSigner
+    const sessionSigner = params.sessionSigner
     // Use the sessionSigner to sign the user operation
     const signature = await sessionSigner.signMessage(arrayify(userOpHash))
 
-    let sessionSignerData
-    if (sessionParam?.sessionID) {
-      sessionSignerData = await this.sessionStorageClient.getSessionData({
-        sessionID: sessionParam.sessionID
-      })
-    } else if (sessionParam?.sessionValidationModule) {
-      sessionSignerData = await this.sessionStorageClient.getSessionData({
-        sessionValidationModule: sessionParam.sessionValidationModule,
-        sessionPublicKey: await sessionSigner.getAddress()
-      })
-    } else {
-      throw new Error('sessionID or sessionValidationModule should be provided.')
-    }
+    const sessionSignerData = await this.getLeafInfo(params)
 
     const leafDataHex = hexConcat([
       hexZeroPad(ethers.utils.hexlify(sessionSignerData.validUntil), 6),
@@ -191,11 +185,33 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       ]
     )
 
-    if (sessionParam?.additionalSessionData) {
-      paddedSignature += sessionParam.additionalSessionData
+    if (params?.additionalSessionData) {
+      paddedSignature += params.additionalSessionData
     }
 
     return paddedSignature
+  }
+
+  private async getLeafInfo(params: ModuleInfo): Promise<SessionLeafNode> {
+    if (!(params && params.sessionSigner)) {
+      throw new Error('Session signer is not provided.')
+    }
+    const sessionSigner = params.sessionSigner
+    let sessionSignerData
+    if (params?.sessionID) {
+      sessionSignerData = await this.sessionStorageClient.getSessionData({
+        sessionID: params.sessionID
+      })
+    } else if (params?.sessionValidationModule) {
+      sessionSignerData = await this.sessionStorageClient.getSessionData({
+        sessionValidationModule: params.sessionValidationModule,
+        sessionPublicKey: await sessionSigner.getAddress()
+      })
+    } else {
+      throw new Error('sessionID or sessionValidationModule should be provided.')
+    }
+
+    return sessionSignerData
   }
 
   /**
@@ -235,10 +251,38 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @returns Dummy signature
    */
   // Review
-  getDummySignature(): string {
-    const moduleAddress = ethers.utils.getAddress(this.getAddress())
-    const dynamicPart = moduleAddress.substring(2).padEnd(40, '0')
-    return `0x0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000${dynamicPart}000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000db3d753a1da5a6074a9f74f39a0a779d3300000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000016000000000000000000000000000000000000000000000000000000000000001800000000000000000000000000000000000000000000000000000000000000080000000000000000000000000bfe121a6dcf92c49f6c2ebd4f306ba0ba0ab6f1c000000000000000000000000da5289fcaaf71d52a80a254da614a192b693e97700000000000000000000000042138576848e839827585a3539305774d36b96020000000000000000000000000000000000000000000000000000000002faf08000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000041feefc797ef9e9d8a6a41266a85ddf5f85c8f2a3d2654b10b415d348b150dabe82d34002240162ed7f6b7ffbc40162b10e62c3e35175975e43659654697caebfe1c00000000000000000000000000000000000000000000000000000000000000`
+  // instead of search params it could be actual leaf info retrieved beforehand
+  async getDummySignature(params?: ModuleInfo): Promise<string> {
+    Logger.log('moduleInfo ', params)
+    if (!params) {
+      throw new Error('Session signer is not provided.')
+    }
+    const sessionSignerData = await this.getLeafInfo(params)
+    const leafDataHex = hexConcat([
+      hexZeroPad(ethers.utils.hexlify(sessionSignerData.validUntil), 6),
+      hexZeroPad(ethers.utils.hexlify(sessionSignerData.validAfter), 6),
+      hexZeroPad(sessionSignerData.sessionValidationModule, 20),
+      sessionSignerData.sessionKeyData
+    ])
+
+    // Generate the padded signature with (validUntil,validAfter,sessionVerificationModuleAddress,validationData,merkleProof,signature)
+    let paddedSignature = defaultAbiCoder.encode(
+      ['uint48', 'uint48', 'address', 'bytes', 'bytes32[]', 'bytes'],
+      [
+        sessionSignerData.validUntil,
+        sessionSignerData.validAfter,
+        sessionSignerData.sessionValidationModule,
+        sessionSignerData.sessionKeyData,
+        this.merkleTree.getHexProof(ethers.utils.keccak256(leafDataHex) as unknown as Buffer),
+        this.mockEcdsaSessionKeySig
+      ]
+    )
+
+    if (params?.additionalSessionData) {
+      paddedSignature += params.additionalSessionData
+    }
+
+    return paddedSignature
   }
 
   /**

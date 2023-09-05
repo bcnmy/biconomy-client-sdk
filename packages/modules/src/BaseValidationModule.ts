@@ -1,9 +1,11 @@
 import { Signer } from 'ethers'
 import { Bytes } from 'ethers/lib/utils'
-import { BaseValidationModuleConfig, SessionParams } from './utils/Types'
+import { BaseValidationModuleConfig, ModuleInfo } from './utils/Types'
 import { DEFAULT_ENTRYPOINT_ADDRESS } from './utils/Constants'
 import { IValidationModule } from './interfaces/IValidationModule'
 
+// TODO: Review try using generic types
+// Need to solve it in SmartAccountV2 and it's config because for any module BaseValidationModule is used as type
 export abstract class BaseValidationModule implements IValidationModule {
   entryPointAddress: string
 
@@ -21,13 +23,14 @@ export abstract class BaseValidationModule implements IValidationModule {
 
   abstract getInitData(): Promise<string>
 
-  abstract getDummySignature(): string
+  // Anything  required to get dummy signature can be passed as params
+  abstract getDummySignature(params?: ModuleInfo): Promise<string>
 
   // Review naming convention for getter
   abstract getSigner(): Promise<Signer>
 
-  // Review
-  abstract signUserOpHash(userOpHash: string, moduleSignerInfo?: SessionParams[]): Promise<string>
+  // Signer specific or any other additional information can be passed a params
+  abstract signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<string>
 
   abstract signMessage(message: Bytes | string): Promise<string>
 }

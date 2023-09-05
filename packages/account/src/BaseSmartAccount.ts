@@ -132,7 +132,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
   /**
    * get dummy signature for userOp
    */
-  abstract getDummySignature(): string
+  abstract getDummySignature(): Promise<string>
 
   /**
    * Sign the filled userOp.
