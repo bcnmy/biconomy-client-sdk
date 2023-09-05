@@ -18,9 +18,10 @@ import {
   Overrides,
   BiconomyTokenPaymasterRequest,
   BiconomySmartAccountV2Config,
-  CounterFactualAddressParam
+  CounterFactualAddressParam,
+  BuildUserOpOptions
 } from './utils/Types'
-import { BaseValidationModule, SessionParams } from '@biconomy/modules'
+import { BaseValidationModule, ModuleInfo } from '@biconomy/modules'
 import { UserOperation, Transaction, SmartAccountType } from '@biconomy/core-types'
 import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
@@ -244,9 +245,9 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   }
 
   // dummy signature depends on the validation module supplied.
-  getDummySignature(): string {
+  async getDummySignature(params?: ModuleInfo): Promise<string> {
     this.isActiveValidationModuleDefined()
-    return this.activeValidationModule.getDummySignature()
+    return await this.activeValidationModule.getDummySignature(params)
   }
 
   // Review:
@@ -255,11 +256,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return '0x'
   }
 
-  // Review: for generic type for moduleSignerInfo in future
-  async signUserOp(
-    userOp: Partial<UserOperation>,
-    moduleSignerInfo?: SessionParams
-  ): Promise<UserOperation> {
+  async signUserOp(userOp: Partial<UserOperation>, params?: ModuleInfo): Promise<UserOperation> {
     this.isActiveValidationModuleDefined()
     const requiredFields: UserOperationKey[] = [
       'sender',
@@ -276,7 +273,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     super.validateUserOp(userOp, requiredFields)
     const userOpHash = await this.getUserOpHash(userOp)
 
-    const moduleSig = await this.activeValidationModule.signUserOpHash(userOpHash, moduleSignerInfo)
+    const moduleSig = await this.activeValidationModule.signUserOpHash(userOpHash, params)
 
     const signatureWithModuleAddress = ethers.utils.defaultAbiCoder.encode(
       ['bytes', 'address'],
@@ -290,26 +287,21 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   /**
    *
    * @param userOp
-   * @param moduleSignerInfo
+   * @param params
    * @description This function call will take 'unsignedUserOp' as an input, sign it with the owner key, and send it to the bundler.
    * @returns Promise<UserOpResponse>
    */
-  // Review: for generic type for moduleSignerInfo in future
-  async sendUserOp(
-    userOp: Partial<UserOperation>,
-    moduleSignerInfo?: SessionParams
-  ): Promise<UserOpResponse> {
+  async sendUserOp(userOp: Partial<UserOperation>, params?: ModuleInfo): Promise<UserOpResponse> {
     Logger.log('userOp received in base account ', userOp)
     delete userOp.signature
-    const userOperation = await this.signUserOp(userOp, moduleSignerInfo)
+    const userOperation = await this.signUserOp(userOp, params)
     const bundlerResponse = await this.sendSignedUserOp(userOperation)
     return bundlerResponse
   }
 
   async buildUserOp(
     transactions: Transaction[],
-    overrides?: Overrides,
-    skipBundlerGasEstimation?: boolean
+    buildUseropDto?: BuildUserOpOptions
   ): Promise<Partial<UserOperation>> {
     // Review: may not need at all
     // this.isInitialized()
@@ -347,9 +339,13 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     }
 
     // for this Smart Account current validation module dummy signature will be used to estimate gas
-    userOp.signature = this.getDummySignature()
+    userOp.signature = await this.getDummySignature(buildUseropDto?.params)
 
-    userOp = await this.estimateUserOpGas(userOp, overrides, skipBundlerGasEstimation)
+    userOp = await this.estimateUserOpGas(
+      userOp,
+      buildUseropDto?.overrides,
+      buildUseropDto?.skipBundlerGasEstimation
+    )
     Logger.log('UserOp after estimation ', userOp)
 
     // Do not populate paymasterAndData as part of buildUserOp as it may not have all necessary details
@@ -499,10 +495,9 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return userOp
   }
 
-  // Review: for generic type for moduleSignerInfo in future
-  async signUserOpHash(userOpHash: string, moduleSignerInfo?: SessionParams): Promise<string> {
+  async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<string> {
     this.isActiveValidationModuleDefined()
-    const moduleSig = await this.activeValidationModule.signUserOpHash(userOpHash, moduleSignerInfo)
+    const moduleSig = await this.activeValidationModule.signUserOpHash(userOpHash, params)
 
     const signatureWithModuleAddress = ethers.utils.defaultAbiCoder.encode(
       ['bytes', 'address'],
