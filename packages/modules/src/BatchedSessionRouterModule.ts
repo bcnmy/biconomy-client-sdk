@@ -8,10 +8,9 @@ import {
   CreateSessionDataParams,
   StorageType,
   SessionParams,
-  BatchedSessionKeyManagerModuleConfig
+  BatchedSessionRouterModuleConfig,
+  ModuleInfo
 } from './utils/Types'
-import NodeClient from '@biconomy/node-client'
-import INodeClient from '@biconomy/node-client'
 import {
   BATCHED_SESSION_ROUTER_MODULE_ADDRESSES_BY_VERSION,
   SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION,
@@ -22,21 +21,19 @@ import { generateRandomHex } from './utils/Uid'
 import { BaseValidationModule } from './BaseValidationModule'
 import { SessionLocalStorage } from './session-storage/SessionLocalStorage'
 import { ISessionStorage, SessionSearchParam, SessionStatus } from './interfaces/ISessionStorage'
+import { SessionKeyManagerModule } from './SessionKeyManagerModule'
 
 export class BatchedSessionRouterModule extends BaseValidationModule {
   version: ModuleVersion = 'V1_0_0'
   moduleAddress!: string
   sessionManagerModuleAddress!: string
-  nodeClient!: INodeClient
-  merkleTree!: MerkleTree
-  sessionStorageClient!: ISessionStorage
-
+  sessionKeyManagerModule!: SessionKeyManagerModule
   /**
    * This constructor is private. Use the static create method to instantiate SessionKeyManagerModule
    * @param moduleConfig The configuration for the module
    * @returns An instance of SessionKeyManagerModule
    */
-  private constructor(moduleConfig: BatchedSessionKeyManagerModuleConfig) {
+  private constructor(moduleConfig: BatchedSessionRouterModuleConfig) {
     super(moduleConfig)
   }
 
@@ -46,7 +43,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
    * @returns A Promise that resolves to an instance of SessionKeyManagerModule
    */
   public static async create(
-    moduleConfig: BatchedSessionKeyManagerModuleConfig
+    moduleConfig: BatchedSessionRouterModuleConfig
   ): Promise<BatchedSessionRouterModule> {
     const instance = new BatchedSessionRouterModule(moduleConfig)
 
@@ -58,38 +55,29 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
         // throw new Error(`Invalid version ${moduleConfig.version}`)
         Logger.error(`Invalid version ${moduleConfig.version}`)
         instance.moduleAddress = DEFAULT_BATCHED_SESSION_ROUTER_MODULE
+      } else {
+        instance.moduleAddress = moduleAddr
       }
-      instance.moduleAddress = moduleAddr
       instance.version = moduleConfig.version as ModuleVersion
     }
 
     instance.sessionManagerModuleAddress =
       moduleConfig.sessionManagerModuleAddress ?? DEFAULT_SESSION_KEY_MANAGER_MODULE
-    instance.nodeClient = new NodeClient({
-      txServiceUrl: moduleConfig.nodeClientUrl ?? NODE_CLIENT_URL
-    })
 
-    if (!moduleConfig.storageType || moduleConfig.storageType === StorageType.LOCAL_STORAGE) {
-      instance.sessionStorageClient = new SessionLocalStorage(moduleConfig.smartAccountAddress)
+    if (!moduleConfig.sessionKeyManagerModule) {
+      // generate sessionModule
+      const sessionModule = await SessionKeyManagerModule.create({
+        moduleAddress: instance.sessionManagerModuleAddress,
+        smartAccountAddress: moduleConfig.smartAccountAddress,
+        nodeClientUrl: moduleConfig.nodeClientUrl,
+        storageType: moduleConfig.storageType
+      })
+
+      instance.sessionKeyManagerModule = sessionModule
     } else {
-      throw new Error('Invalid storage type')
+      instance.sessionKeyManagerModule = moduleConfig.sessionKeyManagerModule
+      instance.sessionManagerModuleAddress = moduleConfig.sessionKeyManagerModule.getAddress()
     }
-
-    const existingSessionData = await instance.sessionStorageClient.getAllSessionData()
-    const existingSessionDataLeafs = existingSessionData.map((sessionData) => {
-      const leafDataHex = hexConcat([
-        hexZeroPad(ethers.utils.hexlify(sessionData.validUntil), 6),
-        hexZeroPad(ethers.utils.hexlify(sessionData.validAfter), 6),
-        hexZeroPad(sessionData.sessionValidationModule, 20),
-        sessionData.sessionKeyData
-      ])
-      return ethers.utils.keccak256(leafDataHex)
-    })
-
-    instance.merkleTree = new MerkleTree(existingSessionDataLeafs, keccak256, {
-      sortPairs: true,
-      hashLeaves: false
-    })
 
     return instance
   }
@@ -100,49 +88,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
    * @returns The session data
    */
   createSessionData = async (leavesData: CreateSessionDataParams[]): Promise<string> => {
-    const sessionKeyManagerModuleABI = 'function setMerkleRoot(bytes32 _merkleRoot)'
-    const sessionKeyManagerModuleInterface = new ethers.utils.Interface([
-      sessionKeyManagerModuleABI
-    ])
-    const leavesToAdd: Buffer[] = []
-
-    for (const leafData of leavesData) {
-      const leafDataHex = hexConcat([
-        hexZeroPad(ethers.utils.hexlify(leafData.validUntil), 6),
-        hexZeroPad(ethers.utils.hexlify(leafData.validAfter), 6),
-        hexZeroPad(leafData.sessionValidationModule, 20),
-        leafData.sessionKeyData
-      ])
-
-      leavesToAdd.push(ethers.utils.keccak256(leafDataHex) as unknown as Buffer)
-
-      const sessionLeafNode = {
-        ...leafData,
-        sessionID: generateRandomHex(),
-        status: 'PENDING' as SessionStatus
-      }
-
-      await this.sessionStorageClient.addSessionData(sessionLeafNode)
-    }
-
-    this.merkleTree.addLeaves(leavesToAdd)
-
-    const leaves = this.merkleTree.getLeaves()
-
-    const newMerkleTree = new MerkleTree(leaves, keccak256, {
-      sortPairs: true,
-      hashLeaves: false
-    })
-
-    this.merkleTree = newMerkleTree
-
-    const setMerkleRootData = sessionKeyManagerModuleInterface.encodeFunctionData('setMerkleRoot', [
-      this.merkleTree.getHexRoot()
-    ])
-
-    await this.sessionStorageClient.setMerkleRoot(this.merkleTree.getHexRoot())
-    // TODO: create a signer if sessionPubKey if not given
-    return setMerkleRootData
+    return this.sessionKeyManagerModule.createSessionData(leavesData)
   }
 
   /**
@@ -151,7 +97,8 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
    * @param sessionParams Information about all the sessions to be used to sign the user operation which has a batch execution
    * @returns The signature of the user operation
    */
-  async signUserOpHash(userOpHash: string, sessionParams?: SessionParams[]): Promise<string> {
+  async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<string> {
+    const sessionParams = params?.batchSessionParams
     if (!sessionParams || sessionParams.length === 0) {
       throw new Error('Session parameters are not provided.')
     }
@@ -179,11 +126,11 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
       let sessionSignerData
 
       if (sessionParam.sessionID) {
-        sessionSignerData = await this.sessionStorageClient.getSessionData({
+        sessionSignerData = await this.sessionKeyManagerModule.sessionStorageClient.getSessionData({
           sessionID: sessionParam.sessionID
         })
       } else if (sessionParam.sessionValidationModule) {
-        sessionSignerData = await this.sessionStorageClient.getSessionData({
+        sessionSignerData = await this.sessionKeyManagerModule.sessionStorageClient.getSessionData({
           sessionValidationModule: sessionParam.sessionValidationModule,
           sessionPublicKey: await sessionSigner.getAddress()
         })
@@ -200,7 +147,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
         sessionSignerData.sessionKeyData
       ])
 
-      const proof = this.merkleTree.getHexProof(
+      const proof = this.sessionKeyManagerModule.merkleTree.getHexProof(
         ethers.utils.keccak256(leafDataHex) as unknown as Buffer
       )
       proofs.push(proof)
@@ -230,7 +177,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
    * @returns
    */
   async updateSessionStatus(param: SessionSearchParam, status: SessionStatus) {
-    this.sessionStorageClient.updateSessionStatus(param, status)
+    this.sessionKeyManagerModule.sessionStorageClient.updateSessionStatus(param, status)
   }
 
   /**
@@ -238,7 +185,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
    * @returns
    */
   async clearPendingSessions() {
-    this.sessionStorageClient.clearPendingSessions()
+    this.sessionKeyManagerModule.sessionStorageClient.clearPendingSessions()
   }
 
   /**
@@ -267,7 +214,9 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
    * @returns Dummy signature
    */
   // Review
-  getDummySignature(): string {
+  // Will have it's own // TODO
+  async getDummySignature(params?: ModuleInfo): Promise<string> {
+    Logger.log('userful params', params)
     const moduleAddress = ethers.utils.getAddress(this.getAddress())
     const dynamicPart = moduleAddress.substring(2).padEnd(40, '0')
     return `0x0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000${dynamicPart}000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000db3d753a1da5a6074a9f74f39a0a779d3300000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000016000000000000000000000000000000000000000000000000000000000000001800000000000000000000000000000000000000000000000000000000000000080000000000000000000000000bfe121a6dcf92c49f6c2ebd4f306ba0ba0ab6f1c000000000000000000000000da5289fcaaf71d52a80a254da614a192b693e97700000000000000000000000042138576848e839827585a3539305774d36b96020000000000000000000000000000000000000000000000000000000002faf08000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000041feefc797ef9e9d8a6a41266a85ddf5f85c8f2a3d2654b10b415d348b150dabe82d34002240162ed7f6b7ffbc40162b10e62c3e35175975e43659654697caebfe1c00000000000000000000000000000000000000000000000000000000000000`
