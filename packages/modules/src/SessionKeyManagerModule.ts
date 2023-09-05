@@ -8,7 +8,7 @@ import {
   ModuleVersion,
   CreateSessionDataParams,
   StorageType,
-  SessionParams
+  ModuleInfo
 } from './utils/Types'
 import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
@@ -22,7 +22,6 @@ import {
   SessionSearchParam,
   SessionStatus
 } from './interfaces/ISessionStorage'
-import { escapeLeadingUnderscores } from 'typescript'
 
 export class SessionKeyManagerModule extends BaseValidationModule {
   version: ModuleVersion = 'V1_0_0'
@@ -142,15 +141,15 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @param sessionSigner The signer to be used to sign the user operation
    * @returns The signature of the user operation
    */
-  async signUserOpHash(userOpHash: string, signerAdditionalInfo?: SessionParams): Promise<string> {
-    if (!(signerAdditionalInfo && signerAdditionalInfo.sessionSigner)) {
+  async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<string> {
+    if (!(params && params.sessionSigner)) {
       throw new Error('Session signer is not provided.')
     }
-    const sessionSigner = signerAdditionalInfo.sessionSigner
+    const sessionSigner = params.sessionSigner
     // Use the sessionSigner to sign the user operation
     const signature = await sessionSigner.signMessage(arrayify(userOpHash))
 
-    const sessionSignerData = await this.getLeafInfo(signerAdditionalInfo)
+    const sessionSignerData = await this.getLeafInfo(params)
 
     const leafDataHex = hexConcat([
       hexZeroPad(ethers.utils.hexlify(sessionSignerData.validUntil), 6),
@@ -172,26 +171,26 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       ]
     )
 
-    if (signerAdditionalInfo?.additionalSessionData) {
-      paddedSignature += signerAdditionalInfo.additionalSessionData
+    if (params?.additionalSessionData) {
+      paddedSignature += params.additionalSessionData
     }
 
     return paddedSignature
   }
 
-  private async getLeafInfo(signerAdditionalInfo: SessionParams): Promise<SessionLeafNode> {
-    if (!(signerAdditionalInfo && signerAdditionalInfo.sessionSigner)) {
+  private async getLeafInfo(params: ModuleInfo): Promise<SessionLeafNode> {
+    if (!(params && params.sessionSigner)) {
       throw new Error('Session signer is not provided.')
     }
-    const sessionSigner = signerAdditionalInfo.sessionSigner
+    const sessionSigner = params.sessionSigner
     let sessionSignerData
-    if (signerAdditionalInfo?.sessionID) {
+    if (params?.sessionID) {
       sessionSignerData = await this.sessionStorageClient.getSessionData({
-        sessionID: signerAdditionalInfo.sessionID
+        sessionID: params.sessionID
       })
-    } else if (signerAdditionalInfo?.sessionValidationModule) {
+    } else if (params?.sessionValidationModule) {
       sessionSignerData = await this.sessionStorageClient.getSessionData({
-        sessionValidationModule: signerAdditionalInfo.sessionValidationModule,
+        sessionValidationModule: params.sessionValidationModule,
         sessionPublicKey: await sessionSigner.getAddress()
       })
     } else {
@@ -237,14 +236,14 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @remarks This is the dummy signature for the module, used in buildUserOp for bundler estimation
    * @returns Dummy signature
    */
-  // Review types : how it can be made generic
+  // Review
   // instead of search params it could be actual leaf info retrieved beforehand
-  async getDummySignature(additionalInfo?: SessionParams): Promise<string> {
-    Logger.log('moduleSignerInfo ', additionalInfo)
-    if (!additionalInfo) {
+  async getDummySignature(params?: ModuleInfo): Promise<string> {
+    Logger.log('moduleInfo ', params)
+    if (!params) {
       throw new Error('Session signer is not provided.')
     }
-    const sessionSignerData = await this.getLeafInfo(additionalInfo)
+    const sessionSignerData = await this.getLeafInfo(params)
     const leafDataHex = hexConcat([
       hexZeroPad(ethers.utils.hexlify(sessionSignerData.validUntil), 6),
       hexZeroPad(ethers.utils.hexlify(sessionSignerData.validAfter), 6),
@@ -265,8 +264,8 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       ]
     )
 
-    if (additionalInfo?.additionalSessionData) {
-      paddedSignature += additionalInfo.additionalSessionData
+    if (params?.additionalSessionData) {
+      paddedSignature += params.additionalSessionData
     }
 
     return paddedSignature

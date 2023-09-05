@@ -3,7 +3,7 @@ import { ChainId } from '@biconomy/core-types'
 import { BigNumberish } from 'ethers'
 import { IBundler } from '@biconomy/bundler'
 import { IPaymaster, PaymasterFeeQuote } from '@biconomy/paymaster'
-import { BaseValidationModule } from '@biconomy/modules'
+import { BaseValidationModule, ModuleInfo } from '@biconomy/modules'
 import { JsonRpcProvider, Provider } from '@ethersproject/providers'
 import { GasOverheads } from './Preverificaiton'
 
@@ -70,6 +70,12 @@ export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
   nodeClientUrl?: string // very specific to Biconomy
   defaultValidationModule: BaseValidationModule
   activeValidationModule?: BaseValidationModule
+}
+
+export type BuildUserOpOptions = {
+  overrides?: Overrides
+  skipBundlerGasEstimation?: boolean
+  params?: ModuleInfo
 }
 
 export type Overrides = {
