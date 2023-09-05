@@ -32,9 +32,6 @@ export class SessionKeyManagerModule extends BaseValidationModule {
   readonly mockEcdsaSessionKeySig: string =
     '0x73c3ac716c487ca34bb858247b5ccf1dc354fbaabdd089af3b2ac8e78ba85a4959a2d76250325bd67c11771c31fccda87c33ceec17cc0de912690521bb95ffcb1b'
 
-  // Review if necessary to store in this format or some mapping
-  private dummySig!: string
-
   /**
    * This constructor is private. Use the static create method to instantiate SessionKeyManagerModule
    * @param moduleConfig The configuration for the module
@@ -268,7 +265,12 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       paddedSignature += params.additionalSessionData
     }
 
-    return paddedSignature
+    const dummySig = ethers.utils.defaultAbiCoder.encode(
+      ['bytes', 'address'],
+      [paddedSignature, this.getAddress()]
+    )
+
+    return dummySig
   }
 
   /**
