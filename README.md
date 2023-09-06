@@ -1,6 +1,6 @@
-![Biconomy SDK](https://img.shields.io/badge/Biconomy-SDK-blue.svg) ![TypeScript](https://img.shields.io/badge/-TypeScript-blue) ![Test Coverage](https://img.shields.io/badge/Coverage-45%25-yellow.svg)
-
 # Biconomy SDK: Your Gateway to ERC4337 Account Abstraction & Smart Accounts 🛠️
+
+![Biconomy SDK](https://img.shields.io/badge/Biconomy-SDK-blue.svg) ![TypeScript](https://img.shields.io/badge/-TypeScript-blue) ![Test Coverage](https://img.shields.io/badge/Coverage-45%25-yellow.svg)
 
 <p align="center"><img src="./assets/readme/biconomy-client-sdk.png" width="550" alt="Biconomy SDK Banner"></p>
 
@@ -14,7 +14,7 @@ The Biconomy SDK is your all-in-one toolkit for building decentralized applicati
 
 - **ERC4337 Account Abstraction**: Simplify user operations and gas payments.
 - **Smart Accounts**: Enhance user experience with ERC6900 compliant accounts.
-- **Paymaster Service**: Enable third-party gas sponsorship. They can also be used to accept gas payment in ERC20 tokens from the user's smart accounts, with the paymaster managing the gas payment in native token.
+- **Paymaster Service**: Enable third-party gas sponsorship.
 - **Bundler Infrastructure**: Ensure efficient and reliable transaction bundling.
 - **Backend Node**: Manage chain configurations and gas estimations.
 
@@ -24,13 +24,34 @@ The Biconomy SDK is your all-in-one toolkit for building decentralized applicati
 
 Unlock the full potential of **ERC4337 Account Abstraction** with methods that simplify the creation and dispatch of UserOperations, streamlining dApp development and management.
 
+```javascript
+const biconomyAccount = new BiconomySmartAccount(biconomySmartAccountConfig);
+const biconomySmartAccount =  await biconomyAccount.init();
+console.log("owner: ", biconomySmartAccount.owner);
+console.log("address: ", biconomySmartAccount.address);
+```
+
 ### Bundler
 
 Leverage standardized bundler infrastructure for efficient operation of account abstraction across EVM networks.
 
+```javascript
+const bundler: IBundler = new Bundler({
+    bundlerUrl: '', // From Biconomy Dashboard
+    chainId: ChainId.POLYGON_MUMBAI,
+    entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
+});
+```
+
 ### Paymaster
 
-Acting as third-party intermediaries, Paymasters have the capability to sponsor gas fees for an account, provided specific predefined conditions are met. Additionally, they can accept gas payments in ERC20 tokens from users' smart accounts, with the Paymaster managing the conversion to native tokens for gas payment.
+Acting as third-party intermediaries, Paymasters have the capability to sponsor gas fees for an account, provided specific predefined conditions are met.
+
+```javascript
+const paymaster: IPaymaster = new BiconomyPaymaster({
+    paymasterUrl: '' // From Biconomy Dashboard
+});
+```
 
 ## 🛠️ Quickstart
 
