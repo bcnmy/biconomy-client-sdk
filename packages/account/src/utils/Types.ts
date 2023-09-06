@@ -1,9 +1,9 @@
 import { Signer } from 'ethers'
-import { ChainId } from '@biconomy-devx/core-types'
+import { ChainId } from '@biconomy/core-types'
 import { BigNumberish } from 'ethers'
-import { IBundler } from '@biconomy-devx/bundler'
-import { IPaymaster, PaymasterFeeQuote } from '@biconomy-devx/paymaster'
-import { BaseValidationModule, ModuleInfo } from '@biconomy-devx/modules'
+import { IBundler } from '@biconomy/bundler'
+import { IPaymaster, PaymasterFeeQuote } from '@biconomy/paymaster'
+import { BaseValidationModule, ModuleInfo } from '@biconomy/modules'
 import { JsonRpcProvider, Provider } from '@ethersproject/providers'
 import { GasOverheads } from './Preverificaiton'
 

@@ -1,6 +1,6 @@
 {
-  "name": "@biconomy-devx/bundler",
-  "version": "2.0.14",
+  "name": "@biconomy/bundler",
+  "version": "3.1.1-alpha.0",
   "description": "Biconomy Bundler package to interact with any bundler node as per ERC4337 standard",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -37,7 +37,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "@biconomy-devx/common": "^2.0.14",
-    "@biconomy-devx/core-types": "^2.0.14"
+    "@biconomy/common": "^3.1.1-alpha.0",
+    "@biconomy/core-types": "^3.1.1-alpha.0"
   }
 }

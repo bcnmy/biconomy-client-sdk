@@ -1,6 +1,6 @@
 {
-    "name": "@biconomy-devx/signers",
-    "version": "2.0.14",
+    "name": "@biconomy/signers",
+    "version": "3.1.1-alpha.0",
     "description": "This package provides different signers as per different validation schemes of Biconomy Smart Account Authotization Modules",
     "main": "./dist/src/index.js",
     "typings": "./dist/src/index.d.ts",
@@ -34,8 +34,8 @@
       "access": "public"
     },
     "devDependencies": {
-      "@biconomy-devx/common": "^2.0.14",
-      "@biconomy-devx/core-types": "^2.0.14",
-      "@biconomy-devx/node-client": "^2.0.14"
+      "@biconomy/common": "^3.1.1-alpha.0",
+      "@biconomy/core-types": "^3.1.1-alpha.0",
+      "@biconomy/node-client": "^3.1.1-alpha.0"
     }
 }
