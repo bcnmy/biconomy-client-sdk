@@ -3,13 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## 3.1.1-alpha.0 (2023-08-02)
+## 2.0.12 (2023-08-02)
 
 VERSION bump only
 
 
 
-# 3.1.0-alpha.0 (2023-07-24)
+# 2.0.12 (2023-07-24)
 
 
 
@@ -19,7 +19,7 @@ VERSION bump only
 
 
 
-## 3.0.0-alpha.0 (2023-07-12)
+## 2.0.12 (2023-07-12)
 
 
 ### Bug Fixes

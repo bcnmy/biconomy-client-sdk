@@ -1,4 +1,4 @@
-import { Logger } from '@biconomy/common'
+import { Logger } from '@biconomy-devx/common'
 import { Signer, ethers } from 'ethers'
 import { Bytes, arrayify } from 'ethers/lib/utils'
 import { ECDSAOwnershipValidationModuleConfig, ModuleVersion } from './utils/Types'

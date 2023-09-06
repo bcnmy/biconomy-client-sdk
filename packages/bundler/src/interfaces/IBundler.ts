@@ -4,7 +4,7 @@ import {
   UserOpReceipt,
   UserOpByHashResponse
 } from '../utils/Types'
-import { UserOperation } from '@biconomy/core-types'
+import { UserOperation } from '@biconomy-devx/core-types'
 
 export interface IBundler {
   estimateUserOpGas(userOp: Partial<UserOperation>): Promise<UserOpGasResponse>

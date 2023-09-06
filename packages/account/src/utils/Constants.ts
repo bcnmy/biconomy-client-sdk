@@ -1,4 +1,4 @@
-import { ChainId } from '@biconomy/core-types'
+import { ChainId } from '@biconomy-devx/core-types'
 import {
   EntryPointAddresses,
   BiconomyFactories,

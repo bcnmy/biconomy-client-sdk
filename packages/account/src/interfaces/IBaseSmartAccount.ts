@@ -1,5 +1,5 @@
-import { UserOperation } from '@biconomy/core-types'
-import { UserOpResponse } from '@biconomy/bundler'
+import { UserOperation } from '@biconomy-devx/core-types'
+import { UserOpResponse } from '@biconomy-devx/bundler'
 import { BigNumberish, Bytes, BytesLike, BigNumber } from 'ethers'
 /**
  * Interface for Smart Contract Wallet aka Smart Account.

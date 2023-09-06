@@ -1,4 +1,4 @@
-import { ChainId } from '@biconomy/core-types'
+import { ChainId } from '@biconomy-devx/core-types'
 
 export const UserOpReceiptIntervals: { [key in ChainId]?: number } = {
   [ChainId.MAINNET]: 10000,

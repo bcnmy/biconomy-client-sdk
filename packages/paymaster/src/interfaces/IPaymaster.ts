@@ -1,4 +1,4 @@
-import { UserOperation } from '@biconomy/core-types'
+import { UserOperation } from '@biconomy-devx/core-types'
 import { PaymasterAndDataResponse } from '../utils/Types'
 
 export interface IPaymaster {

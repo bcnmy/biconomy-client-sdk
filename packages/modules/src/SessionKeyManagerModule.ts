@@ -1,6 +1,6 @@
 import { Signer, ethers } from 'ethers'
 import MerkleTree from 'merkletreejs'
-import { NODE_CLIENT_URL, Logger } from '@biconomy/common'
+import { NODE_CLIENT_URL, Logger } from '@biconomy-devx/common'
 import { hexConcat, arrayify, hexZeroPad, defaultAbiCoder, Bytes } from 'ethers/lib/utils'
 import { keccak256 } from 'ethereumjs-util'
 import {
@@ -10,8 +10,8 @@ import {
   StorageType,
   ModuleInfo
 } from './utils/Types'
-import NodeClient from '@biconomy/node-client'
-import INodeClient from '@biconomy/node-client'
+import NodeClient from '@biconomy-devx/node-client'
+import INodeClient from '@biconomy-devx/node-client'
 import {
   SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION,
   DEFAULT_SESSION_KEY_MANAGER_MODULE

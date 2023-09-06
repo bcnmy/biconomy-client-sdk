@@ -1,4 +1,4 @@
-import NodeClient, { WhiteListSignatureResponse } from '@biconomy/node-client'
+import NodeClient, { WhiteListSignatureResponse } from '@biconomy-devx/node-client'
 import base64url from 'base64url'
 import log from 'loglevel'
 import { URL } from 'react-native-url-polyfill'

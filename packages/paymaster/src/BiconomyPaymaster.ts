@@ -1,6 +1,6 @@
-import { Logger, sendRequest, HttpMethod, getTimestampInSeconds } from '@biconomy/common'
+import { Logger, sendRequest, HttpMethod, getTimestampInSeconds } from '@biconomy-devx/common'
 import { resolveProperties } from '@ethersproject/properties'
-import { UserOperation, Transaction } from '@biconomy/core-types'
+import { UserOperation, Transaction } from '@biconomy-devx/core-types'
 import { Provider } from '@ethersproject/abstract-provider'
 import {
   PaymasterFeeQuote,

@@ -3,7 +3,7 @@ import { Signer } from 'ethers'
 import { ethers, BigNumberish, BytesLike, BigNumber } from 'ethers'
 import { BaseSmartAccount } from './BaseSmartAccount'
 import { keccak256, Bytes, arrayify, hexConcat } from 'ethers/lib/utils'
-import { Logger, NODE_CLIENT_URL, RPC_PROVIDER_URLS } from '@biconomy/common'
+import { Logger, NODE_CLIENT_URL, RPC_PROVIDER_URLS } from '@biconomy-devx/common'
 
 // Review failure reason for import from '@biconomy-devx/account-contracts-v2/typechain'
 
@@ -12,7 +12,7 @@ import {
   SmartAccountFactory_v200,
   SmartAccount_v200__factory,
   SmartAccountFactory_v200__factory
-} from '@biconomy/common'
+} from '@biconomy-devx/common'
 
 import {
   Overrides,
@@ -21,11 +21,11 @@ import {
   CounterFactualAddressParam,
   BuildUserOpOptions
 } from './utils/Types'
-import { BaseValidationModule, ModuleInfo } from '@biconomy/modules'
-import { UserOperation, Transaction, SmartAccountType } from '@biconomy/core-types'
-import NodeClient from '@biconomy/node-client'
-import INodeClient from '@biconomy/node-client'
-import { IHybridPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from '@biconomy/paymaster'
+import { BaseValidationModule, ModuleInfo } from '@biconomy-devx/modules'
+import { UserOperation, Transaction, SmartAccountType } from '@biconomy-devx/core-types'
+import NodeClient from '@biconomy-devx/node-client'
+import INodeClient from '@biconomy-devx/node-client'
+import { IHybridPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from '@biconomy-devx/paymaster'
 import {
   SupportedChainsResponse,
   BalancesResponse,
@@ -34,8 +34,8 @@ import {
   SmartAccountByOwnerDto,
   SmartAccountsResponse,
   SCWTransactionResponse
-} from '@biconomy/node-client'
-import { UserOpResponse } from '@biconomy/bundler'
+} from '@biconomy-devx/node-client'
+import { UserOpResponse } from '@biconomy-devx/bundler'
 import { DEFAULT_BICONOMY_FACTORY_ADDRESS } from './utils/Constants'
 
 type UserOperationKey = keyof UserOperation

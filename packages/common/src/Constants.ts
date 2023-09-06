@@ -1,4 +1,4 @@
-import { ChainId } from '@biconomy/core-types'
+import { ChainId } from '@biconomy-devx/core-types'
 
 export const NODE_CLIENT_URL = 'https://sdk-backend.prod.biconomy.io/v1'
 

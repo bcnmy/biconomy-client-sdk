@@ -7,7 +7,7 @@ In the context of  (ERC4337), A bundler plays a main role in the infrastructure.
 Using `npm` package manager
 
 ```bash
-npm i @biconomy/bundler
+npm i @biconomy-devx/bundler
 ```
 
 OR
@@ -15,7 +15,7 @@ OR
 Using `yarn` package manager
 
 ```bash
-yarn add @biconomy/bundler
+yarn add @biconomy-devx/bundler
 ```
 
 ## configuration
@@ -27,10 +27,10 @@ yarn add @biconomy/bundler
 
 ```typescript
 // This is how you create bundler instance in your dapp's
-import { IBundler, Bundler } from '@biconomy/bundler'
+import { IBundler, Bundler } from '@biconomy-devx/bundler'
 
 // Make use of core-types package
-import { ChainId } from "@biconomy/core-types";
+import { ChainId } from "@biconomy-devx/core-types";
 
 const bundler: IBundler = new Bundler({
     bundlerUrl: '',      

@@ -1,4 +1,4 @@
-import { UserOperation, Transaction } from '@biconomy/core-types'
+import { UserOperation, Transaction } from '@biconomy-devx/core-types'
 import {
   SupportedChainsResponse,
   BalancesResponse,
@@ -7,7 +7,7 @@ import {
   SmartAccountByOwnerDto,
   SmartAccountsResponse,
   SCWTransactionResponse
-} from '@biconomy/node-client'
+} from '@biconomy-devx/node-client'
 import { Overrides, InitilizationData } from '../utils/Types'
 import { BigNumberish, BytesLike } from 'ethers'
 import { ISmartAccount } from './ISmartAccount'

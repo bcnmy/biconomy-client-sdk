@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## 3.1.1-alpha.0 (2023-08-02)
+## 2.0.12 (2023-08-02)
 
 ### Features
 
@@ -12,7 +12,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
-# 3.1.0-alpha.0 (2023-07-24)
+# 2.0.12 (2023-07-24)
 
 ### Features
 
@@ -20,7 +20,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
-## 3.0.0-alpha.0 (2023-07-12)
+## 2.0.12 (2023-07-12)
 
 
 ### Bug Fixes
@@ -69,4 +69,4 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ## 1.0.0 (2023-01-03)
 
-**Note:** Version bump only for package @biconomy/common
+**Note:** Version bump only for package @biconomy-devx/common
