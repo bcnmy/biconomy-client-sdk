@@ -100,7 +100,9 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
   async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<string> {
     const sessionParams = params?.batchSessionParams
     if (!sessionParams || sessionParams.length === 0) {
-      throw new Error('Session parameters are not provided.')
+      throw new Error(
+        'Session parameters are not provided or of invalid length. Only one object is allowed in sessionParams array.'
+      )
     }
 
     const sessionDataArray = []
