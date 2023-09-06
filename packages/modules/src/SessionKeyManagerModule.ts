@@ -59,13 +59,13 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     } else if (moduleConfig.version) {
       const moduleAddr = SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION[moduleConfig.version]
       if (!moduleAddr) {
-        // throw new Error(`Invalid version ${moduleConfig.version}`)
-        Logger.error(`Invalid version ${moduleConfig.version}`)
-        instance.moduleAddress = DEFAULT_SESSION_KEY_MANAGER_MODULE
-      } else {
-      instance.moduleAddress = moduleAddr
+        throw new Error(`Invalid version ${moduleConfig.version}`)
       }
+      instance.moduleAddress = moduleAddr
       instance.version = moduleConfig.version as ModuleVersion
+    } else {
+      instance.moduleAddress = DEFAULT_SESSION_KEY_MANAGER_MODULE
+      // Note: in this case Version remains the default one
     }
     instance.nodeClient = new NodeClient({
       txServiceUrl: moduleConfig.nodeClientUrl ?? NODE_CLIENT_URL

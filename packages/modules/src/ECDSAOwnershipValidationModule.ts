@@ -2,7 +2,7 @@ import { Logger } from '@biconomy/common'
 import { Signer, ethers } from 'ethers'
 import { Bytes, arrayify } from 'ethers/lib/utils'
 import { ECDSAOwnershipValidationModuleConfig, ModuleVersion } from './utils/Types'
-import { ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION } from './utils/Constants'
+import { DEFAULT_ECDSA_OWNERSHIP_MODULE, ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION } from './utils/Constants'
 import { BaseValidationModule } from './BaseValidationModule'
 
 // Could be renamed with suffix API
@@ -22,6 +22,9 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
       }
       this.moduleAddress = moduleAddr
       this.version = moduleConfig.version as ModuleVersion
+    } else {
+      this.moduleAddress = DEFAULT_ECDSA_OWNERSHIP_MODULE
+      // Note: in this case Version remains the default one
     }
     this.signer = moduleConfig.signer
   }

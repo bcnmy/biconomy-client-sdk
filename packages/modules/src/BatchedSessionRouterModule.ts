@@ -52,13 +52,13 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
     } else if (moduleConfig.version) {
       const moduleAddr = BATCHED_SESSION_ROUTER_MODULE_ADDRESSES_BY_VERSION[moduleConfig.version]
       if (!moduleAddr) {
-        // throw new Error(`Invalid version ${moduleConfig.version}`)
-        Logger.error(`Invalid version ${moduleConfig.version}`)
-        instance.moduleAddress = DEFAULT_BATCHED_SESSION_ROUTER_MODULE
-      } else {
-        instance.moduleAddress = moduleAddr
+        throw new Error(`Invalid version ${moduleConfig.version}`)
       }
+      instance.moduleAddress = moduleAddr
       instance.version = moduleConfig.version as ModuleVersion
+    } else {
+      instance.moduleAddress = DEFAULT_BATCHED_SESSION_ROUTER_MODULE
+      // Note: in this case Version remains the default one
     }
 
     instance.sessionManagerModuleAddress =
