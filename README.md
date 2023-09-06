@@ -18,7 +18,7 @@ Bundler infrastructure is designed and implemented in accordance with standardis
 
 ### Paymaster
 
-ERC4337, Account abstraction, introduces the concept of Paymasters. These specialised entities play a pivotal role in revolutionising the traditional gas payment system in EVM transactions. Paymasters, acting as third-party intermediaries, possess the capability to sponsor gas fees for an account, provided specific predefined conditions are satisfied.
+ERC4337, Account abstraction, introduces the concept of Paymasters. These specialised entities play a pivotal role in revolutionising the traditional gas payment system in EVM transactions. Paymasters, acting as third-party intermediaries, possess the capability to sponsor gas fees for an account, provided specific predefined conditions are satisfied. They can also be used to accept gas payment in ERC20 tokens from the user's smart accounts, with the paymaster managing the gas payment in native token.
 
 
 
