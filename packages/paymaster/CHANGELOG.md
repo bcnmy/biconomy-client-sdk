@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## 2.0.12 (2023-08-02)
+## 2.0.13 (2023-08-02)
 
 ### Features
 
@@ -15,12 +15,12 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
-# 2.0.12 (2023-07-24)
+# 2.0.13 (2023-07-24)
 
 VERSION bump only
 
 
-## 2.0.12 (2023-07-12)
+## 2.0.13 (2023-07-12)
 
 
 ### Bug Fixes

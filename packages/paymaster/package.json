@@ -1,6 +1,6 @@
 {
   "name": "@biconomy-devx/paymaster",
-  "version": "2.0.12",
+  "version": "2.0.13",
   "description": "Biconomy Paymaster to interact with Paymaster Services that interacts with ( veriying and token ) paymasters",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -37,7 +37,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "@biconomy-devx/common": "^2.0.12",
-    "@biconomy-devx/core-types": "^2.0.12"
+    "@biconomy-devx/common": "^2.0.13",
+    "@biconomy-devx/core-types": "^2.0.13"
   }
 }
