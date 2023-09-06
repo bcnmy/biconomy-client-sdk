@@ -12,7 +12,10 @@ import {
 } from './utils/Types'
 import NodeClient from '@biconomy/node-client'
 import INodeClient from '@biconomy/node-client'
-import { SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION } from './utils/Constants'
+import {
+  SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION,
+  DEFAULT_SESSION_KEY_MANAGER_MODULE
+} from './utils/Constants'
 import { generateRandomHex } from './utils/Uid'
 import { BaseValidationModule } from './BaseValidationModule'
 import { SessionLocalStorage } from './session-storage/SessionLocalStorage'
@@ -60,6 +63,9 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       }
       instance.moduleAddress = moduleAddr
       instance.version = moduleConfig.version as ModuleVersion
+    } else {
+      instance.moduleAddress = DEFAULT_SESSION_KEY_MANAGER_MODULE
+      // Note: in this case Version remains the default one
     }
     instance.nodeClient = new NodeClient({
       txServiceUrl: moduleConfig.nodeClientUrl ?? NODE_CLIENT_URL
@@ -92,21 +98,36 @@ export class SessionKeyManagerModule extends BaseValidationModule {
 
   /**
    * Method to create session data for any module. The session data is used to create a leaf in the merkle tree
-   * @param leafData The data to be used to create session data
+   * @param leavesData The data of one or more leaves to be used to create session data
    * @returns The session data
    */
-  createSessionData = async (leafData: CreateSessionDataParams): Promise<string> => {
+  createSessionData = async (leavesData: CreateSessionDataParams[]): Promise<string> => {
     const sessionKeyManagerModuleABI = 'function setMerkleRoot(bytes32 _merkleRoot)'
     const sessionKeyManagerModuleInterface = new ethers.utils.Interface([
       sessionKeyManagerModuleABI
     ])
-    const leafDataHex = hexConcat([
-      hexZeroPad(ethers.utils.hexlify(leafData.validUntil), 6),
-      hexZeroPad(ethers.utils.hexlify(leafData.validAfter), 6),
-      hexZeroPad(leafData.sessionValidationModule, 20),
-      leafData.sessionKeyData
-    ])
-    this.merkleTree.addLeaves([ethers.utils.keccak256(leafDataHex) as unknown as Buffer])
+    const leavesToAdd: Buffer[] = []
+
+    for (const leafData of leavesData) {
+      const leafDataHex = hexConcat([
+        hexZeroPad(ethers.utils.hexlify(leafData.validUntil), 6),
+        hexZeroPad(ethers.utils.hexlify(leafData.validAfter), 6),
+        hexZeroPad(leafData.sessionValidationModule, 20),
+        leafData.sessionKeyData
+      ])
+
+      leavesToAdd.push(ethers.utils.keccak256(leafDataHex) as unknown as Buffer)
+
+      const sessionLeafNode = {
+        ...leafData,
+        sessionID: generateRandomHex(),
+        status: 'PENDING' as SessionStatus
+      }
+
+      await this.sessionStorageClient.addSessionData(sessionLeafNode)
+    }
+
+    this.merkleTree.addLeaves(leavesToAdd)
 
     const leaves = this.merkleTree.getLeaves()
 
@@ -120,13 +141,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     const setMerkleRootData = sessionKeyManagerModuleInterface.encodeFunctionData('setMerkleRoot', [
       this.merkleTree.getHexRoot()
     ])
-    const sessionLeafNode = {
-      ...leafData,
-      sessionID: generateRandomHex(),
-      status: 'PENDING' as SessionStatus
-    }
 
-    await this.sessionStorageClient.addSessionData(sessionLeafNode)
     await this.sessionStorageClient.setMerkleRoot(this.merkleTree.getHexRoot())
     // TODO: create a signer if sessionPubKey if not given
     return setMerkleRootData

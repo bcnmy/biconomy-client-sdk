@@ -2,7 +2,7 @@ import { UserOperation } from '@biconomy/core-types'
 import { Logger, getUserOpHash } from '@biconomy/common'
 import { Signer, ethers } from 'ethers'
 import MerkleTree from 'merkletreejs'
-import { MULTICHAIN_VALIDATION_MODULE_ADDRESSES_BY_VERSION } from './utils/Constants'
+import { DEFAULT_MULTICHAIN_MODULE, MULTICHAIN_VALIDATION_MODULE_ADDRESSES_BY_VERSION } from './utils/Constants'
 import {
   keccak256,
   arrayify,
@@ -29,6 +29,9 @@ export class MultiChainValidationModule extends BaseValidationModule {
       }
       this.moduleAddress = moduleAddr
       this.version = moduleConfig.version as ModuleVersion
+    } else {
+      this.moduleAddress = DEFAULT_MULTICHAIN_MODULE
+      // Note: in this case Version remains the default one
     }
     this.signer = moduleConfig.signer
   }

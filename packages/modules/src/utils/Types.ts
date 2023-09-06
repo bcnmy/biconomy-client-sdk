@@ -1,5 +1,6 @@
 import { ChainId, UserOperation } from '@biconomy/core-types'
 import { Signer } from 'ethers'
+import { SessionKeyManagerModule } from '../SessionKeyManagerModule'
 
 export type ModuleVersion = 'V1_0_0' // | 'V1_0_1'
 
@@ -16,23 +17,40 @@ export interface ECDSAOwnershipValidationModuleConfig extends BaseValidationModu
 export interface SessionKeyManagerModuleConfig extends BaseValidationModuleConfig {
   moduleAddress?: string
   version?: ModuleVersion
-  sessionSigner?: Signer
-  sessionPubKey?: string
+  // Review
+  // sessionSigner?: Signer
+  // sessionPubKey?: string
   nodeClientUrl?: string
   smartAccountAddress: string
   storageType?: StorageType
+}
+
+export interface BatchedSessionRouterModuleConfig extends BaseValidationModuleConfig {
+  moduleAddress?: string
+  version?: ModuleVersion
+
+  sessionKeyManagerModule?: SessionKeyManagerModule // could be BaseValidationModule
+
+  sessionManagerModuleAddress?: string
+  nodeClientUrl?: string
+  smartAccountAddress: string
+  storageType?: StorageType
+
+  // sessionSigner?: Signer
+  // sessionPubKey?: string
+  // nodeClientUrl?: string
 }
 
 export enum StorageType {
   LOCAL_STORAGE
 }
 
-/*export type SessionParams = {
+export type SessionParams = {
   sessionID?: string
   sessionSigner: Signer
   sessionValidationModule?: string
   additionalSessionData?: string
-}*/
+}
 
 export type ModuleInfo = {
   // Could be a full object of below params and that way it can be an array too!
@@ -41,6 +59,7 @@ export type ModuleInfo = {
   sessionSigner?: Signer
   sessionValidationModule?: string
   additionalSessionData?: string
+  batchSessionParams?: SessionParams[]
 }
 
 export interface CreateSessionDataParams {
