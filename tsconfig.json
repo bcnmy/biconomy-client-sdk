@@ -11,9 +11,7 @@
     "lib": ["es2020"],
     "types": ["node", "jest"]
   },
-  "include": [
-    "./src/**/*"
-  ],
+  "include": ["packages/**/*"],
   "references": [
     { "path": "./packages/common" },
     { "path": "./packages/core-types" },
