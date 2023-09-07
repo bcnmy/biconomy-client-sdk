@@ -38,7 +38,7 @@ The Biconomy account package achieves this by providing a comprehensive set of m
 
 import { BiconomySmartAccount, BiconomySmartAccountConfig } from "@biconomy/account"
 
-// Note that paymaster and bundler are optional. You can choose to create new instances of this later and make account API use 
+// <<Note>> that paymaster and bundler are optional. You can choose to create new instances of this later and make account API use 
 const biconomySmartAccountConfig: BiconomySmartAccountConfig = {
     signer: wallet.getSigner(),
     chainId: ChainId.POLYGON_MAINNET, 

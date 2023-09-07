@@ -146,11 +146,11 @@ describe('BiconomySmartAccount API Specs', () => {
     accountDeployed = true
   })
 
-  // TODO
+  // <<TODO>>
   // possibly use local bundler API from image
   it('should build and send userop via bundler API', async () => {})
 
-  // TODO
+  // <<TODO>>
   // 1. other getter and setters
   // 2. sendSignedUserOp()
   // 3. sendUserOp()

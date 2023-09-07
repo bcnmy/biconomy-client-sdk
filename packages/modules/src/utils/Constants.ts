@@ -13,7 +13,7 @@ export const ENTRYPOINT_ADDRESSES_BY_VERSION = {
   V0_0_6: '0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789'
 }
 
-// Review: If we should append these defaults with ADDRESS suffix
+// <<review>>: If we should append these defaults with ADDRESS suffix
 export const DEFAULT_ECDSA_OWNERSHIP_MODULE = '0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e'
 
 export const ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION = {
@@ -26,6 +26,8 @@ export const SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION = {
   V1_0_0: '0x000000456b395c4e107e0302553B90D1eF4a32e9',
   V1_0_1: '0x6E49e404BD70bcc4756F1057d2E2e6000cD38e1e'
 }
+
+// << Review >> contracts addresses should be updated as per final deployments.
 
 export const DEFAULT_BATCHED_SESSION_ROUTER_MODULE = '0x58464D89f5763FAea0eEc57AE6E28C9CdB03b41B'
 

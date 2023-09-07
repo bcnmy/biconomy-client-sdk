@@ -17,7 +17,7 @@ export interface ECDSAOwnershipValidationModuleConfig extends BaseValidationModu
 export interface SessionKeyManagerModuleConfig extends BaseValidationModuleConfig {
   moduleAddress?: string
   version?: ModuleVersion
-  // Review
+  // <<review>>
   // sessionSigner?: Signer
   // sessionPubKey?: string
   nodeClientUrl?: string

@@ -14,7 +14,7 @@ import { SmartAccountConfig, Overrides } from './utils/Types'
 
 type UserOperationKey = keyof UserOperation
 
-// Notice: only to be used as base class for child class BiconomySmartAccount(V1)
+// << Notice >>: only to be used as base class for child class BiconomySmartAccount(V1)
 export abstract class SmartAccount implements ISmartAccount {
   bundler!: IBundler
   paymaster!: IPaymaster

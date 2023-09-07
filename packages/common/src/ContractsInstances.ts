@@ -21,7 +21,7 @@ export type GetContractInstanceDto = {
   provider: JsonRpcProvider
 }
 
-// TODO // Review return types
+// <<TODO>> // <<review>> return types
 export function getSAProxyContract(
   contractInstanceDto: GetContractInstanceDto
 ): SmartAccount_v100 | SmartAccount_v200 {
@@ -43,7 +43,7 @@ export function getSAProxyContract(
   throw new Error('Invalid version or smartAccountType provided for proxy contract instance')
 }
 
-// TODO // Review return types
+// <<TODO>> // <<review>> return types
 export function getSAFactoryContract(
   contractInstanceDto: GetContractInstanceDto
 ): SmartAccountFactory_v100 | SmartAccountFactory_v200 {

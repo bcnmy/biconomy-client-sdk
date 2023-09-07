@@ -25,7 +25,7 @@ export enum ChainNames {
   CeloTest = 'celoTest'
 }
 
-// NOTE: Update chainId for networks we're planning to support
+// <<Note>>: Update chainId for networks we're planning to support
 export enum ChainId {
   // Ethereum
   MAINNET = 1,

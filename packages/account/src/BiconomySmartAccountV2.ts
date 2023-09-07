@@ -5,7 +5,7 @@ import { BaseSmartAccount } from './BaseSmartAccount'
 import { keccak256, Bytes, arrayify, hexConcat } from 'ethers/lib/utils'
 import { Logger, NODE_CLIENT_URL, RPC_PROVIDER_URLS } from '@biconomy/common'
 
-// Review failure reason for import from '@biconomy/account-contracts-v2/typechain'
+// <<review>> failure reason for import from '@biconomy/account-contracts-v2/typechain'
 
 import {
   SmartAccount_v200,
@@ -42,7 +42,7 @@ type UserOperationKey = keyof UserOperation
 export class BiconomySmartAccountV2 extends BaseSmartAccount {
   private nodeClient: INodeClient
 
-  // Review: Marked for deletion
+  // <<review>>: Marked for deletion
   // private smartAccountInfo!: ISmartAccount
   // private _isInitialised!: boolean
 
@@ -54,7 +54,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
    */
   accountContract?: SmartAccount_v200
 
-  // TODO: both should be V2
+  // <<TODO>>: both should be V2
 
   factory?: SmartAccountFactory_v200
 
@@ -65,7 +65,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
   constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountV2Config) {
     super(biconomySmartAccountConfig)
-    // Review: if it's really needed to supply factory address
+    // <<review>>: if it's really needed to supply factory address
     this.factoryAddress =
       biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS // This would be fetched from V2
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -127,7 +127,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return BigNumber.from(0)
   }
 
-  // Review
+  // <<review>>
   // Overridden this method because entryPoint.callStatic.getSenderAddress() based on initCode doesnt always work
   // in case of account is deployed you would get AA13 or AA10
 
@@ -178,7 +178,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       this.index
     )
 
-    // TODO: interface should work.
+    // <<TODO>>: interface should work.
     return hexConcat([
       this.factory.address,
       populatedTransaction.data as string
@@ -250,7 +250,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return await this.activeValidationModule.getDummySignature(params)
   }
 
-  // Review:
+  // <<review>>:
   // Might use provided paymaster instance to get dummy data (from pm service)
   getDummyPaymasterData(): string {
     return '0x'
@@ -303,11 +303,11 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     transactions: Transaction[],
     buildUseropDto?: BuildUserOpOptions
   ): Promise<Partial<UserOperation>> {
-    // Review: may not need at all
+    // <<review>>: may not need at all
     // this.isInitialized()
 
-    // TODO: validate to, value and data fields
-    // TODO: validate overrides if supplied
+    // <<TODO>>: validate to, value and data fields
+    // <<TODO>>: validate overrides if supplied
     const to = transactions.map((element: Transaction) => element.to)
     const data = transactions.map((element: Transaction) => element.data ?? '0x')
     const value = transactions.map((element: Transaction) => element.value ?? BigNumber.from('0'))
@@ -406,7 +406,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       if (this.paymaster && this.paymaster instanceof BiconomyPaymaster) {
         // Make a call to paymaster.buildTokenApprovalTransaction() with necessary details
 
-        // Review: might request this form of an array of Transaction
+        // <<review>>: might request this form of an array of Transaction
         const approvalRequest: Transaction = await (
           this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
         ).buildTokenApprovalTransaction(tokenPaymasterRequest, this.provider)
@@ -521,8 +521,8 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       signature = '0x' + signature
     }
 
-    // TODO
-    // Review if need to be added in signUserOpHash methods in validationModule as well
+    // <<TODO>>
+    // <<review>> if need to be added in signUserOpHash methods in validationModule as well
     // If the account is undeployed, use ERC-6492
     // Extend in child classes
     /*if (!(await this.isAccountDeployed(this.getSmartAccountAddress()))) {

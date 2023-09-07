@@ -58,7 +58,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
       instance.version = moduleConfig.version as ModuleVersion
     } else {
       instance.moduleAddress = DEFAULT_BATCHED_SESSION_ROUTER_MODULE
-      // Note: in this case Version remains the default one
+      // <<Note>>: in this case Version remains the default one
     }
 
     instance.sessionManagerModuleAddress =
@@ -163,7 +163,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
 
     // Generate the padded signature with (validUntil,validAfter,sessionVerificationModuleAddress,validationData,merkleProof,signature)
 
-    Logger.debug('signature ', signature)
+    Logger.log('signature ', signature)
 
     const paddedSignature = defaultAbiCoder.encode(
       ['address', 'tuple(uint48,uint48,address,bytes,bytes32[],bytes)[]', 'bytes'],
@@ -216,8 +216,8 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
    * @remarks This is the dummy signature for the module, used in buildUserOp for bundler estimation
    * @returns Dummy signature
    */
-  // Review
-  // Will have it's own // TODO
+  // <<review>>
+  // Will have it's own // <<TODO>>
   async getDummySignature(params?: ModuleInfo): Promise<string> {
     Logger.log('userful params', params)
     const moduleAddress = ethers.utils.getAddress(this.getAddress())

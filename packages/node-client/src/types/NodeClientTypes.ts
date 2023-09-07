@@ -17,7 +17,7 @@ export type SmartAccountInfoResponse = {
   }
 }
 
-// Review
+// <<review>>
 export type SCWTransactionResponse = {
   symbol: string
   tokenAddress: string
@@ -136,7 +136,7 @@ export type TokenInfo = {
   updatedAt: Date
 }
 
-// Review
+// <<review>>
 // Info received from sdk backend
 // As it seems currently it seems thought only for ECDSA validation module
 // We should only need to obtain necessary info from backend

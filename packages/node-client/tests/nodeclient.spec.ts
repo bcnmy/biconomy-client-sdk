@@ -21,7 +21,7 @@ describe('Node Client tests', function () {
   let nodeClient: NodeClient
   let gasUsed: number
 
-  // TODO: Add test cases for other environments (QA, DEV)
+  // <<TODO>>: Add test cases for other environments (QA, DEV)
   before(async () => {
     nodeClient = new NodeClient({ txServiceUrl: 'https://sdk-backend.staging.biconomy.io/v1' })
   })

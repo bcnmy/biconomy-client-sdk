@@ -42,7 +42,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
   private async prepareUserOperation(
     userOp: Partial<UserOperation>
   ): Promise<Partial<UserOperation>> {
-    // Review
+    // <<review>>
     userOp = await resolveProperties(userOp)
     if (userOp.nonce) {
       userOp.nonce = BigNumber.from(userOp.nonce).toHexString()
@@ -82,9 +82,9 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     // logging provider object isProvider
     Logger.log('provider object passed - is provider', provider?._isProvider)
 
-    // TODO move below notes to separate method
-    // Note: should also check in caller if the approval is already given, if yes return object with address or data 0
-    // Note: we would need userOp here to get the account/owner info to check allowance
+    // <<TODO>> move below notes to separate method
+    // <<Note>>: should also check in caller if the approval is already given, if yes return object with address or data 0
+    // <<Note>>: we would need userOp here to get the account/owner info to check allowance
 
     let requiredApproval: BigNumberish = BigNumber.from(0).toString()
 
@@ -104,8 +104,8 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     try {
       const data = erc20Interface.encodeFunctionData('approve', [spender, requiredApproval])
 
-      // TODO?
-      // Note: For some tokens we may need to set allowance to 0 first so that would return batch of transactions and changes the return type to Transaction[]
+      // <<TODO>>?
+      // <<Note>>: For some tokens we may need to set allowance to 0 first so that would return batch of transactions and changes the return type to Transaction[]
       // In that case we would return two objects in an array, first of them being..
       /*
     {
@@ -234,7 +234,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     } catch (error: any) {
       Logger.log(error.message)
       Logger.error('Failed to fetch Fee Quotes or Paymaster data - reason: ', JSON.stringify(error))
-      // Note: we may not throw if we include strictMode off and return paymasterData '0x'.
+      // <<Note>>: we may not throw if we include strictMode off and return paymasterData '0x'.
       if (
         !this.paymasterConfig.strictMode &&
         paymasterServiceData.mode == PaymasterMode.SPONSORED &&
@@ -266,7 +266,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     userOp: Partial<UserOperation>,
     paymasterServiceData?: SponsorUserOperationDto // mode is necessary. partial context of token paymaster or verifying
   ): Promise<PaymasterAndDataResponse> {
-    // TODO
+    // <<TODO>>
     try {
       userOp = await this.prepareUserOperation(userOp)
     } catch (err) {
@@ -309,7 +309,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     webhookData = paymasterServiceData?.webhookData ?? webhookData
     smartAccountInfo = paymasterServiceData?.smartAccountInfo ?? smartAccountInfo
 
-    // Note: The idea is before calling this below rpc, userOp values presense and types should be in accordance with how we call eth_estimateUseropGas on the bundler
+    // <<Note>>: The idea is before calling this below rpc, userOp values presense and types should be in accordance with how we call eth_estimateUseropGas on the bundler
 
     try {
       const response: JsonRpcResponse = await sendRequest({

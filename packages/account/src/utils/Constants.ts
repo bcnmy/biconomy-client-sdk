@@ -8,7 +8,7 @@ import {
   BiconomyImplementationsByVersion
 } from './Types'
 
-// Review: Note: Might be a good idea to keep reverse mapping for below and also default constants for latest versioned addresses*/
+// <<review>>: Note: Might be a good idea to keep reverse mapping for below and also default constants for latest versioned addresses*/
 
 // will always be latest entrypoint address
 export const DEFAULT_ENTRYPOINT_ADDRESS = '0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789'
@@ -23,6 +23,8 @@ export const BICONOMY_FACTORY_ADDRESSES: BiconomyFactories = {
   '0x000000f9ee1842bb72f6bbdd75e6d3d4e3e9594c': 'V1_0_0',
   '0x00000016FD385cEE5116EF68C189733679770338': 'V2_0_0'
 }
+
+// << Review >> contracts addresses should be updated as per final deployments.
 
 // will always be latest implementation address
 export const DEFAULT_BICONOMY_IMPLEMENTATION_ADDRESS = '0x000000988555091db5633a5Be66d563EfB48cB95'

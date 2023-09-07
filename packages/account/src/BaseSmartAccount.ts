@@ -17,7 +17,7 @@ import { RPC_PROVIDER_URLS } from '@biconomy/common'
 type UserOperationKey = keyof UserOperation
 
 export abstract class BaseSmartAccount implements IBaseSmartAccount {
-  // Review : compare with BaseAccountAPI
+  // <<review>> : compare with BaseAccountAPI
   // private senderAddress!: string
 
   private isDeployed = false
@@ -29,7 +29,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
   // owner?: Signer // owner is not mandatory for some account implementations
   index: number
   chainId?: ChainId
-  provider: Provider // Review
+  provider: Provider // <<review>>
 
   // entryPoint connected to "zero" address. allowed to make static calls (e.g. to getSenderAddress)
   private readonly entryPoint!: EntryPoint
@@ -60,7 +60,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
       )
     }
 
-    // Note: Review
+    // <<Note>>: Review
     // on Init itself since we're already getting account address, mark isDeployed as well!
 
     if ((await this.provider.getCode(await this.getAccountAddress())) === '0x') {
@@ -156,7 +156,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     let signature = await this.signUserOpHash(userOpHash)
 
     // Some signers do not return signed data with 0x prefix. make sure the v value is 27/28 instead of 0/1
-    // Review: Make sure if it's valid hexString otherwise append 0x.
+    // <<review>>: Make sure if it's valid hexString otherwise append 0x.
 
     // Also split sig and add +27 to v is v is only 0/1. then stitch it back
 
@@ -169,7 +169,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
       signature = '0x' + signature
     }
 
-    // TODO
+    // <<TODO>>
     // If the account is undeployed, use ERC-6492
     // Extend in child classes
     /*if (!(await this.isAccountDeployed(this.getSmartAccountAddress()))) {
@@ -319,7 +319,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     return '0x'
   }
 
-  // Review : usage trace of this method. in the order of init and methods called on the Account
+  // <<review>> : usage trace of this method. in the order of init and methods called on the Account
   async isAccountDeployed(address: string): Promise<boolean> {
     this.isProviderDefined()
     let contractCode
@@ -394,7 +394,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
    * return the account's address.
    * this value is valid even before deploying the contract.
    */
-  // Review: Probably should accept index as well as we rely on factory!
+  // <<review>>: Probably should accept index as well as we rely on factory!
   async getAccountAddress(): Promise<string> {
     if (this.accountAddress == null) {
       // means it needs deployment
@@ -476,7 +476,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     }
   }
 
-  // TODO: allow this for batch. Review previous sdk versions
+  // <<TODO>>: allow this for batch. Review previous sdk versions
 
   /**
    * create a UserOperation, filling all details (except signature)

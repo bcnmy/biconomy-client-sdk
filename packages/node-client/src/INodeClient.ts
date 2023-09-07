@@ -40,7 +40,7 @@ interface INodeClient {
   /**
    * Get all supported tokens
    */
-  // review
+  // <<review>>
   getAllTokens(): Promise<SupportedTokensResponse>
 
   /**

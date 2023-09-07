@@ -65,7 +65,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       instance.version = moduleConfig.version as ModuleVersion
     } else {
       instance.moduleAddress = DEFAULT_SESSION_KEY_MANAGER_MODULE
-      // Note: in this case Version remains the default one
+      // <<Note>>: in this case Version remains the default one
     }
     instance.nodeClient = new NodeClient({
       txServiceUrl: moduleConfig.nodeClientUrl ?? NODE_CLIENT_URL
@@ -143,7 +143,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     ])
 
     await this.sessionStorageClient.setMerkleRoot(this.merkleTree.getHexRoot())
-    // TODO: create a signer if sessionPubKey if not given
+    // <<TODO>>: create a signer if sessionPubKey if not given
     return setMerkleRootData
   }
 
@@ -248,7 +248,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @remarks This is the dummy signature for the module, used in buildUserOp for bundler estimation
    * @returns Dummy signature
    */
-  // Review
+  // <<review>>
   // instead of search params it could be actual leaf info retrieved beforehand
   async getDummySignature(params?: ModuleInfo): Promise<string> {
     Logger.log('moduleInfo ', params)

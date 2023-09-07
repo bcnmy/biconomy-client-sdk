@@ -27,7 +27,7 @@ export type PaymasterConfig = {
   strictMode?: boolean
 }
 
-// review types and naming convention
+// <<review>> types and naming convention
 // meant for pm_sponsorUserOperation
 export type SponsorUserOperationDto = {
   mode: PaymasterMode
@@ -40,7 +40,7 @@ export type SponsorUserOperationDto = {
   feeTokenAddress?: string
 }
 
-// review types and naming convention
+// <<review>> types and naming convention
 // meant for pm_getFeeQuoteOrData
 export type FeeQuotesOrDataDto = {
   mode?: PaymasterMode

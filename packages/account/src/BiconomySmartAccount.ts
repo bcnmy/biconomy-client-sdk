@@ -279,8 +279,8 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     skipBundlerGasEstimation?: boolean
   ): Promise<Partial<UserOperation>> {
     this.isInitialized()
-    // TODO: validate to, value and data fields
-    // TODO: validate overrides if supplied
+    // <<TODO>>: validate to, value and data fields
+    // <<TODO>>: validate overrides if supplied
     const to = transactions.map((element: Transaction) => element.to)
     const data = transactions.map((element: Transaction) => element.data ?? '0x')
     const value = transactions.map((element: Transaction) => element.value ?? BigNumber.from('0'))
@@ -375,7 +375,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       if (this.paymaster && this.paymaster instanceof BiconomyPaymaster) {
         // Make a call to paymaster.buildTokenApprovalTransaction() with necessary details
 
-        // Review: might request this form of an array of Transaction
+        // <<review>>: might request this form of an array of Transaction
         const approvalRequest: Transaction = await (
           this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
         ).buildTokenApprovalTransaction(tokenPaymasterRequest, this.provider)
