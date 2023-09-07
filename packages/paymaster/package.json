@@ -22,7 +22,7 @@
     "test:file": "jest --config=../../jest.config.js --runInBand",
     "test:concurrently": "concurrently -k --success first 'yarn start:ganache > /dev/null'",
     "start:ganache": "ganache -m 'direct buyer cliff train rice spirit census refuse glare expire innocent quote'"
-  },  
+  },
   "author": "talhamalik883 <talha.malik@biconomy.io>",
   "repository": {
     "type": "git",

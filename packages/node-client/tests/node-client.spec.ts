@@ -1,6 +1,6 @@
-import { Signer as AbstractSigner } from 'ethers';
-import { Web3Provider } from '@ethersproject/providers';
-import NodeClient from '../dist/src';
+import { Signer as AbstractSigner } from "ethers";
+import { Web3Provider } from "@ethersproject/providers";
+import NodeClient from "../dist/src";
 
 // import { EstimateRequiredTxGasDto } from '../src/types/NodeClientTypes'
 
@@ -10,21 +10,18 @@ type EthereumInstance = {
   signer?: AbstractSigner;
 };
 
-
-describe('Node Client tests', function () {
-  const ethnode: EthereumInstance = {}
-  let nodeClient: NodeClient
-  let gasUsed: number
+describe("Node Client tests", function () {
+  const ethnode: EthereumInstance = {};
+  let nodeClient: NodeClient;
+  let gasUsed: number;
 
   // TODO: Add test cases for other environments (QA, DEV)
   beforeAll(async () => {
-    nodeClient = new NodeClient({ txServiceUrl: 'https://sdk-backend.staging.biconomy.io/v1' })
+    nodeClient = new NodeClient({ txServiceUrl: "https://sdk-backend.staging.biconomy.io/v1" });
   });
 
-  describe('Gas Estimation Endpoints', () => {
-    it("Empty test to remove warning", () => {
-
-    });
+  describe("Gas Estimation Endpoints", () => {
+    it("Empty test to remove warning", () => {});
     // it('Should estimateRequiredTxGas accurately', async () => {
     //   // Wallet  - deployed, Tx - approve USDC + Hyphen LP token
     //   // Multisend - 0xcc8386d4b97515b75a76afea0604b0f7ca055eaf
@@ -92,5 +89,5 @@ describe('Node Client tests', function () {
     //   console.log(response)
     //   expect(response.code).to.be.equal(200)
     // })
-  })
-})
+  });
+});

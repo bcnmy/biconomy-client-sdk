@@ -1,6 +1,5 @@
-describe('Paymaster Tests', () => {
-    it('should have a basic test', () => {
-      expect(true).toBe(true);
-    });
+describe("Paymaster Tests", () => {
+  it("should have a basic test", () => {
+    expect(true).toBe(true);
   });
-  
+});
