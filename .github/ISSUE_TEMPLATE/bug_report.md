@@ -1,38 +1,31 @@
----
-name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: ''
-assignees: ''
+## SDK Version
 
----
+<!-- Please specify the version of the SDK you are using. -->
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+## Description
+<!-- Briefly describe the bug you are facing. -->
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+## Steps to Reproduce
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+1. 
+2. 
+3. 
+<!-- Add any other context or screenshots about the feature request here. -->
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+## Expected Behavior
+<!-- Describe what you expected to happen. -->
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+## Actual Behavior
+<!-- Describe what actually happened. Include any error tracebacks if possible. -->
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+## Possible Fix (optional)
+<!-- If you have an idea on how to fix this, please share! -->
 
-**Additional context**
-Add any other context about the problem here.
+## Environment Details
+
+- **Browser Version**:
+- **Node.js Version**:
+- **NPM/Yarn Version**:
+
+## Additional Context
+<!-- Add any other details or context about the bug here. -->

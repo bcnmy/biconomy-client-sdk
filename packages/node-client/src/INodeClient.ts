@@ -13,7 +13,7 @@ import {
   UsdBalanceResponse,
   SCWTransactionResponse,
   WhiteListSignatureResponse
-} from './types/NodeClientTypes'
+} from './types/NodeClientTypes';
 
 interface INodeClient {
   // 1. Chain Apis
@@ -21,13 +21,13 @@ interface INodeClient {
   /**
    * Get all supported chains by backend node configuration
    */
-  getAllSupportedChains(): Promise<SupportedChainsResponse>
+  getAllSupportedChains(): Promise<SupportedChainsResponse>;
 
   /**
    * Get ChainConfig for requested chainId
    * @param chainId
    */
-  getChainById(chainId: number): Promise<IndividualChainResponse>
+  getChainById(chainId: number): Promise<IndividualChainResponse>;
 
   // 2. Token APIs
 
@@ -35,19 +35,19 @@ interface INodeClient {
    * Get prices for configured tokens from backend node API
    * @param chainId
    */
-  getTokenPricesByChainId(chainId: number): Promise<TokenPriceResponse>
+  getTokenPricesByChainId(chainId: number): Promise<TokenPriceResponse>;
 
   /**
    * Get all supported tokens
    */
   // review
-  getAllTokens(): Promise<SupportedTokensResponse>
+  getAllTokens(): Promise<SupportedTokensResponse>;
 
   /**
    * Get TokenInfo for requested chainId
    * @param chainId
    */
-  getTokensByChainId(chainId: number): Promise<SupportedTokensResponse>
+  getTokensByChainId(chainId: number): Promise<SupportedTokensResponse>;
 
   /**
    * Get TokenInfo by address and chainId
@@ -55,7 +55,7 @@ interface INodeClient {
    */
   getTokenByChainIdAndAddress(
     tokenByChainIdAndAddressDto: TokenByChainIdAndAddressDto
-  ): Promise<IndividualTokenResponse>
+  ): Promise<IndividualTokenResponse>;
 
   // 3. Smart Account Endpoints
 
@@ -65,7 +65,7 @@ interface INodeClient {
    */
   getSmartAccountsByOwner(
     smartAccountByOwnerDto: SmartAccountByOwnerDto
-  ): Promise<SmartAccountsResponse>
+  ): Promise<SmartAccountsResponse>;
 
   // 4. Balances Endpoints
 
@@ -74,13 +74,13 @@ interface INodeClient {
    * address could be EOA or SmartAccount
    * @param balancesDto
    */
-  getAllTokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse>
+  getAllTokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse>;
 
   /**
    *
    * @param balancesDto Get total USD balance
    */
-  getTotalBalanceInUsd(balancesDto: BalancesDto): Promise<UsdBalanceResponse>
+  getTotalBalanceInUsd(balancesDto: BalancesDto): Promise<UsdBalanceResponse>;
 
   /**
    *
@@ -88,11 +88,11 @@ interface INodeClient {
    * About: Whitelist domain by passing the origin domain
    * Purpose: Returns the signature used in init
    */
-  whitelistUrl(origin: string): Promise<WhiteListSignatureResponse>
+  whitelistUrl(origin: string): Promise<WhiteListSignatureResponse>;
 
-  getTransactionByHash(txHash: string): Promise<SCWTransactionResponse>
+  getTransactionByHash(txHash: string): Promise<SCWTransactionResponse>;
 
-  getTransactionByAddress(chainId: number, address: string): Promise<SCWTransactionResponse[]>
+  getTransactionByAddress(chainId: number, address: string): Promise<SCWTransactionResponse[]>;
 }
 
-export default INodeClient
+export default INodeClient;

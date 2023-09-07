@@ -1,4 +1,4 @@
-import INodeClient from './INodeClient'
+import INodeClient from './INodeClient';
 import {
   SmartAccountByOwnerDto,
   TokenByChainIdAndAddressDto,
@@ -13,19 +13,19 @@ import {
   UsdBalanceResponse,
   SCWTransactionResponse,
   WhiteListSignatureResponse
-} from './types/NodeClientTypes'
-import { getTxServiceBaseUrl } from './utils'
-import { HttpMethod, sendRequest } from './utils/HttpRequests'
+} from './types/NodeClientTypes';
+import { getTxServiceBaseUrl } from './utils';
+import { HttpMethod, sendRequest } from './utils/HttpRequests';
 export interface NodeClientConfig {
   /** txServiceUrl - Safe Transaction Service URL */
-  txServiceUrl: string
+  txServiceUrl: string;
 }
 
 class NodeClient implements INodeClient {
-  #txServiceBaseUrl: string
+  #txServiceBaseUrl: string;
 
   constructor({ txServiceUrl }: NodeClientConfig) {
-    this.#txServiceBaseUrl = getTxServiceBaseUrl(txServiceUrl)
+    this.#txServiceBaseUrl = getTxServiceBaseUrl(txServiceUrl);
   }
 
   /**
@@ -36,7 +36,7 @@ class NodeClient implements INodeClient {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/chains/`,
       method: HttpMethod.Get
-    })
+    });
   }
   /**
    *
@@ -48,7 +48,7 @@ class NodeClient implements INodeClient {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/chains/${chainId}`,
       method: HttpMethod.Get
-    })
+    });
   }
 
   /**
@@ -61,43 +61,43 @@ class NodeClient implements INodeClient {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/chains/chainId/${chainId}/price`,
       method: HttpMethod.Get
-    })
+    });
   }
 
   async getAllTokens(): Promise<SupportedTokensResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/tokens/`,
       method: HttpMethod.Get
-    })
+    });
   }
 
   async getTokensByChainId(chainId: number): Promise<SupportedTokensResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/tokens/chainId/${chainId}`,
       method: HttpMethod.Get
-    })
+    });
   }
 
   async getTokenByChainIdAndAddress(
     tokenByChainIdAndAddressDto: TokenByChainIdAndAddressDto
   ): Promise<IndividualTokenResponse> {
-    const { chainId, tokenAddress } = tokenByChainIdAndAddressDto
+    const { chainId, tokenAddress } = tokenByChainIdAndAddressDto;
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/tokens/chainId/${chainId}/address/${tokenAddress}`,
       method: HttpMethod.Get
-    })
+    });
   }
 
   async getSmartAccountsByOwner(
     smartAccountByOwnerDto: SmartAccountByOwnerDto
   ): Promise<SmartAccountsResponse> {
-    const { chainId, owner, index } = smartAccountByOwnerDto
+    const { chainId, owner, index } = smartAccountByOwnerDto;
     return sendRequest({
       url: `${
         this.#txServiceBaseUrl
       }/smart-accounts/chainId/${chainId}/owner/${owner}/index/${index}`,
       method: HttpMethod.Get
-    })
+    });
   }
 
   async getAllTokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse> {
@@ -105,7 +105,7 @@ class NodeClient implements INodeClient {
       url: `${this.#txServiceBaseUrl}/smart-accounts/balances`,
       method: HttpMethod.Post,
       body: balancesDto
-    })
+    });
   }
 
   async getTotalBalanceInUsd(balancesDto: BalancesDto): Promise<UsdBalanceResponse> {
@@ -113,7 +113,7 @@ class NodeClient implements INodeClient {
       url: `${this.#txServiceBaseUrl}/smart-accounts/balance`,
       method: HttpMethod.Post,
       body: balancesDto
-    })
+    });
   }
 
   /**
@@ -129,22 +129,22 @@ class NodeClient implements INodeClient {
       body: {
         origin
       }
-    })
+    });
   }
 
   getTransactionByAddress(chainId: number, address: string): Promise<SCWTransactionResponse[]> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/transactions/chainId/${chainId}/address/${address}`,
       method: HttpMethod.Get
-    })
+    });
   }
 
   getTransactionByHash(txHash: string): Promise<SCWTransactionResponse> {
     return sendRequest({
       url: `${this.#txServiceBaseUrl}/transactions/txHash/${txHash}`,
       method: HttpMethod.Get
-    })
+    });
   }
 }
 
-export default NodeClient
+export default NodeClient;

@@ -1,2 +1,2 @@
-export * from './Types'
-export * from './ChainsTypes'
+export * from './Types';
+export * from './ChainsTypes';

@@ -1,5 +1,5 @@
-import NodeClient, { NodeClientConfig } from './NodeClient'
+import NodeClient, { NodeClientConfig } from './NodeClient';
 
-export * from './types/NodeClientTypes'
-export default NodeClient
-export { NodeClientConfig }
+export * from './types/NodeClientTypes';
+export default NodeClient;
+export { NodeClientConfig };
