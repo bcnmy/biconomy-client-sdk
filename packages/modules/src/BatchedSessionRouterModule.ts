@@ -103,8 +103,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
       throw new Error('Session parameters are not provided')
     }
 
-    const sessionDataArray = []
-    const proofs = []
+    const sessionDataTupleArray = []
 
     // signer must be the same for all the sessions
     const sessionSigner = sessionParams[0].sessionSigner
@@ -123,6 +122,8 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
         throw new Error('Session signer is not provided.')
       }
 
+      const sessionDataTuple = []
+
       let sessionSignerData
 
       if (sessionParam.sessionID) {
@@ -138,7 +139,10 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
         throw new Error('sessionID or sessionValidationModule should be provided.')
       }
 
-      sessionDataArray.push(sessionSignerData)
+      sessionDataTuple.push(sessionSignerData.validUntil)
+      sessionDataTuple.push(sessionSignerData.validAfter)
+      sessionDataTuple.push(sessionSignerData.sessionValidationModule)
+      sessionDataTuple.push(sessionSignerData.sessionKeyData)
 
       const leafDataHex = hexConcat([
         hexZeroPad(ethers.utils.hexlify(sessionSignerData.validUntil), 6),
@@ -150,21 +154,21 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
       const proof = this.sessionKeyManagerModule.merkleTree.getHexProof(
         ethers.utils.keccak256(leafDataHex) as unknown as Buffer
       )
-      proofs.push(proof)
+
+      sessionDataTuple.push(proof)
+      sessionDataTuple.push('0x')
+
+      sessionDataTupleArray.push(sessionDataTuple)
     }
 
     // Generate the padded signature with (validUntil,validAfter,sessionVerificationModuleAddress,validationData,merkleProof,signature)
+
+    Logger.log('whole tuple ', sessionDataTupleArray)
+    Logger.log('signature ', signature)
+
     const paddedSignature = defaultAbiCoder.encode(
-      ['address', 'uint48[]', 'uint48[]', 'address[]', 'bytes[]', 'bytes32[][]', 'bytes'],
-      [
-        this.getSessionKeyManagerAddress(),
-        sessionDataArray.map((data) => data.validUntil),
-        sessionDataArray.map((data) => data.validAfter),
-        sessionDataArray.map((data) => data.sessionValidationModule),
-        sessionDataArray.map((data) => data.sessionKeyData),
-        proofs,
-        signature
-      ]
+      ['address', 'tuple(uint48,uint48,address,bytes,bytes32[],bytes)[]', 'bytes'],
+      [this.getSessionKeyManagerAddress(), sessionDataTupleArray, signature]
     )
 
     return paddedSignature
