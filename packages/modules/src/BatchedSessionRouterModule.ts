@@ -156,7 +156,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
       )
 
       sessionDataTuple.push(proof)
-      sessionDataTuple.push('0x')
+      sessionDataTuple.push(sessionParam.additionalSessionData ?? '0x')
 
       sessionDataTupleArray.push(sessionDataTuple)
     }
