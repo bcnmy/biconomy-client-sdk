@@ -161,9 +161,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
       sessionDataTupleArray.push(sessionDataTuple)
     }
 
-    // Generate the padded signature with (validUntil,validAfter,sessionVerificationModuleAddress,validationData,merkleProof,signature)
-
-    Logger.log('signature ', signature)
+    // Generate the padded signature
 
     const paddedSignature = defaultAbiCoder.encode(
       ['address', 'tuple(uint48,uint48,address,bytes,bytes32[],bytes)[]', 'bytes'],
