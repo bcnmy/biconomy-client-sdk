@@ -45,7 +45,7 @@ const bundler: IBundler = new Bundler({
 
 ### Paymaster
 
-Acting as third-party intermediaries, Paymasters have the capability to sponsor gas fees for an account, provided specific predefined conditions are met.
+Acting as third-party intermediaries, Paymasters have the capability to sponsor gas fees for an account, provided specific predefined conditions are met. Additionally, they can accept gas payments in ERC20 tokens from users' smart accounts, with the Paymaster managing the conversion to native tokens for gas payment.
 
 ```javascript
 const paymaster: IPaymaster = new BiconomyPaymaster({
