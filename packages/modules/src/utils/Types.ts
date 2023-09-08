@@ -82,3 +82,17 @@ export type MultiChainUserOpDto = {
   chainId: ChainId
   userOp: Partial<UserOperation>
 }
+
+export interface BaseSessionKeyData {
+  sessionKey: string
+}
+
+export interface ERC20SessionKeyData extends BaseSessionKeyData {
+  token: string
+  recipient: string
+  maxAmount: string
+}
+
+export interface SessionValidationModuleConfig {
+  moduleAddress: string
+}
