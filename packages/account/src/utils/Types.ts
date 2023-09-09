@@ -76,6 +76,12 @@ export type BuildUserOpOptions = {
   overrides?: Overrides
   skipBundlerGasEstimation?: boolean
   params?: ModuleInfo
+  nonceOptions?: NonceOptions
+}
+
+export type NonceOptions = {
+  nonceKey?: number
+  nonceOverride?: number
 }
 
 export type Overrides = {
