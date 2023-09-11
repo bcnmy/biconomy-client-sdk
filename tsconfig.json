@@ -4,16 +4,12 @@
     "module": "commonjs",
     "declaration": true,
     "sourceMap": true,
-    "allowSyntheticDefaultImports": true,
-    "strictNullChecks": false,
     "strict": true,
     "esModuleInterop": true,
     "lib": ["es2020"],
     "types": ["node", "jest"]
   },
-  "include": [
-    "./src/**/*"
-  ],
+  "include": ["packages/**/*"],
   "references": [
     { "path": "./packages/common" },
     { "path": "./packages/core-types" },

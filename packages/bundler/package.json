@@ -22,7 +22,7 @@
     "start:ganache": "ganache -m 'direct buyer cliff train rice spirit census refuse glare expire innocent quote'",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
     "lint": "tslint -p tsconfig.json"
-  },  
+  },
   "author": "talhamalik883 <talha.malik@biconomy.io>",
   "repository": {
     "type": "git",
