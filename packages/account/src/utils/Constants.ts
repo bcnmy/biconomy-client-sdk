@@ -36,11 +36,13 @@ export const ENTRYPOINT_ADDRESSES_BY_VERSION: EntryPointAddressesByVersion = {
   V0_0_6: '0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789'
 }
 
+// TODO // Update with latest factory address
 export const BICONOMY_FACTORY_ADDRESSES_BY_VERSION: BiconomyFactoriesByVersion = {
   V1_0_0: '0x000000f9ee1842bb72f6bbdd75e6d3d4e3e9594c',
   V2_0_0: '0x00000016FD385cEE5116EF68C189733679770338'
 }
 
+// TODO // Update with latest implementation address which includes 2D nonce interface
 export const BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION: BiconomyImplementationsByVersion = {
   V1_0_0: '0x00006b7e42e01957da540dc6a8f7c30c4d816af5',
   V2_0_0: '0x000000988555091db5633a5Be66d563EfB48cB95'

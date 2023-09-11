@@ -119,10 +119,12 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return this
   }
 
-  async getNonce(): Promise<BigNumber> {
+  // Could call it nonce space
+  async getNonce(nonceKey?: number): Promise<BigNumber> {
+    const nonceSpace = nonceKey ?? 0
     if (await this.isAccountDeployed(await this.getAccountAddress())) {
       const accountContract = await this._getAccountContract()
-      return await accountContract.nonce()
+      return await accountContract.nonce(nonceSpace)
     }
     return BigNumber.from(0)
   }
@@ -326,7 +328,12 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
     let nonce = BigNumber.from(0)
     try {
-      nonce = await this.getNonce()
+      if (buildUseropDto?.nonceOptions?.nonceOverride) {
+        nonce = BigNumber.from(buildUseropDto?.nonceOptions?.nonceOverride)
+      } else {
+        const _nonceSpace = buildUseropDto?.nonceOptions?.nonceKey ?? 0
+        nonce = await this.getNonce(_nonceSpace)
+      }
     } catch (error) {
       // Not throwing this error as nonce would be 0 if this.getNonce() throw exception, which is expected flow for undeployed account
     }
