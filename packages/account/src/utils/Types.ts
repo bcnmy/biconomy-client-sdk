@@ -76,6 +76,7 @@ export type BuildUserOpOptions = {
   overrides?: Overrides
   skipBundlerGasEstimation?: boolean
   params?: ModuleInfo
+  forceEncodeForBatch?: boolean
 }
 
 export type Overrides = {
