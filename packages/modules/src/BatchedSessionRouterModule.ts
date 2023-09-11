@@ -28,6 +28,8 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
   moduleAddress!: string
   sessionManagerModuleAddress!: string
   sessionKeyManagerModule!: SessionKeyManagerModule
+  readonly mockEcdsaSessionKeySig: string =
+    '0x73c3ac716c487ca34bb858247b5ccf1dc354fbaabdd089af3b2ac8e78ba85a4959a2d76250325bd67c11771c31fccda87c33ceec17cc0de912690521bb95ffcb1b'
   /**
    * This constructor is private. Use the static create method to instantiate SessionKeyManagerModule
    * @param moduleConfig The configuration for the module
@@ -162,7 +164,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
     }
 
     // Generate the padded signature
-    
+
     const paddedSignature = defaultAbiCoder.encode(
       ['address', 'tuple(uint48,uint48,address,bytes,bytes32[],bytes)[]', 'bytes'],
       [this.getSessionKeyManagerAddress(), sessionDataTupleArray, signature]
@@ -215,12 +217,77 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
    * @returns Dummy signature
    */
   // Review
-  // Will have it's own // TODO
+  // instead of search params it could be actual leaves info retrieved beforehand
   async getDummySignature(params?: ModuleInfo): Promise<string> {
-    Logger.log('userful params', params)
-    const moduleAddress = ethers.utils.getAddress(this.getAddress())
-    const dynamicPart = moduleAddress.substring(2).padEnd(40, '0')
-    return `0x0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000${dynamicPart}000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000db3d753a1da5a6074a9f74f39a0a779d3300000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000016000000000000000000000000000000000000000000000000000000000000001800000000000000000000000000000000000000000000000000000000000000080000000000000000000000000bfe121a6dcf92c49f6c2ebd4f306ba0ba0ab6f1c000000000000000000000000da5289fcaaf71d52a80a254da614a192b693e97700000000000000000000000042138576848e839827585a3539305774d36b96020000000000000000000000000000000000000000000000000000000002faf08000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000041feefc797ef9e9d8a6a41266a85ddf5f85c8f2a3d2654b10b415d348b150dabe82d34002240162ed7f6b7ffbc40162b10e62c3e35175975e43659654697caebfe1c00000000000000000000000000000000000000000000000000000000000000`
+    const sessionParams = params?.batchSessionParams
+    if (!sessionParams || sessionParams.length === 0) {
+      throw new Error('Session parameters are not provided')
+    }
+
+    const sessionDataTupleArray = []
+
+    // if needed we could do mock signature over userOpHashAndModuleAddress
+
+    // signer must be the same for all the sessions
+    const sessionSigner = sessionParams[0].sessionSigner
+
+    for (const sessionParam of sessionParams) {
+      if (!sessionParam.sessionSigner) {
+        throw new Error('Session signer is not provided.')
+      }
+
+      const sessionDataTuple = []
+
+      let sessionSignerData
+
+      if (sessionParam.sessionID) {
+        sessionSignerData = await this.sessionKeyManagerModule.sessionStorageClient.getSessionData({
+          sessionID: sessionParam.sessionID
+        })
+      } else if (sessionParam.sessionValidationModule) {
+        sessionSignerData = await this.sessionKeyManagerModule.sessionStorageClient.getSessionData({
+          sessionValidationModule: sessionParam.sessionValidationModule,
+          sessionPublicKey: await sessionSigner.getAddress()
+        })
+      } else {
+        throw new Error('sessionID or sessionValidationModule should be provided.')
+      }
+
+      sessionDataTuple.push(sessionSignerData.validUntil)
+      sessionDataTuple.push(sessionSignerData.validAfter)
+      sessionDataTuple.push(sessionSignerData.sessionValidationModule)
+      sessionDataTuple.push(sessionSignerData.sessionKeyData)
+
+      const leafDataHex = hexConcat([
+        hexZeroPad(ethers.utils.hexlify(sessionSignerData.validUntil), 6),
+        hexZeroPad(ethers.utils.hexlify(sessionSignerData.validAfter), 6),
+        hexZeroPad(sessionSignerData.sessionValidationModule, 20),
+        sessionSignerData.sessionKeyData
+      ])
+
+      const proof = this.sessionKeyManagerModule.merkleTree.getHexProof(
+        ethers.utils.keccak256(leafDataHex) as unknown as Buffer
+      )
+
+      sessionDataTuple.push(proof)
+      sessionDataTuple.push(sessionParam.additionalSessionData ?? '0x')
+
+      sessionDataTupleArray.push(sessionDataTuple)
+    }
+
+    // Generate the padded signature
+
+    const paddedSignature = defaultAbiCoder.encode(
+      ['address', 'tuple(uint48,uint48,address,bytes,bytes32[],bytes)[]', 'bytes'],
+      [this.getSessionKeyManagerAddress(), sessionDataTupleArray, this.mockEcdsaSessionKeySig]
+    )
+
+    const dummySig = ethers.utils.defaultAbiCoder.encode(
+      ['bytes', 'address'],
+      [paddedSignature, this.getAddress()]
+    )
+
+    return dummySig
   }
 
   /**
