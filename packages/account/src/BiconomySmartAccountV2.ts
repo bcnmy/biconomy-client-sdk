@@ -314,12 +314,18 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     const data = transactions.map((element: Transaction) => element.data ?? '0x')
     const value = transactions.map((element: Transaction) => element.value ?? BigNumber.from('0'))
 
-    let callData = ''
-    if (transactions.length === 1) {
-      callData = await this.encodeExecute(to[0], value[0], data[0])
-    } else {
-      callData = await this.encodeExecuteBatch(to, value, data)
+    if (transactions.length === 0) {
+      throw new Error('Transactions array cannot be empty')
     }
+
+    let callData = ''
+    if (transactions.length > 1 || buildUseropDto?.forceEncodeForBatch) {
+      callData = await this.encodeExecuteBatch(to, value, data)
+    } else {
+      // transactions.length must be 1
+      callData = await this.encodeExecute(to[0], value[0], data[0])
+    }
+
     let nonce = BigNumber.from(0)
     try {
       if (buildUseropDto?.nonceOptions?.nonceOverride) {

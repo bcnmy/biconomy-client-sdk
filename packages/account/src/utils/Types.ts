@@ -77,6 +77,7 @@ export type BuildUserOpOptions = {
   skipBundlerGasEstimation?: boolean
   params?: ModuleInfo
   nonceOptions?: NonceOptions
+  forceEncodeForBatch?: boolean
 }
 
 export type NonceOptions = {
