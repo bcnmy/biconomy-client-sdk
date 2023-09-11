@@ -1,42 +1,43 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-ignore
-import transakSDK from '@transak/transak-sdk'
-import { ITransakDto, environments } from 'interface'
+import transakSDK from "@transak/transak-sdk";
+import { ITransakDto, environments } from "interface";
 
 class TransakSDK {
-  apiKey: string
+  apiKey: string;
+
   /* eslint-disable  @typescript-eslint/no-explicit-any */
-  transak: any
+  transak: any;
 
   constructor(environment: environments, transakData: ITransakDto = {}) {
-    if (environment === 'PRODUCTION') {
-      this.apiKey = 'f7d64c91-8f89-4018-9577-9098e42290af'
+    if (environment === "PRODUCTION") {
+      this.apiKey = "f7d64c91-8f89-4018-9577-9098e42290af";
     } else {
-      this.apiKey = 'c71ecd4a-0819-46a7-8d63-c8b7148aaf63'
+      this.apiKey = "c71ecd4a-0819-46a7-8d63-c8b7148aaf63";
     }
     const transak = new transakSDK({
       apiKey: this.apiKey,
-      widgetHeight: '625px',
-      widgetWidth: '500px',
+      widgetHeight: "625px",
+      widgetWidth: "500px",
       environment: environment,
-      ...transakData
-    })
-    this.transak = transak
+      ...transakData,
+    });
+    this.transak = transak;
   }
 
   init() {
     try {
-      this.transak.init()
+      this.transak.init();
       /* eslint-disable  @typescript-eslint/no-explicit-any */
     } catch (err: any) {
-      console.error(err)
-      throw new Error('Error while init transakSDK')
+      console.error(err);
+      throw new Error("Error while init transakSDK");
     }
   }
 
   getTransak() {
-    return this.transak
+    return this.transak;
   }
 }
 
-export default TransakSDK
+export default TransakSDK;

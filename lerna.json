@@ -1,18 +1,11 @@
 {
   "packages": ["packages/*"],
   "npmClient": "yarn",
-  "useWorkspaces": true,
   "version": "independent",
   "command": {
     "publish": {
       "conventionalCommits": true
     }
   },
-  "ignoreChanges": [
-    "**/CHANGELOG.md",
-    "**/node_modules/**",
-    "**/package.json",
-    "**/*.md",
-    "**/perf/**"
-  ]
+  "ignoreChanges": ["**/CHANGELOG.md", "**/node_modules/**", "**/*.md", "**/perf/**"]
 }

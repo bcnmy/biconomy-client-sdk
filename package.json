@@ -1,22 +1,43 @@
 {
   "name": "biconomy-sdk",
+  "version": "1.0.0",
+  "description": "SDK for Biconomy integration with support for account abstraction, smart accounts, ERC-4337, ERC-6900, and cross-chain functionalities.",
+  "keywords": [
+    "biconomy",
+    "sdk",
+    "blockchain",
+    "integration",
+    "account abstraction",
+    "smart accounts",
+    "erc-4337",
+    "erc-6900",
+    "crosschain",
+    "cross-chain",
+    "metatransactions"
+  ],
+  "license": "MIT",
+  "homepage": "https://biconomy.io/docs",
+  "bugs": {
+    "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/bcnmy/biconomy-client-sdk"
   },
+  "author": "Biconomy (https://biconomy.io)",
   "private": true,
   "scripts": {
-    "clean": "lerna clean",
-    "unbuild": "lerna run unbuild",
-    "build": "lerna run build --stream --npm-client=yarn",
-    "test": "lerna run test --stream --npm-client=yarn",
-    "test:ci": "FORCE_COLOR=1 lerna run test:ci --stream --npm-client=yarn",
+    "build": "lerna run build",
+    "clean": "lerna clean && lerna run unbuild",
     "format": "lerna run format --npm-client=yarn",
-    "prettier": "lerna run prettier --npm-client=npm",
-    "diff": "lerna diff",
-    "new-version": "lerna version patch --no-git-tag-version --no-push --conventional-commits --yes",
+    "prettier": "lerna run prettier --npm-client=yarn",
     "lint": "eslint -c .eslintrc.js 'packages/*/src/**/*.{ts,tsx}'",
-    "lint:fix": "eslint -c .eslintrc.js 'packages/*/src/**/*.{ts,tsx}' --fix"
+    "lint:fix": "eslint -c .eslintrc.js 'packages/*/src/**/*.{ts,tsx}' --fix",
+    "test": "yarn jest --runInBand",
+    "test:ci": "FORCE_COLOR=1 lerna run test:ci --stream --npm-client=yarn",
+    "test:coverage": "yarn jest --coverage",
+    "diff": "lerna diff",
+    "release": "lerna version patch --no-git-tag-version --no-push --conventional-commits --yes"
   },
   "changelog": {
     "labels": {
@@ -29,24 +50,29 @@
       "packages/*"
     ]
   },
-  "author": "Biconomy (https://biconomy.io)",
-  "devDependencies": {
-    "@types/jest": "^28.1.7",
-    "@types/mocha": "^9.1.1",
-    "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-prettier": "^4.2.1",
-    "hardhat": "^2.9.9",
-    "lerna": "^5.5.4",
-    "lerna-changelog": "^2.2.0",
-    "nx": "^15.8.3",
-    "prettier": "2.7.1",
-    "rimraf": "^3.0.2",
-    "ts-node": "^10.9.1"
-  },
   "dependencies": {
-    "chai": "^4.3.6",
-    "chai-as-promised": "^7.1.1",
-    "node-gyp": "^9.1.0",
-    "typescript": "^4.7.4"
+    "node-gyp": "^9.4.0",
+    "typescript": "^5.2.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.4",
+    "@typescript-eslint/eslint-plugin": "^6.6.0",
+    "@typescript-eslint/parser": "^6.6.0",
+    "eslint": "^8.48.0",
+    "eslint-config-airbnb-base": "15.0.0",
+    "eslint-config-airbnb-typescript": "17.1.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-import": "^2.28.1",
+    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-security": "^1.7.1",
+    "hardhat": "^2.17.2",
+    "jest": "^29.6.4",
+    "lerna": "^7.2.0",
+    "lerna-changelog": "^2.2.0",
+    "nx": "^16.8.1",
+    "prettier": "^3.0.3",
+    "rimraf": "^5.0.1",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1"
   }
 }
