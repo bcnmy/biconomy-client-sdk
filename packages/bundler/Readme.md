@@ -28,15 +28,15 @@ yarn add @biconomy/bundler
 
 ```typescript
 // This is how you create bundler instance in your dapp's
-import { IBundler, Bundler } from '@biconomy/bundler';
+import { IBundler, Bundler } from "@biconomy/bundler";
 
 // Make use of core-types package
-import { ChainId } from '@biconomy/core-types';
+import { ChainId } from "@biconomy/core-types";
 
 const bundler: IBundler = new Bundler({
-  bundlerUrl: '',
+  bundlerUrl: "",
   chainId: ChainId.POLYGON_MAINNET,
-  entryPointAddress: ''
+  entryPointAddress: "",
 });
 ```
 

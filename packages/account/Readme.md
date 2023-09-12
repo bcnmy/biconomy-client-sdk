@@ -36,13 +36,13 @@ The Biconomy account package achieves this by providing a comprehensive set of m
 ```typescript
 // This is how you create BiconomySmartAccount instance in your dapp's
 
-import { BiconomySmartAccount, BiconomySmartAccountConfig } from '@biconomy/account';
+import { BiconomySmartAccount, BiconomySmartAccountConfig } from "@biconomy/account";
 
 // Note that paymaster and bundler are optional. You can choose to create new instances of this later and make account API use
 const biconomySmartAccountConfig: BiconomySmartAccountConfig = {
   signer: wallet.getSigner(),
   chainId: ChainId.POLYGON_MAINNET,
-  rpcUrl: ''
+  rpcUrl: "",
   // paymaster: paymaster, // check the README.md section of Paymaster package
   // bundler: bundler, // check the README.md section of Bundler package
 };
@@ -53,9 +53,9 @@ const biconomySmartAccount = await biconomyAccount.init();
 // native token transfer
 // you can create any sort of transaction following same structure
 const transaction = {
-  to: '0x85B51B068bF0fefFEFD817882a14f6F5BDF7fF2E',
-  data: '0x',
-  value: ethers.utils.parseEther('0.1')
+  to: "0x85B51B068bF0fefFEFD817882a14f6F5BDF7fF2E",
+  data: "0x",
+  value: ethers.utils.parseEther("0.1"),
 };
 
 // building partialUserOp
@@ -67,7 +67,7 @@ const partialUserOp = await biconomySmartAccount.buildUserOp([transaction]);
 ```typescript
 const userOpResponse = await smartAccount.sendUserOp(partialUserOp);
 const transactionDetails = await userOpResponse.wait();
-console.log('transaction details below');
+console.log("transaction details below");
 console.log(transactionDetails);
 ```
 
@@ -75,6 +75,6 @@ Finally we send the userOp and save the value to a variable named userOpResponse
 
 ```typescript
 const transactionDetails = await userOpResponse.wait();
-console.log('transaction details below');
+console.log("transaction details below");
 console.log(transactionDetails);
 ```

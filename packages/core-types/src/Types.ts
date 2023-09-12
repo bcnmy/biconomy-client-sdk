@@ -1,6 +1,6 @@
-import { BigNumberish, BytesLike } from 'ethers';
+import { BigNumberish, BytesLike } from "ethers";
 
-export type SmartAccountVersion = '1.0.1' | '1.0.0' | '1.0.2';
+export type SmartAccountVersion = "1.0.1" | "1.0.0" | "1.0.2";
 
 export type Transaction = {
   to: string;
@@ -23,5 +23,5 @@ export type UserOperation = {
 };
 
 export enum SmartAccountType {
-  BICONOMY
+  BICONOMY,
 }

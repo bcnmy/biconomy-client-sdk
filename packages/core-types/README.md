@@ -9,5 +9,5 @@ Common types in the [Biconomy SDK](https://github.com/bcnmy/biconomy-client-sdk)
 for example
 
 ```typescript
-import { SmartAccountState, SmartAccountVersion, GasLimit, ChainId } from '@biconomy/core-types';
+import { SmartAccountState, SmartAccountVersion, GasLimit, ChainId } from "@biconomy/core-types";
 ```

@@ -19,13 +19,13 @@ const particle = new ParticleNetwork({
     //optional: by default, the wallet entry is displayed in the bottom right corner of the webpage.
     displayWalletEntry: true, //show wallet entry when connect particle.
     defaultWalletEntryPosition: WalletEntryPosition.BR, //wallet entry position
-    uiMode: 'dark', //optional: light or dark, if not set, the default is the same as web auth.
+    uiMode: "dark", //optional: light or dark, if not set, the default is the same as web auth.
     supportChains: [
-      { id: 1, name: 'Ethereum' },
-      { id: 5, name: 'Ethereum' }
+      { id: 1, name: "Ethereum" },
+      { id: 5, name: "Ethereum" },
     ], // optional: web wallet support chains.
-    customStyle: {} //optional: custom wallet style
-  }
+    customStyle: {}, //optional: custom wallet style
+  },
 });
 
 const particleProvider = new ParticleProvider(particle.auth);

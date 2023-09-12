@@ -1,4 +1,4 @@
-export type environments = 'PRODUCTION' | 'STAGING';
+export type environments = "PRODUCTION" | "STAGING";
 
 export interface IConfigBasic {
   // apiKey: string

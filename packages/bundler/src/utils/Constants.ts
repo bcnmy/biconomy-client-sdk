@@ -1,4 +1,4 @@
-import { ChainId } from '@biconomy/core-types';
+import { ChainId } from "@biconomy/core-types";
 
 export const UserOpReceiptIntervals: { [key in ChainId]?: number } = {
   [ChainId.MAINNET]: 10000,
@@ -19,5 +19,5 @@ export const UserOpReceiptIntervals: { [key in ChainId]?: number } = {
   [ChainId.MOONBEAM_MAINNET]: 5000,
   [ChainId.BASE_GOERLI_TESTNET]: 5000,
   [ChainId.BASE_MAINNET]: 5000,
-  [ChainId.LINEA_TESTNET]: 5000
+  [ChainId.LINEA_TESTNET]: 5000,
 };

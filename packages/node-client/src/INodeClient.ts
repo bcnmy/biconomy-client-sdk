@@ -12,8 +12,8 @@ import {
   BalancesDto,
   UsdBalanceResponse,
   SCWTransactionResponse,
-  WhiteListSignatureResponse
-} from './types/NodeClientTypes';
+  WhiteListSignatureResponse,
+} from "./types/NodeClientTypes";
 
 interface INodeClient {
   // 1. Chain Apis
@@ -53,9 +53,7 @@ interface INodeClient {
    * Get TokenInfo by address and chainId
    * @param tokenByChainIdAndAddressDto
    */
-  getTokenByChainIdAndAddress(
-    tokenByChainIdAndAddressDto: TokenByChainIdAndAddressDto
-  ): Promise<IndividualTokenResponse>;
+  getTokenByChainIdAndAddress(tokenByChainIdAndAddressDto: TokenByChainIdAndAddressDto): Promise<IndividualTokenResponse>;
 
   // 3. Smart Account Endpoints
 
@@ -63,9 +61,7 @@ interface INodeClient {
    * Get information of all smart accounts deployed for particular eoa owner for any version and index
    * @param smartAccountByOwnerDto
    */
-  getSmartAccountsByOwner(
-    smartAccountByOwnerDto: SmartAccountByOwnerDto
-  ): Promise<SmartAccountsResponse>;
+  getSmartAccountsByOwner(smartAccountByOwnerDto: SmartAccountByOwnerDto): Promise<SmartAccountsResponse>;
 
   // 4. Balances Endpoints
 

@@ -1,4 +1,4 @@
-import SocialLogin, { socialLoginSDK, getSocialLoginSDK } from './SocialLogin';
+import SocialLogin, { socialLoginSDK, getSocialLoginSDK } from "./SocialLogin";
 
 export default SocialLogin;
 export { socialLoginSDK, getSocialLoginSDK };

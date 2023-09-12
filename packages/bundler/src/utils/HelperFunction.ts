@@ -1,19 +1,19 @@
-import { UserOperation } from '@biconomy/core-types';
-import { BigNumber } from 'ethers';
+import { UserOperation } from "@biconomy/core-types";
+import { BigNumber } from "ethers";
 
 export const transformUserOP = (userOp: UserOperation): UserOperation => {
   try {
     const userOperation = { ...userOp };
     const keys: (keyof UserOperation)[] = [
-      'nonce',
-      'callGasLimit',
-      'verificationGasLimit',
-      'preVerificationGas',
-      'maxFeePerGas',
-      'maxPriorityFeePerGas'
+      "nonce",
+      "callGasLimit",
+      "verificationGasLimit",
+      "preVerificationGas",
+      "maxFeePerGas",
+      "maxPriorityFeePerGas",
     ];
     for (const key of keys) {
-      if (userOperation[key] && userOperation[key] !== '0') {
+      if (userOperation[key] && userOperation[key] !== "0") {
         userOperation[key] = BigNumber.from(userOp[key]).toHexString();
       }
     }

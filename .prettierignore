@@ -1,0 +1,14 @@
+# Ignore node_modules in the root and in all packages
+**/node_modules/
+
+# Ignore build or dist directories
+**/dist/
+**/build/
+**/coverage/
+
+# Ignore any auto-generated files
+**/typechain/
+
+# Ignore any config files
+*.config.js
+*.config.ts

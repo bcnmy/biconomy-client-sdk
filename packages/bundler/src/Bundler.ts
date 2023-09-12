@@ -1,5 +1,5 @@
-import { IBundler } from './interfaces/IBundler';
-import { UserOperation, ChainId } from '@biconomy/core-types';
+import { IBundler } from "./interfaces/IBundler";
+import { UserOperation, ChainId } from "@biconomy/core-types";
 import {
   GetUserOperationResponse,
   GetUserOpByHashResponse,
@@ -9,20 +9,13 @@ import {
   UserOpReceipt,
   SendUserOpResponse,
   UserOpGasResponse,
-  UserOpByHashResponse
-} from './utils/Types';
-import { resolveProperties } from 'ethers/lib/utils';
-import {
-  deepHexlify,
-  sendRequest,
-  getTimestampInSeconds,
-  HttpMethod,
-  Logger,
-  RPC_PROVIDER_URLS
-} from '@biconomy/common';
-import { transformUserOP } from './utils/HelperFunction';
-import { UserOpReceiptIntervals } from './utils/Constants';
-import { JsonRpcProvider } from '@ethersproject/providers';
+  UserOpByHashResponse,
+} from "./utils/Types";
+import { resolveProperties } from "ethers/lib/utils";
+import { deepHexlify, sendRequest, getTimestampInSeconds, HttpMethod, Logger, RPC_PROVIDER_URLS } from "@biconomy/common";
+import { transformUserOP } from "./utils/HelperFunction";
+import { UserOpReceiptIntervals } from "./utils/Constants";
+import { JsonRpcProvider } from "@ethersproject/providers";
 
 /**
  * This class implements IBundler interface.
@@ -31,10 +24,11 @@ import { JsonRpcProvider } from '@ethersproject/providers';
  */
 export class Bundler implements IBundler {
   UserOpReceiptIntervals: { [key in ChainId]?: number };
+
   constructor(readonly bundlerConfig: Bundlerconfig) {
     this.UserOpReceiptIntervals = {
       ...UserOpReceiptIntervals,
-      ...bundlerConfig.userOpReceiptIntervals
+      ...bundlerConfig.userOpReceiptIntervals,
     };
   }
 
@@ -52,7 +46,7 @@ export class Bundler implements IBundler {
     // expected dummySig and possibly dummmy paymasterAndData should be provided by the caller
     // bundler doesn't know account and paymaster implementation
     userOp = transformUserOP(userOp);
-    Logger.log('userOp sending for fee estimate ', userOp);
+    Logger.log("userOp sending for fee estimate ", userOp);
 
     const bundlerUrl = this.getBundlerUrl();
 
@@ -60,22 +54,23 @@ export class Bundler implements IBundler {
       url: bundlerUrl,
       method: HttpMethod.Post,
       body: {
-        method: 'eth_estimateUserOperationGas',
+        method: "eth_estimateUserOperationGas",
         params: [userOp, this.bundlerConfig.entryPointAddress],
         id: getTimestampInSeconds(),
-        jsonrpc: '2.0'
-      }
+        jsonrpc: "2.0",
+      },
     });
 
     const userOpGasResponse = response.result;
     for (const key in userOpGasResponse) {
-      if (key === 'maxFeePerGas' || key === 'maxPriorityFeePerGas') continue;
+      if (key === "maxFeePerGas" || key === "maxPriorityFeePerGas") continue;
       if (!userOpGasResponse[key as keyof UserOpGasResponse]) {
         throw new Error(`Got undefined ${key} from bundler`);
       }
     }
     return userOpGasResponse;
   }
+
   /**
    *
    * @param userOp
@@ -93,11 +88,11 @@ export class Bundler implements IBundler {
       url: bundlerUrl,
       method: HttpMethod.Post,
       body: {
-        method: 'eth_sendUserOperation',
+        method: "eth_sendUserOperation",
         params: params,
         id: getTimestampInSeconds(),
-        jsonrpc: '2.0'
-      }
+        jsonrpc: "2.0",
+      },
     });
     const response: UserOpResponse = {
       userOpHash: sendUserOperationResponse.result,
@@ -125,7 +120,7 @@ export class Bundler implements IBundler {
             }
           }, this.UserOpReceiptIntervals[chainId]);
         });
-      }
+      },
     };
     return response;
   }
@@ -142,15 +137,16 @@ export class Bundler implements IBundler {
       url: bundlerUrl,
       method: HttpMethod.Post,
       body: {
-        method: 'eth_getUserOperationReceipt',
+        method: "eth_getUserOperationReceipt",
         params: [userOpHash],
         id: getTimestampInSeconds(),
-        jsonrpc: '2.0'
-      }
+        jsonrpc: "2.0",
+      },
     });
     const userOpReceipt: UserOpReceipt = response.result;
     return userOpReceipt;
   }
+
   /**
    *
    * @param userOpHash
@@ -164,11 +160,11 @@ export class Bundler implements IBundler {
       url: bundlerUrl,
       method: HttpMethod.Post,
       body: {
-        method: 'eth_getUserOperationByHash',
+        method: "eth_getUserOperationByHash",
         params: [userOpHash],
         id: getTimestampInSeconds(),
-        jsonrpc: '2.0'
-      }
+        jsonrpc: "2.0",
+      },
     });
     const userOpByHashResponse: UserOpByHashResponse = response.result;
     return userOpByHashResponse;

@@ -22,12 +22,12 @@ yarn add @biconomy/paymaster
 
 ```typescript
 // This is how you create paymaster instance in your dapp's
-import { IPaymaster, BiconomyPaymaster } from '@biconomy/paymaster';
+import { IPaymaster, BiconomyPaymaster } from "@biconomy/paymaster";
 
 // Currently this package only exports Biconomy Paymaster which acts as a Hybrid paymaster for gas abstraction. You can sponsor user transactions but can also make users pay gas in supported ERC20 tokens.
 
 const paymaster = new BiconomyPaymaster({
-  paymasterUrl: '' // you can get this value from biconomy dashboard. https://dashboard.biconomy.io
+  paymasterUrl: "", // you can get this value from biconomy dashboard. https://dashboard.biconomy.io
 });
 ```
 
@@ -37,18 +37,9 @@ Following are the methods that can be called on paymaster instance
 
 ```typescript
 export interface IHybridPaymaster<T> extends IPaymaster {
-  getPaymasterAndData(
-    userOp: Partial<UserOperation>,
-    paymasterServiceData?: T
-  ): Promise<PaymasterAndDataResponse>;
-  buildTokenApprovalTransaction(
-    tokenPaymasterRequest: BiconomyTokenPaymasterRequest,
-    provider: Provider
-  ): Promise<Transaction>;
-  getPaymasterFeeQuotesOrData(
-    userOp: Partial<UserOperation>,
-    paymasterServiceData: FeeQuotesOrDataDto
-  ): Promise<FeeQuotesOrDataResponse>;
+  getPaymasterAndData(userOp: Partial<UserOperation>, paymasterServiceData?: T): Promise<PaymasterAndDataResponse>;
+  buildTokenApprovalTransaction(tokenPaymasterRequest: BiconomyTokenPaymasterRequest, provider: Provider): Promise<Transaction>;
+  getPaymasterFeeQuotesOrData(userOp: Partial<UserOperation>, paymasterServiceData: FeeQuotesOrDataDto): Promise<FeeQuotesOrDataResponse>;
 }
 ```
 

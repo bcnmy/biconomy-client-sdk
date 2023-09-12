@@ -1,7 +1,7 @@
-import { UserOperation } from '@biconomy/core-types';
-import { NotPromise, packUserOp } from '@biconomy/common'; // '@account-abstraction/utils'
-import { arrayify, hexlify } from 'ethers/lib/utils';
-import { BigNumber } from 'ethers';
+import { UserOperation } from "@biconomy/core-types";
+import { NotPromise, packUserOp } from "@biconomy/common"; // '@account-abstraction/utils'
+import { arrayify, hexlify } from "ethers/lib/utils";
+import { BigNumber } from "ethers";
 export interface GasOverheads {
   /**
    * fixed overhead for entire handleOp bundle.
@@ -71,13 +71,13 @@ export const DefaultGasOverheads: GasOverheads = {
   zeroByte: 4,
   nonZeroByte: 16,
   bundleSize: 1,
-  sigSize: 65
+  sigSize: 65,
 };
 
 export const DefaultGasLimits: VerificationGasLimits = {
   validateUserOpGas: 100000,
   validatePaymasterUserOpGas: 100000,
-  postOpGas: 10877
+  postOpGas: 10877,
 };
 
 /**
@@ -87,18 +87,15 @@ export const DefaultGasLimits: VerificationGasLimits = {
  * @param userOp filled userOp to calculate. The only possible missing fields can be the signature and preVerificationGas itself
  * @param overheads gas overheads to use, to override the default values
  */
-export function calcPreVerificationGas(
-  userOp: Partial<NotPromise<UserOperation>>,
-  overheads?: Partial<GasOverheads>
-): BigNumber {
+export function calcPreVerificationGas(userOp: Partial<NotPromise<UserOperation>>, overheads?: Partial<GasOverheads>): BigNumber {
   const ov = { ...DefaultGasOverheads, ...(overheads ?? {}) };
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   const p: NotPromise<UserOperation> = {
     // dummy values, in case the UserOp is incomplete.
-    paymasterAndData: '0x',
+    paymasterAndData: "0x",
     preVerificationGas: BigNumber.from(21000), // dummy value, just for calldata cost
     signature: hexlify(Buffer.alloc(ov.sigSize, 1)), // dummy signature
-    ...userOp
+    ...userOp,
   } as any;
 
   const packed = arrayify(packUserOp(p, false));
@@ -111,11 +108,7 @@ export function calcPreVerificationGas(
    * plus any gas overhead that can't be tracked on-chain
    * (if bundler needs to charge the premium one way is to increase this value for ops to sign)
    */
-  const callDataCost = packed
-    .map((x) => (x === 0 ? ov.zeroByte : ov.nonZeroByte))
-    .reduce((sum, x) => sum + x);
-  const ret = Math.round(
-    callDataCost + ov.fixed / ov.bundleSize + ov.perUserOp + ov.perUserOpWord * lengthInWord
-  );
+  const callDataCost = packed.map((x) => (x === 0 ? ov.zeroByte : ov.nonZeroByte)).reduce((sum, x) => sum + x);
+  const ret = Math.round(callDataCost + ov.fixed / ov.bundleSize + ov.perUserOp + ov.perUserOpWord * lengthInWord);
   return BigNumber.from(ret);
 }

@@ -1,4 +1,4 @@
-import { BigNumberish } from 'ethers';
+import { BigNumberish } from "ethers";
 
 export type PaymasterServiceErrorResponse = {
   jsonrpc: string;
@@ -113,6 +113,6 @@ export type PaymasterAndDataResponse = {
 };
 
 export enum PaymasterMode {
-  ERC20 = 'ERC20',
-  SPONSORED = 'SPONSORED'
+  ERC20 = "ERC20",
+  SPONSORED = "SPONSORED",
 }

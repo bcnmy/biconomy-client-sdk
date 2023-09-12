@@ -1,9 +1,9 @@
-import fetch from 'node-fetch';
+import fetch from "node-fetch";
 
 export enum HttpMethod {
-  Get = 'get',
-  Post = 'post',
-  Delete = 'delete'
+  Get = "get",
+  Post = "post",
+  Delete = "delete",
 }
 
 /* eslint-disable  @typescript-eslint/no-explicit-any */
@@ -17,10 +17,10 @@ export async function sendRequest<T>({ url, method, body }: HttpRequest): Promis
   const response = await fetch(url, {
     method,
     headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json'
+      Accept: "application/json",
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
   });
 
   let jsonResponse;

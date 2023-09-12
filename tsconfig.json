@@ -4,22 +4,21 @@
     "module": "commonjs",
     "declaration": true,
     "sourceMap": true,
-    "allowSyntheticDefaultImports": true,
-    "strictNullChecks": false,
+    "strict": true,
     "esModuleInterop": true,
-    "lib": ["dom.iterable", "dom", "es2020"],
-    "types": ["node", "mocha", "puppeteer"]
+    "lib": ["es2020"],
+    "types": ["node", "jest"]
   },
-  "include": ["./src/**/*", "./tests/**/*"],
+  "include": ["packages/**/*"],
   "references": [
-    { "path": "common" },
-    { "path": "core-types" },
-    { "path": "node-client" },
-    { "path": "web3-auth" },
-    { "path": "web3-auth-native" },
-    { "path": "transak" },
-    { "path": "bundler" },
-    { "path": "paymaster" },
-    { "path": "account" }
+    { "path": "./packages/common" },
+    { "path": "./packages/core-types" },
+    { "path": "./packages/node-client" },
+    { "path": "./packages/web3-auth" },
+    { "path": "./packages/web3-auth-native" },
+    { "path": "./packages/transak" },
+    { "path": "./packages/bundler" },
+    { "path": "./packages/paymaster" },
+    { "path": "./packages/account" }
   ]
 }
