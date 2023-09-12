@@ -23,7 +23,8 @@
       { "path": "transak" },
       {"path": "bundler"},
       {"path": "paymaster"},
-      {"path": "account"}
+      {"path": "account"},
+      {"path": "core"}
     ]
   }
   
