@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/account",
-  "version": "3.0.0",
+  "version": "3.1.1-alpha.0",
   "description": "This package provides apis for ERC-4337 based smart account implementations",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -16,10 +16,11 @@
   "scripts": {
     "unbuild": "rimraf dist *.tsbuildinfo",
     "build": "rimraf dist && tsc",
-    "test:file": "jest --config=../../jest.config.js --runInBand",
-    "test:concurrently": "concurrently -k --success first 'yarn start:ganache > /dev/null'",
+    "test:file": "TS_NODE_PROJECT=../../tsconfig.json mocha -r ts-node/register --timeout 30000",
+    "test:concurrently": "concurrently -k --success first 'yarn start:ganache' 'yarn test:hardhat'",
     "test:cov": "jest --coverage",
-    "test:run": "jest tests/**/*.spec.ts --runInBand",
+    "test:hardhat": "hardhat test tests/*.spec.ts",
+    "test": "yarn test:concurrently",
     "start:ganache": "ganache -m 'direct buyer cliff train rice spirit census refuse glare expire innocent quote'",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
     "lint": "tslint -p tsconfig.json"
@@ -34,13 +35,30 @@
     "access": "public"
   },
   "dependencies": {
-    "@biconomy-devx/account-contracts-v2": "npm:@biconomy-devx/account-contracts-v2@^1.0.0"
+    "@account-abstraction/contracts": "^0.6.0",
+    "@account-abstraction/utils": "^0.4.0",
+    "@biconomy-devx/account-contracts-v2": "npm:@biconomy-devx/account-contracts-v2@^1.0.0",
+    "hardhat": "^2.17.3"
+  },
+  "peerDependencies": {
+    "ethers": "^5.7.0"
   },
   "devDependencies": {
     "@biconomy/bundler": "^3.1.1-alpha.0",
     "@biconomy/common": "^3.1.1-alpha.0",
     "@biconomy/core-types": "^3.1.1-alpha.0",
+    "@biconomy/modules": "^3.1.1-alpha.0",
     "@biconomy/node-client": "^3.1.1-alpha.0",
-    "@biconomy/paymaster": "^3.1.1-alpha.0"
+    "@biconomy/paymaster": "^3.1.1-alpha.0",
+    "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.9",
+    "@nomicfoundation/hardhat-toolbox": "^1.0.2",
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@nomiclabs/hardhat-etherscan": "^3.1.7",
+    "chai": "^4.3.6",
+    "hardhat": "^2.17.3",
+    "hardhat-jest-plugin": "^0.0.6",
+    "hardhat-typechain": "^0.3.5",
+    "solidity-coverage": "^0.7.22"
   }
 }
