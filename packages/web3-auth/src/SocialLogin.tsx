@@ -18,6 +18,10 @@ function createLoginModal(socialLogin: SocialLogin) {
   root.render(<UI socialLogin={socialLogin} />);
 }
 
+const defaultSocialLoginConfig: DefaultSocialLoginConfig = {
+  backendUrl: "https://sdk-backend.prod.biconomy.io/v1",
+};
+
 class SocialLogin {
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   walletDiv: any;
@@ -312,9 +316,8 @@ class SocialLogin {
   }
 }
 
-const defaultSocialLoginConfig: DefaultSocialLoginConfig = {
-  backendUrl: "https://sdk-backend.prod.biconomy.io/v1",
-};
+const socialLoginSDK: SocialLogin = new SocialLogin();
+(window as any).socialLoginSDK = socialLoginSDK;
 
 export default SocialLogin;
 
@@ -327,8 +330,5 @@ const getSocialLoginSDK = async (socialLoginDTO?: Partial<SocialLoginDTO>) => {
   initializedSocialLogin = socialLoginSDK;
   return socialLoginSDK;
 };
-/* eslint-disable  @typescript-eslint/no-explicit-any */
-const socialLoginSDK: SocialLogin = new SocialLogin();
-(window as any).socialLoginSDK = socialLoginSDK;
 
 export { socialLoginSDK, getSocialLoginSDK };

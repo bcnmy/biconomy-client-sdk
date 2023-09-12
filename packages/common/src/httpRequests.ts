@@ -38,7 +38,7 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
   Logger.log("jsonRpc response ", jsonResponse);
 
   if (response.ok) {
-    if (jsonResponse && jsonResponse.hasOwnProperty("result")) {
+    if (jsonResponse && Object.prototype.hasOwnProperty.call(jsonResponse, "result")) {
       return jsonResponse as T;
     }
     // else
