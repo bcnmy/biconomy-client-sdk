@@ -5,7 +5,7 @@
     "outDir": "dist",
     "baseUrl": "src",
     "resolveJsonModule": true,
-    "esModuleInterop": true,
+    "esModuleInterop": true
   },
   "include": ["src", "src/**/*.json"]
 }

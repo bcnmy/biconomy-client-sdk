@@ -15,11 +15,11 @@ import {
 } from './typechain'
 
 export type GetContractInstanceDto = {
-  smartAccountType: SmartAccountType
-  version: string
-  contractAddress: string
-  provider: JsonRpcProvider
-}
+  smartAccountType: SmartAccountType;
+  version: string;
+  contractAddress: string;
+  provider: JsonRpcProvider;
+};
 
 // TODO // Review return types
 export function getSAProxyContract(
@@ -27,9 +27,9 @@ export function getSAProxyContract(
 ): SmartAccount_v100 | SmartAccount_v200 {
   const { smartAccountType, version, contractAddress, provider } = contractInstanceDto
   switch (version) {
-    case 'V1_0_0':
+    case "V1_0_0":
       if (smartAccountType === SmartAccountType.BICONOMY) {
-        return SmartAccount_v100__factory.connect(contractAddress, provider)
+        return SmartAccount_v100__factory.connect(contractAddress, provider);
       }
       break
     case 'V2_0_0':
@@ -40,7 +40,7 @@ export function getSAProxyContract(
     default:
       return SmartAccount_v200__factory.connect(contractAddress, provider)
   }
-  throw new Error('Invalid version or smartAccountType provided for proxy contract instance')
+  throw new Error("Invalid version or smartAccountType provided for proxy contract instance");
 }
 
 // TODO // Review return types
@@ -50,9 +50,9 @@ export function getSAFactoryContract(
   const { smartAccountType, version, contractAddress, provider } = contractInstanceDto
 
   switch (version) {
-    case 'V1_0_0':
+    case "V1_0_0":
       if (smartAccountType === SmartAccountType.BICONOMY) {
-        return SmartAccountFactory_v100__factory.connect(contractAddress, provider)
+        return SmartAccountFactory_v100__factory.connect(contractAddress, provider);
       }
       break
     case 'V2_0_0':
@@ -63,14 +63,14 @@ export function getSAFactoryContract(
     default:
       return SmartAccountFactory_v200__factory.connect(contractAddress, provider)
   }
-  throw new Error('Invalid version or smartAccountType provided for factory contract instance')
+  throw new Error("Invalid version or smartAccountType provided for factory contract instance");
 }
 
 export function getEntryPointContract(contractInstanceDto: GetContractInstanceDto): IEntryPoint {
   const { smartAccountType, version, contractAddress, provider } = contractInstanceDto
 
   switch (version) {
-    case 'V0_0_5':
+    case "V0_0_5":
       if (smartAccountType === SmartAccountType.BICONOMY) {
         return EntryPoint_v005__factory.connect(contractAddress, provider)
       }
@@ -79,9 +79,9 @@ export function getEntryPointContract(contractInstanceDto: GetContractInstanceDt
       if (smartAccountType === SmartAccountType.BICONOMY) {
         return EntryPoint_v006__factory.connect(contractAddress, provider)
       }
-      break
+      break;
     default:
       return EntryPoint_v006__factory.connect(contractAddress, provider)
   }
-  throw new Error('Invalid version or smartAccountType provided for entrypoint contract instance')
+  throw new Error("Invalid version or smartAccountType provided for entrypoint contract instance");
 }

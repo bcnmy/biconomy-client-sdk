@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/bundler",
-  "version": "3.1.1-alpha.0",
+  "version": "3.0.0",
   "description": "Biconomy Bundler package to interact with any bundler node as per ERC4337 standard",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -16,9 +16,9 @@
   "scripts": {
     "unbuild": "rimraf dist *.tsbuildinfo",
     "build": "rimraf dist && tsc",
-    "test:file": "TS_NODE_PROJECT=../../tsconfig.json mocha -r ts-node/register --timeout 30000",
+    "test:file": "jest --config=../../jest.config.js --runInBand",
     "test:concurrently": "concurrently -k --success first 'yarn start:ganache > /dev/null'",
-    "test:run": "yarn test:file tests/**/*.spec.ts",
+    "test:run": "jest tests/**/*.spec.ts --runInBand",
     "start:ganache": "ganache -m 'direct buyer cliff train rice spirit census refuse glare expire innocent quote'",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
     "lint": "tslint -p tsconfig.json"
@@ -37,7 +37,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "@biconomy/common": "^3.1.1-alpha.0",
-    "@biconomy/core-types": "^3.1.1-alpha.0"
+    "@biconomy/common": "^3.0.0",
+    "@biconomy/core-types": "^3.0.0"
   }
 }

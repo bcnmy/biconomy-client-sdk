@@ -12,8 +12,8 @@ export type EntryPointAddresses = {
 }
 
 export type BiconomyFactories = {
-  [address: string]: string
-}
+  [address: string]: string;
+};
 
 export type BiconomyImplementations = {
   [address: string]: string
@@ -32,9 +32,9 @@ export type BiconomyImplementationsByVersion = {
 }
 
 export type SmartAccountConfig = {
-  entryPointAddress: string
-  bundler?: IBundler
-}
+  entryPointAddress: string;
+  bundler?: IBundler;
+};
 
 export interface BaseSmartAccountConfig {
   // owner?: Signer // can be in child classes
@@ -49,20 +49,20 @@ export interface BaseSmartAccountConfig {
 }
 
 export type BiconomyTokenPaymasterRequest = {
-  feeQuote: PaymasterFeeQuote
-  spender: string
-  maxApproval?: boolean
-}
+  feeQuote: PaymasterFeeQuote;
+  spender: string;
+  maxApproval?: boolean;
+};
 
 export type BiconomySmartAccountConfig = {
-  signer: Signer
-  rpcUrl?: string
-  chainId: ChainId
-  entryPointAddress?: string
-  bundler?: IBundler
-  paymaster?: IPaymaster
-  nodeClientUrl?: string
-}
+  signer: Signer;
+  rpcUrl?: string;
+  chainId: ChainId;
+  entryPointAddress?: string;
+  bundler?: IBundler;
+  paymaster?: IPaymaster;
+  nodeClientUrl?: string;
+};
 
 export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
   factoryAddress?: string
@@ -86,14 +86,14 @@ export type NonceOptions = {
 }
 
 export type Overrides = {
-  callGasLimit?: BigNumberish
-  verificationGasLimit?: BigNumberish
-  preVerificationGas?: BigNumberish
-  maxFeePerGas?: BigNumberish
-  maxPriorityFeePerGas?: BigNumberish
-  paymasterData?: string
-  signature?: string
-}
+  callGasLimit?: BigNumberish;
+  verificationGasLimit?: BigNumberish;
+  preVerificationGas?: BigNumberish;
+  maxFeePerGas?: BigNumberish;
+  maxPriorityFeePerGas?: BigNumberish;
+  paymasterData?: string;
+  signature?: string;
+};
 
 export type InitilizationData = {
   accountIndex?: number
