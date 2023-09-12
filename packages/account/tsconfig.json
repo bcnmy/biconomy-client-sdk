@@ -7,6 +7,5 @@
     "resolveJsonModule": true,
     "esModuleInterop": true
   },
-  "include": ["src", "src/**/*.json", "./scripts"],
-  "files": ["./hardhat.config.ts"]
+  "include": ["src", "src/**/*.json"],
 }
