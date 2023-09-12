@@ -10,6 +10,10 @@ import { BiconomyPaymaster, SponsorUserOperationDto, PaymasterMode } from '@bico
 import { IBiconomyProvider } from './interfaces/IBiconomyProvider'
 import { PaymasterDto, SmartAccountProviderInternalOpts, SmartAccountProviderOpts } from './Types'
 
+/**
+ * @title BiconomyProvider Class
+ * @dev Implements the IBiconomyProvider interface, acting as a wrapper over various Biconomy packages.
+ */
 export class BiconomyProvider implements IBiconomyProvider {
   chainId: string
   paymaster: BiconomyPaymaster | undefined
@@ -18,6 +22,11 @@ export class BiconomyProvider implements IBiconomyProvider {
   activeValidationModule: BaseValidationModule
   accountV2API: BiconomySmartAccountV2
 
+  /**
+   * This constructor is private. Use the static create method to instantiate a BiconomyProvider instance.
+   * @param opts Object containing initialization options.
+   * @returns BiconomyProvider instance.
+   */
   private constructor(opts: SmartAccountProviderInternalOpts) {
     this.chainId = opts.chainId
     this.bundler = opts.bundler
@@ -27,6 +36,11 @@ export class BiconomyProvider implements IBiconomyProvider {
     this.activeValidationModule = opts.defaultValidationModule
   }
 
+  /**
+   * Asynchronously creates and initializes an instance of BiconomyProvider.
+   * @param opts Object containing options like chainId, paymasterUrl, etc.
+   * @return Promise that resolves to a BiconomyProvider instance.
+   */
   public static async create(opts: SmartAccountProviderOpts): Promise<BiconomyProvider> {
     // create bundler and paymaster instances
     const bundler = new Bundler({
@@ -63,14 +77,26 @@ export class BiconomyProvider implements IBiconomyProvider {
     return providerInstance
   }
 
+  /**
+   * Method to get the smart account address.
+   * @return Promise that resolves to the account address string.
+   */
   async getAddress(): Promise<string> {
     return this.accountV2API.getAccountAddress()
   }
 
-  async getChainId(): Promise<string> {
+  // might remove this method
+  getChainId(): string {
     return this.chainId
   }
 
+  /**
+   * Method to build user operations.
+   * @param transactions Array of transactions.
+   * @param buildUseropDto Optional BuildUserOpOptions object.
+   * @param paymasterDto Optional PaymasterDto object.
+   * @return Promise that resolves to a Partial<UserOperation> object.
+   */
   async buildUserOperations(
     transactions: Transaction[],
     buildUseropDto?: BuildUserOpOptions,
@@ -88,6 +114,7 @@ export class BiconomyProvider implements IBiconomyProvider {
       )
       userOp.paymasterAndData = paymasterAndDataResponse.paymasterAndData
     } else if (this.paymaster && paymasterDto?.mode === PaymasterMode.ERC20) {
+      // TODO: implement this
       // const paymasterServiceData: SponsorUserOperationDto = {
       //   mode: PaymasterMode.ERC20
       // }
@@ -100,18 +127,40 @@ export class BiconomyProvider implements IBiconomyProvider {
     return userOp
   }
 
-  // async request(args: { method: string; params?: any[] }): Promise<any> {
-  //   return Promise.resolve()
-  // }
-
-  async sendTransaction(userOp: Partial<UserOperation>): Promise<UserOpResponse> {
+  /**
+   * Method to send a user operation.
+   * @param userOp Partial user operation object.
+   * @return Promise that resolves to a UserOpResponse object.
+   */
+  async sendUserOperation(userOp: Partial<UserOperation>): Promise<UserOpResponse> {
     const userOpResponse = await this.accountV2API.sendUserOp(userOp)
+    return userOpResponse
+  }
+
+  /**
+   * Method to send a transaction, abstract all methods.
+   * @param transactions Array of transactions.
+   * @param buildUseropDto Optional BuildUserOpOptions object.
+   * @param paymasterDto Optional PaymasterDto object.
+   * @return Promise that resolves to a UserOpResponse object.
+   */
+  async sendTransaction(
+    transactions: Transaction[],
+    buildUseropDto?: BuildUserOpOptions,
+    paymasterDto?: PaymasterDto
+  ): Promise<UserOpResponse> {
+    const userOp = await this.buildUserOperations(transactions, buildUseropDto, paymasterDto)
+    const userOpResponse = await this.sendUserOperation(userOp)
     return userOpResponse
   }
 
   async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<string> {
     return this.accountV2API.signUserOpHash(userOpHash, params)
   }
+
+  // async request(args: { method: string; params?: any[] }): Promise<any> {
+  //   return Promise.resolve()
+  // }
 
   async signMessage(): Promise<string> {
     return Promise.resolve('0x')
