@@ -30,7 +30,7 @@
     "build": "lerna run build",
     "clean": "lerna clean && lerna run unbuild",
     "format": "lerna run format --npm-client=yarn",
-    "prettier": "lerna run prettier --npm-client=yarn",
+    "prettier": "npx prettier --write .",
     "lint": "eslint -c .eslintrc.js 'packages/*/src/**/*.{ts,tsx}'",
     "lint:fix": "eslint -c .eslintrc.js 'packages/*/src/**/*.{ts,tsx}' --fix",
     "test": "yarn jest --runInBand",
