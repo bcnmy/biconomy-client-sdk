@@ -4,7 +4,7 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: "module",
-    project: './tsconfig.eslint.json',
+    project: "./tsconfig.eslint.json",
   },
   env: {
     node: true,

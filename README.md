@@ -26,7 +26,7 @@ Unlock the full potential of **ERC4337 Account Abstraction** with methods that s
 
 ```javascript
 const biconomyAccount = new BiconomySmartAccount(biconomySmartAccountConfig);
-const biconomySmartAccount =  await biconomyAccount.init();
+const biconomySmartAccount = await biconomyAccount.init();
 console.log("owner: ", biconomySmartAccount.owner);
 console.log("address: ", biconomySmartAccount.address);
 ```
