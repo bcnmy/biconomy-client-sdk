@@ -1,0 +1,46 @@
+{
+  "name": "@biconomy/core-types",
+  "version": "3.1.1-alpha.0",
+  "description": "Biconomy Provider for all transactions",
+  "main": "./dist/src/index.js",
+  "typings": "./dist/src/index.d.ts",
+  "keywords": [
+    "Ethereum",
+    "Smart Account",
+    "ERC-4337",
+    "Account Abstraction",
+    "Smart Contract Wallets",
+    "Biconomy",
+    "SDK"
+  ],
+  "scripts": {
+    "unbuild": "rimraf dist *.tsbuildinfo",
+    "build": "rimraf dist && tsc",
+    "format": "prettier --write \"{src,tests}/**/*.ts\"",
+    "lint": "tslint -p tsconfig.json"
+  },
+  "author": "Biconomy (https://biconomy.io)",
+  "license": "MIT",
+  "files": [
+    "dist/*",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@types/node": "^17.0.23",
+    "@typescript-eslint/eslint-plugin": "^5.17.0",
+    "@typescript-eslint/parser": "^5.17.0",
+    "eslint": "^8.12.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^2.6.2",
+    "typescript": "^4.6.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@biconomy/account": "^3.1.1-alpha.0",
+    "@biconomy/bundler": "^3.1.1-alpha.0",
+    "@biconomy/paymaster": "^3.1.1-alpha.0"
+  }
+}
