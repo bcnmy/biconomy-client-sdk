@@ -1,8 +1,5 @@
 import { EntryPoint, EntryPoint__factory, UserOperationStruct, SimpleAccountFactory__factory } from "@account-abstraction/contracts";
-import { Wallet } from "ethers";
-import { expect } from "chai";
-import { ethers } from "hardhat";
-import hre from "hardhat";
+import { Wallet, ethers } from "ethers";
 import { SampleRecipient, SampleRecipient__factory } from "@account-abstraction/utils/dist/src/types";
 
 import {
@@ -18,7 +15,7 @@ import { BiconomySmartAccount } from "../src/BiconomySmartAccount";
 import { ChainId, UserOperation } from "@biconomy/core-types";
 import { DEFAULT_ECDSA_OWNERSHIP_MODULE, ECDSAOwnershipValidationModule } from "@biconomy/modules";
 
-const provider = ethers.provider;
+const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
 const signer = provider.getSigner();
 
 describe("BiconomySmartAccount API Specs", () => {
@@ -32,7 +29,7 @@ describe("BiconomySmartAccount API Specs", () => {
   let accountAddress: string;
   let accountDeployed = false;
 
-  before("init", async () => {
+  beforeAll(async () => {
     owner = Wallet.createRandom();
     entryPoint = await new EntryPoint__factory(signer).deploy();
     console.log("ep address ", entryPoint.address);
@@ -80,15 +77,15 @@ describe("BiconomySmartAccount API Specs", () => {
   it("Nonce should be zero", async () => {
     const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()), data: "0x" }]);
     console.log("builtUserOp", builtUserOp);
-    expect(builtUserOp?.nonce?.toString()).to.be.eq("0");
+    expect(builtUserOp?.nonce?.toString()).toBe("0");
   });
   it("Sender should be non zero", async () => {
     const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()), data: "0x" }]);
-    expect(builtUserOp.sender).to.be.not.equal(ethers.constants.AddressZero);
+    expect(builtUserOp.sender).not.toBe(ethers.constants.AddressZero);
   });
   it("InitCode length should be greater then 170", async () => {
     const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()), data: "0x" }]);
-    expect(builtUserOp?.initCode?.length).to.be.greaterThan(170);
+    expect(builtUserOp?.initCode?.length).toBeGreaterThan(170);
   });
   it("#getUserOpHash should match entryPoint.getUserOpHash", async function () {
     const userOp: UserOperation = {
@@ -106,11 +103,11 @@ describe("BiconomySmartAccount API Specs", () => {
     };
     const hash = await accountAPI.getUserOpHash(userOp);
     const epHash = await entryPoint.getUserOpHash(userOp);
-    expect(hash).to.equal(epHash);
+    expect(hash).toBe(epHash);
   });
   it("should deploy to counterfactual address", async () => {
     accountAddress = await accountAPI.getAccountAddress();
-    expect(await provider.getCode(accountAddress).then((code) => code.length)).to.equal(2);
+    expect(await provider.getCode(accountAddress).then((code) => code.length)).toBe(2);
 
     await signer.sendTransaction({
       to: accountAddress,
@@ -127,7 +124,7 @@ describe("BiconomySmartAccount API Specs", () => {
 
     ((await expect(entryPoint.handleOps([signedUserOp], beneficiary))) as any).to.emit(recipient, "Sender");
 
-    expect(await provider.getCode(accountAddress).then((code) => code.length)).to.greaterThan(0);
+    expect(await provider.getCode(accountAddress).then((code) => code.length)).toBeGreaterThan(0);
 
     accountDeployed = true;
   });
