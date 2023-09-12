@@ -36,8 +36,9 @@
   "publishConfig": {
     "access": "public"
   },
-  "devDependencies": {
+  "dependencies": {
     "@biconomy/common": "^3.0.0",
-    "@biconomy/core-types": "^3.0.0"
+    "@biconomy/core-types": "^3.0.0",
+    "ethers": "^5.7.0"
   }
 }
