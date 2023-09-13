@@ -37,6 +37,8 @@ type UserOperationKey = keyof UserOperation;
 export class BiconomySmartAccountV2 extends BaseSmartAccount {
   private nodeClient: INodeClient;
 
+  private SENTINEL_MODULE = "0x0000000000000000000000000000000000000001";
+
   // Review: Marked for deletion
   // private smartAccountInfo!: ISmartAccount
   // private _isInitialised!: boolean
@@ -262,6 +264,11 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
     userOp.signature = signatureWithModuleAddress;
     return userOp as UserOperation;
+  }
+
+  getSignatureWithModuleAddress(moduleSignature: string, moduleAddress?: string): string {
+    const moduleAddressToUse = moduleAddress ?? this.activeValidationModule.getAddress();
+    return ethers.utils.defaultAbiCoder.encode(["bytes", "address"], [moduleSignature, moduleAddressToUse]);
   }
 
   /**
@@ -528,8 +535,6 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return this.nodeClient.getAllSupportedChains();
   }
 
-  // async isModuleEnabled(moduleName: string): boolean {
-
   async enableModule(moduleAddress: string): Promise<UserOpResponse> {
     const tx: Transaction = await this.getEnableModuleData(moduleAddress);
     const partialUserOp = await this.buildUserOp([tx]);
@@ -547,10 +552,47 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return tx;
   }
 
+  async getSetupAndEnableModuleData(moduleAddress: string, moduleSetupData: string): Promise<Transaction> {
+    const accountContract = await this._getAccountContract();
+    // TODO: using encodeFunctionData
+    const populatedTransaction = await accountContract.populateTransaction.setupAndEnableModule(moduleAddress, moduleSetupData);
+    const tx: Transaction = {
+      to: await this.getAccountAddress(),
+      value: "0",
+      data: populatedTransaction.data as string,
+    };
+    return tx;
+  }
+
+  async disableModule(preModule: string, moduleAddress: string): Promise<UserOpResponse> {
+    const tx: Transaction = await this.getDisableModuleData(preModule, moduleAddress);
+    const partialUserOp = await this.buildUserOp([tx]);
+    return this.sendUserOp(partialUserOp);
+  }
+
+  async getDisableModuleData(prevModule: string, moduleAddress: string): Promise<Transaction> {
+    const accountContract = await this._getAccountContract();
+    // TODO: using encodeFunctionData
+    const populatedTransaction = await accountContract.populateTransaction.disableModule(prevModule, moduleAddress);
+    const tx: Transaction = {
+      to: await this.getAccountAddress(),
+      value: "0",
+      data: populatedTransaction.data as string,
+    };
+    return tx;
+  }
+
   async isModuleEnabled(moduleName: string): Promise<boolean> {
     const accountContract = await this._getAccountContract();
     return accountContract.isModuleEnabled(moduleName);
   }
 
-  // async getEnableModuleData(moduleName: string): Promise<string> {
+  // Review
+  async getAllModules(pageSize?: number): Promise<Array<string>> {
+    pageSize = pageSize ?? 100;
+    const accountContract = await this._getAccountContract();
+    const result: Array<string | Array<string>> = await accountContract.getModulesPaginated(this.SENTINEL_MODULE, pageSize);
+    const modules: Array<string> = result[0] as Array<string>;
+    return modules;
+  }
 }
