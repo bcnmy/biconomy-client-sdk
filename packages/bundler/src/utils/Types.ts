@@ -40,7 +40,7 @@ export type SendUserOpResponse = {
 
 export type UserOpResponse = {
   userOpHash: string;
-  wait(confirmations?: number): Promise<UserOpReceipt>;
+  wait(_confirmations?: number): Promise<UserOpReceipt>;
 };
 
 // Converted to JsonRpcResponse with strict type

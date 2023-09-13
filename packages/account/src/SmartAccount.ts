@@ -44,7 +44,7 @@ export abstract class SmartAccount implements ISmartAccount {
     this.smartAccountConfig = _smartAccountConfig;
   }
 
-  setEntryPointAddress(entryPointAddress: string) {
+  setEntryPointAddress(entryPointAddress: string): void {
     this.smartAccountConfig.entryPointAddress = entryPointAddress;
   }
 
@@ -199,7 +199,7 @@ export abstract class SmartAccount implements ISmartAccount {
     return keccak256(enc);
   }
 
-  abstract getSmartAccountAddress(accountIndex: number): Promise<string>;
+  abstract getSmartAccountAddress(_accountIndex: number): Promise<string>;
 
   async estimateCreationGas(initCode: string): Promise<BigNumber> {
     if (initCode == null || initCode === "0x") return BigNumber.from("0");

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Single class to be used for logging purpose.
  *
