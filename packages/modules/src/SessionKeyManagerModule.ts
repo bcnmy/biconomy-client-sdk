@@ -1,31 +1,23 @@
-import { Signer, ethers } from 'ethers'
-import MerkleTree from 'merkletreejs'
-import { NODE_CLIENT_URL, Logger } from '@biconomy/common'
-import { hexConcat, arrayify, hexZeroPad, defaultAbiCoder, Bytes } from 'ethers/lib/utils'
-import { keccak256 } from 'ethereumjs-util'
+import { Signer, ethers } from "ethers";
+import MerkleTree from "merkletreejs";
+import { NODE_CLIENT_URL, Logger } from "@biconomy/common";
+import { hexConcat, arrayify, hexZeroPad, defaultAbiCoder, Bytes } from "ethers/lib/utils";
+import { keccak256 } from "ethereumjs-util";
 import {
   SessionKeyManagerModuleConfig,
   ModuleVersion,
   CreateSessionDataParams,
   StorageType,
   ModuleInfo,
-  CreateSessionDataResponse
-} from './utils/Types'
-import NodeClient from '@biconomy/node-client'
-import INodeClient from '@biconomy/node-client'
-import {
-  SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION,
-  DEFAULT_SESSION_KEY_MANAGER_MODULE
-} from './utils/Constants'
-import { generateRandomHex } from './utils/Uid'
-import { BaseValidationModule } from './BaseValidationModule'
-import { SessionLocalStorage } from './session-storage/SessionLocalStorage'
-import {
-  ISessionStorage,
-  SessionLeafNode,
-  SessionSearchParam,
-  SessionStatus
-} from './interfaces/ISessionStorage'
+  CreateSessionDataResponse,
+} from "./utils/Types";
+import NodeClient from "@biconomy/node-client";
+import INodeClient from "@biconomy/node-client";
+import { SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION, DEFAULT_SESSION_KEY_MANAGER_MODULE } from "./utils/Constants";
+import { generateRandomHex } from "./utils/Uid";
+import { BaseValidationModule } from "./BaseValidationModule";
+import { SessionLocalStorage } from "./session-storage/SessionLocalStorage";
+import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "./interfaces/ISessionStorage";
 
 export class SessionKeyManagerModule extends BaseValidationModule {
   version: ModuleVersion = "V1_0_0";

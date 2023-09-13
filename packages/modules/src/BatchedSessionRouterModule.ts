@@ -1,8 +1,8 @@
-import { Signer, ethers } from 'ethers'
-import MerkleTree from 'merkletreejs'
-import { NODE_CLIENT_URL, Logger } from '@biconomy/common'
-import { hexConcat, arrayify, hexZeroPad, defaultAbiCoder, Bytes } from 'ethers/lib/utils'
-import { keccak256 } from 'ethereumjs-util'
+import { Signer, ethers } from "ethers";
+import MerkleTree from "merkletreejs";
+import { NODE_CLIENT_URL, Logger } from "@biconomy/common";
+import { hexConcat, arrayify, hexZeroPad, defaultAbiCoder, Bytes } from "ethers/lib/utils";
+import { keccak256 } from "ethereumjs-util";
 import {
   ModuleVersion,
   CreateSessionDataParams,
@@ -10,8 +10,8 @@ import {
   SessionParams,
   BatchedSessionRouterModuleConfig,
   ModuleInfo,
-  CreateSessionDataResponse
-} from './utils/Types'
+  CreateSessionDataResponse,
+} from "./utils/Types";
 import {
   BATCHED_SESSION_ROUTER_MODULE_ADDRESSES_BY_VERSION,
   SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION,

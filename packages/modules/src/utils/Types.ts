@@ -63,17 +63,17 @@ export type ModuleInfo = {
 };
 
 export type CreateSessionDataResponse = {
-  data: string
-  sessionIDInfo: Array<string>
-}
+  data: string;
+  sessionIDInfo: Array<string>;
+};
 
 export interface CreateSessionDataParams {
-  validUntil: number
-  validAfter: number
-  sessionValidationModule: string
-  sessionPublicKey: string
-  sessionKeyData: string
-  preferredSessionId?: string
+  validUntil: number;
+  validAfter: number;
+  sessionValidationModule: string;
+  sessionPublicKey: string;
+  sessionKeyData: string;
+  preferredSessionId?: string;
 }
 
 export interface MultiChainValidationModuleConfig extends BaseValidationModuleConfig {
