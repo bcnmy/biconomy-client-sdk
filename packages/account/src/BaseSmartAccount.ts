@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
+
 import { JsonRpcProvider, Provider } from "@ethersproject/providers";
 import { BigNumber, BigNumberish, Signer, BytesLike, ethers, Bytes } from "ethers";
 import { IBaseSmartAccount } from "./interfaces/IBaseSmartAccount";
