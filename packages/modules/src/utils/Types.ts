@@ -62,12 +62,18 @@ export type ModuleInfo = {
   batchSessionParams?: SessionParams[];
 };
 
+export type CreateSessionDataResponse = {
+  data: string;
+  sessionIDInfo: Array<string>;
+};
+
 export interface CreateSessionDataParams {
   validUntil: number;
   validAfter: number;
   sessionValidationModule: string;
   sessionPublicKey: string;
   sessionKeyData: string;
+  preferredSessionId?: string;
 }
 
 export interface MultiChainValidationModuleConfig extends BaseValidationModuleConfig {
