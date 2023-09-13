@@ -347,7 +347,7 @@ describe("BiconomySmartAccount API Specs", () => {
     await entryPoint.handleOps([signedUserOp], beneficiary);
 
     // ((await expect(entryPoint.handleOps([signedUserOp], beneficiary))) as any).to.emit(recipient, "Sender");
-  });
+  }, 10000); // on github runner it takes more time than 5000ms
 
   // TODO
   // 1. sendSignedUserOp()
