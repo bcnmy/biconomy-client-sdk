@@ -108,15 +108,11 @@ export function calcPreVerificationGas(userOp: Partial<NotPromise<UserOperation>
    * plus any gas overhead that can't be tracked on-chain
    * (if bundler needs to charge the premium one way is to increase this value for ops to sign)
    */
-  const callDataCost = packed
-    .map((x) => (x === 0 ? ov.zeroByte : ov.nonZeroByte))
-    .reduce((sum, x) => sum + x)
-  const ret = Math.round(
-    callDataCost + ov.fixed / ov.bundleSize + ov.perUserOp + ov.perUserOpWord * lengthInWord
-  )
+  const callDataCost = packed.map((x) => (x === 0 ? ov.zeroByte : ov.nonZeroByte)).reduce((sum, x) => sum + x);
+  const ret = Math.round(callDataCost + ov.fixed / ov.bundleSize + ov.perUserOp + ov.perUserOpWord * lengthInWord);
   if (ret) {
-    return BigNumber.from(ret)
+    return BigNumber.from(ret);
   } else {
-    throw new Error("can't calculate preVerificationGas")
+    throw new Error("can't calculate preVerificationGas");
   }
 }

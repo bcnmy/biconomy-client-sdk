@@ -6,27 +6,36 @@ import { UserOperation, ChainId } from "@biconomy/core-types";
 import { calcPreVerificationGas, DefaultGasLimits } from "./utils/Preverificaiton";
 import { packUserOp } from "@biconomy/common";
 
-import { IBundler, UserOpResponse } from '@biconomy/bundler'
-import { IPaymaster, PaymasterAndDataResponse } from '@biconomy/paymaster'
-import { Logger } from '@biconomy/common'
-import { IEntryPoint } from '@account-abstraction/contracts'
-import { SmartAccountConfig, Overrides } from './utils/Types'
+import { IBundler, UserOpResponse } from "@biconomy/bundler";
+import { IPaymaster, PaymasterAndDataResponse } from "@biconomy/paymaster";
+import { Logger } from "@biconomy/common";
+import { IEntryPoint } from "@account-abstraction/contracts";
+import { SmartAccountConfig, Overrides } from "./utils/Types";
 
 type UserOperationKey = keyof UserOperation;
 
 // Notice: only to be used as base class for child class BiconomySmartAccount(V1)
 export abstract class SmartAccount implements ISmartAccount {
-  bundler!: IBundler
-  paymaster!: IPaymaster
-  initCode = '0x'
+  bundler!: IBundler;
+
+  paymaster!: IPaymaster;
+
+  initCode = "0x";
+
   // Ideally proxy should be defined in child class, if it's meant to be of type Biconomy SmartAccount
-  proxy!: any
-  owner!: string
-  provider!: JsonRpcProvider
-  entryPoint!: IEntryPoint
-  chainId!: ChainId
-  signer!: Signer
-  smartAccountConfig: SmartAccountConfig
+  proxy!: any;
+
+  owner!: string;
+
+  provider!: JsonRpcProvider;
+
+  entryPoint!: IEntryPoint;
+
+  chainId!: ChainId;
+
+  signer!: Signer;
+
+  smartAccountConfig: SmartAccountConfig;
 
   constructor(_smartAccountConfig: SmartAccountConfig) {
     this.smartAccountConfig = _smartAccountConfig;
