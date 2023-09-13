@@ -3,7 +3,15 @@ import MerkleTree from "merkletreejs";
 import { NODE_CLIENT_URL, Logger } from "@biconomy/common";
 import { hexConcat, arrayify, hexZeroPad, defaultAbiCoder, Bytes } from "ethers/lib/utils";
 import { keccak256 } from "ethereumjs-util";
-import { ModuleVersion, CreateSessionDataParams, StorageType, SessionParams, BatchedSessionRouterModuleConfig, ModuleInfo } from "./utils/Types";
+import {
+  ModuleVersion,
+  CreateSessionDataParams,
+  StorageType,
+  SessionParams,
+  BatchedSessionRouterModuleConfig,
+  ModuleInfo,
+  CreateSessionDataResponse,
+} from "./utils/Types";
 import {
   BATCHED_SESSION_ROUTER_MODULE_ADDRESSES_BY_VERSION,
   SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION,
@@ -84,7 +92,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
    * @param leavesData The data of one or more leaves to be used to create session data
    * @returns The session data
    */
-  createSessionData = async (leavesData: CreateSessionDataParams[]): Promise<string> => {
+  createSessionData = async (leavesData: CreateSessionDataParams[]): Promise<CreateSessionDataResponse> => {
     return this.sessionKeyManagerModule.createSessionData(leavesData);
   };
 
