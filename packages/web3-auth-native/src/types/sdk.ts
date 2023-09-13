@@ -16,7 +16,7 @@ export type SocialLoginDto = {
 }
 
 export type IOriginData = {
-  [P in string]: string
+  [P: string]: string
 }
 
 export type SdkInitParams = Omit<

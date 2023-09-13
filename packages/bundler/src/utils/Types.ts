@@ -5,6 +5,7 @@ export type Bundlerconfig = {
   bundlerUrl: string;
   entryPointAddress?: string;
   chainId: ChainId;
+  // eslint-disable-next-line no-unused-vars
   userOpReceiptIntervals?: { [key in ChainId]?: number };
 };
 

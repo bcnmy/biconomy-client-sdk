@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { ethers } from "ethers";
@@ -12,7 +13,7 @@ import NodeClient, { WhiteListSignatureResponse } from "@biconomy/node-client";
 import UI from "./UI";
 import { DefaultSocialLoginConfig, SocialLoginDTO, WhiteLabelDataType } from "./types/Web3AuthConfig";
 
-function createLoginModal(socialLogin: SocialLogin) {
+function createLoginModal(socialLogin: SocialLogin): void {
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   const root = createRoot((document as any).getElementById("w3a-modal"));
   root.render(<UI socialLogin={socialLogin} />);
@@ -66,11 +67,10 @@ class SocialLogin {
 
   async whitelistUrl(origin: string): Promise<string> {
     const whiteListUrlResponse: WhiteListSignatureResponse = await this.nodeClient.whitelistUrl(origin);
-    console.log(whiteListUrlResponse.data);
     return whiteListUrlResponse.data;
   }
 
-  async init(socialLoginDTO?: Partial<SocialLoginDTO>) {
+  async init(socialLoginDTO?: Partial<SocialLoginDTO>): Promise<void> {
     const finalDTO: SocialLoginDTO = {
       chainId: "0x1",
       whitelistUrls: {},
@@ -84,7 +84,6 @@ class SocialLogin {
       if (socialLoginDTO.whteLableData) this.whiteLabel = socialLoginDTO.whteLableData;
     }
     try {
-      console.log("SocialLogin init");
       const web3AuthCore = new Web3AuthCore({
         clientId: this.clientId,
         chainConfig: {
@@ -132,12 +131,12 @@ class SocialLogin {
     }
   }
 
-  getProvider() {
+  getProvider(): SafeEventEmitterProvider | null {
     return this.provider;
   }
 
   /* eslint-disable  @typescript-eslint/no-explicit-any */
-  private _createIframe(iframeContainerDiv: any) {
+  private _createIframe(iframeContainerDiv: any): void {
     this.walletIframe = document.createElement("iframe");
     this.walletIframe.style.display = "none";
     this.walletIframe.style.display = "relative";
@@ -148,7 +147,7 @@ class SocialLogin {
     iframeContainerDiv.appendChild(this.walletIframe);
   }
 
-  private createWalletDiv() {
+  private createWalletDiv(): void {
     // create a fixed div into html but keep it hidden initially
     const walletDiv = document.createElement("div");
     walletDiv.id = "w3a-modal";
@@ -167,7 +166,7 @@ class SocialLogin {
     this._createIframe(walletDiv);
   }
 
-  showWallet() {
+  showWallet(): void {
     this.walletDiv.style.display = "block";
     this.walletIframe.style.display = "block";
     // Set height and width of the iframe to 600x341
@@ -179,13 +178,12 @@ class SocialLogin {
     el?.dispatchEvent(new Event("show-modal"));
   }
 
-  hideWallet() {
-    console.log("hide wallet");
+  hideWallet(): void {
     this.walletDiv.style.display = "none";
     this.walletIframe.style.display = "none";
   }
 
-  async getUserInfo() {
+  async getUserInfo(): Promise<Partial<UserInfo> | null> {
     if (this.web3auth) {
       const userInfo = await this.web3auth.getUserInfo();
       this.userInfo = userInfo;
@@ -194,20 +192,20 @@ class SocialLogin {
     return null;
   }
 
-  async getPrivateKey() {
+  async getPrivateKey(): Promise<string | null> {
     if (this.web3auth && this.web3auth.provider) {
       const privateKey = await this.web3auth.provider.request({
         method: "eth_private_key",
       });
-      return privateKey;
+      return privateKey as string;
     }
     return null;
   }
 
-  async socialLogin(loginProvider: string) {
+  async socialLogin(loginProvider: string): Promise<SafeEventEmitterProvider | null> {
     if (!this.web3auth) {
       console.info("web3auth not initialized yet");
-      return;
+      return null;
     }
     try {
       const web3authProvider = await this.web3auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
@@ -226,14 +224,14 @@ class SocialLogin {
       return web3authProvider;
     } catch (error) {
       console.error(error);
-      return error;
+      return null;
     }
   }
 
-  async emailLogin(email: string) {
+  async emailLogin(email: string): Promise<SafeEventEmitterProvider | null> {
     if (!this.web3auth) {
       console.info("web3auth not initialized yet");
-      return;
+      return null;
     }
     try {
       const web3authProvider = await this.web3auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
@@ -253,14 +251,14 @@ class SocialLogin {
       return web3authProvider;
     } catch (error) {
       console.error(error);
-      return error;
+      return null;
     }
   }
 
-  async metamaskLogin() {
+  async metamaskLogin(): Promise<SafeEventEmitterProvider | null> {
     if (!this.web3auth) {
       console.log("web3auth not initialized yet");
-      return;
+      return null;
     }
     try {
       const web3authProvider = await this.web3auth.connectTo(WALLET_ADAPTERS.METAMASK);
@@ -277,14 +275,14 @@ class SocialLogin {
       return web3authProvider;
     } catch (error) {
       console.error(error);
-      return error;
+      return null;
     }
   }
 
-  async walletConnectLogin() {
+  async walletConnectLogin(): Promise<SafeEventEmitterProvider | null> {
     if (!this.web3auth) {
       console.log("web3auth not initialized yet");
-      return;
+      return null;
     }
     try {
       const web3authProvider = await this.web3auth.connectTo(WALLET_ADAPTERS.WALLET_CONNECT_V1);
@@ -301,11 +299,11 @@ class SocialLogin {
       return web3authProvider;
     } catch (error) {
       console.error(error);
-      return error;
+      return null;
     }
   }
 
-  async logout() {
+  async logout(): Promise<void> {
     if (!this.web3auth) {
       console.log("web3auth not initialized yet");
       return;
@@ -322,7 +320,7 @@ const socialLoginSDK: SocialLogin = new SocialLogin();
 export default SocialLogin;
 
 let initializedSocialLogin: SocialLogin | null = null;
-const getSocialLoginSDK = async (socialLoginDTO?: Partial<SocialLoginDTO>) => {
+const getSocialLoginSDK = async (socialLoginDTO?: Partial<SocialLoginDTO>): Promise<SocialLogin> => {
   if (initializedSocialLogin) {
     return initializedSocialLogin;
   }
