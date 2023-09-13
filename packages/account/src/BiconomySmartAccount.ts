@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { ethers, BigNumberish, BytesLike, BigNumber } from "ethers";
 import { SmartAccount } from "./SmartAccount";

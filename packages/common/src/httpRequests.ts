@@ -36,13 +36,12 @@ export async function sendRequest<T>({ url, method, body, headers = {} }: HttpRe
 
   let jsonResponse: JsonResponse | undefined;
   try {
-    jsonResponse = await response.json() as JsonResponse;
+    jsonResponse = (await response.json()) as JsonResponse;
   } catch (error) {
     if (!response.ok) {
       throw new Error(response.statusText);
     }
   }
-
 
   if (!jsonResponse) {
     // Handle the case where jsonResponse is undefined

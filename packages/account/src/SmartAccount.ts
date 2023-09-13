@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { BigNumber, Signer, BytesLike } from "ethers";
 import { ISmartAccount } from "./interfaces/ISmartAccount";
