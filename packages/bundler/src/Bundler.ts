@@ -98,7 +98,7 @@ export class Bundler implements IBundler {
       userOpHash: sendUserOperationResponse.result,
       wait: (confirmations?: number): Promise<UserOpReceipt> => {
         const provider = new JsonRpcProvider(RPC_PROVIDER_URLS[chainId]);
-        return new Promise<UserOpReceipt>(async (resolve, reject) => {
+        return new Promise<UserOpReceipt>((resolve, reject) => {
           const intervalId = setInterval(async () => {
             try {
               const userOpResponse = await this.getUserOpReceipt(sendUserOperationResponse.result);

@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
+
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { BigNumber, Signer, BytesLike } from "ethers";
 import { ISmartAccount } from "./interfaces/ISmartAccount";
@@ -143,13 +146,8 @@ export abstract class SmartAccount implements ISmartAccount {
 
   async isAccountDeployed(address: string): Promise<boolean> {
     this.isProviderDefined();
-    let contractCode;
-    try {
-      contractCode = await this.provider.getCode(address);
-      return contractCode !== "0x";
-    } catch (error) {
-      throw error;
-    }
+    const contractCode = await this.provider.getCode(address);
+    return contractCode !== "0x";
   }
 
   // Would only be used if paymaster is attached

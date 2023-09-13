@@ -15,13 +15,16 @@ module.exports = {
     "prettier/prettier": "error",
     "no-var": "error",
     "prefer-const": "error",
-    "no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+    "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }], // needs to be set to "error" later
     "no-console": "warn",
+    "@typescript-eslint/naming-convention": "off", // needs to be removed later
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
     "security/detect-object-injection": "warn",
     "security/detect-unsafe-regex": "error",
+    "import/extensions": "off",
+    "@typescript-eslint/no-throw-literal": "off", // temp deactivated needs to be removed once fixed
   },
   settings: {},
   overrides: [

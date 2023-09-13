@@ -36,17 +36,13 @@
   "dependencies": {
     "@account-abstraction/contracts": "^0.6.0",
     "@account-abstraction/utils": "^0.4.0",
-    "@biconomy-devx/account-contracts-v2": "npm:@biconomy-devx/account-contracts-v2@^1.0.0"
-  },
-  "peerDependencies": {
-    "ethers": "^5.7.0"
-  },
-  "devDependencies": {
+    "@biconomy-devx/account-contracts-v2": "npm:@biconomy-devx/account-contracts-v2@^1.0.0",
     "@biconomy/bundler": "^3.1.1-alpha.0",
     "@biconomy/common": "^3.1.1-alpha.0",
     "@biconomy/core-types": "^3.1.1-alpha.0",
     "@biconomy/modules": "^3.1.1-alpha.0",
     "@biconomy/node-client": "^3.1.1-alpha.0",
-    "@biconomy/paymaster": "^3.1.1-alpha.0"
+    "@biconomy/paymaster": "^3.1.1-alpha.0",
+    "ethers": "^5.7.0"
   }
 }

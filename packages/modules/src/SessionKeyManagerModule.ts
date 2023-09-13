@@ -3,7 +3,14 @@ import MerkleTree from "merkletreejs";
 import { NODE_CLIENT_URL, Logger } from "@biconomy/common";
 import { hexConcat, arrayify, hexZeroPad, defaultAbiCoder, Bytes } from "ethers/lib/utils";
 import { keccak256 } from "ethereumjs-util";
-import { SessionKeyManagerModuleConfig, ModuleVersion, CreateSessionDataParams, StorageType, ModuleInfo } from "./utils/Types";
+import {
+  SessionKeyManagerModuleConfig,
+  ModuleVersion,
+  CreateSessionDataParams,
+  StorageType,
+  ModuleInfo,
+  CreateSessionDataResponse,
+} from "./utils/Types";
 import NodeClient from "@biconomy/node-client";
 import INodeClient from "@biconomy/node-client";
 import { SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION, DEFAULT_SESSION_KEY_MANAGER_MODULE } from "./utils/Constants";
@@ -90,10 +97,11 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @param leavesData The data of one or more leaves to be used to create session data
    * @returns The session data
    */
-  createSessionData = async (leavesData: CreateSessionDataParams[]): Promise<string> => {
+  createSessionData = async (leavesData: CreateSessionDataParams[]): Promise<CreateSessionDataResponse> => {
     const sessionKeyManagerModuleABI = "function setMerkleRoot(bytes32 _merkleRoot)";
     const sessionKeyManagerModuleInterface = new ethers.utils.Interface([sessionKeyManagerModuleABI]);
     const leavesToAdd: Buffer[] = [];
+    const sessionIDInfo: string[] = [];
 
     for (const leafData of leavesData) {
       const leafDataHex = hexConcat([
@@ -103,11 +111,14 @@ export class SessionKeyManagerModule extends BaseValidationModule {
         leafData.sessionKeyData,
       ]);
 
+      const generatedSessionId = leafData.preferredSessionId ?? generateRandomHex();
+
       leavesToAdd.push(ethers.utils.keccak256(leafDataHex) as unknown as Buffer);
+      sessionIDInfo.push(generatedSessionId);
 
       const sessionLeafNode = {
         ...leafData,
-        sessionID: generateRandomHex(),
+        sessionID: generatedSessionId,
         status: "PENDING" as SessionStatus,
       };
 
@@ -129,7 +140,10 @@ export class SessionKeyManagerModule extends BaseValidationModule {
 
     await this.sessionStorageClient.setMerkleRoot(this.merkleTree.getHexRoot());
     // TODO: create a signer if sessionPubKey if not given
-    return setMerkleRootData;
+    return {
+      data: setMerkleRootData,
+      sessionIDInfo: sessionIDInfo,
+    };
   };
 
   /**
