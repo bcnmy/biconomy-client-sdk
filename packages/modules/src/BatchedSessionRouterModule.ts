@@ -9,7 +9,8 @@ import {
   StorageType,
   SessionParams,
   BatchedSessionRouterModuleConfig,
-  ModuleInfo
+  ModuleInfo,
+  CreateSessionDataResponse
 } from './utils/Types'
 import {
   BATCHED_SESSION_ROUTER_MODULE_ADDRESSES_BY_VERSION,
@@ -89,9 +90,9 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
    * @param leavesData The data of one or more leaves to be used to create session data
    * @returns The session data
    */
-  createSessionData = async (leavesData: CreateSessionDataParams[]): Promise<string> => {
-    return this.sessionKeyManagerModule.createSessionData(leavesData)
-  }
+  createSessionData = async (leavesData: CreateSessionDataParams[]): Promise<CreateSessionDataResponse> => {
+    return this.sessionKeyManagerModule.createSessionData(leavesData);
+  };
 
   /**
    * This method is used to sign the user operation using the session signer
