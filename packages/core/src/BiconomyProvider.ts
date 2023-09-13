@@ -1,26 +1,27 @@
-import { BaseValidationModule, ModuleInfo } from '@biconomy/modules'
-import { Bundler, UserOpResponse } from '@biconomy/bundler'
-import { ChainId, Transaction, UserOperation } from '@biconomy/core-types'
-import {
-  BiconomySmartAccountV2,
-  DEFAULT_ENTRYPOINT_ADDRESS,
-  BuildUserOpOptions
-} from '@biconomy/account'
-import { BiconomyPaymaster, SponsorUserOperationDto, PaymasterMode } from '@biconomy/paymaster'
-import { IBiconomyProvider } from './interfaces/IBiconomyProvider'
-import { PaymasterDto, SmartAccountProviderInternalOpts, SmartAccountProviderOpts } from './Types'
+import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
+import { Bundler, UserOpResponse } from "@biconomy/bundler";
+import { ChainId, Transaction, UserOperation } from "@biconomy/core-types";
+import { BiconomySmartAccountV2, DEFAULT_ENTRYPOINT_ADDRESS, BuildUserOpOptions } from "@biconomy/account";
+import { BiconomyPaymaster, PaymasterMode } from "@biconomy/paymaster";
+import { IBiconomyProvider } from "./interfaces/IBiconomyProvider";
+import { PaymasterDto, SmartAccountProviderInternalOpts, SmartAccountProviderOpts } from "./Types";
 
 /**
  * @title BiconomyProvider Class
  * @dev Implements the IBiconomyProvider interface, acting as a wrapper over various Biconomy packages.
  */
 export class BiconomyProvider implements IBiconomyProvider {
-  chainId: string
-  paymaster: BiconomyPaymaster | undefined
-  bundler: Bundler
-  defaultValidationModule: BaseValidationModule
-  activeValidationModule: BaseValidationModule
-  accountV2API: BiconomySmartAccountV2
+  chainId: string;
+
+  paymaster: BiconomyPaymaster | undefined;
+
+  bundler: Bundler;
+
+  defaultValidationModule: BaseValidationModule;
+
+  activeValidationModule: BaseValidationModule;
+
+  accountV2API: BiconomySmartAccountV2;
 
   /**
    * This constructor is private. Use the static create method to instantiate a BiconomyProvider instance.
@@ -28,12 +29,12 @@ export class BiconomyProvider implements IBiconomyProvider {
    * @returns BiconomyProvider instance.
    */
   private constructor(opts: SmartAccountProviderInternalOpts) {
-    this.chainId = opts.chainId
-    this.bundler = opts.bundler
-    this.paymaster = opts.paymaster
-    this.accountV2API = opts.accountV2API
-    this.defaultValidationModule = opts.defaultValidationModule
-    this.activeValidationModule = opts.defaultValidationModule
+    this.chainId = opts.chainId;
+    this.bundler = opts.bundler;
+    this.paymaster = opts.paymaster;
+    this.accountV2API = opts.accountV2API;
+    this.defaultValidationModule = opts.defaultValidationModule;
+    this.activeValidationModule = opts.defaultValidationModule;
   }
 
   /**
@@ -46,13 +47,13 @@ export class BiconomyProvider implements IBiconomyProvider {
     const bundler = new Bundler({
       bundlerUrl: opts.bundlerUrl,
       chainId: Number(opts.chainId) as ChainId,
-      entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS
-    })
-    let paymaster: BiconomyPaymaster | undefined
+      entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
+    });
+    let paymaster: BiconomyPaymaster | undefined;
     if (opts.paymasterUrl) {
       paymaster = new BiconomyPaymaster({
-        paymasterUrl: opts.paymasterUrl
-      })
+        paymasterUrl: opts.paymasterUrl,
+      });
     }
 
     // create accountV2 instance
@@ -61,10 +62,10 @@ export class BiconomyProvider implements IBiconomyProvider {
       // paymaster: opts.paymasterUrl,
       bundler: bundler,
       entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
-      defaultValidationModule: opts.defaultValidationModule
-    })
+      defaultValidationModule: opts.defaultValidationModule,
+    });
     // initialize accountV2 instance
-    await accountV2.init()
+    await accountV2.init();
 
     // create provider instance and return
     const providerInstance = new BiconomyProvider({
@@ -72,9 +73,9 @@ export class BiconomyProvider implements IBiconomyProvider {
       paymaster: paymaster,
       bundler: bundler,
       accountV2API: accountV2,
-      defaultValidationModule: opts.defaultValidationModule
-    })
-    return providerInstance
+      defaultValidationModule: opts.defaultValidationModule,
+    });
+    return providerInstance;
   }
 
   /**
@@ -82,12 +83,12 @@ export class BiconomyProvider implements IBiconomyProvider {
    * @return Promise that resolves to the account address string.
    */
   async getAddress(): Promise<string> {
-    return this.accountV2API.getAccountAddress()
+    return this.accountV2API.getAccountAddress();
   }
 
   // might remove this method
   getChainId(): string {
-    return this.chainId
+    return this.chainId;
   }
 
   /**
@@ -100,31 +101,23 @@ export class BiconomyProvider implements IBiconomyProvider {
   async buildUserOperations(
     transactions: Transaction[],
     buildUseropDto?: BuildUserOpOptions,
-    paymasterDto?: PaymasterDto
+    paymasterDto?: PaymasterDto,
   ): Promise<Partial<UserOperation>> {
-    const userOp = await this.accountV2API.buildUserOp(transactions, buildUseropDto)
+    const userOp = await this.accountV2API.buildUserOp(transactions, buildUseropDto);
 
     if (this.paymaster && paymasterDto?.mode === PaymasterMode.SPONSORED) {
-      const paymasterServiceData: SponsorUserOperationDto = {
-        mode: PaymasterMode.SPONSORED
-      }
-      const paymasterAndDataResponse = await this.paymaster.getPaymasterAndData(
-        userOp,
-        paymasterServiceData
-      )
-      userOp.paymasterAndData = paymasterAndDataResponse.paymasterAndData
-    } else if (this.paymaster && paymasterDto?.mode === PaymasterMode.ERC20) {
-      // TODO: implement this
-      // const paymasterServiceData: SponsorUserOperationDto = {
-      //   mode: PaymasterMode.ERC20
-      // }
-      // const paymasterAndDataResponse = await this.paymaster.getPaymasterAndData(
-      //   userOp,
-      //   paymasterServiceData
-      // )
-      // userOp.paymasterAndData = paymasterAndDataResponse.paymasterAndData
+      const paymasterAndDataResponse = await this.paymaster.getPaymasterAndData(userOp, {
+        mode: PaymasterMode.SPONSORED,
+      });
+      userOp.paymasterAndData = paymasterAndDataResponse.paymasterAndData;
+    } else if (this.paymaster && paymasterDto?.mode === PaymasterMode.ERC20 && paymasterDto?.preferredTokenAddress) {
+      const paymasterAndDataResponse = await this.paymaster.getPaymasterAndData(userOp, {
+        mode: PaymasterMode.SPONSORED,
+        feeTokenAddress: paymasterDto.preferredTokenAddress,
+      });
+      userOp.paymasterAndData = paymasterAndDataResponse.paymasterAndData;
     }
-    return userOp
+    return userOp;
   }
 
   /**
@@ -133,8 +126,8 @@ export class BiconomyProvider implements IBiconomyProvider {
    * @return Promise that resolves to a UserOpResponse object.
    */
   async sendUserOperation(userOp: Partial<UserOperation>): Promise<UserOpResponse> {
-    const userOpResponse = await this.accountV2API.sendUserOp(userOp)
-    return userOpResponse
+    const userOpResponse = await this.accountV2API.sendUserOp(userOp);
+    return userOpResponse;
   }
 
   /**
@@ -144,18 +137,14 @@ export class BiconomyProvider implements IBiconomyProvider {
    * @param paymasterDto Optional PaymasterDto object.
    * @return Promise that resolves to a UserOpResponse object.
    */
-  async sendTransaction(
-    transactions: Transaction[],
-    buildUseropDto?: BuildUserOpOptions,
-    paymasterDto?: PaymasterDto
-  ): Promise<UserOpResponse> {
-    const userOp = await this.buildUserOperations(transactions, buildUseropDto, paymasterDto)
-    const userOpResponse = await this.sendUserOperation(userOp)
-    return userOpResponse
+  async sendTransaction(transactions: Transaction[], buildUseropDto?: BuildUserOpOptions, paymasterDto?: PaymasterDto): Promise<UserOpResponse> {
+    const userOp = await this.buildUserOperations(transactions, buildUseropDto, paymasterDto);
+    const userOpResponse = await this.sendUserOperation(userOp);
+    return userOpResponse;
   }
 
   async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<string> {
-    return this.accountV2API.signUserOpHash(userOpHash, params)
+    return this.accountV2API.signUserOpHash(userOpHash, params);
   }
 
   // async request(args: { method: string; params?: any[] }): Promise<any> {
@@ -163,6 +152,6 @@ export class BiconomyProvider implements IBiconomyProvider {
   // }
 
   async signMessage(): Promise<string> {
-    return Promise.resolve('0x')
+    return Promise.resolve("0x");
   }
 }
