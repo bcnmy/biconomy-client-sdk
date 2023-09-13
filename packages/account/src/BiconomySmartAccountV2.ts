@@ -541,17 +541,8 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return this.sendUserOp(partialUserOp);
   }
 
-  // Review
-  // Note: moduleSetupData can be queried from validation module instance
-  async setupAndEnableModule(moduleAddress: string, moduleSetupData: string): Promise<UserOpResponse> {
-    const tx: Transaction = await this.getSetupAndEnableModuleData(moduleAddress, moduleSetupData);
-    const partialUserOp = await this.buildUserOp([tx]);
-    return this.sendUserOp(partialUserOp);
-  }
-
   async getEnableModuleData(moduleAddress: string): Promise<Transaction> {
     const accountContract = await this._getAccountContract();
-    // TODO: using encodeFunctionData
     const populatedTransaction = await accountContract.populateTransaction.enableModule(moduleAddress);
     const tx: Transaction = {
       to: await this.getAccountAddress(),
