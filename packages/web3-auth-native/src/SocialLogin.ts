@@ -50,7 +50,9 @@ class SocialLogin {
   }
 
   async logout(options: SdkLogoutParams): Promise<void> {
-    const result = await this.request('logout', options.redirectUrl, options)
+    const redirectUrl = options.redirectUrl || '/'
+    const result = await this.request('logout', redirectUrl, options)
+
     if (result.type !== 'success' || !result.url) {
       log.error(`[Web3Auth] logout flow failed with error type ${result.type}`)
       throw new Error(`logout flow failed with error type ${result.type}`)

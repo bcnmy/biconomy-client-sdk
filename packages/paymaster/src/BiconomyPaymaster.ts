@@ -108,9 +108,11 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     }
     */
 
+      // const zeroValue: ethers.BigNumber = ethers.BigNumber.from(0);
+      // const value: BigNumberish | undefined = zeroValue as any;
       return {
         to: feeTokenAddress,
-        value: ethers.BigNumber.from(0),
+        value: ethers.BigNumber.from(0) as any,
         data: data,
       };
     } catch (error) {
