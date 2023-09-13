@@ -18,7 +18,6 @@
     "build": "rimraf dist && tsc",
     "test:concurrently": "concurrently -k --success first 'yarn start:ganache' 'yarn test'",
     "test:cov": "jest --coverage",
-    "test:hardhat": "hardhat test tests/*.spec.ts",
     "test": "jest tests/**/*.spec.ts --runInBand",
     "test:run": "yarn test:concurrently",
     "start:ganache": "ganache -m 'direct buyer cliff train rice spirit census refuse glare expire innocent quote'",
