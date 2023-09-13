@@ -156,9 +156,9 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       smartAccountType: SmartAccountType.BICONOMY,
       version: BICONOMY_FACTORY_ADDRESSES[_factoryAddress],
       contractAddress: _factoryAddress,
-      provider: this.provider
-    }
-    this.factory = getSAFactoryContract(factoryInstanceDto) as SmartAccountFactory_v100
+      provider: this.provider,
+    };
+    this.factory = getSAFactoryContract(factoryInstanceDto) as SmartAccountFactory_v100;
   }
 
   private async setContractsState() {
