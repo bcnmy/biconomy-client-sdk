@@ -1,6 +1,6 @@
 import { SmartAccountType } from "@biconomy/core-types";
 import { JsonRpcProvider } from "@ethersproject/providers";
-import { EntryPoint, IEntryPoint, EntryPoint__factory } from "@account-abstraction/contracts";
+import { IEntryPoint } from "@account-abstraction/contracts";
 import {
   EntryPoint_v005__factory,
   EntryPoint_v006__factory,

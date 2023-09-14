@@ -19,7 +19,6 @@ export const transformUserOP = (userOp: UserOperation): UserOperation => {
     }
     return userOperation;
   } catch (error) {
-    console.error(`Failed to transform user operation: ${error}`);
-    throw error;
+    throw `Failed to transform user operation: ${error}`;
   }
 };

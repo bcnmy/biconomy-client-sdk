@@ -1,6 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-
 import { EntryPoint, EntryPoint__factory, UserOperationStruct, SimpleAccountFactory__factory } from "@account-abstraction/contracts";
 import { Wallet, ethers } from "ethers";
 import { SampleRecipient, SampleRecipient__factory } from "@account-abstraction/utils/dist/src/types";
@@ -350,7 +347,7 @@ describe("BiconomySmartAccount API Specs", () => {
     await entryPoint.handleOps([signedUserOp], beneficiary);
 
     // ((await expect(entryPoint.handleOps([signedUserOp], beneficiary))) as any).to.emit(recipient, "Sender");
-  });
+  }, 10000); // on github runner it takes more time than 5000ms
 
   // TODO
   // 1. sendSignedUserOp()

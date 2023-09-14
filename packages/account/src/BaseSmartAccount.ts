@@ -1,21 +1,16 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-
 import { JsonRpcProvider, Provider } from "@ethersproject/providers";
-import { BigNumber, BigNumberish, Signer, BytesLike, ethers, Bytes } from "ethers";
+import { BigNumber, BigNumberish, BytesLike, ethers, Bytes } from "ethers";
 import { IBaseSmartAccount } from "./interfaces/IBaseSmartAccount";
-import { defaultAbiCoder, keccak256, arrayify, Result } from "ethers/lib/utils";
+import { defaultAbiCoder, keccak256 } from "ethers/lib/utils";
 import { UserOperation, ChainId } from "@biconomy/core-types";
 import { calcPreVerificationGas, DefaultGasLimits } from "./utils/Preverificaiton";
-import { NotPromise, packUserOp } from "@biconomy/common";
+import { NotPromise, packUserOp, Logger, RPC_PROVIDER_URLS } from "@biconomy/common";
 import { IBundler, UserOpResponse } from "@biconomy/bundler";
 import { IPaymaster, PaymasterAndDataResponse } from "@biconomy/paymaster";
-import { EntryPoint_v005, Logger } from "@biconomy/common";
 import { BaseSmartAccountConfig, Overrides, TransactionDetailsForUserOp } from "./utils/Types";
 import { GasOverheads } from "./utils/Preverificaiton";
 import { EntryPoint, EntryPoint__factory } from "@account-abstraction/contracts";
 import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants";
-import { RPC_PROVIDER_URLS } from "@biconomy/common";
 
 type UserOperationKey = keyof UserOperation;
 
@@ -77,7 +72,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     return this;
   }
 
-  setEntryPointAddress(entryPointAddress: string) {
+  setEntryPointAddress(entryPointAddress: string): void {
     this.entryPointAddress = entryPointAddress;
   }
 
@@ -113,7 +108,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
    * @param value
    * @param data
    */
-  abstract encodeExecute(to: string, value: BigNumberish, data: BytesLike): Promise<string>;
+  abstract encodeExecute(_to: string, _value: BigNumberish, _data: BytesLike): Promise<string>;
 
   /**
    * encode the batch call from entryPoint through our account to the target contract.
@@ -121,15 +116,15 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
    * @param value
    * @param data
    */
-  abstract encodeExecuteBatch(to: Array<string>, value: Array<BigNumberish>, data: Array<BytesLike>): Promise<string>;
+  abstract encodeExecuteBatch(_to: Array<string>, _value: Array<BigNumberish>, _data: Array<BytesLike>): Promise<string>;
 
   /**
    * sign a userOp's hash (userOpHash).
    * @param userOpHash
    */
-  abstract signUserOpHash(userOpHash: string): Promise<string>;
+  abstract signUserOpHash(_userOpHash: string): Promise<string>;
 
-  abstract signMessage(message: Bytes | string): Promise<string>;
+  abstract signMessage(_message: Bytes | string): Promise<string>;
 
   /**
    * get dummy signature for userOp
@@ -275,6 +270,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
       // Making call to bundler to get gas estimations for userOp
       const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas } =
         await this.bundler.estimateUserOpGas(userOp);
+      // if neither user sent gas fee nor the bundler, estimate gas from provider
       if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas && (!maxFeePerGas || !maxPriorityFeePerGas)) {
         const feeData = await this.provider.getFeeData();
         finalUserOp.maxFeePerGas = feeData.maxFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice());
@@ -302,22 +298,17 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
   // Review : usage trace of this method. in the order of init and methods called on the Account
   async isAccountDeployed(address: string): Promise<boolean> {
     this.isProviderDefined();
-    let contractCode;
     if (this.isDeployed !== undefined || this.isDeployed !== null) {
       // already deployed. no need to check anymore.
       return this.isDeployed;
     }
-    try {
-      contractCode = await this.provider.getCode(address);
-      if (contractCode.length > 2) {
-        this.isDeployed = true;
-      } else {
-        this.isDeployed = false;
-      }
-      return this.isDeployed;
-    } catch (error) {
-      throw error;
+    const contractCode = await this.provider.getCode(address);
+    if (contractCode.length > 2) {
+      this.isDeployed = true;
+    } else {
+      this.isDeployed = false;
     }
+    return this.isDeployed;
   }
 
   /**

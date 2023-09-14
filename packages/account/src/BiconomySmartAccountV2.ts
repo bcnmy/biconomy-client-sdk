@@ -1,26 +1,19 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-
 import { JsonRpcProvider } from "@ethersproject/providers";
-import { Signer } from "ethers";
 import { ethers, BigNumberish, BytesLike, BigNumber } from "ethers";
 import { BaseSmartAccount } from "./BaseSmartAccount";
-import { keccak256, Bytes, arrayify, hexConcat } from "ethers/lib/utils";
-import { Logger, NODE_CLIENT_URL, RPC_PROVIDER_URLS } from "@biconomy/common";
-
+import { Bytes, hexConcat } from "ethers/lib/utils";
 // Review failure reason for import from '@biconomy/account-contracts-v2/typechain'
-
-import { SmartAccount_v200, SmartAccountFactory_v200, SmartAccount_v200__factory, SmartAccountFactory_v200__factory } from "@biconomy/common";
-
 import {
-  Overrides,
-  BiconomyTokenPaymasterRequest,
-  BiconomySmartAccountV2Config,
-  CounterFactualAddressParam,
-  BuildUserOpOptions,
-} from "./utils/Types";
+  Logger,
+  NODE_CLIENT_URL,
+  SmartAccount_v200,
+  SmartAccountFactory_v200,
+  SmartAccount_v200__factory,
+  SmartAccountFactory_v200__factory,
+} from "@biconomy/common";
+import { BiconomyTokenPaymasterRequest, BiconomySmartAccountV2Config, CounterFactualAddressParam, BuildUserOpOptions } from "./utils/Types";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
-import { UserOperation, Transaction, SmartAccountType } from "@biconomy/core-types";
+import { UserOperation, Transaction } from "@biconomy/core-types";
 import NodeClient from "@biconomy/node-client";
 import INodeClient from "@biconomy/node-client";
 import { IHybridPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from "@biconomy/paymaster";

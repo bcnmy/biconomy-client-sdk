@@ -25,17 +25,16 @@ class TransakSDK {
     this.transak = transak;
   }
 
-  init() {
+  init(): void {
     try {
       this.transak.init();
       /* eslint-disable  @typescript-eslint/no-explicit-any */
     } catch (err: any) {
-      console.error(err);
-      throw new Error("Error while init transakSDK");
+      throw new Error(`Error while init transakSDK ${err}`);
     }
   }
 
-  getTransak() {
+  getTransak(): any {
     return this.transak;
   }
 }

@@ -17,20 +17,20 @@ export abstract class BaseValidationModule implements IValidationModule {
 
   abstract getAddress(): string;
 
-  setEntryPointAddress(entryPointAddress: string) {
+  setEntryPointAddress(entryPointAddress: string): void {
     this.entryPointAddress = entryPointAddress;
   }
 
   abstract getInitData(): Promise<string>;
 
   // Anything  required to get dummy signature can be passed as params
-  abstract getDummySignature(params?: ModuleInfo): Promise<string>;
+  abstract getDummySignature(_params?: ModuleInfo): Promise<string>;
 
   // Review naming convention for getter
   abstract getSigner(): Promise<Signer>;
 
   // Signer specific or any other additional information can be passed as params
-  abstract signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<string>;
+  abstract signUserOpHash(_userOpHash: string, _params?: ModuleInfo): Promise<string>;
 
-  abstract signMessage(message: Bytes | string): Promise<string>;
+  abstract signMessage(_message: Bytes | string): Promise<string>;
 }
