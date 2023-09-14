@@ -15,7 +15,7 @@ import { UserOperation, Transaction, SmartAccountType } from "@biconomy/core-typ
 import NodeClient from "@biconomy/node-client";
 import INodeClient from "@biconomy/node-client";
 import { IHybridPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from "@biconomy/paymaster";
-import { IBiconomySmartAccount } from "interfaces/IBiconomySmartAccount";
+import { IBiconomySmartAccount } from "./interfaces/IBiconomySmartAccount";
 import {
   ISmartAccount,
   SupportedChainsResponse,

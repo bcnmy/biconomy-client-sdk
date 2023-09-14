@@ -24,7 +24,7 @@ const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
 const signer = provider.getSigner();
 const SENTINEL_MODULE = "0x0000000000000000000000000000000000000001";
 
-describe("BiconomySmartAccount API Specs", () => {
+describe("BiconomySmartAccountV2 API Specs", () => {
   let owner: Wallet;
   let factoryOwner: Wallet;
   let accountAPI: BiconomySmartAccountV2;
