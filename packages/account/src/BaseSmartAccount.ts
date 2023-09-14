@@ -72,7 +72,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     return this;
   }
 
-  setEntryPointAddress(entryPointAddress: string) {
+  setEntryPointAddress(entryPointAddress: string): void {
     this.entryPointAddress = entryPointAddress;
   }
 
@@ -108,7 +108,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
    * @param value
    * @param data
    */
-  abstract encodeExecute(to: string, value: BigNumberish, data: BytesLike): Promise<string>;
+  abstract encodeExecute(_to: string, _value: BigNumberish, _data: BytesLike): Promise<string>;
 
   /**
    * encode the batch call from entryPoint through our account to the target contract.
@@ -116,15 +116,15 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
    * @param value
    * @param data
    */
-  abstract encodeExecuteBatch(to: Array<string>, value: Array<BigNumberish>, data: Array<BytesLike>): Promise<string>;
+  abstract encodeExecuteBatch(_to: Array<string>, _value: Array<BigNumberish>, _data: Array<BytesLike>): Promise<string>;
 
   /**
    * sign a userOp's hash (userOpHash).
    * @param userOpHash
    */
-  abstract signUserOpHash(userOpHash: string): Promise<string>;
+  abstract signUserOpHash(_userOpHash: string): Promise<string>;
 
-  abstract signMessage(message: Bytes | string): Promise<string>;
+  abstract signMessage(_message: Bytes | string): Promise<string>;
 
   /**
    * get dummy signature for userOp

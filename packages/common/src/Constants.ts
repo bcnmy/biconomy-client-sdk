@@ -2,6 +2,7 @@ import { ChainId } from "@biconomy/core-types";
 
 export const NODE_CLIENT_URL = "https://sdk-backend.prod.biconomy.io/v1";
 
+// eslint-disable-next-line no-unused-vars
 export const RPC_PROVIDER_URLS: { [key in ChainId]?: string } = {
   [ChainId.MAINNET]: "https://rpc.ankr.com/eth",
   [ChainId.GOERLI]: "https://rpc.ankr.com/eth_goerli",

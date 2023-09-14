@@ -116,7 +116,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     return true;
   }
 
-  private setProxyContractState() {
+  private setProxyContractState(): void {
     if (!BICONOMY_IMPLEMENTATION_ADDRESSES[this.smartAccountInfo.implementationAddress])
       throw new Error(
         "Could not find attached implementation address against your smart account. Please raise an issue on https://github.com/bcnmy/biconomy-client-sdk for further investigation.",
@@ -130,7 +130,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     this.proxy = getSAProxyContract(proxyInstanceDto);
   }
 
-  private setEntryPointContractState() {
+  private setEntryPointContractState(): void {
     const _entryPointAddress = this.smartAccountInfo.entryPointAddress;
     this.setEntryPointAddress(_entryPointAddress);
     if (!ENTRYPOINT_ADDRESSES[_entryPointAddress])
@@ -146,7 +146,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     this.entryPoint = getEntryPointContract(entryPointInstanceDto);
   }
 
-  private setFactoryContractState() {
+  private setFactoryContractState(): void {
     const _factoryAddress = this.smartAccountInfo.factoryAddress;
     if (!BICONOMY_FACTORY_ADDRESSES[_factoryAddress])
       throw new Error(
@@ -161,7 +161,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     this.factory = getSAFactoryContract(factoryInstanceDto) as SmartAccountFactory_v100;
   }
 
-  private async setContractsState() {
+  private async setContractsState(): Promise<void> {
     this.setProxyContractState();
     this.setEntryPointContractState();
     this.setFactoryContractState();

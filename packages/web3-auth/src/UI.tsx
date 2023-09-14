@@ -22,12 +22,12 @@ const container = {
 const UI: React.FC<UIPorops> = ({ socialLogin }) => {
   const [email, setEmail] = useState("");
 
-  function handleEmailSubmit(event: React.SyntheticEvent) {
+  function handleEmailSubmit(event: React.SyntheticEvent): void {
     event.preventDefault();
     socialLogin.emailLogin(email);
   }
 
-  function handleEmailChange(event: React.FormEvent<HTMLInputElement>) {
+  function handleEmailChange(event: React.FormEvent<HTMLInputElement>): void {
     setEmail(event.currentTarget.value);
   }
 

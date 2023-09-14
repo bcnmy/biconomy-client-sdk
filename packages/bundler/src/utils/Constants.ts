@@ -1,5 +1,6 @@
 import { ChainId } from "@biconomy/core-types";
 
+// eslint-disable-next-line no-unused-vars
 export const UserOpReceiptIntervals: { [key in ChainId]?: number } = {
   [ChainId.MAINNET]: 10000,
   [ChainId.GOERLI]: 5000,

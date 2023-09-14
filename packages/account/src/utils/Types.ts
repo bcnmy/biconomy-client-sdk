@@ -4,7 +4,7 @@ import { BigNumberish } from "ethers";
 import { IBundler } from "@biconomy/bundler";
 import { IPaymaster, PaymasterFeeQuote } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
-import { JsonRpcProvider, Provider } from "@ethersproject/providers";
+import { Provider } from "@ethersproject/providers";
 import { GasOverheads } from "./Preverificaiton";
 
 export type EntryPointAddresses = {

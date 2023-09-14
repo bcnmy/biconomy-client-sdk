@@ -1,28 +1,15 @@
 import { Signer, ethers } from "ethers";
-import MerkleTree from "merkletreejs";
-import { NODE_CLIENT_URL, Logger } from "@biconomy/common";
+import { Logger } from "@biconomy/common";
 import { hexConcat, arrayify, hexZeroPad, defaultAbiCoder, Bytes } from "ethers/lib/utils";
-import { keccak256 } from "ethereumjs-util";
-import {
-  ModuleVersion,
-  CreateSessionDataParams,
-  StorageType,
-  SessionParams,
-  BatchedSessionRouterModuleConfig,
-  ModuleInfo,
-  CreateSessionDataResponse,
-} from "./utils/Types";
+import { ModuleVersion, CreateSessionDataParams, BatchedSessionRouterModuleConfig, ModuleInfo, CreateSessionDataResponse } from "./utils/Types";
 import {
   BATCHED_SESSION_ROUTER_MODULE_ADDRESSES_BY_VERSION,
-  SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION,
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
 } from "./utils/Constants";
-import { generateRandomHex } from "./utils/Uid";
 import { BaseValidationModule } from "./BaseValidationModule";
-import { SessionLocalStorage } from "./session-storage/SessionLocalStorage";
-import { ISessionStorage, SessionSearchParam, SessionStatus } from "./interfaces/ISessionStorage";
 import { SessionKeyManagerModule } from "./SessionKeyManagerModule";
+import { SessionSearchParam, SessionStatus } from "./interfaces/ISessionStorage";
 
 export class BatchedSessionRouterModule extends BaseValidationModule {
   version: ModuleVersion = "V1_0_0";
@@ -180,7 +167,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
    * @param status The status to be updated
    * @returns
    */
-  async updateSessionStatus(param: SessionSearchParam, status: SessionStatus) {
+  async updateSessionStatus(param: SessionSearchParam, status: SessionStatus): Promise<void> {
     this.sessionKeyManagerModule.sessionStorageClient.updateSessionStatus(param, status);
   }
 
@@ -188,7 +175,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
    * @remarks This method is used to clear all the pending sessions
    * @returns
    */
-  async clearPendingSessions() {
+  async clearPendingSessions(): Promise<void> {
     this.sessionKeyManagerModule.sessionStorageClient.clearPendingSessions();
   }
 

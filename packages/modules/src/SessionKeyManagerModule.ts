@@ -217,7 +217,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @param status The status to be updated
    * @returns
    */
-  async updateSessionStatus(param: SessionSearchParam, status: SessionStatus) {
+  async updateSessionStatus(param: SessionSearchParam, status: SessionStatus): Promise<void> {
     this.sessionStorageClient.updateSessionStatus(param, status);
   }
 
@@ -225,7 +225,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @remarks This method is used to clear all the pending sessions
    * @returns
    */
-  async clearPendingSessions() {
+  async clearPendingSessions(): Promise<void> {
     this.sessionStorageClient.clearPendingSessions();
   }
 

@@ -9,6 +9,6 @@
  * @author Sachin Tomar <sachin.tomar@biconomy.io>
  */
 export interface ISessionValidationModule<T> {
-  getSessionKeyData(sessionData: T): Promise<string>;
+  getSessionKeyData(_sessionData: T): Promise<string>;
   getAddress(): string;
 }

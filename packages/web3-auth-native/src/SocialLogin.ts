@@ -3,7 +3,7 @@ import base64url from 'base64url'
 import log from 'loglevel'
 import { URL } from 'react-native-url-polyfill'
 
-import { IWebBrowser } from './types/IWebBrowser'
+import { IWebBrowser, WebBrowserAuthSessionResult } from './types/IWebBrowser'
 import { SdkInitParams, SdkLoginParams, SdkLogoutParams, SocialLoginDto } from './types/sdk'
 import { State } from './types/State'
 
@@ -59,7 +59,11 @@ class SocialLogin {
     }
   }
 
-  private async request(path: string, redirectUrl: string, params: Record<string, unknown> = {}) {
+  private async request(
+    path: string,
+    redirectUrl: string,
+    params: Record<string, unknown> = {}
+  ): Promise<WebBrowserAuthSessionResult> {
     const initParams = {
       ...this.initParams,
       clientId: this.clientId,

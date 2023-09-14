@@ -5,7 +5,7 @@ export interface IValidationModule {
   getAddress(): string;
   getInitData(): Promise<string>;
   getSigner(): Promise<Signer>;
-  signUserOpHash(userOpHash: string): Promise<string>;
-  signMessage(message: Bytes | string): Promise<string>;
+  signUserOpHash(_userOpHash: string): Promise<string>;
+  signMessage(_message: Bytes | string): Promise<string>;
   getDummySignature(): Promise<string>;
 }
