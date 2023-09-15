@@ -1,5 +1,5 @@
-import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { Bundler, UserOpResponse } from "@biconomy/bundler";
+import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { ChainId, Transaction, UserOperation } from "@biconomy/core-types";
 import { BiconomySmartAccountV2, DEFAULT_ENTRYPOINT_ADDRESS, BuildUserOpOptions } from "@biconomy/account";
 import { BiconomyPaymaster, PaymasterMode } from "@biconomy/paymaster";
@@ -137,19 +137,52 @@ export class BiconomyProvider implements IBiconomyProvider {
    * @param paymasterDto Optional PaymasterDto object.
    * @return Promise that resolves to a UserOpResponse object.
    */
-  async sendTransaction(transactions: Transaction[], buildUseropDto?: BuildUserOpOptions, paymasterDto?: PaymasterDto): Promise<UserOpResponse> {
+  async sendTransactions(transactions: Transaction[], buildUseropDto?: BuildUserOpOptions, paymasterDto?: PaymasterDto): Promise<UserOpResponse> {
     const userOp = await this.buildUserOperations(transactions, buildUseropDto, paymasterDto);
     const userOpResponse = await this.sendUserOperation(userOp);
     return userOpResponse;
+  }
+
+  /**
+   * Method to send a transaction, abstract all methods.
+   * @param transaction Transaction object.
+   * @param buildUseropDto Optional BuildUserOpOptions object.
+   * @param paymasterDto Optional PaymasterDto object.
+   * @return Promise that resolves to a UserOpResponse object.
+   */
+  async sendTransaction(transaction: Transaction, buildUseropDto?: BuildUserOpOptions, paymasterDto?: PaymasterDto): Promise<UserOpResponse> {
+    this.sendTransactions([transaction], buildUseropDto, paymasterDto);
   }
 
   async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<string> {
     return this.accountV2API.signUserOpHash(userOpHash, params);
   }
 
-  // async request(args: { method: string; params?: any[] }): Promise<any> {
-  //   return Promise.resolve()
-  // }
+  // TODO: implement this method
+  // eslint-disable-next-line no-unused-vars
+  request: (args: { method: string; params?: any[] }) => Promise<any> = async (args) => {
+    const { method, params } = args;
+    switch (method) {
+      case "eth_sendTransaction":
+        // eslint-disable-next-line no-case-declarations
+        const tx = params as Transaction;
+        return this.sendTransaction(tx);
+      case "eth_sign":
+        // eslint-disable-next-line no-case-declarations
+        const [_, data] = params as [string, string];
+        return this.accountV2API.signMessage(data);
+      case "personal_sign": {
+        break;
+      }
+      case "eth_signTypedData_v4": {
+        break;
+      }
+      case "eth_chainId":
+        return this.getChainId();
+      default:
+      // return this.accountV2API.request(args);
+    }
+  };
 
   async signMessage(): Promise<string> {
     return Promise.resolve("0x");

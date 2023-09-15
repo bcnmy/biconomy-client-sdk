@@ -21,5 +21,5 @@ export interface SmartAccountProviderInternalOpts {
 
 export interface PaymasterDto {
   mode: PaymasterMode.SPONSORED | PaymasterMode.ERC20;
-  preferredTokenAddress: string;
+  preferredTokenAddress?: string;
 }
