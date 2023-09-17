@@ -18,8 +18,6 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
   // Review : compare with BaseAccountAPI
   // private senderAddress!: string
 
-  private isDeployed = false;
-
   bundler?: IBundler; // httpRpcClient
 
   paymaster?: IPaymaster; // paymasterAPI
@@ -61,14 +59,6 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
       throw new Error(`EntryPoint not deployed at ${this.entryPointAddress} at chainId ${this.chainId}}`);
     }
 
-    // Note: Review
-    // on Init itself since we're already getting account address, mark isDeployed as well!
-
-    if ((await this.provider.getCode(await this.getAccountAddress())) === "0x") {
-      this.isDeployed = false;
-    } else {
-      this.isDeployed = true;
-    }
     return this;
   }
 
@@ -298,17 +288,14 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
   // Review : usage trace of this method. in the order of init and methods called on the Account
   async isAccountDeployed(address: string): Promise<boolean> {
     this.isProviderDefined();
-    if (this.isDeployed !== undefined || this.isDeployed !== null) {
-      // already deployed. no need to check anymore.
-      return this.isDeployed;
-    }
+    let isDeployed = false;
     const contractCode = await this.provider.getCode(address);
     if (contractCode.length > 2) {
-      this.isDeployed = true;
+      isDeployed = true;
     } else {
-      this.isDeployed = false;
+      isDeployed = false;
     }
-    return this.isDeployed;
+    return isDeployed;
   }
 
   /**
