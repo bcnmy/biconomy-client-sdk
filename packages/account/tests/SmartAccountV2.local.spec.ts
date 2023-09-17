@@ -12,7 +12,6 @@ import {
 } from "@biconomy/common";
 
 import { BiconomySmartAccountV2 } from "../src/BiconomySmartAccountV2";
-import { BiconomySmartAccount } from "../src/BiconomySmartAccount";
 import { ChainId, UserOperation } from "@biconomy/core-types";
 import { DEFAULT_ECDSA_OWNERSHIP_MODULE, ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import { MultiChainValidationModule } from "@biconomy/modules";
@@ -163,9 +162,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     // Review: Just setting different default validation module and querying account address is not working
     // accountAPI.setDefaultValidationModule(module2);
 
-    // accountAPI.setActiveValidationModule(module2);
-
-    // Review
+    // Review with setting different validation module other than provided in config
     accountAPI2 = await accountAPI2.init();
 
     const accountAddress2 = await accountAPI2.getAccountAddress();
@@ -221,23 +218,10 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       value: ethers.utils.parseEther("0.1"),
     });
 
-    console.log("accountAPI.accountAddress", accountAPI.accountAddress);
-
-    // TODO
-    // Note: this is a MUST currently otherwise account deployed state does not get updated and returns wrong initcode
-    accountAPI = await accountAPI.init();
-
-    /*const initCode = await accountAPI.getInitCode();
-    console.log("initCode ", initCode);
-
-    console.log("isDeployed", accountAPI.isAccountDeployed(accountAddress));*/
-
     const op = await accountAPI.buildUserOp([enableModuleData], {
       // skipBundlerGasEstimation: true,
       // overrides: { verificationGasLimit: 120000, callGasLimit: 100000, preVerificationGas: 60000 },
     });
-
-    console.log("op ", op);
 
     const signedUserOp = await accountAPI.signUserOp(op);
 
