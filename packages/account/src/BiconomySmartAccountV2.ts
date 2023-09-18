@@ -137,6 +137,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     const _defaultAuthModule = params?.validationModule ?? this.defaultValidationModule;
     const _index = params?.index ?? this.index;
 
+    // TODO // use off-chain ts util functions
     const counterFactualAddress = await this.factory.getAddressForCounterFactualAccount(
       _defaultAuthModule.getAddress(),
       await _defaultAuthModule.getInitData(),
@@ -161,21 +162,13 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
     this.isDefaultValidationModuleDefined();
 
-    /*const populatedTransaction = await this.factory.populateTransaction.deployCounterFactualAccount(
-      await this.defaultValidationModule.getAddress(),
-      await this.defaultValidationModule.getInitData(),
-      this.index,
-    );*/
-
-    // TODO: interface should work.
     return hexConcat([
       this.factory.address,
-      // populatedTransaction.data as string,
-      this.factory.interface.encodeFunctionData('deployCounterFactualAccount', [
-        await this.defaultValidationModule.getAddress(),
+      this.factory.interface.encodeFunctionData("deployCounterFactualAccount", [
+        this.defaultValidationModule.getAddress(),
         await this.defaultValidationModule.getInitData(),
-        this.index
-      ])
+        this.index,
+      ]),
     ]);
   }
 
@@ -187,21 +180,8 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
    * @returns
    */
   async encodeExecute(to: string, value: BigNumberish, data: BytesLike): Promise<string> {
-    // this.isInitialized()
-    // this.isProxyDefined()
     const accountContract = await this._getAccountContract();
-
-    // const populatedTransaction = await accountContract.populateTransaction.execute_ncC(to, value, data);
-
-    const executeCallData = accountContract.interface.encodeFunctionData('execute_ncC', [
-      to,
-      value,
-      data
-    ])
-
-    return executeCallData
-
-    // return populatedTransaction.data as string;
+    return accountContract.interface.encodeFunctionData("execute_ncC", [to, value, data]);
   }
 
   /**
@@ -212,17 +192,8 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
    * @returns
    */
   async encodeExecuteBatch(to: Array<string>, value: Array<BigNumberish>, data: Array<BytesLike>): Promise<string> {
-    // this.isInitialized()
-    // this.isProxyDefined()
     const accountContract = await this._getAccountContract();
-    // const populatedTransaction = await accountContract.populateTransaction.executeBatch_y6U(to, value, data);
-    const executeBatchCallData = accountContract.interface.encodeFunctionData('executeBatch_y6U', [
-      to,
-      value,
-      data
-    ])
-    return executeBatchCallData
-    // return populatedTransaction.data as string;
+    return accountContract.interface.encodeFunctionData("executeBatch_y6U", [to, value, data]);
   }
 
   // dummy signature depends on the validation module supplied.
@@ -499,7 +470,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     // Review if need to be added in signUserOpHash methods in validationModule as well
     // If the account is undeployed, use ERC-6492
     // Extend in child classes
-    /*if (!(await this.isAccountDeployed(this.getSmartAccountAddress()))) {
+    /*if (!(await this.isAccountDeployed(this.getAccountAddress()))) {
       const coder = new ethers.utils.AbiCoder()
       sig =
         coder.encode(
@@ -553,31 +524,28 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
   async getSetupAndEnableModuleData(moduleAddress: string, moduleSetupData: string): Promise<Transaction> {
     const accountContract = await this._getAccountContract();
-    // TODO: using encodeFunctionData
-    // const populatedTransaction = await accountContract.populateTransaction.setupAndEnableModule(moduleAddress, moduleSetupData);
     const data = accountContract.interface.encodeFunctionData("setupAndEnableModule", [moduleAddress, moduleSetupData]);
     const tx: Transaction = {
       to: await this.getAccountAddress(),
       value: "0",
-      data: data as string,
+      data: data,
     };
     return tx;
   }
 
-  async disableModule(preModule: string, moduleAddress: string): Promise<UserOpResponse> {
-    const tx: Transaction = await this.getDisableModuleData(preModule, moduleAddress);
+  async disableModule(prevModule: string, moduleAddress: string): Promise<UserOpResponse> {
+    const tx: Transaction = await this.getDisableModuleData(prevModule, moduleAddress);
     const partialUserOp = await this.buildUserOp([tx]);
     return this.sendUserOp(partialUserOp);
   }
 
   async getDisableModuleData(prevModule: string, moduleAddress: string): Promise<Transaction> {
     const accountContract = await this._getAccountContract();
-    // TODO: using encodeFunctionData
-    const populatedTransaction = await accountContract.populateTransaction.disableModule(prevModule, moduleAddress);
+    const data = accountContract.interface.encodeFunctionData("disableModule", [prevModule, moduleAddress]);
     const tx: Transaction = {
       to: await this.getAccountAddress(),
       value: "0",
-      data: populatedTransaction.data as string,
+      data: data,
     };
     return tx;
   }
@@ -587,10 +555,10 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return accountContract.isModuleEnabled(moduleName);
   }
 
-  // Review
   async getAllModules(pageSize?: number): Promise<Array<string>> {
     pageSize = pageSize ?? 100;
     const accountContract = await this._getAccountContract();
+    // Note: If page size is lower then on the next page start module would be module at the end of first page and not SENTINEL_MODULE
     const result: Array<string | Array<string>> = await accountContract.getModulesPaginated(this.SENTINEL_MODULE, pageSize);
     const modules: Array<string> = result[0] as Array<string>;
     return modules;
