@@ -138,7 +138,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     const _index = params?.index ?? this.index;
 
     const counterFactualAddress = await this.factory.getAddressForCounterFactualAccount(
-      await _defaultAuthModule.getAddress(),
+      _defaultAuthModule.getAddress(),
       await _defaultAuthModule.getInitData(),
       _index,
     );
@@ -161,21 +161,21 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
     this.isDefaultValidationModuleDefined();
 
-    const populatedTransaction = await this.factory.populateTransaction.deployCounterFactualAccount(
+    /*const populatedTransaction = await this.factory.populateTransaction.deployCounterFactualAccount(
       await this.defaultValidationModule.getAddress(),
       await this.defaultValidationModule.getInitData(),
       this.index,
-    );
+    );*/
 
     // TODO: interface should work.
     return hexConcat([
       this.factory.address,
-      populatedTransaction.data as string,
-      /*this.factory.interface.encodeFunctionData('deployCounterFactualAccount', [
+      // populatedTransaction.data as string,
+      this.factory.interface.encodeFunctionData('deployCounterFactualAccount', [
         await this.defaultValidationModule.getAddress(),
         await this.defaultValidationModule.getInitData(),
         this.index
-      ])*/
+      ])
     ]);
   }
 
@@ -191,15 +191,17 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     // this.isProxyDefined()
     const accountContract = await this._getAccountContract();
 
-    const populatedTransaction = await accountContract.populateTransaction.execute_ncC(to, value, data);
+    // const populatedTransaction = await accountContract.populateTransaction.execute_ncC(to, value, data);
 
-    /*const executeCallData = accountContract.interface.encodeFunctionData('execute_ncC', [
+    const executeCallData = accountContract.interface.encodeFunctionData('execute_ncC', [
       to,
       value,
       data
-    ])*/
+    ])
 
-    return populatedTransaction.data as string;
+    return executeCallData
+
+    // return populatedTransaction.data as string;
   }
 
   /**
@@ -213,13 +215,14 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     // this.isInitialized()
     // this.isProxyDefined()
     const accountContract = await this._getAccountContract();
-    const populatedTransaction = await accountContract.populateTransaction.executeBatch_y6U(to, value, data);
-    /*const executeBatchCallData = accountContract.interface.encodeFunctionData('executeBatch_y6U', [
+    // const populatedTransaction = await accountContract.populateTransaction.executeBatch_y6U(to, value, data);
+    const executeBatchCallData = accountContract.interface.encodeFunctionData('executeBatch_y6U', [
       to,
       value,
       data
-    ])*/
-    return populatedTransaction.data as string;
+    ])
+    return executeBatchCallData
+    // return populatedTransaction.data as string;
   }
 
   // dummy signature depends on the validation module supplied.
@@ -539,11 +542,11 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
   async getEnableModuleData(moduleAddress: string): Promise<Transaction> {
     const accountContract = await this._getAccountContract();
-    const populatedTransaction = await accountContract.populateTransaction.enableModule(moduleAddress);
+    const data = accountContract.interface.encodeFunctionData("enableModule", [moduleAddress]);
     const tx: Transaction = {
       to: await this.getAccountAddress(),
       value: "0",
-      data: populatedTransaction.data as string,
+      data: data as string,
     };
     return tx;
   }
@@ -551,11 +554,12 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   async getSetupAndEnableModuleData(moduleAddress: string, moduleSetupData: string): Promise<Transaction> {
     const accountContract = await this._getAccountContract();
     // TODO: using encodeFunctionData
-    const populatedTransaction = await accountContract.populateTransaction.setupAndEnableModule(moduleAddress, moduleSetupData);
+    // const populatedTransaction = await accountContract.populateTransaction.setupAndEnableModule(moduleAddress, moduleSetupData);
+    const data = accountContract.interface.encodeFunctionData("setupAndEnableModule", [moduleAddress, moduleSetupData]);
     const tx: Transaction = {
       to: await this.getAccountAddress(),
       value: "0",
-      data: populatedTransaction.data as string,
+      data: data as string,
     };
     return tx;
   }

@@ -37,6 +37,7 @@ export const ENTRYPOINT_ADDRESSES_BY_VERSION: EntryPointAddressesByVersion = {
 };
 
 // TODO // Update with latest factory address
+// make use of BICONOMY_FACTORY_ADDRESSES to create reverse mapping here
 export const BICONOMY_FACTORY_ADDRESSES_BY_VERSION: BiconomyFactoriesByVersion = {
   V1_0_0: "0x000000f9ee1842bb72f6bbdd75e6d3d4e3e9594c",
   V2_0_0: "0x000000a56Aaca3e9a4C479ea6b6CD0DbcB6634F5",

@@ -54,6 +54,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     this.entryPoint = EntryPoint__factory.connect(this.entryPointAddress, this.provider).connect(ethers.constants.AddressZero);
   }
 
+  // TODO
   async init(): Promise<this> {
     if ((await this.provider.getCode(this.entryPointAddress)) === "0x") {
       throw new Error(`EntryPoint not deployed at ${this.entryPointAddress} at chainId ${this.chainId}}`);

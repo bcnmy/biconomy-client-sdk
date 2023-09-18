@@ -123,7 +123,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       );
     const proxyInstanceDto = {
       smartAccountType: SmartAccountType.BICONOMY,
-      version: BICONOMY_IMPLEMENTATION_ADDRESSES[this.address],
+      version: BICONOMY_IMPLEMENTATION_ADDRESSES[this.smartAccountInfo.implementationAddress],
       contractAddress: this.address,
       provider: this.provider,
     };
