@@ -58,6 +58,8 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
   minimalHandlerAddress: string;
 
+  implementationAddress: string;
+
   // Validation module responsible for account deployment initCode. This acts as a default authorization module.
   defaultValidationModule: BaseValidationModule;
 
@@ -68,12 +70,15 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     super(biconomySmartAccountConfig);
     // Review: if it's really needed to supply factory address
     this.factoryAddress = biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS; // This would be fetched from V2
+
     const minimalHandlerAddress =
       this.factoryAddress === DEFAULT_BICONOMY_FACTORY_ADDRESS ? DEFAULT_MINIMAL_HANDLER_ADDRESS : biconomySmartAccountConfig.minimalHandlerAddress;
     if (!minimalHandlerAddress) {
       throw new Error("Minimal handler address is not provided");
     }
     this.minimalHandlerAddress = minimalHandlerAddress;
+
+    this.implementationAddress = biconomySmartAccountConfig.implementationAddress ?? BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0;
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
@@ -155,10 +160,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
         validationModule.getAddress(),
         await validationModule.getInitData(),
       ]);
-      const proxyCreationCodeHash = solidityKeccak256(
-        ["bytes", "uint256"],
-        [PROXY_CREATION_CODE, BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0],
-      );
+      const proxyCreationCodeHash = solidityKeccak256(["bytes", "uint256"], [PROXY_CREATION_CODE, this.implementationAddress]);
       const salt = solidityKeccak256(["bytes32", "uint256"], [keccak256(initCalldata), index]);
       const counterFactualAddress = getCreate2Address(this.factory.address, salt, proxyCreationCodeHash);
 
