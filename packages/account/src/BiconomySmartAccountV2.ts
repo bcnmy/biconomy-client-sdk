@@ -266,6 +266,15 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     const data = transactions.map((element: Transaction) => element.data ?? "0x");
     const value = transactions.map((element: Transaction) => element.value ?? BigNumber.from("0"));
 
+    // Queue promises to fetch independent data.
+    const nonceFetchPromise = (async () => {
+      const _nonceSpace = buildUseropDto?.nonceOptions?.nonceKey ?? 0;
+      const nonce = await this.getNonce(_nonceSpace);
+      return nonce;
+    })();
+    const initCodeFetchPromise = this.getInitCode();
+    const dummySignatureFetchPromise = this.getDummySignature(buildUseropDto?.params);
+
     if (transactions.length === 0) {
       throw new Error("Transactions array cannot be empty");
     }
@@ -283,8 +292,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       if (buildUseropDto?.nonceOptions?.nonceOverride) {
         nonce = BigNumber.from(buildUseropDto?.nonceOptions?.nonceOverride);
       } else {
-        const _nonceSpace = buildUseropDto?.nonceOptions?.nonceKey ?? 0;
-        nonce = await this.getNonce(_nonceSpace);
+        nonce = await nonceFetchPromise;
       }
     } catch (error) {
       // Not throwing this error as nonce would be 0 if this.getNonce() throw exception, which is expected flow for undeployed account
@@ -299,13 +307,14 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     let userOp: Partial<UserOperation> = {
       sender: this.accountAddress,
       nonce,
-      initCode: await this.getInitCode(),
+      initCode: await initCodeFetchPromise,
       callData: callData,
     };
 
     // for this Smart Account current validation module dummy signature will be used to estimate gas
-    userOp.signature = await this.getDummySignature(buildUseropDto?.params);
+    userOp.signature = await dummySignatureFetchPromise;
 
+    // TODO: @AmanRaj1608 this will be removed?
     userOp = await this.estimateUserOpGas(userOp, buildUseropDto?.overrides, buildUseropDto?.skipBundlerGasEstimation);
     Logger.log("UserOp after estimation ", userOp);
 

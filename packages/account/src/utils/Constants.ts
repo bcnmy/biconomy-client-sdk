@@ -38,15 +38,13 @@ export const ENTRYPOINT_ADDRESSES_BY_VERSION: EntryPointAddressesByVersion = {
 
 // TODO // Update with latest factory address
 // make use of BICONOMY_FACTORY_ADDRESSES to create reverse mapping here
-export const BICONOMY_FACTORY_ADDRESSES_BY_VERSION: BiconomyFactoriesByVersion = {
-  V1_0_0: "0x000000f9ee1842bb72f6bbdd75e6d3d4e3e9594c",
-  V2_0_0: "0x000000a56Aaca3e9a4C479ea6b6CD0DbcB6634F5",
-};
+export const BICONOMY_FACTORY_ADDRESSES_BY_VERSION: BiconomyFactoriesByVersion = Object.fromEntries(
+  Object.entries(BICONOMY_FACTORY_ADDRESSES).map(([k, v]) => [v, k]),
+);
 
 // TODO // Update with latest implementation address which includes 2D nonce interface
-export const BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION: BiconomyImplementationsByVersion = {
-  V1_0_0: "0x00006b7e42e01957da540dc6a8f7c30c4d816af5",
-  V2_0_0: "0x0000002512019Dafb59528B82CB92D3c5D2423aC",
-};
+export const BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION: BiconomyImplementationsByVersion = Object.fromEntries(
+  Object.entries(BICONOMY_IMPLEMENTATION_ADDRESSES).map(([k, v]) => [v, k]),
+);
 
 export const EIP1559_UNSUPPORTED_NETWORKS: Array<ChainId> = [97, 56, 1442, 1101];
