@@ -1,7 +1,7 @@
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { ethers, BigNumberish, BytesLike, BigNumber } from "ethers";
 import { BaseSmartAccount } from "./BaseSmartAccount";
-import { Bytes, hexConcat } from "ethers/lib/utils";
+import { Bytes, getCreate2Address, hexConcat, keccak256, solidityKeccak256 } from "ethers/lib/utils";
 // Review failure reason for import from '@biconomy/account-contracts-v2/typechain'
 import {
   Logger,
@@ -27,7 +27,12 @@ import {
   SCWTransactionResponse,
 } from "@biconomy/node-client";
 import { UserOpResponse } from "@biconomy/bundler";
-import { DEFAULT_BICONOMY_FACTORY_ADDRESS } from "./utils/Constants";
+import {
+  BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION,
+  DEFAULT_BICONOMY_FACTORY_ADDRESS,
+  DEFAULT_MINIMAL_HANDLER_ADDRESS,
+  PROXY_CREATION_CODE,
+} from "./utils/Constants";
 
 type UserOperationKey = keyof UserOperation;
 export class BiconomySmartAccountV2 extends BaseSmartAccount {
@@ -51,6 +56,8 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
   factory?: SmartAccountFactory_v200;
 
+  minimalHandlerAddress: string;
+
   // Validation module responsible for account deployment initCode. This acts as a default authorization module.
   defaultValidationModule: BaseValidationModule;
 
@@ -61,6 +68,13 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     super(biconomySmartAccountConfig);
     // Review: if it's really needed to supply factory address
     this.factoryAddress = biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS; // This would be fetched from V2
+    const minimalHandlerAddress =
+      this.factoryAddress === DEFAULT_BICONOMY_FACTORY_ADDRESS ? DEFAULT_MINIMAL_HANDLER_ADDRESS : biconomySmartAccountConfig.minimalHandlerAddress;
+    if (!minimalHandlerAddress) {
+      throw new Error("Minimal handler address is not provided");
+    }
+    this.minimalHandlerAddress = minimalHandlerAddress;
+
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -124,8 +138,6 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
    * calculate the account address even before it is deployed
    */
   async getCounterFactualAddress(params?: CounterFactualAddressParam): Promise<string> {
-    // use Factory method instead
-
     if (this.factory == null) {
       if (this.factoryAddress != null && this.factoryAddress !== "") {
         this.factory = SmartAccountFactory_v200__factory.connect(this.factoryAddress, this.provider);
@@ -134,17 +146,26 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       }
     }
 
-    const _defaultAuthModule = params?.validationModule ?? this.defaultValidationModule;
-    const _index = params?.index ?? this.index;
+    const validationModule = params?.validationModule ?? this.defaultValidationModule;
+    const index = params?.index ?? this.index;
 
-    // TODO // use off-chain ts util functions
-    const counterFactualAddress = await this.factory.getAddressForCounterFactualAccount(
-      _defaultAuthModule.getAddress(),
-      await _defaultAuthModule.getInitData(),
-      _index,
-    );
+    try {
+      const initCalldata = SmartAccount_v200__factory.createInterface().encodeFunctionData("init", [
+        this.minimalHandlerAddress,
+        validationModule.getAddress(),
+        await validationModule.getInitData(),
+      ]);
+      const proxyCreationCodeHash = solidityKeccak256(
+        ["bytes", "uint256"],
+        [PROXY_CREATION_CODE, BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0],
+      );
+      const salt = solidityKeccak256(["bytes32", "uint256"], [keccak256(initCalldata), index]);
+      const counterFactualAddress = getCreate2Address(this.factory.address, salt, proxyCreationCodeHash);
 
-    return counterFactualAddress;
+      return counterFactualAddress;
+    } catch (e) {
+      throw new Error(`Failed to get counterfactual address, ${e}`);
+    }
   }
 
   /**

@@ -66,6 +66,7 @@ export type BiconomySmartAccountConfig = {
 
 export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
   factoryAddress?: string;
+  minimalHandlerAddress?: string;
   rpcUrl?: string; // as good as Provider
   nodeClientUrl?: string; // very specific to Biconomy
   defaultValidationModule: BaseValidationModule;
