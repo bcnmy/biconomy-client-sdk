@@ -73,7 +73,9 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     instance.factoryAddress = biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS; // This would be fetched from V2
 
     const defaultFallbackHandlerAddress =
-    instance.factoryAddress === DEFAULT_BICONOMY_FACTORY_ADDRESS ? DEFAULT_FALLBACK_HANDLER_ADDRESS : biconomySmartAccountConfig.defaultFallbackHandler;
+      instance.factoryAddress === DEFAULT_BICONOMY_FACTORY_ADDRESS
+        ? DEFAULT_FALLBACK_HANDLER_ADDRESS
+        : biconomySmartAccountConfig.defaultFallbackHandler;
     if (!defaultFallbackHandlerAddress) {
       throw new Error("Default Fallback Handler address is not provided");
     }
@@ -93,8 +95,8 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     }
 
     instance.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL });
-    
-    return instance
+
+    return instance;
   }
 
   async _getAccountContract(): Promise<SmartAccount_v200> {

@@ -33,7 +33,7 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
       // Note: in this case Version remains the default one
     }
     instance.signer = moduleConfig.signer;
-    return instance
+    return instance;
   }
 
   getAddress(): string {
