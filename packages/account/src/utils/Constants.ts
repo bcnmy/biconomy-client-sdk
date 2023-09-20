@@ -8,8 +8,6 @@ import {
   BiconomyImplementationsByVersion,
 } from "./Types";
 
-// Review: Note: Might be a good idea to keep reverse mapping for below and also default constants for latest versioned addresses*/
-
 // will always be latest entrypoint address
 export const DEFAULT_ENTRYPOINT_ADDRESS = "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789";
 export const ENTRYPOINT_ADDRESSES: EntryPointAddresses = {
@@ -37,13 +35,10 @@ export const ENTRYPOINT_ADDRESSES_BY_VERSION: EntryPointAddressesByVersion = {
   V0_0_6: "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789",
 };
 
-// TODO // Update with latest factory address
-// make use of BICONOMY_FACTORY_ADDRESSES to create reverse mapping here
 export const BICONOMY_FACTORY_ADDRESSES_BY_VERSION: BiconomyFactoriesByVersion = Object.fromEntries(
   Object.entries(BICONOMY_FACTORY_ADDRESSES).map(([k, v]) => [v, k]),
 );
 
-// TODO // Update with latest implementation address which includes 2D nonce interface
 export const BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION: BiconomyImplementationsByVersion = Object.fromEntries(
   Object.entries(BICONOMY_IMPLEMENTATION_ADDRESSES).map(([k, v]) => [v, k]),
 );

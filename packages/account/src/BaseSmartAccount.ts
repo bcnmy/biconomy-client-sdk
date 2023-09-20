@@ -15,9 +15,6 @@ import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants";
 type UserOperationKey = keyof UserOperation;
 
 export abstract class BaseSmartAccount implements IBaseSmartAccount {
-  // Review : compare with BaseAccountAPI
-  // private senderAddress!: string
-
   bundler?: IBundler; // httpRpcClient
 
   paymaster?: IPaymaster; // paymasterAPI
@@ -33,7 +30,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
 
   chainId?: ChainId;
 
-  provider: Provider; // Review
+  provider: Provider;
 
   // entryPoint connected to "zero" address. allowed to make static calls (e.g. to getSenderAddress)
   private readonly entryPoint!: EntryPoint;
@@ -143,10 +140,9 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     let signature = await this.signUserOpHash(userOpHash);
 
     // Some signers do not return signed data with 0x prefix. make sure the v value is 27/28 instead of 0/1
-    // Review: Make sure if it's valid hexString otherwise append 0x.
-
     // Also split sig and add +27 to v is v is only 0/1. then stitch it back
 
+    // Note: Should only be applied for ECDSA k1 signatures
     const potentiallyIncorrectV = parseInt(signature.slice(-2), 16);
     if (![27, 28].includes(potentiallyIncorrectV)) {
       const correctV = potentiallyIncorrectV + 27;
@@ -156,19 +152,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
       signature = "0x" + signature;
     }
 
-    // TODO
-    // If the account is undeployed, use ERC-6492
-    // Extend in child classes
-    /*if (!(await this.isAccountDeployed(this.getSmartAccountAddress()))) {
-      const coder = new ethers.utils.AbiCoder()
-      sig =
-        coder.encode(
-          ['address', 'bytes', 'bytes'],
-          [<FACTORY_ADDRESS>, <INIT_CODE>, sig]
-        ) + '6492649264926492649264926492649264926492649264926492649264926492' // magic suffix
-    }*/
-
-    userOp.signature = signature; // sig
+    userOp.signature = signature;
     return userOp as UserOperation;
   }
 
@@ -285,7 +269,6 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     return "0x";
   }
 
-  // Review : usage trace of this method. in the order of init and methods called on the Account
   async isAccountDeployed(address: string): Promise<boolean> {
     this.isProviderDefined();
     let isDeployed = false;
@@ -350,7 +333,6 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
    * return the account's address.
    * this value is valid even before deploying the contract.
    */
-  // Review: Probably should accept index as well as we rely on factory!
   async getAccountAddress(): Promise<string> {
     if (this.accountAddress == null) {
       // means it needs deployment
@@ -421,65 +403,12 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     };
   }
 
-  // TODO: allow this for batch. Review previous sdk versions
-
-  /**
-   * create a UserOperation, filling all details (except signature)
-   * - if account is not yet created, add initCode to deploy it.
-   * - if gas or nonce are missing, read them from the chain (note that we can't fill gaslimit before the account is created)
-   * @param info
-   */
-  async createUnsignedUserOp(info: TransactionDetailsForUserOp): Promise<UserOperation> {
-    const { callData, callGasLimit } = await this.encodeUserOpCallDataAndGasLimit(info);
-    const initCode = await this.getInitCode();
-
-    const verificationGasLimit = BigNumber.from(await this.getVerificationGasLimit(initCode));
-
-    let { maxFeePerGas, maxPriorityFeePerGas } = info;
-    if (maxFeePerGas == null || maxPriorityFeePerGas == null) {
-      const feeData = await this.provider.getFeeData();
-      if (maxFeePerGas == null) {
-        maxFeePerGas = feeData.maxFeePerGas ?? undefined;
-      }
-      if (maxPriorityFeePerGas == null) {
-        maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? undefined;
-      }
-    }
-
-    const partialUserOp: any = {
-      sender: this.getAccountAddress(),
-      nonce: info.nonce ?? this.getNonce(),
-      initCode,
-      callData,
-      callGasLimit,
-      verificationGasLimit,
-      maxFeePerGas,
-      maxPriorityFeePerGas,
-      paymasterAndData: "0x",
-    };
-
-    let paymasterAndData: string | undefined;
-    if (this.paymaster != null) {
-      // fill (partial) preVerificationGas (all except the cost of the generated paymasterAndData)
-      const userOpForPm = {
-        ...partialUserOp,
-        preVerificationGas: await this.getPreVerificationGas(partialUserOp),
-      };
-      paymasterAndData = (await this.paymaster.getPaymasterAndData(userOpForPm)).paymasterAndData;
-    }
-    partialUserOp.paymasterAndData = paymasterAndData ?? "0x";
-    return {
-      ...partialUserOp,
-      preVerificationGas: this.getPreVerificationGas(partialUserOp),
-      signature: "",
-    };
-  }
-
   /**
    * helper method: create and sign a user operation.
    * @param info transaction details for the userOp
    */
   async createSignedUserOp(info: TransactionDetailsForUserOp): Promise<UserOperation> {
-    return this.signUserOp(await this.createUnsignedUserOp(info));
+    Logger.log("createSignedUserOp called with info", info);
+    throw new Error("Not implemented. Please use buildUserOp/buildUserOperation in account implementation");
   }
 }

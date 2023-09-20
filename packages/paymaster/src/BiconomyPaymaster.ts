@@ -41,7 +41,6 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
    * @returns A Promise that resolves to the prepared partial user operation.
    */
   private async prepareUserOperation(userOp: Partial<UserOperation>): Promise<Partial<UserOperation>> {
-    // Review
     userOp = await resolveProperties(userOp);
     if (userOp.nonce !== null || userOp.nonce !== undefined) {
       userOp.nonce = BigNumber.from(userOp.nonce).toHexString();
@@ -256,7 +255,6 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     userOp: Partial<UserOperation>,
     paymasterServiceData?: SponsorUserOperationDto, // mode is necessary. partial context of token paymaster or verifying
   ): Promise<PaymasterAndDataResponse> {
-    // TODO
     try {
       userOp = await this.prepareUserOperation(userOp);
     } catch (err) {
