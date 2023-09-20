@@ -68,6 +68,14 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
   }
 
   async signMessage(message: Bytes | string): Promise<string> {
-    return this.signer.signMessage(message);
+    let signature = await this.signer.signMessage(message);
+
+    const potentiallyIncorrectV = parseInt(signature.slice(-2), 16);
+    if (![27, 28].includes(potentiallyIncorrectV)) {
+      const correctV = potentiallyIncorrectV + 27;
+      signature = signature.slice(0, -2) + correctV.toString(16);
+    }
+
+    return signature
   }
 }

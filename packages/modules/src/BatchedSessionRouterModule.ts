@@ -204,8 +204,6 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
    * @remarks This is the dummy signature for the module, used in buildUserOp for bundler estimation
    * @returns Dummy signature
    */
-  // Review
-  // instead of search params it could be actual leaves info retrieved beforehand
   async getDummySignature(params?: ModuleInfo): Promise<string> {
     const sessionParams = params?.batchSessionParams;
     if (!sessionParams || sessionParams.length === 0) {

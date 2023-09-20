@@ -68,7 +68,6 @@ export type GetUserOpByHashResponse = {
   error?: JsonRpcError;
 };
 
-//  TODO: need to verify this type from infinitism bundler, stackup
 export type UserOpByHashResponse = UserOperation & {
   transactionHash: string;
   blockNumber: number;

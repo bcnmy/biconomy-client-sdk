@@ -68,7 +68,15 @@ export class MultiChainValidationModule extends BaseValidationModule {
   }
 
   async signMessage(message: Bytes | string): Promise<string> {
-    return this.signer.signMessage(message);
+    let signature = await this.signer.signMessage(message);
+
+    const potentiallyIncorrectV = parseInt(signature.slice(-2), 16);
+    if (![27, 28].includes(potentiallyIncorrectV)) {
+      const correctV = potentiallyIncorrectV + 27;
+      signature = signature.slice(0, -2) + correctV.toString(16);
+    }
+
+    return signature
   }
 
   async signUserOps(multiChainUserOps: MultiChainUserOpDto[]): Promise<UserOperation[]> {
@@ -91,7 +99,13 @@ export class MultiChainValidationModule extends BaseValidationModule {
       // Create a new Merkle tree using the leaves array
       const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
 
-      const multichainSignature = await this.signer.signMessage(arrayify(merkleTree.getHexRoot()));
+      let multichainSignature = await this.signer.signMessage(arrayify(merkleTree.getHexRoot()));
+
+      const potentiallyIncorrectV = parseInt(multichainSignature.slice(-2), 16);
+      if (![27, 28].includes(potentiallyIncorrectV)) {
+      const correctV = potentiallyIncorrectV + 27;
+      multichainSignature = multichainSignature.slice(0, -2) + correctV.toString(16);
+      }
 
       // Create an array to store updated userOps
       const updatedUserOps: UserOperation[] = [];

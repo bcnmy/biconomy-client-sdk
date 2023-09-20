@@ -166,7 +166,6 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     // Review: Just setting different default validation module and querying account address is not working
     // accountAPI.setDefaultValidationModule(module2);
 
-    // Review with setting different validation module other than provided in config
     accountAPI2 = await accountAPI2.init();
 
     const accountAddress2 = await accountAPI2.getAccountAddress();
@@ -193,7 +192,6 @@ describe("BiconomySmartAccountV2 API Specs", () => {
   });
 
   it("should check if module is enabled", async () => {
-    // Review
     const isEcdsaModuleEnabled = await accountAPI.isModuleEnabled((module1 as any).moduleAddress);
 
     expect(isEcdsaModuleEnabled).toBe(true);

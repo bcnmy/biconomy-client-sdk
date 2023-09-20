@@ -139,7 +139,6 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     const setMerkleRootData = sessionKeyManagerModuleInterface.encodeFunctionData("setMerkleRoot", [this.merkleTree.getHexRoot()]);
 
     await this.sessionStorageClient.setMerkleRoot(this.merkleTree.getHexRoot());
-    // TODO: create a signer if sessionPubKey if not given
     return {
       data: setMerkleRootData,
       sessionIDInfo: sessionIDInfo,
@@ -247,8 +246,6 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @remarks This is the dummy signature for the module, used in buildUserOp for bundler estimation
    * @returns Dummy signature
    */
-  // Review
-  // instead of search params it could be actual leaf info retrieved beforehand
   async getDummySignature(params?: ModuleInfo): Promise<string> {
     Logger.log("moduleInfo ", params);
     if (!params) {

@@ -27,8 +27,6 @@ export type PaymasterConfig = {
   strictMode?: boolean;
 };
 
-// review types and naming convention
-// meant for pm_sponsorUserOperation
 export type SponsorUserOperationDto = {
   mode: PaymasterMode;
   calculateGasLimits?: boolean;
@@ -41,8 +39,6 @@ export type SponsorUserOperationDto = {
   feeTokenAddress?: string;
 };
 
-// review types and naming convention
-// meant for pm_getFeeQuoteOrData
 export type FeeQuotesOrDataDto = {
   mode?: PaymasterMode;
   expiryDuration?: number;

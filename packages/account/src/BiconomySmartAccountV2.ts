@@ -2,7 +2,6 @@ import { JsonRpcProvider } from "@ethersproject/providers";
 import { ethers, BigNumberish, BytesLike, BigNumber } from "ethers";
 import { BaseSmartAccount } from "./BaseSmartAccount";
 import { Bytes, getCreate2Address, hexConcat, keccak256, solidityKeccak256 } from "ethers/lib/utils";
-// Review failure reason for import from '@biconomy/account-contracts-v2/typechain'
 import {
   Logger,
   NODE_CLIENT_URL,
@@ -39,10 +38,6 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   private nodeClient!: INodeClient;
 
   private SENTINEL_MODULE = "0x0000000000000000000000000000000000000001";
-
-  // Review: Marked for deletion
-  // private smartAccountInfo!: ISmartAccount
-  // private _isInitialised!: boolean
 
   factoryAddress?: string;
 
@@ -231,7 +226,6 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return this.activeValidationModule.getDummySignature(params);
   }
 
-  // Review:
   // Might use provided paymaster instance to get dummy data (from pm service)
   getDummyPaymasterData(): string {
     return "0x";
@@ -254,7 +248,23 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     super.validateUserOp(userOp, requiredFields);
     const userOpHash = await this.getUserOpHash(userOp);
 
-    const moduleSig = await this.activeValidationModule.signUserOpHash(userOpHash, params);
+    let moduleSig = await this.activeValidationModule.signUserOpHash(userOpHash, params);
+
+    // Note: If the account is undeployed, use ERC-6492
+    // Review: Should only be needed for signMessage
+    /*if (!(await this.isAccountDeployed(await this.getAccountAddress()))) {
+      const coder = new ethers.utils.AbiCoder();
+      const populatedTransaction = await this.factory?.populateTransaction.deployCounterFactualAccount(
+        await this.defaultValidationModule.getAddress(),
+        await this.defaultValidationModule.getInitData(),
+        this.index,
+      );
+      moduleSig =
+        coder.encode(["address", "bytes", "bytes"], [this.factoryAddress, populatedTransaction?.data, moduleSig]) +
+        "6492649264926492649264926492649264926492649264926492649264926492"; // magic suffix
+      userOp.signature = moduleSig;
+      return userOp as UserOperation;
+    }*/
 
     const signatureWithModuleAddress = ethers.utils.defaultAbiCoder.encode(
       ["bytes", "address"],
@@ -286,11 +296,6 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   }
 
   async buildUserOp(transactions: Transaction[], buildUseropDto?: BuildUserOpOptions): Promise<Partial<UserOperation>> {
-    // Review: may not need at all
-    // this.isInitialized()
-
-    // TODO: validate to, value and data fields
-    // TODO: validate overrides if supplied
     const to = transactions.map((element: Transaction) => element.to);
     const data = transactions.map((element: Transaction) => element.data ?? "0x");
     const value = transactions.map((element: Transaction) => element.value ?? BigNumber.from("0"));
@@ -326,12 +331,6 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     } catch (error) {
       // Not throwing this error as nonce would be 0 if this.getNonce() throw exception, which is expected flow for undeployed account
     }
-
-    // let isDeployed = false
-
-    /*if (nonce.eq(0) && this.accountAddress) {
-      isDeployed = await this.isAccountDeployed(this.accountAddress)
-    }*/
 
     let userOp: Partial<UserOperation> = {
       sender: this.accountAddress,
@@ -495,27 +494,22 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     const dataHash = ethers.utils.arrayify(ethers.utils.hashMessage(message));
     let signature = await this.activeValidationModule.signMessage(dataHash);
 
-    const potentiallyIncorrectV = parseInt(signature.slice(-2), 16);
-    if (![27, 28].includes(potentiallyIncorrectV)) {
-      const correctV = potentiallyIncorrectV + 27;
-      signature = signature.slice(0, -2) + correctV.toString(16);
-    }
     if (signature.slice(0, 2) !== "0x") {
       signature = "0x" + signature;
     }
 
-    // TODO
-    // Review if need to be added in signUserOpHash methods in validationModule as well
     // If the account is undeployed, use ERC-6492
-    // Extend in child classes
-    /*if (!(await this.isAccountDeployed(this.getAccountAddress()))) {
-      const coder = new ethers.utils.AbiCoder()
-      sig =
-        coder.encode(
-          ['address', 'bytes', 'bytes'],
-          [<FACTORY_ADDRESS>, <INIT_CODE>, sig]
-        ) + '6492649264926492649264926492649264926492649264926492649264926492' // magic suffix
-    }*/
+    if (!(await this.isAccountDeployed(await this.getAccountAddress()))) {
+      const coder = new ethers.utils.AbiCoder();
+      const populatedTransaction = await this.factory?.populateTransaction.deployCounterFactualAccount(
+        await this.defaultValidationModule.getAddress(),
+        await this.defaultValidationModule.getInitData(),
+        this.index,
+      );
+      signature =
+        coder.encode(["address", "bytes", "bytes"], [this.factoryAddress, populatedTransaction?.data, signature]) +
+        "6492649264926492649264926492649264926492649264926492649264926492"; // magic suffix
+    }
     return signature;
   }
 

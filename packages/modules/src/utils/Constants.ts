@@ -13,7 +13,7 @@ export const ENTRYPOINT_ADDRESSES_BY_VERSION = {
   V0_0_6: "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789",
 };
 
-// Review: If we should append these defaults with ADDRESS suffix
+// Note: we could append these defaults with ADDRESS suffix
 export const DEFAULT_ECDSA_OWNERSHIP_MODULE = "0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e";
 
 export const ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION = {

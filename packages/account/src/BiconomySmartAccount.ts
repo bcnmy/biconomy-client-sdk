@@ -258,8 +258,6 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
 
   async buildUserOp(transactions: Transaction[], overrides?: Overrides, skipBundlerGasEstimation?: boolean): Promise<Partial<UserOperation>> {
     this.isInitialized();
-    // TODO: validate to, value and data fields
-    // TODO: validate overrides if supplied
     const to = transactions.map((element: Transaction) => element.to);
     const data = transactions.map((element: Transaction) => element.data ?? "0x");
     const value = transactions.map((element: Transaction) => element.value ?? BigNumber.from("0"));
