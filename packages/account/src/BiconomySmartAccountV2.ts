@@ -70,6 +70,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
     const instance = new BiconomySmartAccountV2(biconomySmartAccountConfig);
+    await instance.init()
     instance.factoryAddress = biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS; // This would be fetched from V2
 
     const defaultFallbackHandlerAddress =
