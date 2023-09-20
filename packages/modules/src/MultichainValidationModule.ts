@@ -76,7 +76,7 @@ export class MultiChainValidationModule extends BaseValidationModule {
       signature = signature.slice(0, -2) + correctV.toString(16);
     }
 
-    return signature
+    return signature;
   }
 
   async signUserOps(multiChainUserOps: MultiChainUserOpDto[]): Promise<UserOperation[]> {
@@ -103,8 +103,8 @@ export class MultiChainValidationModule extends BaseValidationModule {
 
       const potentiallyIncorrectV = parseInt(multichainSignature.slice(-2), 16);
       if (![27, 28].includes(potentiallyIncorrectV)) {
-      const correctV = potentiallyIncorrectV + 27;
-      multichainSignature = multichainSignature.slice(0, -2) + correctV.toString(16);
+        const correctV = potentiallyIncorrectV + 27;
+        multichainSignature = multichainSignature.slice(0, -2) + correctV.toString(16);
       }
 
       // Create an array to store updated userOps

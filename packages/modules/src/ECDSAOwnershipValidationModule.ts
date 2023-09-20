@@ -76,6 +76,6 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
       signature = signature.slice(0, -2) + correctV.toString(16);
     }
 
-    return signature
+    return signature;
   }
 }

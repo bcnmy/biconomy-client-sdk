@@ -65,7 +65,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
     const instance = new BiconomySmartAccountV2(biconomySmartAccountConfig);
-    await instance.init()
+    await instance.init();
     instance.factoryAddress = biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS; // This would be fetched from V2
 
     const defaultFallbackHandlerAddress =
@@ -248,7 +248,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     super.validateUserOp(userOp, requiredFields);
     const userOpHash = await this.getUserOpHash(userOp);
 
-    let moduleSig = await this.activeValidationModule.signUserOpHash(userOpHash, params);
+    const moduleSig = await this.activeValidationModule.signUserOpHash(userOpHash, params);
 
     // Note: If the account is undeployed, use ERC-6492
     // Review: Should only be needed for signMessage
