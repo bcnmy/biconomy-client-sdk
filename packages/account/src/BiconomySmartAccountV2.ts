@@ -122,6 +122,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   setDefaultValidationModule(validationModule: BaseValidationModule): BiconomySmartAccountV2 {
     if (validationModule instanceof BaseValidationModule) {
       this.defaultValidationModule = validationModule;
+      this.accountAddress = undefined;
     }
     return this;
   }
@@ -136,9 +137,17 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return BigNumber.from(0);
   }
 
-  // Review
-  // Overridden this method because entryPoint.callStatic.getSenderAddress() based on initCode doesnt always work
-  // in case of account is deployed you would get AA13 or AA10
+  /**
+   * return the account's address.
+   * this value is valid even before deploying the contract.
+   */
+  async getAccountAddress(params?: CounterFactualAddressParam): Promise<string> {
+    if (this.accountAddress == null) {
+      // means it needs deployment
+      this.accountAddress = await this.getCounterFactualAddress(params);
+    }
+    return this.accountAddress;
+  }
 
   /**
    * calculate the account address even before it is deployed
@@ -333,7 +342,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     }
 
     let userOp: Partial<UserOperation> = {
-      sender: this.accountAddress,
+      sender: await this.getAccountAddress(),
       nonce,
       initCode: await initCodeFetchPromise,
       callData: callData,
@@ -342,7 +351,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     // for this Smart Account current validation module dummy signature will be used to estimate gas
     userOp.signature = await dummySignatureFetchPromise;
 
-    // TODO: @AmanRaj1608 this will be removed?
+    // Note: Can change the default behaviour of calling estimations using bundler/local
     userOp = await this.estimateUserOpGas(userOp, buildUseropDto?.overrides, buildUseropDto?.skipBundlerGasEstimation);
     Logger.log("UserOp after estimation ", userOp);
 

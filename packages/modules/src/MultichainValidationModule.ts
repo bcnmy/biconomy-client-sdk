@@ -126,8 +126,7 @@ export class MultiChainValidationModule extends BaseValidationModule {
           [validUntil, validAfter, merkleTree.getHexRoot(), merkleProof, multichainSignature],
         );
 
-        // add validation module address to the signature
-        // Note: because accountV2 does not directly call this method.
+        // Note: Because accountV2 does not directly call this method. hence we need to add validation module address to the signature
         const signatureWithModuleAddress = defaultAbiCoder.encode(["bytes", "address"], [moduleSignature, this.getAddress()]);
 
         // Update userOp with the final signature

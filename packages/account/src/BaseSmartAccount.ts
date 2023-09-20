@@ -15,9 +15,6 @@ import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants";
 type UserOperationKey = keyof UserOperation;
 
 export abstract class BaseSmartAccount implements IBaseSmartAccount {
-  // Review : compare with BaseAccountAPI
-  // private senderAddress!: string
-
   bundler?: IBundler; // httpRpcClient
 
   paymaster?: IPaymaster; // paymasterAPI
@@ -336,7 +333,6 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
    * return the account's address.
    * this value is valid even before deploying the contract.
    */
-  // Review: Probably should accept index as well as we rely on factory!
   async getAccountAddress(): Promise<string> {
     if (this.accountAddress == null) {
       // means it needs deployment
