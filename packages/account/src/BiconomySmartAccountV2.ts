@@ -30,7 +30,7 @@ import { UserOpResponse } from "@biconomy/bundler";
 import {
   BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION,
   DEFAULT_BICONOMY_FACTORY_ADDRESS,
-  DEFAULT_MINIMAL_HANDLER_ADDRESS,
+  DEFAULT_FALLBACK_HANDLER_ADDRESS,
   PROXY_CREATION_CODE,
 } from "./utils/Constants";
 
@@ -56,9 +56,9 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
   factory?: SmartAccountFactory_v200;
 
-  minimalHandlerAddress: string;
+  private defaultFallbackHandlerAddress: string;
 
-  implementationAddress: string;
+  private implementationAddress: string;
 
   // Validation module responsible for account deployment initCode. This acts as a default authorization module.
   defaultValidationModule: BaseValidationModule;
@@ -71,12 +71,12 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     // Review: if it's really needed to supply factory address
     this.factoryAddress = biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS; // This would be fetched from V2
 
-    const minimalHandlerAddress =
-      this.factoryAddress === DEFAULT_BICONOMY_FACTORY_ADDRESS ? DEFAULT_MINIMAL_HANDLER_ADDRESS : biconomySmartAccountConfig.minimalHandlerAddress;
-    if (!minimalHandlerAddress) {
-      throw new Error("Minimal handler address is not provided");
+    const defaultFallbackHandlerAddress =
+      this.factoryAddress === DEFAULT_BICONOMY_FACTORY_ADDRESS ? DEFAULT_FALLBACK_HANDLER_ADDRESS : biconomySmartAccountConfig.defaultFallbackHandler;
+    if (!defaultFallbackHandlerAddress) {
+      throw new Error("Default Fallback Handler address is not provided");
     }
-    this.minimalHandlerAddress = minimalHandlerAddress;
+    this.defaultFallbackHandlerAddress = defaultFallbackHandlerAddress;
 
     this.implementationAddress = biconomySmartAccountConfig.implementationAddress ?? BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0;
 
@@ -156,7 +156,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
     try {
       const initCalldata = SmartAccount_v200__factory.createInterface().encodeFunctionData("init", [
-        this.minimalHandlerAddress,
+        this.defaultFallbackHandlerAddress,
         validationModule.getAddress(),
         await validationModule.getInitData(),
       ]);
@@ -535,6 +535,10 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
   async getAllSupportedChains(): Promise<SupportedChainsResponse> {
     return this.nodeClient.getAllSupportedChains();
+  }
+
+  getImplementationAddress(): string {
+    return this.implementationAddress;
   }
 
   async enableModule(moduleAddress: string): Promise<UserOpResponse> {
