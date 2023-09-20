@@ -73,6 +73,8 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       // bundler: bundler,
       entryPointAddress: entryPoint.address,
       factoryAddress: accountFactory.address,
+      implementationAddress: accountImpl.address,
+      defaultFallbackHandler: await accountFactory.minimalHandler(),
       defaultValidationModule: module1,
       activeValidationModule: module1,
     });
@@ -154,6 +156,8 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       // bundler: bundler,
       entryPointAddress: entryPoint.address,
       factoryAddress: accountFactory.address,
+      implementationAddress: accountAPI.getImplementationAddress(),
+      defaultFallbackHandler: await accountFactory.minimalHandler(),
       defaultValidationModule: module2,
       activeValidationModule: module2,
     });

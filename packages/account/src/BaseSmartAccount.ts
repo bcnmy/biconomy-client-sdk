@@ -55,10 +55,10 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
   }
 
   async init(): Promise<this> {
+    if (this.entryPointAddress === DEFAULT_ENTRYPOINT_ADDRESS) return this;
     if ((await this.provider.getCode(this.entryPointAddress)) === "0x") {
       throw new Error(`EntryPoint not deployed at ${this.entryPointAddress} at chainId ${this.chainId}}`);
     }
-
     return this;
   }
 
