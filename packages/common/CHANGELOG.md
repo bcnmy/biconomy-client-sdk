@@ -15,13 +15,13 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 - Add logger for jsonRpc request([0c40641])(https://github.com/bcnmy/biconomy-client-sdk/commit/39a92fde78033e8dd850596a8a2ae7fc7bda0040)
 
-# 3.1.0-alpha.0 (2023-07-24)
+# 3.1.1-alpha.0 (2023-07-24)
 
 ### Features
 
 - chain integration ([738556e](https://github.com/bcnmy/biconomy-client-sdk/commit/738556efcfda70fedc652befc0b35f8835c5e360))
 
-## 3.0.0-alpha.0 (2023-07-12)
+## 3.1.1-alpha.0 (2023-07-12)
 
 ### Bug Fixes
 

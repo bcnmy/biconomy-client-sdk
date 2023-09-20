@@ -15,13 +15,13 @@ Modular SDK - consists stable version of below updates done in Alphas.
 
 VERSION bump only
 
-# 3.1.0-alpha.0 (2023-07-24)
+# 3.1.1-alpha.0 (2023-07-24)
 
 ### Bug Fixes
 
 - avoid sending populated values of gas prices when estimating from bundler ([c58c9fc](https://github.com/bcnmy/biconomy-client-sdk/commit/c58c9fc29ee83978e1a90305e839002431db2b7b))
 
-## 3.0.0-alpha.0 (2023-07-12)
+## 3.1.1-alpha.0 (2023-07-12)
 
 ### Bug Fixes
 

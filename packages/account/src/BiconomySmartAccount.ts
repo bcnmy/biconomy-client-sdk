@@ -1,6 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { ethers, BigNumberish, BytesLike, BigNumber } from "ethers";
 import { SmartAccount } from "./SmartAccount";
@@ -18,7 +15,7 @@ import { UserOperation, Transaction, SmartAccountType } from "@biconomy/core-typ
 import NodeClient from "@biconomy/node-client";
 import INodeClient from "@biconomy/node-client";
 import { IHybridPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from "@biconomy/paymaster";
-import { IBiconomySmartAccount } from "interfaces/IBiconomySmartAccount";
+import { IBiconomySmartAccount } from "./interfaces/IBiconomySmartAccount";
 import {
   ISmartAccount,
   SupportedChainsResponse,
@@ -119,21 +116,21 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     return true;
   }
 
-  private setProxyContractState() {
+  private setProxyContractState(): void {
     if (!BICONOMY_IMPLEMENTATION_ADDRESSES[this.smartAccountInfo.implementationAddress])
       throw new Error(
         "Could not find attached implementation address against your smart account. Please raise an issue on https://github.com/bcnmy/biconomy-client-sdk for further investigation.",
       );
     const proxyInstanceDto = {
       smartAccountType: SmartAccountType.BICONOMY,
-      version: BICONOMY_IMPLEMENTATION_ADDRESSES[this.address],
+      version: BICONOMY_IMPLEMENTATION_ADDRESSES[this.smartAccountInfo.implementationAddress],
       contractAddress: this.address,
       provider: this.provider,
     };
     this.proxy = getSAProxyContract(proxyInstanceDto);
   }
 
-  private setEntryPointContractState() {
+  private setEntryPointContractState(): void {
     const _entryPointAddress = this.smartAccountInfo.entryPointAddress;
     this.setEntryPointAddress(_entryPointAddress);
     if (!ENTRYPOINT_ADDRESSES[_entryPointAddress])
@@ -149,7 +146,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     this.entryPoint = getEntryPointContract(entryPointInstanceDto);
   }
 
-  private setFactoryContractState() {
+  private setFactoryContractState(): void {
     const _factoryAddress = this.smartAccountInfo.factoryAddress;
     if (!BICONOMY_FACTORY_ADDRESSES[_factoryAddress])
       throw new Error(
@@ -161,10 +158,10 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       contractAddress: _factoryAddress,
       provider: this.provider,
     };
-    this.factory = getSAFactoryContract(factoryInstanceDto);
+    this.factory = getSAFactoryContract(factoryInstanceDto) as SmartAccountFactory_v100;
   }
 
-  private async setContractsState() {
+  private async setContractsState(): Promise<void> {
     this.setProxyContractState();
     this.setEntryPointContractState();
     this.setFactoryContractState();
@@ -261,8 +258,6 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
 
   async buildUserOp(transactions: Transaction[], overrides?: Overrides, skipBundlerGasEstimation?: boolean): Promise<Partial<UserOperation>> {
     this.isInitialized();
-    // TODO: validate to, value and data fields
-    // TODO: validate overrides if supplied
     const to = transactions.map((element: Transaction) => element.to);
     const data = transactions.map((element: Transaction) => element.data ?? "0x");
     const value = transactions.map((element: Transaction) => element.value ?? BigNumber.from("0"));

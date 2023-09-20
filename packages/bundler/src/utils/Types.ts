@@ -5,6 +5,7 @@ export type Bundlerconfig = {
   bundlerUrl: string;
   entryPointAddress?: string;
   chainId: ChainId;
+  // eslint-disable-next-line no-unused-vars
   userOpReceiptIntervals?: { [key in ChainId]?: number };
 };
 
@@ -40,7 +41,7 @@ export type SendUserOpResponse = {
 
 export type UserOpResponse = {
   userOpHash: string;
-  wait(confirmations?: number): Promise<UserOpReceipt>;
+  wait(_confirmations?: number): Promise<UserOpReceipt>;
 };
 
 // Converted to JsonRpcResponse with strict type
@@ -67,7 +68,6 @@ export type GetUserOpByHashResponse = {
   error?: JsonRpcError;
 };
 
-//  TODO: need to verify this type from infinitism bundler, stackup
 export type UserOpByHashResponse = UserOperation & {
   transactionHash: string;
   blockNumber: number;

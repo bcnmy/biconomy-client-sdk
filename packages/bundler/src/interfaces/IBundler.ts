@@ -2,8 +2,8 @@ import { UserOpResponse, UserOpGasResponse, UserOpReceipt, UserOpByHashResponse 
 import { UserOperation } from "@biconomy/core-types";
 
 export interface IBundler {
-  estimateUserOpGas(userOp: Partial<UserOperation>): Promise<UserOpGasResponse>;
-  sendUserOp(userOp: UserOperation): Promise<UserOpResponse>;
-  getUserOpReceipt(userOpHash: string): Promise<UserOpReceipt>;
-  getUserOpByHash(userOpHash: string): Promise<UserOpByHashResponse>;
+  estimateUserOpGas(_userOp: Partial<UserOperation>): Promise<UserOpGasResponse>;
+  sendUserOp(_userOp: UserOperation): Promise<UserOpResponse>;
+  getUserOpReceipt(_userOpHash: string): Promise<UserOpReceipt>;
+  getUserOpByHash(_userOpHash: string): Promise<UserOpByHashResponse>;
 }

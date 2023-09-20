@@ -23,6 +23,7 @@ import { JsonRpcProvider } from "@ethersproject/providers";
  * Checkout the proposal for more details on Bundlers.
  */
 export class Bundler implements IBundler {
+  // eslint-disable-next-line no-unused-vars
   UserOpReceiptIntervals: { [key in ChainId]?: number };
 
   constructor(readonly bundlerConfig: Bundlerconfig) {

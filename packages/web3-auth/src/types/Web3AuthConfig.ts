@@ -9,7 +9,7 @@ export type WhiteLabelDataType = {
 
 export type SocialLoginDTO = {
   chainId: string;
-  whitelistUrls: { [P in string]: string };
+  whitelistUrls: { [P: string]: string };
   network: "mainnet" | "testnet";
   whteLableData: WhiteLabelDataType;
 };

@@ -1,6 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { BigNumber, Signer, BytesLike } from "ethers";
 import { ISmartAccount } from "./interfaces/ISmartAccount";
@@ -11,11 +8,13 @@ import { packUserOp } from "@biconomy/common";
 
 import { IBundler, UserOpResponse } from "@biconomy/bundler";
 import { IPaymaster, PaymasterAndDataResponse } from "@biconomy/paymaster";
-import { EntryPoint_v100, SmartAccount_v100, Logger } from "@biconomy/common";
+import { Logger } from "@biconomy/common";
+import { IEntryPoint } from "@account-abstraction/contracts";
 import { SmartAccountConfig, Overrides } from "./utils/Types";
 
 type UserOperationKey = keyof UserOperation;
 
+// Notice: only to be used as base class for child class BiconomySmartAccount(V1)
 export abstract class SmartAccount implements ISmartAccount {
   bundler!: IBundler;
 
@@ -23,13 +22,14 @@ export abstract class SmartAccount implements ISmartAccount {
 
   initCode = "0x";
 
-  proxy!: SmartAccount_v100;
+  // Ideally proxy should be defined in child class, if it's meant to be of type Biconomy SmartAccount
+  proxy!: any;
 
   owner!: string;
 
   provider!: JsonRpcProvider;
 
-  entryPoint!: EntryPoint_v100;
+  entryPoint!: IEntryPoint;
 
   chainId!: ChainId;
 
@@ -41,7 +41,7 @@ export abstract class SmartAccount implements ISmartAccount {
     this.smartAccountConfig = _smartAccountConfig;
   }
 
-  setEntryPointAddress(entryPointAddress: string) {
+  setEntryPointAddress(entryPointAddress: string): void {
     this.smartAccountConfig.entryPointAddress = entryPointAddress;
   }
 
@@ -196,7 +196,7 @@ export abstract class SmartAccount implements ISmartAccount {
     return keccak256(enc);
   }
 
-  abstract getSmartAccountAddress(accountIndex: number): Promise<string>;
+  abstract getSmartAccountAddress(_accountIndex: number): Promise<string>;
 
   async estimateCreationGas(initCode: string): Promise<BigNumber> {
     if (initCode == null || initCode === "0x") return BigNumber.from("0");

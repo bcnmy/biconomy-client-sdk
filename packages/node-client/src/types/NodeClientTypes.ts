@@ -17,7 +17,6 @@ export type SmartAccountInfoResponse = {
   };
 };
 
-// Review
 export type SCWTransactionResponse = {
   symbol: string;
   tokenAddress: string;
@@ -136,6 +135,7 @@ export type TokenInfo = {
   updatedAt: Date;
 };
 
+// Note: Applies for Account V1
 export type ISmartAccount = {
   version: SmartAccountVersion;
   smartAccountAddress: string;

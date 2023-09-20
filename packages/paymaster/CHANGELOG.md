@@ -17,11 +17,12 @@ Modular SDK - consists stable version of below updates done in Alphas.
 - handling userOp null values([c89ac42])(https://github.com/bcnmy/biconomy-client-sdk/commit/c89ac42ae1d7fd985ef2396d925cc63ec5cf926b)
 - using signature provided by userop([0c40641])(https://github.com/bcnmy/biconomy-client-sdk/commit/0c40641e4cd6133f7348bb3e3022f8ab78fe299b)
 
-# 3.1.0-alpha.0 (2023-07-24)
+# 3.1.1-alpha.0 (2023-07-24)
 
 VERSION bump only
 
-## 3.0.0-alpha.0 (2023-07-12)
+
+## 3.1.1-alpha.0 (2023-07-12)
 
 ### Bug Fixes
 

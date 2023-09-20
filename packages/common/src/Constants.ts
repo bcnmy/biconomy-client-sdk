@@ -2,6 +2,7 @@ import { ChainId } from "@biconomy/core-types";
 
 export const NODE_CLIENT_URL = "https://sdk-backend.prod.biconomy.io/v1";
 
+// eslint-disable-next-line no-unused-vars
 export const RPC_PROVIDER_URLS: { [key in ChainId]?: string } = {
   [ChainId.MAINNET]: "https://rpc.ankr.com/eth",
   [ChainId.GOERLI]: "https://rpc.ankr.com/eth_goerli",
@@ -22,4 +23,8 @@ export const RPC_PROVIDER_URLS: { [key in ChainId]?: string } = {
   [ChainId.BASE_GOERLI_TESTNET]: "https://goerli.base.org",
   [ChainId.BASE_MAINNET]: "https://developer-access-mainnet.base.org",
   [ChainId.LINEA_TESTNET]: "https://rpc.goerli.linea.build",
+  [ChainId.MANTLE_MAINNET]: "https://rpc.mantle.xyz",
+  [ChainId.MANTLE_TESTNET]: "https://rpc.testnet.mantle.xyz",
+  [ChainId.OPBNB_MAINNET]: "https://opbnb-mainnet-rpc.bnbchain.org",
+  [ChainId.OPBNB_TESTNET]: "https://opbnb-testnet-rpc.bnbchain.org",
 };

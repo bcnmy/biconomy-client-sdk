@@ -13,7 +13,7 @@ Modular SDK - consists stable version of below updates done in Alphas.
 
 ## 3.0.0-alpha.0 (2023-08-02)
 
-VERSION bump only
+# 3.1.1-alpha.0 (2023-07-24)
 
 # 3.1.0-alpha.0 (2023-07-24)
 
@@ -21,7 +21,7 @@ VERSION bump only
 
 - chain integration ([738556e](https://github.com/bcnmy/biconomy-client-sdk/commit/738556efcfda70fedc652befc0b35f8835c5e360))
 
-## 3.0.0-alpha.0 (2023-07-12)
+## 3.1.1-alpha.0 (2023-07-12)
 
 ### Bug Fixes
 

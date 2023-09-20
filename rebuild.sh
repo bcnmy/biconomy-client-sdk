@@ -16,9 +16,20 @@ rm -rf packages/paymaster/package-lock.json
 rm -rf packages/paymaster/dist
 
 
+rm -rf packages/modules/node_modules
+rm -rf packages/modules/package-lock.json
+rm -rf packages/modules/dist
+
+
+rm -rf packages/signers/node_modules
+rm -rf packages/signers/package-lock.json
+rm -rf packages/signers/dist
+
+
 rm -rf packages/common/node_modules
 rm -rf packages/common/package-lock.json
 rm -rf packages/common/dist
+rm -rf packages/common/src/typechain
 
 rm -rf packages/core-types/node_modules
 rm -rf packages/core-types/package-lock.json

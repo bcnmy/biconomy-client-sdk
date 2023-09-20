@@ -110,5 +110,9 @@ export function calcPreVerificationGas(userOp: Partial<NotPromise<UserOperation>
    */
   const callDataCost = packed.map((x) => (x === 0 ? ov.zeroByte : ov.nonZeroByte)).reduce((sum, x) => sum + x);
   const ret = Math.round(callDataCost + ov.fixed / ov.bundleSize + ov.perUserOp + ov.perUserOpWord * lengthInWord);
-  return BigNumber.from(ret);
+  if (ret) {
+    return BigNumber.from(ret);
+  } else {
+    throw new Error("can't calculate preVerificationGas");
+  }
 }
