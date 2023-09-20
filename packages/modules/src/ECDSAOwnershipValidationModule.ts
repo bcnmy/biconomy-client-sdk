@@ -7,28 +7,33 @@ import { BaseValidationModule } from "./BaseValidationModule";
 
 // Could be renamed with suffix API
 export class ECDSAOwnershipValidationModule extends BaseValidationModule {
-  signer: Signer;
+  signer!: Signer;
 
   moduleAddress!: string;
 
   version: ModuleVersion = "V1_0_0";
 
-  constructor(moduleConfig: ECDSAOwnershipValidationModuleConfig) {
+  private constructor(moduleConfig: ECDSAOwnershipValidationModuleConfig) {
     super(moduleConfig);
+  }
+
+  public static async create(moduleConfig: ECDSAOwnershipValidationModuleConfig): Promise<ECDSAOwnershipValidationModule> {
+    const instance = new ECDSAOwnershipValidationModule(moduleConfig);
     if (moduleConfig.moduleAddress) {
-      this.moduleAddress = moduleConfig.moduleAddress;
+      instance.moduleAddress = moduleConfig.moduleAddress;
     } else if (moduleConfig.version) {
       const moduleAddr = ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION[moduleConfig.version];
       if (!moduleAddr) {
         throw new Error(`Invalid version ${moduleConfig.version}`);
       }
-      this.moduleAddress = moduleAddr;
-      this.version = moduleConfig.version as ModuleVersion;
+      instance.moduleAddress = moduleAddr;
+      instance.version = moduleConfig.version as ModuleVersion;
     } else {
-      this.moduleAddress = DEFAULT_ECDSA_OWNERSHIP_MODULE;
+      instance.moduleAddress = DEFAULT_ECDSA_OWNERSHIP_MODULE;
       // Note: in this case Version remains the default one
     }
-    this.signer = moduleConfig.signer;
+    instance.signer = moduleConfig.signer;
+    return instance
   }
 
   getAddress(): string {

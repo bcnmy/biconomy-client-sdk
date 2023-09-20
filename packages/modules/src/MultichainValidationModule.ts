@@ -7,28 +7,33 @@ import { keccak256, arrayify, defaultAbiCoder, hexConcat, hexZeroPad, Bytes } fr
 import { ModuleVersion, MultiChainUserOpDto, MultiChainValidationModuleConfig } from "./utils/Types";
 import { BaseValidationModule } from "./BaseValidationModule";
 export class MultiChainValidationModule extends BaseValidationModule {
-  signer: Signer;
+  signer!: Signer;
 
   moduleAddress!: string;
 
   version: ModuleVersion = "V1_0_0";
 
-  constructor(moduleConfig: MultiChainValidationModuleConfig) {
+  private constructor(moduleConfig: MultiChainValidationModuleConfig) {
     super(moduleConfig);
+  }
+
+  public static async create(moduleConfig: MultiChainValidationModuleConfig): Promise<MultiChainValidationModule> {
+    const instance = new MultiChainValidationModule(moduleConfig);
     if (moduleConfig.moduleAddress) {
-      this.moduleAddress = moduleConfig.moduleAddress;
+      instance.moduleAddress = moduleConfig.moduleAddress;
     } else if (moduleConfig.version) {
       const moduleAddr = MULTICHAIN_VALIDATION_MODULE_ADDRESSES_BY_VERSION[moduleConfig.version];
       if (!moduleAddr) {
         throw new Error(`Invalid version ${moduleConfig.version}`);
       }
-      this.moduleAddress = moduleAddr;
-      this.version = moduleConfig.version as ModuleVersion;
+      instance.moduleAddress = moduleAddr;
+      instance.version = moduleConfig.version as ModuleVersion;
     } else {
-      this.moduleAddress = DEFAULT_MULTICHAIN_MODULE;
+      instance.moduleAddress = DEFAULT_MULTICHAIN_MODULE;
       // Note: in this case Version remains the default one
     }
-    this.signer = moduleConfig.signer;
+    instance.signer = moduleConfig.signer;
+    return instance
   }
 
   getAddress(): string {

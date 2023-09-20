@@ -36,7 +36,7 @@ import {
 
 type UserOperationKey = keyof UserOperation;
 export class BiconomySmartAccountV2 extends BaseSmartAccount {
-  private nodeClient: INodeClient;
+  private nodeClient!: INodeClient;
 
   private SENTINEL_MODULE = "0x0000000000000000000000000000000000000001";
 
@@ -52,46 +52,49 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
    */
   accountContract?: SmartAccount_v200;
 
-  // TODO: both should be V2
-
   factory?: SmartAccountFactory_v200;
 
-  private defaultFallbackHandlerAddress: string;
+  private defaultFallbackHandlerAddress!: string;
 
-  private implementationAddress: string;
+  private implementationAddress!: string;
 
   // Validation module responsible for account deployment initCode. This acts as a default authorization module.
-  defaultValidationModule: BaseValidationModule;
+  defaultValidationModule!: BaseValidationModule;
 
   // Deployed Smart Account can have more than one module enabled. When sending a transaction activeValidationModule is used to prepare and validate userOp signature.
-  activeValidationModule: BaseValidationModule;
+  activeValidationModule!: BaseValidationModule;
 
-  constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountV2Config) {
+  private constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountV2Config) {
     super(biconomySmartAccountConfig);
-    // Review: if it's really needed to supply factory address
-    this.factoryAddress = biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS; // This would be fetched from V2
+  }
+
+  public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
+    const instance = new BiconomySmartAccountV2(biconomySmartAccountConfig);
+    instance.factoryAddress = biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS; // This would be fetched from V2
 
     const defaultFallbackHandlerAddress =
-      this.factoryAddress === DEFAULT_BICONOMY_FACTORY_ADDRESS ? DEFAULT_FALLBACK_HANDLER_ADDRESS : biconomySmartAccountConfig.defaultFallbackHandler;
+    instance.factoryAddress === DEFAULT_BICONOMY_FACTORY_ADDRESS ? DEFAULT_FALLBACK_HANDLER_ADDRESS : biconomySmartAccountConfig.defaultFallbackHandler;
     if (!defaultFallbackHandlerAddress) {
       throw new Error("Default Fallback Handler address is not provided");
     }
-    this.defaultFallbackHandlerAddress = defaultFallbackHandlerAddress;
+    instance.defaultFallbackHandlerAddress = defaultFallbackHandlerAddress;
 
-    this.implementationAddress = biconomySmartAccountConfig.implementationAddress ?? BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0;
+    instance.implementationAddress = biconomySmartAccountConfig.implementationAddress ?? BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0;
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
+    instance.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.activeValidationModule = biconomySmartAccountConfig.activeValidationModule ?? this.defaultValidationModule;
+    instance.activeValidationModule = biconomySmartAccountConfig.activeValidationModule ?? instance.defaultValidationModule;
 
     const { rpcUrl, nodeClientUrl } = biconomySmartAccountConfig;
 
     if (rpcUrl) {
-      this.provider = new JsonRpcProvider(rpcUrl);
+      instance.provider = new JsonRpcProvider(rpcUrl);
     }
 
-    this.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL });
+    instance.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL });
+    
+    return instance
   }
 
   async _getAccountContract(): Promise<SmartAccount_v200> {

@@ -51,14 +51,14 @@ describe("BiconomySmartAccountV2 API Specs", () => {
 
     ecdsaModule = await new ECDSAOwnershipRegistryModule_v100__factory(signer).deploy();
 
-    module1 = new ECDSAOwnershipValidationModule({
+    module1 = await ECDSAOwnershipValidationModule.create({
       signer: owner,
       moduleAddress: ecdsaModule.address,
     });
 
     multiChainModule = await new MultiChainValidationModule_v100__factory(signer).deploy();
 
-    module2 = new MultiChainValidationModule({
+    module2 = await MultiChainValidationModule.create({
       signer: owner,
       moduleAddress: multiChainModule.address,
     });
@@ -66,7 +66,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     console.log("provider url ", provider.connection.url);
 
     recipient = await new SampleRecipient__factory(signer).deploy();
-    accountAPI = new BiconomySmartAccountV2({
+    accountAPI = await BiconomySmartAccountV2.create({
       chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
       // paymaster: paymaster,
@@ -149,7 +149,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
   it("should build and send userop via bundler API", async () => {});
 
   it("should deploy another account using different validation module", async () => {
-    let accountAPI2 = new BiconomySmartAccountV2({
+    let accountAPI2 = await BiconomySmartAccountV2.create({
       chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
       // paymaster: paymaster,
