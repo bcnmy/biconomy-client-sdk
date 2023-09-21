@@ -87,7 +87,9 @@ describe("BiconomySmartAccountV2 API Specs", () => {
 
     const counterFactualAddress = await accountAPI.getAccountAddress();
     console.log("Counterfactual address ", counterFactualAddress);
-  });
+
+    await new Promise((resolve) => setTimeout(resolve, 10000));
+  }, 30000);
 
   it("Nonce should be zero", async () => {
     const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()), data: "0x" }]);
