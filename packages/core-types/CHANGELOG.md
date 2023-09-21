@@ -3,13 +3,38 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 3.1.0 (2023-09-20)
+
+
+### Bug Fixes
+
+* backend contract address ([e81188d](https://github.com/bcnmy/biconomy-client-sdk/commit/e81188d454eb42ab581078d218d86571d724fa2d))
+* build errors ([9fb0475](https://github.com/bcnmy/biconomy-client-sdk/commit/9fb047534935b0600bd08a4de7e68fd91a8a089a))
+* bundler sync changes ([eb9b30d](https://github.com/bcnmy/biconomy-client-sdk/commit/eb9b30d786820b4c9a6a18c72481d0ed3782a22e))
+* logic update ([41c4aec](https://github.com/bcnmy/biconomy-client-sdk/commit/41c4aec8ab5012b7ad362b2870966bd607e38636))
+* multisend bundle ([5f55587](https://github.com/bcnmy/biconomy-client-sdk/commit/5f55587b63c82a30652843fe619d8b891e495399))
+* optional sign flag ([0d689d2](https://github.com/bcnmy/biconomy-client-sdk/commit/0d689d214fc7abf32f4f2deabcce61041b73d642))
+
+
+### Features
+
+* base mainnet integration ([c17f5d6](https://github.com/bcnmy/biconomy-client-sdk/commit/c17f5d6c2fe34b106e6d9755f54fab2493db6fbe))
+* chain integration ([ddc5d91](https://github.com/bcnmy/biconomy-client-sdk/commit/ddc5d91d5df10a10266f4500644d24e0bc1ea684))
+* chain integration ([738556e](https://github.com/bcnmy/biconomy-client-sdk/commit/738556efcfda70fedc652befc0b35f8835c5e360))
+* chain integrations ([9af2da0](https://github.com/bcnmy/biconomy-client-sdk/commit/9af2da03820a26ac7d21301c32de041ced6c5e43))
+* fetching gas prices from bundler ([a0c070b](https://github.com/bcnmy/biconomy-client-sdk/commit/a0c070b04bb6e249388a7d304dad7d08e97810e1))
+
+
+
+
+
 ## 3.0.0 (2023-08-28)
 
 ### Features
 
 - base mainnet integration ([c17f5d6](https://github.com/bcnmy/biconomy-client-sdk/commit/c17f5d6c2fe34b106e6d9755f54fab2493db6fbe))
 
-# 3.1.1-alpha.0 (2023-07-24)
+# 3.1.0-alpha.0 (2023-07-24)
 
 VERSION bump only
 
@@ -19,7 +44,7 @@ VERSION bump only
 
 - chain integration ([738556e](https://github.com/bcnmy/biconomy-client-sdk/commit/738556efcfda70fedc652befc0b35f8835c5e360))
 
-## 3.1.1-alpha.0 (2023-07-12)
+## 3.1.0-alpha.0 (2023-07-12)
 
 ### Bug Fixes
 

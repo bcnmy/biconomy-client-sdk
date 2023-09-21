@@ -1,45 +1,45 @@
 {
-    "name": "@biconomy/modules",
-    "version": "3.1.1-alpha.0",
-    "description": "This package provides different validation modules/plugins for ERC4337 compatible modular account",
-    "main": "./dist/src/index.js",
-    "typings": "./dist/src/index.d.ts",
-    "keywords": [
-      "Smart Account",
-      "ERC-4337",
-      "Account Abstraction",
-      "Smart Contract Wallets",
-      "Biconomy",
-      "Modules",
-      "Plugins",
-      "EIP-6900"
-    ],
-    "scripts": {
-      "unbuild": "rimraf dist *.tsbuildinfo",
-      "build": "rimraf dist && tsc",
-      "test:file": "TS_NODE_PROJECT=../../tsconfig.json mocha -r ts-node/register --timeout 30000",
-      "test:concurrently": "concurrently -k --success first 'yarn start:ganache > /dev/null'",
-      "test:cov": "jest --coverage",
-      "test:run": "yarn test:file tests/**/*.spec.ts",
-      "start:ganache": "ganache -m 'direct buyer cliff train rice spirit census refuse glare expire innocent quote'",
-      "format": "prettier --write \"{src,tests}/**/*.ts\"",
-      "lint": "tslint -p tsconfig.json"
-    },
-    "author": "livingrockrises <chirag@biconomy.io>",
-    "license": "MIT",
-    "files": [
-      "dist/*",
-      "README.md"
-    ],
-    "publishConfig": {
-      "access": "public"
-    },
-    "dependencies": {
-      "@biconomy/common": "^3.1.1-alpha.0",
-      "@biconomy/core-types": "^3.1.1-alpha.0",
-      "@biconomy/node-client": "^3.1.1-alpha.0",
-      "merkletreejs": "^0.3.9",
-      "ethers": "^5.7.2",
-      "ethereumjs-util": "^7.1.5"
-    }
+  "name": "@biconomy/modules",
+  "version": "3.1.0",
+  "description": "This package provides different validation modules/plugins for ERC4337 compatible modular account",
+  "main": "./dist/src/index.js",
+  "typings": "./dist/src/index.d.ts",
+  "keywords": [
+    "Smart Account",
+    "ERC-4337",
+    "Account Abstraction",
+    "Smart Contract Wallets",
+    "Biconomy",
+    "Modules",
+    "Plugins",
+    "EIP-6900"
+  ],
+  "scripts": {
+    "unbuild": "rimraf dist *.tsbuildinfo",
+    "build": "rimraf dist && tsc",
+    "test:file": "TS_NODE_PROJECT=../../tsconfig.json mocha -r ts-node/register --timeout 30000",
+    "test:concurrently": "concurrently -k --success first 'yarn start:ganache > /dev/null'",
+    "test:cov": "jest --coverage",
+    "test:run": "yarn test:file tests/**/*.spec.ts",
+    "start:ganache": "ganache -m 'direct buyer cliff train rice spirit census refuse glare expire innocent quote'",
+    "format": "prettier --write \"{src,tests}/**/*.ts\"",
+    "lint": "tslint -p tsconfig.json"
+  },
+  "author": "livingrockrises <chirag@biconomy.io>",
+  "license": "MIT",
+  "files": [
+    "dist/*",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@biconomy/common": "^3.1.0",
+    "@biconomy/core-types": "^3.1.0",
+    "@biconomy/node-client": "^3.1.0",
+    "ethereumjs-util": "^7.1.5",
+    "ethers": "^5.7.2",
+    "merkletreejs": "^0.3.9"
+  }
 }
