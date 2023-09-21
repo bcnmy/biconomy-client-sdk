@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/common",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "common utils to be used for aa transactions",
   "keywords": [
     "utils"
@@ -21,16 +21,16 @@
     "url": "git+https://github.com/bcnmy/biconomy-client-sdk.git"
   },
   "scripts": {
-    "clear": "rm -rf dist artifacts cache src/types",
+    "clear": "rm -rf dist artifacts cache src/typechain",
     "hardhat-deploy": "hardhat deploy",
     "hardhat-node": "hardhat node",
     "lint-fix": "eslint -f unix . --fix",
     "watch-tsc": "tsc -w --preserveWatchOutput",
     "gen:types": "typechain --target=ethers-v5 --out-dir=src/typechain 'abis/*/*.json'",
     "tsc": "tsc",
-    "test": "yarn test:file tests/**/*.spec.ts",
-    "test:file": "TS_NODE_PROJECT=../../tsconfig.json mocha -r ts-node/register --timeout 30000",
-    "test:run": "yarn test:file tests/**/*.spec.ts",
+    "test": "jest tests/**/*.spec.ts --runInBand",
+    "test:file": "jest --config=../../jest.config.js --runInBand",
+    "test:run": "jest tests/**/*.spec.ts --runInBand",
     "unbuild": "rimraf dist *.tsbuildinfo",
     "build": "rimraf dist && npm run gen:types && tsc",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
@@ -41,8 +41,8 @@
   },
   "dependencies": {
     "@account-abstraction/contracts": "^0.6.0",
-    "@biconomy/core-types": "^3.0.0",
-    "@biconomy/node-client": "^3.0.0",
+    "@biconomy/core-types": "^3.1.0",
+    "@biconomy/node-client": "^3.1.0",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/bytes": "^5.7.0",
     "@ethersproject/providers": "^5.7.0",

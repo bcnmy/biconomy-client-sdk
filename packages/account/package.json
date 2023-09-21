@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/account",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "This package provides apis for ERC-4337 based smart account implementations",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -16,10 +16,10 @@
   "scripts": {
     "unbuild": "rimraf dist *.tsbuildinfo",
     "build": "rimraf dist && tsc",
-    "test:file": "TS_NODE_PROJECT=../../tsconfig.json mocha -r ts-node/register --timeout 30000",
-    "test:concurrently": "concurrently -k --success first 'yarn start:ganache > /dev/null'",
+    "test:concurrently": "concurrently -k --success first 'yarn start:ganache' 'yarn test'",
     "test:cov": "jest --coverage",
-    "test:run": "yarn test:file tests/**/*.spec.ts",
+    "test": "jest tests/**/*.spec.ts --runInBand",
+    "test:run": "yarn test:concurrently",
     "start:ganache": "ganache -m 'direct buyer cliff train rice spirit census refuse glare expire innocent quote'",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
     "lint": "tslint -p tsconfig.json"
@@ -34,10 +34,19 @@
     "access": "public"
   },
   "devDependencies": {
-    "@biconomy/bundler": "^3.0.0",
-    "@biconomy/common": "^3.0.0",
-    "@biconomy/core-types": "^3.0.0",
-    "@biconomy/node-client": "^3.0.0",
-    "@biconomy/paymaster": "^3.0.0"
+    "nock": "^13.2.9"
+  },
+  "dependencies": {
+    "@account-abstraction/contracts": "^0.6.0",
+    "@account-abstraction/utils": "^0.4.0",
+    "@biconomy-devx/account-contracts-v2": "npm:@biconomy-devx/account-contracts-v2@^1.0.0",
+    "@biconomy/bundler": "^3.1.0",
+    "@biconomy/common": "^3.1.0",
+    "@biconomy/core-types": "^3.1.0",
+    "@biconomy/modules": "^3.1.0",
+    "@biconomy/node-client": "^3.1.0",
+    "@biconomy/paymaster": "^3.1.0",
+    "@ethersproject/providers": "^5.7.2",
+    "ethers": "^5.7.0"
   }
 }

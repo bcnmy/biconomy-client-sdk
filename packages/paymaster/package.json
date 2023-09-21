@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/paymaster",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Biconomy Paymaster to interact with Paymaster Services that interacts with ( veriying and token ) paymasters",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -16,12 +16,12 @@
   "scripts": {
     "unbuild": "rimraf dist *.tsbuildinfo",
     "build": "rimraf dist && tsc",
-    "test:file": "TS_NODE_PROJECT=../../tsconfig.json mocha -r ts-node/register --timeout 30000",
-    "test:concurrently": "concurrently -k --success first 'yarn start:ganache > /dev/null'",
-    "test:run": "yarn test:file tests/**/*.spec.ts",
-    "start:ganache": "ganache -m 'direct buyer cliff train rice spirit census refuse glare expire innocent quote'",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
-    "lint": "tslint -p tsconfig.json"
+    "lint": "tslint -p tsconfig.json",
+    "test": "jest tests/**/*.spec.ts --runInBand",
+    "test:file": "jest --config=../../jest.config.js --runInBand",
+    "test:concurrently": "concurrently -k --success first 'yarn start:ganache > /dev/null'",
+    "start:ganache": "ganache -m 'direct buyer cliff train rice spirit census refuse glare expire innocent quote'"
   },
   "author": "talhamalik883 <talha.malik@biconomy.io>",
   "repository": {
@@ -36,8 +36,11 @@
   "publishConfig": {
     "access": "public"
   },
-  "devDependencies": {
-    "@biconomy/common": "^3.0.0",
-    "@biconomy/core-types": "^3.0.0"
+  "dependencies": {
+    "@biconomy/common": "^3.1.0",
+    "@biconomy/core-types": "^3.1.0",
+    "@ethersproject/abstract-provider": "^5.7.0",
+    "@ethersproject/properties": "^5.7.0",
+    "ethers": "^5.7.0"
   }
 }
