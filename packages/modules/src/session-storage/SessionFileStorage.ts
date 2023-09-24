@@ -11,11 +11,11 @@ export class SessionFileStorage implements ISessionStorage {
   }
 
   private async readDataFromFile(type: "sessions" | "signers"): Promise<any> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       fs.readFile(this.getStorageFilePath(type), "utf8", (err, data) => {
         if (err) {
           // Handle errors appropriately
-          reject(err);
+          resolve(undefined);
         } else {
           resolve(JSON.parse(data));
         }
