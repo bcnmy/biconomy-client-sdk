@@ -69,13 +69,13 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       txServiceUrl: moduleConfig.nodeClientUrl ?? NODE_CLIENT_URL,
     });
 
-    if (!moduleConfig.storageType || moduleConfig.storageType === StorageType.LOCAL_STORAGE) {
-      instance.sessionStorageClient = new SessionLocalStorage(moduleConfig.smartAccountAddress);
-    } else if (!moduleConfig.storageType || moduleConfig.storageType === StorageType.FILE_STORAGE) {
-      instance.sessionStorageClient = new SessionLocalStorage(moduleConfig.smartAccountAddress);
-    } else {
-      throw new Error("Invalid storage type");
-    }
+    //if (!moduleConfig.storageType || moduleConfig.storageType === StorageType.LOCAL_STORAGE) {
+    //  instance.sessionStorageClient = new SessionLocalStorage(moduleConfig.smartAccountAddress);
+    //} else if (!moduleConfig.storageType || moduleConfig.storageType === StorageType.FILE_STORAGE) {
+    instance.sessionStorageClient = new SessionFileStorage(moduleConfig.smartAccountAddress);
+    //} else {
+    //  throw new Error("Invalid storage type");
+    //}
 
     const existingSessionData = await instance.sessionStorageClient.getAllSessionData();
     const existingSessionDataLeafs = existingSessionData.map((sessionData) => {

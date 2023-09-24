@@ -4,11 +4,10 @@ import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } f
 
 export class SessionFileStorage implements ISessionStorage {
   private smartAccountAddress: string;
-  private filePath: string;
+  private filePath = ".";
 
-  constructor(smartAccountAddress: string, filePath: string) {
+  constructor(smartAccountAddress: string) {
     this.smartAccountAddress = smartAccountAddress.toLowerCase();
-    this.filePath = filePath;
   }
 
   private async readDataFromFile(type: "sessions" | "signers"): Promise<any> {
@@ -80,6 +79,29 @@ export class SessionFileStorage implements ISessionStorage {
     return address.toLowerCase();
   }
 
+  async getSessionData(param: SessionSearchParam): Promise<SessionLeafNode> {
+    this.validateSearchParam(param);
+
+    const sessions = (await this.getSessionStore()).leafNodes;
+    const session = sessions.find((s: SessionLeafNode) => {
+      if (param.sessionID) {
+        return s.sessionID === param.sessionID && (!param.status || s.status === param.status);
+      } else if (param.sessionPublicKey && param.sessionValidationModule) {
+        return (
+          s.sessionPublicKey === this.toLowercaseAddress(param.sessionPublicKey) &&
+          s.sessionValidationModule === this.toLowercaseAddress(param.sessionValidationModule) &&
+          (!param.status || s.status === param.status)
+        );
+      } else {
+        return undefined;
+      }
+    });
+
+    if (!session) {
+      throw new Error("Session not found.");
+    }
+    return session;
+  }
   async addSessionData(leaf: SessionLeafNode): Promise<void> {
     const data = await this.getSessionStore();
     leaf.sessionValidationModule = this.toLowercaseAddress(leaf.sessionValidationModule);
@@ -91,7 +113,7 @@ export class SessionFileStorage implements ISessionStorage {
   async updateSessionStatus(param: SessionSearchParam, status: SessionStatus): Promise<void> {
     this.validateSearchParam(param);
 
-    const data = this.getSessionStore();
+    const data = await this.getSessionStore();
     const session = data.leafNodes.find((s: SessionLeafNode) => {
       if (param.sessionID) {
         return s.sessionID === param.sessionID;
@@ -114,13 +136,13 @@ export class SessionFileStorage implements ISessionStorage {
   }
 
   async clearPendingSessions(): Promise<void> {
-    const data = this.getSessionStore();
+    const data = await this.getSessionStore();
     data.leafNodes = data.leafNodes.filter((s: SessionLeafNode) => s.status !== "PENDING");
     await this.writeDataToFile(data, "sessions"); // Use 'sessions' as the type
   }
 
   async addSigner(signer?: Wallet): Promise<Wallet> {
-    const signers = this.getSignerStore();
+    const signers = await this.getSignerStore();
     if (!signer) {
       signer = Wallet.createRandom();
     }
@@ -132,7 +154,7 @@ export class SessionFileStorage implements ISessionStorage {
     return signer;
   }
   async getSignerByKey(sessionPublicKey: string): Promise<Signer> {
-    const signers = this.getSignerStore();
+    const signers = await this.getSignerStore();
     const signerData = signers[this.toLowercaseAddress(sessionPublicKey)];
     if (!signerData) {
       throw new Error("Signer not found.");
@@ -147,7 +169,7 @@ export class SessionFileStorage implements ISessionStorage {
   }
 
   async getAllSessionData(param?: SessionSearchParam): Promise<SessionLeafNode[]> {
-    const sessions = this.getSessionStore().leafNodes;
+    const sessions = (await this.getSessionStore()).leafNodes;
     if (!param || !param.status) {
       return sessions;
     }
@@ -155,11 +177,11 @@ export class SessionFileStorage implements ISessionStorage {
   }
 
   async getMerkleRoot(): Promise<string> {
-    return this.getSessionStore().merkleRoot;
+    return (await this.getSessionStore()).merkleRoot;
   }
 
   async setMerkleRoot(merkleRoot: string): Promise<void> {
-    const data = this.getSessionStore();
+    const data = await this.getSessionStore();
     data.merkleRoot = merkleRoot;
     await this.writeDataToFile(data, "sessions"); // Use 'sessions' as the type
   }
