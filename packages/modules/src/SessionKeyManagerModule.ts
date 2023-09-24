@@ -17,6 +17,8 @@ import { SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION, DEFAULT_SESSION_KEY_MANAGE
 import { generateRandomHex } from "./utils/Uid";
 import { BaseValidationModule } from "./BaseValidationModule";
 import { SessionLocalStorage } from "./session-storage/SessionLocalStorage";
+import { SessionFileStorage } from "./session-storage/SessionFileStorage";
+
 import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "./interfaces/ISessionStorage";
 
 export class SessionKeyManagerModule extends BaseValidationModule {
@@ -68,6 +70,8 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     });
 
     if (!moduleConfig.storageType || moduleConfig.storageType === StorageType.LOCAL_STORAGE) {
+      instance.sessionStorageClient = new SessionLocalStorage(moduleConfig.smartAccountAddress);
+    } else if (!moduleConfig.storageType || moduleConfig.storageType === StorageType.FILE_STORAGE) {
       instance.sessionStorageClient = new SessionLocalStorage(moduleConfig.smartAccountAddress);
     } else {
       throw new Error("Invalid storage type");

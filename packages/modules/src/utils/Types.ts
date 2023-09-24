@@ -40,6 +40,7 @@ export interface BatchedSessionRouterModuleConfig extends BaseValidationModuleCo
 
 export enum StorageType {
   LOCAL_STORAGE,
+  FILE_STORAGE,
 }
 
 export type SessionParams = {
