@@ -1,5 +1,5 @@
-import { UserOperation } from "@biconomy/core-types";
-import { Logger, getUserOpHash } from "@biconomy/common";
+import { UserOperation } from "@biconomy-devx/core-types";
+import { Logger, getUserOpHash } from "@biconomy-devx/common";
 import { Signer, ethers } from "ethers";
 import MerkleTree from "merkletreejs";
 import { DEFAULT_MULTICHAIN_MODULE, MULTICHAIN_VALIDATION_MODULE_ADDRESSES_BY_VERSION } from "./utils/Constants";

@@ -1,4 +1,4 @@
-# `@biconomy/common`
+# `@biconomy-devx/common`
 
 common utils
 

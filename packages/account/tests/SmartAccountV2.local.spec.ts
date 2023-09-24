@@ -9,15 +9,15 @@ import {
   SmartAccountFactory_v200__factory,
   ECDSAOwnershipRegistryModule_v100__factory,
   MultiChainValidationModule_v100__factory,
-} from "@biconomy/common";
+} from "@biconomy-devx/common";
 
 import { BiconomySmartAccountV2 } from "../src/BiconomySmartAccountV2";
-import { ChainId, UserOperation } from "@biconomy/core-types";
-import { DEFAULT_ECDSA_OWNERSHIP_MODULE, ECDSAOwnershipValidationModule } from "@biconomy/modules";
-import { MultiChainValidationModule } from "@biconomy/modules";
-import { BaseValidationModule } from "@biconomy/modules";
-import { ECDSAOwnershipRegistryModule_v100 } from "@biconomy/common";
-import { MultiChainValidationModule_v100 } from "@biconomy/common";
+import { ChainId, UserOperation } from "@biconomy-devx/core-types";
+import { DEFAULT_ECDSA_OWNERSHIP_MODULE, ECDSAOwnershipValidationModule } from "@biconomy-devx/modules";
+import { MultiChainValidationModule } from "@biconomy-devx/modules";
+import { BaseValidationModule } from "@biconomy-devx/modules";
+import { ECDSAOwnershipRegistryModule_v100 } from "@biconomy-devx/common";
+import { MultiChainValidationModule_v100 } from "@biconomy-devx/common";
 
 const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
 const signer = provider.getSigner();

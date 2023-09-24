@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## 3.1.0 (2023-09-20)
+## 2.0.26 (2023-09-20)
 
 
 ### Bug Fixes
@@ -44,7 +44,7 @@ VERSION bump only
 
 
 
-# 3.1.0-alpha.0 (2023-07-24)
+# 2.0.26-alpha.0 (2023-07-24)
 
 
 
