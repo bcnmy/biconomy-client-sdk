@@ -112,3 +112,20 @@ export enum PaymasterMode {
   ERC20 = "ERC20",
   SPONSORED = "SPONSORED",
 }
+
+// Converted to JsonRpcResponse with strict type
+export type EstimateUserOpGasResponse = {
+  jsonrpc: string;
+  id: number;
+  result: UserOpGasResponse;
+  error?: JsonRpcError;
+};
+
+export type UserOpGasResponse = {
+  paymasterAndData: string;
+  preVerificationGas: string;
+  maxPriorityFeePerGas: string;
+  maxFeePerGas: string;
+  verificationGasLimit: string;
+  callGasLimit: string;
+};

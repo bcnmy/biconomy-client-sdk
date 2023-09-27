@@ -233,7 +233,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
 
     Logger.log("userOp in estimation", userOp);
 
-    if (!this.bundler || skipBundlerCall) {
+    if (!this.paymaster || skipBundlerCall) {
       if (!this.provider) throw new Error("Provider is not present for making rpc calls");
       // if no bundler url is provided run offchain logic to assign following values of UserOp
       // maxFeePerGas, maxPriorityFeePerGas, verificationGasLimit, callGasLimit, preVerificationGas
@@ -242,8 +242,8 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
       delete userOp.maxFeePerGas;
       delete userOp.maxPriorityFeePerGas;
       // Making call to bundler to get gas estimations for userOp
-      const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas } =
-        await this.bundler.estimateUserOpGas(userOp);
+      const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas, paymasterAndData } =
+        await this.paymaster.estimateUserOpGas(userOp);
       // if neither user sent gas fee nor the bundler, estimate gas from provider
       if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas && (!maxFeePerGas || !maxPriorityFeePerGas)) {
         const feeData = await this.provider.getFeeData();
@@ -256,6 +256,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
       finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
       finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
       finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
+      finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
     }
     return finalUserOp;
   }

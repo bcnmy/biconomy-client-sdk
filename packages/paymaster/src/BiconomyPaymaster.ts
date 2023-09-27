@@ -12,9 +12,12 @@ import {
   BiconomyTokenPaymasterRequest,
   PaymasterMode,
   PaymasterAndDataResponse,
+  UserOpGasResponse,
+  EstimateUserOpGasResponse,
 } from "./utils/Types";
 import { BigNumberish, BigNumber, ethers } from "ethers";
-import { ERC20_ABI } from "./constants";
+import { transformUserOP } from "./utils/HelperFunction";
+import { ENTRYPOINT_ADDRESS, ERC20_ABI } from "./constants";
 import { IHybridPaymaster } from "./interfaces/IHybridPaymaster";
 
 const defaultPaymasterConfig: PaymasterConfig = {
@@ -33,6 +36,34 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
       ...config,
     };
     this.paymasterConfig = mergedConfig;
+  }
+
+  /**
+   * @description This function will fetch gasPrices from paymaster
+   */
+  async estimateUserOpGas(userOp: UserOperation): Promise<UserOpGasResponse> {
+    userOp = transformUserOP(userOp);
+    Logger.log("userOp sending for fee estimate ", userOp);
+
+    const response: EstimateUserOpGasResponse = await sendRequest({
+      url: `${this.paymasterConfig.paymasterUrl}`,
+      method: HttpMethod.Post,
+      body: {
+        method: "pm_sponsorship",
+        params: [userOp, ENTRYPOINT_ADDRESS],
+        id: getTimestampInSeconds(),
+        jsonrpc: "2.0",
+      },
+    });
+
+    const userOpGasResponse = response.result;
+    for (const key in userOpGasResponse) {
+      if (key === "maxFeePerGas" || key === "maxPriorityFeePerGas") continue;
+      if (!userOpGasResponse[key as keyof UserOpGasResponse]) {
+        throw new Error(`Got undefined ${key} from bundler`);
+      }
+    }
+    return userOpGasResponse;
   }
 
   /**
