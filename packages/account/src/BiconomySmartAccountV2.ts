@@ -300,7 +300,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     Logger.log("userOp received in base account ", userOp);
     delete userOp.signature;
     const userOperation = await this.signUserOp(userOp, params);
-    const bundlerResponse = await this.sendSignedUserOp(userOperation);
+    const bundlerResponse = await this.sendSignedUserOp(userOperation, params);
     return bundlerResponse;
   }
 

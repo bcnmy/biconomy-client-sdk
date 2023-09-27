@@ -87,8 +87,6 @@ export class Bundler implements IBundler {
     const simType = {
       simulation_type: simulationParam?.simulationType || "validation",
     };
-    // const params = [hexifiedUserOp, this.bundlerConfig.entryPointAddress, validationSimulation];
-    // const params = [hexifiedUserOp, this.bundlerConfig.entryPointAddress, validationAndExecutionSimulation];
     const params = [hexifiedUserOp, this.bundlerConfig.entryPointAddress, simType];
     const bundlerUrl = this.getBundlerUrl();
     const sendUserOperationResponse: SendUserOpResponse = await sendRequest({
