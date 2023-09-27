@@ -87,11 +87,13 @@ export type NonceOptions = {
   nonceOverride?: number;
 };
 
+// Used in AccountV1
 export type SendUserOpDto = {
   signer?: Signer;
   simulationType?: SimulationType;
 };
 
+// Generic options in AccountV2
 export type SendUserOpOptions = {
   simulationType?: SimulationType;
 };
