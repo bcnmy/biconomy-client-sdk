@@ -27,8 +27,15 @@ import {
   SmartAccountsResponse,
   SCWTransactionResponse,
 } from "@biconomy/node-client";
-import { ENTRYPOINT_ADDRESSES, BICONOMY_FACTORY_ADDRESSES, BICONOMY_IMPLEMENTATION_ADDRESSES, DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants";
+import {
+  ENTRYPOINT_ADDRESSES,
+  BICONOMY_FACTORY_ADDRESSES,
+  BICONOMY_IMPLEMENTATION_ADDRESSES,
+  DEFAULT_ENTRYPOINT_ADDRESS,
+  DEFAULT_BICONOMY_IMPLEMENTATION_ADDRESS,
+} from "./utils/Constants";
 import { Signer } from "ethers";
+import { DEFAULT_ECDSA_OWNERSHIP_MODULE, ECDSAOwnershipValidationModule } from "@biconomy/modules";
 
 export class BiconomySmartAccount extends SmartAccount implements IBiconomySmartAccount {
   private factory!: SmartAccountFactory_v100;
@@ -462,78 +469,61 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
   async getUpdateImplementationData(newImplementationAddress?: string): Promise<Transaction> {
     // probably like V2 address or latest implemenbtation version
     // If needed we can fetch this from backend config
-    const latestImplementationAddress =
-      newImplementationAddress ?? DEFAULT_BICONOMY_IMPLEMENTATION_ADDRESS // latest
-    Logger.log('Recommended implementation address to upgrade to', latestImplementationAddress)
+    const latestImplementationAddress = newImplementationAddress ?? DEFAULT_BICONOMY_IMPLEMENTATION_ADDRESS; // latest
+    Logger.log("Recommended implementation address to upgrade to", latestImplementationAddress);
 
     // by querying the proxy contract
-    const currentImplementationAddress = await this.proxy.implementation()
-    Logger.log(
-      'Current implementation address for this Smart Account',
-      currentImplementationAddress
-    )
+    const currentImplementationAddress = await this.proxy.implementation();
+    Logger.log("Current implementation address for this Smart Account", currentImplementationAddress);
 
-    if (
-      ethers.utils.getAddress(currentImplementationAddress) !==
-      ethers.utils.getAddress(latestImplementationAddress)
-    ) {
-      const impInterface = new ethers.utils.Interface([
-        'function updateImplementation(address _implementation)'
-      ])
-      const encodedData = impInterface.encodeFunctionData('updateImplementation', [
-        latestImplementationAddress
-      ])
-      return { to: this.address, value: BigNumber.from(0), data: encodedData }
+    if (ethers.utils.getAddress(currentImplementationAddress) !== ethers.utils.getAddress(latestImplementationAddress)) {
+      const impInterface = new ethers.utils.Interface(["function updateImplementation(address _implementation)"]);
+      const encodedData = impInterface.encodeFunctionData("updateImplementation", [latestImplementationAddress]);
+      return { to: this.address, value: BigNumber.from(0), data: encodedData };
     }
-    return { to: this.address, value: 0, data: '0x' }
+    return { to: this.address, value: 0, data: "0x" };
   }
 
   async getModuleSetupData(ecdsaModuleAddress?: string): Promise<Transaction> {
     try {
-      const moduleAddress = ecdsaModuleAddress ?? DEFAULT_ECDSA_OWNERSHIP_MODULE
-      const ecdsaModule = new ECDSAOwnershipValidationModule({
+      const moduleAddress = ecdsaModuleAddress ?? DEFAULT_ECDSA_OWNERSHIP_MODULE;
+      const ecdsaModule = await ECDSAOwnershipValidationModule.create({
         signer: this.signer,
-        moduleAddress: moduleAddress
-      })
+        moduleAddress: moduleAddress,
+      });
 
       // initForSmartAccount
-      const ecdsaOwnershipSetupData = await ecdsaModule.getInitData()
+      const ecdsaOwnershipSetupData = await ecdsaModule.getInitData();
 
       const proxyInstanceDto = {
         smartAccountType: SmartAccountType.BICONOMY,
-        version: 'V2_0_0', // Review
+        version: "V2_0_0", // Review
         contractAddress: this.address,
-        provider: this.provider
-      }
-      const accountV2: SmartAccount_v200 = getSAProxyContract(proxyInstanceDto) as SmartAccount_v200
+        provider: this.provider,
+      };
+      const accountV2: SmartAccount_v200 = getSAProxyContract(proxyInstanceDto) as SmartAccount_v200;
 
-      const populatedTransaction = await accountV2.populateTransaction.setupAndEnableModule(
-        moduleAddress,
-        ecdsaOwnershipSetupData
-      )
+      const populatedTransaction = await accountV2.populateTransaction.setupAndEnableModule(moduleAddress, ecdsaOwnershipSetupData);
 
-      return { to: this.address, value: 0, data: populatedTransaction.data }
+      return { to: this.address, value: 0, data: populatedTransaction.data };
     } catch (error) {
-      Logger.error('Failed to get module setup data', error)
+      Logger.error("Failed to get module setup data", error);
       // throw error
-      return { to: this.address, value: 0, data: '0x' }
+      return { to: this.address, value: 0, data: "0x" };
     }
   }
 
   // Once this userOp is sent (batch: a. updateImplementation and b. setupModule on upgraded proxy)
   // You can start using BiconomySmartAccountV2
-  async updateImplementationUserOp(
-    newImplementationAddress?: string,
-    ecdsaModuleAddress?: string
-  ): Promise<Partial<UserOperation>> {
-    const tx1 = await this.getUpdateImplementationData(newImplementationAddress)
-    const tx2 = await this.getModuleSetupData(ecdsaModuleAddress)
+  async updateImplementationUserOp(newImplementationAddress?: string, ecdsaModuleAddress?: string): Promise<Partial<UserOperation>> {
+    const tx1 = await this.getUpdateImplementationData(newImplementationAddress);
+    const tx2 = await this.getModuleSetupData(ecdsaModuleAddress);
 
-    if (tx1.data !== '0x' && tx2.data !== '0x') {
-      const partialUserOp: Partial<UserOperation> = await this.buildUserOp([tx1, tx2])
-      return partialUserOp
+    if (tx1.data !== "0x" && tx2.data !== "0x") {
+      const partialUserOp: Partial<UserOperation> = await this.buildUserOp([tx1, tx2]);
+      return partialUserOp;
     } else {
-      throw new Error('Not eligible for upgrade')
+      throw new Error("Not eligible for upgrade");
     }
   }
 }
