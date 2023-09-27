@@ -59,6 +59,12 @@ export type ModuleInfo = {
   batchSessionParams?: SessionParams[];
 };
 
+export interface SendUserOpParams extends ModuleInfo {
+  simulationType: SimulationType;
+}
+
+export type SimulationType = "validation" | "validation_and_execution";
+
 export type CreateSessionDataResponse = {
   data: string;
   sessionIDInfo: Array<string>;

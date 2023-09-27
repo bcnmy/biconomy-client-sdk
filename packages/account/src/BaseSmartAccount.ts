@@ -7,7 +7,7 @@ import { calcPreVerificationGas, DefaultGasLimits } from "./utils/Preverificaito
 import { NotPromise, packUserOp, Logger, RPC_PROVIDER_URLS } from "@biconomy/common";
 import { IBundler, UserOpResponse } from "@biconomy/bundler";
 import { IPaymaster, PaymasterAndDataResponse } from "@biconomy/paymaster";
-import { BaseSmartAccountConfig, Overrides, TransactionDetailsForUserOp } from "./utils/Types";
+import { BaseSmartAccountConfig, Overrides, SendUserOpOptions, TransactionDetailsForUserOp } from "./utils/Types";
 import { GasOverheads } from "./utils/Preverificaiton";
 import { EntryPoint, EntryPoint__factory } from "@account-abstraction/contracts";
 import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants";
@@ -176,7 +176,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
    * @description This function call will take 'signedUserOp' as input and send it to the bundler
    * @returns
    */
-  async sendSignedUserOp(userOp: UserOperation): Promise<UserOpResponse> {
+  async sendSignedUserOp(userOp: UserOperation, params?: SendUserOpOptions): Promise<UserOpResponse> {
     const requiredFields: UserOperationKey[] = [
       "sender",
       "nonce",
@@ -194,7 +194,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     Logger.log("userOp validated");
     if (!this.bundler) throw new Error("Bundler is not provided");
     Logger.log("userOp being sent to the bundler", userOp);
-    const bundlerResponse = await this.bundler.sendUserOp(userOp);
+    const bundlerResponse = await this.bundler.sendUserOp(userOp, params);
     return bundlerResponse;
   }
 

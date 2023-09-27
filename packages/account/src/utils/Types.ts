@@ -87,6 +87,13 @@ export type NonceOptions = {
   nonceOverride?: number;
 };
 
+export type SendUserOpOptions = {
+  signer?: Signer;
+  simulationType?: SimulationType;
+};
+
+export type SimulationType = "validation" | "validation_and_execution";
+
 export type Overrides = {
   callGasLimit?: BigNumberish;
   verificationGasLimit?: BigNumberish;

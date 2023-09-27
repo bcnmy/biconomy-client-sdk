@@ -10,6 +10,7 @@ import {
   SendUserOpResponse,
   UserOpGasResponse,
   UserOpByHashResponse,
+  SendUserOpOptions,
 } from "./utils/Types";
 import { resolveProperties } from "ethers/lib/utils";
 import { deepHexlify, sendRequest, getTimestampInSeconds, HttpMethod, Logger, RPC_PROVIDER_URLS } from "@biconomy/common";
@@ -78,12 +79,17 @@ export class Bundler implements IBundler {
    * @description This function will send signed userOp to bundler to get mined on chain
    * @returns Promise<UserOpResponse>
    */
-  async sendUserOp(userOp: UserOperation): Promise<UserOpResponse> {
+  async sendUserOp(userOp: UserOperation, simulationParam?: SendUserOpOptions): Promise<UserOpResponse> {
     const chainId = this.bundlerConfig.chainId;
     // transformUserOP will convert all bigNumber values to string
     userOp = transformUserOP(userOp);
     const hexifiedUserOp = deepHexlify(await resolveProperties(userOp));
-    const params = [hexifiedUserOp, this.bundlerConfig.entryPointAddress];
+    const simType = {
+      simulation_type: simulationParam?.simulationType || "validation",
+    };
+    // const params = [hexifiedUserOp, this.bundlerConfig.entryPointAddress, validationSimulation];
+    // const params = [hexifiedUserOp, this.bundlerConfig.entryPointAddress, validationAndExecutionSimulation];
+    const params = [hexifiedUserOp, this.bundlerConfig.entryPointAddress, simType];
     const bundlerUrl = this.getBundlerUrl();
     const sendUserOperationResponse: SendUserOpResponse = await sendRequest({
       url: bundlerUrl,
