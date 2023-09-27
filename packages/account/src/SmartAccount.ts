@@ -10,7 +10,7 @@ import { IBundler, UserOpResponse } from "@biconomy/bundler";
 import { IPaymaster, PaymasterAndDataResponse } from "@biconomy/paymaster";
 import { Logger } from "@biconomy/common";
 import { IEntryPoint } from "@account-abstraction/contracts";
-import { SmartAccountConfig, Overrides, SendUserOpOptions } from "./utils/Types";
+import { SmartAccountConfig, Overrides, SendUserOpDto } from "./utils/Types";
 
 type UserOperationKey = keyof UserOperation;
 
@@ -239,7 +239,7 @@ export abstract class SmartAccount implements ISmartAccount {
    * @description This function call will take 'unsignedUserOp' as an input, sign it with the owner key, and send it to the bundler.
    * @returns Promise<UserOpResponse>
    */
-  async sendUserOp(userOp: Partial<UserOperation>, params?: SendUserOpOptions): Promise<UserOpResponse> {
+  async sendUserOp(userOp: Partial<UserOperation>, params?: SendUserOpDto): Promise<UserOpResponse> {
     Logger.log("userOp received in base account ", userOp);
     delete userOp.signature;
     const userOperation = await this.signUserOp(userOp);
@@ -253,7 +253,7 @@ export abstract class SmartAccount implements ISmartAccount {
    * @description This function call will take 'signedUserOp' as input and send it to the bundler
    * @returns
    */
-  async sendSignedUserOp(userOp: UserOperation, params?: SendUserOpOptions): Promise<UserOpResponse> {
+  async sendSignedUserOp(userOp: UserOperation, params?: SendUserOpDto): Promise<UserOpResponse> {
     const requiredFields: UserOperationKey[] = [
       "sender",
       "nonce",

@@ -87,8 +87,12 @@ export type NonceOptions = {
   nonceOverride?: number;
 };
 
-export type SendUserOpOptions = {
+export type SendUserOpDto = {
   signer?: Signer;
+  simulationType?: SimulationType;
+};
+
+export type SendUserOpOptions = {
   simulationType?: SimulationType;
 };
 

@@ -10,7 +10,13 @@ import {
   SmartAccount_v200__factory,
   SmartAccountFactory_v200__factory,
 } from "@biconomy/common";
-import { BiconomyTokenPaymasterRequest, BiconomySmartAccountV2Config, CounterFactualAddressParam, BuildUserOpOptions } from "./utils/Types";
+import {
+  BiconomyTokenPaymasterRequest,
+  BiconomySmartAccountV2Config,
+  CounterFactualAddressParam,
+  BuildUserOpOptions,
+  SendUserOpOptions,
+} from "./utils/Types";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams } from "@biconomy/modules";
 import { UserOperation, Transaction } from "@biconomy/core-types";
 import NodeClient from "@biconomy/node-client";
@@ -296,7 +302,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
    * @description This function call will take 'unsignedUserOp' as an input, sign it with the owner key, and send it to the bundler.
    * @returns Promise<UserOpResponse>
    */
-  async sendUserOp(userOp: Partial<UserOperation>, params?: SendUserOpParams): Promise<UserOpResponse> {
+  async sendUserOp(userOp: Partial<UserOperation>, params?: SendUserOpOptions): Promise<UserOpResponse> {
     Logger.log("userOp received in base account ", userOp);
     delete userOp.signature;
     const userOperation = await this.signUserOp(userOp, params);
