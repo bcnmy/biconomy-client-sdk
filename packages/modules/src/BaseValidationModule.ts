@@ -1,32 +1,33 @@
-import { Signer } from 'ethers'
-import { Bytes } from 'ethers/lib/utils'
-import { BaseValidationModuleConfig, SessionParams } from './utils/Types'
-import { DEFAULT_ENTRYPOINT_ADDRESS } from './utils/Constants'
-import { IValidationModule } from './interfaces/IValidationModule'
+import { Signer } from "ethers";
+import { Bytes } from "ethers/lib/utils";
+import { BaseValidationModuleConfig, ModuleInfo } from "./utils/Types";
+import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants";
+import { IValidationModule } from "./interfaces/IValidationModule";
 
 export abstract class BaseValidationModule implements IValidationModule {
-  entryPointAddress: string
+  entryPointAddress: string;
 
   constructor(moduleConfig: BaseValidationModuleConfig) {
-    const { entryPointAddress } = moduleConfig
+    const { entryPointAddress } = moduleConfig;
 
-    this.entryPointAddress = entryPointAddress || DEFAULT_ENTRYPOINT_ADDRESS
+    this.entryPointAddress = entryPointAddress || DEFAULT_ENTRYPOINT_ADDRESS;
   }
 
-  abstract getAddress(): string
+  abstract getAddress(): string;
 
-  setEntryPointAddress(entryPointAddress: string) {
-    this.entryPointAddress = entryPointAddress
+  setEntryPointAddress(entryPointAddress: string): void {
+    this.entryPointAddress = entryPointAddress;
   }
 
-  abstract getInitData(): Promise<string>
+  abstract getInitData(): Promise<string>;
 
-  abstract getDummySignature(): string
+  // Anything  required to get dummy signature can be passed as params
+  abstract getDummySignature(_params?: ModuleInfo): Promise<string>;
 
-  // Review naming convention for getter
-  abstract getSigner(): Promise<Signer>
+  abstract getSigner(): Promise<Signer>;
 
-  abstract signUserOpHash(userOpHash: string, moduleSignerInfo?: SessionParams): Promise<string>
+  // Signer specific or any other additional information can be passed as params
+  abstract signUserOpHash(_userOpHash: string, _params?: ModuleInfo): Promise<string>;
 
-  abstract signMessage(message: Bytes | string): Promise<string>
+  abstract signMessage(_message: Bytes | string): Promise<string>;
 }

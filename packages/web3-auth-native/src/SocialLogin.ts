@@ -3,7 +3,7 @@ import base64url from 'base64url'
 import log from 'loglevel'
 import { URL } from 'react-native-url-polyfill'
 
-import { IWebBrowser } from './types/IWebBrowser'
+import { IWebBrowser, WebBrowserAuthSessionResult } from './types/IWebBrowser'
 import { SdkInitParams, SdkLoginParams, SdkLogoutParams, SocialLoginDto } from './types/sdk'
 import { State } from './types/State'
 
@@ -31,9 +31,8 @@ class SocialLogin {
   }
 
   async whitelistUrl(origin: string): Promise<string> {
-    const whiteListUrlResponse: WhiteListSignatureResponse = await this.nodeClient.whitelistUrl(
-      origin
-    )
+    const whiteListUrlResponse: WhiteListSignatureResponse =
+      await this.nodeClient.whitelistUrl(origin)
     return whiteListUrlResponse.data
   }
 
@@ -51,14 +50,20 @@ class SocialLogin {
   }
 
   async logout(options: SdkLogoutParams): Promise<void> {
-    const result = await this.request('logout', options.redirectUrl, options)
+    const redirectUrl = options.redirectUrl || '/'
+    const result = await this.request('logout', redirectUrl, options)
+
     if (result.type !== 'success' || !result.url) {
       log.error(`[Web3Auth] logout flow failed with error type ${result.type}`)
       throw new Error(`logout flow failed with error type ${result.type}`)
     }
   }
 
-  private async request(path: string, redirectUrl: string, params: Record<string, unknown> = {}) {
+  private async request(
+    path: string,
+    redirectUrl: string,
+    params: Record<string, unknown> = {}
+  ): Promise<WebBrowserAuthSessionResult> {
     const initParams = {
       ...this.initParams,
       clientId: this.clientId,

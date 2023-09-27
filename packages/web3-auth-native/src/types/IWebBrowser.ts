@@ -271,9 +271,9 @@ export interface IWebBrowser {
    * the Promise fulfills with `{ type: 'dismiss' }` object.
    */
   openAuthSessionAsync(
-    url: string,
-    redirectUrl: string,
-    browserParams?: WebBrowserOpenOptions
+    _url: string,
+    _redirectUrl: string,
+    _browserParams?: WebBrowserOpenOptions
   ): Promise<WebBrowserAuthSessionResult>
   // dismissAuthSession(): void;
   /**

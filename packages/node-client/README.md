@@ -4,14 +4,13 @@
 
 Node Client is the api client package that communicate with [Biconomy SDK](https://github.com/bcnmy/biconomy-client-sdk) backend node to fetch needed smart contract wallet data i.e supported chains list, transaction history, balances e.t.c
 
-
 ## Installation
 
-```yarn add @biconomy/node-client```
+`yarn add @biconomy/node-client`
 
 OR
 
-```npm install @biconomy/node-client ```
+`npm install @biconomy/node-client `
 
 ## Usage
 
@@ -48,7 +47,6 @@ const trxDetail = await nodeClient.getTransactionByHash(txHash)
 console.log('trxDetail ', trxDetail)
 ```
 
-
 # Get Smart Contract Wallet Balances
 
 ```
@@ -68,7 +66,7 @@ const balanceParams: BalancesDto =
         // If empty string you receive balances of all tokens watched by Indexer
         // you can only whitelist token addresses that are listed in token respository
         // specified above ^
-        tokenAddresses: [], 
+        tokenAddresses: [],
       };
 
 const balFromSdk = await nodeClient.getAlltokenBalances(balanceParams);

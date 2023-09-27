@@ -1,8 +1,8 @@
-import { UserOperation } from '@biconomy/core-types'
-import { UserOpResponse } from '@biconomy/bundler'
+import { UserOperation } from "@biconomy/core-types";
+import { UserOpResponse } from "@biconomy/bundler";
 export interface ISmartAccount {
-  getSmartAccountAddress(accountIndex: number): Promise<string>
-  signUserOp(userOp: UserOperation): Promise<UserOperation>
-  sendUserOp(userOp: UserOperation): Promise<UserOpResponse>
-  sendSignedUserOp(userOp: UserOperation): Promise<UserOpResponse>
+  getSmartAccountAddress(_accountIndex: number): Promise<string>;
+  signUserOp(_userOp: UserOperation): Promise<UserOperation>;
+  sendUserOp(_userOp: UserOperation): Promise<UserOpResponse>;
+  sendSignedUserOp(_userOp: UserOperation): Promise<UserOpResponse>;
 }

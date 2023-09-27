@@ -1,29 +1,12 @@
 {
+  "extends": "../../tsconfig.settings.json",
   "compilerOptions": {
-    "rootDir": "src",
-    "moduleResolution": "node",
-    "strict": false,
-    "module": "es6",
-    "target": "es6",
-    "lib": [
-      "ES2020",
-      "DOM"
-    ],
-    "sourceMap": true,
-    "esModuleInterop": true,
-    "noImplicitThis": true,
-    "declaration": true,
-    "declarationDir": "./types",
-    "outDir": "./dist",
-    "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true
+    "jsx": "react",
+    "composite": true,
+    "outDir": "dist",
+    "baseUrl": "src",
+    "resolveJsonModule": true,
+    "esModuleInterop": true
   },
-  "include": [
-    "./src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["src", "src/**/*.json"]
 }

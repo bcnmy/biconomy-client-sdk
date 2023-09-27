@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 3.1.0 (2023-09-20)
+Version Bump Only.
+
+
+
+# 3.0.0 (2023-08-28)
+
+
+### Features
+
+* particle auth integration ([7b8fb1d](https://github.com/bcnmy/biconomy-client-sdk/commit/7b8fb1d05e3cc0196bc15806fa48100701af181e))
+
+
+
+
+
 ## 3.0.0-alpha.0 (2023-07-12)
 
 

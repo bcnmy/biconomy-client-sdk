@@ -1,0 +1,21 @@
+name: Check Branch Name
+
+on:
+  create:
+    types: [branch]
+
+jobs:
+  check-branch-name:
+    runs-on: ubuntu-latest
+    if: github.event.ref_type == 'branch'
+    steps:
+      - name: Ensure branch name follows GitFlow conventions
+        run: |
+          BRANCH_NAME="${{ github.ref#refs/heads/ }}"
+          echo "Created branch: $BRANCH_NAME"
+
+          # Checking against GitFlow naming conventions for branches
+          if [[ ! $BRANCH_NAME =~ ^(features/|fixes/|releases/) ]]; then
+            echo "error: Branch names should follow GitFlow naming convention (features/, fixes/, releases/)."
+            exit 1
+          fi
