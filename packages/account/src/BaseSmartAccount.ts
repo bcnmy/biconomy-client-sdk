@@ -247,9 +247,8 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
       delete userOp.maxFeePerGas;
       delete userOp.maxPriorityFeePerGas;
       // Making call to bundler to get gas estimations for userOp
-      const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas } = await this.bundler.estimateUserOpGas(
-        userOp,
-      );
+      const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas } =
+        await this.bundler.estimateUserOpGas(userOp);
       // if neither user sent gas fee nor the bundler, estimate gas from provider
       if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas && (!maxFeePerGas || !maxPriorityFeePerGas)) {
         const feeData = await this.provider.getFeeData();
