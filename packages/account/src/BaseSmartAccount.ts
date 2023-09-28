@@ -11,6 +11,7 @@ import { BaseSmartAccountConfig, Overrides, TransactionDetailsForUserOp } from "
 import { GasOverheads } from "./utils/Preverificaiton";
 import { EntryPoint, EntryPoint__factory } from "@account-abstraction/contracts";
 import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants";
+import { LRUCache } from 'lru-cache'
 
 type UserOperationKey = keyof UserOperation;
 
@@ -34,6 +35,10 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
 
   // entryPoint connected to "zero" address. allowed to make static calls (e.g. to getSenderAddress)
   private readonly entryPoint!: EntryPoint;
+
+  private isContractDeployedCache = new LRUCache({
+    max: 500,
+  });
 
   constructor(_smartAccountConfig: BaseSmartAccountConfig) {
     this.index = _smartAccountConfig.index ?? 0;
@@ -270,10 +275,15 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
   }
 
   async isAccountDeployed(address: string): Promise<boolean> {
+    if (this.isContractDeployedCache.get(address)) {
+      return true;
+    }
+
     this.isProviderDefined();
     let isDeployed = false;
     const contractCode = await this.provider.getCode(address);
     if (contractCode.length > 2) {
+      this.isContractDeployedCache.set(address, true);
       isDeployed = true;
     } else {
       isDeployed = false;
