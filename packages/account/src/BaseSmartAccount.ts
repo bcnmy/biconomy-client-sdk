@@ -11,7 +11,7 @@ import { BaseSmartAccountConfig, Overrides, TransactionDetailsForUserOp } from "
 import { GasOverheads } from "./utils/Preverificaiton";
 import { EntryPoint, EntryPoint__factory } from "@account-abstraction/contracts";
 import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants";
-import LRUCache = require("lru-cache");
+import { LRUCache } from 'lru-cache'
 
 type UserOperationKey = keyof UserOperation;
 
