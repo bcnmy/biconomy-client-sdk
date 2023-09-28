@@ -23,6 +23,12 @@ export type UserOpReceipt = {
   receipt: ethers.providers.TransactionReceipt;
 };
 
+export type SendUserOpOptions = {
+  simulationType?: SimulationType;
+};
+
+export type SimulationType = "validation" | "validation_and_execution";
+
 // Converted to JsonRpcResponse with strict type
 export type GetUserOperationResponse = {
   jsonrpc: string;
