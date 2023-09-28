@@ -14,10 +14,11 @@ import {
   PaymasterAndDataResponse,
   UserOpGasResponse,
   EstimateUserOpGasResponse,
+  PmServiceDto,
 } from "./utils/Types";
 import { BigNumberish, BigNumber, ethers } from "ethers";
 import { transformUserOP } from "./utils/HelperFunction";
-import { ENTRYPOINT_ADDRESS, ERC20_ABI } from "./constants";
+import { ERC20_ABI } from "./constants";
 import { IHybridPaymaster } from "./interfaces/IHybridPaymaster";
 
 const defaultPaymasterConfig: PaymasterConfig = {
@@ -41,28 +42,33 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
   /**
    * @description This function will fetch gasPrices from paymaster
    */
-  async estimateUserOpGas(userOp: UserOperation): Promise<UserOpGasResponse> {
+  async estimateUserOpGas(userOp: UserOperation, paymasterServiceData?: PmServiceDto): Promise<UserOpGasResponse> {
     userOp = transformUserOP(userOp);
     Logger.log("userOp sending for fee estimate ", userOp);
 
-    const response: EstimateUserOpGasResponse = await sendRequest({
-      url: `${this.paymasterConfig.paymasterUrl}`,
-      method: HttpMethod.Post,
-      body: {
-        method: "pm_sponsorship",
-        params: [userOp, ENTRYPOINT_ADDRESS],
-        id: getTimestampInSeconds(),
-        jsonrpc: "2.0",
-      },
-    });
+    if (paymasterServiceData?.mode === undefined) {
+      throw new Error("mode is required in paymasterServiceData");
+    }
+    paymasterServiceData.calculateGasLimits = true;
+
+    let response: EstimateUserOpGasResponse;
+    try {
+      response = await sendRequest({
+        url: `${this.paymasterConfig.paymasterUrl}`,
+        method: HttpMethod.Post,
+        body: {
+          method: "pm_sponsorUserOperation",
+          params: [userOp, paymasterServiceData],
+          id: getTimestampInSeconds(),
+          jsonrpc: "2.0",
+        },
+      });
+    } catch (error: any) {
+      Logger.error("Failed to fetch data - reason: ", JSON.stringify(error));
+      throw error;
+    }
 
     const userOpGasResponse = response.result;
-    for (const key in userOpGasResponse) {
-      if (key === "maxFeePerGas" || key === "maxPriorityFeePerGas") continue;
-      if (!userOpGasResponse[key as keyof UserOpGasResponse]) {
-        throw new Error(`Got undefined ${key} from bundler`);
-      }
-    }
     return userOpGasResponse;
   }
 

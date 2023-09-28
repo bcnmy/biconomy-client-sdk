@@ -129,3 +129,11 @@ export type UserOpGasResponse = {
   verificationGasLimit: string;
   callGasLimit: string;
 };
+
+export type PmServiceDto = {
+  expiryDuration?: number;
+  mode: PaymasterMode;
+  calculateGasLimits?: boolean;
+  tokenInfo?: FeeTokenInfo;
+  sponsorshipInfo?: SponsorpshipInfo;
+};
