@@ -10,8 +10,14 @@ import {
   SmartAccount_v200__factory,
   SmartAccountFactory_v200__factory,
 } from "@biconomy/common";
-import { BiconomyTokenPaymasterRequest, BiconomySmartAccountV2Config, CounterFactualAddressParam, BuildUserOpOptions } from "./utils/Types";
-import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
+import {
+  BiconomyTokenPaymasterRequest,
+  BiconomySmartAccountV2Config,
+  CounterFactualAddressParam,
+  BuildUserOpOptions,
+  SendUserOpOptions,
+} from "./utils/Types";
+import { BaseValidationModule, ModuleInfo, SendUserOpParams } from "@biconomy/modules";
 import { UserOperation, Transaction } from "@biconomy/core-types";
 import NodeClient from "@biconomy/node-client";
 import INodeClient from "@biconomy/node-client";
@@ -32,6 +38,7 @@ import {
   DEFAULT_FALLBACK_HANDLER_ADDRESS,
   PROXY_CREATION_CODE,
 } from "./utils/Constants";
+import log from "loglevel";
 
 type UserOperationKey = keyof UserOperation;
 export class BiconomySmartAccountV2 extends BaseSmartAccount {
@@ -130,11 +137,14 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   // Could call it nonce space
   async getNonce(nonceKey?: number): Promise<BigNumber> {
     const nonceSpace = nonceKey ?? 0;
-    if (await this.isAccountDeployed(await this.getAccountAddress())) {
+    try {
       const accountContract = await this._getAccountContract();
-      return accountContract.nonce(nonceSpace);
+      const nonce = await accountContract.nonce(nonceSpace);
+      return nonce;
+    } catch (e) {
+      log.debug("Failed to get nonce from deployed account. Returning 0 as nonce");
+      return BigNumber.from(0);
     }
-    return BigNumber.from(0);
   }
 
   /**
@@ -240,7 +250,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return "0x";
   }
 
-  async signUserOp(userOp: Partial<UserOperation>, params?: ModuleInfo): Promise<UserOperation> {
+  async signUserOp(userOp: Partial<UserOperation>, params?: SendUserOpParams): Promise<UserOperation> {
     this.isActiveValidationModuleDefined();
     const requiredFields: UserOperationKey[] = [
       "sender",
@@ -296,11 +306,11 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
    * @description This function call will take 'unsignedUserOp' as an input, sign it with the owner key, and send it to the bundler.
    * @returns Promise<UserOpResponse>
    */
-  async sendUserOp(userOp: Partial<UserOperation>, params?: ModuleInfo): Promise<UserOpResponse> {
+  async sendUserOp(userOp: Partial<UserOperation>, params?: SendUserOpOptions): Promise<UserOpResponse> {
     Logger.log("userOp received in base account ", userOp);
     delete userOp.signature;
     const userOperation = await this.signUserOp(userOp, params);
-    const bundlerResponse = await this.sendSignedUserOp(userOperation);
+    const bundlerResponse = await this.sendSignedUserOp(userOperation, params);
     return bundlerResponse;
   }
 
@@ -473,7 +483,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return userOp;
   }
 
-  async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<string> {
+  async signUserOpHash(userOpHash: string, params?: SendUserOpParams): Promise<string> {
     this.isActiveValidationModuleDefined();
     const moduleSig = await this.activeValidationModule.signUserOpHash(userOpHash, params);
 

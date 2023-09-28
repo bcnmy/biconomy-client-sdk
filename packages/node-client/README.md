@@ -69,7 +69,7 @@ const balanceParams: BalancesDto =
         tokenAddresses: [],
       };
 
-const balFromSdk = await nodeClient.getAlltokenBalances(balanceParams);
+const balFromSdk = await nodeClient.getAllTokenBalances(balanceParams);
 console.info("balFromSdk ", balFromSdk);
 
 const usdBalFromSdk = await nodeClient.getTotalBalanceInUsd(balanceParams);

@@ -88,6 +88,19 @@ export type NonceOptions = {
   nonceOverride?: number;
 };
 
+// Used in AccountV1
+export type SendUserOpDto = {
+  signer?: Signer;
+  simulationType?: SimulationType;
+};
+
+// Generic options in AccountV2
+export type SendUserOpOptions = {
+  simulationType?: SimulationType;
+};
+
+export type SimulationType = "validation" | "validation_and_execution";
+
 export type Overrides = {
   callGasLimit?: BigNumberish;
   verificationGasLimit?: BigNumberish;
