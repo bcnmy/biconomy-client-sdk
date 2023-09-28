@@ -264,6 +264,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
       finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
       finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
       finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
+      finalUserOp.paymasterAndData = "0x";
     }
     return finalUserOp;
   }
