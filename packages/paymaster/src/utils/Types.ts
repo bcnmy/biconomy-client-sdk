@@ -106,6 +106,8 @@ export type PaymasterAndDataResponse = {
   preVerificationGas?: BigNumberish;
   verificationGasLimit?: BigNumberish;
   callGasLimit?: BigNumberish;
+  maxPriorityFeePerGas?: BigNumberish;
+  maxFeePerGas?: BigNumberish;
 };
 
 export enum PaymasterMode {
@@ -128,12 +130,4 @@ export type UserOpGasResponse = {
   maxFeePerGas: string;
   verificationGasLimit: string;
   callGasLimit: string;
-};
-
-export type PmServiceDto = {
-  expiryDuration?: number;
-  mode: PaymasterMode;
-  calculateGasLimits?: boolean;
-  tokenInfo?: FeeTokenInfo;
-  sponsorshipInfo?: SponsorpshipInfo;
 };

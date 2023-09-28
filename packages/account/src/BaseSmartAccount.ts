@@ -6,11 +6,12 @@ import { UserOperation, ChainId } from "@biconomy/core-types";
 import { calcPreVerificationGas, DefaultGasLimits } from "./utils/Preverificaiton";
 import { NotPromise, packUserOp, Logger, RPC_PROVIDER_URLS } from "@biconomy/common";
 import { IBundler, UserOpResponse } from "@biconomy/bundler";
-import { IHybridPaymaster, IPaymaster, PaymasterAndDataResponse, PmServiceDto, SponsorUserOperationDto } from "@biconomy/paymaster";
+import { IHybridPaymaster, IPaymaster, PaymasterAndDataResponse, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { BaseSmartAccountConfig, Overrides, TransactionDetailsForUserOp } from "./utils/Types";
 import { GasOverheads } from "./utils/Preverificaiton";
 import { EntryPoint, EntryPoint__factory } from "@account-abstraction/contracts";
 import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants";
+import { BiconomyPaymaster, PaymasterMode } from "@biconomy/paymaster";
 
 type UserOperationKey = keyof UserOperation;
 
@@ -219,14 +220,14 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
   async estimateUserOpGas(
     userOp: Partial<UserOperation>,
     overrides?: Overrides,
-    skipEstimation?: boolean,
-    pmServiceData?: PmServiceDto,
+    skipBundlerGasEstimation?: boolean,
+    paymasterServiceData?: SponsorUserOperationDto,
   ): Promise<Partial<UserOperation>> {
     const requiredFields: UserOperationKey[] = ["sender", "nonce", "initCode", "callData"];
     this.validateUserOp(userOp, requiredFields);
 
     const finalUserOp = userOp;
-    const skipBundlerCall = skipEstimation ?? true;
+    const skipBundlerCall = skipBundlerGasEstimation ?? true;
     // Override gas values in userOp if provided in overrides params
     if (overrides) {
       userOp = { ...userOp, ...overrides };
@@ -234,21 +235,33 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
 
     Logger.log("userOp in estimation", userOp);
 
-    delete userOp.maxFeePerGas;
-    delete userOp.maxPriorityFeePerGas;
-    if (skipBundlerCall && this.paymaster) {
-      userOp.maxFeePerGas = userOp.maxFeePerGas ?? (await this.provider.getGasPrice());
-      userOp.maxPriorityFeePerGas = userOp.maxPriorityFeePerGas ?? (await this.provider.getGasPrice());
-      // Making call to paymaster to get gas estimations for userOp
-      const { callGasLimit, verificationGasLimit, preVerificationGas, paymasterAndData } = await (
-        this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
-      ).estimateUserOpGas(userOp, pmServiceData);
-      finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
-      finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
-      finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
-      finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
+    if (skipBundlerCall) {
+      if (this.paymaster && this.paymaster instanceof BiconomyPaymaster && paymasterServiceData?.mode === PaymasterMode.SPONSORED) {
+        // TODO: delete these lines REVIEW
+        userOp.maxFeePerGas = userOp.maxFeePerGas ?? (await this.provider.getGasPrice());
+        userOp.maxPriorityFeePerGas = userOp.maxPriorityFeePerGas ?? (await this.provider.getGasPrice());
+        // Making call to paymaster to get gas estimations for userOp
+        const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas, paymasterAndData } = await (
+          this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
+        ).getPaymasterAndData(userOp, paymasterServiceData);
+        finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
+        finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
+        finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
+        finalUserOp.maxFeePerGas = maxFeePerGas ?? userOp.maxFeePerGas;
+        finalUserOp.maxPriorityFeePerGas = maxPriorityFeePerGas ?? userOp.maxPriorityFeePerGas;
+        finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
+      } else {
+        // TODO: delete these lines REVIEW
+        userOp.maxFeePerGas = userOp.maxFeePerGas ?? (await this.provider.getGasPrice());
+        userOp.maxPriorityFeePerGas = userOp.maxPriorityFeePerGas ?? (await this.provider.getGasPrice());
+        Logger.log("Skipped paymaster call. If you are using paymasterAndData, generate data externally");
+      }
+      return finalUserOp;
     } else {
       if (!this.bundler) throw new Error("Bundler is not provided");
+      // TODO: is this still needed to delete?
+      delete userOp.maxFeePerGas;
+      delete userOp.maxPriorityFeePerGas;
       // Making call to bundler to get gas estimations for userOp
       const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas } =
         await this.bundler.estimateUserOpGas(userOp);

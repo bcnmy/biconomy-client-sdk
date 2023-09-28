@@ -2,7 +2,7 @@ import { Signer } from "ethers";
 import { ChainId } from "@biconomy/core-types";
 import { BigNumberish } from "ethers";
 import { IBundler } from "@biconomy/bundler";
-import { IPaymaster, PaymasterFeeQuote, PmServiceDto } from "@biconomy/paymaster";
+import { IPaymaster, PaymasterFeeQuote, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { Provider } from "@ethersproject/providers";
 import { GasOverheads } from "./Preverificaiton";
@@ -76,11 +76,11 @@ export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
 
 export type BuildUserOpOptions = {
   overrides?: Overrides;
-  skipEstimation?: boolean;
+  skipBundlerGasEstimation?: boolean;
   params?: ModuleInfo;
   nonceOptions?: NonceOptions;
   forceEncodeForBatch?: boolean;
-  pmServiceData?: PmServiceDto;
+  paymasterServiceData?: SponsorUserOperationDto;
 };
 
 export type NonceOptions = {

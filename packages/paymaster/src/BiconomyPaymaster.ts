@@ -12,18 +12,14 @@ import {
   BiconomyTokenPaymasterRequest,
   PaymasterMode,
   PaymasterAndDataResponse,
-  UserOpGasResponse,
-  EstimateUserOpGasResponse,
-  PmServiceDto,
 } from "./utils/Types";
 import { BigNumberish, BigNumber, ethers } from "ethers";
-import { transformUserOP } from "./utils/HelperFunction";
 import { ERC20_ABI } from "./constants";
 import { IHybridPaymaster } from "./interfaces/IHybridPaymaster";
 
 const defaultPaymasterConfig: PaymasterConfig = {
   paymasterUrl: "",
-  strictMode: true, // Set your desired default value for strictMode here
+  strictMode: false, // Set your desired default value for strictMode here
 };
 /**
  * @dev Hybrid - Generic Gas Abstraction paymaster
@@ -40,59 +36,30 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
   }
 
   /**
-   * @description This function will fetch gasPrices from paymaster
-   */
-  async estimateUserOpGas(userOp: UserOperation, paymasterServiceData?: PmServiceDto): Promise<UserOpGasResponse> {
-    userOp = transformUserOP(userOp);
-    Logger.log("userOp sending for fee estimate ", userOp);
-
-    if (paymasterServiceData?.mode === undefined) {
-      throw new Error("mode is required in paymasterServiceData");
-    }
-    paymasterServiceData.calculateGasLimits = true;
-
-    let response: EstimateUserOpGasResponse;
-    try {
-      response = await sendRequest({
-        url: `${this.paymasterConfig.paymasterUrl}`,
-        method: HttpMethod.Post,
-        body: {
-          method: "pm_sponsorUserOperation",
-          params: [userOp, paymasterServiceData],
-          id: getTimestampInSeconds(),
-          jsonrpc: "2.0",
-        },
-      });
-    } catch (error: any) {
-      Logger.error("Failed to fetch data - reason: ", JSON.stringify(error));
-      throw error;
-    }
-
-    const userOpGasResponse = response.result;
-    return userOpGasResponse;
-  }
-
-  /**
    * @dev Prepares the user operation by resolving properties and converting certain values to hexadecimal format.
    * @param userOp The partial user operation.
    * @returns A Promise that resolves to the prepared partial user operation.
    */
   private async prepareUserOperation(userOp: Partial<UserOperation>): Promise<Partial<UserOperation>> {
     userOp = await resolveProperties(userOp);
-    if (userOp.nonce !== null || userOp.nonce !== undefined) {
+    if (userOp.nonce !== null && userOp.nonce !== undefined) {
       userOp.nonce = BigNumber.from(userOp.nonce).toHexString();
     }
-    if (userOp.callGasLimit !== null || userOp.callGasLimit !== undefined) {
+    if (userOp.callGasLimit !== null && userOp.callGasLimit !== undefined) {
       userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toString();
     }
-    if (userOp.verificationGasLimit !== null || userOp.verificationGasLimit !== undefined) {
+    if (userOp.verificationGasLimit !== null && userOp.verificationGasLimit !== undefined) {
       userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toString();
     }
-    if (userOp.preVerificationGas !== null || userOp.preVerificationGas !== undefined) {
+    if (userOp.preVerificationGas !== null && userOp.preVerificationGas !== undefined) {
       userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toString();
     }
-    userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toHexString();
-    userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toHexString();
+    if (userOp.maxFeePerGas !== null && userOp.maxFeePerGas !== undefined) {
+      userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toString();
+    }
+    if (userOp.maxPriorityFeePerGas !== null && userOp.maxPriorityFeePerGas !== undefined) {
+      userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toString();
+    }
     userOp.signature = userOp.signature || "0x";
     userOp.paymasterAndData = userOp.paymasterAndData || "0x";
     return userOp;
@@ -173,14 +140,14 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
 
     let mode = null;
     let expiryDuration = null;
-    const calculateGasLimits = paymasterServiceData.calculateGasLimits ? paymasterServiceData.calculateGasLimits : false;
+    const calculateGasLimits = paymasterServiceData.calculateGasLimits ? paymasterServiceData.calculateGasLimits : true;
     Logger.log("calculateGasLimits is ", calculateGasLimits);
     let preferredToken = null;
     let feeTokensArray: string[] = [];
     // could make below null
     let smartAccountInfo = {
       name: "BICONOMY",
-      version: "1.0.0",
+      version: "1.0.0", // REVIEW: Should we make default version 2.0.0?
     };
     let webhookData = null;
 
@@ -306,7 +273,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     const mode = paymasterServiceData.mode;
     Logger.log("requested mode is ", mode);
 
-    const calculateGasLimits = paymasterServiceData?.calculateGasLimits ? paymasterServiceData.calculateGasLimits : false;
+    const calculateGasLimits = paymasterServiceData?.calculateGasLimits ? paymasterServiceData.calculateGasLimits : true;
     Logger.log("calculateGasLimits is ", calculateGasLimits);
 
     let tokenInfo = null;
@@ -314,7 +281,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     // could make below null
     let smartAccountInfo = {
       name: "BICONOMY",
-      version: "1.0.0",
+      version: "1.0.0", // Review: Should we make default version 2.
     };
     let webhookData = null;
 
@@ -364,19 +331,24 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
         const preVerificationGas = response.result.preVerificationGas;
         const verificationGasLimit = response.result.verificationGasLimit;
         const callGasLimit = response.result.callGasLimit;
+        const maxPriorityFeePerGas = response.result.maxPriorityFeePerGas;
+        const maxFeePerGas = response.result.maxFeePerGas;
         return {
           paymasterAndData: paymasterAndData,
           preVerificationGas: preVerificationGas,
           verificationGasLimit: verificationGasLimit,
           callGasLimit: callGasLimit,
+          maxPriorityFeePerGas: maxPriorityFeePerGas,
+          maxFeePerGas: maxFeePerGas,
         };
       }
     } catch (error: any) {
       Logger.log(error.message);
       Logger.error("Error in generating paymasterAndData - reason: ", JSON.stringify(error));
       if (
-        !this.paymasterConfig.strictMode &&
-        (error?.message.includes("Smart contract data not found") || error?.message.includes("No policies were set"))
+        (!this.paymasterConfig.strictMode &&
+          (error?.message.includes("Smart contract data not found") || error?.message.includes("No policies were set"))) ||
+        error?.message.includes("Invalid FundingId")
         // can also check based on error.code being -32xxx
       ) {
         Logger.log(`Strict mode is ${this.paymasterConfig.strictMode}. sending paymasterAndData 0x`);
@@ -386,8 +358,11 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
           preVerificationGas: userOp.preVerificationGas,
           verificationGasLimit: userOp.verificationGasLimit,
           callGasLimit: userOp.callGasLimit,
+          maxPriorityFeePerGas: userOp.maxPriorityFeePerGas,
+          maxFeePerGas: userOp.maxFeePerGas,
         };
       }
+      // Logger.error("Failed to fetch paymasterAndData - reason: ", JSON.stringify(error));
       throw error;
     }
     throw new Error("Error in generating paymasterAndData");

@@ -352,7 +352,12 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     userOp.signature = await dummySignatureFetchPromise;
 
     // Note: Can change the default behaviour of calling estimations using bundler/local
-    userOp = await this.estimateUserOpGas(userOp, buildUseropDto?.overrides, buildUseropDto?.skipEstimation, buildUseropDto?.pmServiceData);
+    userOp = await this.estimateUserOpGas(
+      userOp,
+      buildUseropDto?.overrides,
+      buildUseropDto?.skipBundlerGasEstimation,
+      buildUseropDto?.paymasterServiceData,
+    );
     Logger.log("UserOp after estimation ", userOp);
 
     return userOp;
@@ -453,26 +458,11 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
           newCallData = await this.encodeExecuteBatch(batchTo, batchValue, batchData);
         }
-        let finalUserOp: Partial<UserOperation> = {
+        const finalUserOp: Partial<UserOperation> = {
           ...userOp,
           callData: newCallData,
         };
 
-        // Requesting to update gas limits again (especially callGasLimit needs to be re-calculated)
-        try {
-          finalUserOp = await this.estimateUserOpGas(finalUserOp);
-          const callGasLimit = ethers.BigNumber.from(finalUserOp.callGasLimit);
-          if (finalUserOp.callGasLimit && callGasLimit.lt(ethers.BigNumber.from("21000"))) {
-            return {
-              ...userOp,
-              callData: newCallData,
-            };
-          }
-          Logger.log("UserOp after estimation ", finalUserOp);
-        } catch (error) {
-          Logger.error("Failed to estimate gas for userOp with updated callData ", error);
-          Logger.log("Sending updated userOp. calculateGasLimit flag should be sent to the paymaster to be able to update callGasLimit");
-        }
         return finalUserOp;
       }
     } catch (error) {
