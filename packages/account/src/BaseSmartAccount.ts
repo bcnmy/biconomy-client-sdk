@@ -231,7 +231,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     const requiredFields: UserOperationKey[] = ["sender", "nonce", "initCode", "callData"];
     this.validateUserOp(userOp, requiredFields);
 
-    const finalUserOp = userOp;
+    let finalUserOp = userOp;
     const skipBundlerCall = skipBundlerGasEstimation ?? true;
     // Override gas values in userOp if provided in overrides params
     if (overrides) {
@@ -256,12 +256,10 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
         finalUserOp.maxPriorityFeePerGas = maxPriorityFeePerGas ?? userOp.maxPriorityFeePerGas;
         finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
       } else {
-        // TODO: delete these lines REVIEW
-        userOp.maxFeePerGas = userOp.maxFeePerGas ?? (await this.provider.getGasPrice());
-        userOp.maxPriorityFeePerGas = userOp.maxPriorityFeePerGas ?? (await this.provider.getGasPrice());
-        Logger.log("Skipped paymaster call. If you are using paymasterAndData, generate data externally");
+        Logger.warn("Skipped paymaster call. If you are using paymasterAndData, generate data externally");
+        finalUserOp = await this.calculateUserOpGasValues(userOp);
+        finalUserOp.paymasterAndData = "0x";
       }
-      return finalUserOp;
     } else {
       if (!this.bundler) throw new Error("Bundler is not provided");
       // TODO: is this still needed to delete?
