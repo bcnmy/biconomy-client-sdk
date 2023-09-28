@@ -38,6 +38,7 @@ import {
   DEFAULT_FALLBACK_HANDLER_ADDRESS,
   PROXY_CREATION_CODE,
 } from "./utils/Constants";
+import log from "loglevel";
 
 type UserOperationKey = keyof UserOperation;
 export class BiconomySmartAccountV2 extends BaseSmartAccount {
@@ -136,11 +137,14 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   // Could call it nonce space
   async getNonce(nonceKey?: number): Promise<BigNumber> {
     const nonceSpace = nonceKey ?? 0;
-    if (await this.isAccountDeployed(await this.getAccountAddress())) {
+    try {
       const accountContract = await this._getAccountContract();
-      return accountContract.nonce(nonceSpace);
+      const nonce = await accountContract.nonce(nonceSpace);
+      return nonce;
+    } catch (e) {
+      log.debug("Failed to get nonce from deployed account. Returning 0 as nonce");
+      return BigNumber.from(0);
     }
-    return BigNumber.from(0);
   }
 
   /**
