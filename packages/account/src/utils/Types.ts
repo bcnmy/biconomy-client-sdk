@@ -66,6 +66,7 @@ export type BiconomySmartAccountConfig = {
 
 export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
   factoryAddress?: string;
+  senderAddress?: string;
   implementationAddress?: string;
   defaultFallbackHandler?: string;
   rpcUrl?: string; // as good as Provider

@@ -82,6 +82,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     if (!defaultFallbackHandlerAddress) {
       throw new Error("Default Fallback Handler address is not provided");
     }
+    instance.accountAddress = biconomySmartAccountConfig.senderAddress ?? undefined;
     instance.defaultFallbackHandlerAddress = defaultFallbackHandlerAddress;
 
     instance.implementationAddress = biconomySmartAccountConfig.implementationAddress ?? BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0;
@@ -152,8 +153,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
    * this value is valid even before deploying the contract.
    */
   async getAccountAddress(params?: CounterFactualAddressParam): Promise<string> {
-    if (this.accountAddress == null) {
-      // means it needs deployment
+    if (this.accountAddress == null || this.accountAddress == undefined) {
       this.accountAddress = await this.getCounterFactualAddress(params);
     }
     return this.accountAddress;

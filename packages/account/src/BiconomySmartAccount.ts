@@ -480,7 +480,8 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     Logger.log("Requested implementation address to upgrade to", latestImplementationAddress);
 
     // by querying the proxy contract
-    const currentImplementationAddress = await this.proxy.implementation();
+    // TODO: add isDeployed checks before reading below
+    const currentImplementationAddress = await this.proxy.getImplementation();
     Logger.log("Current implementation address for this Smart Account", currentImplementationAddress);
 
     if (ethers.utils.getAddress(currentImplementationAddress) !== ethers.utils.getAddress(latestImplementationAddress)) {
