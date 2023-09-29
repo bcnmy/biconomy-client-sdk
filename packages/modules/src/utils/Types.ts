@@ -21,7 +21,7 @@ export interface SessionKeyManagerModuleConfig extends BaseValidationModuleConfi
   nodeClientUrl?: string;
   smartAccountAddress: string;
   storageType?: StorageType;
-  customSessionStorageClient?: ISessionStorage;
+  sessionStorageClient?: ISessionStorage;
 }
 
 export interface BatchedSessionRouterModuleConfig extends BaseValidationModuleConfig {
