@@ -79,11 +79,8 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       activeValidationModule: module1,
     });
 
-    // console.log('account api provider ', accountAPI.provider)
+  // console.log('account api provider ', accountAPI.provider)
 
-    accountAPI = await accountAPI.init();
-
-    console.log("Account address ", accountAPI.accountAddress);
 
     const counterFactualAddress = await accountAPI.getAccountAddress();
     console.log("Counterfactual address ", counterFactualAddress);
