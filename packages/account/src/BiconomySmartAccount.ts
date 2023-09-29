@@ -16,6 +16,7 @@ import { UserOperation, Transaction, SmartAccountType } from "@biconomy/core-typ
 import NodeClient from "@biconomy/node-client";
 import INodeClient from "@biconomy/node-client";
 import { IHybridPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from "@biconomy/paymaster";
+import { DEFAULT_ECDSA_OWNERSHIP_MODULE, ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import { IBiconomySmartAccount } from "./interfaces/IBiconomySmartAccount";
 import {
   ISmartAccount,
@@ -33,9 +34,12 @@ import {
   BICONOMY_IMPLEMENTATION_ADDRESSES,
   DEFAULT_ENTRYPOINT_ADDRESS,
   DEFAULT_BICONOMY_IMPLEMENTATION_ADDRESS,
+  BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION,
+  BICONOMY_FACTORY_ADDRESSES_BY_VERSION,
+  DEFAULT_BICONOMY_FACTORY_ADDRESS,
+  DEFAULT_FALLBACK_HANDLER_ADDRESS,
 } from "./utils/Constants";
 import { Signer } from "ethers";
-import { DEFAULT_ECDSA_OWNERSHIP_MODULE, ECDSAOwnershipValidationModule } from "@biconomy/modules";
 
 export class BiconomySmartAccount extends SmartAccount implements IBiconomySmartAccount {
   private factory!: SmartAccountFactory_v100;
@@ -467,10 +471,13 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
   }
 
   async getUpdateImplementationData(newImplementationAddress?: string): Promise<Transaction> {
-    // probably like V2 address or latest implemenbtation version
+    // V2 address or latest implementation if possible to jump from V1 -> Vn without upgrading to V2
     // If needed we can fetch this from backend config
-    const latestImplementationAddress = newImplementationAddress ?? DEFAULT_BICONOMY_IMPLEMENTATION_ADDRESS; // latest
-    Logger.log("Recommended implementation address to upgrade to", latestImplementationAddress);
+
+    Logger.log("Recommended implementation address to upgrade to", BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0);
+
+    const latestImplementationAddress = newImplementationAddress ?? DEFAULT_BICONOMY_IMPLEMENTATION_ADDRESS; // BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0 // 2.0
+    Logger.log("Requested implementation address to upgrade to", latestImplementationAddress);
 
     // by querying the proxy contract
     const currentImplementationAddress = await this.proxy.implementation();
@@ -480,8 +487,11 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       const impInterface = new ethers.utils.Interface(["function updateImplementation(address _implementation)"]);
       const encodedData = impInterface.encodeFunctionData("updateImplementation", [latestImplementationAddress]);
       return { to: this.address, value: BigNumber.from(0), data: encodedData };
+    } else {
+      // Could throw error instead
+      // throw new Error("Not eligible for upgrade");
+      return { to: this.address, value: 0, data: "0x" };
     }
-    return { to: this.address, value: 0, data: "0x" };
   }
 
   async getModuleSetupData(ecdsaModuleAddress?: string): Promise<Transaction> {
@@ -503,18 +513,18 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       };
       const accountV2: SmartAccount_v200 = getSAProxyContract(proxyInstanceDto) as SmartAccount_v200;
 
-      const populatedTransaction = await accountV2.populateTransaction.setupAndEnableModule(moduleAddress, ecdsaOwnershipSetupData);
+      const data = accountV2.interface.encodeFunctionData("setupAndEnableModule", [moduleAddress, ecdsaOwnershipSetupData]);
 
-      return { to: this.address, value: 0, data: populatedTransaction.data };
+      return { to: this.address, value: 0, data: data };
     } catch (error) {
       Logger.error("Failed to get module setup data", error);
-      // throw error
+      // Could throw error
       return { to: this.address, value: 0, data: "0x" };
     }
   }
 
   // Once this userOp is sent (batch: a. updateImplementation and b. setupModule on upgraded proxy)
-  // You can start using BiconomySmartAccountV2
+  // Afterwards you can start using BiconomySmartAccountV2
   async updateImplementationUserOp(newImplementationAddress?: string, ecdsaModuleAddress?: string): Promise<Partial<UserOperation>> {
     const tx1 = await this.getUpdateImplementationData(newImplementationAddress);
     const tx2 = await this.getModuleSetupData(ecdsaModuleAddress);
