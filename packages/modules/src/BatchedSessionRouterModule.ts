@@ -61,8 +61,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
       const sessionModule = await SessionKeyManagerModule.create({
         moduleAddress: instance.sessionManagerModuleAddress,
         smartAccountAddress: moduleConfig.smartAccountAddress,
-        nodeClientUrl: moduleConfig.nodeClientUrl,
-        storageType: moduleConfig.storageType,
+        nodeClientUrl: moduleConfig.nodeClientUrl
       });
 
       instance.sessionKeyManagerModule = sessionModule;
