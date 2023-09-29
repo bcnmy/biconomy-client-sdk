@@ -1,7 +1,7 @@
 import { ChainId, UserOperation } from "@biconomy/core-types";
 import { Signer } from "ethers";
 import { SessionKeyManagerModule } from "../SessionKeyManagerModule";
-import { ISessionStorage } from "../interfaces/ISessionStorage";
+import { ISessionStorage } from "interfaces/ISessionStorage";
 
 export type ModuleVersion = "V1_0_0"; // | 'V1_0_1'
 
@@ -20,7 +20,8 @@ export interface SessionKeyManagerModuleConfig extends BaseValidationModuleConfi
   version?: ModuleVersion;
   nodeClientUrl?: string;
   smartAccountAddress: string;
-  sessionStorageClient?: ISessionStorage;
+  storageType?: StorageType;
+  customSessionStorageClient?: ISessionStorage;
 }
 
 export interface BatchedSessionRouterModuleConfig extends BaseValidationModuleConfig {
@@ -32,10 +33,15 @@ export interface BatchedSessionRouterModuleConfig extends BaseValidationModuleCo
   sessionManagerModuleAddress?: string;
   nodeClientUrl?: string;
   smartAccountAddress: string;
+  storageType?: StorageType;
 
   // sessionSigner?: Signer
   // sessionPubKey?: string
   // nodeClientUrl?: string
+}
+
+export enum StorageType {
+  LOCAL_STORAGE,
 }
 
 export type SessionParams = {

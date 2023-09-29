@@ -9,6 +9,7 @@ import {
   CreateSessionDataParams,
   ModuleInfo,
   CreateSessionDataResponse,
+  StorageType,
 } from "./utils/Types";
 import NodeClient from "@biconomy/node-client";
 import INodeClient from "@biconomy/node-client";
@@ -65,9 +66,15 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     instance.nodeClient = new NodeClient({
       txServiceUrl: moduleConfig.nodeClientUrl ?? NODE_CLIENT_URL,
     });
-    
-    if (moduleConfig.sessionStorageClient) {
-      instance.sessionStorageClient = moduleConfig.sessionStorageClient;
+
+    if (!moduleConfig.storageType || moduleConfig.storageType === StorageType.LOCAL_STORAGE) {
+      instance.sessionStorageClient = new SessionLocalStorage(moduleConfig.smartAccountAddress);
+    } else {
+      throw new Error("Invalid storage type");
+    }
+
+    if (moduleConfig.customSessionStorageClient) {
+      instance.sessionStorageClient = moduleConfig.customSessionStorageClient;
     } else {
       instance.sessionStorageClient = new SessionLocalStorage(moduleConfig.smartAccountAddress);
     }
