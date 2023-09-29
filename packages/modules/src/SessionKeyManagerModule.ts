@@ -75,8 +75,6 @@ export class SessionKeyManagerModule extends BaseValidationModule {
 
     if (moduleConfig.customSessionStorageClient) {
       instance.sessionStorageClient = moduleConfig.customSessionStorageClient;
-    } else {
-      instance.sessionStorageClient = new SessionLocalStorage(moduleConfig.smartAccountAddress);
     }
 
     const existingSessionData = await instance.sessionStorageClient.getAllSessionData();
