@@ -1,6 +1,5 @@
 import { UserOperation } from "@biconomy/core-types";
-import { FeeQuotesOrDataResponse, BiconomyTokenPaymasterRequest, FeeQuotesOrDataDto } from "../utils/Types";
-import { PaymasterAndDataResponse } from "../utils/Types";
+import { FeeQuotesOrDataResponse, BiconomyTokenPaymasterRequest, FeeQuotesOrDataDto, PaymasterAndDataResponse } from "../utils/Types";
 import { Transaction } from "@biconomy/core-types";
 import { Provider } from "@ethersproject/abstract-provider";
 import { IPaymaster } from "./IPaymaster";
