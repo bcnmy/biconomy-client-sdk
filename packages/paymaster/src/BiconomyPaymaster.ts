@@ -140,7 +140,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
 
     let mode = null;
     let expiryDuration = null;
-    const calculateGasLimits = paymasterServiceData.calculateGasLimits ? paymasterServiceData.calculateGasLimits : true;
+    const calculateGasLimits = paymasterServiceData.calculateGasLimits ?? true;
     Logger.log("calculateGasLimits is ", calculateGasLimits);
     let preferredToken = null;
     let feeTokensArray: string[] = [];
@@ -273,7 +273,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     const mode = paymasterServiceData.mode;
     Logger.log("requested mode is ", mode);
 
-    const calculateGasLimits = paymasterServiceData?.calculateGasLimits ? paymasterServiceData.calculateGasLimits : true;
+    const calculateGasLimits = paymasterServiceData.calculateGasLimits ?? true;
     Logger.log("calculateGasLimits is ", calculateGasLimits);
 
     let tokenInfo = null;
