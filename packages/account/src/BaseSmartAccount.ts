@@ -241,10 +241,17 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     Logger.log("userOp in estimation", userOp);
 
     if (skipBundlerCall) {
+      // Review: instead of checking mode it could be assumed or just pass gasless flag and use it
+      // make pmService data locally and pass the object with default values
       if (this.paymaster && this.paymaster instanceof BiconomyPaymaster && paymasterServiceData?.mode === PaymasterMode.SPONSORED) {
         // TODO: delete these lines REVIEW
         userOp.maxFeePerGas = userOp.maxFeePerGas ?? (await this.provider.getGasPrice());
         userOp.maxPriorityFeePerGas = userOp.maxPriorityFeePerGas ?? (await this.provider.getGasPrice());
+
+        // TODO // Review and add try catch
+        // in try if gas values are undefined and pnd is 0x then estimate locally
+        // in catch make pnd 0x and calc values or just rethrow
+
         // Making call to paymaster to get gas estimations for userOp
         const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas, paymasterAndData } = await (
           this.paymaster as IHybridPaymaster<SponsorUserOperationDto>

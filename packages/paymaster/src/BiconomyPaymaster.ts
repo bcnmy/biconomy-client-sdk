@@ -147,7 +147,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     // could make below null
     let smartAccountInfo = {
       name: "BICONOMY",
-      version: "1.0.0", // REVIEW: Should we make default version 2.0.0?
+      version: "1.0.0", // REVIEW: Should we make default version 2.0.0? Yes
     };
     let webhookData = null;
 
@@ -281,7 +281,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     // could make below null
     let smartAccountInfo = {
       name: "BICONOMY",
-      version: "1.0.0", // Review: Should we make default version 2.
+      version: "1.0.0", // Review: Should we make default version 2.0.0? Yes
     };
     let webhookData = null;
 
