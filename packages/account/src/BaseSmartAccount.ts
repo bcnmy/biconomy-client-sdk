@@ -206,10 +206,24 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
 
   async calculateUserOpGasValues(userOp: Partial<UserOperation>): Promise<Partial<UserOperation>> {
     if (!this.provider) throw new Error("Provider is not present for making rpc calls");
-    const feeData = await this.provider.getFeeData();
-    userOp.maxFeePerGas = userOp.maxFeePerGas ?? feeData.maxFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice());
-    userOp.maxPriorityFeePerGas =
-      userOp.maxPriorityFeePerGas ?? feeData.maxPriorityFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice());
+    let feeData = null;
+
+    if (
+      userOp.maxFeePerGas === undefined ||
+      userOp.maxFeePerGas === null ||
+      userOp.maxPriorityFeePerGas === undefined ||
+      userOp.maxPriorityFeePerGas === null
+    ) {
+      feeData = await this.provider.getFeeData();
+    }
+
+    if (userOp.maxFeePerGas === undefined || userOp.maxFeePerGas === null) {
+      userOp.maxFeePerGas = feeData?.maxFeePerGas ?? feeData?.gasPrice ?? (await this.provider.getGasPrice());
+    }
+
+    if (userOp.maxPriorityFeePerGas === undefined || userOp.maxPriorityFeePerGas === null) {
+      userOp.maxPriorityFeePerGas = feeData?.maxPriorityFeePerGas ?? feeData?.gasPrice ?? (await this.provider.getGasPrice());
+    }
     if (userOp.initCode) userOp.verificationGasLimit = userOp.verificationGasLimit ?? (await this.getVerificationGasLimit(userOp.initCode));
     userOp.callGasLimit =
       userOp.callGasLimit ??
@@ -222,8 +236,10 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     return userOp;
   }
 
+  // TODO // Should make this a Dto
   async estimateUserOpGas(
     userOp: Partial<UserOperation>,
+    gasless: boolean,
     overrides?: Overrides,
     skipBundlerGasEstimation?: boolean,
     paymasterServiceData?: SponsorUserOperationDto,
@@ -243,25 +259,46 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     if (skipBundlerCall) {
       // Review: instead of checking mode it could be assumed or just pass gasless flag and use it
       // make pmService data locally and pass the object with default values
-      if (this.paymaster && this.paymaster instanceof BiconomyPaymaster && paymasterServiceData?.mode === PaymasterMode.SPONSORED) {
+      if (this.paymaster && this.paymaster instanceof BiconomyPaymaster && gasless === true) {
         // TODO: delete these lines REVIEW
         userOp.maxFeePerGas = userOp.maxFeePerGas ?? (await this.provider.getGasPrice());
         userOp.maxPriorityFeePerGas = userOp.maxPriorityFeePerGas ?? (await this.provider.getGasPrice());
 
-        // TODO // Review and add try catch
-        // in try if gas values are undefined and pnd is 0x then estimate locally
-        // in catch make pnd 0x and calc values or just rethrow
+        let paymasterServiceDataRequest: SponsorUserOperationDto = {
+          mode: PaymasterMode.SPONSORED,
+          smartAccountInfo: {
+            name: "BICONOMY",
+            version: "2.0.0",
+          },
+        };
+
+        paymasterServiceDataRequest = { ...paymasterServiceDataRequest, ...paymasterServiceData };
 
         // Making call to paymaster to get gas estimations for userOp
         const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas, paymasterAndData } = await (
           this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
-        ).getPaymasterAndData(userOp, paymasterServiceData);
-        finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
-        finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
-        finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
-        finalUserOp.maxFeePerGas = maxFeePerGas ?? userOp.maxFeePerGas;
-        finalUserOp.maxPriorityFeePerGas = maxPriorityFeePerGas ?? userOp.maxPriorityFeePerGas;
-        finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
+        ).getPaymasterAndData(userOp, paymasterServiceDataRequest);
+
+        // if gas values are undefined and pnd is 0x then estimate locally
+        if (paymasterAndData === "0x") {
+          const op: Partial<UserOperation> = {
+            callGasLimit: callGasLimit,
+            verificationGasLimit: verificationGasLimit,
+            preVerificationGas: preVerificationGas,
+            maxFeePerGas: maxFeePerGas,
+            maxPriorityFeePerGas: maxPriorityFeePerGas,
+          };
+          // Review
+          finalUserOp = await this.calculateUserOpGasValues(op);
+          finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
+        } else {
+          finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
+          finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
+          finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
+          finalUserOp.maxFeePerGas = maxFeePerGas ?? userOp.maxFeePerGas;
+          finalUserOp.maxPriorityFeePerGas = maxPriorityFeePerGas ?? userOp.maxPriorityFeePerGas;
+          finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
+        }
       } else {
         Logger.warn("Skipped paymaster call. If you are using paymasterAndData, generate data externally");
         finalUserOp = await this.calculateUserOpGasValues(userOp);
