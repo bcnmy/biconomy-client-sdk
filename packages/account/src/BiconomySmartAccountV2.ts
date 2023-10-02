@@ -99,7 +99,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     instance.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL });
 
     await instance.init();
-
+    
     return instance;
   }
 
