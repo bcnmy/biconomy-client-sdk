@@ -6,3 +6,4 @@ export * from "./SmartAccount";
 export * from "./BiconomySmartAccount";
 export * from "./utils/Constants";
 export * from "./BiconomySmartAccountV2";
+export * from "./utils/VoidSigner";
