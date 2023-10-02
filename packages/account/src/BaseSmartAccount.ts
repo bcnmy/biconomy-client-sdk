@@ -239,7 +239,6 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
   // TODO // Should make this a Dto
   async estimateUserOpGas(
     userOp: Partial<UserOperation>,
-    gasless: boolean,
     overrides?: Overrides,
     skipBundlerGasEstimation?: boolean,
     paymasterServiceData?: SponsorUserOperationDto,
@@ -259,46 +258,21 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     if (skipBundlerCall) {
       // Review: instead of checking mode it could be assumed or just pass gasless flag and use it
       // make pmService data locally and pass the object with default values
-      if (this.paymaster && this.paymaster instanceof BiconomyPaymaster && gasless === true) {
+      if (this.paymaster && this.paymaster instanceof BiconomyPaymaster && paymasterServiceData?.mode === PaymasterMode.SPONSORED) {
         // TODO: delete these lines REVIEW
         userOp.maxFeePerGas = userOp.maxFeePerGas ?? (await this.provider.getGasPrice());
         userOp.maxPriorityFeePerGas = userOp.maxPriorityFeePerGas ?? (await this.provider.getGasPrice());
 
-        let paymasterServiceDataRequest: SponsorUserOperationDto = {
-          mode: PaymasterMode.SPONSORED,
-          smartAccountInfo: {
-            name: "BICONOMY",
-            version: "2.0.0",
-          },
-        };
-
-        paymasterServiceDataRequest = { ...paymasterServiceDataRequest, ...paymasterServiceData };
-
         // Making call to paymaster to get gas estimations for userOp
         const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas, paymasterAndData } = await (
           this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
-        ).getPaymasterAndData(userOp, paymasterServiceDataRequest);
-
-        // if gas values are undefined and pnd is 0x then estimate locally
-        if (paymasterAndData === "0x") {
-          const op: Partial<UserOperation> = {
-            callGasLimit: callGasLimit,
-            verificationGasLimit: verificationGasLimit,
-            preVerificationGas: preVerificationGas,
-            maxFeePerGas: maxFeePerGas,
-            maxPriorityFeePerGas: maxPriorityFeePerGas,
-          };
-          // Review
-          finalUserOp = await this.calculateUserOpGasValues(op);
-          finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
-        } else {
+          ).getPaymasterAndData(userOp, paymasterServiceData);
           finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
           finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
           finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
           finalUserOp.maxFeePerGas = maxFeePerGas ?? userOp.maxFeePerGas;
           finalUserOp.maxPriorityFeePerGas = maxPriorityFeePerGas ?? userOp.maxPriorityFeePerGas;
           finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
-        }
       } else {
         Logger.warn("Skipped paymaster call. If you are using paymasterAndData, generate data externally");
         finalUserOp = await this.calculateUserOpGasValues(userOp);

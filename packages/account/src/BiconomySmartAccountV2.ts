@@ -320,8 +320,6 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     const data = transactions.map((element: Transaction) => element.data ?? "0x");
     const value = transactions.map((element: Transaction) => element.value ?? BigNumber.from("0"));
 
-    const gaslessTx = buildUseropDto?.gasless ?? false;
-
     // Queue promises to fetch independent data.
     const nonceFetchPromise = (async () => {
       const _nonceSpace = buildUseropDto?.nonceOptions?.nonceKey ?? 0;
@@ -367,7 +365,6 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     // Note: Can change the default behaviour of calling estimations using bundler/local
     userOp = await this.estimateUserOpGas(
       userOp,
-      gaslessTx,
       buildUseropDto?.overrides,
       buildUseropDto?.skipBundlerGasEstimation,
       buildUseropDto?.paymasterServiceData,
