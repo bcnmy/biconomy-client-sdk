@@ -76,7 +76,6 @@ export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
 
 export type BuildUserOpOptions = {
   overrides?: Overrides;
-  gasless?: boolean;
   skipBundlerGasEstimation?: boolean;
   params?: ModuleInfo;
   nonceOptions?: NonceOptions;
