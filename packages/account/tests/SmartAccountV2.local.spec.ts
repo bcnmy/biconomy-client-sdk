@@ -1,5 +1,5 @@
 import { EntryPoint, EntryPoint__factory, UserOperationStruct, SimpleAccountFactory__factory } from "@account-abstraction/contracts";
-import { Wallet, ethers } from "ethers";
+import { VoidSigner, Wallet, ethers } from "ethers";
 import { SampleRecipient, SampleRecipient__factory } from "@account-abstraction/utils/dist/src/types";
 
 import {
@@ -336,6 +336,32 @@ describe("BiconomySmartAccountV2 API Specs", () => {
 
     // ((await expect(entryPoint.handleOps([signedUserOp], beneficiary))) as any).to.emit(recipient, "Sender");
   }, 10000); // on github runner it takes more time than 5000ms
+
+  it("Creates another replicated instance using void signer", async () => {
+
+    let newmodule = await ECDSAOwnershipValidationModule.create({
+      signer: new VoidSigner(await owner.getAddress()),
+      moduleAddress: ecdsaModule.address,
+    });
+
+    let accountAPI2 = await BiconomySmartAccountV2.create({
+      chainId: ChainId.GANACHE,
+      rpcUrl: "http://127.0.0.1:8545",
+      // paymaster: paymaster,
+      // bundler: bundler,
+      entryPointAddress: entryPoint.address,
+      factoryAddress: accountFactory.address,
+      implementationAddress: accountAPI.getImplementationAddress(),
+      defaultFallbackHandler: await accountFactory.minimalHandler(),
+      defaultValidationModule: newmodule,
+      activeValidationModule: newmodule,
+    });
+
+    const address = await accountAPI2.getAccountAddress();
+    console.log('account address ', address);
+
+    expect(address).toBe(accountAPI.accountAddress);
+  }, 10000);
 
   // TODO
   // 1. sendSignedUserOp()
