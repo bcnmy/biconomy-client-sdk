@@ -266,13 +266,13 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
         // Making call to paymaster to get gas estimations for userOp
         const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas, paymasterAndData } = await (
           this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
-          ).getPaymasterAndData(userOp, paymasterServiceData);
-          finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
-          finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
-          finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
-          finalUserOp.maxFeePerGas = maxFeePerGas ?? userOp.maxFeePerGas;
-          finalUserOp.maxPriorityFeePerGas = maxPriorityFeePerGas ?? userOp.maxPriorityFeePerGas;
-          finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
+        ).getPaymasterAndData(userOp, paymasterServiceData);
+        finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
+        finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
+        finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
+        finalUserOp.maxFeePerGas = maxFeePerGas ?? userOp.maxFeePerGas;
+        finalUserOp.maxPriorityFeePerGas = maxPriorityFeePerGas ?? userOp.maxPriorityFeePerGas;
+        finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
       } else {
         Logger.warn("Skipped paymaster call. If you are using paymasterAndData, generate data externally");
         finalUserOp = await this.calculateUserOpGasValues(userOp);
