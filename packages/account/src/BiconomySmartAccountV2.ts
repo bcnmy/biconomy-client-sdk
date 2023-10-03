@@ -2,14 +2,14 @@ import { JsonRpcProvider } from "@ethersproject/providers";
 import { ethers, BigNumberish, BytesLike, BigNumber } from "ethers";
 import { BaseSmartAccount } from "./BaseSmartAccount";
 import { Bytes, getCreate2Address, hexConcat, keccak256, solidityKeccak256 } from "ethers/lib/utils";
+// TODO // update with main package
 import {
-  Logger,
-  NODE_CLIENT_URL,
-  SmartAccount_v200,
-  SmartAccountFactory_v200,
-  SmartAccount_v200__factory,
-  SmartAccountFactory_v200__factory,
-} from "@biconomy/common";
+  SmartAccount,
+  SmartAccountFactory,
+  SmartAccount__factory,
+  SmartAccountFactory__factory,
+} from "@biconomy-devx/account-contracts-v2/dist/types"; // update with main package
+import { Logger, NODE_CLIENT_URL } from "@biconomy/common";
 import {
   BiconomyTokenPaymasterRequest,
   BiconomySmartAccountV2Config,
@@ -52,9 +52,9 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
    * our account contract.
    * should support the "execFromEntryPoint" and "nonce" methods
    */
-  accountContract?: SmartAccount_v200;
+  accountContract?: SmartAccount;
 
-  factory?: SmartAccountFactory_v200;
+  factory?: SmartAccountFactory;
 
   private defaultFallbackHandlerAddress!: string;
 
@@ -103,9 +103,9 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return instance;
   }
 
-  async _getAccountContract(): Promise<SmartAccount_v200> {
+  async _getAccountContract(): Promise<SmartAccount> {
     if (this.accountContract == null) {
-      this.accountContract = SmartAccount_v200__factory.connect(await this.getAccountAddress(), this.provider);
+      this.accountContract = SmartAccount__factory.connect(await this.getAccountAddress(), this.provider);
     }
     return this.accountContract;
   }
@@ -166,7 +166,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   async getCounterFactualAddress(params?: CounterFactualAddressParam): Promise<string> {
     if (this.factory == null) {
       if (this.factoryAddress != null && this.factoryAddress !== "") {
-        this.factory = SmartAccountFactory_v200__factory.connect(this.factoryAddress, this.provider);
+        this.factory = SmartAccountFactory__factory.connect(this.factoryAddress, this.provider);
       } else {
         throw new Error("no factory to get initCode");
       }
@@ -176,7 +176,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     const index = params?.index ?? this.index;
 
     try {
-      const initCalldata = SmartAccount_v200__factory.createInterface().encodeFunctionData("init", [
+      const initCalldata = SmartAccount__factory.createInterface().encodeFunctionData("init", [
         this.defaultFallbackHandlerAddress,
         validationModule.getAddress(),
         await validationModule.getInitData(),
@@ -198,7 +198,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   async getAccountInitCode(): Promise<string> {
     if (this.factory == null) {
       if (this.factoryAddress != null && this.factoryAddress !== "") {
-        this.factory = SmartAccountFactory_v200__factory.connect(this.factoryAddress, this.provider);
+        this.factory = SmartAccountFactory__factory.connect(this.factoryAddress, this.provider);
       } else {
         throw new Error("no factory to get initCode");
       }
