@@ -259,19 +259,16 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
       // Review: instead of checking mode it could be assumed or just pass gasless flag and use it
       // make pmService data locally and pass the object with default values
       if (this.paymaster && this.paymaster instanceof BiconomyPaymaster && paymasterServiceData?.mode === PaymasterMode.SPONSORED) {
-        // TODO: delete these lines REVIEW
-        userOp.maxFeePerGas = userOp.maxFeePerGas ?? (await this.provider.getGasPrice());
-        userOp.maxPriorityFeePerGas = userOp.maxPriorityFeePerGas ?? (await this.provider.getGasPrice());
-
+        if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas) {
+          throw new Error("maxFeePerGas and maxPriorityFeePerGas are required for skipBundlerCall mode");
+        }
         // Making call to paymaster to get gas estimations for userOp
-        const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas, paymasterAndData } = await (
+        const { callGasLimit, verificationGasLimit, preVerificationGas, paymasterAndData } = await (
           this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
         ).getPaymasterAndData(userOp, paymasterServiceData);
         finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
         finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
         finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
-        finalUserOp.maxFeePerGas = maxFeePerGas ?? userOp.maxFeePerGas;
-        finalUserOp.maxPriorityFeePerGas = maxPriorityFeePerGas ?? userOp.maxPriorityFeePerGas;
         finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
       } else {
         Logger.warn("Skipped paymaster call. If you are using paymasterAndData, generate data externally");

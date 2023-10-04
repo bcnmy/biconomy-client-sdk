@@ -11,6 +11,8 @@ import {
   UserOpGasResponse,
   UserOpByHashResponse,
   SendUserOpOptions,
+  GetGasFeeValuesResponse,
+  GasFeeValues,
 } from "./utils/Types";
 import { resolveProperties } from "ethers/lib/utils";
 import { deepHexlify, sendRequest, getTimestampInSeconds, HttpMethod, Logger, RPC_PROVIDER_URLS } from "@biconomy/common";
@@ -173,5 +175,23 @@ export class Bundler implements IBundler {
     });
     const userOpByHashResponse: UserOpByHashResponse = response.result;
     return userOpByHashResponse;
+  }
+
+  /**
+   * @description This function will return the gas fee values
+   */
+  async getGasFeeValues(): Promise<GasFeeValues> {
+    const bundlerUrl = this.getBundlerUrl();
+    const response: GetGasFeeValuesResponse = await sendRequest({
+      url: bundlerUrl,
+      method: HttpMethod.Post,
+      body: {
+        method: "biconomy_getGasFeeValues",
+        params: [],
+        id: getTimestampInSeconds(),
+        jsonrpc: "2.0",
+      },
+    });
+    return response.result;
   }
 }

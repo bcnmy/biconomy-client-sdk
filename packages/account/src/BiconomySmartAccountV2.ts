@@ -322,17 +322,51 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
     // Queue promises to fetch independent data.
     const nonceFetchPromise = (async () => {
-      const _nonceSpace = buildUseropDto?.nonceOptions?.nonceKey ?? 0;
-      const nonce = await this.getNonce(_nonceSpace);
+      let nonce = BigNumber.from(0);
+      try {
+        if (buildUseropDto?.nonceOptions?.nonceOverride) {
+          nonce = BigNumber.from(buildUseropDto?.nonceOptions?.nonceOverride);
+        } else {
+          const _nonceSpace = buildUseropDto?.nonceOptions?.nonceKey ?? 0;
+          nonce = await this.getNonce(_nonceSpace);
+        }
+      } catch (error) {
+        // Not throwing this error as nonce would be 0 if this.getNonce() throw exception, which is expected flow for undeployed account
+      }
       return nonce;
     })();
     const initCodeFetchPromise = this.getInitCode();
     const dummySignatureFetchPromise = this.getDummySignature(buildUseropDto?.params);
 
+    const gasFeeValues = {
+      maxFeePerGas: buildUseropDto?.overrides?.maxFeePerGas,
+      maxPriorityFeePerGas: buildUseropDto?.overrides?.maxPriorityFeePerGas,
+    };
+    // Estimate max fee per gas and max priority fee per gas
+    const getGasFeeValues = (async () => {
+      try {
+        if (this.bundler && !gasFeeValues.maxFeePerGas && !gasFeeValues.maxPriorityFeePerGas && !buildUseropDto?.skipBundlerGasEstimation) {
+          const gasFeeEstimation = await this.bundler.getGasFeeValues();
+          gasFeeValues.maxFeePerGas = gasFeeEstimation.maxFeePerGas;
+          gasFeeValues.maxPriorityFeePerGas = gasFeeEstimation.maxPriorityFeePerGas;
+        }
+        return gasFeeValues;
+      } catch (error: any) {
+        Logger.error("Provided bundler might not have this endpoint", error);
+        return gasFeeValues;
+      }
+    })();
+
+    const [nonceFromFetch, initCode, signature, finalGasFeeValue] = await Promise.all([
+      nonceFetchPromise,
+      initCodeFetchPromise,
+      dummySignatureFetchPromise,
+      getGasFeeValues,
+    ]);
+
     if (transactions.length === 0) {
       throw new Error("Transactions array cannot be empty");
     }
-
     let callData = "";
     if (transactions.length > 1 || buildUseropDto?.forceEncodeForBatch) {
       callData = await this.encodeExecuteBatch(to, value, data);
@@ -341,26 +375,17 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       callData = await this.encodeExecute(to[0], value[0], data[0]);
     }
 
-    let nonce = BigNumber.from(0);
-    try {
-      if (buildUseropDto?.nonceOptions?.nonceOverride) {
-        nonce = BigNumber.from(buildUseropDto?.nonceOptions?.nonceOverride);
-      } else {
-        nonce = await nonceFetchPromise;
-      }
-    } catch (error) {
-      // Not throwing this error as nonce would be 0 if this.getNonce() throw exception, which is expected flow for undeployed account
-    }
-
     let userOp: Partial<UserOperation> = {
       sender: await this.getAccountAddress(),
-      nonce,
-      initCode: await initCodeFetchPromise,
+      nonce: nonceFromFetch,
+      initCode,
       callData: callData,
+      maxFeePerGas: finalGasFeeValue.maxFeePerGas || undefined,
+      maxPriorityFeePerGas: finalGasFeeValue.maxPriorityFeePerGas || undefined,
     };
 
     // for this Smart Account current validation module dummy signature will be used to estimate gas
-    userOp.signature = await dummySignatureFetchPromise;
+    userOp.signature = signature;
 
     // Note: Can change the default behaviour of calling estimations using bundler/local
     userOp = await this.estimateUserOpGas(
