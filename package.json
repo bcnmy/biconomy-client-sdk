@@ -53,6 +53,7 @@
     ]
   },
   "dependencies": {
+    "ganache": "^7.9.1",
     "node-gyp": "^9.4.0",
     "typescript": "^5.2.2"
   },
