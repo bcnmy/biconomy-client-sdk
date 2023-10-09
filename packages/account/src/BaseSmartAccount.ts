@@ -72,7 +72,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
   validateUserOp(userOp: Partial<UserOperation>, requiredFields: UserOperationKey[]): boolean {
     for (const field of requiredFields) {
       if (!userOp[field]) {
-        throw new Error(`${String(field)} is missing`);
+        throw new Error(`${String(field)} is missing in the UserOp`);
       }
     }
     return true;
