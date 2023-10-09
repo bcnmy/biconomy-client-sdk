@@ -331,15 +331,11 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
         const preVerificationGas = response.result.preVerificationGas;
         const verificationGasLimit = response.result.verificationGasLimit;
         const callGasLimit = response.result.callGasLimit;
-        const maxPriorityFeePerGas = response.result.maxPriorityFeePerGas;
-        const maxFeePerGas = response.result.maxFeePerGas;
         return {
           paymasterAndData: paymasterAndData,
           preVerificationGas: preVerificationGas,
           verificationGasLimit: verificationGasLimit,
           callGasLimit: callGasLimit,
-          maxPriorityFeePerGas: maxPriorityFeePerGas,
-          maxFeePerGas: maxFeePerGas,
         };
       }
     } catch (error: any) {
