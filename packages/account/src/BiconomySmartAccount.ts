@@ -286,7 +286,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     // Estimate max fee per gas and max priority fee per gas
     const getGasFeeValues = (async () => {
       try {
-        if (this.bundler && !gasFeeValues.maxFeePerGas && !gasFeeValues.maxPriorityFeePerGas && skipBundlerGasEstimation) {
+        if (this.bundler && !gasFeeValues.maxFeePerGas && !gasFeeValues.maxPriorityFeePerGas && (skipBundlerGasEstimation ?? true)) {
           const gasFeeEstimation = await this.bundler.getGasFeeValues();
           gasFeeValues.maxFeePerGas = gasFeeEstimation.maxFeePerGas;
           gasFeeValues.maxPriorityFeePerGas = gasFeeEstimation.maxPriorityFeePerGas;
