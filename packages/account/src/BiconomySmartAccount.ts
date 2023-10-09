@@ -268,18 +268,45 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     const value = transactions.map((element: Transaction) => element.value ?? BigNumber.from("0"));
     this.isProxyDefined();
 
+    // Queue promises to fetch independent data.
+    const nonceFetchPromise = (async () => {
+      let nonce = BigNumber.from(0);
+      try {
+        nonce = await this.nonce();
+      } catch (error) {
+        // Not throwing this error as nonce would be 0 if this.nonce() throw exception, which is expected flow for undeployed account
+      }
+      return nonce;
+    })();
+
+    const gasFeeValues = {
+      maxFeePerGas: overrides?.maxFeePerGas,
+      maxPriorityFeePerGas: overrides?.maxPriorityFeePerGas,
+    };
+    // Estimate max fee per gas and max priority fee per gas
+    const getGasFeeValues = (async () => {
+      try {
+        if (this.bundler && !gasFeeValues.maxFeePerGas && !gasFeeValues.maxPriorityFeePerGas && skipBundlerGasEstimation) {
+          const gasFeeEstimation = await this.bundler.getGasFeeValues();
+          gasFeeValues.maxFeePerGas = gasFeeEstimation.maxFeePerGas;
+          gasFeeValues.maxPriorityFeePerGas = gasFeeEstimation.maxPriorityFeePerGas;
+        }
+        return gasFeeValues;
+      } catch (error: any) {
+        Logger.error("Provided bundler might not have this endpoint", error);
+        return gasFeeValues;
+      }
+    })();
+
+    const [nonce, finalGasFeeValue] = await Promise.all([nonceFetchPromise, getGasFeeValues]);
+
     let callData = "";
     if (transactions.length === 1) {
       callData = this.getExecuteCallData(to[0], value[0], data[0]);
     } else {
       callData = this.getExecuteBatchCallData(to, value, data);
     }
-    let nonce = BigNumber.from(0);
-    try {
-      nonce = await this.nonce();
-    } catch (error) {
-      // Not throwing this error as nonce would be 0 if this.nonce() throw exception, which is expected flow for undeployed account
-    }
+
     let isDeployed = true;
 
     if (nonce.eq(0)) {
@@ -291,10 +318,10 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       nonce,
       initCode: !isDeployed ? this.initCode : "0x",
       callData: callData,
+      maxFeePerGas: finalGasFeeValue.maxFeePerGas || undefined,
+      maxPriorityFeePerGas: finalGasFeeValue.maxPriorityFeePerGas || undefined,
+      signature: this.getDummySignature(),
     };
-
-    // for this Smart Account dummy ECDSA signature will be used to estimate gas
-    userOp.signature = this.getDummySignature();
 
     // Note: Can change the default behaviour of calling estimations using bundler/local
     userOp = await this.estimateUserOpGas(userOp, overrides, skipBundlerGasEstimation, paymasterServiceData);
