@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/modules",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "This package provides different validation modules/plugins for ERC4337 compatible modular account",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -35,9 +35,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@biconomy/common": "^3.1.0",
-    "@biconomy/core-types": "^3.1.0",
-    "@biconomy/node-client": "^3.1.0",
+    "@biconomy/common": "^3.1.1",
+    "@biconomy/core-types": "^3.1.1",
+    "@biconomy/node-client": "^3.1.1",
     "ethereumjs-util": "^7.1.5",
     "ethers": "^5.7.2",
     "merkletreejs": "^0.3.9"
