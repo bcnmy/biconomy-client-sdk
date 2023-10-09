@@ -16,6 +16,8 @@ import {
   CounterFactualAddressParam,
   BuildUserOpOptions,
   SendUserOpOptions,
+  Overrides,
+  NonceOptions,
 } from "./utils/Types";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams } from "@biconomy/modules";
 import { UserOperation, Transaction } from "@biconomy/core-types";
@@ -315,53 +317,55 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return bundlerResponse;
   }
 
+  private async getBuildUserOpNonce(nonceOptions: NonceOptions | undefined): Promise<BigNumber> {
+    let nonce = BigNumber.from(0);
+    try {
+      if (nonceOptions?.nonceOverride) {
+        nonce = BigNumber.from(nonceOptions?.nonceOverride);
+      } else {
+        const _nonceSpace = nonceOptions?.nonceKey ?? 0;
+        nonce = await this.getNonce(_nonceSpace);
+      }
+    } catch (error) {
+      // Not throwing this error as nonce would be 0 if this.getNonce() throw exception, which is expected flow for undeployed account
+    }
+    return nonce;
+  }
+
+  private async getGasFeeValues(
+    overrides: Overrides | undefined,
+    skipBundlerGasEstimation: boolean | undefined,
+  ): Promise<{ maxFeePerGas?: BigNumberish | undefined; maxPriorityFeePerGas?: BigNumberish | undefined }> {
+    const gasFeeValues = {
+      maxFeePerGas: overrides?.maxFeePerGas,
+      maxPriorityFeePerGas: overrides?.maxPriorityFeePerGas,
+    };
+    try {
+      if (this.bundler && !gasFeeValues.maxFeePerGas && !gasFeeValues.maxPriorityFeePerGas && (skipBundlerGasEstimation ?? true)) {
+        const gasFeeEstimation = await this.bundler.getGasFeeValues();
+        gasFeeValues.maxFeePerGas = gasFeeEstimation.maxFeePerGas;
+        gasFeeValues.maxPriorityFeePerGas = gasFeeEstimation.maxPriorityFeePerGas;
+      }
+      return gasFeeValues;
+    } catch (error: any) {
+      Logger.error("Provided bundler might not have this endpoint", error);
+      return gasFeeValues;
+    }
+  }
+
   async buildUserOp(transactions: Transaction[], buildUseropDto?: BuildUserOpOptions): Promise<Partial<UserOperation>> {
     const to = transactions.map((element: Transaction) => element.to);
     const data = transactions.map((element: Transaction) => element.data ?? "0x");
     const value = transactions.map((element: Transaction) => element.value ?? BigNumber.from("0"));
 
-    // Queue promises to fetch independent data.
-    const nonceFetchPromise = (async () => {
-      let nonce = BigNumber.from(0);
-      try {
-        if (buildUseropDto?.nonceOptions?.nonceOverride) {
-          nonce = BigNumber.from(buildUseropDto?.nonceOptions?.nonceOverride);
-        } else {
-          const _nonceSpace = buildUseropDto?.nonceOptions?.nonceKey ?? 0;
-          nonce = await this.getNonce(_nonceSpace);
-        }
-      } catch (error) {
-        // Not throwing this error as nonce would be 0 if this.getNonce() throw exception, which is expected flow for undeployed account
-      }
-      return nonce;
-    })();
     const initCodeFetchPromise = this.getInitCode();
     const dummySignatureFetchPromise = this.getDummySignature(buildUseropDto?.params);
 
-    const gasFeeValues = {
-      maxFeePerGas: buildUseropDto?.overrides?.maxFeePerGas,
-      maxPriorityFeePerGas: buildUseropDto?.overrides?.maxPriorityFeePerGas,
-    };
-    // Estimate max fee per gas and max priority fee per gas
-    const getGasFeeValues = (async () => {
-      try {
-        if (this.bundler && !gasFeeValues.maxFeePerGas && !gasFeeValues.maxPriorityFeePerGas && (buildUseropDto?.skipBundlerGasEstimation ?? true)) {
-          const gasFeeEstimation = await this.bundler.getGasFeeValues();
-          gasFeeValues.maxFeePerGas = gasFeeEstimation.maxFeePerGas;
-          gasFeeValues.maxPriorityFeePerGas = gasFeeEstimation.maxPriorityFeePerGas;
-        }
-        return gasFeeValues;
-      } catch (error: any) {
-        Logger.error("Provided bundler might not have this endpoint", error);
-        return gasFeeValues;
-      }
-    })();
-
     const [nonceFromFetch, initCode, signature, finalGasFeeValue] = await Promise.all([
-      nonceFetchPromise,
+      this.getBuildUserOpNonce(buildUseropDto?.nonceOptions),
       initCodeFetchPromise,
       dummySignatureFetchPromise,
-      getGasFeeValues,
+      this.getGasFeeValues(buildUseropDto?.overrides, buildUseropDto?.skipBundlerGasEstimation),
     ]);
 
     if (transactions.length === 0) {
