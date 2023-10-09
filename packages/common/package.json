@@ -51,6 +51,7 @@
     "concurrently": "^7.4.0",
     "debug": "^4.3.4",
     "ethers": "^5.7.0",
+    "node-fetch": "^2.7.0",
     "typechain": "^8.1.1"
   },
   "devDependencies": {

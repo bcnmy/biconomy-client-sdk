@@ -86,3 +86,14 @@ export type JsonRpcError = {
   message: string;
   data: any;
 };
+
+export type GetGasFeeValuesResponse = {
+  jsonrpc: string;
+  id: number;
+  result: GasFeeValues;
+  error?: JsonRpcError;
+};
+export type GasFeeValues = {
+  maxPriorityFeePerGas: string;
+  maxFeePerGas: string;
+};

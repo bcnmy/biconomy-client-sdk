@@ -7,11 +7,12 @@ import { calcPreVerificationGas, DefaultGasLimits } from "./utils/Preverificaito
 import { NotPromise, packUserOp, Logger, RPC_PROVIDER_URLS } from "@biconomy/common";
 import { IBundler, UserOpResponse } from "@biconomy/bundler";
 import { IPaymaster, PaymasterAndDataResponse } from "@biconomy/paymaster";
+import { SponsorUserOperationDto, BiconomyPaymaster, PaymasterMode, IHybridPaymaster } from "@biconomy/paymaster";
 import { BaseSmartAccountConfig, Overrides, SendUserOpOptions, TransactionDetailsForUserOp } from "./utils/Types";
 import { GasOverheads } from "./utils/Preverificaiton";
 import { EntryPoint, EntryPoint__factory } from "@account-abstraction/contracts";
 import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants";
-import { LRUCache } from 'lru-cache'
+import { LRUCache } from "lru-cache";
 
 type UserOperationKey = keyof UserOperation;
 
@@ -71,7 +72,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
   validateUserOp(userOp: Partial<UserOperation>, requiredFields: UserOperationKey[]): boolean {
     for (const field of requiredFields) {
       if (!userOp[field]) {
-        throw new Error(`${field} is missing`);
+        throw new Error(`${String(field)} is missing in the UserOp`);
       }
     }
     return true;
@@ -205,10 +206,24 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
 
   async calculateUserOpGasValues(userOp: Partial<UserOperation>): Promise<Partial<UserOperation>> {
     if (!this.provider) throw new Error("Provider is not present for making rpc calls");
-    const feeData = await this.provider.getFeeData();
-    userOp.maxFeePerGas = userOp.maxFeePerGas ?? feeData.maxFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice());
-    userOp.maxPriorityFeePerGas =
-      userOp.maxPriorityFeePerGas ?? feeData.maxPriorityFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice());
+    let feeData = null;
+
+    if (
+      userOp.maxFeePerGas === undefined ||
+      userOp.maxFeePerGas === null ||
+      userOp.maxPriorityFeePerGas === undefined ||
+      userOp.maxPriorityFeePerGas === null
+    ) {
+      feeData = await this.provider.getFeeData();
+    }
+
+    if (userOp.maxFeePerGas === undefined || userOp.maxFeePerGas === null) {
+      userOp.maxFeePerGas = feeData?.maxFeePerGas ?? feeData?.gasPrice ?? (await this.provider.getGasPrice());
+    }
+
+    if (userOp.maxPriorityFeePerGas === undefined || userOp.maxPriorityFeePerGas === null) {
+      userOp.maxPriorityFeePerGas = feeData?.maxPriorityFeePerGas ?? feeData?.gasPrice ?? (await this.provider.getGasPrice());
+    }
     if (userOp.initCode) userOp.verificationGasLimit = userOp.verificationGasLimit ?? (await this.getVerificationGasLimit(userOp.initCode));
     userOp.callGasLimit =
       userOp.callGasLimit ??
@@ -221,16 +236,18 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     return userOp;
   }
 
+  // TODO // Should make this a Dto
   async estimateUserOpGas(
     userOp: Partial<UserOperation>,
     overrides?: Overrides,
     skipBundlerGasEstimation?: boolean,
+    paymasterServiceData?: SponsorUserOperationDto,
   ): Promise<Partial<UserOperation>> {
     const requiredFields: UserOperationKey[] = ["sender", "nonce", "initCode", "callData"];
     this.validateUserOp(userOp, requiredFields);
 
     let finalUserOp = userOp;
-    const skipBundlerCall = skipBundlerGasEstimation ?? false;
+    const skipBundlerCall = skipBundlerGasEstimation ?? true;
     // Override gas values in userOp if provided in overrides params
     if (overrides) {
       userOp = { ...userOp, ...overrides };
@@ -238,12 +255,29 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
 
     Logger.log("userOp in estimation", userOp);
 
-    if (!this.bundler || skipBundlerCall) {
-      if (!this.provider) throw new Error("Provider is not present for making rpc calls");
-      // if no bundler url is provided run offchain logic to assign following values of UserOp
-      // maxFeePerGas, maxPriorityFeePerGas, verificationGasLimit, callGasLimit, preVerificationGas
-      finalUserOp = await this.calculateUserOpGasValues(userOp);
+    if (skipBundlerCall) {
+      // Review: instead of checking mode it could be assumed or just pass gasless flag and use it
+      // make pmService data locally and pass the object with default values
+      if (this.paymaster && this.paymaster instanceof BiconomyPaymaster && paymasterServiceData?.mode === PaymasterMode.SPONSORED) {
+        if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas) {
+          throw new Error("maxFeePerGas and maxPriorityFeePerGas are required for skipBundlerCall mode");
+        }
+        // Making call to paymaster to get gas estimations for userOp
+        const { callGasLimit, verificationGasLimit, preVerificationGas, paymasterAndData } = await (
+          this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
+        ).getPaymasterAndData(userOp, paymasterServiceData);
+        finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
+        finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
+        finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
+        finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
+      } else {
+        Logger.warn("Skipped paymaster call. If you are using paymasterAndData, generate data externally");
+        finalUserOp = await this.calculateUserOpGasValues(userOp);
+        finalUserOp.paymasterAndData = "0x";
+      }
     } else {
+      if (!this.bundler) throw new Error("Bundler is not provided");
+      // TODO: is this still needed to delete?
       delete userOp.maxFeePerGas;
       delete userOp.maxPriorityFeePerGas;
       // Making call to bundler to get gas estimations for userOp
@@ -261,6 +295,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
       finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
       finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
       finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
+      finalUserOp.paymasterAndData = "0x";
     }
     return finalUserOp;
   }
