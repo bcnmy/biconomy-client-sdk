@@ -79,8 +79,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       activeValidationModule: module1,
     });
 
-  // console.log('account api provider ', accountAPI.provider)
-
+    // console.log('account api provider ', accountAPI.provider)
 
     const counterFactualAddress = await accountAPI.getAccountAddress();
     console.log("Counterfactual address ", counterFactualAddress);
@@ -141,7 +140,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     // ((await expect(entryPoint.handleOps([signedUserOp], beneficiary))) as any).to.emit(recipient, "Sender");
 
     expect(await provider.getCode(accountAddress).then((code) => code.length)).toBeGreaterThan(0);
-  });
+  }, 10000); // on github runner it takes more time than 5000ms
 
   // TODO
   // possibly use local bundler API from image
@@ -335,13 +334,12 @@ describe("BiconomySmartAccountV2 API Specs", () => {
   }, 10000); // on github runner it takes more time than 5000ms
 
   it("Creates another replicated instance using void signer", async () => {
-
-    let newmodule = await ECDSAOwnershipValidationModule.create({
+    const newmodule = await ECDSAOwnershipValidationModule.create({
       signer: new VoidSigner(await owner.getAddress()),
       moduleAddress: ecdsaModule.address,
     });
 
-    let accountAPI2 = await BiconomySmartAccountV2.create({
+    const accountAPI2 = await BiconomySmartAccountV2.create({
       chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
       // paymaster: paymaster,
@@ -355,7 +353,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     });
 
     const address = await accountAPI2.getAccountAddress();
-    console.log('account address ', address);
+    console.log("account address ", address);
 
     expect(address).toBe(accountAPI.accountAddress);
   }, 10000);
