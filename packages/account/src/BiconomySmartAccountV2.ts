@@ -328,6 +328,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       }
     } catch (error) {
       // Not throwing this error as nonce would be 0 if this.getNonce() throw exception, which is expected flow for undeployed account
+      Logger.log("Error while getting nonce for the account. This is expected for undeployed accounts set nonce to 0");
     }
     return nonce;
   }
@@ -348,7 +349,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       }
       return gasFeeValues;
     } catch (error: any) {
-      Logger.error("Provided bundler might not have this endpoint", error);
+      Logger.error("Error while getting gasFeeValues from bundler. Provided bundler might not have getGasFeeValues endpoint", error);
       return gasFeeValues;
     }
   }

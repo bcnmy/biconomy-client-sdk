@@ -262,6 +262,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       nonce = await this.nonce();
     } catch (error) {
       // Not throwing this error as nonce would be 0 if this.nonce() throw exception, which is expected flow for undeployed account
+      Logger.log("Error while getting nonce for the account. This is expected for undeployed accounts set nonce to 0");
     }
     return nonce;
   }
@@ -282,7 +283,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       }
       return gasFeeValues;
     } catch (error: any) {
-      Logger.error("Provided bundler might not have this endpoint", error);
+      Logger.error("Error while getting gasFeeValues from bundler. Provided bundler might not have getGasFeeValues endpoint", error);
       return gasFeeValues;
     }
   }
