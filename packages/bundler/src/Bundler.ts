@@ -1,7 +1,7 @@
 import { IBundler } from "./interfaces/IBundler";
 import { UserOperation, ChainId } from "@biconomy/core-types";
 import {
-  GetUserOperationResponse,
+  GetUserOperationReceiptResponse,
   GetUserOpByHashResponse,
   Bundlerconfig,
   UserOpResponse,
@@ -13,6 +13,8 @@ import {
   SendUserOpOptions,
   GetGasFeeValuesResponse,
   GasFeeValues,
+  UserOpStatus,
+  GetUserOperationStatusResponse,
 } from "./utils/Types";
 import { resolveProperties } from "ethers/lib/utils";
 import { deepHexlify, sendRequest, getTimestampInSeconds, HttpMethod, Logger, RPC_PROVIDER_URLS } from "@biconomy/common";
@@ -128,6 +130,8 @@ export class Bundler implements IBundler {
           }, this.UserOpReceiptIntervals[chainId]);
         });
       },
+      // TODO
+      // waitTxHashGenerated: (): Promise<UserOpStatus> => {},
     };
     return response;
   }
@@ -140,7 +144,7 @@ export class Bundler implements IBundler {
    */
   async getUserOpReceipt(userOpHash: string): Promise<UserOpReceipt> {
     const bundlerUrl = this.getBundlerUrl();
-    const response: GetUserOperationResponse = await sendRequest({
+    const response: GetUserOperationReceiptResponse = await sendRequest({
       url: bundlerUrl,
       method: HttpMethod.Post,
       body: {
@@ -152,6 +156,28 @@ export class Bundler implements IBundler {
     });
     const userOpReceipt: UserOpReceipt = response.result;
     return userOpReceipt;
+  }
+
+  /**
+   *
+   * @param userOpHash
+   * @description This function will return userOpReceipt for a given userOpHash
+   * @returns Promise<UserOpReceipt>
+   */
+  async getUserOpStatus(userOpHash: string): Promise<UserOpStatus> {
+    const bundlerUrl = this.getBundlerUrl();
+    const response: GetUserOperationStatusResponse = await sendRequest({
+      url: bundlerUrl,
+      method: HttpMethod.Post,
+      body: {
+        method: "biconomy_getUserOperationStatus",
+        params: [userOpHash],
+        id: getTimestampInSeconds(),
+        jsonrpc: "2.0",
+      },
+    });
+    const userOpStatus: UserOpStatus = response.result;
+    return userOpStatus;
   }
 
   /**

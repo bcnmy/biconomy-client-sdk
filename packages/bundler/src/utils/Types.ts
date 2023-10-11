@@ -23,6 +23,13 @@ export type UserOpReceipt = {
   receipt: ethers.providers.TransactionReceipt;
 };
 
+// review
+export type UserOpStatus = {
+  state: string; // for now // could be an enum
+  transactionHash?: string;
+  userOperationReceipt?: UserOpReceipt;
+};
+
 export type SendUserOpOptions = {
   simulationType?: SimulationType;
 };
@@ -30,10 +37,17 @@ export type SendUserOpOptions = {
 export type SimulationType = "validation" | "validation_and_execution";
 
 // Converted to JsonRpcResponse with strict type
-export type GetUserOperationResponse = {
+export type GetUserOperationReceiptResponse = {
   jsonrpc: string;
   id: number;
   result: UserOpReceipt;
+  error?: JsonRpcError;
+};
+
+export type GetUserOperationStatusResponse = {
+  jsonrpc: string;
+  id: number;
+  result: UserOpStatus;
   error?: JsonRpcError;
 };
 
@@ -48,6 +62,7 @@ export type SendUserOpResponse = {
 export type UserOpResponse = {
   userOpHash: string;
   wait(_confirmations?: number): Promise<UserOpReceipt>;
+  // waitTxHashGenerated?(): Promise<UserOpStatus>;
 };
 
 // Converted to JsonRpcResponse with strict type
