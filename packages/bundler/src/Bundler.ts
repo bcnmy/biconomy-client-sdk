@@ -130,8 +130,22 @@ export class Bundler implements IBundler {
           }, this.UserOpReceiptIntervals[chainId]);
         });
       },
-      // TODO
-      // waitTxHashGenerated: (): Promise<UserOpStatus> => {},
+      waitForTxHash: (): Promise<UserOpStatus> => {
+        return new Promise<UserOpStatus>((resolve, reject) => {
+          const intervalId = setInterval(async () => {
+            try {
+              const userOpStatus = await this.getUserOpStatus(sendUserOperationResponse.result);
+              if (userOpStatus && userOpStatus.state && (userOpStatus.transactionHash || userOpStatus.state === "SUBMITTED")) {
+                clearInterval(intervalId);
+                resolve(userOpStatus);
+              }
+            } catch (error) {
+              clearInterval(intervalId);
+              reject(error);
+            }
+          }, this.UserOpReceiptIntervals[chainId]); // Review: If we should use different intervals here
+        });
+      },
     };
     return response;
   }
