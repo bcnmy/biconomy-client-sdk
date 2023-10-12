@@ -7,6 +7,9 @@ export type Bundlerconfig = {
   chainId: ChainId;
   // eslint-disable-next-line no-unused-vars
   userOpReceiptIntervals?: { [key in ChainId]?: number };
+  userOpWaitForTxHashIntervals?: { [key in ChainId]?: number };
+  userOpReceiptMaxDurationIntervals?: { [key in ChainId]?: number };
+  userOpWaitForTxHashMaxDurationIntervals?: { [key in ChainId]?: number };
 };
 
 export type UserOpReceipt = {
@@ -62,7 +65,8 @@ export type SendUserOpResponse = {
 export type UserOpResponse = {
   userOpHash: string;
   wait(_confirmations?: number): Promise<UserOpReceipt>;
-  waitForTxHash?(): Promise<UserOpStatus>;
+  // Review: waitForTxHash(): vs waitForTxHash?():
+  waitForTxHash(): Promise<UserOpStatus>;
 };
 
 // Converted to JsonRpcResponse with strict type

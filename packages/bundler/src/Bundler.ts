@@ -19,7 +19,12 @@ import {
 import { resolveProperties } from "ethers/lib/utils";
 import { deepHexlify, sendRequest, getTimestampInSeconds, HttpMethod, Logger, RPC_PROVIDER_URLS } from "@biconomy/common";
 import { transformUserOP } from "./utils/HelperFunction";
-import { UserOpReceiptIntervals } from "./utils/Constants";
+import {
+  UserOpReceiptIntervals,
+  UserOpWaitForTxHashIntervals,
+  UserOpWaitForTxHashMaxDurationIntervals,
+  UserOpReceiptMaxDurationIntervals,
+} from "./utils/Constants";
 import { JsonRpcProvider } from "@ethersproject/providers";
 
 /**
@@ -29,12 +34,33 @@ import { JsonRpcProvider } from "@ethersproject/providers";
  */
 export class Bundler implements IBundler {
   // eslint-disable-next-line no-unused-vars
-  UserOpReceiptIntervals: { [key in ChainId]?: number };
+  UserOpReceiptIntervals!: { [key in ChainId]?: number };
+
+  UserOpWaitForTxHashIntervals!: { [key in ChainId]?: number };
+
+  UserOpReceiptMaxDurationIntervals!: { [key in ChainId]?: number };
+
+  UserOpWaitForTxHashMaxDurationIntervals!: { [key in ChainId]?: number };
 
   constructor(readonly bundlerConfig: Bundlerconfig) {
     this.UserOpReceiptIntervals = {
       ...UserOpReceiptIntervals,
       ...bundlerConfig.userOpReceiptIntervals,
+    };
+
+    this.UserOpWaitForTxHashIntervals = {
+      ...UserOpWaitForTxHashIntervals,
+      ...bundlerConfig.userOpWaitForTxHashIntervals,
+    };
+
+    this.UserOpReceiptMaxDurationIntervals = {
+      ...UserOpReceiptMaxDurationIntervals,
+      ...bundlerConfig.userOpReceiptMaxDurationIntervals,
+    };
+
+    this.UserOpWaitForTxHashMaxDurationIntervals = {
+      ...UserOpWaitForTxHashMaxDurationIntervals,
+      ...bundlerConfig.userOpWaitForTxHashMaxDurationIntervals,
     };
   }
 
@@ -107,43 +133,83 @@ export class Bundler implements IBundler {
       userOpHash: sendUserOperationResponse.result,
       wait: (confirmations?: number): Promise<UserOpReceipt> => {
         const provider = new JsonRpcProvider(RPC_PROVIDER_URLS[chainId]);
+        // Note: maxDuration can be defined per chainId
+        const maxDuration = this.UserOpReceiptMaxDurationIntervals[chainId] || 30000; // default 30 seconds
+        let totalDuration = 0;
+
         return new Promise<UserOpReceipt>((resolve, reject) => {
-          const intervalId = setInterval(async () => {
-            try {
-              const userOpResponse = await this.getUserOpReceipt(sendUserOperationResponse.result);
-              if (userOpResponse && userOpResponse.receipt && userOpResponse.receipt.blockNumber) {
-                if (confirmations) {
-                  const latestBlock = await provider.getBlockNumber();
-                  const confirmedBlocks = latestBlock - userOpResponse.receipt.blockNumber;
-                  if (confirmations >= confirmedBlocks) {
+          if (this.UserOpReceiptIntervals && chainId in this.UserOpReceiptIntervals) {
+            const intervalValue = this.UserOpReceiptIntervals[chainId];
+            if (intervalValue !== undefined) {
+              const intervalId = setInterval(async () => {
+                try {
+                  const userOpResponse = await this.getUserOpReceipt(sendUserOperationResponse.result);
+                  if (userOpResponse && userOpResponse.receipt && userOpResponse.receipt.blockNumber) {
+                    if (confirmations) {
+                      const latestBlock = await provider.getBlockNumber();
+                      const confirmedBlocks = latestBlock - userOpResponse.receipt.blockNumber;
+                      if (confirmations >= confirmedBlocks) {
+                        clearInterval(intervalId);
+                        resolve(userOpResponse);
+                      }
+                    }
                     clearInterval(intervalId);
                     resolve(userOpResponse);
                   }
+                } catch (error) {
+                  clearInterval(intervalId);
+                  reject(error);
                 }
-                clearInterval(intervalId);
-                resolve(userOpResponse);
-              }
-            } catch (error) {
-              clearInterval(intervalId);
-              reject(error);
+
+                totalDuration += intervalValue;
+                if (totalDuration >= maxDuration) {
+                  clearInterval(intervalId);
+                  reject(new Error("Exceeded maximum duration"));
+                }
+              }, intervalValue);
+            } else {
+              reject(new Error("Invalid interval value"));
             }
-          }, this.UserOpReceiptIntervals[chainId]);
+          } else {
+            reject(new Error("Interval not defined for chainId"));
+          }
         });
       },
       waitForTxHash: (): Promise<UserOpStatus> => {
+        const maxDuration = this.UserOpWaitForTxHashMaxDurationIntervals[chainId] || 20000; // default 20 seconds
+        let totalDuration = 0;
+
         return new Promise<UserOpStatus>((resolve, reject) => {
-          const intervalId = setInterval(async () => {
-            try {
-              const userOpStatus = await this.getUserOpStatus(sendUserOperationResponse.result);
-              if (userOpStatus && userOpStatus.state && (userOpStatus.transactionHash || userOpStatus.state === "SUBMITTED")) {
+          const intervalId = setInterval(() => {
+            if (this.UserOpWaitForTxHashIntervals && chainId in this.UserOpWaitForTxHashIntervals) {
+              const intervalValue = this.UserOpWaitForTxHashIntervals[chainId];
+              if (intervalValue !== undefined) {
+                this.getUserOpStatus(sendUserOperationResponse.result)
+                  .then((userOpStatus) => {
+                    if (userOpStatus && userOpStatus.state && userOpStatus.transactionHash) {
+                      clearInterval(intervalId);
+                      resolve(userOpStatus);
+                    }
+                  })
+                  .catch((error) => {
+                    clearInterval(intervalId);
+                    reject(error);
+                  });
+
+                totalDuration += intervalValue;
+                if (totalDuration >= maxDuration) {
+                  clearInterval(intervalId);
+                  reject(new Error("Exceeded maximum duration"));
+                }
+              } else {
                 clearInterval(intervalId);
-                resolve(userOpStatus);
+                reject(new Error("Invalid interval value"));
               }
-            } catch (error) {
+            } else {
               clearInterval(intervalId);
-              reject(error);
+              reject(new Error("Interval not defined for chainId"));
             }
-          }, this.UserOpReceiptIntervals[chainId]); // Review: If we should use different intervals here
+          }, this.UserOpWaitForTxHashIntervals[chainId]);
         });
       },
     };
