@@ -6,6 +6,7 @@ import { IPaymaster, PaymasterFeeQuote, SponsorUserOperationDto } from "@biconom
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { Provider } from "@ethersproject/providers";
 import { GasOverheads } from "./Preverificaiton";
+import { Hex } from "viem";
 
 export type EntryPointAddresses = {
   [address: string]: string;
@@ -65,9 +66,9 @@ export type BiconomySmartAccountConfig = {
 };
 
 export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
-  factoryAddress?: string;
-  implementationAddress?: string;
-  defaultFallbackHandler?: string;
+  factoryAddress?: Hex;
+  implementationAddress?: Hex;
+  defaultFallbackHandler?: Hex;
   rpcUrl?: string; // as good as Provider
   nodeClientUrl?: string; // very specific to Biconomy
   defaultValidationModule: BaseValidationModule;
