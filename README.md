@@ -38,7 +38,7 @@ const module = await ECDSAOwnershipValidationModule.create({
   moduleAddress: DEFAULT_ECDSA_OWNERSHIP_MODULE
   })
 
-  let biconomySmartAccount = await BiconomySmartAccountV2.create({
+const biconomySmartAccount = await BiconomySmartAccountV2.create({
     chainId: ChainId.POLYGON_MUMBAI,
     bundler: bundler,
     paymaster: paymaster, 
