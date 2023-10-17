@@ -132,7 +132,7 @@ export class MultiChainValidationModule extends BaseValidationModule {
         // Update userOp with the final signature
         const updatedUserOp: UserOperation = {
           ...(multiChainUserOps[i].userOp as UserOperation),
-          signature: signatureWithModuleAddress,
+          signature: signatureWithModuleAddress as `0x${string}`,
         };
 
         updatedUserOps.push(updatedUserOp);

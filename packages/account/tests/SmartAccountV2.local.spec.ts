@@ -18,6 +18,7 @@ import { MultiChainValidationModule } from "@biconomy/modules";
 import { BaseValidationModule } from "@biconomy/modules";
 import { ECDSAOwnershipRegistryModule_v100 } from "@biconomy/common";
 import { MultiChainValidationModule_v100 } from "@biconomy/common";
+import { Hex } from "viem";
 
 const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
 const signer = provider.getSigner();
@@ -72,9 +73,9 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       // paymaster: paymaster,
       // bundler: bundler,
       entryPointAddress: entryPoint.address,
-      factoryAddress: accountFactory.address,
-      implementationAddress: accountImpl.address,
-      defaultFallbackHandler: await accountFactory.minimalHandler(),
+      factoryAddress: accountFactory.address as Hex,
+      implementationAddress: accountImpl.address as Hex,
+      defaultFallbackHandler: await accountFactory.minimalHandler() as Hex,
       defaultValidationModule: module1,
       activeValidationModule: module1,
     });
@@ -88,29 +89,29 @@ describe("BiconomySmartAccountV2 API Specs", () => {
   }, 30000);
 
   it("Nonce should be zero", async () => {
-    const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()), data: "0x" }]);
+    const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()).toString(), data: "0x" }]);
     console.log("builtUserOp", builtUserOp);
     expect(builtUserOp?.nonce?.toString()).toBe("0");
   });
   it("Sender should be non zero", async () => {
-    const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()), data: "0x" }]);
+    const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()).toString(), data: "0x" }]);
     expect(builtUserOp.sender).not.toBe(ethers.constants.AddressZero);
   });
   it("InitCode length should be greater then 170", async () => {
-    const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()), data: "0x" }]);
+    const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()).toString(), data: "0x" }]);
     expect(builtUserOp?.initCode?.length).toBeGreaterThan(170);
   });
   it("#getUserOpHash should match entryPoint.getUserOpHash", async function () {
     const userOp: UserOperation = {
-      sender: "0x".padEnd(42, "1"),
-      nonce: 2,
+      sender: "0x".padEnd(42, "1") as Hex,
+      nonce: "0x02",
       initCode: "0x3333",
       callData: "0x4444",
-      callGasLimit: 5,
-      verificationGasLimit: 6,
-      preVerificationGas: 7,
-      maxFeePerGas: 8,
-      maxPriorityFeePerGas: 9,
+      callGasLimit: "0x05",
+      verificationGasLimit: "0x06",
+      preVerificationGas: "0x07",
+      maxFeePerGas: "0x08",
+      maxPriorityFeePerGas: "0x09",
       paymasterAndData: "0xaaaaaa",
       signature: "0xbbbb",
     };
@@ -153,9 +154,9 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       // paymaster: paymaster,
       // bundler: bundler,
       entryPointAddress: entryPoint.address,
-      factoryAddress: accountFactory.address,
-      implementationAddress: accountAPI.getImplementationAddress(),
-      defaultFallbackHandler: await accountFactory.minimalHandler(),
+      factoryAddress: accountFactory.address as Hex,
+      // implementationAddress: accountAPI.getImplementationAddress(),
+      defaultFallbackHandler: await accountFactory.minimalHandler() as Hex,
       defaultValidationModule: module2,
       activeValidationModule: module2,
     });
@@ -164,7 +165,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     // Review: Just setting different default validation module and querying account address is not working
     // accountAPI.setDefaultValidationModule(module2);
 
-    accountAPI2 = await accountAPI2.init();
+    // accountAPI2 = await accountAPI2.init();
 
     const accountAddress2 = await accountAPI2.getAccountAddress();
     expect(await provider.getCode(accountAddress2).then((code) => code.length)).toBe(2);
@@ -345,9 +346,9 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       // paymaster: paymaster,
       // bundler: bundler,
       entryPointAddress: entryPoint.address,
-      factoryAddress: accountFactory.address,
-      implementationAddress: accountAPI.getImplementationAddress(),
-      defaultFallbackHandler: await accountFactory.minimalHandler(),
+      factoryAddress: accountFactory.address as Hex,
+      // implementationAddress: accountAPI.getImplementationAddress(),
+      defaultFallbackHandler: await accountFactory.minimalHandler() as Hex,
       defaultValidationModule: newmodule,
       activeValidationModule: newmodule,
     });
@@ -355,7 +356,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     const address = await accountAPI2.getAccountAddress();
     console.log("account address ", address);
 
-    expect(address).toBe(accountAPI.accountAddress);
+    expect(address).toBe(accountAPI.getAccountAddress());
   }, 10000);
 
   // TODO

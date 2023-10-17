@@ -1,20 +1,21 @@
 import { expect } from "chai";
+import { Hex, toHex } from "viem";
 import { packUserOp } from "../src/ERC4337Utils";
 
 describe("packUserOp", () => {
   it("should pack a UserOperationStruct object", () => {
     const userOp = {
-      sender: "0x1234567890123456789012345678901234567890",
-      nonce: 1,
-      initCode: "0x0987654321098765432109876543210987654321",
-      callData: "0x",
-      callGasLimit: 1000000,
-      verificationGasLimit: 1000000,
-      preVerificationGas: 1000000,
-      maxFeePerGas: 10,
-      maxPriorityFeePerGas: 1,
-      paymasterAndData: "0x0987654321098765432109876543210987654321",
-      signature: "0x",
+      sender: "0x1234567890123456789012345678901234567890" as Hex,
+      nonce: `0x1` as Hex,
+      initCode: "0x0987654321098765432109876543210987654321" as Hex,
+      callData: "0x" as Hex,
+      callGasLimit:  toHex(1000000),
+      verificationGasLimit: toHex(1000000),
+      preVerificationGas: toHex(1000000),
+      maxFeePerGas: toHex(10),
+      maxPriorityFeePerGas: toHex(1),
+      paymasterAndData: "0x0987654321098765432109876543210987654321" as Hex,
+      signature: "0x" as Hex,
     };
     const packedUserOp = packUserOp(userOp, false);
     expect(packedUserOp).to.equal(
@@ -24,17 +25,17 @@ describe("packUserOp", () => {
 
   it("should pack a UserOperationStruct object for signature", () => {
     const userOp = {
-      sender: "0x1234567890123456789012345678901234567890",
-      nonce: 1,
-      initCode: "0x0987654321098765432109876543210987654321",
-      callData: "0x",
-      callGasLimit: 1000000,
-      verificationGasLimit: 1000000,
-      preVerificationGas: 1000000,
-      maxFeePerGas: 10,
-      maxPriorityFeePerGas: 1,
-      paymasterAndData: "0x0987654321098765432109876543210987654321",
-      signature: "0x",
+      sender: "0x1234567890123456789012345678901234567890" as Hex,
+      nonce: `0x1` as Hex,
+      initCode: "0x0987654321098765432109876543210987654321" as Hex,
+      callData: "0x" as Hex,
+      callGasLimit:  toHex(1000000),
+      verificationGasLimit: toHex(1000000),
+      preVerificationGas: toHex(1000000),
+      maxFeePerGas: toHex(10),
+      maxPriorityFeePerGas: toHex(1),
+      paymasterAndData: "0x0987654321098765432109876543210987654321" as Hex,
+      signature: "0x" as Hex,
     };
     const packedUserOp = packUserOp(userOp, true);
     expect(packedUserOp).to.equal(

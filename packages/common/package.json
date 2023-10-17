@@ -52,7 +52,8 @@
     "debug": "^4.3.4",
     "ethers": "^5.7.0",
     "node-fetch": "^2.7.0",
-    "typechain": "^8.1.1"
+    "typechain": "^8.1.1",
+    "viem": "^1.16.5"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",

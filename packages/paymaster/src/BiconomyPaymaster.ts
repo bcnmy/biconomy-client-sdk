@@ -43,22 +43,22 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
   private async prepareUserOperation(userOp: Partial<UserOperation>): Promise<Partial<UserOperation>> {
     userOp = await resolveProperties(userOp);
     if (userOp.nonce !== null && userOp.nonce !== undefined) {
-      userOp.nonce = BigNumber.from(userOp.nonce).toHexString();
+      userOp.nonce = BigNumber.from(userOp.nonce).toHexString() as `0x${string}`;
     }
     if (userOp.callGasLimit !== null && userOp.callGasLimit !== undefined) {
-      userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toString();
+      userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toString() as `0x${string}`
     }
     if (userOp.verificationGasLimit !== null && userOp.verificationGasLimit !== undefined) {
-      userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toString();
+      userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toString() as `0x${string}`
     }
     if (userOp.preVerificationGas !== null && userOp.preVerificationGas !== undefined) {
-      userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toString();
+      userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toString() as `0x${string}`
     }
     if (userOp.maxFeePerGas !== null && userOp.maxFeePerGas !== undefined) {
-      userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toString();
+      userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toString() as `0x${string}`
     }
     if (userOp.maxPriorityFeePerGas !== null && userOp.maxPriorityFeePerGas !== undefined) {
-      userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toString();
+      userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toString() as `0x${string}`
     }
     userOp.signature = userOp.signature || "0x";
     userOp.paymasterAndData = userOp.paymasterAndData || "0x";
@@ -354,8 +354,6 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
           preVerificationGas: userOp.preVerificationGas,
           verificationGasLimit: userOp.verificationGasLimit,
           callGasLimit: userOp.callGasLimit,
-          maxPriorityFeePerGas: userOp.maxPriorityFeePerGas,
-          maxFeePerGas: userOp.maxFeePerGas,
         };
       }
       // Logger.error("Failed to fetch paymasterAndData - reason: ", JSON.stringify(error));

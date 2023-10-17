@@ -1,4 +1,5 @@
-import { BigNumberish } from "ethers";
+export type BigNumberish = string | bigint | number;
+export type Hex = `0x${string}`;
 
 export type PaymasterServiceErrorResponse = {
   jsonrpc: string;
@@ -103,11 +104,9 @@ export type FeeQuotesOrDataResponse = {
 
 export type PaymasterAndDataResponse = {
   paymasterAndData: string;
-  preVerificationGas?: BigNumberish;
-  verificationGasLimit?: BigNumberish;
-  callGasLimit?: BigNumberish;
-  maxPriorityFeePerGas?: BigNumberish;
-  maxFeePerGas?: BigNumberish;
+  preVerificationGas?: string;
+  verificationGasLimit?: string;
+  callGasLimit?: string;
 };
 
 export enum PaymasterMode {

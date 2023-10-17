@@ -1,6 +1,6 @@
 import { Signer } from "ethers";
 import { ChainId } from "@biconomy/core-types";
-import { BigNumberish } from "ethers";
+import { BigNumberish } from "@alchemy/aa-core";
 import { IBundler } from "@biconomy/bundler";
 import { IPaymaster, PaymasterFeeQuote, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
@@ -103,13 +103,13 @@ export type SendUserOpOptions = {
 export type SimulationType = "validation" | "validation_and_execution";
 
 export type Overrides = {
-  callGasLimit?: BigNumberish;
-  verificationGasLimit?: BigNumberish;
-  preVerificationGas?: BigNumberish;
-  maxFeePerGas?: BigNumberish;
-  maxPriorityFeePerGas?: BigNumberish;
-  paymasterData?: string;
-  signature?: string;
+  callGasLimit?: Hex;
+  verificationGasLimit?: Hex;
+  preVerificationGas?: Hex;
+  maxFeePerGas?: Hex;
+  maxPriorityFeePerGas?: Hex;
+  paymasterData?: Hex;
+  signature?: Hex;
 };
 
 export type InitilizationData = {
