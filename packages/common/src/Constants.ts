@@ -23,6 +23,7 @@ export const RPC_PROVIDER_URLS: { [key in ChainId]?: string } = {
   [ChainId.BASE_GOERLI_TESTNET]: "https://goerli.base.org",
   [ChainId.BASE_MAINNET]: "https://developer-access-mainnet.base.org",
   [ChainId.LINEA_TESTNET]: "https://rpc.goerli.linea.build",
+  [ChainId.LINEA_MAINNET]: "https://rpc.linea.build",
   [ChainId.MANTLE_MAINNET]: "https://rpc.mantle.xyz",
   [ChainId.MANTLE_TESTNET]: "https://rpc.testnet.mantle.xyz",
   [ChainId.OPBNB_MAINNET]: "https://opbnb-mainnet-rpc.bnbchain.org",
