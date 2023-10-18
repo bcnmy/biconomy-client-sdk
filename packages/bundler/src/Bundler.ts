@@ -138,41 +138,39 @@ export class Bundler implements IBundler {
         let totalDuration = 0;
 
         return new Promise<UserOpReceipt>((resolve, reject) => {
-          if (this.UserOpReceiptIntervals && chainId in this.UserOpReceiptIntervals) {
-            const intervalValue = this.UserOpReceiptIntervals[chainId];
-            if (intervalValue !== undefined) {
-              const intervalId = setInterval(async () => {
-                try {
-                  const userOpResponse = await this.getUserOpReceipt(sendUserOperationResponse.result);
-                  if (userOpResponse && userOpResponse.receipt && userOpResponse.receipt.blockNumber) {
-                    if (confirmations) {
-                      const latestBlock = await provider.getBlockNumber();
-                      const confirmedBlocks = latestBlock - userOpResponse.receipt.blockNumber;
-                      if (confirmations >= confirmedBlocks) {
-                        clearInterval(intervalId);
-                        resolve(userOpResponse);
-                      }
-                    }
+          const intervalValue = this.UserOpReceiptIntervals[chainId] || 5000; // default 5 seconds
+          const intervalId = setInterval(async () => {
+            try {
+              const userOpResponse = await this.getUserOpReceipt(sendUserOperationResponse.result);
+              if (userOpResponse && userOpResponse.receipt && userOpResponse.receipt.blockNumber) {
+                if (confirmations) {
+                  const latestBlock = await provider.getBlockNumber();
+                  const confirmedBlocks = latestBlock - userOpResponse.receipt.blockNumber;
+                  if (confirmations >= confirmedBlocks) {
                     clearInterval(intervalId);
                     resolve(userOpResponse);
                   }
-                } catch (error) {
-                  clearInterval(intervalId);
-                  reject(error);
                 }
-
-                totalDuration += intervalValue;
-                if (totalDuration >= maxDuration) {
-                  clearInterval(intervalId);
-                  reject(new Error("Exceeded maximum duration"));
-                }
-              }, intervalValue);
-            } else {
-              reject(new Error("Invalid interval value"));
+                clearInterval(intervalId);
+                resolve(userOpResponse);
+              }
+            } catch (error) {
+              clearInterval(intervalId);
+              reject(error);
             }
-          } else {
-            reject(new Error("Interval not defined for chainId"));
-          }
+
+            totalDuration += intervalValue;
+            if (totalDuration >= maxDuration) {
+              clearInterval(intervalId);
+              reject(
+                new Error(
+                  `Exceeded maximum duration (${maxDuration / 1000} sec) waiting to get receipt for userOpHash ${
+                    sendUserOperationResponse.result
+                  }. Try getting the receipt manually using eth_getUserOperationReceipt rpc method on bundler`,
+                ),
+              );
+            }
+          }, intervalValue);
         });
       },
       waitForTxHash: (): Promise<UserOpStatus> => {
@@ -180,36 +178,32 @@ export class Bundler implements IBundler {
         let totalDuration = 0;
 
         return new Promise<UserOpStatus>((resolve, reject) => {
+          const intervalValue = this.UserOpWaitForTxHashIntervals[chainId] || 500; // default 0.5 seconds
           const intervalId = setInterval(() => {
-            if (this.UserOpWaitForTxHashIntervals && chainId in this.UserOpWaitForTxHashIntervals) {
-              const intervalValue = this.UserOpWaitForTxHashIntervals[chainId];
-              if (intervalValue !== undefined) {
-                this.getUserOpStatus(sendUserOperationResponse.result)
-                  .then((userOpStatus) => {
-                    if (userOpStatus && userOpStatus.state && userOpStatus.transactionHash) {
-                      clearInterval(intervalId);
-                      resolve(userOpStatus);
-                    }
-                  })
-                  .catch((error) => {
-                    clearInterval(intervalId);
-                    reject(error);
-                  });
-
-                totalDuration += intervalValue;
-                if (totalDuration >= maxDuration) {
+            this.getUserOpStatus(sendUserOperationResponse.result)
+              .then((userOpStatus) => {
+                if (userOpStatus && userOpStatus.state && userOpStatus.transactionHash) {
                   clearInterval(intervalId);
-                  reject(new Error("Exceeded maximum duration"));
+                  resolve(userOpStatus);
                 }
-              } else {
+              })
+              .catch((error) => {
                 clearInterval(intervalId);
-                reject(new Error("Invalid interval value"));
-              }
-            } else {
+                reject(error);
+              });
+
+            totalDuration += intervalValue;
+            if (totalDuration >= maxDuration) {
               clearInterval(intervalId);
-              reject(new Error("Interval not defined for chainId"));
+              reject(
+                new Error(
+                  `Exceeded maximum duration (${maxDuration / 1000} sec) waiting to get receipt for userOpHash ${
+                    sendUserOperationResponse.result
+                  }. Try getting the receipt manually using eth_getUserOperationReceipt rpc method on bundler`,
+                ),
+              );
             }
-          }, this.UserOpWaitForTxHashIntervals[chainId]);
+          }, intervalValue);
         });
       },
     };
