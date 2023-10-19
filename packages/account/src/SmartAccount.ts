@@ -118,9 +118,7 @@ export abstract class SmartAccount implements ISmartAccount {
     Logger.log("userOp in estimation", userOp);
 
     if (skipBundlerCall) {
-      // Review: instead of checking mode it could be assumed or just pass gasless flag and use it
-      // make pmService data locally and pass the object with default values
-      if (this.paymaster && this.paymaster instanceof BiconomyPaymaster && paymasterServiceData?.mode === PaymasterMode.SPONSORED) {
+      if (this.paymaster && this.paymaster instanceof BiconomyPaymaster) {
         if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas) {
           throw new Error("maxFeePerGas and maxPriorityFeePerGas are required for skipBundlerCall mode");
         }
@@ -132,6 +130,9 @@ export abstract class SmartAccount implements ISmartAccount {
         finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
         finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
         finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
+        if (paymasterServiceData?.mode === PaymasterMode.ERC20) {
+          finalUserOp.paymasterAndData = "0x";
+        }
       } else {
         Logger.warn("Skipped paymaster call. If you are using paymasterAndData, generate data externally");
         finalUserOp = await this.calculateUserOpGasValues(userOp);
