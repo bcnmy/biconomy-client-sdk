@@ -53,11 +53,11 @@
     ]
   },
   "dependencies": {
-    "ganache": "^7.9.1",
     "node-gyp": "^9.4.0",
     "typescript": "^5.2.2"
   },
   "devDependencies": {
+    "ganache": "^7.9.1",
     "@types/debug": "^4.1.9",
     "@types/jest": "^29.5.4",
     "@typescript-eslint/eslint-plugin": "^6.7.0",

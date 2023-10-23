@@ -342,9 +342,8 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
       Logger.log(error.message);
       Logger.error("Error in generating paymasterAndData - reason: ", JSON.stringify(error));
       if (
-        (!this.paymasterConfig.strictMode &&
-          (error?.message.includes("Smart contract data not found") || error?.message.includes("No policies were set"))) ||
-        error?.message.includes("Invalid FundingId")
+        !this.paymasterConfig.strictMode &&
+        (error?.message.includes("Smart contract data not found") || error?.message.includes("No policies were set"))
         // can also check based on error.code being -32xxx
       ) {
         Logger.log(`Strict mode is ${this.paymasterConfig.strictMode}. sending paymasterAndData 0x`);

@@ -256,8 +256,6 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     Logger.log("userOp in estimation", userOp);
 
     if (skipBundlerCall) {
-      // Review: instead of checking mode it could be assumed or just pass gasless flag and use it
-      // make pmService data locally and pass the object with default values
       if (this.paymaster && this.paymaster instanceof BiconomyPaymaster && paymasterServiceData?.mode === PaymasterMode.SPONSORED) {
         if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas) {
           throw new Error("maxFeePerGas and maxPriorityFeePerGas are required for skipBundlerCall mode");
