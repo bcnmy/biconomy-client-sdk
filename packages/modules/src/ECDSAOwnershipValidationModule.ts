@@ -1,4 +1,3 @@
-import { Logger } from "@biconomy-devx/common";
 import { Signer, ethers } from "ethers";
 import { Bytes, arrayify } from "ethers/lib/utils";
 import { ECDSAOwnershipValidationModuleConfig, ModuleVersion } from "./utils/Types";
@@ -61,9 +60,6 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
 
   async signUserOpHash(userOpHash: string): Promise<string> {
     const sig = await this.signer.signMessage(arrayify(userOpHash));
-
-    Logger.log("ecdsa signature ", sig);
-
     return sig;
   }
 

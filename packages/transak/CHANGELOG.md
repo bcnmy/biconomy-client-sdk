@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## 2.1.40 (2023-09-20)
+## 2.1.41 (2023-09-20)
 ### Bug Fixes
 
 * lint warning and errors ([2135498](https://github.com/bcnmy/biconomy-client-sdk/commit/2135498896beb54d25add820c1521ffa22d5db7c))

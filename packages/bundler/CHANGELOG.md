@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## 2.1.40 (2023-09-20)
+## 2.1.41 (2023-09-20)
 
 Modular Account Abstraction is here.
 
@@ -43,7 +43,7 @@ VERSION bump only
 
 
 
-# 2.1.40-alpha.0 (2023-07-24)
+# 2.1.41-alpha.0 (2023-07-24)
 
 
 ### Features

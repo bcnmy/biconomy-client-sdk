@@ -1,7 +1,5 @@
 import { ChainId, UserOperation } from "@biconomy-devx/core-types";
 import { Signer } from "ethers";
-import { SessionKeyManagerModule } from "../SessionKeyManagerModule";
-import { ISessionStorage } from "interfaces/ISessionStorage";
 
 export type ModuleVersion = "V1_0_0"; // | 'V1_0_1'
 
@@ -13,31 +11,6 @@ export interface ECDSAOwnershipValidationModuleConfig extends BaseValidationModu
   moduleAddress?: string;
   version?: ModuleVersion;
   signer: Signer;
-}
-
-export interface SessionKeyManagerModuleConfig extends BaseValidationModuleConfig {
-  moduleAddress?: string;
-  version?: ModuleVersion;
-  nodeClientUrl?: string;
-  smartAccountAddress: string;
-  storageType?: StorageType;
-  sessionStorageClient?: ISessionStorage;
-}
-
-export interface BatchedSessionRouterModuleConfig extends BaseValidationModuleConfig {
-  moduleAddress?: string;
-  version?: ModuleVersion;
-
-  sessionKeyManagerModule?: SessionKeyManagerModule; // could be BaseValidationModule
-
-  sessionManagerModuleAddress?: string;
-  nodeClientUrl?: string;
-  smartAccountAddress: string;
-  storageType?: StorageType;
-
-  // sessionSigner?: Signer
-  // sessionPubKey?: string
-  // nodeClientUrl?: string
 }
 
 export enum StorageType {
