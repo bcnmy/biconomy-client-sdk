@@ -1,5 +1,5 @@
-import { UserOperation } from "@biconomy/core-types";
-import { UserOpResponse } from "@biconomy/bundler";
+import { UserOperation } from "@biconomy-devx/core-types";
+import { UserOpResponse } from "@biconomy-devx/bundler";
 export interface ISmartAccount {
   getSmartAccountAddress(_accountIndex: number): Promise<string>;
   signUserOp(_userOp: UserOperation): Promise<UserOperation>;

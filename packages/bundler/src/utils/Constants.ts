@@ -1,4 +1,4 @@
-import { ChainId } from "@biconomy/core-types";
+import { ChainId } from "@biconomy-devx/core-types";
 
 // eslint-disable-next-line no-unused-vars
 export const UserOpReceiptIntervals: { [key in ChainId]?: number } = {

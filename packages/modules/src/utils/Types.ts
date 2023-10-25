@@ -1,4 +1,4 @@
-import { ChainId, UserOperation } from "@biconomy/core-types";
+import { ChainId, UserOperation } from "@biconomy-devx/core-types";
 import { Signer } from "ethers";
 import { SessionKeyManagerModule } from "../SessionKeyManagerModule";
 import { ISessionStorage } from "interfaces/ISessionStorage";
