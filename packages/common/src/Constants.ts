@@ -28,4 +28,8 @@ export const RPC_PROVIDER_URLS: { [key in ChainId]?: string } = {
   [ChainId.MANTLE_TESTNET]: "https://rpc.testnet.mantle.xyz",
   [ChainId.OPBNB_MAINNET]: "https://opbnb-mainnet-rpc.bnbchain.org",
   [ChainId.OPBNB_TESTNET]: "https://opbnb-testnet-rpc.bnbchain.org",
+  [ChainId.ASTAR_MAINNET]: "https://evm.astar.network",
+  [ChainId.ASTAR_TESTNET]: "https://evm.shibuya.astar.network",
+  [ChainId.CHILLIZ_MAINNET]: "https://rpc.ankr.com/chiliz",
+  [ChainId.CHILLIZ_TESTNET]: "https://spicy-rpc.chiliz.com",
 };

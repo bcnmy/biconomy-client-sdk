@@ -1,31 +1,3 @@
-export enum ChainNames {
-  Mainnet = "mainnet",
-  Ropsten = "ropsten",
-  Rinkeby = "rinkeby",
-  Goerli = "goerli",
-  Kovan = "kovan",
-  Xdai = "xdai",
-  Bsc = "bsc",
-  BscTest = "bscTest",
-  Fantom = "fantom",
-  FantomTest = "fantomTest",
-  Matic = "matic",
-  Mumbai = "mumbai",
-  Aurora = "aurora",
-  AuroraTest = "auroraTest",
-  Avalanche = "avalanche",
-  Fuji = "fuji",
-  Optimism = "optimism",
-  OptimismKovan = "optimismKovan",
-  Arbitrum = "arbitrum",
-  ArbitrumTest = "arbitrumTest",
-  Moonbeam = "moonbeam",
-  Moonbase = "moonbase",
-  Celo = "celo",
-  CeloTest = "celoTest",
-}
-
-// NOTE: Update chainId for networks we're planning to support
 export enum ChainId {
   // Ethereum
   MAINNET = 1,
@@ -52,5 +24,9 @@ export enum ChainId {
   MANTLE_TESTNET = 5001,
   OPBNB_MAINNET = 204,
   OPBNB_TESTNET = 5611,
+  ASTAR_MAINNET = 592,
+  ASTAR_TESTNET = 81,
+  CHILLIZ_MAINNET = 88888,
+  CHILLIZ_TESTNET = 88882,
   GANACHE = 1337, //Temp
 }

@@ -26,6 +26,10 @@ export const UserOpReceiptIntervals: { [key in ChainId]?: number } = {
   [ChainId.MANTLE_TESTNET]: 2000,
   [ChainId.OPBNB_MAINNET]: 2000,
   [ChainId.OPBNB_TESTNET]: 2000,
+  [ChainId.ASTAR_MAINNET]: 2000,
+  [ChainId.ASTAR_TESTNET]: 2000,
+  [ChainId.CHILLIZ_MAINNET]: 2000,
+  [ChainId.CHILLIZ_TESTNET]: 2000,
 };
 
 // Note: Reduced by 1/10th.. can reduce more
@@ -54,6 +58,10 @@ export const UserOpWaitForTxHashIntervals: { [key in ChainId]?: number } = {
   [ChainId.MANTLE_TESTNET]: 500,
   [ChainId.OPBNB_MAINNET]: 500,
   [ChainId.OPBNB_TESTNET]: 500,
+  [ChainId.ASTAR_MAINNET]: 500,
+  [ChainId.ASTAR_TESTNET]: 500,
+  [ChainId.CHILLIZ_MAINNET]: 500,
+  [ChainId.CHILLIZ_TESTNET]: 500,
 };
 
 export const UserOpReceiptMaxDurationIntervals: { [key in ChainId]?: number } = {
@@ -81,6 +89,10 @@ export const UserOpReceiptMaxDurationIntervals: { [key in ChainId]?: number } = 
   [ChainId.MANTLE_TESTNET]: 30000,
   [ChainId.OPBNB_MAINNET]: 30000,
   [ChainId.OPBNB_TESTNET]: 30000,
+  [ChainId.ASTAR_MAINNET]: 30000,
+  [ChainId.ASTAR_TESTNET]: 30000,
+  [ChainId.CHILLIZ_MAINNET]: 30000,
+  [ChainId.CHILLIZ_TESTNET]: 30000,
 };
 
 export const UserOpWaitForTxHashMaxDurationIntervals: { [key in ChainId]?: number } = {
@@ -108,4 +120,8 @@ export const UserOpWaitForTxHashMaxDurationIntervals: { [key in ChainId]?: numbe
   [ChainId.MANTLE_TESTNET]: 20000,
   [ChainId.OPBNB_MAINNET]: 20000,
   [ChainId.OPBNB_TESTNET]: 20000,
+  [ChainId.ASTAR_MAINNET]: 20000,
+  [ChainId.ASTAR_TESTNET]: 20000,
+  [ChainId.CHILLIZ_MAINNET]: 20000,
+  [ChainId.CHILLIZ_TESTNET]: 20000,
 };
