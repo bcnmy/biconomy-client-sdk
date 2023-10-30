@@ -377,4 +377,19 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     Logger.log("paymasterServiceData is ", paymasterServiceData);
     return "0x";
   }
+
+  // review: return number of BigNumberish
+  // todo: maybe make part of IHybridPaymaster interface
+  async getPaymasterBalance(paymasterId?: string): Promise<number> {
+    Logger.log("supplied paymasterId: ", paymasterId);
+    // 1. if paymasterId is provided, fetch balance by making an on-chain call using address (we get from the url?)
+    // 2. if not provided, for current paymaster url make a read call to get paymasterId then query balance on-chain
+    return 0;
+
+    /**
+     * apis that may be needed on paymaster service
+     * for given url return paymaster address for verifying (as it has versions)
+     * for given url return paymaster id setup on dashboard
+     */
+  }
 }
