@@ -30,6 +30,6 @@ export const RPC_PROVIDER_URLS: { [key in ChainId]?: string } = {
   [ChainId.OPBNB_TESTNET]: "https://opbnb-testnet-rpc.bnbchain.org",
   [ChainId.ASTAR_MAINNET]: "https://evm.astar.network",
   [ChainId.ASTAR_TESTNET]: "https://evm.shibuya.astar.network",
-  [ChainId.CHILLIZ_MAINNET]: "https://rpc.ankr.com/chiliz",
-  [ChainId.CHILLIZ_TESTNET]: "https://spicy-rpc.chiliz.com",
+  [ChainId.CHILIZ_MAINNET]: "https://rpc.ankr.com/chiliz",
+  [ChainId.CHILIZ_TESTNET]: "https://spicy-rpc.chiliz.com",
 };
