@@ -62,7 +62,7 @@ const balanceParams: BalancesDto =
          //  is being supplied for initialization
 
         chainId: ChainId.MAINNET, // chainId of your choice
-        eoaAddress: address,
+        address: address,
         // If empty string you receive balances of all tokens watched by Indexer
         // you can only whitelist token addresses that are listed in token respository
         // specified above ^
