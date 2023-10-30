@@ -1,0 +1,35 @@
+{
+  "name": "account-lite",
+  "version": "1.0.0",
+  "description": "minimal account API",
+  "keywords": [
+    "useroperation",
+    "smart-account"
+  ],
+  "author": "livingrockrises <90545960+livingrockrises@users.noreply.github.com>",
+  "main": "./dist/src/index.js",
+  "typings": "./dist/src/index.d.ts",
+  "homepage": "https://docs.biconomy.io",
+  "license": "MIT",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "dist/*",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bcnmy/biconomy-client-sdk.git"
+  },
+  "scripts": {
+    "test": "node ./__tests__/account-lite.test.js"
+  },
+  "bugs": {
+    "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"
+  }
+}
