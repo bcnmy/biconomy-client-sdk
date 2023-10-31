@@ -38,7 +38,7 @@ Following are the methods that can be called on paymaster instance
 ```typescript
 export interface IHybridPaymaster<T> extends IPaymaster {
   getPaymasterAndData(userOp: Partial<UserOperation>, paymasterServiceData?: T): Promise<PaymasterAndDataResponse>;
-  buildTokenApprovalTransaction(tokenPaymasterRequest: BiconomyTokenPaymasterRequest, provider: Provider): Promise<Transaction>;
+  buildTokenApprovalTransaction(tokenPaymasterRequest: BiconomyTokenPaymasterRequest): Promise<Transaction>;
   getPaymasterFeeQuotesOrData(userOp: Partial<UserOperation>, paymasterServiceData: FeeQuotesOrDataDto): Promise<FeeQuotesOrDataResponse>;
 }
 ```

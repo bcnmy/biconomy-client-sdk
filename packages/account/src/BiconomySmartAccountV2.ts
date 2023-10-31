@@ -1,29 +1,30 @@
-import { JsonRpcProvider, Provider } from "@ethersproject/providers";
 import { defaultAbiCoder } from "ethers/lib/utils";
 import {
   Hex,
-  isHex,
   keccak256,
   encodePacked,
   getCreate2Address,
-  concat,
   encodeAbiParameters,
   parseAbiParameters,
   toHex,
   hexToNumber,
   toBytes,
+  encodeFunctionData,
+  PublicClient,
+  createPublicClient,
+  http,
+  concatHex,
+  GetContractReturnType,
+  Chain,
+  getContract,
+  decodeFunctionData,
 } from "viem";
-import { BaseSmartContractAccount, getChain } from "@alchemy/aa-core";
-import type { BigNumberish, BytesLike } from "@alchemy/aa-core";
-import {
-  Logger,
-  SmartAccount_v200,
-  SmartAccountFactory_v200,
-  SmartAccount_v200__factory,
-  SmartAccountFactory_v200__factory,
-  RPC_PROVIDER_URLS,
-  packUserOp,
-} from "@biconomy/common";
+import { BaseSmartContractAccount, getChain, type BigNumberish } from "@alchemy/aa-core";
+import { Logger, RPC_PROVIDER_URLS, packUserOp } from "@biconomy/common";
+import { BaseValidationModule, ModuleInfo, SendUserOpParams } from "@biconomy/modules";
+import { UserOperation, Transaction } from "@biconomy/core-types";
+import { IHybridPaymaster, IPaymaster, BiconomyPaymaster, SponsorUserOperationDto, PaymasterMode } from "@biconomy/paymaster";
+import { IBundler, UserOpResponse } from "@biconomy/bundler";
 import {
   BiconomyTokenPaymasterRequest,
   BiconomySmartAccountV2Config,
@@ -39,10 +40,8 @@ import {
   PROXY_CREATION_CODE,
   ADDRESS_ZERO,
 } from "./utils/Constants";
-import { BaseValidationModule, ModuleInfo, SendUserOpParams } from "@biconomy/modules";
-import { UserOperation, Transaction } from "@biconomy/core-types";
-import { IHybridPaymaster, IPaymaster, BiconomyPaymaster, SponsorUserOperationDto, PaymasterMode } from "@biconomy/paymaster";
-import { IBundler, UserOpResponse } from "@biconomy/bundler";
+import { BiconomyFactoryAbi } from "./abi/Factory";
+import { BiconomyAccountAbi } from "./abi/SmartAccount";
 
 type UserOperationKey = keyof UserOperation;
 
@@ -53,15 +52,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   private chainId: number;
 
-  private provider: Provider;
+  private provider: PublicClient;
 
   private paymaster?: IPaymaster;
 
   private bundler?: IBundler;
 
-  private accountContract?: SmartAccount_v200;
-
-  private factory?: SmartAccountFactory_v200;
+  private accountContract?: GetContractReturnType<typeof BiconomyAccountAbi, PublicClient, Chain>;
 
   private defaultFallbackHandlerAddress: Hex;
 
@@ -96,13 +93,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
     this.defaultFallbackHandlerAddress = defaultFallbackHandlerAddress;
 
-    // TODO: use rpcProvider generated in base class?
-    const { rpcUrl } = biconomySmartAccountConfig;
-    if (rpcUrl) {
-      this.provider = new JsonRpcProvider(rpcUrl);
-    } else {
-      this.provider = new JsonRpcProvider(RPC_PROVIDER_URLS[biconomySmartAccountConfig.chainId]);
-    }
+    this.provider = createPublicClient({
+      chain: getChain(biconomySmartAccountConfig.chainId),
+      transport: http(biconomySmartAccountConfig.rpcUrl || (RPC_PROVIDER_URLS[biconomySmartAccountConfig.chainId] as string)),
+    });
 
     // REVIEW: removed the node client
     // this.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL });
@@ -136,30 +130,22 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * Return the account's address. This value is valid even before deploying the contract.
    */
   async getCounterFactualAddress(params?: CounterFactualAddressParam): Promise<Hex> {
-    if (this.factory == null) {
-      if (isHex(this.factoryAddress)) {
-        this.factory = SmartAccountFactory_v200__factory.connect(this.factoryAddress, this.provider);
-      } else {
-        throw new Error("no factory to get initCode");
-      }
-    }
-
     const validationModule = params?.validationModule ?? this.defaultValidationModule;
     const index = params?.index ?? this.index;
 
     try {
-      const initCalldata = SmartAccount_v200__factory.createInterface().encodeFunctionData("init", [
-        this.defaultFallbackHandlerAddress,
-        validationModule.getAddress(),
-        await validationModule.getInitData(),
-      ]) as Hex;
+      const initCalldata = encodeFunctionData({
+        abi: BiconomyAccountAbi,
+        functionName: "init",
+        args: [this.defaultFallbackHandlerAddress, validationModule.getAddress() as Hex, (await validationModule.getInitData()) as Hex],
+      });
 
       const proxyCreationCodeHash = keccak256(encodePacked(["bytes", "uint256"], [PROXY_CREATION_CODE, BigInt(this.implementationAddress)]));
 
       const salt = keccak256(encodePacked(["bytes32", "uint256"], [keccak256(initCalldata), BigInt(index)]));
 
       const counterFactualAddress = getCreate2Address({
-        from: this.factory.address as Hex,
+        from: this.factoryAddress,
         salt: salt,
         bytecodeHash: proxyCreationCodeHash,
       });
@@ -170,9 +156,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
   }
 
-  async _getAccountContract(): Promise<SmartAccount_v200> {
+  async _getAccountContract(): Promise<GetContractReturnType<typeof BiconomyAccountAbi, PublicClient, Chain>> {
     if (this.accountContract == null) {
-      this.accountContract = SmartAccount_v200__factory.connect(await this.getAccountAddress(), this.provider);
+      this.accountContract = getContract({
+        address: await this.getAddress(),
+        abi: BiconomyAccountAbi,
+        publicClient: this.provider as PublicClient,
+      });
     }
     return this.accountContract;
   }
@@ -206,23 +196,15 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * This value holds the "factory" address, followed by this account's information
    */
   async getAccountInitCode(): Promise<Hex> {
-    if (this.factory == null) {
-      if (isHex(this.factoryAddress)) {
-        this.factory = SmartAccountFactory_v200__factory.connect(this.factoryAddress, this.provider);
-      } else {
-        throw new Error("no factory to get initCode");
-      }
-    }
-
     this.isDefaultValidationModuleDefined();
 
-    return concat([
-      this.factory.address as Hex,
-      this.factory.interface.encodeFunctionData("deployCounterFactualAccount", [
-        this.defaultValidationModule.getAddress(),
-        await this.defaultValidationModule.getInitData(),
-        this.index,
-      ]) as Hex,
+    return concatHex([
+      this.factoryAddress as Hex,
+      encodeFunctionData({
+        abi: BiconomyFactoryAbi,
+        functionName: "deployCounterFactualAccount",
+        args: [this.defaultValidationModule.getAddress() as Hex, (await this.defaultValidationModule.getInitData()) as Hex, BigInt(this.index)],
+      }),
     ]);
   }
 
@@ -233,9 +215,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @param data represent data associated with transaction
    * @returns encoded data for execute function
    */
-  async encodeExecute(to: string, value: BigNumberish, data: BytesLike): Promise<Hex> {
-    const accountContract = await this._getAccountContract();
-    return accountContract.interface.encodeFunctionData("execute_ncC", [to, value, data]) as Hex;
+  async encodeExecute(to: Hex, value: bigint, data: Hex): Promise<Hex> {
+    // return accountContract.interface.encodeFunctionData("execute_ncC", [to, value, data]) as Hex;
+    return encodeFunctionData({
+      abi: BiconomyAccountAbi,
+      functionName: "execute_ncC",
+      args: [to, value, data],
+    });
   }
 
   /**
@@ -245,9 +231,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @param data represent array of data associated with each transaction
    * @returns encoded data for executeBatch function
    */
-  async encodeExecuteBatch(to: Array<string>, value: Array<BigNumberish>, data: Array<BytesLike>): Promise<Hex> {
-    const accountContract = await this._getAccountContract();
-    return accountContract.interface.encodeFunctionData("executeBatch_y6U", [to, value, data]) as Hex;
+  async encodeExecuteBatch(to: Array<Hex>, value: Array<bigint>, data: Array<Hex>): Promise<Hex> {
+    return encodeFunctionData({
+      abi: BiconomyAccountAbi,
+      functionName: "executeBatch_y6U",
+      args: [to, value, data],
+    });
   }
 
   // dummy signature depends on the validation module supplied.
@@ -399,26 +388,25 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       delete userOp.maxFeePerGas;
       delete userOp.maxPriorityFeePerGas;
       // Making call to bundler to get gas estimations for userOp
-      const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas } = await this.bundler.estimateUserOpGas(
-        userOp,
-      );
+      const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas } =
+        await this.bundler.estimateUserOpGas(userOp);
       // if neither user sent gas fee nor the bundler, estimate gas from provider
       if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas && (!maxFeePerGas || !maxPriorityFeePerGas)) {
-        const feeData = await this.provider.getFeeData();
+        const feeData = await this.provider.estimateFeesPerGas();
         if (feeData.maxFeePerGas?.toString()) {
-          finalUserOp.maxFeePerGas = feeData.maxFeePerGas?.toHexString() as Hex;
+          finalUserOp.maxFeePerGas = ("0x" + feeData.maxFeePerGas.toString(16)) as Hex;
         } else if (feeData.gasPrice?.toString()) {
-          finalUserOp.maxFeePerGas = feeData.gasPrice?.toHexString() as Hex;
+          finalUserOp.maxFeePerGas = ("0x" + feeData.gasPrice.toString(16)) as Hex;
         } else {
-          finalUserOp.maxFeePerGas = (await this.provider.getGasPrice()).toHexString() as Hex;
+          finalUserOp.maxFeePerGas = ("0x" + (await this.provider.getGasPrice()).toString(16)) as Hex;
         }
 
         if (feeData.maxPriorityFeePerGas?.toString()) {
-          finalUserOp.maxPriorityFeePerGas = toHex(Number(feeData.maxPriorityFeePerGas?.toString()));
+          finalUserOp.maxPriorityFeePerGas = ("0x" + feeData.maxPriorityFeePerGas?.toString()) as Hex;
         } else if (feeData.gasPrice?.toString()) {
           finalUserOp.maxPriorityFeePerGas = toHex(Number(feeData.gasPrice?.toString()));
         } else {
-          finalUserOp.maxPriorityFeePerGas = (await this.provider.getGasPrice()).toHexString() as Hex;
+          finalUserOp.maxPriorityFeePerGas = ("0x" + (await this.provider.getGasPrice()).toString(16)) as Hex;
         }
       } else {
         finalUserOp.maxFeePerGas = toHex(Number(maxFeePerGas)) ?? userOp.maxFeePerGas;
@@ -436,9 +424,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   async getNonce(nonceKey?: number): Promise<bigint> {
     const nonceSpace = nonceKey ?? 0;
     try {
-      const accountContract = await this._getAccountContract();
-      const nonce = await accountContract.nonce(nonceSpace);
-      return nonce.toBigInt();
+      const address = await this.getAddress();
+      return await this.entryPoint.read.getNonce([address, BigInt(nonceSpace)]);
     } catch (e) {
       return BigInt(0);
     }
@@ -483,9 +470,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   async buildUserOp(transactions: Transaction[], buildUseropDto?: BuildUserOpOptions): Promise<Partial<UserOperation>> {
-    const to = transactions.map((element: Transaction) => element.to);
-    const data = transactions.map((element: Transaction) => element.data ?? "0x");
-    const value = transactions.map((element: Transaction) => element.value ?? BigInt(0));
+    const to = transactions.map((element: Transaction) => element.to as Hex);
+    const data = transactions.map((element: Transaction) => (element.data as Hex) ?? "0x");
+    const value = transactions.map((element: Transaction) => (element.value as bigint) ?? BigInt(0));
 
     const initCodeFetchPromise = this.getInitCode();
     const dummySignatureFetchPromise = this.getDummySignatures(buildUseropDto?.params);
@@ -572,9 +559,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   ): Promise<Partial<UserOperation>> {
     this.validateUserOpAndPaymasterRequest(userOp, tokenPaymasterRequest);
     try {
-      let batchTo: Array<string> = [];
-      let batchValue: Array<string | BigNumberish> = [];
-      let batchData: Array<string> = [];
+      let batchTo: Array<Hex> = [];
+      let batchValue: Array<bigint> = [];
+      let batchData: Array<Hex> = [];
 
       let newCallData = userOp.callData;
       Logger.log("Received information about fee token address and quote ", tokenPaymasterRequest);
@@ -585,7 +572,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         // Review: might request this form of an array of Transaction
         const approvalRequest: Transaction = await (this.paymaster as IHybridPaymaster<SponsorUserOperationDto>).buildTokenApprovalTransaction(
           tokenPaymasterRequest,
-          this.provider,
         );
         Logger.log("ApprovalRequest is for erc20 token ", approvalRequest.to);
 
@@ -597,16 +583,16 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
           throw new Error("UserOp callData cannot be undefined");
         }
 
-        const account = await this._getAccountContract();
-
-        const decodedSmartAccountData = account.interface.parseTransaction({
-          data: userOp.callData.toString(),
+        const decodedSmartAccountData = decodeFunctionData({
+          abi: BiconomyAccountAbi,
+          data: userOp.callData,
         });
+
         if (!decodedSmartAccountData) {
           throw new Error("Could not parse userOp call data for this smart account");
         }
 
-        const smartAccountExecFunctionName = decodedSmartAccountData.name;
+        const smartAccountExecFunctionName = decodedSmartAccountData.functionName;
 
         Logger.log(`Originally an ${smartAccountExecFunctionName} method call for Biconomy Account V2`);
         if (smartAccountExecFunctionName === "execute" || smartAccountExecFunctionName === "execute_ncC") {
@@ -620,15 +606,15 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
           batchData.push(dataOriginal);
         } else if (smartAccountExecFunctionName === "executeBatch" || smartAccountExecFunctionName === "executeBatch_y6U") {
           const methodArgsSmartWalletExecuteCall = decodedSmartAccountData.args;
-          batchTo = methodArgsSmartWalletExecuteCall[0];
-          batchValue = methodArgsSmartWalletExecuteCall[1];
-          batchData = methodArgsSmartWalletExecuteCall[2];
+          batchTo = [...methodArgsSmartWalletExecuteCall[0]];
+          batchValue = [...methodArgsSmartWalletExecuteCall[1]];
+          batchData = [...methodArgsSmartWalletExecuteCall[2]];
         }
 
         if (approvalRequest.to && approvalRequest.data && approvalRequest.value) {
-          batchTo = [approvalRequest.to, ...batchTo];
-          batchValue = [approvalRequest.value, ...batchValue];
-          batchData = [approvalRequest.data, ...batchData];
+          batchTo = [approvalRequest.to as Hex, ...batchTo];
+          batchValue = [BigInt(Number(approvalRequest.value.toString())), ...batchValue];
+          batchData = [approvalRequest.data as Hex, ...batchData];
 
           newCallData = await this.encodeExecuteBatch(batchTo, batchValue, batchData);
         }
@@ -687,63 +673,70 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return signature as Hex;
   }
 
-  async enableModule(moduleAddress: string): Promise<UserOpResponse> {
+  async enableModule(moduleAddress: Hex): Promise<UserOpResponse> {
     const tx: Transaction = await this.getEnableModuleData(moduleAddress);
     const partialUserOp = await this.buildUserOp([tx]);
     return this.sendUserOp(partialUserOp);
   }
 
-  async getEnableModuleData(moduleAddress: string): Promise<Transaction> {
-    const accountContract = await this._getAccountContract();
-    const populatedTransaction = await accountContract.populateTransaction.enableModule(moduleAddress);
+  async getEnableModuleData(moduleAddress: Hex): Promise<Transaction> {
+    const callData = encodeFunctionData({
+      abi: BiconomyAccountAbi,
+      functionName: "enableModule",
+      args: [moduleAddress],
+    });
     const tx: Transaction = {
       to: await this.getAddress(),
       value: "0",
-      data: populatedTransaction.data as string,
+      data: callData,
     };
     return tx;
   }
 
-  async getSetupAndEnableModuleData(moduleAddress: string, moduleSetupData: string): Promise<Transaction> {
-    const accountContract = await this._getAccountContract();
-    // TODO: using encodeFunctionData
-    const populatedTransaction = await accountContract.populateTransaction.setupAndEnableModule(moduleAddress, moduleSetupData);
+  async getSetupAndEnableModuleData(moduleAddress: Hex, moduleSetupData: Hex): Promise<Transaction> {
+    const callData = encodeFunctionData({
+      abi: BiconomyAccountAbi,
+      functionName: "setupAndEnableModule",
+      args: [moduleAddress, moduleSetupData],
+    });
     const tx: Transaction = {
       to: await this.getAddress(),
       value: "0",
-      data: populatedTransaction.data as string,
+      data: callData,
     };
     return tx;
   }
 
-  async disableModule(preModule: string, moduleAddress: string): Promise<UserOpResponse> {
+  async disableModule(preModule: Hex, moduleAddress: Hex): Promise<UserOpResponse> {
     const tx: Transaction = await this.getDisableModuleData(preModule, moduleAddress);
     const partialUserOp = await this.buildUserOp([tx]);
     return this.sendUserOp(partialUserOp);
   }
 
-  async getDisableModuleData(prevModule: string, moduleAddress: string): Promise<Transaction> {
-    const accountContract = await this._getAccountContract();
-    // TODO: using encodeFunctionData
-    const populatedTransaction = await accountContract.populateTransaction.disableModule(prevModule, moduleAddress);
+  async getDisableModuleData(prevModule: Hex, moduleAddress: Hex): Promise<Transaction> {
+    const callData = encodeFunctionData({
+      abi: BiconomyAccountAbi,
+      functionName: "disableModule",
+      args: [prevModule, moduleAddress],
+    });
     const tx: Transaction = {
       to: await this.getAddress(),
       value: "0",
-      data: populatedTransaction.data as string,
+      data: callData,
     };
     return tx;
   }
 
-  async isModuleEnabled(moduleName: string): Promise<boolean> {
+  async isModuleEnabled(moduleName: Hex): Promise<boolean> {
     const accountContract = await this._getAccountContract();
-    return accountContract.isModuleEnabled(moduleName);
+    return accountContract.read.isModuleEnabled([moduleName]);
   }
 
   // Review
   async getAllModules(pageSize?: number): Promise<Array<string>> {
     pageSize = pageSize ?? 100;
     const accountContract = await this._getAccountContract();
-    const result: Array<string | Array<string>> = await accountContract.getModulesPaginated(this.SENTINEL_MODULE, pageSize);
+    const result = await accountContract.read.getModulesPaginated([this.SENTINEL_MODULE as Hex, BigInt(pageSize)]);
     const modules: Array<string> = result[0] as Array<string>;
     return modules;
   }

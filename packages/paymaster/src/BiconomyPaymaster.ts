@@ -1,7 +1,6 @@
 import { Logger, sendRequest, HttpMethod, getTimestampInSeconds } from "@biconomy/common";
 import { resolveProperties } from "@ethersproject/properties";
 import { UserOperation, Transaction } from "@biconomy/core-types";
-import { Provider } from "@ethersproject/abstract-provider";
 import {
   PaymasterFeeQuote,
   PaymasterConfig,
@@ -46,19 +45,19 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
       userOp.nonce = BigNumber.from(userOp.nonce).toHexString() as `0x${string}`;
     }
     if (userOp.callGasLimit !== null && userOp.callGasLimit !== undefined) {
-      userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toString() as `0x${string}`
+      userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toString() as `0x${string}`;
     }
     if (userOp.verificationGasLimit !== null && userOp.verificationGasLimit !== undefined) {
-      userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toString() as `0x${string}`
+      userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toString() as `0x${string}`;
     }
     if (userOp.preVerificationGas !== null && userOp.preVerificationGas !== undefined) {
-      userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toString() as `0x${string}`
+      userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toString() as `0x${string}`;
     }
     if (userOp.maxFeePerGas !== null && userOp.maxFeePerGas !== undefined) {
-      userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toString() as `0x${string}`
+      userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toString() as `0x${string}`;
     }
     if (userOp.maxPriorityFeePerGas !== null && userOp.maxPriorityFeePerGas !== undefined) {
-      userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toString() as `0x${string}`
+      userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toString() as `0x${string}`;
     }
     userOp.signature = userOp.signature || "0x";
     userOp.paymasterAndData = userOp.paymasterAndData || "0x";
@@ -71,7 +70,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
    * @param provider Optional provider object.
    * @returns A Promise that resolves to the built transaction object.
    */
-  async buildTokenApprovalTransaction(tokenPaymasterRequest: BiconomyTokenPaymasterRequest, provider?: Provider): Promise<Transaction> {
+  async buildTokenApprovalTransaction(tokenPaymasterRequest: BiconomyTokenPaymasterRequest): Promise<Transaction> {
     const feeTokenAddress: string = tokenPaymasterRequest.feeQuote.tokenAddress;
     Logger.log("erc20 fee token address ", feeTokenAddress);
 
@@ -79,7 +78,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     Logger.log("spender address ", spender);
 
     // logging provider object isProvider
-    Logger.log("provider object passed - is provider", provider?._isProvider);
+    // Logger.log("provider object passed - is provider", provider?._isProvider);
 
     // TODO move below notes to separate method
     // Note: should also check in caller if the approval is already given, if yes return object with address or data 0
