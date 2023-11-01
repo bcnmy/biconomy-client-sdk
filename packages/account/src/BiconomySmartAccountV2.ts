@@ -62,6 +62,8 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
   private implementationAddress!: string;
 
+  private modulesToEnable!: string[];
+
   // Validation module responsible for account deployment initCode. This acts as a default authorization module.
   defaultValidationModule!: BaseValidationModule;
 
@@ -99,6 +101,8 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     }
 
     instance.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL });
+
+    instance.modulesToEnable = biconomySmartAccountConfig.modulesToEnable ?? [];
 
     await instance.init();
 
@@ -368,6 +372,19 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       dummySignatureFetchPromise,
       this.getGasFeeValues(buildUseropDto?.overrides, buildUseropDto?.skipBundlerGasEstimation),
     ]);
+
+    if (initCode !== "0x") {
+      // deploymentTx
+      for (let i = 0; i < this.modulesToEnable.length; i++) {
+        // check address this.modulesToEnable[i]
+        // can additionally check if setupData is must for a module or just enable works fine
+        const tx: Transaction = await this.getEnableModuleData(this.modulesToEnable[i]);
+        transactions.push(tx);
+      }
+
+      // check if setupData is also provided for the module
+      // in that case this.setupAndEnableModuleData() should be called to get the transaction
+    }
 
     if (transactions.length === 0) {
       throw new Error("Transactions array cannot be empty");

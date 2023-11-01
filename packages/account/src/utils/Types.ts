@@ -72,7 +72,14 @@ export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
   nodeClientUrl?: string; // very specific to Biconomy
   defaultValidationModule: BaseValidationModule;
   activeValidationModule?: BaseValidationModule;
+  modulesToEnable?: string[];
+  modulesToEnableAndSetup?: ModuleSetupInfo[];
 }
+
+export type ModuleSetupInfo = {
+  moduleAddress: string;
+  setupData?: string;
+};
 
 export type BuildUserOpOptions = {
   overrides?: Overrides;
