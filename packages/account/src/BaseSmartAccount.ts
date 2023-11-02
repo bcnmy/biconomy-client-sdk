@@ -9,7 +9,7 @@ import { IBundler, UserOpResponse } from "@biconomy/bundler";
 import { IPaymaster, PaymasterAndDataResponse } from "@biconomy/paymaster";
 import { SendUserOpParams } from "@biconomy/modules";
 import { SponsorUserOperationDto, BiconomyPaymaster, PaymasterMode, IHybridPaymaster } from "@biconomy/paymaster";
-import { BaseSmartAccountConfig, Overrides, SendUserOpOptions, TransactionDetailsForUserOp } from "./utils/Types";
+import { BaseSmartAccountConfig, Overrides, TransactionDetailsForUserOp } from "./utils/Types";
 import { GasOverheads } from "./utils/Preverificaiton";
 import { EntryPoint, EntryPoint__factory } from "@account-abstraction/contracts";
 import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants";

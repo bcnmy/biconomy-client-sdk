@@ -15,7 +15,6 @@ import {
   BiconomySmartAccountV2Config,
   CounterFactualAddressParam,
   BuildUserOpOptions,
-  SendUserOpOptions,
   Overrides,
   NonceOptions,
 } from "./utils/Types";
