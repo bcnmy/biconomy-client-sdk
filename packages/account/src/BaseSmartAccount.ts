@@ -7,6 +7,7 @@ import { calcPreVerificationGas, DefaultGasLimits } from "./utils/Preverificaito
 import { NotPromise, packUserOp, Logger, RPC_PROVIDER_URLS } from "@biconomy/common";
 import { IBundler, UserOpResponse } from "@biconomy/bundler";
 import { IPaymaster, PaymasterAndDataResponse } from "@biconomy/paymaster";
+import { SendUserOpParams } from "@biconomy/modules";
 import { SponsorUserOperationDto, BiconomyPaymaster, PaymasterMode, IHybridPaymaster } from "@biconomy/paymaster";
 import { BaseSmartAccountConfig, Overrides, SendUserOpOptions, TransactionDetailsForUserOp } from "./utils/Types";
 import { GasOverheads } from "./utils/Preverificaiton";
@@ -182,7 +183,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
    * @description This function call will take 'signedUserOp' as input and send it to the bundler
    * @returns
    */
-  async sendSignedUserOp(userOp: UserOperation, params?: SendUserOpOptions): Promise<UserOpResponse> {
+  async sendSignedUserOp(userOp: UserOperation, params?: SendUserOpParams): Promise<UserOpResponse> {
     const requiredFields: UserOperationKey[] = [
       "sender",
       "nonce",
