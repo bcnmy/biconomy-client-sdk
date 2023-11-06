@@ -100,14 +100,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
     // signer must be the same for all the sessions
     const sessionSigner = sessionParams[0].sessionSigner;
 
-    const userOpHashAndModuleAddress = ethers.utils.hexConcat([
-      ethers.utils.hexZeroPad(userOpHash, 32),
-      ethers.utils.hexZeroPad(this.getSessionKeyManagerAddress(), 20),
-    ]);
-
-    const resultingHash = ethers.utils.keccak256(userOpHashAndModuleAddress);
-
-    const signature = await sessionSigner.signMessage(arrayify(resultingHash));
+    const signature = await sessionSigner.signMessage(arrayify(userOpHash));
 
     for (const sessionParam of sessionParams) {
       if (!sessionParam.sessionSigner) {

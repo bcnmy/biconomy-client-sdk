@@ -46,6 +46,7 @@
     "@biconomy/modules": "^3.1.0",
     "@biconomy/node-client": "^3.1.0",
     "@biconomy/paymaster": "^3.1.0",
+    "@ethersproject/logger": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
     "ethers": "^5.7.0",
     "loglevel": "^1.8.1",

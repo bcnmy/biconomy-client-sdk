@@ -36,7 +36,7 @@
     "test": "concurrently -k --success first 'yarn start:ganache' 'yarn test:run'",
     "start:ganache": "ganache -m 'direct buyer cliff train rice spirit census refuse glare expire innocent quote'",
     "test:ci": "FORCE_COLOR=1 lerna run test:ci --stream --npm-client=yarn",
-    "test:coverage": "yarn jest --coverage",
+    "test:coverage": "concurrently -k --success first 'yarn start:ganache' 'yarn jest --runInBand --coverage'",
     "diff": "lerna diff",
     "release": "lerna version patch --no-git-tag-version --no-push --conventional-commits --yes"
   },
@@ -56,6 +56,8 @@
     "typescript": "^5.2.2"
   },
   "devDependencies": {
+    "ganache": "^7.9.1",
+    "@types/debug": "^4.1.9",
     "@types/jest": "^29.5.4",
     "@typescript-eslint/eslint-plugin": "^6.7.0",
     "@typescript-eslint/parser": "^6.6.0",

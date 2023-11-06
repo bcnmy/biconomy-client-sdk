@@ -2,7 +2,7 @@ import { Signer } from "ethers";
 import { ChainId } from "@biconomy/core-types";
 import { BigNumberish } from "ethers";
 import { IBundler } from "@biconomy/bundler";
-import { IPaymaster, PaymasterFeeQuote } from "@biconomy/paymaster";
+import { IPaymaster, PaymasterFeeQuote, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { Provider } from "@ethersproject/providers";
 import { GasOverheads } from "./Preverificaiton";
@@ -80,12 +80,26 @@ export type BuildUserOpOptions = {
   params?: ModuleInfo;
   nonceOptions?: NonceOptions;
   forceEncodeForBatch?: boolean;
+  paymasterServiceData?: SponsorUserOperationDto;
 };
 
 export type NonceOptions = {
   nonceKey?: number;
   nonceOverride?: number;
 };
+
+// Used in AccountV1
+export type SendUserOpDto = {
+  signer?: Signer;
+  simulationType?: SimulationType;
+};
+
+// Generic options in AccountV2
+export type SendUserOpOptions = {
+  simulationType?: SimulationType;
+};
+
+export type SimulationType = "validation" | "validation_and_execution";
 
 export type Overrides = {
   callGasLimit?: BigNumberish;

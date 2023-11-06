@@ -39,7 +39,7 @@ export type SCWTransactionResponse = {
 
 export type BalancesDto = {
   chainId: number;
-  eoaAddress: string;
+  address: string;
   tokenAddresses: string[];
 };
 

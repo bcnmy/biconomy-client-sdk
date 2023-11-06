@@ -67,7 +67,7 @@ VERSION bump only
 - Type added for PaymasterServiceData + reordering of params ([fae8b3a](https://github.com/bcnmy/biconomy-client-sdk/commit/fae8b3a02a5e810a9a40674d27f389b89199bb62))
 - logic changed to accept paymasterServiceData ([6daaf37](https://github.com/bcnmy/biconomy-client-sdk/commit/6daaf37855a13fa6e12fdbab16a7e980b4631475))
 - UserOpGasFields for fetching gas and gas prices from bundler (https://github.com/bcnmy/biconomy-client-sdk/commit/a0c070b04bb6e249388a7d304dad7d08e97810e1)
-- skipEstimation added in dto update CreateUserPaidTransactionDto ([487f3ae](https://github.com/bcnmy/biconomy-client-sdk/commit/487f3aefe21b2dd4fd46e18bef7168eae3c1ecc1))
+- skipBundlerGasEstimation added in dto update CreateUserPaidTransactionDto ([487f3ae](https://github.com/bcnmy/biconomy-client-sdk/commit/487f3aefe21b2dd4fd46e18bef7168eae3c1ecc1))
 - fetching gas prices from bundler ([a0c070b](https://github.com/bcnmy/biconomy-client-sdk/commit/a0c070b04bb6e249388a7d304dad7d08e97810e1))
 
 ## 2.0.0 (2023-04-07)
