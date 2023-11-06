@@ -15,7 +15,6 @@ import {
   BiconomySmartAccountV2Config,
   CounterFactualAddressParam,
   BuildUserOpOptions,
-  SendUserOpOptions,
   Overrides,
   NonceOptions,
 } from "./utils/Types";
@@ -309,7 +308,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
    * @description This function call will take 'unsignedUserOp' as an input, sign it with the owner key, and send it to the bundler.
    * @returns Promise<UserOpResponse>
    */
-  async sendUserOp(userOp: Partial<UserOperation>, params?: SendUserOpOptions): Promise<UserOpResponse> {
+  async sendUserOp(userOp: Partial<UserOperation>, params?: SendUserOpParams): Promise<UserOpResponse> {
     Logger.log("userOp received in base account ", userOp);
     delete userOp.signature;
     const userOperation = await this.signUserOp(userOp, params);
