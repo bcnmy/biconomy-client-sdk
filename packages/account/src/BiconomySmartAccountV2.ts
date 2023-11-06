@@ -173,7 +173,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     const index = params?.index ?? this.index;
 
     // Note: Review
-    // the fact that below flow (AddressResolver) is Always called can be avoided by passing a flag in smart account config 
+    // the fact that below flow (AddressResolver) is Always called can be avoided by passing a flag in smart account config
     // (if it's intended to detect V1 upgraded accounts)
 
     // is instanceOf ECDSAOwnershipValidationModule or address matches ECDSA module address
