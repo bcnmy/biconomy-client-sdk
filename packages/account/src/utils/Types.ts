@@ -1,6 +1,6 @@
 import { Signer } from "ethers";
 import { ChainId } from "@biconomy/core-types";
-import { BigNumberish } from "ethers";
+import { BigNumberish, BigNumber } from "ethers";
 import { IBundler } from "@biconomy/bundler";
 import { IPaymaster, PaymasterFeeQuote, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
@@ -134,4 +134,13 @@ export interface TransactionDetailsForUserOp {
 export type CounterFactualAddressParam = {
   index?: number;
   validationModule?: BaseValidationModule;
+};
+
+export type SmartAccountInfo = {
+  accountAddress: string;
+  factoryAddress: string;
+  currentImplementation: string;
+  currentVersion: string;
+  factoryVersion: string;
+  deploymentIndex: BigNumber;
 };

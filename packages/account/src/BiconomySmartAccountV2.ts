@@ -9,6 +9,8 @@ import {
   SmartAccountFactory_v200,
   SmartAccount_v200__factory,
   SmartAccountFactory_v200__factory,
+  AddressResolver,
+  AddressResolver__factory,
 } from "@biconomy/common";
 import {
   BiconomyTokenPaymasterRequest,
@@ -17,8 +19,9 @@ import {
   BuildUserOpOptions,
   Overrides,
   NonceOptions,
+  SmartAccountInfo,
 } from "./utils/Types";
-import { BaseValidationModule, ModuleInfo, SendUserOpParams } from "@biconomy/modules";
+import { BaseValidationModule, ModuleInfo, SendUserOpParams, DEFAULT_ECDSA_OWNERSHIP_MODULE } from "@biconomy/modules";
 import { UserOperation, Transaction } from "@biconomy/core-types";
 import NodeClient from "@biconomy/node-client";
 import INodeClient from "@biconomy/node-client";
@@ -34,6 +37,7 @@ import {
 } from "@biconomy/node-client";
 import { UserOpResponse } from "@biconomy/bundler";
 import {
+  ADDRESS_RESOLVER_ADDRESS,
   BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION,
   DEFAULT_BICONOMY_FACTORY_ADDRESS,
   DEFAULT_FALLBACK_HANDLER_ADDRESS,
@@ -165,6 +169,32 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
    * calculate the account address even before it is deployed
    */
   async getCounterFactualAddress(params?: CounterFactualAddressParam): Promise<string> {
+    const validationModule = params?.validationModule ?? this.defaultValidationModule;
+    const index = params?.index ?? this.index;
+
+    // Note: Review
+    // the fact that below flow (AddressResolver) is Always called can be avoided by passing a flag in smart account config 
+    // (if it's intended to detect V1 upgraded accounts)
+
+    // is instanceOf ECDSAOwnershipValidationModule or address matches ECDSA module address
+    if (validationModule.getAddress() === DEFAULT_ECDSA_OWNERSHIP_MODULE) {
+      const eoaSigner = await validationModule.getSigner();
+      const eoaAddress = await eoaSigner.getAddress();
+      const accountAddress = await this.getV1AccountsUpgradedToV2(eoaAddress, index);
+      Logger.log("account address from V1 ", accountAddress);
+      if (accountAddress !== ethers.constants.AddressZero) {
+        return accountAddress;
+      }
+    } else {
+      // can check using module.getAddress() and module.getInitData() for some other auth module
+    }
+    // Review: above control flow
+
+    const counterFactualAddressV2 = await this.getCounterFactualAddressV2({ validationModule, index });
+    return counterFactualAddressV2;
+  }
+
+  private async getCounterFactualAddressV2(params?: CounterFactualAddressParam): Promise<string> {
     if (this.factory == null) {
       if (this.factoryAddress != null && this.factoryAddress !== "") {
         this.factory = SmartAccountFactory_v200__factory.connect(this.factoryAddress, this.provider);
@@ -189,6 +219,29 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       return counterFactualAddress;
     } catch (e) {
       throw new Error(`Failed to get counterfactual address, ${e}`);
+    }
+  }
+
+  async getV1AccountsUpgradedToV2(eoaAddress: string, index: number): Promise<string> {
+    Logger.log("index to filter ", index);
+    // Review: Could be taken as parameter from config.
+    const maxIndex = 10;
+    const addressResolver: AddressResolver = AddressResolver__factory.connect(ADDRESS_RESOLVER_ADDRESS, this.provider);
+    const result: SmartAccountInfo[] = await addressResolver.resolveAddresses(eoaAddress, maxIndex);
+    Logger.log("result of address resolver ", result);
+
+    const desiredV1Account = result.find(
+      (smartAccountInfo) =>
+        smartAccountInfo.factoryVersion === "v1" &&
+        smartAccountInfo.currentVersion === "2.0.0" &&
+        smartAccountInfo.deploymentIndex.toNumber() === index,
+    );
+
+    if (desiredV1Account) {
+      const smartAccountAddress = desiredV1Account.accountAddress;
+      return smartAccountAddress;
+    } else {
+      return ethers.constants.AddressZero;
     }
   }
 
