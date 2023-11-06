@@ -37,7 +37,7 @@ Version Bump Only.
 
 ### Features
 
-* skipEstimation flag for gas ([487f3ae](https://github.com/bcnmy/biconomy-client-sdk/commit/487f3aefe21b2dd4fd46e18bef7168eae3c1ecc1))
+* skipBundlerGasEstimation flag for gas ([487f3ae](https://github.com/bcnmy/biconomy-client-sdk/commit/487f3aefe21b2dd4fd46e18bef7168eae3c1ecc1))
 
 
 

@@ -7,6 +7,9 @@ export type Bundlerconfig = {
   chainId: ChainId;
   // eslint-disable-next-line no-unused-vars
   userOpReceiptIntervals?: { [key in ChainId]?: number };
+  userOpWaitForTxHashIntervals?: { [key in ChainId]?: number };
+  userOpReceiptMaxDurationIntervals?: { [key in ChainId]?: number };
+  userOpWaitForTxHashMaxDurationIntervals?: { [key in ChainId]?: number };
 };
 
 export type UserOpReceipt = {
@@ -23,6 +26,13 @@ export type UserOpReceipt = {
   receipt: ethers.providers.TransactionReceipt;
 };
 
+// review
+export type UserOpStatus = {
+  state: string; // for now // could be an enum
+  transactionHash?: string;
+  userOperationReceipt?: UserOpReceipt;
+};
+
 export type SendUserOpOptions = {
   simulationType?: SimulationType;
 };
@@ -30,10 +40,17 @@ export type SendUserOpOptions = {
 export type SimulationType = "validation" | "validation_and_execution";
 
 // Converted to JsonRpcResponse with strict type
-export type GetUserOperationResponse = {
+export type GetUserOperationReceiptResponse = {
   jsonrpc: string;
   id: number;
   result: UserOpReceipt;
+  error?: JsonRpcError;
+};
+
+export type GetUserOperationStatusResponse = {
+  jsonrpc: string;
+  id: number;
+  result: UserOpStatus;
   error?: JsonRpcError;
 };
 
@@ -48,6 +65,8 @@ export type SendUserOpResponse = {
 export type UserOpResponse = {
   userOpHash: string;
   wait(_confirmations?: number): Promise<UserOpReceipt>;
+  // Review: waitForTxHash(): vs waitForTxHash?():
+  waitForTxHash(): Promise<UserOpStatus>;
 };
 
 // Converted to JsonRpcResponse with strict type
@@ -85,4 +104,15 @@ export type JsonRpcError = {
   code: string;
   message: string;
   data: any;
+};
+
+export type GetGasFeeValuesResponse = {
+  jsonrpc: string;
+  id: number;
+  result: GasFeeValues;
+  error?: JsonRpcError;
+};
+export type GasFeeValues = {
+  maxPriorityFeePerGas: string;
+  maxFeePerGas: string;
 };

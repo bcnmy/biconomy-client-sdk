@@ -15,7 +15,8 @@ import {
   BiconomySmartAccountV2Config,
   CounterFactualAddressParam,
   BuildUserOpOptions,
-  SendUserOpOptions,
+  Overrides,
+  NonceOptions,
 } from "./utils/Types";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams } from "@biconomy/modules";
 import { UserOperation, Transaction } from "@biconomy/core-types";
@@ -72,7 +73,6 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
     const instance = new BiconomySmartAccountV2(biconomySmartAccountConfig);
-    await instance.init();
     instance.factoryAddress = biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS; // This would be fetched from V2
 
     const defaultFallbackHandlerAddress =
@@ -99,6 +99,8 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     }
 
     instance.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL });
+
+    await instance.init();
 
     return instance;
   }
@@ -306,7 +308,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
    * @description This function call will take 'unsignedUserOp' as an input, sign it with the owner key, and send it to the bundler.
    * @returns Promise<UserOpResponse>
    */
-  async sendUserOp(userOp: Partial<UserOperation>, params?: SendUserOpOptions): Promise<UserOpResponse> {
+  async sendUserOp(userOp: Partial<UserOperation>, params?: SendUserOpParams): Promise<UserOpResponse> {
     Logger.log("userOp received in base account ", userOp);
     delete userOp.signature;
     const userOperation = await this.signUserOp(userOp, params);
@@ -314,24 +316,61 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return bundlerResponse;
   }
 
+  private async getBuildUserOpNonce(nonceOptions: NonceOptions | undefined): Promise<BigNumber> {
+    let nonce = BigNumber.from(0);
+    try {
+      if (nonceOptions?.nonceOverride) {
+        nonce = BigNumber.from(nonceOptions?.nonceOverride);
+      } else {
+        const _nonceSpace = nonceOptions?.nonceKey ?? 0;
+        nonce = await this.getNonce(_nonceSpace);
+      }
+    } catch (error) {
+      // Not throwing this error as nonce would be 0 if this.getNonce() throw exception, which is expected flow for undeployed account
+      Logger.log("Error while getting nonce for the account. This is expected for undeployed accounts set nonce to 0");
+    }
+    return nonce;
+  }
+
+  private async getGasFeeValues(
+    overrides: Overrides | undefined,
+    skipBundlerGasEstimation: boolean | undefined,
+  ): Promise<{ maxFeePerGas?: BigNumberish | undefined; maxPriorityFeePerGas?: BigNumberish | undefined }> {
+    const gasFeeValues = {
+      maxFeePerGas: overrides?.maxFeePerGas,
+      maxPriorityFeePerGas: overrides?.maxPriorityFeePerGas,
+    };
+    try {
+      if (this.bundler && !gasFeeValues.maxFeePerGas && !gasFeeValues.maxPriorityFeePerGas && (skipBundlerGasEstimation ?? true)) {
+        const gasFeeEstimation = await this.bundler.getGasFeeValues();
+        gasFeeValues.maxFeePerGas = gasFeeEstimation.maxFeePerGas;
+        gasFeeValues.maxPriorityFeePerGas = gasFeeEstimation.maxPriorityFeePerGas;
+      }
+      return gasFeeValues;
+    } catch (error: any) {
+      Logger.error("Error while getting gasFeeValues from bundler. Provided bundler might not have getGasFeeValues endpoint", error);
+      return gasFeeValues;
+    }
+  }
+
   async buildUserOp(transactions: Transaction[], buildUseropDto?: BuildUserOpOptions): Promise<Partial<UserOperation>> {
     const to = transactions.map((element: Transaction) => element.to);
     const data = transactions.map((element: Transaction) => element.data ?? "0x");
     const value = transactions.map((element: Transaction) => element.value ?? BigNumber.from("0"));
 
-    // Queue promises to fetch independent data.
-    const nonceFetchPromise = (async () => {
-      const _nonceSpace = buildUseropDto?.nonceOptions?.nonceKey ?? 0;
-      const nonce = await this.getNonce(_nonceSpace);
-      return nonce;
-    })();
     const initCodeFetchPromise = this.getInitCode();
     const dummySignatureFetchPromise = this.getDummySignature(buildUseropDto?.params);
+
+    const [nonceFromFetch, initCode, signature, finalGasFeeValue] = await Promise.all([
+      this.getBuildUserOpNonce(buildUseropDto?.nonceOptions),
+      initCodeFetchPromise,
+      dummySignatureFetchPromise,
+      this.getGasFeeValues(buildUseropDto?.overrides, buildUseropDto?.skipBundlerGasEstimation),
+    ]);
 
     if (transactions.length === 0) {
       throw new Error("Transactions array cannot be empty");
     }
-
     let callData = "";
     if (transactions.length > 1 || buildUseropDto?.forceEncodeForBatch) {
       callData = await this.encodeExecuteBatch(to, value, data);
@@ -340,33 +379,26 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       callData = await this.encodeExecute(to[0], value[0], data[0]);
     }
 
-    let nonce = BigNumber.from(0);
-    try {
-      if (buildUseropDto?.nonceOptions?.nonceOverride) {
-        nonce = BigNumber.from(buildUseropDto?.nonceOptions?.nonceOverride);
-      } else {
-        nonce = await nonceFetchPromise;
-      }
-    } catch (error) {
-      // Not throwing this error as nonce would be 0 if this.getNonce() throw exception, which is expected flow for undeployed account
-    }
-
     let userOp: Partial<UserOperation> = {
       sender: await this.getAccountAddress(),
-      nonce,
-      initCode: await initCodeFetchPromise,
+      nonce: nonceFromFetch,
+      initCode,
       callData: callData,
+      maxFeePerGas: finalGasFeeValue.maxFeePerGas || undefined,
+      maxPriorityFeePerGas: finalGasFeeValue.maxPriorityFeePerGas || undefined,
     };
 
     // for this Smart Account current validation module dummy signature will be used to estimate gas
-    userOp.signature = await dummySignatureFetchPromise;
+    userOp.signature = signature;
 
     // Note: Can change the default behaviour of calling estimations using bundler/local
-    userOp = await this.estimateUserOpGas(userOp, buildUseropDto?.overrides, buildUseropDto?.skipBundlerGasEstimation);
+    userOp = await this.estimateUserOpGas(
+      userOp,
+      buildUseropDto?.overrides,
+      buildUseropDto?.skipBundlerGasEstimation,
+      buildUseropDto?.paymasterServiceData,
+    );
     Logger.log("UserOp after estimation ", userOp);
-
-    // Do not populate paymasterAndData as part of buildUserOp as it may not have all necessary details
-    userOp.paymasterAndData = "0x"; // await this.getPaymasterAndData(userOp)
 
     return userOp;
   }
@@ -466,26 +498,11 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
           newCallData = await this.encodeExecuteBatch(batchTo, batchValue, batchData);
         }
-        let finalUserOp: Partial<UserOperation> = {
+        const finalUserOp: Partial<UserOperation> = {
           ...userOp,
           callData: newCallData,
         };
 
-        // Requesting to update gas limits again (especially callGasLimit needs to be re-calculated)
-        try {
-          finalUserOp = await this.estimateUserOpGas(finalUserOp);
-          const callGasLimit = ethers.BigNumber.from(finalUserOp.callGasLimit);
-          if (finalUserOp.callGasLimit && callGasLimit.lt(ethers.BigNumber.from("21000"))) {
-            return {
-              ...userOp,
-              callData: newCallData,
-            };
-          }
-          Logger.log("UserOp after estimation ", finalUserOp);
-        } catch (error) {
-          Logger.error("Failed to estimate gas for userOp with updated callData ", error);
-          Logger.log("Sending updated userOp. calculateGasLimit flag should be sent to the paymaster to be able to update callGasLimit");
-        }
         return finalUserOp;
       }
     } catch (error) {

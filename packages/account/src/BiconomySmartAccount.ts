@@ -268,12 +268,51 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     return "0x";
   }
 
-  async buildUserOp(transactions: Transaction[], overrides?: Overrides, skipBundlerGasEstimation?: boolean): Promise<Partial<UserOperation>> {
+  private async getNonce(): Promise<BigNumber> {
+    let nonce = BigNumber.from(0);
+    try {
+      nonce = await this.nonce();
+    } catch (error) {
+      // Not throwing this error as nonce would be 0 if this.nonce() throw exception, which is expected flow for undeployed account
+      Logger.log("Error while getting nonce for the account. This is expected for undeployed accounts set nonce to 0");
+    }
+    return nonce;
+  }
+
+  private async getGasFeeValues(
+    overrides: Overrides | undefined,
+    skipBundlerGasEstimation: boolean | undefined,
+  ): Promise<{ maxFeePerGas?: BigNumberish | undefined; maxPriorityFeePerGas?: BigNumberish | undefined }> {
+    const gasFeeValues = {
+      maxFeePerGas: overrides?.maxFeePerGas,
+      maxPriorityFeePerGas: overrides?.maxPriorityFeePerGas,
+    };
+    try {
+      if (this.bundler && !gasFeeValues.maxFeePerGas && !gasFeeValues.maxPriorityFeePerGas && (skipBundlerGasEstimation ?? true)) {
+        const gasFeeEstimation = await this.bundler.getGasFeeValues();
+        gasFeeValues.maxFeePerGas = gasFeeEstimation.maxFeePerGas;
+        gasFeeValues.maxPriorityFeePerGas = gasFeeEstimation.maxPriorityFeePerGas;
+      }
+      return gasFeeValues;
+    } catch (error: any) {
+      Logger.error("Error while getting gasFeeValues from bundler. Provided bundler might not have getGasFeeValues endpoint", error);
+      return gasFeeValues;
+    }
+  }
+
+  async buildUserOp(
+    transactions: Transaction[],
+    overrides?: Overrides,
+    skipBundlerGasEstimation?: boolean,
+    paymasterServiceData?: SponsorUserOperationDto,
+  ): Promise<Partial<UserOperation>> {
     this.isInitialized();
     const to = transactions.map((element: Transaction) => element.to);
     const data = transactions.map((element: Transaction) => element.data ?? "0x");
     const value = transactions.map((element: Transaction) => element.value ?? BigNumber.from("0"));
     this.isProxyDefined();
+
+    const [nonce, gasFeeValues] = await Promise.all([this.getNonce(), this.getGasFeeValues(overrides, skipBundlerGasEstimation)]);
 
     let callData = "";
     if (transactions.length === 1) {
@@ -281,12 +320,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     } else {
       callData = this.getExecuteBatchCallData(to, value, data);
     }
-    let nonce = BigNumber.from(0);
-    try {
-      nonce = await this.nonce();
-    } catch (error) {
-      // Not throwing this error as nonce would be 0 if this.nonce() throw exception, which is expected flow for undeployed account
-    }
+
     let isDeployed = true;
 
     if (nonce.eq(0)) {
@@ -298,16 +332,14 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       nonce,
       initCode: !isDeployed ? this.initCode : "0x",
       callData: callData,
+      maxFeePerGas: gasFeeValues.maxFeePerGas || undefined,
+      maxPriorityFeePerGas: gasFeeValues.maxPriorityFeePerGas || undefined,
+      signature: this.getDummySignature(),
     };
 
-    // for this Smart Account dummy ECDSA signature will be used to estimate gas
-    userOp.signature = this.getDummySignature();
-
-    userOp = await this.estimateUserOpGas(userOp, overrides, skipBundlerGasEstimation);
-    Logger.log("userOp after estimation ", userOp);
-
-    // Do not populate paymasterAndData as part of buildUserOp as it may not have all necessary details
-    userOp.paymasterAndData = "0x"; // await this.getPaymasterAndData(userOp)
+    // Note: Can change the default behaviour of calling estimations using bundler/local
+    userOp = await this.estimateUserOpGas(userOp, overrides, skipBundlerGasEstimation, paymasterServiceData);
+    Logger.log("UserOp after estimation ", userOp);
 
     return userOp;
   }
@@ -406,36 +438,11 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
 
           newCallData = this.getExecuteBatchCallData(batchTo, batchValue, batchData);
         }
-        let finalUserOp: Partial<UserOperation> = {
+        const finalUserOp: Partial<UserOperation> = {
           ...userOp,
           callData: newCallData,
         };
 
-        // Requesting to update gas limits again (especially callGasLimit needs to be re-calculated)
-        try {
-          delete finalUserOp.callGasLimit;
-          delete finalUserOp.verificationGasLimit;
-          delete finalUserOp.preVerificationGas;
-
-          // Maybe send paymasterAndData since we know it's for Token paymaster
-          /*finalUserOp.paymasterAndData =
-            '0x00000f7365ca6c59a2c93719ad53d567ed49c14c000000000000000000000000000000000000000000000000000000000064e3d3890000000000000000000000000000000000000000000000000000000064e3cc81000000000000000000000000af88d065e77c8cc2239327c5edb3a432268e583100000000000000000000000000000f7748595e46527413574a9327942e744e910000000000000000000000000000000000000000000000000000000063ac7f6c000000000000000000000000000000000000000000000000000000000010c8e07bf61410b71700f943499adfd23e50fb16040d587acb0a5e60ac8576cdbb4c8044f00579a1fc3f294e7dc4a5eb557a7193008343aa36225bddcfbd4fd15646031c'*/
-
-          // Review: and handle the case when mock pnd fails with AA31 during simulation.
-
-          finalUserOp = await this.estimateUserOpGas(finalUserOp);
-          const cgl = ethers.BigNumber.from(finalUserOp.callGasLimit);
-          if (finalUserOp.callGasLimit && cgl.lt(ethers.BigNumber.from("21000"))) {
-            return {
-              ...userOp,
-              callData: newCallData,
-            };
-          }
-          Logger.log("userOp after estimation ", finalUserOp);
-        } catch (error) {
-          Logger.error("Failed to estimate gas for userOp with updated callData ", error);
-          Logger.log("sending updated userOp. calculateGasLimit flag should be sent to the paymaster to be able to update callGasLimit");
-        }
         return finalUserOp;
       }
     } catch (error) {

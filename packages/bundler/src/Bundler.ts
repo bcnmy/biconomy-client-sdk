@@ -1,7 +1,7 @@
 import { IBundler } from "./interfaces/IBundler";
 import { UserOperation, ChainId } from "@biconomy/core-types";
 import {
-  GetUserOperationResponse,
+  GetUserOperationReceiptResponse,
   GetUserOpByHashResponse,
   Bundlerconfig,
   UserOpResponse,
@@ -11,11 +11,20 @@ import {
   UserOpGasResponse,
   UserOpByHashResponse,
   SendUserOpOptions,
+  GetGasFeeValuesResponse,
+  GasFeeValues,
+  UserOpStatus,
+  GetUserOperationStatusResponse,
 } from "./utils/Types";
 import { resolveProperties } from "ethers/lib/utils";
 import { deepHexlify, sendRequest, getTimestampInSeconds, HttpMethod, Logger, RPC_PROVIDER_URLS } from "@biconomy/common";
 import { transformUserOP } from "./utils/HelperFunction";
-import { UserOpReceiptIntervals } from "./utils/Constants";
+import {
+  UserOpReceiptIntervals,
+  UserOpWaitForTxHashIntervals,
+  UserOpWaitForTxHashMaxDurationIntervals,
+  UserOpReceiptMaxDurationIntervals,
+} from "./utils/Constants";
 import { JsonRpcProvider } from "@ethersproject/providers";
 
 /**
@@ -25,12 +34,33 @@ import { JsonRpcProvider } from "@ethersproject/providers";
  */
 export class Bundler implements IBundler {
   // eslint-disable-next-line no-unused-vars
-  UserOpReceiptIntervals: { [key in ChainId]?: number };
+  UserOpReceiptIntervals!: { [key in ChainId]?: number };
+
+  UserOpWaitForTxHashIntervals!: { [key in ChainId]?: number };
+
+  UserOpReceiptMaxDurationIntervals!: { [key in ChainId]?: number };
+
+  UserOpWaitForTxHashMaxDurationIntervals!: { [key in ChainId]?: number };
 
   constructor(readonly bundlerConfig: Bundlerconfig) {
     this.UserOpReceiptIntervals = {
       ...UserOpReceiptIntervals,
       ...bundlerConfig.userOpReceiptIntervals,
+    };
+
+    this.UserOpWaitForTxHashIntervals = {
+      ...UserOpWaitForTxHashIntervals,
+      ...bundlerConfig.userOpWaitForTxHashIntervals,
+    };
+
+    this.UserOpReceiptMaxDurationIntervals = {
+      ...UserOpReceiptMaxDurationIntervals,
+      ...bundlerConfig.userOpReceiptMaxDurationIntervals,
+    };
+
+    this.UserOpWaitForTxHashMaxDurationIntervals = {
+      ...UserOpWaitForTxHashMaxDurationIntervals,
+      ...bundlerConfig.userOpWaitForTxHashMaxDurationIntervals,
     };
   }
 
@@ -103,7 +133,12 @@ export class Bundler implements IBundler {
       userOpHash: sendUserOperationResponse.result,
       wait: (confirmations?: number): Promise<UserOpReceipt> => {
         const provider = new JsonRpcProvider(RPC_PROVIDER_URLS[chainId]);
+        // Note: maxDuration can be defined per chainId
+        const maxDuration = this.UserOpReceiptMaxDurationIntervals[chainId] || 30000; // default 30 seconds
+        let totalDuration = 0;
+
         return new Promise<UserOpReceipt>((resolve, reject) => {
+          const intervalValue = this.UserOpReceiptIntervals[chainId] || 5000; // default 5 seconds
           const intervalId = setInterval(async () => {
             try {
               const userOpResponse = await this.getUserOpReceipt(sendUserOperationResponse.result);
@@ -123,7 +158,52 @@ export class Bundler implements IBundler {
               clearInterval(intervalId);
               reject(error);
             }
-          }, this.UserOpReceiptIntervals[chainId]);
+
+            totalDuration += intervalValue;
+            if (totalDuration >= maxDuration) {
+              clearInterval(intervalId);
+              reject(
+                new Error(
+                  `Exceeded maximum duration (${maxDuration / 1000} sec) waiting to get receipt for userOpHash ${
+                    sendUserOperationResponse.result
+                  }. Try getting the receipt manually using eth_getUserOperationReceipt rpc method on bundler`,
+                ),
+              );
+            }
+          }, intervalValue);
+        });
+      },
+      waitForTxHash: (): Promise<UserOpStatus> => {
+        const maxDuration = this.UserOpWaitForTxHashMaxDurationIntervals[chainId] || 20000; // default 20 seconds
+        let totalDuration = 0;
+
+        return new Promise<UserOpStatus>((resolve, reject) => {
+          const intervalValue = this.UserOpWaitForTxHashIntervals[chainId] || 500; // default 0.5 seconds
+          const intervalId = setInterval(() => {
+            this.getUserOpStatus(sendUserOperationResponse.result)
+              .then((userOpStatus) => {
+                if (userOpStatus && userOpStatus.state && userOpStatus.transactionHash) {
+                  clearInterval(intervalId);
+                  resolve(userOpStatus);
+                }
+              })
+              .catch((error) => {
+                clearInterval(intervalId);
+                reject(error);
+              });
+
+            totalDuration += intervalValue;
+            if (totalDuration >= maxDuration) {
+              clearInterval(intervalId);
+              reject(
+                new Error(
+                  `Exceeded maximum duration (${maxDuration / 1000} sec) waiting to get receipt for userOpHash ${
+                    sendUserOperationResponse.result
+                  }. Try getting the receipt manually using eth_getUserOperationReceipt rpc method on bundler`,
+                ),
+              );
+            }
+          }, intervalValue);
         });
       },
     };
@@ -138,7 +218,7 @@ export class Bundler implements IBundler {
    */
   async getUserOpReceipt(userOpHash: string): Promise<UserOpReceipt> {
     const bundlerUrl = this.getBundlerUrl();
-    const response: GetUserOperationResponse = await sendRequest({
+    const response: GetUserOperationReceiptResponse = await sendRequest({
       url: bundlerUrl,
       method: HttpMethod.Post,
       body: {
@@ -150,6 +230,28 @@ export class Bundler implements IBundler {
     });
     const userOpReceipt: UserOpReceipt = response.result;
     return userOpReceipt;
+  }
+
+  /**
+   *
+   * @param userOpHash
+   * @description This function will return userOpReceipt for a given userOpHash
+   * @returns Promise<UserOpReceipt>
+   */
+  async getUserOpStatus(userOpHash: string): Promise<UserOpStatus> {
+    const bundlerUrl = this.getBundlerUrl();
+    const response: GetUserOperationStatusResponse = await sendRequest({
+      url: bundlerUrl,
+      method: HttpMethod.Post,
+      body: {
+        method: "biconomy_getUserOperationStatus",
+        params: [userOpHash],
+        id: getTimestampInSeconds(),
+        jsonrpc: "2.0",
+      },
+    });
+    const userOpStatus: UserOpStatus = response.result;
+    return userOpStatus;
   }
 
   /**
@@ -173,5 +275,23 @@ export class Bundler implements IBundler {
     });
     const userOpByHashResponse: UserOpByHashResponse = response.result;
     return userOpByHashResponse;
+  }
+
+  /**
+   * @description This function will return the gas fee values
+   */
+  async getGasFeeValues(): Promise<GasFeeValues> {
+    const bundlerUrl = this.getBundlerUrl();
+    const response: GetGasFeeValuesResponse = await sendRequest({
+      url: bundlerUrl,
+      method: HttpMethod.Post,
+      body: {
+        method: "biconomy_getGasFeeValues",
+        params: [],
+        id: getTimestampInSeconds(),
+        jsonrpc: "2.0",
+      },
+    });
+    return response.result;
   }
 }
