@@ -11,8 +11,7 @@
     "Smart Contract Wallets",
     "Biconomy",
     "Modules",
-    "Plugins",
-    "EIP-6900"
+    "Plugins"
   ],
   "scripts": {
     "unbuild": "rimraf dist *.tsbuildinfo",
