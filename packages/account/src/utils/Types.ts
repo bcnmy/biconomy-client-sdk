@@ -73,6 +73,7 @@ export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
   nodeClientUrl?: string; // very specific to Biconomy
   defaultValidationModule: BaseValidationModule;
   activeValidationModule?: BaseValidationModule;
+  scanForUpgradedAccountsFromV1?: boolean;
 }
 
 export type BuildUserOpOptions = {
@@ -134,6 +135,7 @@ export interface TransactionDetailsForUserOp {
 export type CounterFactualAddressParam = {
   index?: number;
   validationModule?: BaseValidationModule;
+  scanForUpgradedAccountsFromV1?: boolean;
 };
 
 export type SmartAccountInfo = {

@@ -493,8 +493,6 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       const encodedData = impInterface.encodeFunctionData("updateImplementation", [latestImplementationAddress]);
       return { to: this.address, value: BigNumber.from(0), data: encodedData };
     } else {
-      // Could throw error instead
-      // throw new Error("Not eligible for upgrade");
       return { to: this.address, value: 0, data: "0x" };
     }
   }

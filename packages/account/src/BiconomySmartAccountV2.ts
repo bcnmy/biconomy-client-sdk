@@ -65,6 +65,8 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
   private implementationAddress!: string;
 
+  private scanForUpgradedAccountsFromV1!: boolean;
+
   // Validation module responsible for account deployment initCode. This acts as a default authorization module.
   defaultValidationModule!: BaseValidationModule;
 
@@ -103,6 +105,8 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     }
 
     instance.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL });
+
+    instance.scanForUpgradedAccountsFromV1 = biconomySmartAccountConfig.scanForUpgradedAccountsFromV1 ?? false;
 
     await instance.init();
 
@@ -171,25 +175,26 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   async getCounterFactualAddress(params?: CounterFactualAddressParam): Promise<string> {
     const validationModule = params?.validationModule ?? this.defaultValidationModule;
     const index = params?.index ?? this.index;
+    // Review: default behavior
+    const scanForUpgradedAccountsFromV1 = params?.scanForUpgradedAccountsFromV1 ?? this.scanForUpgradedAccountsFromV1;
 
-    // Note: Review
-    // the fact that below flow (AddressResolver) is Always called can be avoided by passing a flag in smart account config
-    // (if it's intended to detect V1 upgraded accounts)
+    // if it's intended to detect V1 upgraded accounts
+    if (scanForUpgradedAccountsFromV1) {
+      // Review
+      // is instanceOf ECDSAOwnershipValidationModule or address matches ECDSA module address
+      // if (validationModule.getAddress() === DEFAULT_ECDSA_OWNERSHIP_MODULE) {
+      // then we only need to call resolveAddress
 
-    // is instanceOf ECDSAOwnershipValidationModule or address matches ECDSA module address
-    if (validationModule.getAddress() === DEFAULT_ECDSA_OWNERSHIP_MODULE) {
       const eoaSigner = await validationModule.getSigner();
       const eoaAddress = await eoaSigner.getAddress();
-      const accountAddress = await this.getV1AccountsUpgradedToV2(eoaAddress, index);
+      const moduleAddress = validationModule.getAddress();
+      const moduleSetupData = await validationModule.getInitData();
+      const accountAddress = await this.getV1AccountsUpgradedToV2(eoaAddress, index, moduleAddress, moduleSetupData);
       Logger.log("account address from V1 ", accountAddress);
       if (accountAddress !== ethers.constants.AddressZero) {
         return accountAddress;
       }
-    } else {
-      // can check using module.getAddress() and module.getInitData() for some other auth module
     }
-    // Review: above control flow
-
     const counterFactualAddressV2 = await this.getCounterFactualAddressV2({ validationModule, index });
     return counterFactualAddressV2;
   }
@@ -222,12 +227,13 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     }
   }
 
-  async getV1AccountsUpgradedToV2(eoaAddress: string, index: number): Promise<string> {
+  async getV1AccountsUpgradedToV2(eoaAddress: string, index: number, moduleAddress: string, moduleSetupData: string): Promise<string> {
     Logger.log("index to filter ", index);
     // Review: Could be taken as parameter from config.
     const maxIndex = 10;
     const addressResolver: AddressResolver = AddressResolver__factory.connect(ADDRESS_RESOLVER_ADDRESS, this.provider);
-    const result: SmartAccountInfo[] = await addressResolver.resolveAddresses(eoaAddress, maxIndex);
+    // Note: depending on moduleAddress and moduleSetupData passed call this. otherwise call call resolveAddresses()
+    const result: SmartAccountInfo[] = await addressResolver.resolveAddressesFlexibleForV2(eoaAddress, maxIndex, moduleAddress, moduleSetupData);
     Logger.log("result of address resolver ", result);
 
     const desiredV1Account = result.find(
