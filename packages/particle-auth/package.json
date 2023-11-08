@@ -36,8 +36,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@particle-network/auth": "^0.13.1",
-    "@particle-network/biconomy": "^0.1.0",
-    "@particle-network/provider": "^0.13.1"
+    "@particle-network/auth": "^1.2.1",
+    "@particle-network/provider": "^1.2.0",
+    "@particle-network/biconomy": "^1.0.0"
   }
 }

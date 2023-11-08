@@ -5,8 +5,8 @@
 ## Usage
 
 ```ts
-import { ParticleNetwork, WalletEntryPosition } from "@particle-network/auth";
-import { ParticleProvider } from "@particle-network/provider";
+import { ParticleNetwork, WalletEntryPosition } from "@biconomy/particle-auth";
+import { ParticleProvider } from "@biconomy/particle-auth";
 import Web3 from "web3";
 
 const particle = new ParticleNetwork({
