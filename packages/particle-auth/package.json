@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@particle-network/auth": "^1.2.1",
-    "@particle-network/provider": "^1.2.0"
+    "@particle-network/provider": "^1.2.0",
+    "@particle-network/biconomy": "^1.0.0"
   }
 }
