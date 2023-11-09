@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 3.1.1 (2023-11-09)
+
+
+### Bug Fixes
+
+* resolve comments ([34fd6a3](https://github.com/bcnmy/biconomy-client-sdk/commit/34fd6a308805061d9faf408f1ce6da9cac0ee819))
+
+
+### Features
+
+* add linea mainnet ([c3d1283](https://github.com/bcnmy/biconomy-client-sdk/commit/c3d12832002c18e187f910b5f7dac5ef5b797abf))
+* chain integration ([ddc5d91](https://github.com/bcnmy/biconomy-client-sdk/commit/ddc5d91d5df10a10266f4500644d24e0bc1ea684))
+* chain integration ([738556e](https://github.com/bcnmy/biconomy-client-sdk/commit/738556efcfda70fedc652befc0b35f8835c5e360))
+
+
+
+
+
 ## 3.1.0 (2023-09-20)
 
 Modular Account Abstraction is here.

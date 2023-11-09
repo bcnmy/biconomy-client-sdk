@@ -1,6 +1,7 @@
 import { ChainId, UserOperation } from "@biconomy/core-types";
 import { Signer } from "ethers";
 import { SessionKeyManagerModule } from "../SessionKeyManagerModule";
+import { ISessionStorage } from "interfaces/ISessionStorage";
 
 export type ModuleVersion = "V1_0_0"; // | 'V1_0_1'
 
@@ -20,6 +21,7 @@ export interface SessionKeyManagerModuleConfig extends BaseValidationModuleConfi
   nodeClientUrl?: string;
   smartAccountAddress: string;
   storageType?: StorageType;
+  sessionStorageClient?: ISessionStorage;
 }
 
 export interface BatchedSessionRouterModuleConfig extends BaseValidationModuleConfig {
@@ -58,6 +60,12 @@ export type ModuleInfo = {
   additionalSessionData?: string;
   batchSessionParams?: SessionParams[];
 };
+
+export interface SendUserOpParams extends ModuleInfo {
+  simulationType?: SimulationType;
+}
+
+export type SimulationType = "validation" | "validation_and_execution";
 
 export type CreateSessionDataResponse = {
   data: string;

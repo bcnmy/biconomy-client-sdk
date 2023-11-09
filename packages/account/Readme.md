@@ -16,11 +16,13 @@ yarn add @biconomy/account
 
 ### Account
 
-Building and sending UserOperations is a key offering of any toolkit designed for ERC4337. The Biconomy account package stands as an exemplary toolkit in this regard. Meticulously crafted with developers' needs in mind, this package seamlessly integrates the essential features associated with ERC-4337. It simplifies the process of creating and sending UserOperations, thus optimizing the development and management of decentralized applications (dApps).
+Integrating and deploying Smart Accounts, building and sending user operations is a key offering of any toolkit designed for ERC4337. This package seamlessly integrates the essential features associated with ERC-4337 and simplifies the development of your Dapp's account and transaction rails with added usability features. 
 
-The Biconomy account package achieves this by providing a comprehensive set of methods that enable developers to effortlessly create UserOperations. Combined with the sophisticated backend infrastructure of the Biconomy platform, it ensures efficient and reliable transmission of these operations across EVM networks.
+The account package achieves this by providing a comprehensive set of methods that enable developers to effortlessly create UserOperations. Combined with the sophisticated, developer friendly and scalable infrastructure of Biconomy, it ensures efficient and reliable transmission of these operations across multiple EVM chains.
 
 ## Smart Account instance configuration
+
+#### BiconomySmartAccount (V1 Smart Account)
 
 | Key       | Description                                                                                                                                                                     |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -78,3 +80,6 @@ const transactionDetails = await userOpResponse.wait();
 console.log("transaction details below");
 console.log(transactionDetails);
 ```
+
+#### BiconomySmartAccount (V2 Smart Account aka Modular Smart Account)
+

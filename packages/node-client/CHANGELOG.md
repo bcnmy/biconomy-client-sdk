@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 3.1.1 (2023-11-09)
+Version Bump Only.
+
+
+
+
 ## 3.1.0 (2023-09-20)
 Version Bump Only.
 
@@ -37,7 +43,7 @@ Version Bump Only.
 
 ### Features
 
-* skipEstimation flag for gas ([487f3ae](https://github.com/bcnmy/biconomy-client-sdk/commit/487f3aefe21b2dd4fd46e18bef7168eae3c1ecc1))
+* skipBundlerGasEstimation flag for gas ([487f3ae](https://github.com/bcnmy/biconomy-client-sdk/commit/487f3aefe21b2dd4fd46e18bef7168eae3c1ecc1))
 
 
 
@@ -57,4 +63,3 @@ Version Bump Only.
 ### Bug Fixes
 
 * smart account response type ([f457f79](https://github.com/bcnmy/biconomy-client-sdk/commit/f457f794e27999ccc069c4afb7eb7644e224b61e))
-

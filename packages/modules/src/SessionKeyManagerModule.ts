@@ -7,9 +7,9 @@ import {
   SessionKeyManagerModuleConfig,
   ModuleVersion,
   CreateSessionDataParams,
-  StorageType,
   ModuleInfo,
   CreateSessionDataResponse,
+  StorageType,
 } from "./utils/Types";
 import NodeClient from "@biconomy/node-client";
 import INodeClient from "@biconomy/node-client";
@@ -67,10 +67,16 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       txServiceUrl: moduleConfig.nodeClientUrl ?? NODE_CLIENT_URL,
     });
 
-    if (!moduleConfig.storageType || moduleConfig.storageType === StorageType.LOCAL_STORAGE) {
-      instance.sessionStorageClient = new SessionLocalStorage(moduleConfig.smartAccountAddress);
+    if (moduleConfig.sessionStorageClient) {
+      instance.sessionStorageClient = moduleConfig.sessionStorageClient;
     } else {
-      throw new Error("Invalid storage type");
+      switch (moduleConfig.storageType) {
+        case StorageType.LOCAL_STORAGE:
+          instance.sessionStorageClient = new SessionLocalStorage(moduleConfig.smartAccountAddress);
+          break;
+        default:
+          instance.sessionStorageClient = new SessionLocalStorage(moduleConfig.smartAccountAddress);
+      }
     }
 
     const existingSessionData = await instance.sessionStorageClient.getAllSessionData();
