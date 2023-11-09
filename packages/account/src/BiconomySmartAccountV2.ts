@@ -20,6 +20,7 @@ import {
   Overrides,
   NonceOptions,
   SmartAccountInfo,
+  QueryParamsForAddressResolver,
 } from "./utils/Types";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, DEFAULT_ECDSA_OWNERSHIP_MODULE } from "@biconomy/modules";
 import { UserOperation, Transaction } from "@biconomy/core-types";
@@ -67,6 +68,8 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
   private scanForUpgradedAccountsFromV1!: boolean;
 
+  private maxIndexForScan!: number;
+
   // Validation module responsible for account deployment initCode. This acts as a default authorization module.
   defaultValidationModule!: BaseValidationModule;
 
@@ -107,6 +110,8 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     instance.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL });
 
     instance.scanForUpgradedAccountsFromV1 = biconomySmartAccountConfig.scanForUpgradedAccountsFromV1 ?? false;
+
+    instance.maxIndexForScan = biconomySmartAccountConfig.maxIndexForScan ?? 10;
 
     await instance.init();
 
@@ -175,21 +180,24 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   async getCounterFactualAddress(params?: CounterFactualAddressParam): Promise<string> {
     const validationModule = params?.validationModule ?? this.defaultValidationModule;
     const index = params?.index ?? this.index;
+    const maxIndexForScan = params?.maxIndexForScan ?? this.maxIndexForScan;
     // Review: default behavior
     const scanForUpgradedAccountsFromV1 = params?.scanForUpgradedAccountsFromV1 ?? this.scanForUpgradedAccountsFromV1;
 
     // if it's intended to detect V1 upgraded accounts
     if (scanForUpgradedAccountsFromV1) {
-      // Review
-      // is instanceOf ECDSAOwnershipValidationModule or address matches ECDSA module address
-      // if (validationModule.getAddress() === DEFAULT_ECDSA_OWNERSHIP_MODULE) {
-      // then we only need to call resolveAddress
-
       const eoaSigner = await validationModule.getSigner();
       const eoaAddress = await eoaSigner.getAddress();
       const moduleAddress = validationModule.getAddress();
       const moduleSetupData = await validationModule.getInitData();
-      const accountAddress = await this.getV1AccountsUpgradedToV2(eoaAddress, index, moduleAddress, moduleSetupData);
+      const params = {
+        eoaAddress,
+        index,
+        moduleAddress,
+        moduleSetupData,
+        maxIndexForScan,
+      };
+      const accountAddress = await this.getV1AccountsUpgradedToV2(params);
       Logger.log("account address from V1 ", accountAddress);
       if (accountAddress !== ethers.constants.AddressZero) {
         return accountAddress;
@@ -227,25 +235,33 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     }
   }
 
-  async getV1AccountsUpgradedToV2(eoaAddress: string, index: number, moduleAddress: string, moduleSetupData: string): Promise<string> {
-    Logger.log("index to filter ", index);
-    // Review: Could be taken as parameter from config.
-    const maxIndex = 10;
+  async getV1AccountsUpgradedToV2(params: QueryParamsForAddressResolver): Promise<string> {
+    Logger.log("index to filter ", params.index);
+    const maxIndexForScan = params.maxIndexForScan ?? this.maxIndexForScan;
     const addressResolver: AddressResolver = AddressResolver__factory.connect(ADDRESS_RESOLVER_ADDRESS, this.provider);
-    // Note: depending on moduleAddress and moduleSetupData passed call this. otherwise call call resolveAddresses()
-    const result: SmartAccountInfo[] = await addressResolver.resolveAddressesFlexibleForV2(eoaAddress, maxIndex, moduleAddress, moduleSetupData);
-    Logger.log("result of address resolver ", result);
+    // Note: depending on moduleAddress and moduleSetupData passed call this. otherwise could call resolveAddresses()
 
-    const desiredV1Account = result.find(
-      (smartAccountInfo) =>
-        smartAccountInfo.factoryVersion === "v1" &&
-        smartAccountInfo.currentVersion === "2.0.0" &&
-        smartAccountInfo.deploymentIndex.toNumber() === index,
-    );
+    if (params.moduleAddress && params.moduleSetupData) {
+      const result: SmartAccountInfo[] = await addressResolver.resolveAddressesFlexibleForV2(
+        params.eoaAddress,
+        maxIndexForScan,
+        params.moduleAddress,
+        params.moduleSetupData,
+      );
 
-    if (desiredV1Account) {
-      const smartAccountAddress = desiredV1Account.accountAddress;
-      return smartAccountAddress;
+      const desiredV1Account = result.find(
+        (smartAccountInfo) =>
+          smartAccountInfo.factoryVersion === "v1" &&
+          smartAccountInfo.currentVersion === "2.0.0" &&
+          smartAccountInfo.deploymentIndex.toNumber() === params.index,
+      );
+
+      if (desiredV1Account) {
+        const smartAccountAddress = desiredV1Account.accountAddress;
+        return smartAccountAddress;
+      } else {
+        return ethers.constants.AddressZero;
+      }
     } else {
       return ethers.constants.AddressZero;
     }

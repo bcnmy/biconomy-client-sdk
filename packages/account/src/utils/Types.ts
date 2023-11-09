@@ -74,6 +74,7 @@ export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
   defaultValidationModule: BaseValidationModule;
   activeValidationModule?: BaseValidationModule;
   scanForUpgradedAccountsFromV1?: boolean;
+  maxIndexForScan?: number;
 }
 
 export type BuildUserOpOptions = {
@@ -136,7 +137,16 @@ export type CounterFactualAddressParam = {
   index?: number;
   validationModule?: BaseValidationModule;
   scanForUpgradedAccountsFromV1?: boolean;
+  maxIndexForScan?: number;
 };
+
+export type QueryParamsForAddressResolver = {
+  eoaAddress: string;
+  index: number;
+  moduleAddress: string;
+  moduleSetupData: string;
+  maxIndexForScan?: number;
+}
 
 export type SmartAccountInfo = {
   accountAddress: string;
