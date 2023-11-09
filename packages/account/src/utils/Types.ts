@@ -1,6 +1,6 @@
 import { Signer } from "ethers";
 import { ChainId } from "@biconomy/core-types";
-import { BigNumberish } from "ethers";
+import { BigNumberish, BigNumber } from "ethers";
 import { IBundler } from "@biconomy/bundler";
 import { IPaymaster, PaymasterFeeQuote, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
@@ -66,12 +66,15 @@ export type BiconomySmartAccountConfig = {
 
 export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
   factoryAddress?: string;
+  senderAddress?: string;
   implementationAddress?: string;
   defaultFallbackHandler?: string;
   rpcUrl?: string; // as good as Provider
   nodeClientUrl?: string; // very specific to Biconomy
   defaultValidationModule: BaseValidationModule;
   activeValidationModule?: BaseValidationModule;
+  scanForUpgradedAccountsFromV1?: boolean;
+  maxIndexForScan?: number;
 }
 
 export type BuildUserOpOptions = {
@@ -133,4 +136,23 @@ export interface TransactionDetailsForUserOp {
 export type CounterFactualAddressParam = {
   index?: number;
   validationModule?: BaseValidationModule;
+  scanForUpgradedAccountsFromV1?: boolean;
+  maxIndexForScan?: number;
+};
+
+export type QueryParamsForAddressResolver = {
+  eoaAddress: string;
+  index: number;
+  moduleAddress: string;
+  moduleSetupData: string;
+  maxIndexForScan?: number;
+};
+
+export type SmartAccountInfo = {
+  accountAddress: string;
+  factoryAddress: string;
+  currentImplementation: string;
+  currentVersion: string;
+  factoryVersion: string;
+  deploymentIndex: BigNumber;
 };

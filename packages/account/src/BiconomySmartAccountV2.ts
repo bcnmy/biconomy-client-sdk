@@ -9,6 +9,8 @@ import {
   SmartAccountFactory_v200,
   SmartAccount_v200__factory,
   SmartAccountFactory_v200__factory,
+  AddressResolver,
+  AddressResolver__factory,
 } from "@biconomy/common";
 import {
   BiconomyTokenPaymasterRequest,
@@ -17,6 +19,8 @@ import {
   BuildUserOpOptions,
   Overrides,
   NonceOptions,
+  SmartAccountInfo,
+  QueryParamsForAddressResolver,
 } from "./utils/Types";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams } from "@biconomy/modules";
 import { UserOperation, Transaction } from "@biconomy/core-types";
@@ -34,6 +38,7 @@ import {
 } from "@biconomy/node-client";
 import { UserOpResponse } from "@biconomy/bundler";
 import {
+  ADDRESS_RESOLVER_ADDRESS,
   BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION,
   DEFAULT_BICONOMY_FACTORY_ADDRESS,
   DEFAULT_FALLBACK_HANDLER_ADDRESS,
@@ -61,6 +66,10 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
   private implementationAddress!: string;
 
+  private scanForUpgradedAccountsFromV1!: boolean;
+
+  private maxIndexForScan!: number;
+
   // Validation module responsible for account deployment initCode. This acts as a default authorization module.
   defaultValidationModule!: BaseValidationModule;
 
@@ -82,6 +91,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     if (!defaultFallbackHandlerAddress) {
       throw new Error("Default Fallback Handler address is not provided");
     }
+    instance.accountAddress = biconomySmartAccountConfig.senderAddress ?? undefined;
     instance.defaultFallbackHandlerAddress = defaultFallbackHandlerAddress;
 
     instance.implementationAddress = biconomySmartAccountConfig.implementationAddress ?? BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0;
@@ -98,6 +108,10 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     }
 
     instance.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL });
+
+    instance.scanForUpgradedAccountsFromV1 = biconomySmartAccountConfig.scanForUpgradedAccountsFromV1 ?? false;
+
+    instance.maxIndexForScan = biconomySmartAccountConfig.maxIndexForScan ?? 10;
 
     await instance.init();
 
@@ -154,8 +168,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
    * this value is valid even before deploying the contract.
    */
   async getAccountAddress(params?: CounterFactualAddressParam): Promise<string> {
-    if (this.accountAddress == null) {
-      // means it needs deployment
+    if (this.accountAddress == null || this.accountAddress == undefined) {
       this.accountAddress = await this.getCounterFactualAddress(params);
     }
     return this.accountAddress;
@@ -165,6 +178,36 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
    * calculate the account address even before it is deployed
    */
   async getCounterFactualAddress(params?: CounterFactualAddressParam): Promise<string> {
+    const validationModule = params?.validationModule ?? this.defaultValidationModule;
+    const index = params?.index ?? this.index;
+    const maxIndexForScan = params?.maxIndexForScan ?? this.maxIndexForScan;
+    // Review: default behavior
+    const scanForUpgradedAccountsFromV1 = params?.scanForUpgradedAccountsFromV1 ?? this.scanForUpgradedAccountsFromV1;
+
+    // if it's intended to detect V1 upgraded accounts
+    if (scanForUpgradedAccountsFromV1) {
+      const eoaSigner = await validationModule.getSigner();
+      const eoaAddress = await eoaSigner.getAddress();
+      const moduleAddress = validationModule.getAddress();
+      const moduleSetupData = await validationModule.getInitData();
+      const queryParams = {
+        eoaAddress,
+        index,
+        moduleAddress,
+        moduleSetupData,
+        maxIndexForScan,
+      };
+      const accountAddress = await this.getV1AccountsUpgradedToV2(queryParams);
+      Logger.log("account address from V1 ", accountAddress);
+      if (accountAddress !== ethers.constants.AddressZero) {
+        return accountAddress;
+      }
+    }
+    const counterFactualAddressV2 = await this.getCounterFactualAddressV2({ validationModule, index });
+    return counterFactualAddressV2;
+  }
+
+  private async getCounterFactualAddressV2(params?: CounterFactualAddressParam): Promise<string> {
     if (this.factory == null) {
       if (this.factoryAddress != null && this.factoryAddress !== "") {
         this.factory = SmartAccountFactory_v200__factory.connect(this.factoryAddress, this.provider);
@@ -189,6 +232,38 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       return counterFactualAddress;
     } catch (e) {
       throw new Error(`Failed to get counterfactual address, ${e}`);
+    }
+  }
+
+  async getV1AccountsUpgradedToV2(params: QueryParamsForAddressResolver): Promise<string> {
+    Logger.log("index to filter ", params.index);
+    const maxIndexForScan = params.maxIndexForScan ?? this.maxIndexForScan;
+    const addressResolver: AddressResolver = AddressResolver__factory.connect(ADDRESS_RESOLVER_ADDRESS, this.provider);
+    // Note: depending on moduleAddress and moduleSetupData passed call this. otherwise could call resolveAddresses()
+
+    if (params.moduleAddress && params.moduleSetupData) {
+      const result: SmartAccountInfo[] = await addressResolver.resolveAddressesFlexibleForV2(
+        params.eoaAddress,
+        maxIndexForScan,
+        params.moduleAddress,
+        params.moduleSetupData,
+      );
+
+      const desiredV1Account = result.find(
+        (smartAccountInfo) =>
+          smartAccountInfo.factoryVersion === "v1" &&
+          smartAccountInfo.currentVersion === "2.0.0" &&
+          smartAccountInfo.deploymentIndex.toNumber() === params.index,
+      );
+
+      if (desiredV1Account) {
+        const smartAccountAddress = desiredV1Account.accountAddress;
+        return smartAccountAddress;
+      } else {
+        return ethers.constants.AddressZero;
+      }
+    } else {
+      return ethers.constants.AddressZero;
     }
   }
 
