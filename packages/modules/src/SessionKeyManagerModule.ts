@@ -75,7 +75,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
           instance.sessionStorageClient = new SessionLocalStorage(moduleConfig.smartAccountAddress);
           break;
         default:
-          throw new Error("Invalid storage type");
+          instance.sessionStorageClient = new SessionLocalStorage(moduleConfig.smartAccountAddress);
       }
     }
 
