@@ -22,7 +22,7 @@ import {
   SmartAccountInfo,
   QueryParamsForAddressResolver,
 } from "./utils/Types";
-import { BaseValidationModule, ModuleInfo, SendUserOpParams, DEFAULT_ECDSA_OWNERSHIP_MODULE } from "@biconomy/modules";
+import { BaseValidationModule, ModuleInfo, SendUserOpParams } from "@biconomy/modules";
 import { UserOperation, Transaction } from "@biconomy/core-types";
 import NodeClient from "@biconomy/node-client";
 import INodeClient from "@biconomy/node-client";
@@ -190,14 +190,14 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       const eoaAddress = await eoaSigner.getAddress();
       const moduleAddress = validationModule.getAddress();
       const moduleSetupData = await validationModule.getInitData();
-      const params = {
+      const queryParams = {
         eoaAddress,
         index,
         moduleAddress,
         moduleSetupData,
         maxIndexForScan,
       };
-      const accountAddress = await this.getV1AccountsUpgradedToV2(params);
+      const accountAddress = await this.getV1AccountsUpgradedToV2(queryParams);
       Logger.log("account address from V1 ", accountAddress);
       if (accountAddress !== ethers.constants.AddressZero) {
         return accountAddress;

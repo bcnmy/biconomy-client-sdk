@@ -146,7 +146,7 @@ export type QueryParamsForAddressResolver = {
   moduleAddress: string;
   moduleSetupData: string;
   maxIndexForScan?: number;
-}
+};
 
 export type SmartAccountInfo = {
   accountAddress: string;
