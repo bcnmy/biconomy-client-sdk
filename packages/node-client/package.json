@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/node-client",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Node Client that comminucates with indexer service to fetch necessary details for the Smart Account",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -66,7 +66,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@biconomy/core-types": "^3.1.0",
+    "@biconomy/core-types": "^3.1.1",
     "@ethersproject/abstract-signer": "^5.6.0",
     "@nomiclabs/hardhat-ethers": "^2.1.0",
     "node-fetch": "^2.6.6"

@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/particle-auth",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Particle auth for Biconomy SDK",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@particle-network/auth": "^1.2.1",
-    "@particle-network/provider": "^1.2.0",
-    "@particle-network/biconomy": "^1.0.0"
+    "@particle-network/biconomy": "^1.0.0",
+    "@particle-network/provider": "^1.2.0"
   }
 }
