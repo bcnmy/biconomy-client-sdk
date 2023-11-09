@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 3.1.1 (2023-11-09)
+
+
+### Bug Fixes
+
+* optimistic implementation for getNonce() and cache for isAccountDeployed ([5b1d4bf](https://github.com/bcnmy/biconomy-client-sdk/commit/5b1d4bfd7b5062d05bbb97286b833d879cd972b0))
+
+
+### Reverts
+
+* update paymaster check in estimateUserOpGas ([2eb0237](https://github.com/bcnmy/biconomy-client-sdk/commit/2eb0237b37425da3558801bbe9d0ce5d6fd696c9))
+
+
+
+
+
 ## 3.1.0 (2023-09-20)
 Modular Account Abstraction is here. Contains BiconomySmartAccountV2 - an API for modular smart account.
 
