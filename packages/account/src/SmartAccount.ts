@@ -290,7 +290,7 @@ export abstract class SmartAccount implements ISmartAccount {
     Logger.log("userOp validated");
     if (!this.bundler) throw new Error("Bundler is not provided");
     Logger.log("userOp being sent to the bundler", userOp);
-    const bundlerResponse = await this.bundler.sendUserOp(userOp, params);
+    const bundlerResponse = await this.bundler.sendUserOp(userOp, params?.simulationType);
     return bundlerResponse;
   }
 }
