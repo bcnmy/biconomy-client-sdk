@@ -247,7 +247,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     const requiredFields: UserOperationKey[] = ["sender", "nonce", "initCode", "callData"];
     this.validateUserOp(userOp, requiredFields);
 
-    let finalUserOp = userOp;
+    const finalUserOp = userOp;
     const skipBundlerCall = skipBundlerGasEstimation ?? true;
     // Override gas values in userOp if provided in overrides params
     if (overrides) {
@@ -256,24 +256,18 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
 
     Logger.log("userOp in estimation", userOp);
 
-    if (skipBundlerCall) {
-      if (this.paymaster && this.paymaster instanceof BiconomyPaymaster && paymasterServiceData?.mode === PaymasterMode.SPONSORED) {
-        if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas) {
-          throw new Error("maxFeePerGas and maxPriorityFeePerGas are required for skipBundlerCall mode");
-        }
-        // Making call to paymaster to get gas estimations for userOp
-        const { callGasLimit, verificationGasLimit, preVerificationGas, paymasterAndData } = await (
-          this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
-        ).getPaymasterAndData(userOp, paymasterServiceData);
-        finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
-        finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
-        finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
-        finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
-      } else {
-        Logger.warn("Skipped paymaster call. If you are using paymasterAndData, generate data externally");
-        finalUserOp = await this.calculateUserOpGasValues(userOp);
-        finalUserOp.paymasterAndData = "0x";
+    if (this.paymaster && this.paymaster instanceof BiconomyPaymaster && paymasterServiceData?.mode === PaymasterMode.SPONSORED) {
+      if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas) {
+        throw new Error("maxFeePerGas and maxPriorityFeePerGas are required for skipBundlerCall mode");
       }
+      // Making call to paymaster to get gas estimations for userOp
+      const { callGasLimit, verificationGasLimit, preVerificationGas, paymasterAndData } = await (
+        this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
+      ).getPaymasterAndData(userOp, paymasterServiceData);
+      finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
+      finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
+      finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
+      finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
     } else {
       if (!this.bundler) throw new Error("Bundler is not provided");
       // TODO: is this still needed to delete?
