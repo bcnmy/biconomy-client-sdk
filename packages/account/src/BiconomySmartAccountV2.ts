@@ -416,6 +416,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       maxPriorityFeePerGas: overrides?.maxPriorityFeePerGas,
     };
     try {
+      // Review: skipBundlerGasEstimation should be true by default or flase
       if (this.bundler && !gasFeeValues.maxFeePerGas && !gasFeeValues.maxPriorityFeePerGas && (skipBundlerGasEstimation ?? true)) {
         const gasFeeEstimation = await this.bundler.getGasFeeValues();
         gasFeeValues.maxFeePerGas = gasFeeEstimation.maxFeePerGas;
@@ -440,6 +441,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       this.getBuildUserOpNonce(buildUseropDto?.nonceOptions),
       initCodeFetchPromise,
       dummySignatureFetchPromise,
+      // Review: skipBundlerGasEstimation should be true by default or flase
       this.getGasFeeValues(buildUseropDto?.overrides, buildUseropDto?.skipBundlerGasEstimation),
     ]);
 
