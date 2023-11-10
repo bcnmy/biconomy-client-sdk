@@ -88,16 +88,22 @@ describe("BiconomySmartAccountV2 API Specs", () => {
   }, 30000);
 
   it("Nonce should be zero", async () => {
-    const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()), data: "0x" }]);
+    const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()), data: "0x" }], {
+      skipBundlerGasEstimation: true,
+    });
     console.log("builtUserOp", builtUserOp);
     expect(builtUserOp?.nonce?.toString()).toBe("0");
   });
   it("Sender should be non zero", async () => {
-    const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()), data: "0x" }]);
+    const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()), data: "0x" }], {
+      skipBundlerGasEstimation: true,
+    });
     expect(builtUserOp.sender).not.toBe(ethers.constants.AddressZero);
   });
   it("InitCode length should be greater then 170", async () => {
-    const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()), data: "0x" }]);
+    const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()), data: "0x" }], {
+      skipBundlerGasEstimation: true,
+    });
     expect(builtUserOp?.initCode?.length).toBeGreaterThan(170);
   });
   it("#getUserOpHash should match entryPoint.getUserOpHash", async function () {
@@ -126,12 +132,15 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       to: accountAddress,
       value: ethers.utils.parseEther("0.1"),
     });
-    const op = await accountAPI.buildUserOp([
-      {
-        to: recipient.address,
-        data: recipient.interface.encodeFunctionData("something", ["hello"]),
-      },
-    ]);
+    const op = await accountAPI.buildUserOp(
+      [
+        {
+          to: recipient.address,
+          data: recipient.interface.encodeFunctionData("something", ["hello"]),
+        },
+      ],
+      { skipBundlerGasEstimation: true },
+    );
 
     const signedUserOp = await accountAPI.signUserOp(op);
 
@@ -173,12 +182,15 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       to: accountAddress2,
       value: ethers.utils.parseEther("0.1"),
     });
-    const op = await accountAPI2.buildUserOp([
-      {
-        to: recipient.address,
-        data: recipient.interface.encodeFunctionData("something", ["hello"]),
-      },
-    ]);
+    const op = await accountAPI2.buildUserOp(
+      [
+        {
+          to: recipient.address,
+          data: recipient.interface.encodeFunctionData("something", ["hello"]),
+        },
+      ],
+      { skipBundlerGasEstimation: true },
+    );
 
     const signedUserOp = await accountAPI2.signUserOp(op);
 
@@ -221,6 +233,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     const op = await accountAPI.buildUserOp([enableModuleData], {
       // skipBundlerGasEstimation: true,
       // overrides: { verificationGasLimit: 120000, callGasLimit: 100000, preVerificationGas: 60000 },
+      skipBundlerGasEstimation: true,
     });
 
     const signedUserOp = await accountAPI.signUserOp(op);
@@ -235,12 +248,15 @@ describe("BiconomySmartAccountV2 API Specs", () => {
   });
 
   it("signs the userOp using active validation module", async () => {
-    const op = await accountAPI.buildUserOp([
-      {
-        to: recipient.address,
-        data: recipient.interface.encodeFunctionData("something", ["hello"]),
-      },
-    ]);
+    const op = await accountAPI.buildUserOp(
+      [
+        {
+          to: recipient.address,
+          data: recipient.interface.encodeFunctionData("something", ["hello"]),
+        },
+      ],
+      { skipBundlerGasEstimation: true },
+    );
 
     const signedUserOp = await accountAPI.signUserOp(op);
 
@@ -267,7 +283,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     });
 
     const op = await accountAPI.buildUserOp([disableModuleData], {
-      // skipBundlerGasEstimation: true,
+      skipBundlerGasEstimation: true,
       // overrides: { verificationGasLimit: 120000, callGasLimit: 100000, preVerificationGas: 60000 },
     });
 
@@ -303,7 +319,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     });
 
     const op1 = await accountAPI.buildUserOp([setupAndEnableModuleData], {
-      // skipBundlerGasEstimation: true,
+      skipBundlerGasEstimation: true,
       // overrides: { verificationGasLimit: 120000, callGasLimit: 100000, preVerificationGas: 60000 },
     });
 
@@ -319,12 +335,15 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     // Setting it as active validation module now
     accountAPI = accountAPI.setActiveValidationModule(module2);
 
-    const op = await accountAPI.buildUserOp([
-      {
-        to: recipient.address,
-        data: recipient.interface.encodeFunctionData("something", ["hello"]),
-      },
-    ]);
+    const op = await accountAPI.buildUserOp(
+      [
+        {
+          to: recipient.address,
+          data: recipient.interface.encodeFunctionData("something", ["hello"]),
+        },
+      ],
+      { skipBundlerGasEstimation: true },
+    );
 
     const signedUserOp = await accountAPI.signUserOp(op);
 

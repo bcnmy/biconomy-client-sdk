@@ -247,8 +247,8 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     const requiredFields: UserOperationKey[] = ["sender", "nonce", "initCode", "callData"];
     this.validateUserOp(userOp, requiredFields);
 
-    const finalUserOp = userOp;
-    // const skipBundlerCall = skipBundlerGasEstimation ?? true;
+    let finalUserOp = userOp;
+    const skipBundlerCall = skipBundlerGasEstimation ?? false;
     // Override gas values in userOp if provided in overrides params
     if (overrides) {
       userOp = { ...userOp, ...overrides };
@@ -269,26 +269,32 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
       finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
       finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
     } else {
-      if (!this.bundler) throw new Error("Bundler is not provided");
-      // TODO: is this still needed to delete?
-      delete userOp.maxFeePerGas;
-      delete userOp.maxPriorityFeePerGas;
-      // Making call to bundler to get gas estimations for userOp
-      const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas } =
-        await this.bundler.estimateUserOpGas(userOp);
-      // if neither user sent gas fee nor the bundler, estimate gas from provider
-      if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas && (!maxFeePerGas || !maxPriorityFeePerGas)) {
-        const feeData = await this.provider.getFeeData();
-        finalUserOp.maxFeePerGas = feeData.maxFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice());
-        finalUserOp.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice());
+      if (skipBundlerCall) {
+        Logger.warn("Skipped bundler call. If you are using paymasterAndData, generate data externally");
+        finalUserOp = await this.calculateUserOpGasValues(userOp);
+        finalUserOp.paymasterAndData = "0x";
       } else {
-        finalUserOp.maxFeePerGas = maxFeePerGas ?? userOp.maxFeePerGas;
-        finalUserOp.maxPriorityFeePerGas = maxPriorityFeePerGas ?? userOp.maxPriorityFeePerGas;
+        if (!this.bundler) throw new Error("Bundler is not provided");
+        // TODO: is this still needed to delete?
+        delete userOp.maxFeePerGas;
+        delete userOp.maxPriorityFeePerGas;
+        // Making call to bundler to get gas estimations for userOp
+        const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas } =
+          await this.bundler.estimateUserOpGas(userOp);
+        // if neither user sent gas fee nor the bundler, estimate gas from provider
+        if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas && (!maxFeePerGas || !maxPriorityFeePerGas)) {
+          const feeData = await this.provider.getFeeData();
+          finalUserOp.maxFeePerGas = feeData.maxFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice());
+          finalUserOp.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice());
+        } else {
+          finalUserOp.maxFeePerGas = maxFeePerGas ?? userOp.maxFeePerGas;
+          finalUserOp.maxPriorityFeePerGas = maxPriorityFeePerGas ?? userOp.maxPriorityFeePerGas;
+        }
+        finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
+        finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
+        finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
+        finalUserOp.paymasterAndData = "0x";
       }
-      finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
-      finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
-      finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
-      finalUserOp.paymasterAndData = "0x";
     }
     return finalUserOp;
   }
