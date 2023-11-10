@@ -248,7 +248,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     this.validateUserOp(userOp, requiredFields);
 
     const finalUserOp = userOp;
-    const skipBundlerCall = skipBundlerGasEstimation ?? true;
+    // const skipBundlerCall = skipBundlerGasEstimation ?? true;
     // Override gas values in userOp if provided in overrides params
     if (overrides) {
       userOp = { ...userOp, ...overrides };
