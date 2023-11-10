@@ -275,7 +275,6 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
         finalUserOp.paymasterAndData = "0x";
       } else {
         if (!this.bundler) throw new Error("Bundler is not provided");
-        // TODO: is this still needed to delete?
         delete userOp.maxFeePerGas;
         delete userOp.maxPriorityFeePerGas;
         // Making call to bundler to get gas estimations for userOp
