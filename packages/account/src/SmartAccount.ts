@@ -11,7 +11,7 @@ import { IPaymaster, PaymasterAndDataResponse } from "@biconomy/paymaster";
 import { Logger } from "@biconomy/common";
 import { IEntryPoint } from "@account-abstraction/contracts";
 import { SponsorUserOperationDto, BiconomyPaymaster, IHybridPaymaster, PaymasterMode } from "@biconomy/paymaster";
-import { SmartAccountConfig, Overrides, SendUserOpDto, EstimateUserOpGasParams } from "./utils/Types";
+import { SmartAccountConfig, SendUserOpDto, EstimateUserOpGasParams } from "./utils/Types";
 
 type UserOperationKey = keyof UserOperation;
 
