@@ -118,18 +118,26 @@ export abstract class SmartAccount implements ISmartAccount {
     Logger.log("userOp in estimation", userOp);
 
     if (skipBundlerCall) {
-      if (this.paymaster && this.paymaster instanceof BiconomyPaymaster && paymasterServiceData?.mode === PaymasterMode.SPONSORED) {
+      if (this.paymaster && this.paymaster instanceof BiconomyPaymaster) {
         if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas) {
           throw new Error("maxFeePerGas and maxPriorityFeePerGas are required for skipBundlerCall mode");
         }
-        // Making call to paymaster to get gas estimations for userOp
-        const { callGasLimit, verificationGasLimit, preVerificationGas, paymasterAndData } = await (
-          this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
-        ).getPaymasterAndData(userOp, paymasterServiceData);
-        finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
-        finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
-        finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
-        finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
+        if (paymasterServiceData?.mode === PaymasterMode.SPONSORED) {
+          // Making call to paymaster to get gas estimations for userOp
+          const { callGasLimit, verificationGasLimit, preVerificationGas, paymasterAndData } = await (
+            this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
+          ).getPaymasterAndData(userOp, paymasterServiceData);
+          finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
+          finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
+          finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
+          finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
+        } else {
+          // do we explicitly check for mode = TOKEN?
+          // use dummy values for gas limits as fee quote call will ignore this later.
+          finalUserOp.callGasLimit = 800000;
+          finalUserOp.verificationGasLimit = 1000000;
+          finalUserOp.preVerificationGas = 100000;
+        }
       } else {
         Logger.warn("Skipped paymaster call. If you are using paymasterAndData, generate data externally");
         finalUserOp = await this.calculateUserOpGasValues(userOp);
@@ -137,7 +145,6 @@ export abstract class SmartAccount implements ISmartAccount {
       }
     } else {
       if (!this.bundler) throw new Error("Bundler is not provided");
-      // TODO: is this still needed to delete?
       delete userOp.maxFeePerGas;
       delete userOp.maxPriorityFeePerGas;
       // Making call to bundler to get gas estimations for userOp
