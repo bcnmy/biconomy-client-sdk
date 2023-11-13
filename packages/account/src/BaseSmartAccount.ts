@@ -9,7 +9,7 @@ import { IBundler, UserOpResponse } from "@biconomy/bundler";
 import { IPaymaster, PaymasterAndDataResponse } from "@biconomy/paymaster";
 import { SendUserOpParams } from "@biconomy/modules";
 import { SponsorUserOperationDto, BiconomyPaymaster, PaymasterMode, IHybridPaymaster } from "@biconomy/paymaster";
-import { BaseSmartAccountConfig, Overrides, TransactionDetailsForUserOp } from "./utils/Types";
+import { BaseSmartAccountConfig, EstimateUserOpGasParams, Overrides, TransactionDetailsForUserOp } from "./utils/Types";
 import { GasOverheads } from "./utils/Preverificaiton";
 import { EntryPoint, EntryPoint__factory } from "@account-abstraction/contracts";
 import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants";
@@ -237,13 +237,9 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     return userOp;
   }
 
-  // TODO // Should make this a Dto
-  async estimateUserOpGas(
-    userOp: Partial<UserOperation>,
-    overrides?: Overrides,
-    skipBundlerGasEstimation?: boolean,
-    paymasterServiceData?: SponsorUserOperationDto,
-  ): Promise<Partial<UserOperation>> {
+  async estimateUserOpGas(params: EstimateUserOpGasParams): Promise<Partial<UserOperation>> {
+    let userOp = params.userOp;
+    const { overrides, skipBundlerGasEstimation, paymasterServiceData } = params;
     const requiredFields: UserOperationKey[] = ["sender", "nonce", "initCode", "callData"];
     this.validateUserOp(userOp, requiredFields);
 

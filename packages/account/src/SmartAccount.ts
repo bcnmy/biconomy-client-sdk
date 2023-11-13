@@ -11,7 +11,7 @@ import { IPaymaster, PaymasterAndDataResponse } from "@biconomy/paymaster";
 import { Logger } from "@biconomy/common";
 import { IEntryPoint } from "@account-abstraction/contracts";
 import { SponsorUserOperationDto, BiconomyPaymaster, IHybridPaymaster, PaymasterMode } from "@biconomy/paymaster";
-import { SmartAccountConfig, Overrides, SendUserOpDto } from "./utils/Types";
+import { SmartAccountConfig, Overrides, SendUserOpDto, EstimateUserOpGasParams } from "./utils/Types";
 
 type UserOperationKey = keyof UserOperation;
 
@@ -99,12 +99,9 @@ export abstract class SmartAccount implements ISmartAccount {
     return userOp;
   }
 
-  async estimateUserOpGas(
-    userOp: Partial<UserOperation>,
-    overrides?: Overrides,
-    skipBundlerGasEstimation?: boolean,
-    paymasterServiceData?: SponsorUserOperationDto,
-  ): Promise<Partial<UserOperation>> {
+  async estimateUserOpGas(params: EstimateUserOpGasParams): Promise<Partial<UserOperation>> {
+    let userOp = params.userOp;
+    const { overrides, skipBundlerGasEstimation, paymasterServiceData } = params;
     const requiredFields: UserOperationKey[] = ["sender", "nonce", "initCode", "callData"];
     this.validateUserOp(userOp, requiredFields);
 
