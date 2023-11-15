@@ -473,6 +473,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       skipBundlerGasEstimation: buildUseropDto?.skipBundlerGasEstimation,
       paymasterServiceData: buildUseropDto?.paymasterServiceData,
     });
+    userOp.paymasterAndData = userOp.paymasterAndData ?? "0x";
     Logger.log("UserOp after estimation ", userOp);
 
     return userOp;
