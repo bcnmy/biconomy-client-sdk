@@ -467,12 +467,13 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     userOp.signature = signature;
 
     // Note: Can change the default behaviour of calling estimations using bundler/local
-    userOp = await this.estimateUserOpGas(
+    userOp = await this.estimateUserOpGas({
       userOp,
-      buildUseropDto?.overrides,
-      buildUseropDto?.skipBundlerGasEstimation,
-      buildUseropDto?.paymasterServiceData,
-    );
+      overrides: buildUseropDto?.overrides,
+      skipBundlerGasEstimation: buildUseropDto?.skipBundlerGasEstimation,
+      paymasterServiceData: buildUseropDto?.paymasterServiceData,
+    });
+    userOp.paymasterAndData = userOp.paymasterAndData ?? "0x";
     Logger.log("UserOp after estimation ", userOp);
 
     return userOp;

@@ -33,10 +33,6 @@ export type UserOpStatus = {
   userOperationReceipt?: UserOpReceipt;
 };
 
-export type SendUserOpOptions = {
-  simulationType?: SimulationType;
-};
-
 export type SimulationType = "validation" | "validation_and_execution";
 
 // Converted to JsonRpcResponse with strict type

@@ -11,7 +11,8 @@ import { IPaymaster, PaymasterAndDataResponse } from "@biconomy/paymaster";
 import { Logger } from "@biconomy/common";
 import { IEntryPoint } from "@account-abstraction/contracts";
 import { SponsorUserOperationDto, BiconomyPaymaster, IHybridPaymaster, PaymasterMode } from "@biconomy/paymaster";
-import { SmartAccountConfig, Overrides, SendUserOpDto } from "./utils/Types";
+import { SmartAccountConfig, SendUserOpDto, EstimateUserOpGasParams } from "./utils/Types";
+import { DefaultGasLimit } from "./utils/Constants";
 
 type UserOperationKey = keyof UserOperation;
 
@@ -99,12 +100,9 @@ export abstract class SmartAccount implements ISmartAccount {
     return userOp;
   }
 
-  async estimateUserOpGas(
-    userOp: Partial<UserOperation>,
-    overrides?: Overrides,
-    skipBundlerGasEstimation?: boolean,
-    paymasterServiceData?: SponsorUserOperationDto,
-  ): Promise<Partial<UserOperation>> {
+  async estimateUserOpGas(params: EstimateUserOpGasParams): Promise<Partial<UserOperation>> {
+    let userOp = params.userOp;
+    const { overrides, skipBundlerGasEstimation, paymasterServiceData } = params;
     const requiredFields: UserOperationKey[] = ["sender", "nonce", "initCode", "callData"];
     this.validateUserOp(userOp, requiredFields);
 
@@ -118,18 +116,32 @@ export abstract class SmartAccount implements ISmartAccount {
     Logger.log("userOp in estimation", userOp);
 
     if (skipBundlerCall) {
-      if (this.paymaster && this.paymaster instanceof BiconomyPaymaster && paymasterServiceData?.mode === PaymasterMode.SPONSORED) {
+      if (this.paymaster && this.paymaster instanceof BiconomyPaymaster) {
         if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas) {
           throw new Error("maxFeePerGas and maxPriorityFeePerGas are required for skipBundlerCall mode");
         }
-        // Making call to paymaster to get gas estimations for userOp
-        const { callGasLimit, verificationGasLimit, preVerificationGas, paymasterAndData } = await (
-          this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
-        ).getPaymasterAndData(userOp, paymasterServiceData);
-        finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
-        finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
-        finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
-        finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
+        if (paymasterServiceData?.mode === PaymasterMode.SPONSORED) {
+          const v1BiconomyInfo = {
+            name: "BICONOMY",
+            version: "1.0.0",
+          };
+          const smartAccountInfo = paymasterServiceData?.smartAccountInfo ?? v1BiconomyInfo;
+          paymasterServiceData.smartAccountInfo = smartAccountInfo;
+
+          // Making call to paymaster to get gas estimations for userOp
+          const { callGasLimit, verificationGasLimit, preVerificationGas, paymasterAndData } = await (
+            this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
+          ).getPaymasterAndData(userOp, paymasterServiceData);
+          finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
+          finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
+          finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
+          finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
+        } else {
+          // use dummy values for gas limits as fee quote call will ignore this later.
+          finalUserOp.callGasLimit = DefaultGasLimit.callGasLimit;
+          finalUserOp.verificationGasLimit = DefaultGasLimit.verificationGasLimit;
+          finalUserOp.preVerificationGas = DefaultGasLimit.preVerificationGas;
+        }
       } else {
         Logger.warn("Skipped paymaster call. If you are using paymasterAndData, generate data externally");
         finalUserOp = await this.calculateUserOpGasValues(userOp);
@@ -137,7 +149,6 @@ export abstract class SmartAccount implements ISmartAccount {
       }
     } else {
       if (!this.bundler) throw new Error("Bundler is not provided");
-      // TODO: is this still needed to delete?
       delete userOp.maxFeePerGas;
       delete userOp.maxPriorityFeePerGas;
       // Making call to bundler to get gas estimations for userOp
@@ -290,7 +301,7 @@ export abstract class SmartAccount implements ISmartAccount {
     Logger.log("userOp validated");
     if (!this.bundler) throw new Error("Bundler is not provided");
     Logger.log("userOp being sent to the bundler", userOp);
-    const bundlerResponse = await this.bundler.sendUserOp(userOp, params);
+    const bundlerResponse = await this.bundler.sendUserOp(userOp, params?.simulationType);
     return bundlerResponse;
   }
 }
