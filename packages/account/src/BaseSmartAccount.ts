@@ -12,7 +12,7 @@ import { SponsorUserOperationDto, BiconomyPaymaster, PaymasterMode, IHybridPayma
 import { BaseSmartAccountConfig, EstimateUserOpGasParams, TransactionDetailsForUserOp } from "./utils/Types";
 import { GasOverheads } from "./utils/Preverificaiton";
 import { EntryPoint, EntryPoint__factory } from "@account-abstraction/contracts";
-import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants";
+import { DEFAULT_ENTRYPOINT_ADDRESS, DefaultGasLimit } from "./utils/Constants";
 import { LRUCache } from "lru-cache";
 
 type UserOperationKey = keyof UserOperation;
@@ -267,11 +267,10 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
           finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
           finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
         } else {
-          // do we explicitly check for mode = TOKEN?
           // use dummy values for gas limits as fee quote call will ignore this later.
-          finalUserOp.callGasLimit = 800000;
-          finalUserOp.verificationGasLimit = 1000000;
-          finalUserOp.preVerificationGas = 100000;
+          finalUserOp.callGasLimit = DefaultGasLimit.callGasLimit;
+          finalUserOp.verificationGasLimit = DefaultGasLimit.verificationGasLimit;
+          finalUserOp.preVerificationGas = DefaultGasLimit.preVerificationGas;
         }
       } else {
         {
