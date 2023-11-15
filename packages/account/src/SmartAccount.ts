@@ -120,6 +120,13 @@ export abstract class SmartAccount implements ISmartAccount {
           throw new Error("maxFeePerGas and maxPriorityFeePerGas are required for skipBundlerCall mode");
         }
         if (paymasterServiceData?.mode === PaymasterMode.SPONSORED) {
+          const v1BiconomyInfo = {
+            name: "BICONOMY",
+            version: "1.0.0",
+          };
+          const smartAccountInfo = paymasterServiceData?.smartAccountInfo ?? v1BiconomyInfo;
+          paymasterServiceData.smartAccountInfo = smartAccountInfo;
+
           // Making call to paymaster to get gas estimations for userOp
           const { callGasLimit, verificationGasLimit, preVerificationGas, paymasterAndData } = await (
             this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
