@@ -335,7 +335,8 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     };
 
     // Note: Can change the default behaviour of calling estimations using bundler/local
-    userOp = await this.estimateUserOpGas(userOp, overrides, skipBundlerGasEstimation, paymasterServiceData);
+    userOp = await this.estimateUserOpGas({ userOp, overrides, skipBundlerGasEstimation, paymasterServiceData });
+    userOp.paymasterAndData = userOp.paymasterAndData ?? "0x";
     Logger.log("UserOp after estimation ", userOp);
 
     return userOp;

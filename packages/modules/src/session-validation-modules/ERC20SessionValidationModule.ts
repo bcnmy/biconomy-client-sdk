@@ -1,6 +1,6 @@
 import { defaultAbiCoder } from "ethers/lib/utils";
-import { ISessionValidationModule } from "interfaces/ISessionValidationModule";
-import { ERC20SessionKeyData, SessionValidationModuleConfig } from "utils/Types";
+import { ISessionValidationModule } from "../interfaces/ISessionValidationModule";
+import { ERC20SessionKeyData, SessionValidationModuleConfig } from "../utils/Types";
 
 /**
  * Session validation module for ERC20 token transfers.

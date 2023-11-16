@@ -1,11 +1,11 @@
 import { Signer } from "ethers";
-import { ChainId } from "@biconomy/core-types";
 import { BigNumberish, BigNumber } from "ethers";
 import { IBundler } from "@biconomy/bundler";
 import { IPaymaster, PaymasterFeeQuote, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { Provider } from "@ethersproject/providers";
 import { GasOverheads } from "./Preverificaiton";
+import { UserOperation, ChainId } from "@biconomy/core-types";
 
 export type EntryPointAddresses = {
   [address: string]: string;
@@ -121,6 +121,13 @@ export type InitilizationData = {
 
 export type InitializeV2Data = {
   accountIndex?: number;
+};
+
+export type EstimateUserOpGasParams = {
+  userOp: Partial<UserOperation>;
+  overrides?: Overrides;
+  skipBundlerGasEstimation?: boolean;
+  paymasterServiceData?: SponsorUserOperationDto;
 };
 
 export interface TransactionDetailsForUserOp {
