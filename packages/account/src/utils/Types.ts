@@ -85,7 +85,7 @@ export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
   rpcUrl?: string; // as good as Provider
   signer: Signer;
   nodeClientUrl?: string; // very specific to Biconomy
-  module?: ValidationModule,
+  module?: ValidationModule;
   defaultValidationModule?: BaseValidationModule;
   activeValidationModule?: BaseValidationModule;
   scanForUpgradedAccountsFromV1?: boolean;
