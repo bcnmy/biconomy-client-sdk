@@ -22,7 +22,13 @@ import {
   SmartAccountInfo,
   QueryParamsForAddressResolver,
 } from "./utils/Types";
-import { BaseValidationModule, DEFAULT_ECDSA_OWNERSHIP_MODULE, ECDSAOwnershipValidationModule, ModuleInfo, SendUserOpParams } from "@biconomy/modules";
+import {
+  BaseValidationModule,
+  DEFAULT_ECDSA_OWNERSHIP_MODULE,
+  ECDSAOwnershipValidationModule,
+  ModuleInfo,
+  SendUserOpParams,
+} from "@biconomy/modules";
 import { UserOperation, Transaction } from "@biconomy/core-types";
 import NodeClient from "@biconomy/node-client";
 import INodeClient from "@biconomy/node-client";
@@ -95,11 +101,11 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     instance.defaultFallbackHandlerAddress = defaultFallbackHandlerAddress;
 
     instance.implementationAddress = biconomySmartAccountConfig.implementationAddress ?? BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0;
-    
-    if(biconomySmartAccountConfig.defaultValidationModule){
+
+    if (biconomySmartAccountConfig.defaultValidationModule) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       instance.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
-    } else if(biconomySmartAccountConfig.signer) {
+    } else if (biconomySmartAccountConfig.signer) {
       instance.defaultValidationModule = await ECDSAOwnershipValidationModule.create({
         signer: biconomySmartAccountConfig.signer,
         moduleAddress: DEFAULT_ECDSA_OWNERSHIP_MODULE,
@@ -107,7 +113,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     } else {
       throw new Error("'signer' param is required if no 'defaultValidationModule' is present");
     }
-   
+
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     instance.activeValidationModule = biconomySmartAccountConfig.activeValidationModule ?? instance.defaultValidationModule;
 
