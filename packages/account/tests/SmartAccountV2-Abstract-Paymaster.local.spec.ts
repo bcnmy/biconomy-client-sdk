@@ -1,4 +1,4 @@
-import { EntryPoint, EntryPoint__factory, UserOperationStruct, SimpleAccountFactory__factory } from "@account-abstraction/contracts";
+import { EntryPoint, EntryPoint__factory } from "@account-abstraction/contracts";
 import { Wallet, ethers } from "ethers";
 import { SampleRecipient, SampleRecipient__factory } from "@account-abstraction/utils/dist/src/types";
 
@@ -15,9 +15,7 @@ import { ChainId } from "@biconomy/core-types";
 import { ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import { BaseValidationModule } from "@biconomy/modules";
 import { ECDSAOwnershipRegistryModule_v100 } from "@biconomy/common";
-import { IHybridPaymaster, PaymasterMode, SponsorUserOperationDto } from "@biconomy/paymaster";
-import { DEFAULT_ENTRYPOINT_ADDRESS } from "../src/utils/Constants";
-import { Bundler, IBundler } from "@biconomy/bundler";
+import { IBundler } from "@biconomy/bundler";
 
 require('dotenv').config();
 
@@ -83,56 +81,5 @@ describe("BiconomySmartAccountV2 Paymaster Abstraction", () => {
 
     expect(address).toBe(account.accountAddress);
   }, 10000);
-
-  // it("Create a smart account with paymaster through api key and send gasless tx", async () => {
-
-  //   account = await BiconomySmartAccountV2.create({
-  //     chainId: ChainId.GANACHE,
-  //     entryPointAddress: entryPoint.address,
-  //     apiKey: process.env.API_KEY,
-  //     factoryAddress: accountFactory.address,
-  //     defaultFallbackHandler: await accountFactory.minimalHandler(),
-  //     defaultValidationModule: module1,
-  //     activeValidationModule: module1,
-  //   });
-
-  //   const address = await account.getAccountAddress();
-  //   console.log("account address ", address);
-
-  //   const paymaster = account.paymaster;
-
-  //   expect(paymaster).not.toBeNull()
-  //   expect(paymaster).not.toBeUndefined()
-
-  //   expect(address).toBe(account.accountAddress);
-
-  //   const randomWallet = ethers.Wallet.createRandom();
-
-  //   const emptyTx = {
-  //     to: randomWallet.address,
-  //     data: "0x",
-  //   };
-
-  //   let userOp = await account.buildUserOp([emptyTx]);
-
-  //   const biconomyPaymaster = account.paymaster as IHybridPaymaster<SponsorUserOperationDto>;
-
-  //   let paymasterServiceData: SponsorUserOperationDto = {
-  //     mode: PaymasterMode.SPONSORED,
-  //     smartAccountInfo: {
-  //       name: 'BICONOMY',
-  //       version: '2.0.0'
-  //     },
-  //   };
-
-  //   const paymasterAndDataResponse = await biconomyPaymaster.getPaymasterAndData(userOp, paymasterServiceData);
-  //   userOp.paymasterAndData = paymasterAndDataResponse.paymasterAndData;
-
-  //   const userOpResponse = await account.sendUserOp(userOp);
-
-  //   console.log(userOpResponse.userOpHash, 'USER OP HASH');
-  //   expect(userOpResponse.userOpHash).not.toBeUndefined();
-
-  // }, 10000);
 
 });
