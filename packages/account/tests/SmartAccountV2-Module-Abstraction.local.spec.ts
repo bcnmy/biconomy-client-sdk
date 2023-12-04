@@ -1,5 +1,5 @@
 import { EntryPoint, EntryPoint__factory } from "@account-abstraction/contracts";
-import { VoidSigner, Wallet, ethers } from "ethers";
+import { Wallet, ethers } from "ethers";
 import { SampleRecipient, SampleRecipient__factory } from "@account-abstraction/utils/dist/src/types";
 
 import {
@@ -13,7 +13,7 @@ import {
 import { BiconomySmartAccountV2 } from "../src/BiconomySmartAccountV2";
 import { ChainId } from "@biconomy/core-types";
 import { ECDSAOwnershipRegistryModule_v100 } from "@biconomy/common";
-import { ECDSAOwnershipValidationModule } from "@biconomy/modules";
+import { ValidationModule } from "../src";
 
 const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
 const signer = provider.getSigner();
@@ -45,12 +45,12 @@ describe("BiconomySmartAccountV2 Module Abstraction", () => {
     await new Promise((resolve) => setTimeout(resolve, 10000));
   }, 30000);
 
-  it("Create smart account without providing module", async () => {
+  it("Create smart account with default module (ECDSA)", async () => {
 
     const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
       chainId: ChainId.GANACHE,
       entryPointAddress: entryPoint.address,
-      signer
+      signer,
     });
 
     const address = await account.getAccountAddress();
@@ -60,7 +60,42 @@ describe("BiconomySmartAccountV2 Module Abstraction", () => {
 
     const module = account.activeValidationModule;
     console.log(`ACTIVE MODULE - ${module.getAddress()}`);
-    
+
   }, 10000);
 
+  it("Create smart account with ECDSA module", async () => {
+
+    const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
+      chainId: ChainId.GANACHE,
+      entryPointAddress: entryPoint.address,
+      signer,
+      module: ValidationModule.ECDSA_OWNERSHIP,
+    });
+
+    const address = await account.getAccountAddress();
+    console.log("Module Abstraction Test - Account address ", address);
+
+    expect(address).toBe(account.accountAddress);
+
+    const module = account.activeValidationModule;
+    console.log(`ACTIVE MODULE - ${module.getAddress()}`);
+  }, 10000);
+
+  it("Create smart account with multichain module", async () => {
+
+    const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
+      chainId: ChainId.GANACHE,
+      entryPointAddress: entryPoint.address,
+      signer,
+    });
+
+    const address = await account.getAccountAddress();
+    console.log("Module Abstraction Test - Account address ", address);
+
+    expect(address).toBe(account.accountAddress);
+
+    const module = account.activeValidationModule;
+    console.log(`ACTIVE MODULE - ${module.getAddress()}`);
+
+  }, 10000);
 });

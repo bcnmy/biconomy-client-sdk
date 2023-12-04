@@ -21,12 +21,13 @@ import {
   NonceOptions,
   SmartAccountInfo,
   QueryParamsForAddressResolver,
+  ValidationModule,
 } from "./utils/Types";
 import {
   BaseValidationModule,
-  DEFAULT_ECDSA_OWNERSHIP_MODULE,
   ECDSAOwnershipValidationModule,
   ModuleInfo,
+  MultiChainValidationModule,
   SendUserOpParams,
 } from "@biconomy/modules";
 import { UserOperation, Transaction } from "@biconomy/core-types";
@@ -85,7 +86,18 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   private constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountV2Config) {
     super(biconomySmartAccountConfig);
   }
-
+  
+  /** 
+   * Creates a new instance of BiconomySmartAccountV2.
+   * 
+   * This method will create a BiconomySmartAccountV2 instance but will not deploy the Smart Account.
+   * 
+   * Deployment of the Smart Account will be done when you call the first sendUserOp method.
+   *
+   * @param biconomySmartAccountConfig - Configuration for initializing the BiconomySmartAccountV2 instance.
+   * @returns A promise that resolves to a new instance of BiconomySmartAccountV2.
+   * @throws An error if something is wrong with the smart account instance creation.
+  */
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
     const instance = new BiconomySmartAccountV2(biconomySmartAccountConfig);
     instance.factoryAddress = biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS; // This would be fetched from V2
@@ -102,16 +114,15 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
     instance.implementationAddress = biconomySmartAccountConfig.implementationAddress ?? BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0;
 
-    if (biconomySmartAccountConfig.defaultValidationModule) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    if(biconomySmartAccountConfig.defaultValidationModule) {
       instance.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
-    } else if (biconomySmartAccountConfig.signer) {
+    } else if(biconomySmartAccountConfig.module) {
+      instance.defaultValidationModule = await instance.checkAndCreateModule(biconomySmartAccountConfig, instance);
+    } else {
       instance.defaultValidationModule = await ECDSAOwnershipValidationModule.create({
         signer: biconomySmartAccountConfig.signer,
-        moduleAddress: DEFAULT_ECDSA_OWNERSHIP_MODULE,
+        moduleAddress: biconomySmartAccountConfig.module,
       });
-    } else {
-      throw new Error("'signer' param is required if no 'defaultValidationModule' is present");
     }
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -132,6 +143,26 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     await instance.init();
 
     return instance;
+  }
+
+  async checkAndCreateModule(biconomySmartAccountConfig: BiconomySmartAccountV2Config, instance: BiconomySmartAccountV2): Promise<BaseValidationModule> {
+    switch (biconomySmartAccountConfig.module) {
+      case ValidationModule.ECDSA_OWNERSHIP:
+        return await ECDSAOwnershipValidationModule.create({
+          signer: biconomySmartAccountConfig.signer,
+          moduleAddress: biconomySmartAccountConfig.module,
+        });
+      case ValidationModule.MULTICHAIN:
+        return await MultiChainValidationModule.create({
+          signer: biconomySmartAccountConfig.signer,
+          moduleAddress: biconomySmartAccountConfig.module,
+        });
+      default:
+        return await ECDSAOwnershipValidationModule.create({
+          signer: biconomySmartAccountConfig.signer,
+          moduleAddress: biconomySmartAccountConfig.module,
+        });
+    }
   }
 
   async _getAccountContract(): Promise<SmartAccount_v200> {

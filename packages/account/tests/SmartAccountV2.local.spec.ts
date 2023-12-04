@@ -77,6 +77,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       defaultFallbackHandler: await accountFactory.minimalHandler(),
       defaultValidationModule: module1,
       activeValidationModule: module1,
+      signer
     });
 
     // console.log('account api provider ', accountAPI.provider)
@@ -158,6 +159,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       defaultFallbackHandler: await accountFactory.minimalHandler(),
       defaultValidationModule: module2,
       activeValidationModule: module2,
+      signer
     });
 
     // TODO
@@ -350,6 +352,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       defaultFallbackHandler: await accountFactory.minimalHandler(),
       defaultValidationModule: newmodule,
       activeValidationModule: newmodule,
+      signer
     });
 
     const address = await accountAPI2.getAccountAddress();
