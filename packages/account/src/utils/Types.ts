@@ -44,6 +44,7 @@ export interface BaseSmartAccountConfig {
   accountAddress?: string;
   overheads?: Partial<GasOverheads>;
   paymaster?: IPaymaster; // PaymasterAPI
+  apiKey?: string;  
   bundler?: IBundler; // like HttpRpcClient
   chainId: ChainId;
 }
