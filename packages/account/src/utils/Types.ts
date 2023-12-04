@@ -44,7 +44,6 @@ export interface BaseSmartAccountConfig {
   accountAddress?: string;
   overheads?: Partial<GasOverheads>;
   paymaster?: IPaymaster; // PaymasterAPI
-  apiKey?: string;
   bundler?: IBundler; // like HttpRpcClient
   chainId: ChainId;
 }
@@ -70,6 +69,7 @@ export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
   senderAddress?: string;
   implementationAddress?: string;
   defaultFallbackHandler?: string;
+  apiKey?: string;
   rpcUrl?: string; // as good as Provider
   nodeClientUrl?: string; // very specific to Biconomy
   defaultValidationModule: BaseValidationModule;

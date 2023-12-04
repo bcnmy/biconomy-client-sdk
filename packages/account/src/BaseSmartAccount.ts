@@ -52,12 +52,6 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
 
     this.provider = _smartAccountConfig.provider ?? new JsonRpcProvider(RPC_PROVIDER_URLS[this.chainId]);
 
-    if (_smartAccountConfig.apiKey) {
-      this.paymaster = new BiconomyPaymaster({
-        paymasterUrl: `https://paymaster.biconomy.io/api/v1/${_smartAccountConfig.chainId}/${_smartAccountConfig.apiKey}`,
-      });
-    }
-
     // Create an instance of the EntryPoint contract using the provided address and provider (facory "connect" contract address)
     // Then, set the transaction's sender ("from" address) to the zero address (AddressZero). (contract "connect" from address)
     this.entryPoint = EntryPoint__factory.connect(this.entryPointAddress, this.provider).connect(ethers.constants.AddressZero);
