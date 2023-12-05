@@ -16,8 +16,6 @@ import { BaseValidationModule } from "@biconomy/modules";
 import { ECDSAOwnershipRegistryModule_v100 } from "@biconomy/common";
 import { BiconomyPaymaster } from "@biconomy/paymaster";
 
-require('dotenv').config();
-
 const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
 const signer = provider.getSigner();
 
@@ -59,7 +57,7 @@ describe("BiconomySmartAccountV2 Paymaster Abstraction", () => {
       chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
-      biconomyPaymasterApiKey: process.env.API_KEY,
+      biconomyPaymasterApiKey: "7K_k68BFN.ed274da8-69a1-496d-a897-508fc2213216",
       factoryAddress: accountFactory.address,
       defaultFallbackHandler: await accountFactory.minimalHandler(),
       defaultValidationModule: module1,
@@ -80,7 +78,7 @@ describe("BiconomySmartAccountV2 Paymaster Abstraction", () => {
   it("Create a smart account with paymaster by creating instance", async () => {
 
     const paymaster = new BiconomyPaymaster({
-      paymasterUrl: process.env.PAYMASTER_URL || "",
+      paymasterUrl: "https://paymaster.biconomy.io/api/v1/80001/7K_k68BFN.ed274da8-69a1-496d-a897-508fc2213216",
     })
 
     account = await BiconomySmartAccountV2.create({
