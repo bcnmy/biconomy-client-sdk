@@ -480,7 +480,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   }
 
   private validateUserOpAndPaymasterRequest(userOp: Partial<UserOperation>, tokenPaymasterRequest: BiconomyTokenPaymasterRequest): void {
-    if (!userOp.callData) {
+    if (userOp.callData === undefined) {
       throw new Error("UserOp callData cannot be undefined");
     }
 
@@ -535,7 +535,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
           return userOp;
         }
 
-        if (!userOp.callData) {
+        if (userOp.callData === undefined) {
           throw new Error("UserOp callData cannot be undefined");
         }
 

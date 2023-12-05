@@ -72,7 +72,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
 
   validateUserOp(userOp: Partial<UserOperation>, requiredFields: UserOperationKey[]): boolean {
     for (const field of requiredFields) {
-      if (!userOp[field]) {
+      if (userOp[field] === null || userOp[field] === undefined) {
         throw new Error(`${String(field)} is missing in the UserOp`);
       }
     }
@@ -254,7 +254,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
 
     if (skipBundlerCall) {
       if (this.paymaster && this.paymaster instanceof BiconomyPaymaster) {
-        if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas) {
+        if (userOp.maxFeePerGas === undefined || userOp.maxPriorityFeePerGas === undefined) {
           throw new Error("maxFeePerGas and maxPriorityFeePerGas are required for skipBundlerCall mode");
         }
         if (paymasterServiceData?.mode === PaymasterMode.SPONSORED) {
@@ -262,15 +262,18 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
           const { callGasLimit, verificationGasLimit, preVerificationGas, paymasterAndData } = await (
             this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
           ).getPaymasterAndData(userOp, paymasterServiceData);
+          if(paymasterAndData === "0x" && (callGasLimit === undefined || verificationGasLimit === undefined || preVerificationGas === undefined)) {
+            throw new Error("Since you intend to use sponsorship paymaster, please check and make sure policies are set on the dashboard");
+          }
           finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
           finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
           finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
           finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
         } else {
-          // use dummy values for gas limits as fee quote call will ignore this later.
-          finalUserOp.callGasLimit = DefaultGasLimit.callGasLimit;
-          finalUserOp.verificationGasLimit = DefaultGasLimit.verificationGasLimit;
-          finalUserOp.preVerificationGas = DefaultGasLimit.preVerificationGas;
+           // use dummy values for gas limits as fee quote call will ignore this later.
+           finalUserOp.callGasLimit = DefaultGasLimit.callGasLimit;
+           finalUserOp.verificationGasLimit = DefaultGasLimit.verificationGasLimit;
+           finalUserOp.preVerificationGas = DefaultGasLimit.preVerificationGas;
         }
       } else {
         {
@@ -287,7 +290,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
       const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas } =
         await this.bundler.estimateUserOpGas(userOp);
       // if neither user sent gas fee nor the bundler, estimate gas from provider
-      if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas && (!maxFeePerGas || !maxPriorityFeePerGas)) {
+      if (userOp.maxFeePerGas === undefined && userOp.maxPriorityFeePerGas === undefined && (maxFeePerGas === undefined || maxPriorityFeePerGas === undefined)) {
         const feeData = await this.provider.getFeeData();
         finalUserOp.maxFeePerGas = feeData.maxFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice());
         finalUserOp.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice());

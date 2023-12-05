@@ -343,7 +343,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
   }
 
   private validateUserOpAndRequest(userOp: Partial<UserOperation>, tokenPaymasterRequest: BiconomyTokenPaymasterRequest): void {
-    if (!userOp.callData) {
+    if (userOp.callData === undefined) {
       throw new Error("Userop callData cannot be undefined");
     }
 
@@ -398,7 +398,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
           return userOp;
         }
 
-        if (!userOp.callData) {
+        if (userOp.callData === undefined) {
           throw new Error("Userop callData cannot be undefined");
         }
 
