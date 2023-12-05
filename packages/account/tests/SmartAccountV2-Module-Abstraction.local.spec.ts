@@ -49,6 +49,7 @@ describe("BiconomySmartAccountV2 Module Abstraction", () => {
 
     const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
       chainId: ChainId.GANACHE,
+      rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
       signer,
     });
@@ -67,6 +68,7 @@ describe("BiconomySmartAccountV2 Module Abstraction", () => {
 
     const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
       chainId: ChainId.GANACHE,
+      rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
       signer,
       module: ValidationModule.ECDSA_OWNERSHIP,
@@ -85,8 +87,10 @@ describe("BiconomySmartAccountV2 Module Abstraction", () => {
 
     const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
       chainId: ChainId.GANACHE,
+      rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
       signer,
+      module: ValidationModule.MULTICHAIN,
     });
 
     const address = await account.getAccountAddress();
