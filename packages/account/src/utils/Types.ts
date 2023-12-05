@@ -69,7 +69,7 @@ export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
   senderAddress?: string;
   implementationAddress?: string;
   defaultFallbackHandler?: string;
-  apiKey?: string;
+  biconomyPaymasterApiKey?: string;
   rpcUrl?: string; // as good as Provider
   nodeClientUrl?: string; // very specific to Biconomy
   defaultValidationModule: BaseValidationModule;

@@ -50,6 +50,10 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     this.bundler = _smartAccountConfig.bundler;
     this.chainId = _smartAccountConfig.chainId;
 
+    if (_smartAccountConfig.paymaster) {
+      this.paymaster = _smartAccountConfig.paymaster;
+    }
+
     this.provider = _smartAccountConfig.provider ?? new JsonRpcProvider(RPC_PROVIDER_URLS[this.chainId]);
 
     // Create an instance of the EntryPoint contract using the provided address and provider (facory "connect" contract address)

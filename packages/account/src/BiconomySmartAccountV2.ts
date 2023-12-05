@@ -84,9 +84,9 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     const instance = new BiconomySmartAccountV2(biconomySmartAccountConfig);
     instance.factoryAddress = biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS; // This would be fetched from V2
 
-    if (biconomySmartAccountConfig.apiKey) {
+    if (biconomySmartAccountConfig.biconomyPaymasterApiKey) {
       instance.paymaster = new BiconomyPaymaster({
-        paymasterUrl: `https://paymaster.biconomy.io/api/v1/${biconomySmartAccountConfig.chainId}/${biconomySmartAccountConfig.apiKey}`,
+        paymasterUrl: `https://paymaster.biconomy.io/api/v1/${biconomySmartAccountConfig.chainId}/${biconomySmartAccountConfig.biconomyPaymasterApiKey}`,
       });
     }
 

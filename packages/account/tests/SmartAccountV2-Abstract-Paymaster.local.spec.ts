@@ -1,6 +1,5 @@
 import { EntryPoint, EntryPoint__factory } from "@account-abstraction/contracts";
 import { Wallet, ethers } from "ethers";
-import { SampleRecipient, SampleRecipient__factory } from "@account-abstraction/utils/dist/src/types";
 
 import {
   SmartAccount_v200,
@@ -15,7 +14,7 @@ import { ChainId } from "@biconomy/core-types";
 import { ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import { BaseValidationModule } from "@biconomy/modules";
 import { ECDSAOwnershipRegistryModule_v100 } from "@biconomy/common";
-import { IBundler } from "@biconomy/bundler";
+import { BiconomyPaymaster } from "@biconomy/paymaster";
 
 require('dotenv').config();
 
@@ -27,9 +26,6 @@ describe("BiconomySmartAccountV2 Paymaster Abstraction", () => {
   let factoryOwner: Wallet;
   let account: BiconomySmartAccountV2;
   let entryPoint: EntryPoint;
-  let bundler: IBundler;
-  let beneficiary: string;
-  let recipient: SampleRecipient;
   let accountFactory: SmartAccountFactory_v200;
   let ecdsaModule: ECDSAOwnershipRegistryModule_v100;
 
@@ -39,7 +35,6 @@ describe("BiconomySmartAccountV2 Paymaster Abstraction", () => {
     owner = Wallet.createRandom();
     entryPoint = await new EntryPoint__factory(signer).deploy();
     console.log("ep address ", entryPoint.address);
-    beneficiary = await signer.getAddress();
     factoryOwner = Wallet.createRandom();
 
     const accountImpl: SmartAccount_v200 = await new SmartAccount_v200__factory(signer).deploy(entryPoint.address);
@@ -55,7 +50,6 @@ describe("BiconomySmartAccountV2 Paymaster Abstraction", () => {
 
     console.log("provider url ", provider.connection.url);
 
-    recipient = await new SampleRecipient__factory(signer).deploy();
     await new Promise((resolve) => setTimeout(resolve, 10000));
   }, 30000);
 
@@ -63,8 +57,9 @@ describe("BiconomySmartAccountV2 Paymaster Abstraction", () => {
 
     account = await BiconomySmartAccountV2.create({
       chainId: ChainId.GANACHE,
+      rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
-      apiKey: process.env.API_KEY,
+      biconomyPaymasterApiKey: process.env.API_KEY,
       factoryAddress: accountFactory.address,
       defaultFallbackHandler: await accountFactory.minimalHandler(),
       defaultValidationModule: module1,
@@ -78,6 +73,32 @@ describe("BiconomySmartAccountV2 Paymaster Abstraction", () => {
 
     expect(paymaster).not.toBeNull()
     expect(paymaster).not.toBeUndefined()
+
+    expect(address).toBe(account.accountAddress);
+  }, 10000);
+
+  it("Create a smart account with paymaster by creating instance", async () => {
+
+    const paymaster = new BiconomyPaymaster({
+      paymasterUrl: process.env.PAYMASTER_URL || "",
+    })
+
+    account = await BiconomySmartAccountV2.create({
+      chainId: ChainId.GANACHE,
+      rpcUrl: "http://127.0.0.1:8545",
+      entryPointAddress: entryPoint.address,
+      factoryAddress: accountFactory.address,
+      defaultFallbackHandler: await accountFactory.minimalHandler(),
+      defaultValidationModule: module1,
+      activeValidationModule: module1,
+      paymaster: paymaster
+    });
+
+    const address = await account.getAccountAddress();
+    console.log("account address ", address);
+
+    expect(account.paymaster).not.toBeNull()
+    expect(account.paymaster).not.toBeUndefined()
 
     expect(address).toBe(account.accountAddress);
   }, 10000);
