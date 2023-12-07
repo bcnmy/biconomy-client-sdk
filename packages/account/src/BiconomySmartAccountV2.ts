@@ -11,6 +11,7 @@ import {
   SmartAccountFactory_v200__factory,
   AddressResolver,
   AddressResolver__factory,
+  checkNullOrUndefined,
 } from "@biconomy/common";
 import {
   BiconomyTokenPaymasterRequest,
@@ -480,7 +481,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   }
 
   private validateUserOpAndPaymasterRequest(userOp: Partial<UserOperation>, tokenPaymasterRequest: BiconomyTokenPaymasterRequest): void {
-    if (userOp.callData === undefined) {
+    if (checkNullOrUndefined(userOp.callData)) {
       throw new Error("UserOp callData cannot be undefined");
     }
 
@@ -535,7 +536,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
           return userOp;
         }
 
-        if (userOp.callData === undefined) {
+        if (userOp.callData === undefined || userOp.callData === null) {
           throw new Error("UserOp callData cannot be undefined");
         }
 

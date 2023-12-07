@@ -4,7 +4,7 @@ import { IBaseSmartAccount } from "./interfaces/IBaseSmartAccount";
 import { defaultAbiCoder, keccak256 } from "ethers/lib/utils";
 import { UserOperation, ChainId } from "@biconomy/core-types";
 import { calcPreVerificationGas, DefaultGasLimits } from "./utils/Preverificaiton";
-import { NotPromise, packUserOp, Logger, RPC_PROVIDER_URLS } from "@biconomy/common";
+import { NotPromise, packUserOp, Logger, RPC_PROVIDER_URLS, checkNullOrUndefined } from "@biconomy/common";
 import { IBundler, UserOpResponse } from "@biconomy/bundler";
 import { IPaymaster, PaymasterAndDataResponse } from "@biconomy/paymaster";
 import { SendUserOpParams } from "@biconomy/modules";
@@ -72,7 +72,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
 
   validateUserOp(userOp: Partial<UserOperation>, requiredFields: UserOperationKey[]): boolean {
     for (const field of requiredFields) {
-      if (userOp[field] === null || userOp[field] === undefined) {
+      if (checkNullOrUndefined(userOp[field])) {
         throw new Error(`${String(field)} is missing in the UserOp`);
       }
     }
@@ -254,7 +254,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
 
     if (skipBundlerCall) {
       if (this.paymaster && this.paymaster instanceof BiconomyPaymaster) {
-        if (userOp.maxFeePerGas === undefined || userOp.maxPriorityFeePerGas === undefined) {
+        if (checkNullOrUndefined(userOp.maxFeePerGas) || checkNullOrUndefined(userOp.maxPriorityFeePerGas)) {
           throw new Error("maxFeePerGas and maxPriorityFeePerGas are required for skipBundlerCall mode");
         }
         if (paymasterServiceData?.mode === PaymasterMode.SPONSORED) {
@@ -291,9 +291,9 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
         await this.bundler.estimateUserOpGas(userOp);
       // if neither user sent gas fee nor the bundler, estimate gas from provider
       if (
-        userOp.maxFeePerGas === undefined &&
-        userOp.maxPriorityFeePerGas === undefined &&
-        (maxFeePerGas === undefined || maxPriorityFeePerGas === undefined)
+        checkNullOrUndefined(userOp.maxFeePerGas) &&
+        checkNullOrUndefined(userOp.maxPriorityFeePerGas) &&
+        (checkNullOrUndefined(maxFeePerGas) || checkNullOrUndefined(maxPriorityFeePerGas))
       ) {
         const feeData = await this.provider.getFeeData();
         finalUserOp.maxFeePerGas = feeData.maxFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice());

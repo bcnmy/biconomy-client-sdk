@@ -4,7 +4,7 @@ import { ISmartAccount } from "./interfaces/ISmartAccount";
 import { defaultAbiCoder, keccak256, arrayify } from "ethers/lib/utils";
 import { UserOperation, ChainId } from "@biconomy/core-types";
 import { calcPreVerificationGas, DefaultGasLimits } from "./utils/Preverificaiton";
-import { packUserOp } from "@biconomy/common";
+import { packUserOp, checkNullOrUndefined } from "@biconomy/common";
 
 import { IBundler, UserOpResponse } from "@biconomy/bundler";
 import { IPaymaster, PaymasterAndDataResponse } from "@biconomy/paymaster";
@@ -49,7 +49,7 @@ export abstract class SmartAccount implements ISmartAccount {
 
   private validateUserOp(userOp: Partial<UserOperation>, requiredFields: UserOperationKey[]): boolean {
     for (const field of requiredFields) {
-      if (userOp[field] === undefined || userOp[field] === null) {
+      if (checkNullOrUndefined(userOp[field])) {
         throw new Error(`${String(field)} is missing in the UserOp`);
       }
     }
@@ -159,9 +159,9 @@ export abstract class SmartAccount implements ISmartAccount {
         await this.bundler.estimateUserOpGas(userOp);
       // if neither user sent gas fee nor the bundler, estimate gas from provider
       if (
-        userOp.maxFeePerGas === undefined &&
-        userOp.maxPriorityFeePerGas === undefined &&
-        (maxFeePerGas === undefined || maxPriorityFeePerGas === undefined)
+        checkNullOrUndefined(userOp.maxFeePerGas) &&
+        checkNullOrUndefined(userOp.maxPriorityFeePerGas) &&
+        (checkNullOrUndefined(maxFeePerGas) || checkNullOrUndefined(maxPriorityFeePerGas))
       ) {
         const feeData = await this.provider.getFeeData();
         finalUserOp.maxFeePerGas = feeData.maxFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice());

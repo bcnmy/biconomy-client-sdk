@@ -10,6 +10,7 @@ import {
   getEntryPointContract,
   getSAFactoryContract,
   getSAProxyContract,
+  checkNullOrUndefined,
 } from "@biconomy/common";
 import { BiconomySmartAccountConfig, Overrides, BiconomyTokenPaymasterRequest, InitilizationData } from "./utils/Types";
 import { UserOperation, Transaction, SmartAccountType } from "@biconomy/core-types";
@@ -343,7 +344,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
   }
 
   private validateUserOpAndRequest(userOp: Partial<UserOperation>, tokenPaymasterRequest: BiconomyTokenPaymasterRequest): void {
-    if (userOp.callData === undefined) {
+    if (checkNullOrUndefined(userOp.callData)) {
       throw new Error("Userop callData cannot be undefined");
     }
 
@@ -398,7 +399,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
           return userOp;
         }
 
-        if (userOp.callData === undefined) {
+        if (userOp.callData === undefined || userOp.callData === null) {
           throw new Error("Userop callData cannot be undefined");
         }
 
