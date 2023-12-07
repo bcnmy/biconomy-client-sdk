@@ -6,6 +6,7 @@ import { BaseValidationModule, DEFAULT_ECDSA_OWNERSHIP_MODULE, DEFAULT_MULTICHAI
 import { Provider } from "@ethersproject/providers";
 import { GasOverheads } from "./Preverificaiton";
 import { UserOperation, ChainId } from "@biconomy/core-types";
+import { WalletClientSigner } from "@alchemy/aa-core";
 
 export type EntryPointAddresses = {
   [address: string]: string;
@@ -83,7 +84,7 @@ export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
   implementationAddress?: string;
   defaultFallbackHandler?: string;
   rpcUrl?: string; // as good as Provider
-  signer: Signer;
+  signer: Signer | WalletClientSigner;
   nodeClientUrl?: string; // very specific to Biconomy
   module?: ValidationModule;
   defaultValidationModule?: BaseValidationModule;
