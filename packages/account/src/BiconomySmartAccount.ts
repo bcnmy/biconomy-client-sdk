@@ -10,7 +10,7 @@ import {
   getEntryPointContract,
   getSAFactoryContract,
   getSAProxyContract,
-  checkNullOrUndefined,
+  isNullOrUndefined,
 } from "@biconomy/common";
 import { BiconomySmartAccountConfig, Overrides, BiconomyTokenPaymasterRequest, InitilizationData } from "./utils/Types";
 import { UserOperation, Transaction, SmartAccountType } from "@biconomy/core-types";
@@ -344,7 +344,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
   }
 
   private validateUserOpAndRequest(userOp: Partial<UserOperation>, tokenPaymasterRequest: BiconomyTokenPaymasterRequest): void {
-    if (checkNullOrUndefined(userOp.callData)) {
+    if (isNullOrUndefined(userOp.callData)) {
       throw new Error("Userop callData cannot be undefined");
     }
 
@@ -399,12 +399,12 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
           return userOp;
         }
 
-        if (userOp.callData === undefined || userOp.callData === null) {
+        if (isNullOrUndefined(userOp.callData)) {
           throw new Error("Userop callData cannot be undefined");
         }
 
         const decodedDataSmartWallet = this.proxy.interface.parseTransaction({
-          data: userOp.callData.toString(),
+          data: userOp.callData!.toString(),
         });
         if (!decodedDataSmartWallet) {
           throw new Error("Could not parse call data of smart wallet for userOp");

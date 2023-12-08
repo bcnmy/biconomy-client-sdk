@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish, Bytes } from "ethers";
+import { BigNumber, Bytes } from "ethers";
 
 /**
  * @description this function will return current timestamp in seconds
@@ -8,6 +8,6 @@ export const getTimestampInSeconds = (): number => {
   return Math.floor(Date.now() / 1000);
 };
 
-export const checkNullOrUndefined = (value: string | number | bigint | BigNumber | Bytes | undefined): boolean => {
+export const isNullOrUndefined = (value: string | number | bigint | BigNumber | Bytes | undefined): value is undefined => {
   return value === null || value === undefined;
-}
+};

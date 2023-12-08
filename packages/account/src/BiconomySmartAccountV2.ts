@@ -11,7 +11,7 @@ import {
   SmartAccountFactory_v200__factory,
   AddressResolver,
   AddressResolver__factory,
-  checkNullOrUndefined,
+  isNullOrUndefined,
 } from "@biconomy/common";
 import {
   BiconomyTokenPaymasterRequest,
@@ -481,7 +481,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   }
 
   private validateUserOpAndPaymasterRequest(userOp: Partial<UserOperation>, tokenPaymasterRequest: BiconomyTokenPaymasterRequest): void {
-    if (checkNullOrUndefined(userOp.callData)) {
+    if (isNullOrUndefined(userOp.callData)) {
       throw new Error("UserOp callData cannot be undefined");
     }
 
@@ -536,14 +536,14 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
           return userOp;
         }
 
-        if (userOp.callData === undefined || userOp.callData === null) {
+        if (isNullOrUndefined(userOp.callData)) {
           throw new Error("UserOp callData cannot be undefined");
         }
 
         const account = await this._getAccountContract();
 
         const decodedSmartAccountData = account.interface.parseTransaction({
-          data: userOp.callData.toString(),
+          data: userOp.callData!.toString(),
         });
         if (!decodedSmartAccountData) {
           throw new Error("Could not parse userOp call data for this smart account");
