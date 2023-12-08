@@ -40,7 +40,7 @@ export interface BaseSmartAccountConfig {
   // owner?: Signer // can be in child classes
   index?: number;
   provider?: Provider;
-  entryPointAddress: string;
+  entryPointAddress?: string;
   accountAddress?: string;
   overheads?: Partial<GasOverheads>;
   paymaster?: IPaymaster; // PaymasterAPI
