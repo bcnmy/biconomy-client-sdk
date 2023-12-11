@@ -2,7 +2,7 @@ import { Signer } from "ethers";
 import { BigNumberish, BigNumber } from "ethers";
 import { IBundler } from "@biconomy/bundler";
 import { IPaymaster, PaymasterFeeQuote, SponsorUserOperationDto } from "@biconomy/paymaster";
-import { BaseValidationModule, DEFAULT_ECDSA_OWNERSHIP_MODULE, DEFAULT_MULTICHAIN_MODULE, ModuleInfo } from "@biconomy/modules";
+import { BaseValidationModule, DEFAULT_BATCHED_SESSION_ROUTER_MODULE, DEFAULT_ECDSA_OWNERSHIP_MODULE, DEFAULT_MULTICHAIN_MODULE, DEFAULT_SESSION_KEY_MANAGER_MODULE, ModuleInfo } from "@biconomy/modules";
 import { Provider } from "@ethersproject/providers";
 import { GasOverheads } from "./Preverificaiton";
 import { UserOperation, ChainId } from "@biconomy/core-types";
@@ -41,12 +41,16 @@ export type SmartAccountConfig = {
  *
  * - `ECDSA_OWNERSHIP`: Default module for ECDSA ownership validation.
  * - `MULTICHAIN`: Default module for multi-chain validation.
+ * - `SESSION`: Default module for session validation.
+ * - `BATCHED_SESSION_ROUTER`: Default module for batched session router validation.
  * -  For SESSION MODULE or BATCHED SESSION please provide the module with "defaultValidationModule" in the config
  * -  If you don't provide any module, ECDSA_OWNERSHIP will be used as default
  */
-export enum ValidationModule {
+export enum AuthorizationModuleType {
   ECDSA_OWNERSHIP = DEFAULT_ECDSA_OWNERSHIP_MODULE,
   MULTICHAIN = DEFAULT_MULTICHAIN_MODULE,
+  SESSION = DEFAULT_SESSION_KEY_MANAGER_MODULE,
+  BATCHED_SESSION_ROUTER = DEFAULT_BATCHED_SESSION_ROUTER_MODULE
 }
 
 export interface BaseSmartAccountConfig {
@@ -85,7 +89,7 @@ export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
   rpcUrl?: string; // as good as Provider
   signer: Signer;
   nodeClientUrl?: string; // very specific to Biconomy
-  module?: ValidationModule;
+  authorizationModuleType?: AuthorizationModuleType;
   defaultValidationModule?: BaseValidationModule;
   activeValidationModule?: BaseValidationModule;
   scanForUpgradedAccountsFromV1?: boolean;

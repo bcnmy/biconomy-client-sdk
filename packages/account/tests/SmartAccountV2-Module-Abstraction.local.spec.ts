@@ -13,7 +13,7 @@ import {
 import { BiconomySmartAccountV2 } from "../src/BiconomySmartAccountV2";
 import { ChainId } from "@biconomy/core-types";
 import { ECDSAOwnershipRegistryModule_v100 } from "@biconomy/common";
-import { ValidationModule } from "../src";
+import { AuthorizationModuleType } from "../src";
 
 const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
 const signer = provider.getSigner();
@@ -71,7 +71,7 @@ describe("BiconomySmartAccountV2 Module Abstraction", () => {
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
       signer,
-      module: ValidationModule.ECDSA_OWNERSHIP,
+      authorizationModuleType: AuthorizationModuleType.ECDSA_OWNERSHIP,
     });
 
     const address = await account.getAccountAddress();
@@ -90,7 +90,7 @@ describe("BiconomySmartAccountV2 Module Abstraction", () => {
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
       signer,
-      module: ValidationModule.MULTICHAIN,
+      authorizationModuleType: AuthorizationModuleType.MULTICHAIN,
     });
 
     const address = await account.getAccountAddress();
@@ -100,6 +100,34 @@ describe("BiconomySmartAccountV2 Module Abstraction", () => {
 
     const module = account.activeValidationModule;
     console.log(`ACTIVE MODULE - ${module.getAddress()}`);
+
+  }, 10000);
+
+  it("Should fail to create SESSION due to no localStorage", async () => {
+
+    const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
+      chainId: ChainId.GANACHE,
+      rpcUrl: "http://127.0.0.1:8545",
+      entryPointAddress: entryPoint.address,
+      signer,
+      authorizationModuleType: AuthorizationModuleType.SESSION,
+    });
+
+    expect(account).rejects.toThrow("localStorage is not defined");
+
+  }, 10000);
+
+  it("Should fail to create BATCHED_SESSION_ROUTER due to no localStorage", async () => {
+
+    const account = BiconomySmartAccountV2.create({
+      chainId: ChainId.GANACHE,
+      rpcUrl: "http://127.0.0.1:8545",
+      entryPointAddress: entryPoint.address,
+      signer,
+      authorizationModuleType: AuthorizationModuleType.BATCHED_SESSION_ROUTER,
+    });
+
+    expect(account).rejects.toThrow("localStorage is not defined");
 
   }, 10000);
 });
