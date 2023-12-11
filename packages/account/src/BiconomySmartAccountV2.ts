@@ -23,7 +23,15 @@ import {
   QueryParamsForAddressResolver,
   AuthorizationModuleType,
 } from "./utils/Types";
-import { BaseValidationModule, BatchedSessionRouterModule, ECDSAOwnershipValidationModule, ModuleInfo, MultiChainValidationModule, SendUserOpParams, SessionKeyManagerModule } from "@biconomy/modules";
+import {
+  BaseValidationModule,
+  BatchedSessionRouterModule,
+  ECDSAOwnershipValidationModule,
+  ModuleInfo,
+  MultiChainValidationModule,
+  SendUserOpParams,
+  SessionKeyManagerModule,
+} from "@biconomy/modules";
 import { UserOperation, Transaction } from "@biconomy/core-types";
 import NodeClient from "@biconomy/node-client";
 import INodeClient from "@biconomy/node-client";
@@ -112,7 +120,10 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     if (biconomySmartAccountConfig.defaultValidationModule) {
       instance.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
     } else if (biconomySmartAccountConfig.authorizationModuleType) {
-      instance.defaultValidationModule = await instance.checkAndCreateModule(biconomySmartAccountConfig.signer, biconomySmartAccountConfig.authorizationModuleType);
+      instance.defaultValidationModule = await instance.checkAndCreateModule(
+        biconomySmartAccountConfig.signer,
+        biconomySmartAccountConfig.authorizationModuleType,
+      );
     } else {
       instance.defaultValidationModule = await ECDSAOwnershipValidationModule.create({
         signer: biconomySmartAccountConfig.signer,
@@ -139,14 +150,13 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     return instance;
   }
 
-
   /**
    * Checks and creates an authorization module based on the provided authorization module type.
    *
    * @param {Signer} signer - The signer object used for module creation.
    * @param {AuthorizationModuleType} authorizationModuleType - The type of authorization module to create.
    * @returns {Promise<BaseValidationModule>} A promise that resolves to the created authorization module.
-  */
+   */
   async checkAndCreateModule(signer: Signer, authorizationModuleType: AuthorizationModuleType): Promise<BaseValidationModule> {
     switch (authorizationModuleType) {
       case AuthorizationModuleType.ECDSA_OWNERSHIP:
@@ -164,14 +174,14 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
         });
         this.getEnableModuleData(AuthorizationModuleType.SESSION);
         return SessionKeyManagerModule.create({
-          smartAccountAddress: await this.getCounterFactualAddress()
+          smartAccountAddress: await this.getCounterFactualAddress(),
         });
       case AuthorizationModuleType.BATCHED_SESSION_ROUTER:
         this.defaultValidationModule = await ECDSAOwnershipValidationModule.create({
           signer: signer,
         });
         return BatchedSessionRouterModule.create({
-          smartAccountAddress: await this.getCounterFactualAddress()
+          smartAccountAddress: await this.getCounterFactualAddress(),
         });
     }
   }

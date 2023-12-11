@@ -105,7 +105,7 @@ describe("BiconomySmartAccountV2 Module Abstraction", () => {
 
   it("Should fail to create SESSION due to no localStorage", async () => {
 
-    const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
+    const account = BiconomySmartAccountV2.create({
       chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
