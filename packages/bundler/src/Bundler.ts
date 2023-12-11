@@ -96,7 +96,7 @@ export class Bundler implements IBundler {
     const userOpGasResponse = response.result;
     for (const key in userOpGasResponse) {
       if (key === "maxFeePerGas" || key === "maxPriorityFeePerGas") continue;
-      if (!userOpGasResponse[key as keyof UserOpGasResponse]) {
+      if (userOpGasResponse[key as keyof UserOpGasResponse] === undefined || userOpGasResponse[key as keyof UserOpGasResponse] === null) {
         throw new Error(`Got undefined ${key} from bundler`);
       }
     }
