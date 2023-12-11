@@ -64,7 +64,7 @@ export class Bundler implements IBundler {
       ...bundlerConfig.userOpWaitForTxHashMaxDurationIntervals,
     };
 
-    if(!bundlerConfig.entryPointAddress) {
+    if (!bundlerConfig.entryPointAddress) {
       this.bundlerConfig.entryPointAddress = DEFAULT_ENTRYPOINT_ADDRESS;
     } else {
       this.bundlerConfig.entryPointAddress = bundlerConfig.entryPointAddress;
