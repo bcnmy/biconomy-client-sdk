@@ -47,9 +47,12 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     this.overheads = _smartAccountConfig.overheads;
     this.entryPointAddress = _smartAccountConfig.entryPointAddress ?? DEFAULT_ENTRYPOINT_ADDRESS;
     this.accountAddress = _smartAccountConfig.accountAddress;
-    this.paymaster = _smartAccountConfig.paymaster;
     this.bundler = _smartAccountConfig.bundler;
     this.chainId = _smartAccountConfig.chainId;
+
+    if (_smartAccountConfig.paymaster) {
+      this.paymaster = _smartAccountConfig.paymaster;
+    }
 
     this.provider = _smartAccountConfig.provider ?? new JsonRpcProvider(RPC_PROVIDER_URLS[this.chainId]);
 
