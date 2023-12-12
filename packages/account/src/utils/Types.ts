@@ -50,14 +50,13 @@ export type SmartAccountConfig = {
  * - `MULTICHAIN`: Default module for multi-chain validation.
  * - `SESSION`: Default module for session validation.
  * - `BATCHED_SESSION_ROUTER`: Default module for batched session router validation.
- * -  For SESSION MODULE or BATCHED SESSION please provide the module with "defaultValidationModule" in the config
  * -  If you don't provide any module, ECDSA_OWNERSHIP will be used as default
  */
 export enum AuthorizationModuleType {
   ECDSA_OWNERSHIP = DEFAULT_ECDSA_OWNERSHIP_MODULE,
-  MULTICHAIN = DEFAULT_MULTICHAIN_MODULE,
-  SESSION = DEFAULT_SESSION_KEY_MANAGER_MODULE,
-  BATCHED_SESSION_ROUTER = DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
+  // MULTICHAIN = DEFAULT_MULTICHAIN_MODULE,
+  // SESSION = DEFAULT_SESSION_KEY_MANAGER_MODULE,
+  // BATCHED_SESSION_ROUTER = DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
 }
 
 export interface BaseSmartAccountConfig {

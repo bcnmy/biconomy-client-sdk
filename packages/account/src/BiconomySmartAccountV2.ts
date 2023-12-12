@@ -1,5 +1,5 @@
 import { JsonRpcProvider } from "@ethersproject/providers";
-import { ethers, BigNumberish, BytesLike, BigNumber, Signer } from "ethers";
+import { ethers, BigNumberish, BytesLike, BigNumber } from "ethers";
 import { BaseSmartAccount } from "./BaseSmartAccount";
 import { Bytes, getCreate2Address, hexConcat, keccak256, solidityKeccak256 } from "ethers/lib/utils";
 import {
@@ -25,12 +25,9 @@ import {
 } from "./utils/Types";
 import {
   BaseValidationModule,
-  BatchedSessionRouterModule,
   ECDSAOwnershipValidationModule,
   ModuleInfo,
-  MultiChainValidationModule,
   SendUserOpParams,
-  SessionKeyManagerModule,
 } from "@biconomy/modules";
 import { UserOperation, Transaction } from "@biconomy/core-types";
 import NodeClient from "@biconomy/node-client";
@@ -119,11 +116,6 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     // Note: if no module is provided, we will use ECDSA_OWNERSHIP as default
     if (biconomySmartAccountConfig.defaultValidationModule) {
       instance.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
-    } else if (biconomySmartAccountConfig.authorizationModuleType) {
-      instance.defaultValidationModule = await instance.checkAndCreateModule(
-        biconomySmartAccountConfig.signer,
-        biconomySmartAccountConfig.authorizationModuleType,
-      );
     } else {
       instance.defaultValidationModule = await ECDSAOwnershipValidationModule.create({
         signer: biconomySmartAccountConfig.signer,
@@ -148,42 +140,6 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     await instance.init();
 
     return instance;
-  }
-
-  /**
-   * Checks and creates an authorization module based on the provided authorization module type.
-   *
-   * @param {Signer} signer - The signer object used for module creation.
-   * @param {AuthorizationModuleType} authorizationModuleType - The type of authorization module to create.
-   * @returns {Promise<BaseValidationModule>} A promise that resolves to the created authorization module.
-   */
-  async checkAndCreateModule(signer: Signer, authorizationModuleType: AuthorizationModuleType): Promise<BaseValidationModule> {
-    switch (authorizationModuleType) {
-      case AuthorizationModuleType.ECDSA_OWNERSHIP:
-        return ECDSAOwnershipValidationModule.create({
-          signer,
-          moduleAddress: authorizationModuleType,
-        });
-      case AuthorizationModuleType.MULTICHAIN:
-        return MultiChainValidationModule.create({
-          signer,
-        });
-      case AuthorizationModuleType.SESSION:
-        this.defaultValidationModule = await ECDSAOwnershipValidationModule.create({
-          signer: signer,
-        });
-        this.getEnableModuleData(AuthorizationModuleType.SESSION);
-        return SessionKeyManagerModule.create({
-          smartAccountAddress: await this.getCounterFactualAddress(),
-        });
-      case AuthorizationModuleType.BATCHED_SESSION_ROUTER:
-        this.defaultValidationModule = await ECDSAOwnershipValidationModule.create({
-          signer: signer,
-        });
-        return BatchedSessionRouterModule.create({
-          smartAccountAddress: await this.getCounterFactualAddress(),
-        });
-    }
   }
 
   async _getAccountContract(): Promise<SmartAccount_v200> {
