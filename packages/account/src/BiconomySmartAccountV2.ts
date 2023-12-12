@@ -21,14 +21,8 @@ import {
   NonceOptions,
   SmartAccountInfo,
   QueryParamsForAddressResolver,
-  AuthorizationModuleType,
 } from "./utils/Types";
-import {
-  BaseValidationModule,
-  ECDSAOwnershipValidationModule,
-  ModuleInfo,
-  SendUserOpParams,
-} from "@biconomy/modules";
+import { BaseValidationModule, ECDSAOwnershipValidationModule, ModuleInfo, SendUserOpParams } from "@biconomy/modules";
 import { UserOperation, Transaction } from "@biconomy/core-types";
 import NodeClient from "@biconomy/node-client";
 import INodeClient from "@biconomy/node-client";

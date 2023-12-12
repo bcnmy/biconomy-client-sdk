@@ -2,14 +2,7 @@ import { Signer } from "ethers";
 import { BigNumberish, BigNumber } from "ethers";
 import { IBundler } from "@biconomy/bundler";
 import { IPaymaster, PaymasterFeeQuote, SponsorUserOperationDto } from "@biconomy/paymaster";
-import {
-  BaseValidationModule,
-  DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
-  DEFAULT_ECDSA_OWNERSHIP_MODULE,
-  DEFAULT_MULTICHAIN_MODULE,
-  DEFAULT_SESSION_KEY_MANAGER_MODULE,
-  ModuleInfo,
-} from "@biconomy/modules";
+import { BaseValidationModule, DEFAULT_ECDSA_OWNERSHIP_MODULE, ModuleInfo } from "@biconomy/modules";
 import { Provider } from "@ethersproject/providers";
 import { GasOverheads } from "./Preverificaiton";
 import { UserOperation, ChainId } from "@biconomy/core-types";
