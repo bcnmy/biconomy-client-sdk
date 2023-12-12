@@ -41,6 +41,9 @@ node_modules/
 .vscode
 .vscode-test
 
+# Webstorm
+.idea
+
 # yarn v2
 .yarn/cache
 .yarn/unplugged
