@@ -13,7 +13,7 @@ import {
 import { BiconomySmartAccountV2 } from "../src/BiconomySmartAccountV2";
 import { ChainId } from "@biconomy/core-types";
 import { ECDSAOwnershipRegistryModule_v100 } from "@biconomy/common";
-import { AuthorizationModuleType } from "../src";
+import { ECDSAOwnershipValidationModule } from "@biconomy/modules";
 
 const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
 const signer = provider.getSigner();
@@ -46,12 +46,15 @@ describe("BiconomySmartAccountV2 Module Abstraction", () => {
   }, 30000);
 
   it("Create smart account with default module (ECDSA)", async () => {
-
     const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
       chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
       signer,
+      /*defaultValidationModule: await ECDSAOwnershipValidationModule.create({
+        signer: signer,
+        moduleAddress: ecdsaModule.address,
+      }),*/
     });
 
     const address = await account.getAccountAddress();
@@ -61,17 +64,14 @@ describe("BiconomySmartAccountV2 Module Abstraction", () => {
 
     const module = account.activeValidationModule;
     console.log(`ACTIVE MODULE - ${module.getAddress()}`);
-
   }, 10000);
 
   it("Create smart account with ECDSA module", async () => {
-
     const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
       chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
       signer,
-      authorizationModuleType: AuthorizationModuleType.ECDSA_OWNERSHIP,
     });
 
     const address = await account.getAccountAddress();

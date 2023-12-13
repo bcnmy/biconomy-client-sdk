@@ -112,7 +112,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       instance.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
     } else {
       instance.defaultValidationModule = await ECDSAOwnershipValidationModule.create({
-        signer: biconomySmartAccountConfig.signer,
+        signer: biconomySmartAccountConfig.signer!,
       });
     }
 
