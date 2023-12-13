@@ -52,7 +52,7 @@ export type BaseSmartAccountConfig = {
   // owner?: Signer // can be in child classes
   index?: number;
   provider?: Provider;
-  entryPointAddress: string;
+  entryPointAddress?: string;
   accountAddress?: string;
   overheads?: Partial<GasOverheads>;
   paymaster?: IPaymaster; // PaymasterAPI
@@ -95,6 +95,7 @@ export type BiconomySmartAccountV2Config = BaseSmartAccountConfig &
     senderAddress?: string;
     implementationAddress?: string;
     defaultFallbackHandler?: string;
+    biconomyPaymasterApiKey?: string;
     rpcUrl?: string;
     nodeClientUrl?: string;
     activeValidationModule?: BaseValidationModule;
