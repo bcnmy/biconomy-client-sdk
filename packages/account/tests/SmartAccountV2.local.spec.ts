@@ -1,4 +1,4 @@
-import { EntryPoint, EntryPoint__factory, UserOperationStruct, SimpleAccountFactory__factory } from "@account-abstraction/contracts";
+import { EntryPoint, EntryPoint__factory } from "@account-abstraction/contracts";
 import { VoidSigner, Wallet, ethers } from "ethers";
 import { SampleRecipient, SampleRecipient__factory } from "@account-abstraction/utils/dist/src/types";
 
@@ -13,7 +13,7 @@ import {
 
 import { BiconomySmartAccountV2 } from "../src/BiconomySmartAccountV2";
 import { ChainId, UserOperation } from "@biconomy/core-types";
-import { DEFAULT_ECDSA_OWNERSHIP_MODULE, ECDSAOwnershipValidationModule } from "@biconomy/modules";
+import { ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import { MultiChainValidationModule } from "@biconomy/modules";
 import { BaseValidationModule } from "@biconomy/modules";
 import { ECDSAOwnershipRegistryModule_v100 } from "@biconomy/common";
@@ -77,6 +77,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       defaultFallbackHandler: await accountFactory.minimalHandler(),
       defaultValidationModule: module1,
       activeValidationModule: module1,
+      signer
     });
 
     // console.log('account api provider ', accountAPI.provider)
@@ -158,6 +159,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       defaultFallbackHandler: await accountFactory.minimalHandler(),
       defaultValidationModule: module2,
       activeValidationModule: module2,
+      signer
     });
 
     // TODO
@@ -350,6 +352,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       defaultFallbackHandler: await accountFactory.minimalHandler(),
       defaultValidationModule: newmodule,
       activeValidationModule: newmodule,
+      signer
     });
 
     const address = await accountAPI2.getAccountAddress();
