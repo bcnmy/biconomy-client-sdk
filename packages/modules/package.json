@@ -34,7 +34,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@alchemy/aa-core": "^1.2.0",
+    "@alchemy/aa-core": "^1.2.2",
     "@biconomy/common": "^3.1.1",
     "@biconomy/core-types": "^3.1.1",
     "@biconomy/node-client": "^3.1.1",

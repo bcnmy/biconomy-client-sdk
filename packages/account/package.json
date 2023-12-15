@@ -39,7 +39,7 @@
   "dependencies": {
     "@account-abstraction/contracts": "^0.6.0",
     "@account-abstraction/utils": "^0.4.0",
-    "@alchemy/aa-core": "^1.2.0",
+    "@alchemy/aa-core": "^1.2.2",
     "@biconomy-devx/account-contracts-v2": "npm:@biconomy-devx/account-contracts-v2@^1.0.0",
     "@biconomy/bundler": "^3.1.1",
     "@biconomy/common": "^3.1.1",
