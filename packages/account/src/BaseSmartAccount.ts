@@ -4,7 +4,7 @@ import { IBaseSmartAccount } from "./interfaces/IBaseSmartAccount";
 import { defaultAbiCoder, keccak256 } from "ethers/lib/utils";
 import { UserOperation, ChainId } from "@biconomy/core-types";
 import { calcPreVerificationGas, DefaultGasLimits } from "./utils/Preverificaiton";
-import { NotPromise, packUserOp, Logger, RPC_PROVIDER_URLS } from "@biconomy/common";
+import { NotPromise, packUserOp, Logger, RPC_PROVIDER_URLS, isNullOrUndefined } from "@biconomy/common";
 import { IBundler, UserOpResponse } from "@biconomy/bundler";
 import { IPaymaster, PaymasterAndDataResponse } from "@biconomy/paymaster";
 import { SendUserOpParams } from "@biconomy/modules";
@@ -47,9 +47,12 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     this.overheads = _smartAccountConfig.overheads;
     this.entryPointAddress = _smartAccountConfig.entryPointAddress ?? DEFAULT_ENTRYPOINT_ADDRESS;
     this.accountAddress = _smartAccountConfig.accountAddress;
-    this.paymaster = _smartAccountConfig.paymaster;
     this.bundler = _smartAccountConfig.bundler;
     this.chainId = _smartAccountConfig.chainId;
+
+    if (_smartAccountConfig.paymaster) {
+      this.paymaster = _smartAccountConfig.paymaster;
+    }
 
     this.provider = _smartAccountConfig.provider ?? new JsonRpcProvider(RPC_PROVIDER_URLS[this.chainId]);
 
@@ -72,7 +75,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
 
   validateUserOp(userOp: Partial<UserOperation>, requiredFields: UserOperationKey[]): boolean {
     for (const field of requiredFields) {
-      if (!userOp[field]) {
+      if (isNullOrUndefined(userOp[field])) {
         throw new Error(`${String(field)} is missing in the UserOp`);
       }
     }
@@ -254,7 +257,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
 
     if (skipBundlerCall) {
       if (this.paymaster && this.paymaster instanceof BiconomyPaymaster) {
-        if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas) {
+        if (isNullOrUndefined(userOp.maxFeePerGas) || isNullOrUndefined(userOp.maxPriorityFeePerGas)) {
           throw new Error("maxFeePerGas and maxPriorityFeePerGas are required for skipBundlerCall mode");
         }
         if (paymasterServiceData?.mode === PaymasterMode.SPONSORED) {
@@ -262,6 +265,9 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
           const { callGasLimit, verificationGasLimit, preVerificationGas, paymasterAndData } = await (
             this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
           ).getPaymasterAndData(userOp, paymasterServiceData);
+          if (paymasterAndData === "0x" && (callGasLimit === undefined || verificationGasLimit === undefined || preVerificationGas === undefined)) {
+            throw new Error("Since you intend to use sponsorship paymaster, please check and make sure policies are set on the dashboard");
+          }
           finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
           finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
           finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
@@ -287,7 +293,11 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
       const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas } =
         await this.bundler.estimateUserOpGas(userOp);
       // if neither user sent gas fee nor the bundler, estimate gas from provider
-      if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas && (!maxFeePerGas || !maxPriorityFeePerGas)) {
+      if (
+        isNullOrUndefined(userOp.maxFeePerGas) &&
+        isNullOrUndefined(userOp.maxPriorityFeePerGas) &&
+        (isNullOrUndefined(maxFeePerGas) || isNullOrUndefined(maxPriorityFeePerGas))
+      ) {
         const feeData = await this.provider.getFeeData();
         finalUserOp.maxFeePerGas = feeData.maxFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice());
         finalUserOp.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? feeData.gasPrice ?? (await this.provider.getGasPrice());

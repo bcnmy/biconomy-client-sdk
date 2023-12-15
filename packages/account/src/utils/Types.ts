@@ -54,7 +54,7 @@ export interface BaseSmartAccountConfig {
   // owner?: Signer // can be in child classes
   index?: number;
   provider?: Provider;
-  entryPointAddress: string;
+  entryPointAddress?: string;
   accountAddress?: string;
   overheads?: Partial<GasOverheads>;
   paymaster?: IPaymaster; // PaymasterAPI
@@ -83,6 +83,7 @@ export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
   senderAddress?: string;
   implementationAddress?: string;
   defaultFallbackHandler?: string;
+  biconomyPaymasterApiKey?: string;
   rpcUrl?: string; // as good as Provider
   signer: Signer | WalletClientSigner;
   nodeClientUrl?: string; // very specific to Biconomy

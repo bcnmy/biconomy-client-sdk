@@ -24,6 +24,7 @@ import {
   UserOpWaitForTxHashIntervals,
   UserOpWaitForTxHashMaxDurationIntervals,
   UserOpReceiptMaxDurationIntervals,
+  DEFAULT_ENTRYPOINT_ADDRESS,
 } from "./utils/Constants";
 import { JsonRpcProvider } from "@ethersproject/providers";
 
@@ -62,6 +63,12 @@ export class Bundler implements IBundler {
       ...UserOpWaitForTxHashMaxDurationIntervals,
       ...bundlerConfig.userOpWaitForTxHashMaxDurationIntervals,
     };
+
+    if (!bundlerConfig.entryPointAddress) {
+      this.bundlerConfig.entryPointAddress = DEFAULT_ENTRYPOINT_ADDRESS;
+    } else {
+      this.bundlerConfig.entryPointAddress = bundlerConfig.entryPointAddress;
+    }
   }
 
   private getBundlerUrl(): string {
@@ -96,7 +103,7 @@ export class Bundler implements IBundler {
     const userOpGasResponse = response.result;
     for (const key in userOpGasResponse) {
       if (key === "maxFeePerGas" || key === "maxPriorityFeePerGas") continue;
-      if (!userOpGasResponse[key as keyof UserOpGasResponse]) {
+      if (userOpGasResponse[key as keyof UserOpGasResponse] === undefined || userOpGasResponse[key as keyof UserOpGasResponse] === null) {
         throw new Error(`Got undefined ${key} from bundler`);
       }
     }
