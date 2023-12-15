@@ -1,5 +1,5 @@
-import { EntryPoint, EntryPoint__factory, UserOperationStruct, SimpleAccountFactory__factory } from "@account-abstraction/contracts";
-import { Signer, VoidSigner, Wallet, ethers } from "ethers";
+import { EntryPoint, EntryPoint__factory } from "@account-abstraction/contracts";
+import { VoidSigner, Wallet, ethers } from "ethers";
 import { SampleRecipient, SampleRecipient__factory } from "@account-abstraction/utils/dist/src/types";
 
 import {
@@ -13,16 +13,14 @@ import {
 
 import { BiconomySmartAccountV2 } from "../src/BiconomySmartAccountV2";
 import { ChainId, UserOperation } from "@biconomy/core-types";
-import { DEFAULT_ECDSA_OWNERSHIP_MODULE, DEFAULT_ENTRYPOINT_ADDRESS, ECDSAOwnershipValidationModule } from "@biconomy/modules";
+import { DEFAULT_ECDSA_OWNERSHIP_MODULE ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import { MultiChainValidationModule } from "@biconomy/modules";
 import { BaseValidationModule } from "@biconomy/modules";
 import { ECDSAOwnershipRegistryModule_v100 } from "@biconomy/common";
 import { MultiChainValidationModule_v100 } from "@biconomy/common";
-import { privateKeyToAccount } from "viem/accounts";
 import { createWalletClient, http } from "viem";
 import { localhost, polygonMumbai } from "viem/chains";
 import { SmartAccountSigner, WalletClientSigner } from "@alchemy/aa-core";
-import { Bundler, IBundler } from "@biconomy/bundler";
 import { ValidationModule } from "../src";
 
 const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
@@ -565,7 +563,6 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
       signer,
-      module: ValidationModule.ECDSA_OWNERSHIP,
     });
 
     const address = await account.getAccountAddress();
@@ -578,26 +575,6 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     console.log(`ACTIVE MODULE - ${module.getAddress()}`);
 
     expect(module.getAddress()).toBe(DEFAULT_ECDSA_OWNERSHIP_MODULE);
-  }, 10000);
-
-  it("Create smart account with multichain module without creating instance", async () => {
-
-    const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
-      chainId: ChainId.GANACHE,
-      rpcUrl: "http://127.0.0.1:8545",
-      entryPointAddress: entryPoint.address,
-      signer,
-      module: ValidationModule.MULTICHAIN,
-    });
-
-    const address = await account.getAccountAddress();
-    console.log("Module Abstraction Test - Account address ", address);
-
-    expect(address).toBe(account.accountAddress);
-
-    const module = account.activeValidationModule;
-    console.log(`ACTIVE MODULE - ${module.getAddress()}`);
-
   }, 10000);
 
   it("Create smart account with default module using WalletClientSigner as signer", async () => {
