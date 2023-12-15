@@ -85,7 +85,7 @@ type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyo
 type ConditionalValidationProps = RequireAtLeastOne<
   {
     defaultValidationModule: BaseValidationModule;
-    signer: Signer;
+    signer: Signer | WalletClientSigner;
   },
   "defaultValidationModule" | "signer"
 >;
