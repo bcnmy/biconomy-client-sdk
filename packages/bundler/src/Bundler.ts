@@ -1,5 +1,4 @@
 import { IBundler } from "./interfaces/IBundler";
-import { UserOperation, ChainId } from "@biconomy/core-types";
 import {
   GetUserOperationResponse,
   GetUserOpByHashResponse,
@@ -19,6 +18,7 @@ import { deepHexlify, sendRequest, getTimestampInSeconds, HttpMethod, Logger, RP
 import { transformUserOP } from "./utils/HelperFunction";
 import { UserOpReceiptIntervals } from "./utils/Constants";
 import { JsonRpcProvider } from "@ethersproject/providers";
+import { type UserOperationStruct } from "@alchemy/aa-core";
 
 /**
  * This class implements IBundler interface.
@@ -27,7 +27,7 @@ import { JsonRpcProvider } from "@ethersproject/providers";
  */
 export class Bundler implements IBundler {
   // eslint-disable-next-line no-unused-vars
-  UserOpReceiptIntervals: { [key in ChainId]?: number };
+  UserOpReceiptIntervals: { [key in number]?: number };
 
   constructor(readonly bundlerConfig: Bundlerconfig) {
     this.UserOpReceiptIntervals = {
@@ -46,7 +46,7 @@ export class Bundler implements IBundler {
    * @description This function will fetch gasPrices from bundler
    * @returns Promise<UserOpGasPricesResponse>
    */
-  async estimateUserOpGas(userOp: UserOperation): Promise<UserOpGasResponse> {
+  async estimateUserOpGas(userOp: UserOperationStruct): Promise<UserOpGasResponse> {
     // expected dummySig and possibly dummmy paymasterAndData should be provided by the caller
     // bundler doesn't know account and paymaster implementation
     userOp = transformUserOP(userOp);
@@ -81,7 +81,7 @@ export class Bundler implements IBundler {
    * @description This function will send signed userOp to bundler to get mined on chain
    * @returns Promise<UserOpResponse>
    */
-  async sendUserOp(userOp: UserOperation, simulationParam?: SendUserOpOptions): Promise<UserOpResponse> {
+  async sendUserOp(userOp: UserOperationStruct, simulationParam?: SendUserOpOptions): Promise<UserOpResponse> {
     const chainId = this.bundlerConfig.chainId;
     // transformUserOP will convert all bigNumber values to string
     userOp = transformUserOP(userOp);

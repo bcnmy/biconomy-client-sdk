@@ -1,6 +1,6 @@
 import { Logger, sendRequest, HttpMethod, getTimestampInSeconds } from "@biconomy/common";
 import { resolveProperties } from "@ethersproject/properties";
-import { UserOperation, Transaction } from "@biconomy/core-types";
+import { type UserOperationStruct } from "@alchemy/aa-core";
 import {
   PaymasterFeeQuote,
   PaymasterConfig,
@@ -11,6 +11,7 @@ import {
   BiconomyTokenPaymasterRequest,
   PaymasterMode,
   PaymasterAndDataResponse,
+  Transaction,
 } from "./utils/Types";
 import { BigNumberish, BigNumber, ethers } from "ethers";
 import { ERC20_ABI } from "./constants";
@@ -39,7 +40,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
    * @param userOp The partial user operation.
    * @returns A Promise that resolves to the prepared partial user operation.
    */
-  private async prepareUserOperation(userOp: Partial<UserOperation>): Promise<Partial<UserOperation>> {
+  private async prepareUserOperation(userOp: Partial<UserOperationStruct>): Promise<Partial<UserOperationStruct>> {
     userOp = await resolveProperties(userOp);
     if (userOp.nonce !== null && userOp.nonce !== undefined) {
       userOp.nonce = BigNumber.from(userOp.nonce).toHexString() as `0x${string}`;
@@ -114,7 +115,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
       // const value: BigNumberish | undefined = zeroValue as any;
       return {
         to: feeTokenAddress,
-        value: ethers.BigNumber.from(0) as any,
+        value: ethers.BigNumber.from(0).toHexString() as `0x${string}`,
         data: data,
       };
     } catch (error) {
@@ -129,7 +130,10 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
    * @param paymasterServiceData The paymaster service data containing token information and sponsorship details. Devs can send just the preferred token or array of token addresses in case of mode "ERC20" and sartAccountInfo in case of "sponsored" mode.
    * @returns A Promise that resolves to the fee quotes or data response.
    */
-  async getPaymasterFeeQuotesOrData(userOp: Partial<UserOperation>, paymasterServiceData: FeeQuotesOrDataDto): Promise<FeeQuotesOrDataResponse> {
+  async getPaymasterFeeQuotesOrData(
+    userOp: Partial<UserOperationStruct>,
+    paymasterServiceData: FeeQuotesOrDataDto,
+  ): Promise<FeeQuotesOrDataResponse> {
     try {
       userOp = await this.prepareUserOperation(userOp);
     } catch (err) {
@@ -255,7 +259,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
    * @returns A Promise that resolves to the paymaster and data string.
    */
   async getPaymasterAndData(
-    userOp: Partial<UserOperation>,
+    userOp: Partial<UserOperationStruct>,
     paymasterServiceData?: SponsorUserOperationDto, // mode is necessary. partial context of token paymaster or verifying
   ): Promise<PaymasterAndDataResponse> {
     try {
@@ -349,10 +353,6 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
         Logger.log(`Strict mode is ${this.paymasterConfig.strictMode}. sending paymasterAndData 0x`);
         return {
           paymasterAndData: "0x",
-          // send below values same as userOp gasLimits
-          preVerificationGas: userOp.preVerificationGas,
-          verificationGasLimit: userOp.verificationGasLimit,
-          callGasLimit: userOp.callGasLimit,
         };
       }
       // Logger.error("Failed to fetch paymasterAndData - reason: ", JSON.stringify(error));
@@ -368,7 +368,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
    * @returns paymasterAndData with valid length but mock signature
    */
   async getDummyPaymasterAndData(
-    userOp: Partial<UserOperation>,
+    userOp: Partial<UserOperationStruct>,
     paymasterServiceData?: SponsorUserOperationDto, // mode is necessary. partial context of token paymaster or verifying
   ): Promise<string> {
     Logger.log("userOp is ", userOp);

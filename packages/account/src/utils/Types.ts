@@ -5,7 +5,6 @@ import { IBundler } from "@biconomy/bundler";
 import { IPaymaster, PaymasterFeeQuote, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { Provider } from "@ethersproject/providers";
-import { GasOverheads } from "./Preverificaiton";
 import { Hex } from "viem";
 
 export type EntryPointAddresses = {
@@ -36,6 +35,16 @@ export type SmartAccountConfig = {
   entryPointAddress: string;
   bundler?: IBundler;
 };
+
+export interface GasOverheads {
+  fixed: number;
+  perUserOp: number;
+  perUserOpWord: number;
+  zeroByte: number;
+  nonZeroByte: number;
+  bundleSize: number;
+  sigSize: number;
+}
 
 export interface BaseSmartAccountConfig {
   // owner?: Signer // can be in child classes
@@ -134,4 +143,10 @@ export interface TransactionDetailsForUserOp {
 export type CounterFactualAddressParam = {
   index?: number;
   validationModule?: BaseValidationModule;
+};
+
+export type Transaction = {
+  to: string;
+  value: BigNumberish;
+  data: string;
 };

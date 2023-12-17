@@ -1,4 +1,4 @@
-export type BigNumberish = string | bigint | number;
+import { BigNumberish } from "@alchemy/aa-core";
 export type Hex = `0x${string}`;
 
 export type PaymasterServiceErrorResponse = {
@@ -129,4 +129,10 @@ export type UserOpGasResponse = {
   maxFeePerGas: string;
   verificationGasLimit: string;
   callGasLimit: string;
+};
+
+export type Transaction = {
+  to: string;
+  value: BigNumberish;
+  data: string;
 };

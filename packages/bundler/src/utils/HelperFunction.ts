@@ -1,10 +1,10 @@
-import { UserOperation } from "@biconomy/core-types";
+import { type UserOperationStruct } from "@alchemy/aa-core";
 import { BigNumber } from "ethers";
 
-export const transformUserOP = (userOp: UserOperation): UserOperation => {
+export const transformUserOP = (userOp: UserOperationStruct): UserOperationStruct => {
   try {
     const userOperation = { ...userOp };
-    const keys: (keyof UserOperation)[] = [
+    const keys: (keyof UserOperationStruct)[] = [
       "nonce",
       "callGasLimit",
       "verificationGasLimit",

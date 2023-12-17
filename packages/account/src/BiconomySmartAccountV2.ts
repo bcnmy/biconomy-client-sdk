@@ -19,11 +19,11 @@ import {
   getContract,
   decodeFunctionData,
 } from "viem";
-import { BaseSmartContractAccount, getChain, type BigNumberish } from "@alchemy/aa-core";
-import { Logger, RPC_PROVIDER_URLS, packUserOp } from "@biconomy/common";
+import { BaseSmartContractAccount, getChain, type BigNumberish, type UserOperationStruct } from "@alchemy/aa-core";
+import { packUserOp } from "./utils/Utils";
+import { Logger, RPC_PROVIDER_URLS } from "@biconomy/common";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams } from "@biconomy/modules";
-import { UserOperation, Transaction } from "@biconomy/core-types";
-import { IHybridPaymaster, IPaymaster, BiconomyPaymaster, SponsorUserOperationDto, PaymasterMode } from "@biconomy/paymaster";
+import { IHybridPaymaster, IPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { IBundler, UserOpResponse } from "@biconomy/bundler";
 import {
   BiconomyTokenPaymasterRequest,
@@ -32,6 +32,7 @@ import {
   BuildUserOpOptions,
   Overrides,
   NonceOptions,
+  Transaction,
 } from "./utils/Types";
 import {
   BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION,
@@ -43,7 +44,7 @@ import {
 import { BiconomyFactoryAbi } from "./abi/Factory";
 import { BiconomyAccountAbi } from "./abi/SmartAccount";
 
-type UserOperationKey = keyof UserOperation;
+type UserOperationKey = keyof UserOperationStruct;
 
 export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   private SENTINEL_MODULE = "0x0000000000000000000000000000000000000001";
@@ -255,7 +256,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return "0x";
   }
 
-  validateUserOp(userOp: Partial<UserOperation>, requiredFields: UserOperationKey[]): boolean {
+  validateUserOp(userOp: Partial<UserOperationStruct>, requiredFields: UserOperationKey[]): boolean {
     for (const field of requiredFields) {
       if (!userOp[field]) {
         throw new Error(`${String(field)} is missing in the UserOp`);
@@ -264,7 +265,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return true;
   }
 
-  async signUserOp(userOp: Partial<UserOperation>, params?: SendUserOpParams): Promise<UserOperation> {
+  async signUserOp(userOp: Partial<UserOperationStruct>, params?: SendUserOpParams): Promise<UserOperationStruct> {
     this.isActiveValidationModuleDefined();
     const requiredFields: UserOperationKey[] = [
       "sender",
@@ -286,7 +287,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const signatureWithModuleAddress = this.getSignatureWithModuleAddress(moduleSig, this.activeValidationModule.getAddress() as Hex);
 
     userOp.signature = signatureWithModuleAddress;
-    return userOp as UserOperation;
+    return userOp as UserOperationStruct;
   }
 
   getSignatureWithModuleAddress(moduleSignature: Hex, moduleAddress?: Hex): Hex {
@@ -301,7 +302,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @description This function call will take 'unsignedUserOp' as an input, sign it with the owner key, and send it to the bundler.
    * @returns Promise<UserOpResponse>
    */
-  async sendUserOp(userOp: Partial<UserOperation>, params?: ModuleInfo): Promise<UserOpResponse> {
+  async sendUserOp(userOp: Partial<UserOperationStruct>, params?: ModuleInfo): Promise<UserOpResponse> {
     Logger.log("userOp received in base account ", userOp);
     delete userOp.signature;
     const userOperation = await this.signUserOp(userOp, params);
@@ -315,7 +316,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @description This function call will take 'signedUserOp' as input and send it to the bundler
    * @returns
    */
-  async sendSignedUserOp(userOp: UserOperation): Promise<UserOpResponse> {
+  async sendSignedUserOp(userOp: UserOperationStruct): Promise<UserOpResponse> {
     const requiredFields: UserOperationKey[] = [
       "sender",
       "nonce",
@@ -337,86 +338,49 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return bundlerResponse;
   }
 
-  async getUserOpHash(userOp: Partial<UserOperation>): Promise<Hex> {
+  async getUserOpHash(userOp: Partial<UserOperationStruct>): Promise<Hex> {
     const userOpHash = keccak256(packUserOp(userOp, true) as Hex);
     const enc = encodeAbiParameters(parseAbiParameters("bytes32, address, uint256"), [userOpHash, this.entryPoint.address, BigInt(this.chainId)]);
     return keccak256(enc);
   }
 
-  // TODO // Should make this a Dto
-  async estimateUserOpGas(
-    userOp: Partial<UserOperation>,
-    overrides?: Overrides,
-    skipBundlerGasEstimation?: boolean,
-    paymasterServiceData?: SponsorUserOperationDto,
-  ): Promise<Partial<UserOperation>> {
+  async estimateUserOpGas(userOp: Partial<UserOperationStruct>): Promise<Partial<UserOperationStruct>> {
+    if (!this.bundler) throw new Error("Bundler is not provided");
     const requiredFields: UserOperationKey[] = ["sender", "nonce", "initCode", "callData"];
     this.validateUserOp(userOp, requiredFields);
 
     const finalUserOp = userOp;
-    const skipBundlerCall = skipBundlerGasEstimation ?? true;
-    // Override gas values in userOp if provided in overrides params
-    if (overrides) {
-      userOp = { ...userOp, ...overrides };
-    }
 
-    Logger.log("userOp in estimation", userOp);
-
-    if (skipBundlerCall) {
-      // Review: instead of checking mode it could be assumed or just pass gasless flag and use it
-      // make pmService data locally and pass the object with default values
-      if (this.paymaster && this.paymaster instanceof BiconomyPaymaster && paymasterServiceData?.mode === PaymasterMode.SPONSORED) {
-        if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas) {
-          throw new Error("maxFeePerGas and maxPriorityFeePerGas are required for skipBundlerCall mode");
-        }
-        // Making call to paymaster to get gas estimations for userOp
-        const { callGasLimit, verificationGasLimit, preVerificationGas, paymasterAndData } = await (
-          this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
-        ).getPaymasterAndData(userOp, paymasterServiceData);
-        finalUserOp.verificationGasLimit = toHex(Number(verificationGasLimit)) ?? userOp.verificationGasLimit;
-        finalUserOp.callGasLimit = toHex(Number(callGasLimit)) ?? userOp.callGasLimit;
-        finalUserOp.preVerificationGas = toHex(Number(preVerificationGas)) ?? userOp.preVerificationGas;
-        finalUserOp.paymasterAndData = (paymasterAndData as Hex) ?? userOp.paymasterAndData;
+    // Making call to bundler to get gas estimations for userOp
+    const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas } =
+      await this.bundler.estimateUserOpGas(userOp);
+    // if neither user sent gas fee nor the bundler, estimate gas from provider
+    if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas && (!maxFeePerGas || !maxPriorityFeePerGas)) {
+      const feeData = await this.provider.estimateFeesPerGas();
+      if (feeData.maxFeePerGas?.toString()) {
+        finalUserOp.maxFeePerGas = ("0x" + feeData.maxFeePerGas.toString(16)) as Hex;
+      } else if (feeData.gasPrice?.toString()) {
+        finalUserOp.maxFeePerGas = ("0x" + feeData.gasPrice.toString(16)) as Hex;
       } else {
-        Logger.warn("Skipped paymaster call. If you are using paymasterAndData, generate data externally");
-        // finalUserOp = await this.calculateUserOpGasValues(userOp);
-        finalUserOp.paymasterAndData = "0x";
+        finalUserOp.maxFeePerGas = ("0x" + (await this.provider.getGasPrice()).toString(16)) as Hex;
+      }
+
+      if (feeData.maxPriorityFeePerGas?.toString()) {
+        finalUserOp.maxPriorityFeePerGas = ("0x" + feeData.maxPriorityFeePerGas?.toString()) as Hex;
+      } else if (feeData.gasPrice?.toString()) {
+        finalUserOp.maxPriorityFeePerGas = toHex(Number(feeData.gasPrice?.toString()));
+      } else {
+        finalUserOp.maxPriorityFeePerGas = ("0x" + (await this.provider.getGasPrice()).toString(16)) as Hex;
       }
     } else {
-      if (!this.bundler) throw new Error("Bundler is not provided");
-      // TODO: is this still needed to delete?
-      delete userOp.maxFeePerGas;
-      delete userOp.maxPriorityFeePerGas;
-      // Making call to bundler to get gas estimations for userOp
-      const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas } =
-        await this.bundler.estimateUserOpGas(userOp);
-      // if neither user sent gas fee nor the bundler, estimate gas from provider
-      if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas && (!maxFeePerGas || !maxPriorityFeePerGas)) {
-        const feeData = await this.provider.estimateFeesPerGas();
-        if (feeData.maxFeePerGas?.toString()) {
-          finalUserOp.maxFeePerGas = ("0x" + feeData.maxFeePerGas.toString(16)) as Hex;
-        } else if (feeData.gasPrice?.toString()) {
-          finalUserOp.maxFeePerGas = ("0x" + feeData.gasPrice.toString(16)) as Hex;
-        } else {
-          finalUserOp.maxFeePerGas = ("0x" + (await this.provider.getGasPrice()).toString(16)) as Hex;
-        }
-
-        if (feeData.maxPriorityFeePerGas?.toString()) {
-          finalUserOp.maxPriorityFeePerGas = ("0x" + feeData.maxPriorityFeePerGas?.toString()) as Hex;
-        } else if (feeData.gasPrice?.toString()) {
-          finalUserOp.maxPriorityFeePerGas = toHex(Number(feeData.gasPrice?.toString()));
-        } else {
-          finalUserOp.maxPriorityFeePerGas = ("0x" + (await this.provider.getGasPrice()).toString(16)) as Hex;
-        }
-      } else {
-        finalUserOp.maxFeePerGas = toHex(Number(maxFeePerGas)) ?? userOp.maxFeePerGas;
-        finalUserOp.maxPriorityFeePerGas = toHex(Number(maxPriorityFeePerGas)) ?? userOp.maxPriorityFeePerGas;
-      }
-      finalUserOp.verificationGasLimit = toHex(Number(verificationGasLimit)) ?? userOp.verificationGasLimit;
-      finalUserOp.callGasLimit = toHex(Number(callGasLimit)) ?? userOp.callGasLimit;
-      finalUserOp.preVerificationGas = toHex(Number(preVerificationGas)) ?? userOp.preVerificationGas;
-      finalUserOp.paymasterAndData = "0x";
+      finalUserOp.maxFeePerGas = toHex(Number(maxFeePerGas)) ?? userOp.maxFeePerGas;
+      finalUserOp.maxPriorityFeePerGas = toHex(Number(maxPriorityFeePerGas)) ?? userOp.maxPriorityFeePerGas;
     }
+    finalUserOp.verificationGasLimit = toHex(Number(verificationGasLimit)) ?? userOp.verificationGasLimit;
+    finalUserOp.callGasLimit = toHex(Number(callGasLimit)) ?? userOp.callGasLimit;
+    finalUserOp.preVerificationGas = toHex(Number(preVerificationGas)) ?? userOp.preVerificationGas;
+    finalUserOp.paymasterAndData = "0x";
+
     return finalUserOp;
   }
 
@@ -469,7 +433,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
   }
 
-  async buildUserOp(transactions: Transaction[], buildUseropDto?: BuildUserOpOptions): Promise<Partial<UserOperation>> {
+  async buildUserOp(transactions: Transaction[], buildUseropDto?: BuildUserOpOptions): Promise<Partial<UserOperationStruct>> {
     const to = transactions.map((element: Transaction) => element.to as Hex);
     const data = transactions.map((element: Transaction) => (element.data as Hex) ?? "0x");
     const value = transactions.map((element: Transaction) => (element.value as bigint) ?? BigInt(0));
@@ -495,7 +459,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       callData = await this.encodeExecute(to[0], value[0], data[0]);
     }
 
-    let userOp: Partial<UserOperation> = {
+    let userOp: Partial<UserOperationStruct> = {
       sender: (await this.getAccountAddress()) as Hex,
       nonce: toHex(nonceFromFetch),
       initCode,
@@ -513,18 +477,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     userOp.signature = signature;
 
     // Note: Can change the default behaviour of calling estimations using bundler/local
-    userOp = await this.estimateUserOpGas(
-      userOp,
-      buildUseropDto?.overrides,
-      buildUseropDto?.skipBundlerGasEstimation,
-      buildUseropDto?.paymasterServiceData,
-    );
+    userOp = await this.estimateUserOpGas(userOp);
     Logger.log("UserOp after estimation ", userOp);
 
     return userOp;
   }
 
-  private validateUserOpAndPaymasterRequest(userOp: Partial<UserOperation>, tokenPaymasterRequest: BiconomyTokenPaymasterRequest): void {
+  private validateUserOpAndPaymasterRequest(userOp: Partial<UserOperationStruct>, tokenPaymasterRequest: BiconomyTokenPaymasterRequest): void {
     if (!userOp.callData) {
       throw new Error("UserOp callData cannot be undefined");
     }
@@ -554,9 +513,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @returns updated userOp with new callData, callGasLimit
    */
   async buildTokenPaymasterUserOp(
-    userOp: Partial<UserOperation>,
+    userOp: Partial<UserOperationStruct>,
     tokenPaymasterRequest: BiconomyTokenPaymasterRequest,
-  ): Promise<Partial<UserOperation>> {
+  ): Promise<Partial<UserOperationStruct>> {
     this.validateUserOpAndPaymasterRequest(userOp, tokenPaymasterRequest);
     try {
       let batchTo: Array<Hex> = [];
@@ -585,7 +544,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
         const decodedSmartAccountData = decodeFunctionData({
           abi: BiconomyAccountAbi,
-          data: userOp.callData,
+          data: userOp.callData as Hex,
         });
 
         if (!decodedSmartAccountData) {
@@ -618,7 +577,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
           newCallData = await this.encodeExecuteBatch(batchTo, batchValue, batchData);
         }
-        let finalUserOp: Partial<UserOperation> = {
+        let finalUserOp: Partial<UserOperationStruct> = {
           ...userOp,
           callData: newCallData,
         };
@@ -627,7 +586,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         try {
           finalUserOp = await this.estimateUserOpGas(finalUserOp);
           const callGasLimit = finalUserOp.callGasLimit;
-          if (callGasLimit && hexToNumber(callGasLimit) < 21000) {
+          if (callGasLimit && hexToNumber(callGasLimit as Hex) < 21000) {
             return {
               ...userOp,
               callData: newCallData,
@@ -687,7 +646,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     });
     const tx: Transaction = {
       to: await this.getAddress(),
-      value: "0",
+      value: "0x00",
       data: callData,
     };
     return tx;
@@ -701,7 +660,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     });
     const tx: Transaction = {
       to: await this.getAddress(),
-      value: "0",
+      value: "0x00",
       data: callData,
     };
     return tx;
@@ -721,7 +680,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     });
     const tx: Transaction = {
       to: await this.getAddress(),
-      value: "0",
+      value: "0x00",
       data: callData,
     };
     return tx;
