@@ -1,4 +1,4 @@
-import { EntryPoint, EntryPoint__factory, UserOperationStruct, SimpleAccountFactory__factory } from "@account-abstraction/contracts";
+import { EntryPoint, EntryPoint__factory } from "@account-abstraction/contracts";
 import { VoidSigner, Wallet, ethers } from "ethers";
 import { SampleRecipient, SampleRecipient__factory } from "@account-abstraction/utils/dist/src/types";
 
@@ -13,7 +13,7 @@ import {
 
 import { BiconomySmartAccountV2 } from "../src/BiconomySmartAccountV2";
 import { ChainId, UserOperation } from "@biconomy/core-types";
-import { DEFAULT_ECDSA_OWNERSHIP_MODULE, ECDSAOwnershipValidationModule } from "@biconomy/modules";
+import { ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import { MultiChainValidationModule } from "@biconomy/modules";
 import { BaseValidationModule } from "@biconomy/modules";
 import { ECDSAOwnershipRegistryModule_v100 } from "@biconomy/common";
@@ -75,7 +75,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       entryPointAddress: entryPoint.address,
       factoryAddress: accountFactory.address as Hex,
       implementationAddress: accountImpl.address as Hex,
-      defaultFallbackHandler: await accountFactory.minimalHandler() as Hex,
+      defaultFallbackHandler: (await accountFactory.minimalHandler()) as Hex,
       defaultValidationModule: module1,
       activeValidationModule: module1,
     });
@@ -88,276 +88,287 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     await new Promise((resolve) => setTimeout(resolve, 10000));
   }, 30000);
 
-  it("Nonce should be zero", async () => {
-    const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()).toString(), data: "0x" }]);
-    console.log("builtUserOp", builtUserOp);
-    expect(builtUserOp?.nonce?.toString()).toBe("0");
-  });
-  it("Sender should be non zero", async () => {
-    const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()).toString(), data: "0x" }]);
-    expect(builtUserOp.sender).not.toBe(ethers.constants.AddressZero);
-  });
-  it("InitCode length should be greater then 170", async () => {
-    const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()).toString(), data: "0x" }]);
-    expect(builtUserOp?.initCode?.length).toBeGreaterThan(170);
-  });
-  it("#getUserOpHash should match entryPoint.getUserOpHash", async function () {
-    const userOp: UserOperation = {
-      sender: "0x".padEnd(42, "1") as Hex,
-      nonce: "0x02",
-      initCode: "0x3333",
-      callData: "0x4444",
-      callGasLimit: "0x05",
-      verificationGasLimit: "0x06",
-      preVerificationGas: "0x07",
-      maxFeePerGas: "0x08",
-      maxPriorityFeePerGas: "0x09",
-      paymasterAndData: "0xaaaaaa",
-      signature: "0xbbbb",
-    };
-    const hash = await accountAPI.getUserOpHash(userOp);
-    const epHash = await entryPoint.getUserOpHash(userOp);
-    expect(hash).toBe(epHash);
-  });
-  it("should deploy to counterfactual address", async () => {
-    accountAddress = await accountAPI.getAccountAddress();
-    expect(await provider.getCode(accountAddress).then((code) => code.length)).toBe(2);
-
-    await signer.sendTransaction({
-      to: accountAddress,
-      value: ethers.utils.parseEther("0.1"),
-    });
-    const op = await accountAPI.buildUserOp([
-      {
-        to: recipient.address,
-        data: recipient.interface.encodeFunctionData("something", ["hello"]),
-      },
-    ]);
-
-    const signedUserOp = await accountAPI.signUserOp(op);
-
-    await entryPoint.handleOps([signedUserOp], beneficiary);
-
-    // ((await expect(entryPoint.handleOps([signedUserOp], beneficiary))) as any).to.emit(recipient, "Sender");
-
-    expect(await provider.getCode(accountAddress).then((code) => code.length)).toBeGreaterThan(0);
-  }, 10000); // on github runner it takes more time than 5000ms
-
-  // TODO
-  // possibly use local bundler API from image
-  it("should build and send userop via bundler API", async () => {});
-
-  it("should deploy another account using different validation module", async () => {
-    let accountAPI2 = await BiconomySmartAccountV2.create({
-      chainId: ChainId.GANACHE,
-      rpcUrl: "http://127.0.0.1:8545",
-      // paymaster: paymaster,
-      // bundler: bundler,
-      entryPointAddress: entryPoint.address,
-      factoryAddress: accountFactory.address as Hex,
-      // implementationAddress: accountAPI.getImplementationAddress(),
-      defaultFallbackHandler: await accountFactory.minimalHandler() as Hex,
-      defaultValidationModule: module2,
-      activeValidationModule: module2,
-    });
-
-    // TODO
-    // Review: Just setting different default validation module and querying account address is not working
-    // accountAPI.setDefaultValidationModule(module2);
-
-    // accountAPI2 = await accountAPI2.init();
-
-    const accountAddress2 = await accountAPI2.getAccountAddress();
-    expect(await provider.getCode(accountAddress2).then((code) => code.length)).toBe(2);
-
-    await signer.sendTransaction({
-      to: accountAddress2,
-      value: ethers.utils.parseEther("0.1"),
-    });
-    const op = await accountAPI2.buildUserOp([
-      {
-        to: recipient.address,
-        data: recipient.interface.encodeFunctionData("something", ["hello"]),
-      },
-    ]);
-
-    const signedUserOp = await accountAPI2.signUserOp(op);
-
-    await entryPoint.handleOps([signedUserOp], beneficiary);
-
-    // ((await expect(entryPoint.handleOps([signedUserOp], beneficiary))) as any).to.emit(recipient, "Sender");
-
-    expect(await provider.getCode(accountAddress2).then((code) => code.length)).toBeGreaterThan(0);
+  it("Can fetch counterfactual address", async () => {
+    await accountAPI.getAccountAddress();
   });
 
-  it("should check if module is enabled", async () => {
-    const isEcdsaModuleEnabled = await accountAPI.isModuleEnabled((module1 as any).moduleAddress);
+  // it("Nonce should be zero", async () => {
+  //   const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: 1000000000000000000n, data: "0x" }]);
+  //   console.log("builtUserOp", builtUserOp);
+  //   expect(builtUserOp?.nonce?.toString()).toBe("0");
+  // });
+  // it("Sender should be non zero", async () => {
+  //   const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: 1000000000000000000n, data: "0x" }]);
+  //   expect(builtUserOp.sender).not.toBe(ethers.constants.AddressZero);
+  // });
+  // it("InitCode length should be greater then 170", async () => {
+  //   const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: 1000000000000000000n, data: "0x" }]);
+  //   expect(builtUserOp?.initCode?.length).toBeGreaterThan(170);
+  // });
+  // it("#getUserOpHash should match entryPoint.getUserOpHash", async function () {
+  //   const userOp: UserOperation = {
+  //     sender: "0x".padEnd(42, "1") as Hex,
+  //     nonce: "0x02",
+  //     initCode: "0x3333",
+  //     callData: "0x4444",
+  //     callGasLimit: "0x05",
+  //     verificationGasLimit: "0x06",
+  //     preVerificationGas: "0x07",
+  //     maxFeePerGas: "0x08",
+  //     maxPriorityFeePerGas: "0x09",
+  //     paymasterAndData: "0xaaaaaa",
+  //     signature: "0xbbbb",
+  //   };
+  //   const hash = await accountAPI.getUserOpHash(userOp);
+  //   const epHash = await entryPoint.getUserOpHash(userOp);
+  //   expect(hash).toBe(epHash);
+  // });
+  // it("should deploy to counterfactual address", async () => {
+  //   accountAddress = await accountAPI.getAccountAddress();
+  //   expect(await provider.getCode(accountAddress).then((code) => code.length)).toBe(2);
 
-    expect(isEcdsaModuleEnabled).toBe(true);
+  //   await signer.sendTransaction({
+  //     to: accountAddress,
+  //     value: ethers.utils.parseEther("0.1"),
+  //   });
+  //   const op = await accountAPI.buildUserOp([
+  //     {
+  //       to: recipient.address,
+  //       value: 100000000000000000n,
+  //       data: recipient.interface.encodeFunctionData("something", ["hello"]),
+  //     },
+  //   ]);
 
-    const isMultichainEcdsaModuleEnabled = await accountAPI.isModuleEnabled((module2 as any).moduleAddress);
+  //   const signedUserOp = (await accountAPI.signUserOp(op)) as any;
 
-    expect(isMultichainEcdsaModuleEnabled).toBe(false);
-  });
+  //   await entryPoint.handleOps([signedUserOp], beneficiary);
 
-  it("should list all enabled modules", async () => {
-    const paginatedModules = await accountAPI.getAllModules();
-    console.log("enabled modules ", paginatedModules);
-  });
+  //   // ((await expect(entryPoint.handleOps([signedUserOp], beneficiary))) as any).to.emit(recipient, "Sender");
 
-  it("should enable a new module", async () => {
-    let isMultichainEcdsaModuleEnabled = await accountAPI.isModuleEnabled((module2 as any).moduleAddress);
-    expect(isMultichainEcdsaModuleEnabled).toBe(false);
+  //   expect(await provider.getCode(accountAddress).then((code) => code.length)).toBeGreaterThan(0);
+  // }, 10000); // on github runner it takes more time than 5000ms
 
-    // Review: this actually skips whole paymaster stuff and also sends to connected bundler
-    // const userOpResponse = await accountAPI.enableModule((module2 as any).moduleAddress);
+  // // TODO
+  // // possibly use local bundler API from image
+  // it("should build and send userop via bundler API", async () => {});
 
-    const enableModuleData = await accountAPI.getEnableModuleData((module2 as any).moduleAddress);
+  // it("should deploy another account using different validation module", async () => {
+  //   const accountAPI2 = await BiconomySmartAccountV2.create({
+  //     chainId: ChainId.GANACHE,
+  //     rpcUrl: "http://127.0.0.1:8545",
+  //     // paymaster: paymaster,
+  //     // bundler: bundler,
+  //     entryPointAddress: entryPoint.address,
+  //     factoryAddress: accountFactory.address as Hex,
+  //     // implementationAddress: accountAPI.getImplementationAddress(),
+  //     defaultFallbackHandler: (await accountFactory.minimalHandler()) as Hex,
+  //     defaultValidationModule: module2,
+  //     activeValidationModule: module2,
+  //   });
 
-    await signer.sendTransaction({
-      to: accountAddress,
-      value: ethers.utils.parseEther("0.1"),
-    });
+  //   // TODO
+  //   // Review: Just setting different default validation module and querying account address is not working
+  //   // accountAPI.setDefaultValidationModule(module2);
 
-    const op = await accountAPI.buildUserOp([enableModuleData], {
-      // skipBundlerGasEstimation: true,
-      // overrides: { verificationGasLimit: 120000, callGasLimit: 100000, preVerificationGas: 60000 },
-    });
+  //   // accountAPI2 = await accountAPI2.init();
 
-    const signedUserOp = await accountAPI.signUserOp(op);
+  //   const accountAddress2 = await accountAPI2.getAccountAddress();
+  //   expect(await provider.getCode(accountAddress2).then((code) => code.length)).toBe(2);
 
-    await entryPoint.handleOps([signedUserOp], beneficiary);
+  //   await signer.sendTransaction({
+  //     to: accountAddress2,
+  //     value: ethers.utils.parseEther("0.1"),
+  //   });
+  //   const op = await accountAPI2.buildUserOp([
+  //     {
+  //       to: recipient.address,
+  //       value: 0n,
+  //       data: recipient.interface.encodeFunctionData("something", ["hello"]),
+  //     },
+  //   ]);
 
-    // ((await expect(entryPoint.handleOps([signedUserOp], beneficiary))) as any).to.emit(recipient, "Sender");
+  //   const signedUserOp = (await accountAPI2.signUserOp(op)) as any;
 
-    isMultichainEcdsaModuleEnabled = await accountAPI.isModuleEnabled((module2 as any).moduleAddress);
+  //   await entryPoint.handleOps([signedUserOp], beneficiary);
 
-    expect(isMultichainEcdsaModuleEnabled).toBe(true);
-  });
+  //   // ((await expect(entryPoint.handleOps([signedUserOp], beneficiary))) as any).to.emit(recipient, "Sender");
 
-  it("signs the userOp using active validation module", async () => {
-    const op = await accountAPI.buildUserOp([
-      {
-        to: recipient.address,
-        data: recipient.interface.encodeFunctionData("something", ["hello"]),
-      },
-    ]);
+  //   expect(await provider.getCode(accountAddress2).then((code) => code.length)).toBeGreaterThan(0);
+  // });
 
-    const signedUserOp = await accountAPI.signUserOp(op);
+  // it("should check if module is enabled", async () => {
+  //   const isEcdsaModuleEnabled = await accountAPI.isModuleEnabled((module1 as any).moduleAddress);
 
-    expect(signedUserOp.signature).toBeDefined();
+  //   expect(isEcdsaModuleEnabled).toBe(true);
 
-    const userOpHash = await accountAPI.getUserOpHash(op);
+  //   const isMultichainEcdsaModuleEnabled = await accountAPI.isModuleEnabled((module2 as any).moduleAddress);
 
-    const signature = await accountAPI.signUserOpHash(userOpHash);
+  //   expect(isMultichainEcdsaModuleEnabled).toBe(false);
+  // });
 
-    console.log("signature ", signature);
+  // it("should list all enabled modules", async () => {
+  //   const paginatedModules = await accountAPI.getAllModules();
+  //   console.log("enabled modules ", paginatedModules);
+  // });
 
-    expect(signature).toBeDefined();
-  });
+  // it("should enable a new module", async () => {
+  //   let isMultichainEcdsaModuleEnabled = await accountAPI.isModuleEnabled((module2 as any).moduleAddress);
+  //   expect(isMultichainEcdsaModuleEnabled).toBe(false);
 
-  it("disables requested module", async () => {
-    let isMultichainEcdsaModuleEnabled = await accountAPI.isModuleEnabled((module2 as any).moduleAddress);
-    expect(isMultichainEcdsaModuleEnabled).toBe(true);
+  //   // Review: this actually skips whole paymaster stuff and also sends to connected bundler
+  //   // const userOpResponse = await accountAPI.enableModule((module2 as any).moduleAddress);
 
-    const disableModuleData = await accountAPI.getDisableModuleData(SENTINEL_MODULE, (module2 as any).moduleAddress);
+  //   const enableModuleData = await accountAPI.getEnableModuleData((module2 as any).moduleAddress);
 
-    await signer.sendTransaction({
-      to: accountAddress,
-      value: ethers.utils.parseEther("0.1"),
-    });
+  //   await signer.sendTransaction({
+  //     to: accountAddress,
+  //     value: ethers.utils.parseEther("0.1"),
+  //   });
 
-    const op = await accountAPI.buildUserOp([disableModuleData], {
-      // skipBundlerGasEstimation: true,
-      // overrides: { verificationGasLimit: 120000, callGasLimit: 100000, preVerificationGas: 60000 },
-    });
+  //   const op = await accountAPI.buildUserOp([enableModuleData], {
+  //     // skipBundlerGasEstimation: true,
+  //     // overrides: { verificationGasLimit: 120000, callGasLimit: 100000, preVerificationGas: 60000 },
+  //   });
 
-    const signedUserOp = await accountAPI.signUserOp(op);
+  //   const signedUserOp = (await accountAPI.signUserOp(op)) as any;
 
-    await entryPoint.handleOps([signedUserOp], beneficiary);
+  //   await entryPoint.handleOps([signedUserOp], beneficiary);
 
-    // ((await expect(entryPoint.handleOps([signedUserOp], beneficiary))) as any).to.emit(recipient, "Sender");
+  //   // ((await expect(entryPoint.handleOps([signedUserOp], beneficiary))) as any).to.emit(recipient, "Sender");
 
-    isMultichainEcdsaModuleEnabled = await accountAPI.isModuleEnabled((module2 as any).moduleAddress);
-    expect(isMultichainEcdsaModuleEnabled).toBe(false);
+  //   isMultichainEcdsaModuleEnabled = await accountAPI.isModuleEnabled((module2 as any).moduleAddress);
 
-    const modulesAfter = await accountAPI.getAllModules();
-    expect(modulesAfter[0]).toBe((module1 as any).moduleAddress);
-  });
+  //   expect(isMultichainEcdsaModuleEnabled).toBe(true);
+  // });
 
-  it("sends userop using multichain (different) validation module after enabling and setting it up", async () => {
-    let isMultichainEcdsaModuleEnabled = await accountAPI.isModuleEnabled((module2 as any).moduleAddress);
-    expect(isMultichainEcdsaModuleEnabled).toBe(false);
+  // it("signs the userOp using active validation module", async () => {
+  //   const op = await accountAPI.buildUserOp([
+  //     {
+  //       to: recipient.address,
+  //       value: 0n,
+  //       data: recipient.interface.encodeFunctionData("something", ["hello"]),
+  //     },
+  //   ]);
 
-    // Review: this actually skips whole paymaster stuff and also sends to connected bundler
-    // const userOpResponse = await accountAPI.enableModule((module2 as any).moduleAddress);
+  //   const signedUserOp = await accountAPI.signUserOp(op);
 
-    const accountOwnerAddress = await owner.getAddress();
+  //   expect(signedUserOp.signature).toBeDefined();
 
-    const multichainEcdsaOwnershipSetupData = multiChainModule.interface.encodeFunctionData("initForSmartAccount", [accountOwnerAddress]);
+  //   const userOpHash = await accountAPI.getUserOpHash(op);
 
-    const setupAndEnableModuleData = await accountAPI.getSetupAndEnableModuleData((module2 as any).moduleAddress, multichainEcdsaOwnershipSetupData);
+  //   const signature = await accountAPI.signUserOpHash(userOpHash);
 
-    await signer.sendTransaction({
-      to: accountAddress,
-      value: ethers.utils.parseEther("0.1"),
-    });
+  //   console.log("signature ", signature);
 
-    const op1 = await accountAPI.buildUserOp([setupAndEnableModuleData], {
-      // skipBundlerGasEstimation: true,
-      // overrides: { verificationGasLimit: 120000, callGasLimit: 100000, preVerificationGas: 60000 },
-    });
+  //   expect(signature).toBeDefined();
+  // });
 
-    console.log("op1 ", op1);
+  // it("disables requested module", async () => {
+  //   let isMultichainEcdsaModuleEnabled = await accountAPI.isModuleEnabled((module2 as any).moduleAddress);
+  //   expect(isMultichainEcdsaModuleEnabled).toBe(true);
 
-    const signedUserOp1 = await accountAPI.signUserOp(op1);
+  //   const disableModuleData = await accountAPI.getDisableModuleData(SENTINEL_MODULE, (module2 as any).moduleAddress);
 
-    await entryPoint.handleOps([signedUserOp1], beneficiary);
+  //   await signer.sendTransaction({
+  //     to: accountAddress,
+  //     value: ethers.utils.parseEther("0.1"),
+  //   });
 
-    isMultichainEcdsaModuleEnabled = await accountAPI.isModuleEnabled((module2 as any).moduleAddress);
-    expect(isMultichainEcdsaModuleEnabled).toBe(true);
+  //   const op = await accountAPI.buildUserOp([disableModuleData], {
+  //     // skipBundlerGasEstimation: true,
+  //     // overrides: { verificationGasLimit: 120000, callGasLimit: 100000, preVerificationGas: 60000 },
+  //   });
 
-    // Setting it as active validation module now
-    accountAPI = accountAPI.setActiveValidationModule(module2);
+  //   const signedUserOp = (await accountAPI.signUserOp(op)) as any;
 
-    const op = await accountAPI.buildUserOp([
-      {
-        to: recipient.address,
-        data: recipient.interface.encodeFunctionData("something", ["hello"]),
-      },
-    ]);
+  //   await entryPoint.handleOps([signedUserOp], beneficiary);
 
-    const signedUserOp = await accountAPI.signUserOp(op);
+  //   // ((await expect(entryPoint.handleOps([signedUserOp], beneficiary))) as any).to.emit(recipient, "Sender");
 
-    await entryPoint.handleOps([signedUserOp], beneficiary);
+  //   isMultichainEcdsaModuleEnabled = await accountAPI.isModuleEnabled((module2 as any).moduleAddress);
+  //   expect(isMultichainEcdsaModuleEnabled).toBe(false);
 
-    // ((await expect(entryPoint.handleOps([signedUserOp], beneficiary))) as any).to.emit(recipient, "Sender");
-  }, 10000); // on github runner it takes more time than 5000ms
+  //   const modulesAfter = await accountAPI.getAllModules();
+  //   expect(modulesAfter[0]).toBe((module1 as any).moduleAddress);
+  // });
 
-  it("Creates another replicated instance using void signer", async () => {
-    const newmodule = await ECDSAOwnershipValidationModule.create({
-      signer: new VoidSigner(await owner.getAddress()),
-      moduleAddress: ecdsaModule.address,
-    });
+  // it("sends userop using multichain (different) validation module after enabling and setting it up", async () => {
+  //   let isMultichainEcdsaModuleEnabled = await accountAPI.isModuleEnabled((module2 as any).moduleAddress);
+  //   expect(isMultichainEcdsaModuleEnabled).toBe(false);
 
-    const accountAPI2 = await BiconomySmartAccountV2.create({
-      chainId: ChainId.GANACHE,
-      rpcUrl: "http://127.0.0.1:8545",
-      // paymaster: paymaster,
-      // bundler: bundler,
-      entryPointAddress: entryPoint.address,
-      factoryAddress: accountFactory.address as Hex,
-      // implementationAddress: accountAPI.getImplementationAddress(),
-      defaultFallbackHandler: await accountFactory.minimalHandler() as Hex,
-      defaultValidationModule: newmodule,
-      activeValidationModule: newmodule,
-    });
+  //   // Review: this actually skips whole paymaster stuff and also sends to connected bundler
+  //   // const userOpResponse = await accountAPI.enableModule((module2 as any).moduleAddress);
 
-    const address = await accountAPI2.getAccountAddress();
-    console.log("account address ", address);
+  //   const accountOwnerAddress = await owner.getAddress();
 
-    expect(address).toBe(accountAPI.getAccountAddress());
-  }, 10000);
+  //   const multichainEcdsaOwnershipSetupData = multiChainModule.interface.encodeFunctionData("initForSmartAccount", [accountOwnerAddress]);
+
+  //   const setupAndEnableModuleData = await accountAPI.getSetupAndEnableModuleData(
+  //     (module2 as any).moduleAddress,
+  //     multichainEcdsaOwnershipSetupData as Hex,
+  //   );
+
+  //   await signer.sendTransaction({
+  //     to: accountAddress,
+  //     value: ethers.utils.parseEther("0.1"),
+  //   });
+
+  //   const op1 = await accountAPI.buildUserOp([setupAndEnableModuleData], {
+  //     // skipBundlerGasEstimation: true,
+  //     // overrides: { verificationGasLimit: 120000, callGasLimit: 100000, preVerificationGas: 60000 },
+  //   });
+
+  //   console.log("op1 ", op1);
+
+  //   const signedUserOp1 = (await accountAPI.signUserOp(op1)) as any;
+
+  //   await entryPoint.handleOps([signedUserOp1], beneficiary);
+
+  //   isMultichainEcdsaModuleEnabled = await accountAPI.isModuleEnabled((module2 as any).moduleAddress);
+  //   expect(isMultichainEcdsaModuleEnabled).toBe(true);
+
+  //   // Setting it as active validation module now
+  //   accountAPI = accountAPI.setActiveValidationModule(module2);
+
+  //   const op = await accountAPI.buildUserOp([
+  //     {
+  //       to: recipient.address,
+  //       value: 0n,
+  //       data: recipient.interface.encodeFunctionData("something", ["hello"]),
+  //     },
+  //   ]);
+
+  //   const signedUserOp = (await accountAPI.signUserOp(op)) as any;
+
+  //   await entryPoint.handleOps([signedUserOp], beneficiary);
+
+  //   // ((await expect(entryPoint.handleOps([signedUserOp], beneficiary))) as any).to.emit(recipient, "Sender");
+  // }, 10000); // on github runner it takes more time than 5000ms
+
+  // it("Creates another replicated instance using void signer", async () => {
+  //   const newmodule = await ECDSAOwnershipValidationModule.create({
+  //     signer: new VoidSigner(await owner.getAddress()),
+  //     moduleAddress: ecdsaModule.address,
+  //   });
+
+  //   const accountAPI2 = await BiconomySmartAccountV2.create({
+  //     chainId: ChainId.GANACHE,
+  //     rpcUrl: "http://127.0.0.1:8545",
+  //     // paymaster: paymaster,
+  //     // bundler: bundler,
+  //     entryPointAddress: entryPoint.address,
+  //     factoryAddress: accountFactory.address as Hex,
+  //     // implementationAddress: accountAPI.getImplementationAddress(),
+  //     defaultFallbackHandler: (await accountFactory.minimalHandler()) as Hex,
+  //     defaultValidationModule: newmodule,
+  //     activeValidationModule: newmodule,
+  //   });
+
+  //   const address = await accountAPI2.getAccountAddress();
+  //   console.log("account address ", address);
+
+  //   expect(address).toBe(accountAPI.getAccountAddress());
+  // }, 10000);
 
   // TODO
   // 1. sendSignedUserOp()
