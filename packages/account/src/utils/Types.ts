@@ -108,7 +108,6 @@ export type BiconomySmartAccountV2Config = BaseSmartAccountConfig &
     rpcUrl?: string; // as good as Provider
     nodeClientUrl?: string; // very specific to Biconomy
     biconomyPaymasterApiKey?: string;
-    defaultValidationModule: BaseValidationModule;
     activeValidationModule?: BaseValidationModule;
     scanForUpgradedAccountsFromV1?: boolean;
     maxIndexForScan?: number;

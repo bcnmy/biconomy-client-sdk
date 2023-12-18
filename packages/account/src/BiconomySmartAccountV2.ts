@@ -73,10 +73,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   private maxIndexForScan!: number;
 
   // Validation module responsible for account deployment initCode. This acts as a default authorization module.
-  defaultValidationModule: BaseValidationModule;
+  defaultValidationModule!: BaseValidationModule;
 
   // Deployed Smart Account can have more than one module enabled. When sending a transaction activeValidationModule is used to prepare and validate userOp signature.
-  activeValidationModule: BaseValidationModule;
+  activeValidationModule!: BaseValidationModule;
 
   private constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountV2Config) {
     super({
@@ -90,8 +90,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     this.index = biconomySmartAccountConfig.index ?? 0;
     this.chainId = biconomySmartAccountConfig.chainId;
     this.bundler = biconomySmartAccountConfig.bundler;
-    this.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
-    this.activeValidationModule = biconomySmartAccountConfig.activeValidationModule ?? this.defaultValidationModule;
     this.implementationAddress = biconomySmartAccountConfig.implementationAddress ?? (BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0 as Hex);
 
     if (biconomySmartAccountConfig.biconomyPaymasterApiKey) {
