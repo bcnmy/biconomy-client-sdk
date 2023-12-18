@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 3.1.1 (2023-11-09)
+
+
+### Features
+
+* add linea mainnet ([c3d1283](https://github.com/bcnmy/biconomy-client-sdk/commit/c3d12832002c18e187f910b5f7dac5ef5b797abf))
+
+
+
 ## 3.1.0 (2023-09-20)
 
 

@@ -1,6 +1,6 @@
 import { Signer } from "ethers";
 import { ChainId } from "@biconomy/core-types";
-import { BigNumberish } from "@alchemy/aa-core";
+import { BigNumberish, UserOperationStruct } from "@alchemy/aa-core";
 import { IBundler } from "@biconomy/bundler";
 import { IPaymaster, PaymasterFeeQuote, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
@@ -76,12 +76,15 @@ export type BiconomySmartAccountConfig = {
 
 export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
   factoryAddress?: Hex;
+  senderAddress?: Hex;
   implementationAddress?: Hex;
   defaultFallbackHandler?: Hex;
   rpcUrl?: string; // as good as Provider
   nodeClientUrl?: string; // very specific to Biconomy
   defaultValidationModule: BaseValidationModule;
   activeValidationModule?: BaseValidationModule;
+  scanForUpgradedAccountsFromV1?: boolean;
+  maxIndexForScan?: number;
 }
 
 export type BuildUserOpOptions = {
@@ -130,6 +133,13 @@ export type InitializeV2Data = {
   accountIndex?: number;
 };
 
+export type EstimateUserOpGasParams = {
+  userOp: Partial<UserOperationStruct>;
+  overrides?: Overrides;
+  skipBundlerGasEstimation?: boolean;
+  paymasterServiceData?: SponsorUserOperationDto;
+};
+
 export interface TransactionDetailsForUserOp {
   target: string;
   data: string;
@@ -143,6 +153,25 @@ export interface TransactionDetailsForUserOp {
 export type CounterFactualAddressParam = {
   index?: number;
   validationModule?: BaseValidationModule;
+  scanForUpgradedAccountsFromV1?: boolean;
+  maxIndexForScan?: number;
+};
+
+export type QueryParamsForAddressResolver = {
+  eoaAddress: string;
+  index: number;
+  moduleAddress: string;
+  moduleSetupData: string;
+  maxIndexForScan?: number;
+};
+
+export type SmartAccountInfo = {
+  accountAddress: Hex;
+  factoryAddress: Hex;
+  currentImplementation: string;
+  currentVersion: string;
+  factoryVersion: string;
+  deploymentIndex: BigNumberish;
 };
 
 export type Transaction = {

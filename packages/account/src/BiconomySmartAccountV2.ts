@@ -33,8 +33,10 @@ import {
   Overrides,
   NonceOptions,
   Transaction,
+  QueryParamsForAddressResolver,
 } from "./utils/Types";
 import {
+  ADDRESS_RESOLVER_ADDRESS,
   BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION,
   DEFAULT_BICONOMY_FACTORY_ADDRESS,
   DEFAULT_FALLBACK_HANDLER_ADDRESS,
@@ -43,6 +45,7 @@ import {
 } from "./utils/Constants";
 import { BiconomyFactoryAbi } from "./abi/Factory";
 import { BiconomyAccountAbi } from "./abi/SmartAccount";
+import { AccountResolverAbi } from "./abi/AccountResolver";
 
 type UserOperationKey = keyof UserOperationStruct;
 
@@ -64,6 +67,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   private defaultFallbackHandlerAddress: Hex;
 
   private implementationAddress: Hex;
+
+  private scanForUpgradedAccountsFromV1!: boolean;
+
+  private maxIndexForScan!: number;
 
   // Validation module responsible for account deployment initCode. This acts as a default authorization module.
   defaultValidationModule: BaseValidationModule;
@@ -99,13 +106,15 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       transport: http(biconomySmartAccountConfig.rpcUrl || (RPC_PROVIDER_URLS[biconomySmartAccountConfig.chainId] as string)),
     });
 
+    this.scanForUpgradedAccountsFromV1 = biconomySmartAccountConfig.scanForUpgradedAccountsFromV1 ?? false;
+    this.maxIndexForScan = biconomySmartAccountConfig.maxIndexForScan ?? 10;
     // REVIEW: removed the node client
     // this.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL });
   }
 
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
     const instance = new BiconomySmartAccountV2(biconomySmartAccountConfig);
-    // Can do async init stuff here
+    // Note: Can do async init stuff here
     return instance;
   }
 
@@ -120,7 +129,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   // Calls the getCounterFactualAddress
   async getAccountAddress(params?: CounterFactualAddressParam): Promise<string> {
-    if (this.accountAddress == null) {
+    if (this.accountAddress == null || this.accountAddress == undefined) {
       // means it needs deployment
       this.accountAddress = await this.getCounterFactualAddress(params);
     }
@@ -131,6 +140,38 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * Return the account's address. This value is valid even before deploying the contract.
    */
   async getCounterFactualAddress(params?: CounterFactualAddressParam): Promise<Hex> {
+    const validationModule = params?.validationModule ?? this.defaultValidationModule;
+    const index = params?.index ?? this.index;
+
+    const maxIndexForScan = params?.maxIndexForScan ?? this.maxIndexForScan;
+    // Review: default behavior
+    const scanForUpgradedAccountsFromV1 = params?.scanForUpgradedAccountsFromV1 ?? this.scanForUpgradedAccountsFromV1;
+
+    // if it's intended to detect V1 upgraded accounts
+    if (scanForUpgradedAccountsFromV1) {
+      const eoaSigner = await validationModule.getSigner();
+      const eoaAddress = (await eoaSigner.getAddress()) as Hex;
+      const moduleAddress = validationModule.getAddress() as Hex;
+      const moduleSetupData = (await validationModule.getInitData()) as Hex;
+      const queryParams = {
+        eoaAddress,
+        index,
+        moduleAddress,
+        moduleSetupData,
+        maxIndexForScan,
+      };
+      const accountAddress = await this.getV1AccountsUpgradedToV2(queryParams);
+      Logger.log("account address from V1 ", accountAddress);
+      if (accountAddress !== ADDRESS_ZERO) {
+        return accountAddress;
+      }
+    }
+
+    const counterFactualAddressV2 = await this.getCounterFactualAddressV2({ validationModule, index });
+    return counterFactualAddressV2;
+  }
+
+  private async getCounterFactualAddressV2(params?: CounterFactualAddressParam): Promise<Hex> {
     const validationModule = params?.validationModule ?? this.defaultValidationModule;
     const index = params?.index ?? this.index;
 
@@ -190,6 +231,43 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       this.defaultValidationModule = validationModule;
     }
     return this;
+  }
+
+  async getV1AccountsUpgradedToV2(params: QueryParamsForAddressResolver): Promise<Hex> {
+    Logger.log("index to filter ", params.index);
+    const maxIndexForScan = params.maxIndexForScan ?? this.maxIndexForScan;
+
+    const addressResolver = getContract({
+      address: ADDRESS_RESOLVER_ADDRESS,
+      abi: AccountResolverAbi,
+      publicClient: this.provider as PublicClient,
+    });
+    // Note: depending on moduleAddress and moduleSetupData passed call this. otherwise could call resolveAddresses()
+
+    if (params.moduleAddress && params.moduleSetupData) {
+      const result = await addressResolver.read.resolveAddressesFlexibleForV2([
+        params.eoaAddress,
+        maxIndexForScan,
+        params.moduleAddress,
+        params.moduleSetupData,
+      ]);
+
+      const desiredV1Account = result.find(
+        (smartAccountInfo) =>
+          smartAccountInfo.factoryVersion === "v1" &&
+          smartAccountInfo.currentVersion === "2.0.0" &&
+          Number(smartAccountInfo.deploymentIndex.toString()) === params.index,
+      );
+
+      if (desiredV1Account) {
+        const smartAccountAddress = desiredV1Account.accountAddress;
+        return smartAccountAddress;
+      } else {
+        return ADDRESS_ZERO;
+      }
+    } else {
+      return ADDRESS_ZERO;
+    }
   }
 
   /**
@@ -302,7 +380,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @description This function call will take 'unsignedUserOp' as an input, sign it with the owner key, and send it to the bundler.
    * @returns Promise<UserOpResponse>
    */
-  async sendUserOp(userOp: Partial<UserOperationStruct>, params?: ModuleInfo): Promise<UserOpResponse> {
+  async sendUserOp(userOp: Partial<UserOperationStruct>, params?: SendUserOpParams): Promise<UserOpResponse> {
     Logger.log("userOp received in base account ", userOp);
     delete userOp.signature;
     const userOperation = await this.signUserOp(userOp, params);
@@ -478,6 +556,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     // Note: Can change the default behaviour of calling estimations using bundler/local
     userOp = await this.estimateUserOpGas(userOp);
+    userOp.paymasterAndData = userOp.paymasterAndData ?? "0x";
     Logger.log("UserOp after estimation ", userOp);
 
     return userOp;

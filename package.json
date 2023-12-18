@@ -1,7 +1,7 @@
 {
   "name": "biconomy-sdk",
   "version": "1.0.0",
-  "description": "SDK for Biconomy integration with support for account abstraction, smart accounts, ERC-4337, ERC-6900, and cross-chain functionalities.",
+  "description": "SDK for Biconomy integration with support for account abstraction, smart accounts, ERC-4337.",
   "keywords": [
     "biconomy",
     "sdk",
@@ -10,7 +10,6 @@
     "account abstraction",
     "smart accounts",
     "erc-4337",
-    "erc-6900",
     "crosschain",
     "cross-chain",
     "metatransactions"
@@ -53,11 +52,11 @@
     ]
   },
   "dependencies": {
-    "ganache": "^7.9.1",
     "node-gyp": "^9.4.0",
     "typescript": "^5.2.2"
   },
   "devDependencies": {
+    "ganache": "^7.9.1",
     "@types/debug": "^4.1.9",
     "@types/jest": "^29.5.4",
     "@typescript-eslint/eslint-plugin": "^6.7.0",
