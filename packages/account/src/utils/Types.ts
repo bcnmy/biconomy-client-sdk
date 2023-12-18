@@ -158,10 +158,10 @@ export type CounterFactualAddressParam = {
 };
 
 export type QueryParamsForAddressResolver = {
-  eoaAddress: string;
+  eoaAddress: Hex;
   index: number;
-  moduleAddress: string;
-  moduleSetupData: string;
+  moduleAddress: Hex;
+  moduleSetupData: Hex;
   maxIndexForScan?: number;
 };
 
