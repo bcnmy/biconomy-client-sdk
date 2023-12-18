@@ -78,6 +78,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       defaultFallbackHandler: (await accountFactory.minimalHandler()) as Hex,
       defaultValidationModule: module1,
       activeValidationModule: module1,
+      signer,
     });
 
     // console.log('account api provider ', accountAPI.provider)

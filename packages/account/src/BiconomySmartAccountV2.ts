@@ -20,9 +20,9 @@ import {
   decodeFunctionData,
 } from "viem";
 import { BaseSmartContractAccount, getChain, type BigNumberish, type UserOperationStruct } from "@alchemy/aa-core";
-import { packUserOp } from "./utils/Utils";
+import { isNullOrUndefined, packUserOp } from "./utils/Utils";
 import { Logger, RPC_PROVIDER_URLS } from "@biconomy/common";
-import { BaseValidationModule, ModuleInfo, SendUserOpParams } from "@biconomy/modules";
+import { BaseValidationModule, ModuleInfo, SendUserOpParams, ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import { IHybridPaymaster, IPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { IBundler, UserOpResponse } from "@biconomy/bundler";
 import {
@@ -84,16 +84,24 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       chain: getChain(biconomySmartAccountConfig.chainId),
       rpcClient: biconomySmartAccountConfig.rpcUrl || (RPC_PROVIDER_URLS[biconomySmartAccountConfig.chainId] as string),
       entryPointAddress: biconomySmartAccountConfig.entryPointAddress as Hex,
-      accountAddress: biconomySmartAccountConfig.accountAddress as Hex,
+      accountAddress: (biconomySmartAccountConfig.accountAddress as Hex) ?? undefined,
       factoryAddress: biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS,
     });
     this.index = biconomySmartAccountConfig.index ?? 0;
     this.chainId = biconomySmartAccountConfig.chainId;
-    this.paymaster = biconomySmartAccountConfig.paymaster;
     this.bundler = biconomySmartAccountConfig.bundler;
     this.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
     this.activeValidationModule = biconomySmartAccountConfig.activeValidationModule ?? this.defaultValidationModule;
     this.implementationAddress = biconomySmartAccountConfig.implementationAddress ?? (BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0 as Hex);
+
+    if (biconomySmartAccountConfig.biconomyPaymasterApiKey) {
+      this.paymaster = new BiconomyPaymaster({
+        paymasterUrl: `https://paymaster.biconomy.io/api/v1/${biconomySmartAccountConfig.chainId}/${biconomySmartAccountConfig.biconomyPaymasterApiKey}`,
+      });
+    } else {
+      this.paymaster = biconomySmartAccountConfig.paymaster;
+    }
+
     const defaultFallbackHandlerAddress =
       this.factoryAddress === DEFAULT_BICONOMY_FACTORY_ADDRESS ? DEFAULT_FALLBACK_HANDLER_ADDRESS : biconomySmartAccountConfig.defaultFallbackHandler;
     if (!defaultFallbackHandlerAddress) {
@@ -109,12 +117,32 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     this.scanForUpgradedAccountsFromV1 = biconomySmartAccountConfig.scanForUpgradedAccountsFromV1 ?? false;
     this.maxIndexForScan = biconomySmartAccountConfig.maxIndexForScan ?? 10;
     // REVIEW: removed the node client
-    // this.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL });
   }
 
+  /**
+   * Creates a new instance of BiconomySmartAccountV2.
+   *
+   * This method will create a BiconomySmartAccountV2 instance but will not deploy the Smart Account.
+   *
+   * Deployment of the Smart Account will be donewith the first user operation.
+   *
+   * @param biconomySmartAccountConfig - Configuration for initializing the BiconomySmartAccountV2 instance.
+   * @returns A promise that resolves to a new instance of BiconomySmartAccountV2.
+   * @throws An error if something is wrong with the smart account instance creation.
+   */
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
     const instance = new BiconomySmartAccountV2(biconomySmartAccountConfig);
-    // Note: Can do async init stuff here
+
+    // Note: If no module is provided, we will use ECDSA_OWNERSHIP as default
+    if (biconomySmartAccountConfig.defaultValidationModule) {
+      instance.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
+    } else {
+      instance.defaultValidationModule = await ECDSAOwnershipValidationModule.create({
+        signer: biconomySmartAccountConfig.signer!,
+      });
+    }
+    instance.activeValidationModule = biconomySmartAccountConfig.activeValidationModule ?? instance.defaultValidationModule;
+
     return instance;
   }
 
@@ -563,7 +591,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   private validateUserOpAndPaymasterRequest(userOp: Partial<UserOperationStruct>, tokenPaymasterRequest: BiconomyTokenPaymasterRequest): void {
-    if (!userOp.callData) {
+    if (isNullOrUndefined(userOp.callData)) {
       throw new Error("UserOp callData cannot be undefined");
     }
 
@@ -617,7 +645,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
           return userOp;
         }
 
-        if (!userOp.callData) {
+        if (isNullOrUndefined(userOp.callData)) {
           throw new Error("UserOp callData cannot be undefined");
         }
 
