@@ -15,6 +15,7 @@ import { ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import { BaseValidationModule } from "@biconomy/modules";
 import { ECDSAOwnershipRegistryModule_v100 } from "@biconomy/common";
 import { BiconomyPaymaster } from "@biconomy/paymaster";
+import { Hex } from "viem";
 
 const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
 const signer = provider.getSigner();
@@ -52,14 +53,13 @@ describe("BiconomySmartAccountV2 Paymaster Abstraction", () => {
   }, 30000);
 
   it("Create a smart account with paymaster through api key", async () => {
-
     account = await BiconomySmartAccountV2.create({
       chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
       biconomyPaymasterApiKey: "7K_k68BFN.ed274da8-69a1-496d-a897-508fc2213216",
-      factoryAddress: accountFactory.address,
-      defaultFallbackHandler: await accountFactory.minimalHandler(),
+      factoryAddress: accountFactory.address as Hex,
+      defaultFallbackHandler: (await accountFactory.minimalHandler()) as Hex,
       defaultValidationModule: module1,
       activeValidationModule: module1,
     });
@@ -69,36 +69,34 @@ describe("BiconomySmartAccountV2 Paymaster Abstraction", () => {
 
     const paymaster = account.paymaster;
 
-    expect(paymaster).not.toBeNull()
-    expect(paymaster).not.toBeUndefined()
+    expect(paymaster).not.toBeNull();
+    expect(paymaster).not.toBeUndefined();
 
-    expect(address).toBe(account.accountAddress);
+    expect(address).toBe(await account.getAccountAddress());
   }, 10000);
 
   it("Create a smart account with paymaster by creating instance", async () => {
-
     const paymaster = new BiconomyPaymaster({
       paymasterUrl: "https://paymaster.biconomy.io/api/v1/80001/7K_k68BFN.ed274da8-69a1-496d-a897-508fc2213216",
-    })
+    });
 
     account = await BiconomySmartAccountV2.create({
       chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
-      factoryAddress: accountFactory.address,
-      defaultFallbackHandler: await accountFactory.minimalHandler(),
+      factoryAddress: accountFactory.address as Hex,
+      defaultFallbackHandler: (await accountFactory.minimalHandler()) as Hex,
       defaultValidationModule: module1,
       activeValidationModule: module1,
-      paymaster: paymaster
+      paymaster: paymaster,
     });
 
     const address = await account.getAccountAddress();
     console.log("account address ", address);
 
-    expect(account.paymaster).not.toBeNull()
-    expect(account.paymaster).not.toBeUndefined()
+    expect(account.paymaster).not.toBeNull();
+    expect(account.paymaster).not.toBeUndefined();
 
-    expect(address).toBe(account.accountAddress);
+    expect(address).toBe(await account.getAccountAddress());
   }, 10000);
-
 });

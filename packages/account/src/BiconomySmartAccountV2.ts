@@ -1,4 +1,3 @@
-import { defaultAbiCoder } from "ethers/lib/utils";
 import {
   Hex,
   keccak256,
@@ -58,9 +57,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   private provider: PublicClient;
 
-  private paymaster?: IPaymaster;
+  paymaster?: IPaymaster;
 
-  private bundler?: IBundler;
+  bundler?: IBundler;
 
   private accountContract?: GetContractReturnType<typeof BiconomyAccountAbi, PublicClient, Chain>;
 
@@ -712,11 +711,14 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return userOp;
   }
 
-  async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<string> {
+  async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<Hex> {
     this.isActiveValidationModuleDefined();
-    const moduleSig = await this.activeValidationModule.signUserOpHash(userOpHash, params);
+    const moduleSig = (await this.activeValidationModule.signUserOpHash(userOpHash, params)) as Hex;
 
-    const signatureWithModuleAddress = defaultAbiCoder.encode(["bytes", "address"], [moduleSig, this.activeValidationModule.getAddress()]);
+    const signatureWithModuleAddress = encodeAbiParameters(parseAbiParameters("bytes, address"), [
+      moduleSig,
+      this.activeValidationModule.getAddress() as Hex,
+    ]);
 
     return signatureWithModuleAddress;
   }
