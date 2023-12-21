@@ -19,15 +19,18 @@ import { BaseValidationModule } from "@biconomy/modules";
 import { ECDSAOwnershipRegistryModule_v100 } from "@biconomy/common";
 import { MultiChainValidationModule_v100 } from "@biconomy/common";
 import { createWalletClient, http } from "viem";
-import { localhost } from "viem/chains";
+import { localhost, polygonMumbai } from "viem/chains";
 import { WalletClientSigner } from "@alchemy/aa-core";
+import { privateKeyToAccount } from "viem/accounts";
+import { DEFAULT_ENTRYPOINT_ADDRESS } from "../src/utils/Constants";
 
 const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
 const signer = provider.getSigner();
 const SENTINEL_MODULE = "0x0000000000000000000000000000000000000001";
 
 const MUMBAI = "https://rpc-mumbai.maticvigil.com";
-const testPrivKey = "";
+const randomEOA = ethers.Wallet.createRandom();
+const testPrivKey = randomEOA.privateKey.slice(2);
 
 describe("BiconomySmartAccountV2 API Specs", () => {
   let owner: Wallet;
@@ -367,65 +370,62 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     expect(address).toBe(accountAPI.accountAddress);
   }, 10000);
 
-  // it("Create and setup ECDSA module with WalletClientSigner", async () => {
+  it("Create and setup ECDSA module with WalletClientSigner", async () => {
+    const wallet = privateKeyToAccount(`0x${testPrivKey}`);
 
-  //   const wallet = privateKeyToAccount(`0x${testPrivKey}`)
+    const walletClient = createWalletClient({
+      account: wallet,
+      chain: polygonMumbai,
+      transport: http(MUMBAI),
+    });
 
-  //   const walletClient = createWalletClient({
-  //       account: wallet,
-  //       chain: polygonMumbai,
-  //       transport: http(MUMBAI),
-  //   });
+    const ecdsaSigner = new WalletClientSigner(walletClient, "json-rpc");
 
-  //   let owner = new WalletClientSigner(
-  //       walletClient,
-  //       "json-rpc"
-  //   );
+    const account = await BiconomySmartAccountV2.create({
+      chainId: ChainId.POLYGON_MUMBAI,
+      entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
+      signer: ecdsaSigner,
+    });
 
-  //   let account = await BiconomySmartAccountV2.create({
-  //     chainId: ChainId.POLYGON_MUMBAI,
-  //     entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
-  //     signer: owner,
-  //   });
+    const counterFactualAddress = await account.getAccountAddress();
+    console.log("Counterfactual address ", counterFactualAddress);
 
-  //   const counterFactualAddress = await account.getAccountAddress();
-  //   console.log("Counterfactual address ", counterFactualAddress);
+    const module = await ECDSAOwnershipValidationModule.create({
+      signer: owner,
+      moduleAddress: DEFAULT_ECDSA_OWNERSHIP_MODULE,
+    });
 
-  //   const module = await ECDSAOwnershipValidationModule.create({
-  //       signer: owner,
-  //       moduleAddress: DEFAULT_ECDSA_OWNERSHIP_MODULE
-  //   })
+    account.setActiveValidationModule(module);
+  });
 
-  //   account.setActiveValidationModule(module);
+  it("Create and setup ECDSA module with ethersV5 Signer", async () => {
+    const module = await ECDSAOwnershipValidationModule.create({
+      signer: randomEOA,
+      moduleAddress: DEFAULT_ECDSA_OWNERSHIP_MODULE,
+    });
 
-  // });
+    const account = await BiconomySmartAccountV2.create({
+      chainId: ChainId.POLYGON_MUMBAI,
+      entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
+      signer: owner,
+      defaultValidationModule: module,
+      activeValidationModule: module,
+    });
 
-  // it("Create and setup ECDSA module with ethersV5 Signer", async () => {
+    const counterFactualAddress = await account.getAccountAddress();
+    console.log("Counterfactual address ", counterFactualAddress);
 
-  //   const provider = new ethers.providers.JsonRpcProvider(MUMBAI);
-  //   const owner: Signer = new ethers.Wallet(testPrivKey, provider);
+    expect(counterFactualAddress).toBeDefined();
 
-  //   const module = await ECDSAOwnershipValidationModule.create({
-  //       signer: owner,
-  //       moduleAddress: DEFAULT_ECDSA_OWNERSHIP_MODULE
-  //   })
+    expect(module.getAddress()).toBe(DEFAULT_ECDSA_OWNERSHIP_MODULE);
+  });
 
-  //   let account = await BiconomySmartAccountV2.create({
-  //       chainId: ChainId.POLYGON_MUMBAI,
-  //       entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
-  //       signer: owner,
-  //       defaultValidationModule: module,
-  //       activeValidationModule: module
-  //   });
-
-  //   const counterFactualAddress = await account.getAccountAddress();
-  //   console.log("Counterfactual address ", counterFactualAddress);
-
-  //   expect(counterFactualAddress).toBeDefined();
-
-  //   expect(module.getAddress()).toBe(DEFAULT_ECDSA_OWNERSHIP_MODULE);
-
-  // });
+  // NOTE
+  // For tests we could only use sendUserOp for test networks until bundler integration test suite is integrated
+  // For test networks we can send transactions for Account created using random private key, IF paymaster is used
+  // buildUserOp tests we can do for any test network cause that only requires bundles without sending transactions
+  // If we can send prefund to the account then specific private key can be added (only testnet native tokens) or loaded from env
+  // TODO
 
   // it("Send user op with ethersV5 signer", async () => {
 
@@ -433,7 +433,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
   //   const owner: Signer = new ethers.Wallet(testPrivKey, provider);
 
   //   const bundler: IBundler = new Bundler({
-  //     bundlerUrl: "https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44",
+  //     bundlerUrl: "",
   //     chainId: ChainId.POLYGON_MUMBAI,
   //     entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
   //   })
@@ -492,7 +492,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
   //   );
 
   //   const bundler: IBundler = new Bundler({
-  //     bundlerUrl: "https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44",
+  //     bundlerUrl: "",
   //     chainId: ChainId.POLYGON_MUMBAI,
   //     entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
   //   })
