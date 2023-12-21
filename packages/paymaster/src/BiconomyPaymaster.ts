@@ -43,17 +43,16 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
   private async prepareUserOperation(userOp: Partial<UserOperationStruct>): Promise<Partial<UserOperationStruct>> {
     const userOperation = { ...userOp };
     try {
-      const keys: (keyof UserOperationStruct)[] = [
-        "nonce",
-        "callGasLimit",
-        "verificationGasLimit",
-        "preVerificationGas",
-        "maxFeePerGas",
-        "maxPriorityFeePerGas",
-      ];
-      for (const key of keys) {
+      const keys1: (keyof UserOperationStruct)[] = ["nonce", "maxFeePerGas", "maxPriorityFeePerGas"];
+      for (const key of keys1) {
         if (userOperation[key] && userOperation[key] !== "0x") {
           userOperation[key] = ("0x" + BigInt(userOp[key] as BigNumberish).toString(16)) as `0x${string}`;
+        }
+      }
+      const keys2: (keyof UserOperationStruct)[] = ["callGasLimit", "verificationGasLimit", "preVerificationGas"];
+      for (const key of keys2) {
+        if (userOperation[key] && userOperation[key] !== "0x") {
+          userOperation[key] = BigInt(userOp[key] as BigNumberish).toString() as `0x${string}`;
         }
       }
     } catch (error) {
@@ -306,7 +305,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
       });
 
       if (response && response.result) {
-        const paymasterAndData: string = response.result.paymasterAndData;
+        const paymasterAndData = response.result.paymasterAndData;
         const preVerificationGas = response.result.preVerificationGas;
         const verificationGasLimit = response.result.verificationGasLimit;
         const callGasLimit = response.result.callGasLimit;
@@ -319,17 +318,6 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
       }
     } catch (error: any) {
       console.error("Error in generating paymasterAndData - reason: ", JSON.stringify(error));
-      if (
-        !this.paymasterConfig.strictMode &&
-        (error?.message.includes("Smart contract data not found") || error?.message.includes("No policies were set"))
-        // can also check based on error.code being -32xxx
-      ) {
-        console.info(`Strict mode is ${this.paymasterConfig.strictMode}. sending paymasterAndData 0x`);
-        return {
-          paymasterAndData: "0x",
-        };
-      }
-      // Logger.error("Failed to fetch paymasterAndData - reason: ", JSON.stringify(error));
       throw error;
     }
     throw new Error("Error in generating paymasterAndData");

@@ -24,6 +24,7 @@ export async function sendRequest<T>({ url, method, body }: HttpRequest): Promis
   let jsonResponse;
   try {
     jsonResponse = await response.json();
+    console.info("RPC response", jsonResponse);
   } catch (error) {
     if (!response.ok) {
       throw new Error(response.statusText);
