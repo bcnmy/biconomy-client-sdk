@@ -6,6 +6,7 @@ import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { Provider } from "@ethersproject/providers";
 import { GasOverheads } from "./Preverificaiton";
 import { UserOperation, ChainId } from "@biconomy/core-types";
+import { WalletClientSigner } from "@alchemy/aa-core";
 
 export type EntryPointAddresses = {
   [address: string]: string;
@@ -84,7 +85,7 @@ type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyo
 type ConditionalValidationProps = RequireAtLeastOne<
   {
     defaultValidationModule: BaseValidationModule;
-    signer: Signer;
+    signer: Signer | WalletClientSigner;
   },
   "defaultValidationModule" | "signer"
 >;

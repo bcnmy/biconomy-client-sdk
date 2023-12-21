@@ -2,6 +2,7 @@ import { ChainId, UserOperation } from "@biconomy/core-types";
 import { Signer } from "ethers";
 import { SessionKeyManagerModule } from "../SessionKeyManagerModule";
 import { ISessionStorage } from "../interfaces/ISessionStorage";
+import { WalletClientSigner } from "@alchemy/aa-core";
 
 export type ModuleVersion = "V1_0_0"; // | 'V1_0_1'
 
@@ -12,7 +13,7 @@ export interface BaseValidationModuleConfig {
 export interface ECDSAOwnershipValidationModuleConfig extends BaseValidationModuleConfig {
   moduleAddress?: string;
   version?: ModuleVersion;
-  signer: Signer;
+  signer: Signer | WalletClientSigner;
 }
 
 export interface SessionKeyManagerModuleConfig extends BaseValidationModuleConfig {
@@ -84,7 +85,7 @@ export interface CreateSessionDataParams {
 export interface MultiChainValidationModuleConfig extends BaseValidationModuleConfig {
   moduleAddress?: string;
   version?: ModuleVersion;
-  signer: Signer;
+  signer: Signer | WalletClientSigner;
 }
 
 export type MultiChainUserOpDto = {
