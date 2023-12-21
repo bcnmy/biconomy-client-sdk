@@ -1,5 +1,5 @@
 {
-  "name": "@biconomy/account",
+  "name": "@biconomy/orange",
   "version": "3.1.1",
   "description": "This package provides apis for ERC-4337 based smart account implementations",
   "main": "./dist/src/index.js",
