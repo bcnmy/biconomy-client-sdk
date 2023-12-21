@@ -68,8 +68,8 @@ describe("BiconomySmartAccountV2 API Specs", () => {
 
     recipient = await new SampleRecipient__factory(signer).deploy();
     accountAPI = await BiconomySmartAccountV2.create({
-      chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
+      chainId: ChainId.GANACHE,
       // paymaster: paymaster,
       // bundler: bundler,
       entryPointAddress: entryPoint.address,
@@ -79,6 +79,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       defaultValidationModule: module1,
       activeValidationModule: module1,
       signer,
+      bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/...",
     });
 
     // console.log('account api provider ', accountAPI.provider)

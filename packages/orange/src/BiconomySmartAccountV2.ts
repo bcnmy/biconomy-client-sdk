@@ -23,7 +23,7 @@ import { isNullOrUndefined, packUserOp } from "./utils/Utils";
 import { Logger, RPC_PROVIDER_URLS } from "@biconomy/common";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import { IHybridPaymaster, IPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from "@biconomy/paymaster";
-import { IBundler, UserOpResponse } from "@biconomy/bundler";
+import { IBundler, UserOpResponse, Bundler } from "@biconomy/bundler";
 import {
   BiconomyTokenPaymasterRequest,
   BiconomySmartAccountV2Config,
@@ -88,8 +88,16 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     });
     this.index = biconomySmartAccountConfig.index ?? 0;
     this.chainId = biconomySmartAccountConfig.chainId;
-    this.bundler = biconomySmartAccountConfig.bundler;
     this.implementationAddress = biconomySmartAccountConfig.implementationAddress ?? (BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0 as Hex);
+
+    if(biconomySmartAccountConfig.bundlerUrl) {
+      this.bundler = new Bundler({
+          bundlerUrl: biconomySmartAccountConfig.bundlerUrl,
+          chainId: biconomySmartAccountConfig.chainId,
+      })
+    } else {
+      this.bundler = biconomySmartAccountConfig.bundler;
+    }
 
     if (biconomySmartAccountConfig.biconomyPaymasterApiKey) {
       this.paymaster = new BiconomyPaymaster({

@@ -43,3 +43,14 @@ export function packUserOp(op: Partial<UserOperationStruct>, forSignature = true
 export const isNullOrUndefined = (value: string | number | bigint | BigNumberish | undefined | BytesLike): value is undefined => {
   return value === null || value === undefined;
 };
+
+// export const extractChainId = (url: string): number | null => {
+//     const regex = /\/api\/v2\/(\d+)\/[a-zA-Z0-9.-]+$/;
+//     const match = regex.exec(url);
+//     const result = match ? parseInt(match[1]) : null;
+//     if(result){
+//       return result;
+//     } else {
+//         throw new Error("Invalid bundler url");
+//     }
+// }

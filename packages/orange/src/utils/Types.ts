@@ -33,7 +33,7 @@ export type BiconomyImplementationsByVersion = {
 
 export type SmartAccountConfig = {
   entryPointAddress: string;
-  bundler?: IBundler;
+  bundler: IBundler;
 };
 
 export interface GasOverheads {
@@ -66,7 +66,6 @@ export type BaseSmartAccountConfig = {
   accountAddress?: string;
   overheads?: Partial<GasOverheads>;
   paymaster?: IPaymaster; // PaymasterAPI
-  bundler?: IBundler; // like HttpRpcClient
   chainId: ChainId;
 };
 
@@ -81,7 +80,7 @@ export type BiconomySmartAccountConfig = {
   rpcUrl?: string;
   chainId: ChainId;
   entryPointAddress?: string;
-  bundler?: IBundler;
+  bundler: IBundler;
   paymaster?: IPaymaster;
   nodeClientUrl?: string;
 };
@@ -99,8 +98,16 @@ type ConditionalValidationProps = RequireAtLeastOne<
   "defaultValidationModule" | "signer"
 >;
 
+type ConditionalBundlerProps = RequireAtLeastOne<
+  {
+    bundler: IBundler;
+    bundlerUrl: string;
+  },
+  "bundler" | "bundlerUrl"
+>;
+
 export type BiconomySmartAccountV2Config = BaseSmartAccountConfig &
-  ConditionalValidationProps & {
+  ConditionalValidationProps & ConditionalBundlerProps & {
     factoryAddress?: Hex;
     senderAddress?: Hex;
     implementationAddress?: Hex;
