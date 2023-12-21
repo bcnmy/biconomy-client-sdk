@@ -1,21 +1,22 @@
-import { Wallet, Signer } from "ethers";
+import { Hex } from "viem";
+import { WalletClientSigner } from "@alchemy/aa-core";
 
 export type SessionStatus = "PENDING" | "ACTIVE" | "INACTIVE" | "EXPIRED";
 
 export type SessionLeafNode = {
   validUntil: number;
   validAfter: number;
-  sessionValidationModule: string;
-  sessionKeyData: string;
-  sessionPublicKey: string;
+  sessionValidationModule: Hex;
+  sessionKeyData: Hex;
+  sessionPublicKey: Hex;
   sessionID?: string;
   status: SessionStatus;
 };
 
 export type SessionSearchParam = {
   sessionID?: string;
-  sessionPublicKey?: string;
-  sessionValidationModule?: string;
+  sessionPublicKey?: Hex;
+  sessionValidationModule?: Hex;
   status?: SessionStatus;
 };
 
@@ -49,19 +50,19 @@ export interface ISessionStorage {
    * If no signer object is passed, it'll create a random signer and add it to the session storage
    * @param signer Optional signer to be added to the session storage
    */
-  addSigner(_signer?: Wallet): Promise<Wallet>;
+  addSigner(_signer?: WalletClientSigner): Promise<WalletClientSigner>;
 
   /**
    * Fetch a signer from the session storage
    * @param signerPublicKey Public key of the signer to be fetched
    */
-  getSignerByKey(_signerPublicKey: string): Promise<Signer>;
+  getSignerByKey(_signerPublicKey: string): Promise<WalletClientSigner>;
 
   /**
    * Fetch a signer from the session storage based on the session search param
    * @param param SessionSearchParam to be used to fetch the signer
    */
-  getSignerBySession(_param: SessionSearchParam): Promise<Signer>;
+  getSignerBySession(_param: SessionSearchParam): Promise<WalletClientSigner>;
 
   /**
    * Fetch all the session leaf nodes from the session storage based on the session search param.

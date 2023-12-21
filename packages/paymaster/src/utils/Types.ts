@@ -89,7 +89,7 @@ export type PaymasterFeeQuote = {
 
 export type BiconomyTokenPaymasterRequest = {
   feeQuote: PaymasterFeeQuote;
-  spender: string;
+  spender: Hex;
   maxApproval?: boolean;
 };
 

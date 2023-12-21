@@ -1,5 +1,3 @@
-import fetch from "node-fetch";
-
 export enum HttpMethod {
   Get = "get",
   Post = "post",

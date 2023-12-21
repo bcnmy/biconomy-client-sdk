@@ -20,7 +20,6 @@ import {
 } from "viem";
 import { BaseSmartContractAccount, getChain, type BigNumberish, type UserOperationStruct } from "@alchemy/aa-core";
 import { isNullOrUndefined, packUserOp } from "./utils/Utils";
-import { Logger, RPC_PROVIDER_URLS } from "@biconomy/common";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import { IHybridPaymaster, IPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { IBundler, UserOpResponse } from "@biconomy/bundler";
@@ -41,6 +40,7 @@ import {
   DEFAULT_FALLBACK_HANDLER_ADDRESS,
   PROXY_CREATION_CODE,
   ADDRESS_ZERO,
+  DEFAULT_ENTRYPOINT_ADDRESS,
 } from "./utils/Constants";
 import { BiconomyFactoryAbi } from "./abi/Factory";
 import { BiconomyAccountAbi } from "./abi/SmartAccount";
@@ -81,8 +81,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     super({
       ...biconomySmartAccountConfig,
       chain: getChain(biconomySmartAccountConfig.chainId),
-      rpcClient: biconomySmartAccountConfig.rpcUrl || (RPC_PROVIDER_URLS[biconomySmartAccountConfig.chainId] as string),
-      entryPointAddress: biconomySmartAccountConfig.entryPointAddress as Hex,
+      rpcClient: biconomySmartAccountConfig.rpcUrl || getChain(biconomySmartAccountConfig.chainId).rpcUrls.public.http[0],
+      entryPointAddress: (biconomySmartAccountConfig.entryPointAddress as Hex) ?? DEFAULT_ENTRYPOINT_ADDRESS,
       accountAddress: (biconomySmartAccountConfig.accountAddress as Hex) ?? undefined,
       factoryAddress: biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS,
     });
@@ -108,12 +108,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     this.provider = createPublicClient({
       chain: getChain(biconomySmartAccountConfig.chainId),
-      transport: http(biconomySmartAccountConfig.rpcUrl || (RPC_PROVIDER_URLS[biconomySmartAccountConfig.chainId] as string)),
+      transport: http(biconomySmartAccountConfig.rpcUrl || getChain(biconomySmartAccountConfig.chainId).rpcUrls.public.http[0]),
     });
 
     this.scanForUpgradedAccountsFromV1 = biconomySmartAccountConfig.scanForUpgradedAccountsFromV1 ?? false;
     this.maxIndexForScan = biconomySmartAccountConfig.maxIndexForScan ?? 10;
-    // REVIEW: removed the node client
   }
 
   /**
@@ -186,7 +185,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         maxIndexForScan,
       };
       const accountAddress = await this.getV1AccountsUpgradedToV2(queryParams);
-      Logger.log("account address from V1 ", accountAddress);
       if (accountAddress !== ADDRESS_ZERO) {
         return accountAddress;
       }
@@ -259,7 +257,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   async getV1AccountsUpgradedToV2(params: QueryParamsForAddressResolver): Promise<Hex> {
-    Logger.log("index to filter ", params.index);
     const maxIndexForScan = params.maxIndexForScan ?? this.maxIndexForScan;
 
     const addressResolver = getContract({
@@ -406,7 +403,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @returns Promise<UserOpResponse>
    */
   async sendUserOp(userOp: Partial<UserOperationStruct>, params?: SendUserOpParams): Promise<UserOpResponse> {
-    Logger.log("userOp received in base account ", userOp);
     delete userOp.signature;
     const userOperation = await this.signUserOp(userOp, params);
     const bundlerResponse = await this.sendSignedUserOp(userOperation);
@@ -434,9 +430,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       "signature",
     ];
     this.validateUserOp(userOp, requiredFields);
-    Logger.log("userOp validated");
     if (!this.bundler) throw new Error("Bundler is not provided");
-    Logger.log("userOp being sent to the bundler", userOp);
+    console.info("userOp being sent to the bundler", userOp);
     const bundlerResponse = await this.bundler.sendUserOp(userOp);
     return bundlerResponse;
   }
@@ -509,7 +504,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       }
     } catch (error) {
       // Not throwing this error as nonce would be 0 if this.getNonce() throw exception, which is expected flow for undeployed account
-      Logger.log("Error while getting nonce for the account. This is expected for undeployed accounts set nonce to 0");
+      console.info("Error while getting nonce for the account. This is expected for undeployed accounts set nonce to 0");
     }
     return nonce;
   }
@@ -531,7 +526,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       return gasFeeValues;
     } catch (error: any) {
       // TODO: should throw error here?
-      Logger.error("Error while getting gasFeeValues from bundler. Provided bundler might not have getGasFeeValues endpoint", error);
+      console.error("Error while getting gasFeeValues from bundler. Provided bundler might not have getGasFeeValues endpoint", error);
       return gasFeeValues;
     }
   }
@@ -544,11 +539,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const initCodeFetchPromise = this.getInitCode();
     const dummySignatureFetchPromise = this.getDummySignatures(buildUseropDto?.params);
 
-    const [nonceFromFetch, initCode, signature, finalGasFeeValue] = await Promise.all([
+    const [nonceFromFetch, initCode, signature] = await Promise.all([
       this.getBuildUserOpNonce(buildUseropDto?.nonceOptions),
       initCodeFetchPromise,
       dummySignatureFetchPromise,
-      this.getGasFeeValues(buildUseropDto?.overrides, buildUseropDto?.skipBundlerGasEstimation),
     ]);
 
     if (transactions.length === 0) {
@@ -569,20 +563,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       callData: callData,
     };
 
-    if (finalGasFeeValue.maxFeePerGas) {
-      userOp.maxFeePerGas = toHex(Number(finalGasFeeValue.maxFeePerGas));
-    }
-    if (finalGasFeeValue.maxPriorityFeePerGas) {
-      userOp.maxPriorityFeePerGas = toHex(Number(finalGasFeeValue.maxPriorityFeePerGas));
-    }
-
     // for this Smart Account current validation module dummy signature will be used to estimate gas
     userOp.signature = signature;
 
     // Note: Can change the default behaviour of calling estimations using bundler/local
     userOp = await this.estimateUserOpGas(userOp);
     userOp.paymasterAndData = userOp.paymasterAndData ?? "0x";
-    Logger.log("UserOp after estimation ", userOp);
+    console.log("UserOp after estimation ", userOp);
 
     return userOp;
   }
@@ -593,14 +580,14 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
 
     const feeTokenAddress = tokenPaymasterRequest?.feeQuote?.tokenAddress;
-    Logger.log("Requested fee token is ", feeTokenAddress);
+    console.info("Requested fee token is ", feeTokenAddress);
 
     if (!feeTokenAddress || feeTokenAddress === ADDRESS_ZERO) {
       throw new Error("Invalid or missing token address. Token address must be part of the feeQuote in tokenPaymasterRequest");
     }
 
     const spender = tokenPaymasterRequest?.spender;
-    Logger.log("Spender address is ", spender);
+    console.info("Spender address is ", spender);
 
     if (!spender || spender === ADDRESS_ZERO) {
       throw new Error("Invalid or missing spender address. Sepnder address must be part of tokenPaymasterRequest");
@@ -627,7 +614,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       let batchData: Array<Hex> = [];
 
       let newCallData = userOp.callData;
-      Logger.log("Received information about fee token address and quote ", tokenPaymasterRequest);
+      console.info("Received information about fee token address and quote ", tokenPaymasterRequest);
 
       if (this.paymaster && this.paymaster instanceof BiconomyPaymaster) {
         // Make a call to paymaster.buildTokenApprovalTransaction() with necessary details
@@ -636,7 +623,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         const approvalRequest: Transaction = await (this.paymaster as IHybridPaymaster<SponsorUserOperationDto>).buildTokenApprovalTransaction(
           tokenPaymasterRequest,
         );
-        Logger.log("ApprovalRequest is for erc20 token ", approvalRequest.to);
+        console.info("ApprovalRequest is for erc20 token ", approvalRequest.to);
 
         if (approvalRequest.data === "0x" || approvalRequest.to === ADDRESS_ZERO) {
           return userOp;
@@ -657,7 +644,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
         const smartAccountExecFunctionName = decodedSmartAccountData.functionName;
 
-        Logger.log(`Originally an ${smartAccountExecFunctionName} method call for Biconomy Account V2`);
+        console.info(`Originally an ${smartAccountExecFunctionName} method call for Biconomy Account V2`);
         if (smartAccountExecFunctionName === "execute" || smartAccountExecFunctionName === "execute_ncC") {
           const methodArgsSmartWalletExecuteCall = decodedSmartAccountData.args;
           const toOriginal = methodArgsSmartWalletExecuteCall[0];
@@ -696,16 +683,16 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
               callData: newCallData,
             };
           }
-          Logger.log("UserOp after estimation ", finalUserOp);
+          console.info("UserOp after estimation ", finalUserOp);
         } catch (error) {
-          Logger.error("Failed to estimate gas for userOp with updated callData ", error);
-          Logger.log("Sending updated userOp. calculateGasLimit flag should be sent to the paymaster to be able to update callGasLimit");
+          console.error("Failed to estimate gas for userOp with updated callData ", error);
+          console.log("Sending updated userOp. calculateGasLimit flag should be sent to the paymaster to be able to update callGasLimit");
         }
         return finalUserOp;
       }
     } catch (error) {
-      Logger.log("Failed to update userOp. Sending back original op");
-      Logger.error("Failed to update callData with error", error);
+      console.log("Failed to update userOp. Sending back original op");
+      console.error("Failed to update callData with error", error);
       return userOp;
     }
     return userOp;
@@ -773,8 +760,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return tx;
   }
 
-  async disableModule(preModule: Hex, moduleAddress: Hex): Promise<UserOpResponse> {
-    const tx: Transaction = await this.getDisableModuleData(preModule, moduleAddress);
+  async disableModule(prevModule: Hex, moduleAddress: Hex): Promise<UserOpResponse> {
+    const tx: Transaction = await this.getDisableModuleData(prevModule, moduleAddress);
     const partialUserOp = await this.buildUserOp([tx]);
     return this.sendUserOp(partialUserOp);
   }

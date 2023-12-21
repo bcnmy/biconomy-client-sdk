@@ -1,6 +1,6 @@
-import { defaultAbiCoder } from "ethers/lib/utils";
 import { ISessionValidationModule } from "../interfaces/ISessionValidationModule";
 import { ERC20SessionKeyData, SessionValidationModuleConfig } from "../utils/Types";
+import { encodeAbiParameters, parseAbiParameters } from "viem";
 
 /**
  * Session validation module for ERC20 token transfers.
@@ -37,10 +37,12 @@ export class ERC20SessionValidationModule implements ISessionValidationModule<ER
 
   async getSessionKeyData(sessionData: ERC20SessionKeyData): Promise<string> {
     this._validateSessionKeyData(sessionData);
-    const sessionKeyData = defaultAbiCoder.encode(
-      ["address", "address", "address", "uint256"],
-      [sessionData.sessionKey, sessionData.token, sessionData.recipient, sessionData.maxAmount],
-    );
+    const sessionKeyData = encodeAbiParameters(parseAbiParameters("address, address, address, uint256"), [
+      sessionData.sessionKey,
+      sessionData.token,
+      sessionData.recipient,
+      sessionData.maxAmount,
+    ]);
     return sessionKeyData;
   }
 

@@ -12,7 +12,7 @@
     "particle",
     "particle-auth"
   ],
-  "author": "livingrockrises <chirag@biconomy.io>",
+  "author": "Biconomy",
   "homepage": "https://github.com/bcnmy/biconomy-client-sdk#readme",
   "license": "MIT",
   "files": [
