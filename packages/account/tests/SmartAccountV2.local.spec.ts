@@ -20,7 +20,7 @@ import { ECDSAOwnershipRegistryModule_v100 } from "@biconomy/common";
 import { MultiChainValidationModule_v100 } from "@biconomy/common";
 import { createWalletClient, http } from "viem";
 import { localhost } from "viem/chains";
-import { SmartAccountSigner, WalletClientSigner } from "@alchemy/aa-core";
+import { WalletClientSigner } from "@alchemy/aa-core";
 
 const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
 const signer = provider.getSigner();
@@ -83,7 +83,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       defaultFallbackHandler: await accountFactory.minimalHandler(),
       defaultValidationModule: module1,
       activeValidationModule: module1,
-      signer
+      signer,
     });
 
     // console.log('account api provider ', accountAPI.provider)
@@ -165,7 +165,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       defaultFallbackHandler: await accountFactory.minimalHandler(),
       defaultValidationModule: module2,
       activeValidationModule: module2,
-      signer
+      signer,
     });
 
     // TODO
@@ -358,7 +358,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       defaultFallbackHandler: await accountFactory.minimalHandler(),
       defaultValidationModule: newmodule,
       activeValidationModule: newmodule,
-      signer
+      signer,
     });
 
     const address = await accountAPI2.getAccountAddress();
@@ -369,14 +369,14 @@ describe("BiconomySmartAccountV2 API Specs", () => {
 
   // it("Create and setup ECDSA module with WalletClientSigner", async () => {
 
-  //   const wallet = privateKeyToAccount(`0x${testPrivKey}`) 
+  //   const wallet = privateKeyToAccount(`0x${testPrivKey}`)
 
   //   const walletClient = createWalletClient({
   //       account: wallet,
-  //       chain: polygonMumbai, 
+  //       chain: polygonMumbai,
   //       transport: http(MUMBAI),
   //   });
-      
+
   //   let owner = new WalletClientSigner(
   //       walletClient,
   //       "json-rpc"
@@ -390,7 +390,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
 
   //   const counterFactualAddress = await account.getAccountAddress();
   //   console.log("Counterfactual address ", counterFactualAddress);
-    
+
   //   const module = await ECDSAOwnershipValidationModule.create({
   //       signer: owner,
   //       moduleAddress: DEFAULT_ECDSA_OWNERSHIP_MODULE
@@ -404,7 +404,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
 
   //   const provider = new ethers.providers.JsonRpcProvider(MUMBAI);
   //   const owner: Signer = new ethers.Wallet(testPrivKey, provider);
-    
+
   //   const module = await ECDSAOwnershipValidationModule.create({
   //       signer: owner,
   //       moduleAddress: DEFAULT_ECDSA_OWNERSHIP_MODULE
@@ -433,7 +433,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
   //   const owner: Signer = new ethers.Wallet(testPrivKey, provider);
 
   //   const bundler: IBundler = new Bundler({
-  //     bundlerUrl: "https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44",    
+  //     bundlerUrl: "https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44",
   //     chainId: ChainId.POLYGON_MUMBAI,
   //     entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
   //   })
@@ -479,20 +479,20 @@ describe("BiconomySmartAccountV2 API Specs", () => {
 
   // it("Send user op with WalletClientSigner signer", async () => {
 
-  //   const wallet = privateKeyToAccount(`0x${testPrivKey}`) 
+  //   const wallet = privateKeyToAccount(`0x${testPrivKey}`)
 
   //   const walletClient = createWalletClient({
   //       account: wallet,
   //       transport: http("https://rpc-mumbai.maticvigil.com"),
   //   });
-      
+
   //   let owner = new WalletClientSigner(
   //       walletClient,
   //       "json-rpc"
   //   );
 
   //   const bundler: IBundler = new Bundler({
-  //     bundlerUrl: "https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44",    
+  //     bundlerUrl: "https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44",
   //     chainId: ChainId.POLYGON_MUMBAI,
   //     entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
   //   })
@@ -519,7 +519,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
   //     value: 100000000000000000n,
   //     chain: polygonMumbai
   //   });
-    
+
   //   const tx = {
   //     to: await Wallet.createRandom().getAddress(),
   //     data: "0x"
@@ -535,7 +535,6 @@ describe("BiconomySmartAccountV2 API Specs", () => {
   // });
 
   it("Create smart account with default module (ECDSA) without creating instance or providing module name", async () => {
-
     const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
       chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
@@ -552,11 +551,9 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     console.log(`ACTIVE MODULE - ${module.getAddress()}`);
 
     expect(module.getAddress()).toBe(DEFAULT_ECDSA_OWNERSHIP_MODULE);
-
   }, 10000);
 
   it("Create smart account with ECDSA module without creating instance", async () => {
-
     const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
       chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
@@ -570,29 +567,25 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     expect(address).toBe(account.accountAddress);
 
     const module = account.activeValidationModule as ECDSAOwnershipValidationModule;
-    
+
     console.log(`ACTIVE MODULE - ${module.getAddress()}`);
 
     expect(module.getAddress()).toBe(DEFAULT_ECDSA_OWNERSHIP_MODULE);
   }, 10000);
 
   it("Create smart account with default module using WalletClientSigner as signer", async () => {
-
     const walletClient = createWalletClient({
-      chain: localhost, 
+      chain: localhost,
       transport: http("http://127.0.0.1:8545"),
     });
-    
-    const smartAccountSigner: SmartAccountSigner = new WalletClientSigner(
-      walletClient,
-      "json-rpc"
-    );
+
+    const ecdsaSigner = new WalletClientSigner(walletClient, "json-rpc");
 
     const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
       chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
-      signer: smartAccountSigner,
+      signer: ecdsaSigner,
     });
 
     const address = await account.getAccountAddress();
@@ -604,6 +597,5 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     console.log(`ACTIVE MODULE - ${module.getAddress()}`);
 
     expect(module.getAddress()).toBe(DEFAULT_ECDSA_OWNERSHIP_MODULE);
-
   }, 10000);
 });
