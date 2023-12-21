@@ -77,7 +77,8 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       defaultFallbackHandler: await accountFactory.minimalHandler(),
       defaultValidationModule: module1,
       activeValidationModule: module1,
-      signer
+      signer,
+      bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/..."
     });
 
     // console.log('account api provider ', accountAPI.provider)
@@ -159,7 +160,8 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       defaultFallbackHandler: await accountFactory.minimalHandler(),
       defaultValidationModule: module2,
       activeValidationModule: module2,
-      signer
+      signer,
+      bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/..."
     });
 
     // TODO
@@ -352,7 +354,8 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       defaultFallbackHandler: await accountFactory.minimalHandler(),
       defaultValidationModule: newmodule,
       activeValidationModule: newmodule,
-      signer
+      signer,
+      bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/..."
     });
 
     const address = await accountAPI2.getAccountAddress();

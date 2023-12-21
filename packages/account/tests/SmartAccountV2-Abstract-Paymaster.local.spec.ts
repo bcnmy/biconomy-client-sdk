@@ -62,6 +62,7 @@ describe("BiconomySmartAccountV2 Paymaster Abstraction", () => {
       defaultFallbackHandler: await accountFactory.minimalHandler(),
       defaultValidationModule: module1,
       activeValidationModule: module1,
+      bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/..."
     });
 
     const address = await account.getAccountAddress();
@@ -89,7 +90,8 @@ describe("BiconomySmartAccountV2 Paymaster Abstraction", () => {
       defaultFallbackHandler: await accountFactory.minimalHandler(),
       defaultValidationModule: module1,
       activeValidationModule: module1,
-      paymaster: paymaster
+      paymaster: paymaster,
+      bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/..."
     });
 
     const address = await account.getAccountAddress();

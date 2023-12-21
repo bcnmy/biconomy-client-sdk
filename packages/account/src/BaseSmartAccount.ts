@@ -5,7 +5,7 @@ import { defaultAbiCoder, keccak256 } from "ethers/lib/utils";
 import { UserOperation, ChainId } from "@biconomy/core-types";
 import { calcPreVerificationGas, DefaultGasLimits } from "./utils/Preverificaiton";
 import { NotPromise, packUserOp, Logger, RPC_PROVIDER_URLS, isNullOrUndefined } from "@biconomy/common";
-import { IBundler, UserOpResponse } from "@biconomy/bundler";
+import { Bundler, IBundler, UserOpResponse } from "@biconomy/bundler";
 import { IPaymaster, PaymasterAndDataResponse } from "@biconomy/paymaster";
 import { SendUserOpParams } from "@biconomy/modules";
 import { SponsorUserOperationDto, BiconomyPaymaster, PaymasterMode, IHybridPaymaster } from "@biconomy/paymaster";
@@ -47,8 +47,17 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     this.overheads = _smartAccountConfig.overheads;
     this.entryPointAddress = _smartAccountConfig.entryPointAddress ?? DEFAULT_ENTRYPOINT_ADDRESS;
     this.accountAddress = _smartAccountConfig.accountAddress;
-    this.bundler = _smartAccountConfig.bundler;
+    
     this.chainId = _smartAccountConfig.chainId;
+
+    if(_smartAccountConfig.bundlerUrl) {
+      this.bundler = new Bundler({
+          bundlerUrl: _smartAccountConfig.bundlerUrl,
+          chainId: _smartAccountConfig.chainId,
+      })
+    } else {
+      this.bundler = _smartAccountConfig.bundler;
+    }
 
     if (_smartAccountConfig.paymaster) {
       this.paymaster = _smartAccountConfig.paymaster;
