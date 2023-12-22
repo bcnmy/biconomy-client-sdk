@@ -47,14 +47,14 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     this.overheads = _smartAccountConfig.overheads;
     this.entryPointAddress = _smartAccountConfig.entryPointAddress ?? DEFAULT_ENTRYPOINT_ADDRESS;
     this.accountAddress = _smartAccountConfig.accountAddress;
-    
+
     this.chainId = _smartAccountConfig.chainId;
 
-    if(_smartAccountConfig.bundlerUrl) {
+    if (_smartAccountConfig.bundlerUrl) {
       this.bundler = new Bundler({
-          bundlerUrl: _smartAccountConfig.bundlerUrl,
-          chainId: _smartAccountConfig.chainId,
-      })
+        bundlerUrl: _smartAccountConfig.bundlerUrl,
+        chainId: _smartAccountConfig.chainId,
+      });
     } else {
       this.bundler = _smartAccountConfig.bundler;
     }

@@ -48,17 +48,16 @@ export type SmartAccountConfig = {
   // MULTICHAIN = DEFAULT_MULTICHAIN_MODULE,
 }*/
 
-export type BaseSmartAccountConfig = 
-  ConditionalBundlerProps & {
-    // owner?: Signer // can be in child classes
-    index?: number;
-    provider?: Provider;
-    entryPointAddress?: string;
-    accountAddress?: string;
-    overheads?: Partial<GasOverheads>;
-    paymaster?: IPaymaster; // PaymasterAPI
-    chainId: ChainId;
-  }
+export type BaseSmartAccountConfig = ConditionalBundlerProps & {
+  // owner?: Signer // can be in child classes
+  index?: number;
+  provider?: Provider;
+  entryPointAddress?: string;
+  accountAddress?: string;
+  overheads?: Partial<GasOverheads>;
+  paymaster?: IPaymaster; // PaymasterAPI
+  chainId: ChainId;
+};
 
 export type BiconomyTokenPaymasterRequest = {
   feeQuote: PaymasterFeeQuote;
