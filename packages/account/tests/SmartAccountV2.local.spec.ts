@@ -13,15 +13,24 @@ import {
 
 import { BiconomySmartAccountV2 } from "../src/BiconomySmartAccountV2";
 import { ChainId, UserOperation } from "@biconomy/core-types";
-import { ECDSAOwnershipValidationModule } from "@biconomy/modules";
+import { DEFAULT_ECDSA_OWNERSHIP_MODULE, ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import { MultiChainValidationModule } from "@biconomy/modules";
 import { BaseValidationModule } from "@biconomy/modules";
 import { ECDSAOwnershipRegistryModule_v100 } from "@biconomy/common";
 import { MultiChainValidationModule_v100 } from "@biconomy/common";
+import { createWalletClient, http } from "viem";
+import { localhost, polygonMumbai } from "viem/chains";
+import { WalletClientSigner } from "@alchemy/aa-core";
+import { privateKeyToAccount } from "viem/accounts";
+import { DEFAULT_ENTRYPOINT_ADDRESS } from "../src/utils/Constants";
 
 const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
 const signer = provider.getSigner();
 const SENTINEL_MODULE = "0x0000000000000000000000000000000000000001";
+
+const MUMBAI = "https://rpc-mumbai.maticvigil.com";
+const randomEOA = ethers.Wallet.createRandom();
+const testPrivKey = randomEOA.privateKey.slice(2);
 
 describe("BiconomySmartAccountV2 API Specs", () => {
   let owner: Wallet;
@@ -364,8 +373,232 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     expect(address).toBe(accountAPI.accountAddress);
   }, 10000);
 
+  it("Create and setup ECDSA module with WalletClientSigner", async () => {
+    const wallet = privateKeyToAccount(`0x${testPrivKey}`);
+
+    const walletClient = createWalletClient({
+      account: wallet,
+      chain: polygonMumbai,
+      transport: http(MUMBAI),
+    });
+
+    const ecdsaSigner = new WalletClientSigner(walletClient, "json-rpc");
+
+    const account = await BiconomySmartAccountV2.create({
+      chainId: ChainId.POLYGON_MUMBAI,
+      entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
+      signer: ecdsaSigner,
+    });
+
+    const counterFactualAddress = await account.getAccountAddress();
+    console.log("Counterfactual address ", counterFactualAddress);
+
+    const module = await ECDSAOwnershipValidationModule.create({
+      signer: owner,
+      moduleAddress: DEFAULT_ECDSA_OWNERSHIP_MODULE,
+    });
+
+    account.setActiveValidationModule(module);
+  });
+
+  it("Create and setup ECDSA module with ethersV5 Signer", async () => {
+    const module = await ECDSAOwnershipValidationModule.create({
+      signer: randomEOA,
+      moduleAddress: DEFAULT_ECDSA_OWNERSHIP_MODULE,
+    });
+
+    const account = await BiconomySmartAccountV2.create({
+      chainId: ChainId.POLYGON_MUMBAI,
+      entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
+      signer: owner,
+      defaultValidationModule: module,
+      activeValidationModule: module,
+    });
+
+    const counterFactualAddress = await account.getAccountAddress();
+    console.log("Counterfactual address ", counterFactualAddress);
+
+    expect(counterFactualAddress).toBeDefined();
+
+    expect(module.getAddress()).toBe(DEFAULT_ECDSA_OWNERSHIP_MODULE);
+  });
+
+  // NOTE
+  // For tests we could only use sendUserOp for test networks until bundler integration test suite is integrated
+  // For test networks we can send transactions for Account created using random private key, IF paymaster is used
+  // buildUserOp tests we can do for any test network cause that only requires bundles without sending transactions
+  // If we can send prefund to the account then specific private key can be added (only testnet native tokens) or loaded from env
   // TODO
-  // 1. sendSignedUserOp()
-  // 2. sendUserOp()
-  // 3. sending userOps using a paymaster
+
+  // it("Send user op with ethersV5 signer", async () => {
+
+  //   const provider = new ethers.providers.JsonRpcProvider(MUMBAI);
+  //   const owner: Signer = new ethers.Wallet(testPrivKey, provider);
+
+  //   const bundler: IBundler = new Bundler({
+  //     bundlerUrl: "",
+  //     chainId: ChainId.POLYGON_MUMBAI,
+  //     entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
+  //   })
+
+  //   const module = await ECDSAOwnershipValidationModule.create({
+  //     signer: owner,
+  //     moduleAddress: DEFAULT_ECDSA_OWNERSHIP_MODULE
+  //   })
+
+  //   const newAccount = await BiconomySmartAccountV2.create({
+  //       chainId: ChainId.POLYGON_MUMBAI,
+  //       entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
+  //       signer: owner,
+  //       bundler,
+  //       defaultValidationModule: module,
+  //       activeValidationModule: module
+  //     });
+
+  //   const accountAddress = await newAccount.getAccountAddress();
+
+  //   const prefund = {
+  //     to: accountAddress,
+  //     value: ethers.utils.parseEther("0.1"),
+  //   }
+
+  //   const prefundResp = await owner.sendTransaction(prefund);
+  //   prefundResp.wait();
+
+  //   const tx = {
+  //       to: await Wallet.createRandom().getAddress(),
+  //       data: "0x"
+  //   }
+
+  //   const userOp = await newAccount.buildUserOp([tx]);
+  //   const res = await newAccount.sendUserOp(userOp);
+  //   const txhash = await res.waitForTxHash();
+
+  //   console.log("txhash ", txhash);
+
+  //   expect(txhash).toBeDefined();
+
+  // });
+
+  // it("Send user op with WalletClientSigner signer", async () => {
+
+  //   const wallet = privateKeyToAccount(`0x${testPrivKey}`)
+
+  //   const walletClient = createWalletClient({
+  //       account: wallet,
+  //       transport: http("https://rpc-mumbai.maticvigil.com"),
+  //   });
+
+  //   let owner = new WalletClientSigner(
+  //       walletClient,
+  //       "json-rpc"
+  //   );
+
+  //   const bundler: IBundler = new Bundler({
+  //     bundlerUrl: "",
+  //     chainId: ChainId.POLYGON_MUMBAI,
+  //     entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
+  //   })
+
+  //   const module = await ECDSAOwnershipValidationModule.create({
+  //     signer: owner,
+  //     moduleAddress: DEFAULT_ECDSA_OWNERSHIP_MODULE
+  //   })
+
+  //   const newAccount = await BiconomySmartAccountV2.create({
+  //       chainId: ChainId.POLYGON_MUMBAI,
+  //       entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
+  //       signer: owner,
+  //       bundler,
+  //       defaultValidationModule: module,
+  //       activeValidationModule: module
+  //   });
+
+  //   const accountAddress: `0x${string}` = await newAccount.getAccountAddress() as `0x${string}`;
+
+  //   const prefundResp = await walletClient.sendTransaction({
+  //     account: wallet,
+  //     to:  accountAddress,
+  //     value: 100000000000000000n,
+  //     chain: polygonMumbai
+  //   });
+
+  //   const tx = {
+  //     to: await Wallet.createRandom().getAddress(),
+  //     data: "0x"
+  //   }
+
+  //   const userOp = await newAccount.buildUserOp([tx]);
+  //   const res = await newAccount.sendUserOp(userOp);
+  //   const txhash = await res.waitForTxHash();
+
+  //   console.log("txhash ", txhash);
+
+  //   expect(txhash).toBeDefined();
+  // });
+
+  it("Create smart account with default module (ECDSA) without creating instance or providing module name", async () => {
+    const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
+      chainId: ChainId.GANACHE,
+      rpcUrl: "http://127.0.0.1:8545",
+      entryPointAddress: entryPoint.address,
+      signer,
+    });
+
+    const address = await account.getAccountAddress();
+    console.log("Module Abstraction Test - Account address ", address);
+
+    expect(address).toBe(account.accountAddress);
+
+    const module = account.activeValidationModule;
+    console.log(`ACTIVE MODULE - ${module.getAddress()}`);
+
+    expect(module.getAddress()).toBe(DEFAULT_ECDSA_OWNERSHIP_MODULE);
+  }, 10000);
+
+  it("Create smart account with ECDSA module without creating instance", async () => {
+    const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
+      chainId: ChainId.GANACHE,
+      rpcUrl: "http://127.0.0.1:8545",
+      entryPointAddress: entryPoint.address,
+      signer,
+    });
+
+    const address = await account.getAccountAddress();
+    console.log("Module Abstraction Test - Account address ", address);
+
+    expect(address).toBe(account.accountAddress);
+
+    const module = account.activeValidationModule as ECDSAOwnershipValidationModule;
+
+    console.log(`ACTIVE MODULE - ${module.getAddress()}`);
+
+    expect(module.getAddress()).toBe(DEFAULT_ECDSA_OWNERSHIP_MODULE);
+  }, 10000);
+
+  it("Create smart account with default module using WalletClientSigner as signer", async () => {
+    const walletClient = createWalletClient({
+      chain: localhost,
+      transport: http("http://127.0.0.1:8545"),
+    });
+
+    const ecdsaSigner = new WalletClientSigner(walletClient, "json-rpc");
+
+    const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
+      chainId: ChainId.GANACHE,
+      rpcUrl: "http://127.0.0.1:8545",
+      entryPointAddress: entryPoint.address,
+      signer: ecdsaSigner,
+    });
+
+    const address = await account.getAccountAddress();
+    console.log("Module Abstraction Test - Account address ", address);
+
+    expect(address).toBe(account.accountAddress);
+
+    const module = account.activeValidationModule;
+    console.log(`ACTIVE MODULE - ${module.getAddress()}`);
+
+    expect(module.getAddress()).toBe(DEFAULT_ECDSA_OWNERSHIP_MODULE);
+  }, 10000);
 });
