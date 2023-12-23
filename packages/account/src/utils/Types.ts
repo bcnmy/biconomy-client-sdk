@@ -49,7 +49,7 @@ export type SmartAccountConfig = {
   // MULTICHAIN = DEFAULT_MULTICHAIN_MODULE,
 }*/
 
-export type BaseSmartAccountConfig = {
+export type BaseSmartAccountConfig = ConditionalBundlerProps & {
   // owner?: Signer // can be in child classes
   index?: number;
   provider?: Provider;
@@ -57,7 +57,6 @@ export type BaseSmartAccountConfig = {
   accountAddress?: string;
   overheads?: Partial<GasOverheads>;
   paymaster?: IPaymaster; // PaymasterAPI
-  bundler?: IBundler; // like HttpRpcClient
   chainId: ChainId;
 };
 
@@ -88,6 +87,14 @@ type ConditionalValidationProps = RequireAtLeastOne<
     signer: Signer | WalletClientSigner;
   },
   "defaultValidationModule" | "signer"
+>;
+
+type ConditionalBundlerProps = RequireAtLeastOne<
+  {
+    bundler: IBundler;
+    bundlerUrl: string;
+  },
+  "bundler" | "bundlerUrl"
 >;
 
 export type BiconomySmartAccountV2Config = BaseSmartAccountConfig &

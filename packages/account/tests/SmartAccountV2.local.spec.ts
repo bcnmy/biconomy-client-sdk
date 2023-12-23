@@ -87,6 +87,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       defaultValidationModule: module1,
       activeValidationModule: module1,
       signer,
+      bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/..."
     });
 
     // console.log('account api provider ', accountAPI.provider)
@@ -101,11 +102,11 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()), data: "0x" }]);
     console.log("builtUserOp", builtUserOp);
     expect(builtUserOp?.nonce?.toString()).toBe("0");
-  });
+  }, 30000);
   it("Sender should be non zero", async () => {
     const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()), data: "0x" }]);
     expect(builtUserOp.sender).not.toBe(ethers.constants.AddressZero);
-  });
+  }, 30000);
   it("InitCode length should be greater then 170", async () => {
     const builtUserOp = await accountAPI.buildUserOp([{ to: recipient.address, value: ethers.utils.parseEther("1".toString()), data: "0x" }]);
     expect(builtUserOp?.initCode?.length).toBeGreaterThan(170);
@@ -169,6 +170,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       defaultValidationModule: module2,
       activeValidationModule: module2,
       signer,
+      bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/..."
     });
 
     // TODO
@@ -362,6 +364,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       defaultValidationModule: newmodule,
       activeValidationModule: newmodule,
       signer,
+      bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/..."
     });
 
     const address = await accountAPI2.getAccountAddress();
@@ -385,6 +388,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       chainId: ChainId.POLYGON_MUMBAI,
       entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
       signer: ecdsaSigner,
+      bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/..."
     });
 
     const counterFactualAddress = await account.getAccountAddress();
@@ -410,6 +414,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       signer: owner,
       defaultValidationModule: module,
       activeValidationModule: module,
+      bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/..."
     });
 
     const counterFactualAddress = await account.getAccountAddress();
@@ -540,6 +545,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
       signer,
+      bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/..."
     });
 
     const address = await account.getAccountAddress();
@@ -559,6 +565,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
       signer,
+      bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/..."
     });
 
     const address = await account.getAccountAddress();
@@ -586,6 +593,7 @@ describe("BiconomySmartAccountV2 API Specs", () => {
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
       signer: ecdsaSigner,
+      bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/..."
     });
 
     const address = await account.getAccountAddress();
