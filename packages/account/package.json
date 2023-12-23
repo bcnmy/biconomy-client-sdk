@@ -34,7 +34,8 @@
     "access": "public"
   },
   "devDependencies": {
-    "nock": "^13.2.9"
+    "nock": "^13.2.9",
+    "viem": "^1.19.11"
   },
   "dependencies": {
     "@account-abstraction/contracts": "^0.6.0",
@@ -51,7 +52,6 @@
     "@ethersproject/providers": "^5.7.2",
     "ethers": "^5.7.0",
     "loglevel": "^1.8.1",
-    "lru-cache": "^10.0.1",
-    "viem": "^1.19.11"
+    "lru-cache": "^10.0.1"
   }
 }
