@@ -45,7 +45,7 @@ import {
   DEFAULT_FALLBACK_HANDLER_ADDRESS,
   PROXY_CREATION_CODE,
 } from "./utils/Constants";
-import {extractChainId} from "./utils/Helpers";
+import { extractChainId } from "./utils/Helpers";
 import log from "loglevel";
 
 type UserOperationKey = keyof UserOperation;
@@ -79,7 +79,9 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   activeValidationModule!: BaseValidationModule;
 
   private constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountV2Config) {
-    const chainId = biconomySmartAccountConfig.bundler ? extractChainId(biconomySmartAccountConfig.bundler.getBundlerUrl()) : extractChainId(biconomySmartAccountConfig.bundlerUrl!);
+    const chainId = biconomySmartAccountConfig.bundler
+      ? extractChainId(biconomySmartAccountConfig.bundler.getBundlerUrl())
+      : extractChainId(biconomySmartAccountConfig.bundlerUrl!);
     biconomySmartAccountConfig.chainId = chainId;
     super(biconomySmartAccountConfig);
   }
