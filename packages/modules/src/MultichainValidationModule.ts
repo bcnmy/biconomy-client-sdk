@@ -70,7 +70,7 @@ export class MultiChainValidationModule extends BaseValidationModule {
   /**
    * Signs a message using the appropriate method based on the type of signer.
    *
-   * @param {Bytes | string | Uint8Array} message - The message to be signed.
+   * @param {Uint8Array | string} message - The message to be signed.
    * @returns {Promise<string>} A promise resolving to the signature or error message.
    * @throws {Error} If the signer type is invalid or unsupported.
    */
