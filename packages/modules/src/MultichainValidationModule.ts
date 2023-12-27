@@ -67,6 +67,13 @@ export class MultiChainValidationModule extends BaseValidationModule {
     return sig;
   }
 
+  /**
+   * Signs a message using the appropriate method based on the type of signer.
+   *
+   * @param {Bytes | string | Uint8Array} message - The message to be signed.
+   * @returns {Promise<string>} A promise resolving to the signature or error message.
+   * @throws {Error} If the signer type is invalid or unsupported.
+   */
   async signMessage(message: Uint8Array | string): Promise<string> {
     let signature = await this.signer.signMessage(message);
 
@@ -75,7 +82,6 @@ export class MultiChainValidationModule extends BaseValidationModule {
       const correctV = potentiallyIncorrectV + 27;
       signature = signature.slice(0, -2) + correctV.toString(16);
     }
-
     return signature;
   }
 

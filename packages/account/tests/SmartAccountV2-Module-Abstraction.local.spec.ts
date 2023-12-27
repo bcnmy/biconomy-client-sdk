@@ -10,10 +10,23 @@ describe("BiconomySmartAccountV2 Module Abstraction", () => {
   it("should pass", () => {
     expect(true).toBe(true);
   });
+  // let owner: Wallet;
+  // let factoryOwner: Wallet;
   // let entryPoint: EntryPoint;
+  // let beneficiary: string;
+  // let recipient: SampleRecipient;
+  // let accountFactory: SmartAccountFactory_v200;
+  // let ecdsaModule: ECDSAOwnershipRegistryModule_v100;
   // beforeAll(async () => {
+  //   owner = Wallet.createRandom();
   //   entryPoint = await new EntryPoint__factory(signer).deploy();
   //   console.log("ep address ", entryPoint.address);
+  //   beneficiary = await signer.getAddress();
+  //   factoryOwner = Wallet.createRandom();
+  //   const accountImpl: SmartAccount_v200 = await new SmartAccount_v200__factory(signer).deploy(entryPoint.address);
+  //   accountFactory = await new SmartAccountFactory_v200__factory(signer).deploy(accountImpl.address, await factoryOwner.getAddress());
+  //   ecdsaModule = await new ECDSAOwnershipRegistryModule_v100__factory(signer).deploy();
+  //   recipient = await new SampleRecipient__factory(signer).deploy();
   //   await new Promise((resolve) => setTimeout(resolve, 10000));
   // }, 30000);
   // it("Create smart account with default module (ECDSA)", async () => {
@@ -22,6 +35,7 @@ describe("BiconomySmartAccountV2 Module Abstraction", () => {
   //     rpcUrl: "http://127.0.0.1:8545",
   //     entryPointAddress: entryPoint.address,
   //     signer,
+  //     bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/...",
   //     /*defaultValidationModule: await ECDSAOwnershipValidationModule.create({
   //       signer: signer,
   //       moduleAddress: ecdsaModule.address,
@@ -29,7 +43,7 @@ describe("BiconomySmartAccountV2 Module Abstraction", () => {
   //   });
   //   const address = await account.getAccountAddress();
   //   console.log("Module Abstraction Test - Account address ", address);
-  //   expect(address).toBe(await account.getAccountAddress());
+  //   expect(address).toBe(account.accountAddress);
   //   const module = account.activeValidationModule;
   //   console.log(`ACTIVE MODULE - ${module.getAddress()}`);
   // }, 10000);
@@ -39,10 +53,11 @@ describe("BiconomySmartAccountV2 Module Abstraction", () => {
   //     rpcUrl: "http://127.0.0.1:8545",
   //     entryPointAddress: entryPoint.address,
   //     signer,
+  //     bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/...",
   //   });
   //   const address = await account.getAccountAddress();
   //   console.log("Module Abstraction Test - Account address ", address);
-  //   expect(address).toBe(await account.getAccountAddress());
+  //   expect(address).toBe(account.accountAddress);
   //   const module = account.activeValidationModule;
   //   console.log(`ACTIVE MODULE - ${module.getAddress()}`);
   // }, 10000);

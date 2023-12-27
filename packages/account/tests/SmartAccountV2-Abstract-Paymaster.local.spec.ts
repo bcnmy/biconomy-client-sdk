@@ -51,17 +51,18 @@ describe("BiconomySmartAccountV2 Paymaster Abstraction", () => {
   //     rpcUrl: "http://127.0.0.1:8545",
   //     entryPointAddress: entryPoint.address,
   //     biconomyPaymasterApiKey: "7K_k68BFN.ed274da8-69a1-496d-a897-508fc2213216",
-  //     factoryAddress: accountFactory.address as Hex,
-  //     defaultFallbackHandler: (await accountFactory.minimalHandler()) as Hex,
+  //     factoryAddress: accountFactory.address,
+  //     defaultFallbackHandler: await accountFactory.minimalHandler(),
   //     defaultValidationModule: module1,
   //     activeValidationModule: module1,
+  //     bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/...",
   //   });
   //   const address = await account.getAccountAddress();
   //   console.log("account address ", address);
   //   const paymaster = account.paymaster;
   //   expect(paymaster).not.toBeNull();
   //   expect(paymaster).not.toBeUndefined();
-  //   expect(address).toBe(await account.getAccountAddress());
+  //   expect(address).toBe(account.accountAddress);
   // }, 10000);
   // it("Create a smart account with paymaster by creating instance", async () => {
   //   const paymaster = new BiconomyPaymaster({
@@ -71,16 +72,17 @@ describe("BiconomySmartAccountV2 Paymaster Abstraction", () => {
   //     chainId: ChainId.GANACHE,
   //     rpcUrl: "http://127.0.0.1:8545",
   //     entryPointAddress: entryPoint.address,
-  //     factoryAddress: accountFactory.address as Hex,
-  //     defaultFallbackHandler: (await accountFactory.minimalHandler()) as Hex,
+  //     factoryAddress: accountFactory.address,
+  //     defaultFallbackHandler: await accountFactory.minimalHandler(),
   //     defaultValidationModule: module1,
   //     activeValidationModule: module1,
   //     paymaster: paymaster,
+  //     bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/...",
   //   });
   //   const address = await account.getAccountAddress();
   //   console.log("account address ", address);
   //   expect(account.paymaster).not.toBeNull();
   //   expect(account.paymaster).not.toBeUndefined();
-  //   expect(address).toBe(await account.getAccountAddress());
+  //   expect(address).toBe(account.accountAddress);
   // }, 10000);
 });

@@ -30,4 +30,16 @@ export abstract class BaseValidationModule implements IValidationModule {
   abstract signUserOpHash(_userOpHash: string, _params?: ModuleInfo): Promise<Hex>;
 
   abstract signMessage(_message: Uint8Array | string): Promise<string>;
+
+  async signMessageWalletClientSigner(message: string | Uint8Array, signer: WalletClientSigner): Promise<string> {
+    let signature: `0x${string}` = await signer.signMessage(message);
+
+    const potentiallyIncorrectV = parseInt(signature.slice(-2), 16);
+    if (![27, 28].includes(potentiallyIncorrectV)) {
+      const correctV = potentiallyIncorrectV + 27;
+      signature = `0x${signature.slice(0, -2) + correctV.toString(16)}`;
+    }
+
+    return signature;
+  }
 }

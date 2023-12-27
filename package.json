@@ -26,6 +26,9 @@
   "author": "Biconomy (https://biconomy.io)",
   "private": true,
   "scripts": {
+    "dev": "yarn rebuild && yarn install && yarn build && yarn link:all",
+    "rebuild": "./rebuild.sh",
+    "link:all": "./linkAll.sh",
     "build": "lerna run build",
     "clean": "lerna clean && lerna run unbuild",
     "format": "lerna run format --npm-client=yarn",
