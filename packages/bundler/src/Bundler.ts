@@ -1,6 +1,5 @@
 import { getChain, type UserOperationStruct } from "@alchemy/aa-core";
 import { createPublicClient, http } from "viem";
-import { mainnet } from "viem/chains";
 import { IBundler } from "./interfaces/IBundler";
 import {
   GetUserOperationReceiptResponse,
