@@ -57,7 +57,7 @@ export type BaseSmartAccountConfig = ConditionalBundlerProps & {
   accountAddress?: string;
   overheads?: Partial<GasOverheads>;
   paymaster?: IPaymaster; // PaymasterAPI
-  chainId: ChainId;
+  chainId?: ChainId;
 };
 
 export type BiconomyTokenPaymasterRequest = {

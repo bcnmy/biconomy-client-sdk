@@ -47,7 +47,6 @@ describe("BiconomySmartAccountV2 Module Abstraction", () => {
 
   it("Create smart account with default module (ECDSA)", async () => {
     const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
-      chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
       signer,
@@ -69,7 +68,6 @@ describe("BiconomySmartAccountV2 Module Abstraction", () => {
 
   it("Create smart account with ECDSA module", async () => {
     const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
-      chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
       signer,

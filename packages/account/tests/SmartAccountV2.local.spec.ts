@@ -76,7 +76,6 @@ describe("BiconomySmartAccountV2 API Specs", () => {
 
     recipient = await new SampleRecipient__factory(signer).deploy();
     accountAPI = await BiconomySmartAccountV2.create({
-      chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
       // paymaster: paymaster,
       // bundler: bundler,
@@ -159,7 +158,6 @@ describe("BiconomySmartAccountV2 API Specs", () => {
 
   it("should deploy another account using different validation module", async () => {
     let accountAPI2 = await BiconomySmartAccountV2.create({
-      chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
       // paymaster: paymaster,
       // bundler: bundler,
@@ -353,7 +351,6 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     });
 
     const accountAPI2 = await BiconomySmartAccountV2.create({
-      chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
       // paymaster: paymaster,
       // bundler: bundler,
@@ -376,18 +373,17 @@ describe("BiconomySmartAccountV2 API Specs", () => {
   it("Create and setup ECDSA module with WalletClientSigner", async () => {
     const wallet = privateKeyToAccount(`0x${testPrivKey}`);
 
-    const walletClient = createWalletClient({
-      account: wallet,
-      chain: polygonMumbai,
-      transport: http(MUMBAI),
-    });
+    // const walletClient = createWalletClient({
+    //   account: wallet,
+    //   chain: polygonMumbai,
+    //   transport: http(MUMBAI),
+    // });
 
-    const ecdsaSigner = new WalletClientSigner(walletClient, "json-rpc");
+    // const ecdsaSigner = new WalletClientSigner(walletClient, "json-rpc");
 
     const account = await BiconomySmartAccountV2.create({
-      chainId: ChainId.POLYGON_MUMBAI,
       entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
-      signer: ecdsaSigner,
+      signer: new VoidSigner(await owner.getAddress()),
       bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/..."
     });
 
@@ -409,7 +405,6 @@ describe("BiconomySmartAccountV2 API Specs", () => {
     });
 
     const account = await BiconomySmartAccountV2.create({
-      chainId: ChainId.POLYGON_MUMBAI,
       entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
       signer: owner,
       defaultValidationModule: module,
@@ -541,7 +536,6 @@ describe("BiconomySmartAccountV2 API Specs", () => {
 
   it("Create smart account with default module (ECDSA) without creating instance or providing module name", async () => {
     const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
-      chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
       signer,
@@ -561,7 +555,6 @@ describe("BiconomySmartAccountV2 API Specs", () => {
 
   it("Create smart account with ECDSA module without creating instance", async () => {
     const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
-      chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
       signer,
@@ -581,18 +574,17 @@ describe("BiconomySmartAccountV2 API Specs", () => {
   }, 10000);
 
   it("Create smart account with default module using WalletClientSigner as signer", async () => {
-    const walletClient = createWalletClient({
-      chain: localhost,
-      transport: http("http://127.0.0.1:8545"),
-    });
+    // const walletClient = createWalletClient({
+    //   chain: localhost,
+    //   transport: http("http://127.0.0.1:8545"),
+    // });
 
-    const ecdsaSigner = new WalletClientSigner(walletClient, "json-rpc");
+    // const ecdsaSigner = new WalletClientSigner(walletClient, "json-rpc");
 
     const account: BiconomySmartAccountV2 = await BiconomySmartAccountV2.create({
-      chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
-      signer: ecdsaSigner,
+      signer: new VoidSigner(await owner.getAddress()),
       bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/..."
     });
 

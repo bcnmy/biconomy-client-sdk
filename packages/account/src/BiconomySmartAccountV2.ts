@@ -45,6 +45,7 @@ import {
   DEFAULT_FALLBACK_HANDLER_ADDRESS,
   PROXY_CREATION_CODE,
 } from "./utils/Constants";
+import {extractChainId} from "./utils/Helpers";
 import log from "loglevel";
 
 type UserOperationKey = keyof UserOperation;
@@ -78,6 +79,8 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   activeValidationModule!: BaseValidationModule;
 
   private constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountV2Config) {
+    const chainId = biconomySmartAccountConfig.bundler ? extractChainId(biconomySmartAccountConfig.bundler.getBundlerUrl()) : extractChainId(biconomySmartAccountConfig.bundlerUrl!);
+    biconomySmartAccountConfig.chainId = chainId;
     super(biconomySmartAccountConfig);
   }
 
@@ -95,10 +98,9 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
     const instance = new BiconomySmartAccountV2(biconomySmartAccountConfig);
     instance.factoryAddress = biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS; // This would be fetched from V2
-
     if (biconomySmartAccountConfig.biconomyPaymasterApiKey) {
       instance.paymaster = new BiconomyPaymaster({
-        paymasterUrl: `https://paymaster.biconomy.io/api/v1/${biconomySmartAccountConfig.chainId}/${biconomySmartAccountConfig.biconomyPaymasterApiKey}`,
+        paymasterUrl: `https://paymaster.biconomy.io/api/v1/${instance.chainId}/${biconomySmartAccountConfig.biconomyPaymasterApiKey}`,
       });
     }
 

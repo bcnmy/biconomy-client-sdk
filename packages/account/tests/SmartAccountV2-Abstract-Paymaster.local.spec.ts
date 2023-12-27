@@ -54,7 +54,6 @@ describe("BiconomySmartAccountV2 Paymaster Abstraction", () => {
   it("Create a smart account with paymaster through api key", async () => {
 
     account = await BiconomySmartAccountV2.create({
-      chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
       biconomyPaymasterApiKey: "7K_k68BFN.ed274da8-69a1-496d-a897-508fc2213216",
@@ -83,7 +82,6 @@ describe("BiconomySmartAccountV2 Paymaster Abstraction", () => {
     })
 
     account = await BiconomySmartAccountV2.create({
-      chainId: ChainId.GANACHE,
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
       factoryAddress: accountFactory.address,

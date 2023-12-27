@@ -71,7 +71,7 @@ export class Bundler implements IBundler {
     }
   }
 
-  private getBundlerUrl(): string {
+  getBundlerUrl(): string {
     return `${this.bundlerConfig.bundlerUrl}`;
   }
 

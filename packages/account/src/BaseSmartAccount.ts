@@ -48,12 +48,12 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
     this.entryPointAddress = _smartAccountConfig.entryPointAddress ?? DEFAULT_ENTRYPOINT_ADDRESS;
     this.accountAddress = _smartAccountConfig.accountAddress;
 
-    this.chainId = _smartAccountConfig.chainId;
+    this.chainId = _smartAccountConfig.chainId!;
 
     if (_smartAccountConfig.bundlerUrl) {
       this.bundler = new Bundler({
         bundlerUrl: _smartAccountConfig.bundlerUrl,
-        chainId: _smartAccountConfig.chainId,
+        chainId: _smartAccountConfig.chainId!,
       });
     } else {
       this.bundler = _smartAccountConfig.bundler;
@@ -63,7 +63,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
       this.paymaster = _smartAccountConfig.paymaster;
     }
 
-    this.provider = _smartAccountConfig.provider ?? new JsonRpcProvider(RPC_PROVIDER_URLS[this.chainId]);
+    this.provider = _smartAccountConfig.provider ?? new JsonRpcProvider(RPC_PROVIDER_URLS[this.chainId as ChainId]);
 
     // Create an instance of the EntryPoint contract using the provided address and provider (facory "connect" contract address)
     // Then, set the transaction's sender ("from" address) to the zero address (AddressZero). (contract "connect" from address)
