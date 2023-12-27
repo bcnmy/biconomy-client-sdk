@@ -138,7 +138,7 @@ export class Bundler implements IBundler {
       userOpHash: sendUserOperationResponse.result,
       wait: (confirmations?: number): Promise<UserOpReceipt> => {
         const providerClient = createPublicClient({
-          chain: getChain(chainId) || mainnet,
+          chain: getChain(chainId),
           transport: http(),
         });
         // Note: maxDuration can be defined per chainId
