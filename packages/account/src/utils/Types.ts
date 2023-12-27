@@ -1,11 +1,8 @@
-import { Signer } from "ethers";
-import { ChainId } from "@biconomy/core-types";
-import { BigNumberish, UserOperationStruct } from "@alchemy/aa-core";
+import { BigNumberish, UserOperationStruct, WalletClientSigner } from "@alchemy/aa-core";
 import { IBundler } from "@biconomy/bundler";
 import { IPaymaster, PaymasterFeeQuote, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
-import { Provider } from "@ethersproject/providers";
-import { Hex } from "viem";
+import { Hex, WalletClient } from "viem";
 
 export type EntryPointAddresses = {
   [address: string]: string;
@@ -59,27 +56,26 @@ export interface GasOverheads {
 }*/
 
 export type BaseSmartAccountConfig = {
-  // owner?: Signer // can be in child classes
   index?: number;
-  provider?: Provider;
+  provider?: WalletClient;
   entryPointAddress?: string;
   accountAddress?: string;
   overheads?: Partial<GasOverheads>;
   paymaster?: IPaymaster; // PaymasterAPI
   bundler?: IBundler; // like HttpRpcClient
-  chainId: ChainId;
+  chainId: number;
 };
 
 export type BiconomyTokenPaymasterRequest = {
   feeQuote: PaymasterFeeQuote;
-  spender: string;
+  spender: Hex;
   maxApproval?: boolean;
 };
 
 export type BiconomySmartAccountConfig = {
-  signer: Signer;
+  signer: WalletClientSigner;
   rpcUrl?: string;
-  chainId: ChainId;
+  chainId: number;
   entryPointAddress?: string;
   bundler?: IBundler;
   paymaster?: IPaymaster;
@@ -94,7 +90,7 @@ type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyo
 type ConditionalValidationProps = RequireAtLeastOne<
   {
     defaultValidationModule: BaseValidationModule;
-    signer: Signer;
+    signer: WalletClientSigner;
   },
   "defaultValidationModule" | "signer"
 >;
@@ -129,7 +125,7 @@ export type NonceOptions = {
 
 // Used in AccountV1
 export type SendUserOpDto = {
-  signer?: Signer;
+  signer?: WalletClientSigner;
   simulationType?: SimulationType;
 };
 

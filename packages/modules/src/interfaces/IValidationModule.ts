@@ -1,11 +1,11 @@
-import { Signer } from "ethers";
-import { Bytes } from "ethers/lib/utils";
+import { WalletClientSigner } from "@alchemy/aa-core";
+import { Hex } from "viem";
 
 export interface IValidationModule {
-  getAddress(): string;
-  getInitData(): Promise<string>;
-  getSigner(): Promise<Signer>;
-  signUserOpHash(_userOpHash: string): Promise<string>;
-  signMessage(_message: Bytes | string): Promise<string>;
-  getDummySignature(): Promise<string>;
+  getAddress(): Hex;
+  getInitData(): Promise<Hex>;
+  getSigner(): Promise<WalletClientSigner>;
+  signUserOpHash(_userOpHash: string): Promise<Hex>;
+  signMessage(_message: string | Uint8Array): Promise<string>;
+  getDummySignature(): Promise<Hex>;
 }

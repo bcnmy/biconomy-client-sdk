@@ -89,7 +89,7 @@ export type PaymasterFeeQuote = {
 
 export type BiconomyTokenPaymasterRequest = {
   feeQuote: PaymasterFeeQuote;
-  spender: string;
+  spender: Hex;
   maxApproval?: boolean;
 };
 
@@ -103,10 +103,10 @@ export type FeeQuotesOrDataResponse = {
 };
 
 export type PaymasterAndDataResponse = {
-  paymasterAndData: string;
-  preVerificationGas?: string;
-  verificationGasLimit?: string;
-  callGasLimit?: string;
+  paymasterAndData: Hex;
+  preVerificationGas: number;
+  verificationGasLimit: number;
+  callGasLimit: number;
 };
 
 export enum PaymasterMode {

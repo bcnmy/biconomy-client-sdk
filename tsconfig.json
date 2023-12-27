@@ -12,10 +12,6 @@
   "include": ["packages/**/*"],
   "references": [
     { "path": "./packages/common" },
-    { "path": "./packages/core-types" },
-    { "path": "./packages/node-client" },
-    { "path": "./packages/web3-auth" },
-    { "path": "./packages/web3-auth-native" },
     { "path": "./packages/transak" },
     { "path": "./packages/bundler" },
     { "path": "./packages/paymaster" },

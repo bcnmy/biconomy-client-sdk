@@ -1,5 +1,8 @@
-import { Wallet, Signer } from "ethers";
+import { Hex, createWalletClient, http } from "viem";
+import { WalletClientSigner } from "@alchemy/aa-core";
 import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "../interfaces/ISessionStorage";
+import { mainnet } from "viem/chains";
+import { privateKeyToAccount } from "viem/accounts";
 
 export class SessionLocalStorage implements ISessionStorage {
   private smartAccountAddress: string;
@@ -38,8 +41,8 @@ export class SessionLocalStorage implements ISessionStorage {
 
   async addSessionData(leaf: SessionLeafNode): Promise<void> {
     const data = this.getSessionStore();
-    leaf.sessionValidationModule = this.toLowercaseAddress(leaf.sessionValidationModule);
-    leaf.sessionPublicKey = this.toLowercaseAddress(leaf.sessionPublicKey);
+    leaf.sessionValidationModule = this.toLowercaseAddress(leaf.sessionValidationModule) as Hex;
+    leaf.sessionPublicKey = this.toLowercaseAddress(leaf.sessionPublicKey) as Hex;
     data.leafNodes.push(leaf);
     localStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data));
   }
@@ -99,30 +102,40 @@ export class SessionLocalStorage implements ISessionStorage {
     localStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data));
   }
 
-  async addSigner(signer?: Wallet): Promise<Wallet> {
-    const signers = this.getSignerStore();
-    if (!signer) {
-      signer = Wallet.createRandom();
-    }
-    signers[this.toLowercaseAddress(signer.publicKey)] = {
-      privateKey: signer.privateKey,
-      publicKey: signer.publicKey,
-    };
-    localStorage.setItem(this.getStorageKey("signers"), JSON.stringify(signers));
+  async addSigner(signer: WalletClientSigner): Promise<WalletClientSigner> {
+    // const signers = this.getSignerStore();
+    // if (!signer) {
+    //   const pkey = generatePrivateKey()
+    //   signer = {
+    //     privateKey: pkey,
+    //     publicKey: pkey.publicKey,
+    //   };
+    // }
+    // signers[this.toLowercaseAddress(signer?.inner.)] = {
+    //   privateKey: signer.privateKey,
+    //   publicKey: signer.publicKey,
+    // };
+    // localStorage.setItem(this.getStorageKey("signers"), JSON.stringify(signers));
     return signer;
   }
 
-  async getSignerByKey(sessionPublicKey: string): Promise<Signer> {
+  async getSignerByKey(sessionPublicKey: string): Promise<WalletClientSigner> {
     const signers = this.getSignerStore();
     const signerData = signers[this.toLowercaseAddress(sessionPublicKey)];
     if (!signerData) {
       throw new Error("Signer not found.");
     }
-    const signer = new Wallet(signerData.privateKey);
+    const account = privateKeyToAccount(signerData.privateKey);
+    const client = createWalletClient({
+      account,
+      chain: mainnet,
+      transport: http(),
+    });
+    const signer = new WalletClientSigner(client, "viem");
     return signer;
   }
 
-  async getSignerBySession(param: SessionSearchParam): Promise<Signer> {
+  async getSignerBySession(param: SessionSearchParam): Promise<WalletClientSigner> {
     const session = await this.getSessionData(param);
     return this.getSignerByKey(session.sessionPublicKey);
   }
