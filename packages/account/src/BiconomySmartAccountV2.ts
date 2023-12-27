@@ -18,7 +18,7 @@ import {
   getContract,
   decodeFunctionData,
 } from "viem";
-import { BaseSmartContractAccount, getChain, type BigNumberish, type UserOperationStruct } from "@alchemy/aa-core";
+import { BaseSmartContractAccount, getChain, type BigNumberish, type UserOperationStruct, BatchUserOperationCallData } from "@alchemy/aa-core";
 import { isNullOrUndefined, packUserOp } from "./utils/Utils";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import { IHybridPaymaster, IPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from "@biconomy/paymaster";
@@ -338,6 +338,21 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       functionName: "executeBatch_y6U",
       args: [to, value, data],
     });
+  }
+
+  override async encodeBatchExecute(txs: BatchUserOperationCallData): Promise<Hex> {
+    const [targets, datas, value] = txs.reduce(
+      (accum, curr) => {
+        accum[0].push(curr.target);
+        accum[1].push(curr.data);
+        accum[2].push(curr.value || BigInt(0));
+
+        return accum;
+      },
+      [[], [], []] as [Hex[], Hex[], bigint[]],
+    );
+
+    return this.encodeExecuteBatch(targets, value, datas);
   }
 
   // dummy signature depends on the validation module supplied.

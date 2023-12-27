@@ -1,15 +1,17 @@
 import {
   BatchUserOperationCallData,
-  SendUserOperationResult,
   SmartAccountProvider,
   UserOperationCallData,
   UserOperationOverrides,
   UserOperationStruct,
 } from "@alchemy/aa-core";
 import type { Hex, HttpTransport } from "viem";
+import type { UserOpResponse } from "@biconomy/bundler";
+import { IHybridPaymaster, SponsorUserOperationDto, PaymasterMode } from "@biconomy/paymaster";
 import { BiconomySmartAccountV2 } from "./BiconomySmartAccountV2";
 
 export class BiconomyAccountProvider extends SmartAccountProvider<HttpTransport> {
+  // Note: Not using the customMiddleware as it is the last stack happens but we need to update the signatures before the request is sent
   buildUserOperation = async (
     data: UserOperationCallData | BatchUserOperationCallData,
     _overrides?: UserOperationOverrides,
@@ -37,16 +39,29 @@ export class BiconomyAccountProvider extends SmartAccountProvider<HttpTransport>
     return userOp as UserOperationStruct;
   };
 
-  sendUserOperation = async (data: UserOperationCallData | BatchUserOperationCallData): Promise<SendUserOperationResult> => {
+  sendUserOperations = async (data: UserOperationCallData | BatchUserOperationCallData): Promise<UserOpResponse> => {
     if (!this.account) {
       throw new Error("account not connected");
     }
 
     const userOp = await this.buildUserOperation(data);
-    const userOpResponse = await (this.account as BiconomySmartAccountV2).sendUserOp(userOp);
-    return {
-      hash: userOpResponse.userOpHash as Hex,
-      request: userOp as any,
-    };
+
+    const biconomyAccount = this.account as BiconomySmartAccountV2;
+    if (biconomyAccount.paymaster !== undefined) {
+      try {
+        const paymasterData = await (biconomyAccount.paymaster as IHybridPaymaster<SponsorUserOperationDto>).getPaymasterAndData(userOp, {
+          mode: PaymasterMode.SPONSORED,
+        });
+        userOp.paymasterAndData = paymasterData.paymasterAndData;
+        userOp.callGasLimit = paymasterData.callGasLimit;
+        userOp.verificationGasLimit = paymasterData.verificationGasLimit;
+        userOp.preVerificationGas = paymasterData.preVerificationGas;
+      } catch (e: any) {
+        console.error("Error while fetching paymaster data", e);
+      }
+    }
+
+    const userOpResponse = await biconomyAccount.sendUserOp(userOp);
+    return userOpResponse;
   };
 }
