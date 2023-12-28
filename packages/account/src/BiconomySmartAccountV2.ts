@@ -12,7 +12,7 @@ import {
   AddressResolver,
   AddressResolver__factory,
   isNullOrUndefined,
-} from "@biconomy/common";
+} from "@biconomy-devx/common";
 import {
   BiconomyTokenPaymasterRequest,
   BiconomySmartAccountV2Config,
@@ -23,11 +23,11 @@ import {
   SmartAccountInfo,
   QueryParamsForAddressResolver,
 } from "./utils/Types";
-import { BaseValidationModule, ECDSAOwnershipValidationModule, ModuleInfo, SendUserOpParams } from "@biconomy/modules";
-import { UserOperation, Transaction } from "@biconomy/core-types";
-import NodeClient from "@biconomy/node-client";
-import INodeClient from "@biconomy/node-client";
-import { IHybridPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from "@biconomy/paymaster";
+import { BaseValidationModule, ECDSAOwnershipValidationModule, ModuleInfo, SendUserOpParams } from "@biconomy-devx/modules";
+import { UserOperation, Transaction } from "@biconomy-devx/core-types";
+import NodeClient from "@biconomy-devx/node-client";
+import INodeClient from "@biconomy-devx/node-client";
+import { IHybridPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from "@biconomy-devx/paymaster";
 import {
   SupportedChainsResponse,
   BalancesResponse,
@@ -36,8 +36,8 @@ import {
   SmartAccountByOwnerDto,
   SmartAccountsResponse,
   SCWTransactionResponse,
-} from "@biconomy/node-client";
-import { UserOpResponse } from "@biconomy/bundler";
+} from "@biconomy-devx/node-client";
+import { UserOpResponse } from "@biconomy-devx/bundler";
 import {
   ADDRESS_RESOLVER_ADDRESS,
   BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION,

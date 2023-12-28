@@ -1,11 +1,11 @@
 import { Signer } from "ethers";
 import { BigNumberish, BigNumber } from "ethers";
-import { IBundler } from "@biconomy/bundler";
-import { IPaymaster, PaymasterFeeQuote, SponsorUserOperationDto } from "@biconomy/paymaster";
-import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
+import { IBundler } from "@biconomy-devx/bundler";
+import { IPaymaster, PaymasterFeeQuote, SponsorUserOperationDto } from "@biconomy-devx/paymaster";
+import { BaseValidationModule, ModuleInfo } from "@biconomy-devx/modules";
 import { Provider } from "@ethersproject/providers";
 import { GasOverheads } from "./Preverificaiton";
-import { UserOperation, ChainId } from "@biconomy/core-types";
+import { UserOperation, ChainId } from "@biconomy-devx/core-types";
 import { WalletClientSigner } from "@alchemy/aa-core";
 
 export type EntryPointAddresses = {
