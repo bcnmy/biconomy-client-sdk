@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 3.1.2 (2023-12-28)
+
+
+### Bug Fixes
+
+* use undefined in place of ! + check on limits returned by paymaster and throw ([0376901](https://github.com/bcnmy/biconomy-client-sdk/commit/0376901b7aec8c268a6a3c654d147335974d78f3))
+
 ## 3.1.1 (2023-11-09)
 
 
@@ -47,7 +54,7 @@ Modular Account Abstraction is here. Contains BiconomySmartAccountV2 - an API fo
 
 ## 3.0.0 (2023-08-28)
 
-VERSION bump only
+VERSION Bump Only.
 
 Modular SDK - consists stable version of below updates done in Alphas.
 
@@ -58,7 +65,7 @@ Modular SDK - consists stable version of below updates done in Alphas.
 
 ### Bug Fixes
 
-VERSION bump only
+VERSION Bump Only.
 
 
 
