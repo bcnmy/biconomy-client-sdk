@@ -264,34 +264,33 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
 
     Logger.log("userOp in estimation", userOp);
 
-    if (skipBundlerCall) {
-      if (this.paymaster && this.paymaster instanceof BiconomyPaymaster) {
+    try {
+      if (
+        skipBundlerCall &&
+        this.paymaster &&
+        this.paymaster instanceof BiconomyPaymaster &&
+        paymasterServiceData?.mode === PaymasterMode.SPONSORED
+      ) {
         if (isNullOrUndefined(userOp.maxFeePerGas) || isNullOrUndefined(userOp.maxPriorityFeePerGas)) {
           throw new Error("maxFeePerGas and maxPriorityFeePerGas are required for skipBundlerCall mode");
         }
-        if (paymasterServiceData?.mode === PaymasterMode.SPONSORED) {
-          // Making call to paymaster to get gas estimations for userOp
-          const { callGasLimit, verificationGasLimit, preVerificationGas, paymasterAndData } = await (
-            this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
-          ).getPaymasterAndData(userOp, paymasterServiceData);
-          if (paymasterAndData === "0x" && (callGasLimit === undefined || verificationGasLimit === undefined || preVerificationGas === undefined)) {
-            throw new Error("Since you intend to use sponsorship paymaster, please check and make sure policies are set on the dashboard");
-          }
-          finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
-          finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
-          finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
-          finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
-        } else {
-          throw new Error("Either pass skipBundlerGasEstimation = false OR pass paymasterServiceData with mode as SPONSORED");
+        // Making call to paymaster to get gas estimations for userOp
+        const { callGasLimit, verificationGasLimit, preVerificationGas, paymasterAndData } = await (
+          this.paymaster as IHybridPaymaster<SponsorUserOperationDto>
+        ).getPaymasterAndData(userOp, paymasterServiceData);
+        if (paymasterAndData === "0x" && (callGasLimit === undefined || verificationGasLimit === undefined || preVerificationGas === undefined)) {
+          throw new Error("Since you intend to use sponsorship paymaster, please check and make sure policies are set on the dashboard");
         }
-      } else {
-        {
-          Logger.warn("Skipped paymaster call. If you are using paymasterAndData, generate data externally");
-          finalUserOp = await this.calculateUserOpGasValues(userOp);
-          finalUserOp.paymasterAndData = "0x";
-        }
+        finalUserOp.verificationGasLimit = verificationGasLimit ?? userOp.verificationGasLimit;
+        finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
+        finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
+        finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
+        return finalUserOp;
       }
-    } else {
+    } catch (e) {
+      Logger.error("Error while getting gas estimations from paymaster", e);
+    }
+
       if (!this.bundler) throw new Error("Bundler is not provided");
       delete userOp.maxFeePerGas;
       delete userOp.maxPriorityFeePerGas;
@@ -315,9 +314,8 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
       finalUserOp.callGasLimit = callGasLimit ?? userOp.callGasLimit;
       finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
       finalUserOp.paymasterAndData = "0x";
-    }
     return finalUserOp;
-  }
+}
 
   // Would only be used if paymaster is attached
   async getPaymasterAndData(userOp: Partial<UserOperation>): Promise<string> {
