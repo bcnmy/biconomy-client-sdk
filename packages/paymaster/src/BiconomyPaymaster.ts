@@ -1,7 +1,5 @@
-import { Logger, sendRequest, HttpMethod, getTimestampInSeconds } from "@biconomy/common";
-import { resolveProperties } from "@ethersproject/properties";
-import { UserOperation, Transaction } from "@biconomy/core-types";
-import { Provider } from "@ethersproject/abstract-provider";
+import { encodeFunctionData, parseAbi } from "viem";
+import type { BigNumberish, UserOperationStruct } from "@alchemy/aa-core";
 import {
   PaymasterFeeQuote,
   PaymasterConfig,
@@ -12,10 +10,12 @@ import {
   BiconomyTokenPaymasterRequest,
   PaymasterMode,
   PaymasterAndDataResponse,
+  Transaction,
 } from "./utils/Types";
-import { BigNumberish, BigNumber, ethers } from "ethers";
-import { ERC20_ABI } from "./constants";
 import { IHybridPaymaster } from "./interfaces/IHybridPaymaster";
+import { MAX_UINT256, ERC20_ABI, ADDRESS_ZERO } from "./utils/Constants";
+import { sendRequest, HttpMethod } from "./utils/HttpRequests";
+import { getTimestampInSeconds } from "./utils/Helpers";
 
 const defaultPaymasterConfig: PaymasterConfig = {
   paymasterUrl: "",
@@ -40,29 +40,27 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
    * @param userOp The partial user operation.
    * @returns A Promise that resolves to the prepared partial user operation.
    */
-  private async prepareUserOperation(userOp: Partial<UserOperation>): Promise<Partial<UserOperation>> {
-    userOp = await resolveProperties(userOp);
-    if (userOp.nonce !== null && userOp.nonce !== undefined) {
-      userOp.nonce = BigNumber.from(userOp.nonce).toHexString();
+  private async prepareUserOperation(userOp: Partial<UserOperationStruct>): Promise<Partial<UserOperationStruct>> {
+    const userOperation = { ...userOp };
+    try {
+      const keys1: (keyof UserOperationStruct)[] = ["nonce", "maxFeePerGas", "maxPriorityFeePerGas"];
+      for (const key of keys1) {
+        if (userOperation[key] && userOperation[key] !== "0x") {
+          userOperation[key] = ("0x" + BigInt(userOp[key] as BigNumberish).toString(16)) as `0x${string}`;
+        }
+      }
+      const keys2: (keyof UserOperationStruct)[] = ["callGasLimit", "verificationGasLimit", "preVerificationGas"];
+      for (const key of keys2) {
+        if (userOperation[key] && userOperation[key] !== "0x") {
+          userOperation[key] = BigInt(userOp[key] as BigNumberish).toString() as `0x${string}`;
+        }
+      }
+    } catch (error) {
+      throw `Failed to transform user operation: ${error}`;
     }
-    if (userOp.callGasLimit !== null && userOp.callGasLimit !== undefined) {
-      userOp.callGasLimit = BigNumber.from(userOp.callGasLimit).toString();
-    }
-    if (userOp.verificationGasLimit !== null && userOp.verificationGasLimit !== undefined) {
-      userOp.verificationGasLimit = BigNumber.from(userOp.verificationGasLimit).toString();
-    }
-    if (userOp.preVerificationGas !== null && userOp.preVerificationGas !== undefined) {
-      userOp.preVerificationGas = BigNumber.from(userOp.preVerificationGas).toString();
-    }
-    if (userOp.maxFeePerGas !== null && userOp.maxFeePerGas !== undefined) {
-      userOp.maxFeePerGas = BigNumber.from(userOp.maxFeePerGas).toString();
-    }
-    if (userOp.maxPriorityFeePerGas !== null && userOp.maxPriorityFeePerGas !== undefined) {
-      userOp.maxPriorityFeePerGas = BigNumber.from(userOp.maxPriorityFeePerGas).toString();
-    }
-    userOp.signature = userOp.signature || "0x";
-    userOp.paymasterAndData = userOp.paymasterAndData || "0x";
-    return userOp;
+    userOperation.signature = userOp.signature || "0x";
+    userOperation.paymasterAndData = userOp.paymasterAndData || "0x";
+    return userOperation;
   }
 
   /**
@@ -71,34 +69,33 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
    * @param provider Optional provider object.
    * @returns A Promise that resolves to the built transaction object.
    */
-  async buildTokenApprovalTransaction(tokenPaymasterRequest: BiconomyTokenPaymasterRequest, provider?: Provider): Promise<Transaction> {
+  async buildTokenApprovalTransaction(tokenPaymasterRequest: BiconomyTokenPaymasterRequest): Promise<Transaction> {
     const feeTokenAddress: string = tokenPaymasterRequest.feeQuote.tokenAddress;
-    Logger.log("erc20 fee token address ", feeTokenAddress);
 
     const spender = tokenPaymasterRequest.spender;
-    Logger.log("spender address ", spender);
 
     // logging provider object isProvider
-    Logger.log("provider object passed - is provider", provider?._isProvider);
+    // Logger.log("provider object passed - is provider", provider?._isProvider);
 
     // TODO move below notes to separate method
     // Note: should also check in caller if the approval is already given, if yes return object with address or data 0
     // Note: we would need userOp here to get the account/owner info to check allowance
 
-    let requiredApproval: BigNumberish = BigNumber.from(0).toString();
+    let requiredApproval = BigInt(0);
 
     if (tokenPaymasterRequest.maxApproval && tokenPaymasterRequest.maxApproval == true) {
-      requiredApproval = ethers.constants.MaxUint256;
+      requiredApproval = BigInt(MAX_UINT256);
     } else {
-      requiredApproval = Math.ceil(tokenPaymasterRequest.feeQuote.maxGasFee * Math.pow(10, tokenPaymasterRequest.feeQuote.decimal)).toString();
+      requiredApproval = BigInt(Math.ceil(tokenPaymasterRequest.feeQuote.maxGasFee * Math.pow(10, tokenPaymasterRequest.feeQuote.decimal)));
     }
 
-    Logger.log("required approval for erc20 token ", requiredApproval);
-
-    const erc20Interface = new ethers.utils.Interface(JSON.stringify(ERC20_ABI));
-
     try {
-      const data = erc20Interface.encodeFunctionData("approve", [spender, requiredApproval]);
+      const parsedAbi = parseAbi(ERC20_ABI);
+      const data = encodeFunctionData({
+        abi: parsedAbi,
+        functionName: "approve",
+        args: [spender, requiredApproval],
+      });
 
       // TODO?
       // Note: For some tokens we may need to set allowance to 0 first so that would return batch of transactions and changes the return type to Transaction[]
@@ -115,11 +112,10 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
       // const value: BigNumberish | undefined = zeroValue as any;
       return {
         to: feeTokenAddress,
-        value: ethers.BigNumber.from(0) as any,
+        value: "0x",
         data: data,
       };
     } catch (error) {
-      Logger.error("Error encoding function data:", error);
       throw new Error("Failed to encode function data");
     }
   }
@@ -130,18 +126,15 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
    * @param paymasterServiceData The paymaster service data containing token information and sponsorship details. Devs can send just the preferred token or array of token addresses in case of mode "ERC20" and sartAccountInfo in case of "sponsored" mode.
    * @returns A Promise that resolves to the fee quotes or data response.
    */
-  async getPaymasterFeeQuotesOrData(userOp: Partial<UserOperation>, paymasterServiceData: FeeQuotesOrDataDto): Promise<FeeQuotesOrDataResponse> {
-    try {
-      userOp = await this.prepareUserOperation(userOp);
-    } catch (err) {
-      Logger.log("Error in prepareUserOperation ", err);
-      throw err;
-    }
+  async getPaymasterFeeQuotesOrData(
+    userOp: Partial<UserOperationStruct>,
+    paymasterServiceData: FeeQuotesOrDataDto,
+  ): Promise<FeeQuotesOrDataResponse> {
+    userOp = await this.prepareUserOperation(userOp);
 
     let mode = null;
     let expiryDuration = null;
     const calculateGasLimits = paymasterServiceData.calculateGasLimits ?? true;
-    Logger.log("calculateGasLimits is ", calculateGasLimits);
     let preferredToken = null;
     let feeTokensArray: string[] = [];
     // could make below null
@@ -152,19 +145,15 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     let webhookData = null;
 
     if (paymasterServiceData.mode) {
-      Logger.log("Requested mode is ", paymasterServiceData.mode);
       mode = paymasterServiceData.mode;
       // Validation on the mode passed / define allowed enums
     }
 
     if (paymasterServiceData.expiryDuration) {
-      Logger.log("Requested expiryDuration is ", paymasterServiceData.expiryDuration);
       expiryDuration = paymasterServiceData.expiryDuration;
     }
 
     preferredToken = paymasterServiceData?.preferredToken ? paymasterServiceData?.preferredToken : preferredToken;
-
-    Logger.log("userop is ", userOp);
 
     feeTokensArray = (paymasterServiceData?.tokenList?.length !== 0 ? paymasterServiceData?.tokenList : feeTokensArray) as string[];
 
@@ -200,7 +189,6 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
       });
 
       if (response && response.result) {
-        Logger.log("feeInfo ", response.result);
         if (response.result.mode == PaymasterMode.ERC20) {
           const feeQuotesResponse: Array<PaymasterFeeQuote> = response.result.feeQuotes;
           const paymasterAddress: string = response.result.paymasterAddress;
@@ -226,8 +214,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
         }
       }
     } catch (error: any) {
-      Logger.log(error.message);
-      Logger.error("Failed to fetch Fee Quotes or Paymaster data - reason: ", JSON.stringify(error));
+      console.error("Failed to fetch Fee Quotes or Paymaster data - reason: ", JSON.stringify(error));
       // Note: we may not throw if we include strictMode off and return paymasterData '0x'.
       if (
         !this.paymasterConfig.strictMode &&
@@ -235,7 +222,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
         (error?.message.includes("Smart contract data not found") || error?.message.includes("No policies were set"))
         // can also check based on error.code being -32xxx
       ) {
-        Logger.log(`Strict mode is ${this.paymasterConfig.strictMode}. sending paymasterAndData 0x`);
+        console.info(`Strict mode is ${this.paymasterConfig.strictMode}. sending paymasterAndData 0x`);
         return {
           paymasterAndData: "0x",
           // send below values same as userOp gasLimits
@@ -256,25 +243,18 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
    * @returns A Promise that resolves to the paymaster and data string.
    */
   async getPaymasterAndData(
-    userOp: Partial<UserOperation>,
+    userOp: Partial<UserOperationStruct>,
     paymasterServiceData?: SponsorUserOperationDto, // mode is necessary. partial context of token paymaster or verifying
   ): Promise<PaymasterAndDataResponse> {
-    try {
-      userOp = await this.prepareUserOperation(userOp);
-    } catch (err) {
-      Logger.log("Error in prepareUserOperation ", err);
-      throw err;
-    }
+    userOp = await this.prepareUserOperation(userOp);
 
     if (paymasterServiceData?.mode === undefined) {
       throw new Error("mode is required in paymasterServiceData");
     }
 
     const mode = paymasterServiceData.mode;
-    Logger.log("requested mode is ", mode);
 
     const calculateGasLimits = paymasterServiceData.calculateGasLimits ?? true;
-    Logger.log("calculateGasLimits is ", calculateGasLimits);
 
     let tokenInfo = null;
     let expiryDuration = null;
@@ -286,7 +266,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     let webhookData = null;
 
     if (mode === PaymasterMode.ERC20) {
-      if (!paymasterServiceData?.feeTokenAddress && paymasterServiceData?.feeTokenAddress === ethers.constants.AddressZero) {
+      if (!paymasterServiceData?.feeTokenAddress && paymasterServiceData?.feeTokenAddress === ADDRESS_ZERO) {
         throw new Error("feeTokenAddress is required and should be non-zero");
       }
       tokenInfo = {
@@ -324,10 +304,8 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
         },
       });
 
-      Logger.log("verifying and signing service response", response);
-
       if (response && response.result) {
-        const paymasterAndData: string = response.result.paymasterAndData;
+        const paymasterAndData = response.result.paymasterAndData;
         const preVerificationGas = response.result.preVerificationGas;
         const verificationGasLimit = response.result.verificationGasLimit;
         const callGasLimit = response.result.callGasLimit;
@@ -339,25 +317,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
         };
       }
     } catch (error: any) {
-      Logger.log(error.message);
-      Logger.error("Error in generating paymasterAndData - reason: ", JSON.stringify(error));
-      if (
-        !this.paymasterConfig.strictMode &&
-        (error?.message.includes("Smart contract data not found") || error?.message.includes("No policies were set"))
-        // can also check based on error.code being -32xxx
-      ) {
-        Logger.log(`Strict mode is ${this.paymasterConfig.strictMode}. sending paymasterAndData 0x`);
-        return {
-          paymasterAndData: "0x",
-          // send below values same as userOp gasLimits
-          preVerificationGas: userOp.preVerificationGas,
-          verificationGasLimit: userOp.verificationGasLimit,
-          callGasLimit: userOp.callGasLimit,
-          maxPriorityFeePerGas: userOp.maxPriorityFeePerGas,
-          maxFeePerGas: userOp.maxFeePerGas,
-        };
-      }
-      // Logger.error("Failed to fetch paymasterAndData - reason: ", JSON.stringify(error));
+      console.error("Error in generating paymasterAndData - reason: ", JSON.stringify(error));
       throw error;
     }
     throw new Error("Error in generating paymasterAndData");
@@ -370,11 +330,9 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
    * @returns paymasterAndData with valid length but mock signature
    */
   async getDummyPaymasterAndData(
-    userOp: Partial<UserOperation>,
-    paymasterServiceData?: SponsorUserOperationDto, // mode is necessary. partial context of token paymaster or verifying
+    _userOp: Partial<UserOperationStruct>,
+    _paymasterServiceData?: SponsorUserOperationDto, // mode is necessary. partial context of token paymaster or verifying
   ): Promise<string> {
-    Logger.log("userOp is ", userOp);
-    Logger.log("paymasterServiceData is ", paymasterServiceData);
     return "0x";
   }
 }

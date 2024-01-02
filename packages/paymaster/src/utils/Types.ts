@@ -1,4 +1,5 @@
-import { BigNumberish } from "ethers";
+import { BigNumberish } from "@alchemy/aa-core";
+export type Hex = `0x${string}`;
 
 export type PaymasterServiceErrorResponse = {
   jsonrpc: string;
@@ -88,7 +89,7 @@ export type PaymasterFeeQuote = {
 
 export type BiconomyTokenPaymasterRequest = {
   feeQuote: PaymasterFeeQuote;
-  spender: string;
+  spender: Hex;
   maxApproval?: boolean;
 };
 
@@ -102,12 +103,10 @@ export type FeeQuotesOrDataResponse = {
 };
 
 export type PaymasterAndDataResponse = {
-  paymasterAndData: string;
-  preVerificationGas?: BigNumberish;
-  verificationGasLimit?: BigNumberish;
-  callGasLimit?: BigNumberish;
-  maxPriorityFeePerGas?: BigNumberish;
-  maxFeePerGas?: BigNumberish;
+  paymasterAndData: Hex;
+  preVerificationGas: number;
+  verificationGasLimit: number;
+  callGasLimit: number;
 };
 
 export enum PaymasterMode {
@@ -130,4 +129,10 @@ export type UserOpGasResponse = {
   maxFeePerGas: string;
   verificationGasLimit: string;
   callGasLimit: string;
+};
+
+export type Transaction = {
+  to: string;
+  value: BigNumberish;
+  data: string;
 };

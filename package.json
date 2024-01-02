@@ -26,6 +26,9 @@
   "author": "Biconomy (https://biconomy.io)",
   "private": true,
   "scripts": {
+    "dev": "yarn rebuild && yarn install && yarn build && yarn link:all",
+    "rebuild": "./rebuild.sh",
+    "link:all": "./linkAll.sh",
     "build": "lerna run build",
     "clean": "lerna clean && lerna run unbuild",
     "format": "lerna run format --npm-client=yarn",
@@ -60,6 +63,7 @@
     "@types/jest": "^29.5.4",
     "@typescript-eslint/eslint-plugin": "^6.7.0",
     "@typescript-eslint/parser": "^6.6.0",
+    "concurrently": "^8.2.2",
     "eslint": "^8.48.0",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-config-airbnb-typescript": "17.1.0",

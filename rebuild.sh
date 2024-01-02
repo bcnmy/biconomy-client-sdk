@@ -15,40 +15,9 @@ rm -rf packages/paymaster/node_modules
 rm -rf packages/paymaster/package-lock.json
 rm -rf packages/paymaster/dist
 
-
 rm -rf packages/modules/node_modules
 rm -rf packages/modules/package-lock.json
 rm -rf packages/modules/dist
-
-
-rm -rf packages/signers/node_modules
-rm -rf packages/signers/package-lock.json
-rm -rf packages/signers/dist
-
-
-rm -rf packages/common/node_modules
-rm -rf packages/common/package-lock.json
-rm -rf packages/common/dist
-rm -rf packages/common/src/typechain
-
-rm -rf packages/core-types/node_modules
-rm -rf packages/core-types/package-lock.json
-rm -rf packages/core-types/dist
-
-rm -rf packages/node-client/node_modules
-rm -rf packages/node-client/package-lock.json
-rm -rf packages/node-client/dist
-
-
-rm -rf packages/web3-auth/node_modules
-rm -rf packages/web3-auth/yarn.lock
-rm -rf packages/web3-auth/package-lock.json
-rm -rf packages/web3-auth/dist
-
-rm -rf packages/web3-auth-native/node_modules
-rm -rf packages/web3-auth-native/yarn.lock
-rm -rf packages/web3-auth-native/package-lock.json
-rm -rf packages/web3-auth-native/dist
 
 rm -rf packages/transak/node_modules
 rm -rf packages/transak/yarn.lock

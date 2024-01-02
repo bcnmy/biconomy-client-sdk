@@ -1,11 +1,8 @@
-import { Signer } from "ethers";
-import { BigNumberish, BigNumber } from "ethers";
+import { BigNumberish, UserOperationStruct, WalletClientSigner } from "@alchemy/aa-core";
 import { IBundler } from "@biconomy/bundler";
 import { IPaymaster, PaymasterFeeQuote, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
-import { Provider } from "@ethersproject/providers";
-import { GasOverheads } from "./Preverificaiton";
-import { UserOperation, ChainId } from "@biconomy/core-types";
+import { Hex, WalletClient } from "viem";
 
 export type EntryPointAddresses = {
   [address: string]: string;
@@ -36,6 +33,16 @@ export type SmartAccountConfig = {
   bundler?: IBundler;
 };
 
+export interface GasOverheads {
+  fixed: number;
+  perUserOp: number;
+  perUserOpWord: number;
+  zeroByte: number;
+  nonZeroByte: number;
+  bundleSize: number;
+  sigSize: number;
+}
+
 /**
  * Enum representing available validation modules.
  *
@@ -48,28 +55,27 @@ export type SmartAccountConfig = {
   // MULTICHAIN = DEFAULT_MULTICHAIN_MODULE,
 }*/
 
-export type BaseSmartAccountConfig = {
+export type BaseSmartAccountConfig = ConditionalBundlerProps & {
   // owner?: Signer // can be in child classes
   index?: number;
-  provider?: Provider;
+  provider?: WalletClient;
   entryPointAddress?: string;
   accountAddress?: string;
   overheads?: Partial<GasOverheads>;
   paymaster?: IPaymaster; // PaymasterAPI
-  bundler?: IBundler; // like HttpRpcClient
-  chainId: ChainId;
+  chainId: number;
 };
 
 export type BiconomyTokenPaymasterRequest = {
   feeQuote: PaymasterFeeQuote;
-  spender: string;
+  spender: Hex;
   maxApproval?: boolean;
 };
 
 export type BiconomySmartAccountConfig = {
-  signer: Signer;
+  signer: WalletClientSigner;
   rpcUrl?: string;
-  chainId: ChainId;
+  chainId: number;
   entryPointAddress?: string;
   bundler?: IBundler;
   paymaster?: IPaymaster;
@@ -84,20 +90,28 @@ type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyo
 type ConditionalValidationProps = RequireAtLeastOne<
   {
     defaultValidationModule: BaseValidationModule;
-    signer: Signer;
+    signer: WalletClientSigner;
   },
   "defaultValidationModule" | "signer"
 >;
 
+type ConditionalBundlerProps = RequireAtLeastOne<
+  {
+    bundler: IBundler;
+    bundlerUrl: string;
+  },
+  "bundler" | "bundlerUrl"
+>;
+
 export type BiconomySmartAccountV2Config = BaseSmartAccountConfig &
   ConditionalValidationProps & {
-    factoryAddress?: string;
-    senderAddress?: string;
-    implementationAddress?: string;
-    defaultFallbackHandler?: string;
+    factoryAddress?: Hex;
+    senderAddress?: Hex;
+    implementationAddress?: Hex;
+    defaultFallbackHandler?: Hex;
+    rpcUrl?: string; // as good as Provider
+    nodeClientUrl?: string; // very specific to Biconomy
     biconomyPaymasterApiKey?: string;
-    rpcUrl?: string;
-    nodeClientUrl?: string;
     activeValidationModule?: BaseValidationModule;
     scanForUpgradedAccountsFromV1?: boolean;
     maxIndexForScan?: number;
@@ -119,7 +133,7 @@ export type NonceOptions = {
 
 // Used in AccountV1
 export type SendUserOpDto = {
-  signer?: Signer;
+  signer?: WalletClientSigner;
   simulationType?: SimulationType;
 };
 
@@ -131,13 +145,13 @@ export type SendUserOpOptions = {
 export type SimulationType = "validation" | "validation_and_execution";
 
 export type Overrides = {
-  callGasLimit?: BigNumberish;
-  verificationGasLimit?: BigNumberish;
-  preVerificationGas?: BigNumberish;
-  maxFeePerGas?: BigNumberish;
-  maxPriorityFeePerGas?: BigNumberish;
-  paymasterData?: string;
-  signature?: string;
+  callGasLimit?: Hex;
+  verificationGasLimit?: Hex;
+  preVerificationGas?: Hex;
+  maxFeePerGas?: Hex;
+  maxPriorityFeePerGas?: Hex;
+  paymasterData?: Hex;
+  signature?: Hex;
 };
 
 export type InitilizationData = {
@@ -150,7 +164,7 @@ export type InitializeV2Data = {
 };
 
 export type EstimateUserOpGasParams = {
-  userOp: Partial<UserOperation>;
+  userOp: Partial<UserOperationStruct>;
   overrides?: Overrides;
   skipBundlerGasEstimation?: boolean;
   paymasterServiceData?: SponsorUserOperationDto;
@@ -174,18 +188,24 @@ export type CounterFactualAddressParam = {
 };
 
 export type QueryParamsForAddressResolver = {
-  eoaAddress: string;
+  eoaAddress: Hex;
   index: number;
-  moduleAddress: string;
-  moduleSetupData: string;
+  moduleAddress: Hex;
+  moduleSetupData: Hex;
   maxIndexForScan?: number;
 };
 
 export type SmartAccountInfo = {
-  accountAddress: string;
-  factoryAddress: string;
+  accountAddress: Hex;
+  factoryAddress: Hex;
   currentImplementation: string;
   currentVersion: string;
   factoryVersion: string;
-  deploymentIndex: BigNumber;
+  deploymentIndex: BigNumberish;
+};
+
+export type Transaction = {
+  to: string;
+  value: BigNumberish;
+  data: string;
 };

@@ -1,8 +1,6 @@
-import { Signer, ethers } from "ethers";
+import { Hex, concat, encodeAbiParameters, encodeFunctionData, keccak256, pad, parseAbi, parseAbiParameters, toBytes, toHex } from "viem";
 import MerkleTree from "merkletreejs";
-import { NODE_CLIENT_URL, Logger } from "@biconomy/common";
-import { hexConcat, arrayify, hexZeroPad, defaultAbiCoder, Bytes } from "ethers/lib/utils";
-import { keccak256 } from "ethereumjs-util";
+import { WalletClientSigner } from "@alchemy/aa-core";
 import {
   SessionKeyManagerModuleConfig,
   ModuleVersion,
@@ -11,8 +9,6 @@ import {
   CreateSessionDataResponse,
   StorageType,
 } from "./utils/Types";
-import NodeClient from "@biconomy/node-client";
-import INodeClient from "@biconomy/node-client";
 import { SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION, DEFAULT_SESSION_KEY_MANAGER_MODULE } from "./utils/Constants";
 import { generateRandomHex } from "./utils/Uid";
 import { BaseValidationModule } from "./BaseValidationModule";
@@ -22,15 +18,13 @@ import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } f
 export class SessionKeyManagerModule extends BaseValidationModule {
   version: ModuleVersion = "V1_0_0";
 
-  moduleAddress!: string;
-
-  nodeClient!: INodeClient;
+  moduleAddress!: Hex;
 
   merkleTree!: MerkleTree;
 
   sessionStorageClient!: ISessionStorage;
 
-  readonly mockEcdsaSessionKeySig: string =
+  readonly mockEcdsaSessionKeySig: Hex =
     "0x73c3ac716c487ca34bb858247b5ccf1dc354fbaabdd089af3b2ac8e78ba85a4959a2d76250325bd67c11771c31fccda87c33ceec17cc0de912690521bb95ffcb1b";
 
   /**
@@ -53,7 +47,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     if (moduleConfig.moduleAddress) {
       instance.moduleAddress = moduleConfig.moduleAddress;
     } else if (moduleConfig.version) {
-      const moduleAddr = SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION[moduleConfig.version];
+      const moduleAddr = SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION[moduleConfig.version] as Hex;
       if (!moduleAddr) {
         throw new Error(`Invalid version ${moduleConfig.version}`);
       }
@@ -63,9 +57,6 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       instance.moduleAddress = DEFAULT_SESSION_KEY_MANAGER_MODULE;
       // Note: in this case Version remains the default one
     }
-    instance.nodeClient = new NodeClient({
-      txServiceUrl: moduleConfig.nodeClientUrl ?? NODE_CLIENT_URL,
-    });
 
     if (moduleConfig.sessionStorageClient) {
       instance.sessionStorageClient = moduleConfig.sessionStorageClient;
@@ -81,13 +72,13 @@ export class SessionKeyManagerModule extends BaseValidationModule {
 
     const existingSessionData = await instance.sessionStorageClient.getAllSessionData();
     const existingSessionDataLeafs = existingSessionData.map((sessionData) => {
-      const leafDataHex = hexConcat([
-        hexZeroPad(ethers.utils.hexlify(sessionData.validUntil), 6),
-        hexZeroPad(ethers.utils.hexlify(sessionData.validAfter), 6),
-        hexZeroPad(sessionData.sessionValidationModule, 20),
+      const leafDataHex = concat([
+        pad(toHex(sessionData.validUntil), { size: 6 }),
+        pad(toHex(sessionData.validAfter), { size: 6 }),
+        pad(sessionData.sessionValidationModule, { size: 20 }),
         sessionData.sessionKeyData,
       ]);
-      return ethers.utils.keccak256(leafDataHex);
+      return keccak256(leafDataHex);
     });
 
     instance.merkleTree = new MerkleTree(existingSessionDataLeafs, keccak256, {
@@ -104,22 +95,23 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @returns The session data
    */
   createSessionData = async (leavesData: CreateSessionDataParams[]): Promise<CreateSessionDataResponse> => {
-    const sessionKeyManagerModuleABI = "function setMerkleRoot(bytes32 _merkleRoot)";
-    const sessionKeyManagerModuleInterface = new ethers.utils.Interface([sessionKeyManagerModuleABI]);
+    const sessionKeyManagerModuleABI = parseAbi(["function setMerkleRoot(bytes32 _merkleRoot)"]);
+
     const leavesToAdd: Buffer[] = [];
     const sessionIDInfo: string[] = [];
 
     for (const leafData of leavesData) {
-      const leafDataHex = hexConcat([
-        hexZeroPad(ethers.utils.hexlify(leafData.validUntil), 6),
-        hexZeroPad(ethers.utils.hexlify(leafData.validAfter), 6),
-        hexZeroPad(leafData.sessionValidationModule, 20),
+      const leafDataHex = concat([
+        pad(toHex(leafData.validUntil), { size: 6 }),
+        pad(toHex(leafData.validAfter), { size: 6 }),
+        pad(leafData.sessionValidationModule, { size: 20 }),
         leafData.sessionKeyData,
       ]);
 
       const generatedSessionId = leafData.preferredSessionId ?? generateRandomHex();
 
-      leavesToAdd.push(ethers.utils.keccak256(leafDataHex) as unknown as Buffer);
+      // TODO: verify this, might not be buffer
+      leavesToAdd.push(keccak256(leafDataHex) as unknown as Buffer);
       sessionIDInfo.push(generatedSessionId);
 
       const sessionLeafNode = {
@@ -142,7 +134,11 @@ export class SessionKeyManagerModule extends BaseValidationModule {
 
     this.merkleTree = newMerkleTree;
 
-    const setMerkleRootData = sessionKeyManagerModuleInterface.encodeFunctionData("setMerkleRoot", [this.merkleTree.getHexRoot()]);
+    const setMerkleRootData = encodeFunctionData({
+      abi: sessionKeyManagerModuleABI,
+      functionName: "setMerkleRoot",
+      args: [this.merkleTree.getHexRoot() as Hex],
+    });
 
     await this.sessionStorageClient.setMerkleRoot(this.merkleTree.getHexRoot());
     return {
@@ -157,41 +153,38 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @param sessionSigner The signer to be used to sign the user operation
    * @returns The signature of the user operation
    */
-  async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<string> {
+  async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<Hex> {
     if (!(params && params.sessionSigner)) {
       throw new Error("Session signer is not provided.");
     }
     const sessionSigner = params.sessionSigner;
     // Use the sessionSigner to sign the user operation
-    const signature = await sessionSigner.signMessage(arrayify(userOpHash));
+    const signature = await sessionSigner.signMessage(toBytes(userOpHash));
 
     const sessionSignerData = await this.getLeafInfo(params);
 
-    const leafDataHex = hexConcat([
-      hexZeroPad(ethers.utils.hexlify(sessionSignerData.validUntil), 6),
-      hexZeroPad(ethers.utils.hexlify(sessionSignerData.validAfter), 6),
-      hexZeroPad(sessionSignerData.sessionValidationModule, 20),
+    const leafDataHex = concat([
+      pad(toHex(sessionSignerData.validUntil), { size: 6 }),
+      pad(toHex(sessionSignerData.validAfter), { size: 6 }),
+      pad(sessionSignerData.sessionValidationModule, { size: 20 }),
       sessionSignerData.sessionKeyData,
     ]);
 
     // Generate the padded signature with (validUntil,validAfter,sessionVerificationModuleAddress,validationData,merkleProof,signature)
-    let paddedSignature = defaultAbiCoder.encode(
-      ["uint48", "uint48", "address", "bytes", "bytes32[]", "bytes"],
-      [
-        sessionSignerData.validUntil,
-        sessionSignerData.validAfter,
-        sessionSignerData.sessionValidationModule,
-        sessionSignerData.sessionKeyData,
-        this.merkleTree.getHexProof(ethers.utils.keccak256(leafDataHex) as unknown as Buffer),
-        signature,
-      ],
-    );
+    let paddedSignature: Hex = encodeAbiParameters(parseAbiParameters("uint48, uint48, address, bytes, bytes32[], bytes"), [
+      sessionSignerData.validUntil,
+      sessionSignerData.validAfter,
+      sessionSignerData.sessionValidationModule,
+      sessionSignerData.sessionKeyData,
+      this.merkleTree.getHexProof(keccak256(leafDataHex)) as Hex[],
+      signature,
+    ]);
 
     if (params?.additionalSessionData) {
       paddedSignature += params.additionalSessionData;
     }
 
-    return paddedSignature;
+    return paddedSignature as Hex;
   }
 
   private async getLeafInfo(params: ModuleInfo): Promise<SessionLeafNode> {
@@ -237,14 +230,14 @@ export class SessionKeyManagerModule extends BaseValidationModule {
   /**
    * @returns SessionKeyManagerModule address
    */
-  getAddress(): string {
+  getAddress(): Hex {
     return this.moduleAddress;
   }
 
   /**
    * @remarks This is the version of the module contract
    */
-  async getSigner(): Promise<Signer> {
+  async getSigner(): Promise<WalletClientSigner> {
     throw new Error("Method not implemented.");
   }
 
@@ -252,37 +245,32 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @remarks This is the dummy signature for the module, used in buildUserOp for bundler estimation
    * @returns Dummy signature
    */
-  async getDummySignature(params?: ModuleInfo): Promise<string> {
-    Logger.log("moduleInfo ", params);
+  async getDummySignature(params?: ModuleInfo): Promise<Hex> {
     if (!params) {
       throw new Error("Session signer is not provided.");
     }
     const sessionSignerData = await this.getLeafInfo(params);
-    const leafDataHex = hexConcat([
-      hexZeroPad(ethers.utils.hexlify(sessionSignerData.validUntil), 6),
-      hexZeroPad(ethers.utils.hexlify(sessionSignerData.validAfter), 6),
-      hexZeroPad(sessionSignerData.sessionValidationModule, 20),
+    const leafDataHex = concat([
+      pad(toHex(sessionSignerData.validUntil), { size: 6 }),
+      pad(toHex(sessionSignerData.validAfter), { size: 6 }),
+      pad(sessionSignerData.sessionValidationModule, { size: 20 }),
       sessionSignerData.sessionKeyData,
     ]);
 
     // Generate the padded signature with (validUntil,validAfter,sessionVerificationModuleAddress,validationData,merkleProof,signature)
-    let paddedSignature = defaultAbiCoder.encode(
-      ["uint48", "uint48", "address", "bytes", "bytes32[]", "bytes"],
-      [
-        sessionSignerData.validUntil,
-        sessionSignerData.validAfter,
-        sessionSignerData.sessionValidationModule,
-        sessionSignerData.sessionKeyData,
-        this.merkleTree.getHexProof(ethers.utils.keccak256(leafDataHex) as unknown as Buffer),
-        this.mockEcdsaSessionKeySig,
-      ],
-    );
-
+    let paddedSignature: Hex = encodeAbiParameters(parseAbiParameters("uint48, uint48, address, bytes, bytes32[], bytes"), [
+      sessionSignerData.validUntil,
+      sessionSignerData.validAfter,
+      sessionSignerData.sessionValidationModule,
+      sessionSignerData.sessionKeyData,
+      this.merkleTree.getHexProof(keccak256(leafDataHex)) as Hex[],
+      this.mockEcdsaSessionKeySig,
+    ]);
     if (params?.additionalSessionData) {
       paddedSignature += params.additionalSessionData;
     }
 
-    const dummySig = ethers.utils.defaultAbiCoder.encode(["bytes", "address"], [paddedSignature, this.getAddress()]);
+    const dummySig = encodeAbiParameters(parseAbiParameters(["bytes, address"]), [paddedSignature as Hex, this.getAddress()]);
 
     return dummySig;
   }
@@ -290,15 +278,14 @@ export class SessionKeyManagerModule extends BaseValidationModule {
   /**
    * @remarks Other modules may need additional attributes to build init data
    */
-  async getInitData(): Promise<string> {
+  async getInitData(): Promise<Hex> {
     throw new Error("Method not implemented.");
   }
 
   /**
    * @remarks This Module dont have knowledge of signer. So, this method is not implemented
    */
-  async signMessage(message: Bytes | string): Promise<string> {
-    Logger.log("message", message);
+  async signMessage(_message: Uint8Array | string): Promise<string> {
     throw new Error("Method not implemented.");
   }
 }

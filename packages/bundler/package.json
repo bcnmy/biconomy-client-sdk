@@ -23,7 +23,7 @@
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
     "lint": "tslint -p tsconfig.json"
   },
-  "author": "talhamalik883 <talha.malik@biconomy.io>",
+  "author": "Biconomy",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bcnmy/biconomy-client-sdk.git"
@@ -37,9 +37,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@biconomy/common": "^3.1.1",
-    "@biconomy/core-types": "^3.1.1",
-    "@ethersproject/providers": "^5.7.2",
-    "ethers": "^5.7.0"
+    "@alchemy/aa-core": "^1.2.2",
+    "viem": "^1.20.3"
   }
 }

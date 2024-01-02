@@ -1,5 +1,6 @@
+import { getChain, type UserOperationStruct } from "@alchemy/aa-core";
+import { createPublicClient, http } from "viem";
 import { IBundler } from "./interfaces/IBundler";
-import { UserOperation, ChainId } from "@biconomy/core-types";
 import {
   GetUserOperationReceiptResponse,
   GetUserOpByHashResponse,
@@ -16,9 +17,7 @@ import {
   GetUserOperationStatusResponse,
   SimulationType,
 } from "./utils/Types";
-import { resolveProperties } from "ethers/lib/utils";
-import { deepHexlify, sendRequest, getTimestampInSeconds, HttpMethod, Logger, RPC_PROVIDER_URLS } from "@biconomy/common";
-import { transformUserOP } from "./utils/HelperFunction";
+import { transformUserOP, getTimestampInSeconds } from "./utils/HelperFunction";
 import {
   UserOpReceiptIntervals,
   UserOpWaitForTxHashIntervals,
@@ -26,7 +25,7 @@ import {
   UserOpReceiptMaxDurationIntervals,
   DEFAULT_ENTRYPOINT_ADDRESS,
 } from "./utils/Constants";
-import { JsonRpcProvider } from "@ethersproject/providers";
+import { sendRequest, HttpMethod } from "./utils/HttpRequests";
 
 /**
  * This class implements IBundler interface.
@@ -35,13 +34,13 @@ import { JsonRpcProvider } from "@ethersproject/providers";
  */
 export class Bundler implements IBundler {
   // eslint-disable-next-line no-unused-vars
-  UserOpReceiptIntervals!: { [key in ChainId]?: number };
+  UserOpReceiptIntervals!: { [key in number]?: number };
 
-  UserOpWaitForTxHashIntervals!: { [key in ChainId]?: number };
+  UserOpWaitForTxHashIntervals!: { [key in number]?: number };
 
-  UserOpReceiptMaxDurationIntervals!: { [key in ChainId]?: number };
+  UserOpReceiptMaxDurationIntervals!: { [key in number]?: number };
 
-  UserOpWaitForTxHashMaxDurationIntervals!: { [key in ChainId]?: number };
+  UserOpWaitForTxHashMaxDurationIntervals!: { [key in number]?: number };
 
   constructor(readonly bundlerConfig: Bundlerconfig) {
     this.UserOpReceiptIntervals = {
@@ -81,11 +80,10 @@ export class Bundler implements IBundler {
    * @description This function will fetch gasPrices from bundler
    * @returns Promise<UserOpGasPricesResponse>
    */
-  async estimateUserOpGas(userOp: UserOperation): Promise<UserOpGasResponse> {
+  async estimateUserOpGas(userOp: UserOperationStruct): Promise<UserOpGasResponse> {
     // expected dummySig and possibly dummmy paymasterAndData should be provided by the caller
     // bundler doesn't know account and paymaster implementation
     userOp = transformUserOP(userOp);
-    Logger.log("userOp sending for fee estimate ", userOp);
 
     const bundlerUrl = this.getBundlerUrl();
 
@@ -116,15 +114,14 @@ export class Bundler implements IBundler {
    * @description This function will send signed userOp to bundler to get mined on chain
    * @returns Promise<UserOpResponse>
    */
-  async sendUserOp(userOp: UserOperation, simulationType?: SimulationType): Promise<UserOpResponse> {
+  async sendUserOp(userOp: UserOperationStruct, simulationParam?: SimulationType): Promise<UserOpResponse> {
     const chainId = this.bundlerConfig.chainId;
     // transformUserOP will convert all bigNumber values to string
     userOp = transformUserOP(userOp);
-    const hexifiedUserOp = deepHexlify(await resolveProperties(userOp));
     const simType = {
-      simulation_type: simulationType || "validation",
+      simulation_type: simulationParam || "validation",
     };
-    const params = [hexifiedUserOp, this.bundlerConfig.entryPointAddress, simType];
+    const params = [userOp, this.bundlerConfig.entryPointAddress, simType];
     const bundlerUrl = this.getBundlerUrl();
     const sendUserOperationResponse: SendUserOpResponse = await sendRequest({
       url: bundlerUrl,
@@ -139,7 +136,10 @@ export class Bundler implements IBundler {
     const response: UserOpResponse = {
       userOpHash: sendUserOperationResponse.result,
       wait: (confirmations?: number): Promise<UserOpReceipt> => {
-        const provider = new JsonRpcProvider(RPC_PROVIDER_URLS[chainId]);
+        const providerClient = createPublicClient({
+          chain: getChain(chainId),
+          transport: http(),
+        });
         // Note: maxDuration can be defined per chainId
         const maxDuration = this.UserOpReceiptMaxDurationIntervals[chainId] || 30000; // default 30 seconds
         let totalDuration = 0;
@@ -151,8 +151,8 @@ export class Bundler implements IBundler {
               const userOpResponse = await this.getUserOpReceipt(sendUserOperationResponse.result);
               if (userOpResponse && userOpResponse.receipt && userOpResponse.receipt.blockNumber) {
                 if (confirmations) {
-                  const latestBlock = await provider.getBlockNumber();
-                  const confirmedBlocks = latestBlock - userOpResponse.receipt.blockNumber;
+                  const latestBlock = await providerClient.getBlockNumber();
+                  const confirmedBlocks = Number(latestBlock) - userOpResponse.receipt.blockNumber;
                   if (confirmations >= confirmedBlocks) {
                     clearInterval(intervalId);
                     resolve(userOpResponse);
