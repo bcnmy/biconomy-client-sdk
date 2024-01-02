@@ -5,10 +5,14 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ## 3.1.2 (2023-12-28)
 
+### Features
+
+* Make entryPointAddress optional in config([cf35c4a](https://github.com/bcnmy/biconomy-client-sdk/pull/336/commits/cf35c4a8266d27648035d8c9d63f1b9157553128))
 
 ### Bug Fixes
 
 * use undefined in place of ! + check on limits returned by paymaster and throw ([0376901](https://github.com/bcnmy/biconomy-client-sdk/commit/0376901b7aec8c268a6a3c654d147335974d78f3))
+* change receipt status type from boolean to string to be compatible with bundler response. ([317f986](https://github.com/bcnmy/biconomy-client-sdk/pull/342/commits/317f986b7e8f08d3ccf1e68f12a0696f1116de6b))
 
 ## 3.1.1 (2023-11-09)
 

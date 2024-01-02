@@ -5,6 +5,9 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ## 3.1.2 (2023-12-28)
 
+### Features
+
+* Make entrypoint address optional in bundler config ([547724a](https://github.com/bcnmy/biconomy-client-sdk/pull/337/commits/547724a15366ee1e63aee80fdee0edc128a84c41))
 
 ### Bug Fixes
 

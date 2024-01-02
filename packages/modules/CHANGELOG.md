@@ -5,7 +5,9 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ## 3.1.2 (2023-12-28)
 
-VERSION Bump Only.
+### Bug Fixes
+
+* Update import paths for consistency and fixing build issues ([ec5c3a3](https://github.com/bcnmy/biconomy-client-sdk/pull/332/commits/ec5c3a352e8caab6e94234264f4cd5cb32e5af3f))
 
 ## 3.1.1 (2023-11-09)
 
