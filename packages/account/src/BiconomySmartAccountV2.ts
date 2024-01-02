@@ -11,6 +11,7 @@ import {
   SmartAccountFactory_v200__factory,
   AddressResolver,
   AddressResolver__factory,
+  isNullOrUndefined,
 } from "@biconomy/common";
 import {
   BiconomyTokenPaymasterRequest,
@@ -22,7 +23,7 @@ import {
   SmartAccountInfo,
   QueryParamsForAddressResolver,
 } from "./utils/Types";
-import { BaseValidationModule, ModuleInfo, SendUserOpParams } from "@biconomy/modules";
+import { BaseValidationModule, ECDSAOwnershipValidationModule, ModuleInfo, SendUserOpParams } from "@biconomy/modules";
 import { UserOperation, Transaction } from "@biconomy/core-types";
 import NodeClient from "@biconomy/node-client";
 import INodeClient from "@biconomy/node-client";
@@ -80,9 +81,26 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
     super(biconomySmartAccountConfig);
   }
 
+  /**
+   * Creates a new instance of BiconomySmartAccountV2.
+   *
+   * This method will create a BiconomySmartAccountV2 instance but will not deploy the Smart Account.
+   *
+   * Deployment of the Smart Account will be donewith the first user operation.
+   *
+   * @param biconomySmartAccountConfig - Configuration for initializing the BiconomySmartAccountV2 instance.
+   * @returns A promise that resolves to a new instance of BiconomySmartAccountV2.
+   * @throws An error if something is wrong with the smart account instance creation.
+   */
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
     const instance = new BiconomySmartAccountV2(biconomySmartAccountConfig);
     instance.factoryAddress = biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS; // This would be fetched from V2
+
+    if (biconomySmartAccountConfig.biconomyPaymasterApiKey) {
+      instance.paymaster = new BiconomyPaymaster({
+        paymasterUrl: `https://paymaster.biconomy.io/api/v1/${biconomySmartAccountConfig.chainId}/${biconomySmartAccountConfig.biconomyPaymasterApiKey}`,
+      });
+    }
 
     const defaultFallbackHandlerAddress =
       instance.factoryAddress === DEFAULT_BICONOMY_FACTORY_ADDRESS
@@ -96,8 +114,15 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
 
     instance.implementationAddress = biconomySmartAccountConfig.implementationAddress ?? BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0;
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    instance.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
+    // Note: if no module is provided, we will use ECDSA_OWNERSHIP as default
+    if (biconomySmartAccountConfig.defaultValidationModule) {
+      instance.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
+    } else {
+      instance.defaultValidationModule = await ECDSAOwnershipValidationModule.create({
+        signer: biconomySmartAccountConfig.signer!,
+      });
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     instance.activeValidationModule = biconomySmartAccountConfig.activeValidationModule ?? instance.defaultValidationModule;
 
@@ -480,7 +505,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
   }
 
   private validateUserOpAndPaymasterRequest(userOp: Partial<UserOperation>, tokenPaymasterRequest: BiconomyTokenPaymasterRequest): void {
-    if (!userOp.callData) {
+    if (isNullOrUndefined(userOp.callData)) {
       throw new Error("UserOp callData cannot be undefined");
     }
 
@@ -535,14 +560,14 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
           return userOp;
         }
 
-        if (!userOp.callData) {
+        if (isNullOrUndefined(userOp.callData)) {
           throw new Error("UserOp callData cannot be undefined");
         }
 
         const account = await this._getAccountContract();
 
         const decodedSmartAccountData = account.interface.parseTransaction({
-          data: userOp.callData.toString(),
+          data: userOp.callData!.toString(),
         });
         if (!decodedSmartAccountData) {
           throw new Error("Could not parse userOp call data for this smart account");

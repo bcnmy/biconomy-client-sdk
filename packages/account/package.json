@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/account",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "This package provides apis for ERC-4337 based smart account implementations",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -34,18 +34,20 @@
     "access": "public"
   },
   "devDependencies": {
-    "nock": "^13.2.9"
+    "nock": "^13.2.9",
+    "viem": "^1.19.11"
   },
   "dependencies": {
     "@account-abstraction/contracts": "^0.6.0",
     "@account-abstraction/utils": "^0.4.0",
+    "@alchemy/aa-core": "^1.2.2",
     "@biconomy-devx/account-contracts-v2": "npm:@biconomy-devx/account-contracts-v2@^1.0.0",
-    "@biconomy/bundler": "^3.1.1",
-    "@biconomy/common": "^3.1.1",
-    "@biconomy/core-types": "^3.1.1",
-    "@biconomy/modules": "^3.1.1",
-    "@biconomy/node-client": "^3.1.1",
-    "@biconomy/paymaster": "^3.1.1",
+    "@biconomy/bundler": "^3.1.2",
+    "@biconomy/common": "^3.1.2",
+    "@biconomy/core-types": "^3.1.2",
+    "@biconomy/modules": "^3.1.2",
+    "@biconomy/node-client": "^3.1.2",
+    "@biconomy/paymaster": "^3.1.2",
     "@ethersproject/logger": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
     "ethers": "^5.7.0",

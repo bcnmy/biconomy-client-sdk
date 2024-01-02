@@ -6,6 +6,7 @@ import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { Provider } from "@ethersproject/providers";
 import { GasOverheads } from "./Preverificaiton";
 import { UserOperation, ChainId } from "@biconomy/core-types";
+import { WalletClientSigner } from "@alchemy/aa-core";
 
 export type EntryPointAddresses = {
   [address: string]: string;
@@ -36,17 +37,28 @@ export type SmartAccountConfig = {
   bundler?: IBundler;
 };
 
-export interface BaseSmartAccountConfig {
+/**
+ * Enum representing available validation modules.
+ *
+ * - `ECDSA_OWNERSHIP`: Default module for ECDSA ownership validation.
+ * - `MULTICHAIN`: Default module for multi-chain validation.
+ * -  If you don't provide any module, ECDSA_OWNERSHIP will be used as default
+ */
+/*export enum AuthorizationModuleType {
+  ECDSA_OWNERSHIP = DEFAULT_ECDSA_OWNERSHIP_MODULE,
+  // MULTICHAIN = DEFAULT_MULTICHAIN_MODULE,
+}*/
+
+export type BaseSmartAccountConfig = ConditionalBundlerProps & {
   // owner?: Signer // can be in child classes
   index?: number;
   provider?: Provider;
-  entryPointAddress: string;
+  entryPointAddress?: string;
   accountAddress?: string;
   overheads?: Partial<GasOverheads>;
   paymaster?: IPaymaster; // PaymasterAPI
-  bundler?: IBundler; // like HttpRpcClient
   chainId: ChainId;
-}
+};
 
 export type BiconomyTokenPaymasterRequest = {
   feeQuote: PaymasterFeeQuote;
@@ -64,18 +76,40 @@ export type BiconomySmartAccountConfig = {
   nodeClientUrl?: string;
 };
 
-export interface BiconomySmartAccountV2Config extends BaseSmartAccountConfig {
-  factoryAddress?: string;
-  senderAddress?: string;
-  implementationAddress?: string;
-  defaultFallbackHandler?: string;
-  rpcUrl?: string; // as good as Provider
-  nodeClientUrl?: string; // very specific to Biconomy
-  defaultValidationModule: BaseValidationModule;
-  activeValidationModule?: BaseValidationModule;
-  scanForUpgradedAccountsFromV1?: boolean;
-  maxIndexForScan?: number;
-}
+type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
+  {
+    [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>;
+  }[Keys];
+
+type ConditionalValidationProps = RequireAtLeastOne<
+  {
+    defaultValidationModule: BaseValidationModule;
+    signer: Signer | WalletClientSigner;
+  },
+  "defaultValidationModule" | "signer"
+>;
+
+type ConditionalBundlerProps = RequireAtLeastOne<
+  {
+    bundler: IBundler;
+    bundlerUrl: string;
+  },
+  "bundler" | "bundlerUrl"
+>;
+
+export type BiconomySmartAccountV2Config = BaseSmartAccountConfig &
+  ConditionalValidationProps & {
+    factoryAddress?: string;
+    senderAddress?: string;
+    implementationAddress?: string;
+    defaultFallbackHandler?: string;
+    biconomyPaymasterApiKey?: string;
+    rpcUrl?: string;
+    nodeClientUrl?: string;
+    activeValidationModule?: BaseValidationModule;
+    scanForUpgradedAccountsFromV1?: boolean;
+    maxIndexForScan?: number;
+  };
 
 export type BuildUserOpOptions = {
   overrides?: Overrides;

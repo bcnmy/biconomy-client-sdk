@@ -1,5 +1,5 @@
 import { Wallet, Signer } from "ethers";
-import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "interfaces/ISessionStorage";
+import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "../interfaces/ISessionStorage";
 
 export class SessionLocalStorage implements ISessionStorage {
   private smartAccountAddress: string;
