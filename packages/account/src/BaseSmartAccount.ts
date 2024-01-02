@@ -12,7 +12,7 @@ import { SponsorUserOperationDto, BiconomyPaymaster, PaymasterMode, IHybridPayma
 import { BaseSmartAccountConfig, EstimateUserOpGasParams, TransactionDetailsForUserOp } from "./utils/Types";
 import { GasOverheads } from "./utils/Preverificaiton";
 import { EntryPoint, EntryPoint__factory } from "@account-abstraction/contracts";
-import { DEFAULT_ENTRYPOINT_ADDRESS, DefaultGasLimit } from "./utils/Constants";
+import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants";
 import { LRUCache } from "lru-cache";
 
 type UserOperationKey = keyof UserOperation;

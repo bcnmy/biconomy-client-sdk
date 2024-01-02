@@ -12,7 +12,6 @@ import { Logger } from "@biconomy/common";
 import { IEntryPoint } from "@account-abstraction/contracts";
 import { SponsorUserOperationDto, BiconomyPaymaster, IHybridPaymaster, PaymasterMode } from "@biconomy/paymaster";
 import { SmartAccountConfig, SendUserOpDto, EstimateUserOpGasParams } from "./utils/Types";
-import { DefaultGasLimit } from "./utils/Constants";
 
 type UserOperationKey = keyof UserOperation;
 
@@ -140,10 +139,7 @@ export abstract class SmartAccount implements ISmartAccount {
           finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
           finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
         } else {
-          // use dummy values for gas limits as fee quote call will ignore this later.
-          finalUserOp.callGasLimit = DefaultGasLimit.callGasLimit;
-          finalUserOp.verificationGasLimit = DefaultGasLimit.verificationGasLimit;
-          finalUserOp.preVerificationGas = DefaultGasLimit.preVerificationGas;
+          throw new Error("Either pass skipBundlerGasEstimation = false OR pass paymasterServiceData with mode as SPONSORED");
         }
       } else {
         Logger.warn("Skipped paymaster call. If you are using paymasterAndData, generate data externally");
