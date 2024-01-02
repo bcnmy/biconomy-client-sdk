@@ -282,10 +282,7 @@ export abstract class BaseSmartAccount implements IBaseSmartAccount {
           finalUserOp.preVerificationGas = preVerificationGas ?? userOp.preVerificationGas;
           finalUserOp.paymasterAndData = paymasterAndData ?? userOp.paymasterAndData;
         } else {
-          // use dummy values for gas limits as fee quote call will ignore this later.
-          finalUserOp.callGasLimit = DefaultGasLimit.callGasLimit;
-          finalUserOp.verificationGasLimit = DefaultGasLimit.verificationGasLimit;
-          finalUserOp.preVerificationGas = DefaultGasLimit.preVerificationGas;
+          throw new Error("Either pass skipBundlerGasEstimation = false OR pass paymasterServiceData with mode as SPONSORED");
         }
       } else {
         {
