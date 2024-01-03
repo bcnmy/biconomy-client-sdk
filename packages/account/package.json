@@ -16,11 +16,8 @@
   "scripts": {
     "unbuild": "rimraf dist *.tsbuildinfo",
     "build": "rimraf dist && tsc",
-    "test:concurrently": "concurrently -k --success first 'yarn start:ganache' 'yarn test'",
-    "test:cov": "jest --coverage",
-    "test": "jest tests/**/*.spec.ts --runInBand",
-    "test:run": "yarn test:concurrently",
-    "start:ganache": "ganache -m 'direct buyer cliff train rice spirit census refuse glare expire innocent quote'",
+    "test:coverage": "yarn test --coverage",
+    "test": "jest --config=../../jest.config.ts --runInBand",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
     "lint": "tslint -p tsconfig.json"
   },
@@ -34,8 +31,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "nock": "^13.2.9",
-    "viem": "^1.19.11"
+    "nock": "^13.2.9"
   },
   "dependencies": {
     "@alchemy/aa-core": "^1.2.2",

@@ -29,7 +29,6 @@ export async function sendRequest<T>({ url, method, body }: HttpRequest): Promis
       throw new Error(response.statusText);
     }
   }
-
   if (response.ok) {
     return jsonResponse as T;
   }

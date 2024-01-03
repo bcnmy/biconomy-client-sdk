@@ -18,7 +18,8 @@
     "build": "rimraf dist && tsc",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
     "lint": "tslint -p tsconfig.json",
-    "test": "jest tests/**/*.spec.ts --runInBand"
+    "test": "jest tests/**/*.spec.ts --runInBand",
+    "test:coverage": "yarn test --coverage"
   },
   "author": "Biconomy",
   "repository": {
