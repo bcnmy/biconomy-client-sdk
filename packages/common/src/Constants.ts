@@ -34,4 +34,9 @@ export const RPC_PROVIDER_URLS: { [key in ChainId]?: string } = {
   [ChainId.ASTAR_TESTNET]: "https://evm.shibuya.astar.network",
   [ChainId.CHILIZ_MAINNET]: "https://rpc.ankr.com/chiliz",
   [ChainId.CHILIZ_TESTNET]: "https://spicy-rpc.chiliz.com",
+  [ChainId.CORE_MAINNET]: "https://rpc.core.chain.com",
+  [ChainId.CORE_TESTNET]: "https://rpc.testnet.core.chain.com",
+  [ChainId.MANTA_PACIFIC_MAINNET]: "https://pacific-rpc.manta.network/http",
+  [ChainId.MANTA_PACIFIC_TESTNET]: "https://pacific-rpc.testnet.manta.network/http",
+  [ChainId.CAPX_TESTNET]: "http://13.234.72.203:8124",
 };
