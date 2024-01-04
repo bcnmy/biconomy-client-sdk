@@ -1,6 +1,6 @@
 import { TestData } from ".";
 
-describe("Bundler Unit Tests", () => {
+describe("Bundler E2E Tests", () => {
   let chainData: TestData;
 
   beforeEach(() => {

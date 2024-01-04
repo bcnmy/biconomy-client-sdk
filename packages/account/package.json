@@ -34,8 +34,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "nock": "^13.2.9",
-    "viem": "^1.19.11"
+    "nock": "^13.2.9"
   },
   "dependencies": {
     "@alchemy/aa-core": "^1.2.2",

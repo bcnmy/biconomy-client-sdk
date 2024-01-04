@@ -1,5 +1,14 @@
-describe("Paymaster Tests", () => {
-  it("should have a basic test", () => {
-    expect(true).toBe(true);
+import { TestData } from ".";
+
+describe("Paymaster Unit Tests", () => {
+  let chainData: TestData;
+
+  beforeEach(() => {
+    // @ts-ignore
+    chainData = testDataPerChain[0];
+  });
+
+  it("should have chain data", () => {
+    expect(chainData).toHaveProperty("chainId");
   });
 });
