@@ -2,7 +2,7 @@ export enum ChainId {
   // Ethereum
   MAINNET = 1,
   GOERLI = 5,
-  SEPOLIA=11155111,
+  SEPOLIA = 11155111,
   POLYGON_MUMBAI = 80001,
   POLYGON_MAINNET = 137,
   BSC_TESTNET = 97,
