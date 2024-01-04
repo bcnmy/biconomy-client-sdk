@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/modules",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "This package provides different validation modules/plugins for ERC4337 compatible modular account",
   "main": "./dist/src/index.js",
   "typings": "./dist/src/index.d.ts",

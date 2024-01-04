@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 3.1.2 (2023-12-28)
+
+### Features
+
+* Make entrypoint address optional in bundler config ([547724a](https://github.com/bcnmy/biconomy-client-sdk/pull/337/commits/547724a15366ee1e63aee80fdee0edc128a84c41))
+
+### Bug Fixes
+
+* use undefined in place of ! + check on limits returned by paymaster and throw ([0376901](https://github.com/bcnmy/biconomy-client-sdk/commit/0376901b7aec8c268a6a3c654d147335974d78f3))
+
 ## 3.1.1 (2023-11-09)
 
 
@@ -56,7 +66,7 @@ Modular SDK - consists stable version of below updates done in Alphas.
 
 ## 3.0.0-alpha.0 (2023-08-02)
 
-VERSION bump only
+VERSION Bump Only.
 
 
 
