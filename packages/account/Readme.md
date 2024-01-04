@@ -16,7 +16,7 @@ yarn add @biconomy/account
 
 ### Account
 
-Integrating and deploying Smart Accounts, building and sending user operations is a key offering of any toolkit designed for ERC4337. This package seamlessly integrates the essential features associated with ERC-4337 and simplifies the development of your Dapp's account and transaction rails with added usability features. 
+Integrating and deploying Smart Accounts, building and sending user operations is a key offering of any toolkit designed for ERC4337. This package seamlessly integrates the essential features associated with ERC-4337 and simplifies the development of your Dapp's account and transaction rails with added usability features.
 
 The account package achieves this by providing a comprehensive set of methods that enable developers to effortlessly create UserOperations. Combined with the sophisticated, developer friendly and scalable infrastructure of Biconomy, it ensures efficient and reliable transmission of these operations across multiple EVM chains.
 
@@ -36,50 +36,27 @@ The account package achieves this by providing a comprehensive set of methods th
 ## Example Usage
 
 ```typescript
-// This is how you create BiconomySmartAccount instance in your dapp's
+// This is how you create a smartWallet in your dapp
+import { Bundler, createSmartWalletClient } from "@biconomy/account";
 
-import { BiconomySmartAccount, BiconomySmartAccountConfig } from "@biconomy/account";
+const smartWallet = await createSmartWalletClient({
+  chainId: 1,
+  signer, // viem's WalletClientSigner
+  bundler: new Bundler({
+    bundlerUrl,
+    chainId,
+    entryPointAddress,
+  }),
+});
 
-// Note that paymaster and bundler are optional. You can choose to create new instances of this later and make account API use
-const biconomySmartAccountConfig: BiconomySmartAccountConfig = {
-  signer: wallet.getSigner(),
-  chainId: ChainId.POLYGON_MAINNET,
-  rpcUrl: "",
-  // paymaster: paymaster, // check the README.md section of Paymaster package
-  // bundler: bundler, // check the README.md section of Bundler package
-};
-
-const biconomyAccount = new BiconomySmartAccount(biconomySmartAccountConfig);
-const biconomySmartAccount = await biconomyAccount.init();
-
-// native token transfer
-// you can create any sort of transaction following same structure
-const transaction = {
-  to: "0x85B51B068bF0fefFEFD817882a14f6F5BDF7fF2E",
+// Send some ETH
+const { wait } = await smartWallet.sendTransaction({
+  to: "0x...",
+  value: 1,
   data: "0x",
-  value: ethers.utils.parseEther("0.1"),
-};
+});
 
-// building partialUserOp
-const partialUserOp = await biconomySmartAccount.buildUserOp([transaction]);
-
-// using the paymaster package one can populate paymasterAndData to partial userOp. by default it is '0x'
+const {
+  receipt: { transactionHash },
+} = await wait();
 ```
-
-```typescript
-const userOpResponse = await smartAccount.sendUserOp(partialUserOp);
-const transactionDetails = await userOpResponse.wait();
-console.log("transaction details below");
-console.log(transactionDetails);
-```
-
-Finally we send the userOp and save the value to a variable named userOpResponse and get the transactionDetails after calling `typescript userOpResponse.wait()`
-
-```typescript
-const transactionDetails = await userOpResponse.wait();
-console.log("transaction details below");
-console.log(transactionDetails);
-```
-
-#### BiconomySmartAccount (V2 Smart Account aka Modular Smart Account)
-

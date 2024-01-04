@@ -95,8 +95,6 @@ describe("Account Tests", () => {
       }),
     });
 
-    const address = await smartWallet.getAccountAddress();
-
     const encodedCall = encodeFunctionData({
       abi: [
         {
