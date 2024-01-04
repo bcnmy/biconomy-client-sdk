@@ -51,7 +51,7 @@ const smartWallet = await createSmartWalletClient({
 
 // Send some ETH
 const { wait } = await smartWallet.sendTransaction({
-  to: "0x...",
+  to: "0x85B51B068bF0fefFEFD817882a14f6F5BDF7fF2E",
   value: 1,
   data: "0x",
 });
