@@ -4,6 +4,7 @@ import { createSmartWalletClient } from "../src/index";
 import { Bundler } from "../src/aliases";
 import { Hex, encodeFunctionData } from "viem";
 import { UserOperationStruct } from "@alchemy/aa-core";
+import { checkBalance } from "./utils";
 
 describe("Account Tests", () => {
   let chainData: TestData;
@@ -20,6 +21,7 @@ describe("Account Tests", () => {
       minnow: { publicAddress: recipient },
       bundlerUrl,
       entryPointAddress,
+      publicClient,
     } = chainData;
 
     const smartWallet = await createSmartWalletClient({
@@ -32,6 +34,7 @@ describe("Account Tests", () => {
       }),
     });
 
+    const balance = (await checkBalance(publicClient, recipient)) as bigint;
     const { wait } = await smartWallet.sendTransaction({
       to: recipient,
       value: 1,
@@ -39,15 +42,16 @@ describe("Account Tests", () => {
     });
 
     const result = await wait();
+    const newBalance = (await checkBalance(publicClient, recipient)) as bigint;
 
     expect(result?.receipt?.transactionHash).toBeTruthy();
+    expect(newBalance - balance).toBe(1n);
   }, 30000);
 
   it("Create a smart account with paymaster with an api key", async () => {
     const {
       chainId,
       whale: { signer },
-      minnow: { publicAddress: recipient },
       bundlerUrl,
       entryPointAddress,
       biconomyPaymasterApiKey,
@@ -70,12 +74,14 @@ describe("Account Tests", () => {
   });
 
   it("Should gaslessly mint an NFT", async () => {
+    const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
     const {
       chainId,
-      whale: { signer },
+      whale: { signer, publicAddress: recipient },
       bundlerUrl,
       entryPointAddress,
       biconomyPaymasterApiKey,
+      publicClient,
     } = chainData;
 
     const smartWallet = await createSmartWalletClient({
@@ -102,14 +108,15 @@ describe("Account Tests", () => {
         },
       ],
       functionName: "safeMint",
-      args: [address as Hex],
+      args: [recipient],
     });
 
     const transaction = {
-      to: "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e", // NFT address
+      to: nftAddress, // NFT address
       data: encodedCall,
       value: 0,
     };
+    const balance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
     const { wait } = await smartWallet.sendTransaction(transaction, {
       paymasterServiceData: {
         mode: PaymasterMode.SPONSORED,
@@ -117,7 +124,9 @@ describe("Account Tests", () => {
     });
 
     const result = await wait();
+    const newBalance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
 
+    expect(newBalance - balance).toBe(1n);
     expect(result?.receipt?.transactionHash).toBeTruthy();
   }, 60000);
 
