@@ -107,6 +107,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
     this.defaultFallbackHandlerAddress = defaultFallbackHandlerAddress;
 
+    this.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
+    this.activeValidationModule = biconomySmartAccountConfig.activeValidationModule;
+
     this.provider = createPublicClient({
       chain: getChain(biconomySmartAccountConfig.chainId),
       transport: http(biconomySmartAccountConfig.rpcUrl || getChain(biconomySmartAccountConfig.chainId).rpcUrls.public.http[0]),
