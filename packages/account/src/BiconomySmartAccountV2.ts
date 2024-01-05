@@ -22,7 +22,7 @@ import { BaseSmartContractAccount, getChain, type BigNumberish, type UserOperati
 import { isNullOrUndefined, packUserOp } from "./utils/Utils";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import { IHybridPaymaster, IPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from "@biconomy/paymaster";
-import { IBundler, UserOpResponse } from "@biconomy/bundler";
+import { Bundler, IBundler, UserOpResponse } from "@biconomy/bundler";
 import {
   BiconomyTokenPaymasterRequest,
   BiconomySmartAccountV2Config,
@@ -97,6 +97,15 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       });
     } else {
       this.paymaster = biconomySmartAccountConfig.paymaster;
+    }
+
+    if (biconomySmartAccountConfig.bundlerUrl) {
+      this.bundler = new Bundler({
+        bundlerUrl: biconomySmartAccountConfig.bundlerUrl,
+        chainId: biconomySmartAccountConfig.chainId,
+      });
+    } else {
+      this.bundler = biconomySmartAccountConfig.bundler;
     }
 
     const defaultFallbackHandlerAddress =
