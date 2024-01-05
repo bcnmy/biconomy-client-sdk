@@ -133,13 +133,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     };
 
     // Note: If no module is provided, we will use ECDSA_OWNERSHIP as default
-    if (!biconomySmartAccountConfig?.defaultValidationModule) {
+    if (!config?.defaultValidationModule) {
       const newModule = await ECDSAOwnershipValidationModule.create({
         signer: biconomySmartAccountConfig.signer!,
       });
       config.defaultValidationModule = newModule;
-      config.activeValidationModule = newModule;
     }
+    config.activeValidationModule = config?.activeValidationModule ?? config.defaultValidationModule;
 
     return new BiconomySmartAccountV2(config);
   }
