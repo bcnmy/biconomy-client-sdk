@@ -1,9 +1,9 @@
 import { PaymasterMode } from "@biconomy/paymaster";
 import { TestData } from ".";
 import { createSmartWalletClient } from "../src/index";
-import { Hex, encodeFunctionData } from "viem";
+import { Hex, encodeFunctionData, parseAbi } from "viem";
 import { UserOperationStruct } from "@alchemy/aa-core";
-import { checkBalance } from "./utils";
+import { checkBalance, entryPointABI } from "./utils";
 
 describe("Account Tests", () => {
   let chainData: TestData;
@@ -70,7 +70,6 @@ describe("Account Tests", () => {
       chainId,
       whale: { signer, publicAddress: recipient },
       bundlerUrl,
-      entryPointAddress,
       biconomyPaymasterApiKey,
       publicClient,
     } = chainData;
@@ -83,15 +82,7 @@ describe("Account Tests", () => {
     });
 
     const encodedCall = encodeFunctionData({
-      abi: [
-        {
-          inputs: [{ name: "address", type: "address" }],
-          name: "safeMint",
-          outputs: [{ name: "", type: "uint256" }],
-          stateMutability: "view",
-          type: "function",
-        },
-      ],
+      abi: parseAbi(["function safeMint(address owner) view returns (uint balance)"]),
       functionName: "safeMint",
       args: [recipient],
     });
@@ -148,34 +139,7 @@ describe("Account Tests", () => {
 
     const epHash = await publicClient.readContract({
       address: entryPointAddress as Hex,
-      abi: [
-        {
-          inputs: [
-            {
-              components: [
-                { internalType: "address", name: "sender", type: "address" },
-                { internalType: "uint256", name: "nonce", type: "uint256" },
-                { internalType: "bytes", name: "initCode", type: "bytes" },
-                { internalType: "bytes", name: "callData", type: "bytes" },
-                { internalType: "uint256", name: "callGasLimit", type: "uint256" },
-                { internalType: "uint256", name: "verificationGasLimit", type: "uint256" },
-                { internalType: "uint256", name: "preVerificationGas", type: "uint256" },
-                { internalType: "uint256", name: "maxFeePerGas", type: "uint256" },
-                { internalType: "uint256", name: "maxPriorityFeePerGas", type: "uint256" },
-                { internalType: "bytes", name: "paymasterAndData", type: "bytes" },
-                { internalType: "bytes", name: "signature", type: "bytes" },
-              ],
-              internalType: "struct UserOperation",
-              name: "userOp",
-              type: "tuple",
-            },
-          ],
-          name: "getUserOpHash",
-          outputs: [{ internalType: "bytes32", name: "", type: "bytes32" }],
-          stateMutability: "view",
-          type: "function",
-        },
-      ],
+      abi: entryPointABI,
       functionName: "getUserOpHash",
       // @ts-ignore
       args: [userOp],
@@ -190,7 +154,6 @@ describe("Account Tests", () => {
       chainId,
       whale: { signer },
       bundlerUrl,
-      entryPointAddress,
       publicClient,
       biconomyPaymasterApiKey,
     } = chainData;
@@ -215,7 +178,6 @@ describe("Account Tests", () => {
       chainId,
       whale: { signer },
       bundlerUrl,
-      entryPointAddress,
     } = chainData;
 
     const smartWallet = await createSmartWalletClient({
