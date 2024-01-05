@@ -128,19 +128,20 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @throws An error if something is wrong with the smart account instance creation.
    */
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
-    const instance = new BiconomySmartAccountV2(biconomySmartAccountConfig);
+    const config = {
+      ...biconomySmartAccountConfig,
+    };
 
     // Note: If no module is provided, we will use ECDSA_OWNERSHIP as default
-    if (biconomySmartAccountConfig.defaultValidationModule) {
-      instance.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
-    } else {
-      instance.defaultValidationModule = await ECDSAOwnershipValidationModule.create({
+    if (!biconomySmartAccountConfig?.defaultValidationModule) {
+      const newModule = await ECDSAOwnershipValidationModule.create({
         signer: biconomySmartAccountConfig.signer!,
       });
+      config.defaultValidationModule = newModule;
+      config.activeValidationModule = newModule;
     }
-    instance.activeValidationModule = biconomySmartAccountConfig.activeValidationModule ?? instance.defaultValidationModule;
 
-    return instance;
+    return new BiconomySmartAccountV2(config);
   }
 
   // Calls the getCounterFactualAddress
