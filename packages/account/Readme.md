@@ -42,11 +42,7 @@ import { Bundler, createSmartWalletClient } from "@biconomy/account";
 const smartWallet = await createSmartWalletClient({
   chainId: 1,
   signer, // viem's WalletClientSigner
-  bundler: new Bundler({
-    bundlerUrl,
-    chainId,
-    entryPointAddress,
-  }),
+  bundlerUrl,
 });
 
 // Send some ETH

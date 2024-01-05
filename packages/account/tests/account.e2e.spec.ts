@@ -1,7 +1,6 @@
 import { PaymasterMode } from "@biconomy/paymaster";
 import { TestData } from ".";
 import { createSmartWalletClient } from "../src/index";
-import { Bundler } from "../src/aliases";
 import { Hex, encodeFunctionData } from "viem";
 import { UserOperationStruct } from "@alchemy/aa-core";
 import { checkBalance } from "./utils";
@@ -27,11 +26,7 @@ describe("Account Tests", () => {
     const smartWallet = await createSmartWalletClient({
       chainId,
       signer,
-      bundler: new Bundler({
-        bundlerUrl,
-        chainId,
-        entryPointAddress,
-      }),
+      bundlerUrl,
     });
 
     const balance = (await checkBalance(publicClient, recipient)) as bigint;
@@ -61,11 +56,7 @@ describe("Account Tests", () => {
       chainId,
       signer,
       biconomyPaymasterApiKey,
-      bundler: new Bundler({
-        bundlerUrl,
-        chainId,
-        entryPointAddress,
-      }),
+      bundlerUrl,
     });
 
     const paymaster = smartWallet.paymaster;
@@ -88,11 +79,7 @@ describe("Account Tests", () => {
       chainId,
       signer,
       biconomyPaymasterApiKey,
-      bundler: new Bundler({
-        bundlerUrl,
-        chainId,
-        entryPointAddress,
-      }),
+      bundlerUrl,
     });
 
     const encodedCall = encodeFunctionData({
@@ -142,11 +129,7 @@ describe("Account Tests", () => {
       chainId,
       signer,
       biconomyPaymasterApiKey,
-      bundler: new Bundler({
-        bundlerUrl,
-        chainId,
-        entryPointAddress,
-      }),
+      bundlerUrl,
     });
 
     const userOp: UserOperationStruct = {
@@ -216,11 +199,7 @@ describe("Account Tests", () => {
       chainId,
       signer,
       biconomyPaymasterApiKey,
-      bundler: new Bundler({
-        bundlerUrl,
-        chainId,
-        entryPointAddress,
-      }),
+      bundlerUrl,
     });
 
     const accountAddress = await smartWallet.getAccountAddress();
@@ -242,11 +221,7 @@ describe("Account Tests", () => {
     const smartWallet = await createSmartWalletClient({
       chainId,
       signer,
-      bundler: new Bundler({
-        bundlerUrl,
-        chainId,
-        entryPointAddress,
-      }),
+      bundlerUrl,
     });
 
     const module = (await smartWallet.getAllModules())[0];

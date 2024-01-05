@@ -1,5 +1,4 @@
-import { createSmartWalletClient } from "../src/index";
-import { Bundler, Paymaster } from "../src/aliases";
+import { Paymaster, createSmartWalletClient } from "../";
 import { TestData } from ".";
 
 describe("Account Tests", () => {
@@ -22,11 +21,7 @@ describe("Account Tests", () => {
       chainId,
       entryPointAddress,
       signer,
-      bundler: new Bundler({
-        bundlerUrl,
-        chainId,
-        entryPointAddress,
-      }),
+      bundlerUrl,
     });
     const address = await smartWallet.getAccountAddress();
     expect(address).toBeTruthy();
@@ -45,11 +40,7 @@ describe("Account Tests", () => {
       chainId,
       entryPointAddress,
       signer,
-      bundler: new Bundler({
-        bundlerUrl,
-        chainId,
-        entryPointAddress,
-      }),
+      bundlerUrl,
     });
     const address = await smartWallet.getAccountAddress();
     expect(address).toBeTruthy();
@@ -71,11 +62,7 @@ describe("Account Tests", () => {
       chainId,
       entryPointAddress,
       signer,
-      bundler: new Bundler({
-        bundlerUrl,
-        chainId,
-        entryPointAddress,
-      }),
+      bundlerUrl,
     });
 
     const module = smartWallet.activeValidationModule;
@@ -94,11 +81,7 @@ describe("Account Tests", () => {
     const smartWallet = await createSmartWalletClient({
       chainId,
       signer,
-      bundler: new Bundler({
-        bundlerUrl,
-        chainId,
-        entryPointAddress,
-      }),
+      bundlerUrl,
     });
 
     const builtUserOp = await smartWallet.buildUserOp([{ to: recipient, value: 1000, data: "0x" }]);
@@ -120,11 +103,7 @@ describe("Account Tests", () => {
     const smartWallet = await createSmartWalletClient({
       chainId,
       signer,
-      bundler: new Bundler({
-        bundlerUrl,
-        chainId,
-        entryPointAddress,
-      }),
+      bundlerUrl,
       paymaster,
     });
     expect(smartWallet.paymaster).not.toBeNull();
