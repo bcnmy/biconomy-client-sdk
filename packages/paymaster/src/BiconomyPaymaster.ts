@@ -16,6 +16,7 @@ import { IHybridPaymaster } from "./interfaces/IHybridPaymaster";
 import { MAX_UINT256, ERC20_ABI, ADDRESS_ZERO } from "./utils/Constants";
 import { sendRequest, HttpMethod } from "./utils/HttpRequests";
 import { getTimestampInSeconds } from "./utils/Helpers";
+import { Logger } from "./utils/Logger";
 
 const defaultPaymasterConfig: PaymasterConfig = {
   paymasterUrl: "",
@@ -214,7 +215,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
         }
       }
     } catch (error: any) {
-      console.error("Failed to fetch Fee Quotes or Paymaster data - reason: ", JSON.stringify(error));
+      Logger.error("Failed to fetch Fee Quotes or Paymaster data - reason: ", JSON.stringify(error));
       // Note: we may not throw if we include strictMode off and return paymasterData '0x'.
       if (
         !this.paymasterConfig.strictMode &&
@@ -222,7 +223,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
         (error?.message.includes("Smart contract data not found") || error?.message.includes("No policies were set"))
         // can also check based on error.code being -32xxx
       ) {
-        console.info(`Strict mode is ${this.paymasterConfig.strictMode}. sending paymasterAndData 0x`);
+        Logger.warn(`Strict mode is ${this.paymasterConfig.strictMode}. sending paymasterAndData 0x`);
         return {
           paymasterAndData: "0x",
           // send below values same as userOp gasLimits
@@ -317,7 +318,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
         };
       }
     } catch (error: any) {
-      console.error("Error in generating paymasterAndData - reason: ", JSON.stringify(error));
+      Logger.error("Error in generating paymasterAndData - reason: ", JSON.stringify(error));
       throw error;
     }
     throw new Error("Error in generating paymasterAndData");

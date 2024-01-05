@@ -5,6 +5,7 @@ import { DEFAULT_MULTICHAIN_MODULE, MULTICHAIN_VALIDATION_MODULE_ADDRESSES_BY_VE
 import { ModuleVersion, MultiChainUserOpDto, MultiChainValidationModuleConfig } from "./utils/Types";
 import { BaseValidationModule } from "./BaseValidationModule";
 import { getUserOpHash } from "./utils/Helper";
+import { Logger } from "./utils/Logger";
 
 export class MultiChainValidationModule extends BaseValidationModule {
   signer!: WalletClientSigner;
@@ -144,7 +145,7 @@ export class MultiChainValidationModule extends BaseValidationModule {
       }
       return updatedUserOps;
     } catch (error) {
-      console.error("Error in signing multi chain userops");
+      Logger.error("Error in signing multi chain userops");
       throw new Error(JSON.stringify(error));
     }
   }

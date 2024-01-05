@@ -1,3 +1,5 @@
+import { Logger } from "./Logger";
+
 export enum HttpMethod {
   Get = "get",
   Post = "post",
@@ -24,7 +26,7 @@ export async function sendRequest<T>({ url, method, body }: HttpRequest): Promis
   let jsonResponse;
   try {
     jsonResponse = await response.json();
-    console.info("RPC response", jsonResponse);
+    Logger.log("Paymaster RPC Response", jsonResponse);
   } catch (error) {
     if (!response.ok) {
       throw new Error(response.statusText);
