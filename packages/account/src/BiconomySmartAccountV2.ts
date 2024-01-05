@@ -107,8 +107,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
     this.defaultFallbackHandlerAddress = defaultFallbackHandlerAddress;
 
-    this.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
-    this.activeValidationModule = biconomySmartAccountConfig.activeValidationModule;
+    // Added bang operator to avoid null check as the constructor have these params as optional
+    this.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule!;
+    this.activeValidationModule = biconomySmartAccountConfig.activeValidationModule!;
 
     this.provider = createPublicClient({
       chain: getChain(biconomySmartAccountConfig.chainId),
