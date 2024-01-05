@@ -1,0 +1,35 @@
+name: E2E Test workflow
+on:
+  pull_request_review:
+    types: [submitted]
+jobs:
+  e2e_test:
+    if: github.event.review.state == 'approved'
+    name: E2E tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - name: Checkout
+        uses: "actions/checkout@main"
+
+      - name: Set Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile && yarn build
+
+      - name: Run tests
+        uses: nick-fields/retry@v2
+        env:
+          E2E_PRIVATE_KEY_ONE: ${{ secrets.E2E_PRIVATE_KEY_ONE }}
+          E2E_PRIVATE_KEY_TWO: ${{ secrets.E2E_PRIVATE_KEY_TWO }}
+          E2E_BICO_PAYMASTER_KEY_MUMBAI: ${{ secrets.E2E_BICO_PAYMASTER_KEY_MUMBAI }}
+        with:
+          timeout_minutes: 2
+          max_attempts: 3
+          command: yarn test:e2e

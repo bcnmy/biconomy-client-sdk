@@ -555,6 +555,16 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
   }
 
+  /**
+   * @param manyOrOneTransactions list of transactions, or single transaction for execution
+   * @param buildUseropDto options for building the userOp
+   * @returns Promise<UserOpResponse>
+   */
+  async sendTransaction(manyOrOneTransactions: Transaction | Transaction[], buildUseropDto?: BuildUserOpOptions) {
+    const userOp = await this.buildUserOp(Array.isArray(manyOrOneTransactions) ? manyOrOneTransactions : [manyOrOneTransactions], buildUseropDto);
+    return this.sendUserOp(userOp);
+  }
+
   async buildUserOp(transactions: Transaction[], buildUseropDto?: BuildUserOpOptions): Promise<Partial<UserOperationStruct>> {
     const to = transactions.map((element: Transaction) => element.to as Hex);
     const data = transactions.map((element: Transaction) => (element.data as Hex) ?? "0x");
