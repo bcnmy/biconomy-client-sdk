@@ -112,7 +112,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
       // const value: BigNumberish | undefined = zeroValue as any;
       return {
         to: feeTokenAddress,
-        value: "0x",
+        value: "0x00",
         data: data,
       };
     } catch (error) {
