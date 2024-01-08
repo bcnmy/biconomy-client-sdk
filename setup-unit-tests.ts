@@ -16,12 +16,12 @@ beforeAll(() => {
   const chain = TEST_CHAIN;
   const { chainId, bundlerUrl, viemChain, entryPointAddress } = chain;
   const accountOne = mnemonicToAccount(MNEMONIC);
-  const walletClientOne = createWalletClient({
+  const viemWalletClientOne = createWalletClient({
     account: accountOne,
     chain: viemChain,
     transport: http(viemChain.rpcUrls.public.http[0]),
   });
-  const signerOne = new WalletClientSigner(walletClientOne, "json-rpc");
+  const walletClientSignerOne = new WalletClientSigner(viemWalletClientOne, "viem");
   const publicAddressOne = accountOne.address;
   const publicClient = createPublicClient({
     chain: viemChain,
@@ -29,24 +29,24 @@ beforeAll(() => {
   });
 
   const accountTwo = privateKeyToAccount(generatePrivateKey());
-  const walletClientTwo = createWalletClient({
+  const viemWalletClientTwo = createWalletClient({
     account: accountTwo,
     chain: viemChain,
     transport: http(viemChain.rpcUrls.public.http[0]),
   });
-  const signerTwo = new WalletClientSigner(walletClientTwo, "json-rpc");
+  const walletClientSignerTwo = new WalletClientSigner(viemWalletClientTwo, "viem");
   const publicAddressTwo = accountTwo.address;
 
   const whale = {
-    signer: signerOne,
-    walletClient: walletClientOne,
+    viemWallet: viemWalletClientOne,
+    alchemyWalletClientSigner: walletClientSignerOne,
     balance: 0,
     publicAddress: publicAddressOne,
   };
 
   const minnow = {
-    signer: signerTwo,
-    walletClient: walletClientTwo,
+    viemWallet: viemWalletClientTwo,
+    alchemyWalletClientSigner: walletClientSignerTwo,
     balance: 0,
     publicAddress: publicAddressTwo,
   };

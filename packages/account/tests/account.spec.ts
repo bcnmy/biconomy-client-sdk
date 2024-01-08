@@ -1,4 +1,4 @@
-import { Paymaster, createSmartWalletClient } from "../";
+import { Paymaster, createSmartWalletClient } from "../src";
 import { TestData } from ".";
 
 describe("Account Tests", () => {
@@ -9,17 +9,43 @@ describe("Account Tests", () => {
     chainData = testDataPerChain[0];
   });
 
-  it("should provide an account address", async () => {
+  it("should create a smartWalletClient from a walletClient", async () => {
     const {
-      entryPointAddress,
+      whale: { viemWallet: signer },
       bundlerUrl,
+    } = chainData;
+
+    const smartWallet = await createSmartWalletClient({
+      signer,
+      bundlerUrl,
+    });
+    const address = await smartWallet.getAccountAddress();
+    expect(address).toBeTruthy();
+  });
+
+  it("should create a smartWalletClient from a signer and chainId", async () => {
+    const {
       chainId,
-      whale: { signer },
+      whale: { alchemyWalletClientSigner: signer },
+      bundlerUrl,
     } = chainData;
 
     const smartWallet = await createSmartWalletClient({
       chainId,
-      entryPointAddress,
+      signer,
+      bundlerUrl,
+    });
+    const address = await smartWallet.getAccountAddress();
+    expect(address).toBeTruthy();
+  });
+
+  it("should provide an account address", async () => {
+    const {
+      bundlerUrl,
+      whale: { viemWallet: signer },
+    } = chainData;
+
+    const smartWallet = await createSmartWalletClient({
       signer,
       bundlerUrl,
     });
@@ -31,13 +57,11 @@ describe("Account Tests", () => {
     const {
       entryPointAddress,
       bundlerUrl,
-      chainId,
-      whale: { signer },
+      whale: { viemWallet: signer },
       minnow: { publicAddress: recipient },
     } = chainData;
 
     const smartWallet = await createSmartWalletClient({
-      chainId,
       entryPointAddress,
       signer,
       bundlerUrl,
@@ -52,15 +76,11 @@ describe("Account Tests", () => {
 
   it("should have an active validation module", async () => {
     const {
-      entryPointAddress,
       bundlerUrl,
-      chainId,
-      whale: { signer },
+      whale: { viemWallet: signer },
     } = chainData;
 
     const smartWallet = await createSmartWalletClient({
-      chainId,
-      entryPointAddress,
       signer,
       bundlerUrl,
     });
@@ -71,15 +91,12 @@ describe("Account Tests", () => {
 
   it("Sender should be non zero", async () => {
     const {
-      chainId,
-      whale: { signer },
+      whale: { viemWallet: signer },
       minnow: { publicAddress: recipient },
       bundlerUrl,
-      entryPointAddress,
     } = chainData;
 
     const smartWallet = await createSmartWalletClient({
-      chainId,
       signer,
       bundlerUrl,
     });
@@ -90,10 +107,8 @@ describe("Account Tests", () => {
 
   it("Create a smart account with paymaster by creating instance", async () => {
     const {
-      chainId,
-      whale: { signer },
+      whale: { viemWallet: signer },
       bundlerUrl,
-      entryPointAddress,
       biconomyPaymasterApiKey,
     } = chainData;
 
@@ -101,7 +116,6 @@ describe("Account Tests", () => {
     const paymaster = new Paymaster({ paymasterUrl });
 
     const smartWallet = await createSmartWalletClient({
-      chainId,
       signer,
       bundlerUrl,
       paymaster,
