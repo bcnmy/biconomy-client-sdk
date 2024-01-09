@@ -41,7 +41,6 @@
     "@biconomy/bundler": "^3.1.2",
     "@biconomy/modules": "^3.1.2",
     "@biconomy/paymaster": "^3.1.2",
-    "loglevel": "^1.8.1",
     "lru-cache": "^10.0.1",
     "viem": "^1.20.3"
   }
