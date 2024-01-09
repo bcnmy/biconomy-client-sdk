@@ -1,5 +1,6 @@
 import { Hex } from "viem";
 import { WalletClientSigner } from "@alchemy/aa-core";
+import { SignerData } from "utils/Types";
 
 export type SessionStatus = "PENDING" | "ACTIVE" | "INACTIVE" | "EXPIRED";
 
@@ -50,7 +51,7 @@ export interface ISessionStorage {
    * If no signer object is passed, it'll create a random signer and add it to the session storage
    * @param signer Optional signer to be added to the session storage
    */
-  addSigner(_signer?: WalletClientSigner): Promise<WalletClientSigner>;
+  addSigner(_signer?: SignerData): Promise<WalletClientSigner>;
 
   /**
    * Fetch a signer from the session storage
