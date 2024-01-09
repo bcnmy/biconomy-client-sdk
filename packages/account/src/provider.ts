@@ -9,6 +9,7 @@ import type { Hex, HttpTransport } from "viem";
 import type { UserOpResponse } from "@biconomy/bundler";
 import { IHybridPaymaster, SponsorUserOperationDto, PaymasterMode } from "@biconomy/paymaster";
 import { BiconomySmartAccountV2 } from "./BiconomySmartAccountV2";
+import { Logger } from "./utils/Logger";
 
 export class BiconomyAccountProvider extends SmartAccountProvider<HttpTransport> {
   // Note: Not using the customMiddleware as it is the last stack happens but we need to update the signatures before the request is sent
@@ -57,7 +58,7 @@ export class BiconomyAccountProvider extends SmartAccountProvider<HttpTransport>
         userOp.verificationGasLimit = paymasterData.verificationGasLimit;
         userOp.preVerificationGas = paymasterData.preVerificationGas;
       } catch (e: any) {
-        console.error("Error while fetching paymaster data", e);
+        Logger.error("Error while fetching paymaster data", e);
       }
     }
 

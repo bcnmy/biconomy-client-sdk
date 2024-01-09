@@ -54,6 +54,7 @@ import {
 import { BiconomyFactoryAbi } from "./abi/Factory";
 import { BiconomyAccountAbi } from "./abi/SmartAccount";
 import { AccountResolverAbi } from "./abi/AccountResolver";
+import { Logger } from "./utils/Logger";
 
 type UserOperationKey = keyof UserOperationStruct;
 
@@ -127,6 +128,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       throw new Error("Default Fallback Handler address is not provided");
     }
     this.defaultFallbackHandlerAddress = defaultFallbackHandlerAddress;
+
+    // Added bang operator to avoid null check as the constructor have these params as optional
+    this.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule!;
+    this.activeValidationModule = biconomySmartAccountConfig.activeValidationModule!;
 
     this.provider = createPublicClient({
       chain: getChain(biconomySmartAccountConfig.chainId),
@@ -498,7 +503,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     ];
     this.validateUserOp(userOp, requiredFields);
     if (!this.bundler) throw new Error("Bundler is not provided");
-    console.info("userOp being sent to the bundler", userOp);
+    Logger.warn("userOp being sent to the bundler", userOp);
     const bundlerResponse = await this.bundler.sendUserOp(userOp);
     return bundlerResponse;
   }
@@ -571,7 +576,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       }
     } catch (error) {
       // Not throwing this error as nonce would be 0 if this.getNonce() throw exception, which is expected flow for undeployed account
-      console.info("Error while getting nonce for the account. This is expected for undeployed accounts set nonce to 0");
+      Logger.warn("Error while getting nonce for the account. This is expected for undeployed accounts set nonce to 0");
     }
     return nonce;
   }
@@ -593,7 +598,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       return gasFeeValues;
     } catch (error: any) {
       // TODO: should throw error here?
-      console.error("Error while getting gasFeeValues from bundler. Provided bundler might not have getGasFeeValues endpoint", error);
+      Logger.error("Error while getting gasFeeValues from bundler. Provided bundler might not have getGasFeeValues endpoint", error);
       return gasFeeValues;
     }
   }
@@ -646,7 +651,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     // Note: Can change the default behaviour of calling estimations using bundler/local
     userOp = await this.estimateUserOpGas(userOp);
     userOp.paymasterAndData = userOp.paymasterAndData ?? "0x";
-    console.log("UserOp after estimation ", userOp);
+    Logger.log("UserOp after estimation ", userOp);
 
     return userOp;
   }
@@ -657,14 +662,14 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
 
     const feeTokenAddress = tokenPaymasterRequest?.feeQuote?.tokenAddress;
-    console.info("Requested fee token is ", feeTokenAddress);
+    Logger.warn("Requested fee token is ", feeTokenAddress);
 
     if (!feeTokenAddress || feeTokenAddress === ADDRESS_ZERO) {
       throw new Error("Invalid or missing token address. Token address must be part of the feeQuote in tokenPaymasterRequest");
     }
 
     const spender = tokenPaymasterRequest?.spender;
-    console.info("Spender address is ", spender);
+    Logger.warn("Spender address is ", spender);
 
     if (!spender || spender === ADDRESS_ZERO) {
       throw new Error("Invalid or missing spender address. Sepnder address must be part of tokenPaymasterRequest");
@@ -691,7 +696,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       let batchData: Array<Hex> = [];
 
       let newCallData = userOp.callData;
-      console.info("Received information about fee token address and quote ", tokenPaymasterRequest);
+      Logger.warn("Received information about fee token address and quote ", tokenPaymasterRequest);
 
       if (this.paymaster && this.paymaster instanceof BiconomyPaymaster) {
         // Make a call to paymaster.buildTokenApprovalTransaction() with necessary details
@@ -700,7 +705,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         const approvalRequest: Transaction = await (this.paymaster as IHybridPaymaster<SponsorUserOperationDto>).buildTokenApprovalTransaction(
           tokenPaymasterRequest,
         );
-        console.info("ApprovalRequest is for erc20 token ", approvalRequest.to);
+        Logger.warn("ApprovalRequest is for erc20 token ", approvalRequest.to);
 
         if (approvalRequest.data === "0x" || approvalRequest.to === ADDRESS_ZERO) {
           return userOp;
@@ -721,7 +726,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
         const smartAccountExecFunctionName = decodedSmartAccountData.functionName;
 
-        console.info(`Originally an ${smartAccountExecFunctionName} method call for Biconomy Account V2`);
+        Logger.warn(`Originally an ${smartAccountExecFunctionName} method call for Biconomy Account V2`);
         if (smartAccountExecFunctionName === "execute" || smartAccountExecFunctionName === "execute_ncC") {
           const methodArgsSmartWalletExecuteCall = decodedSmartAccountData.args;
           const toOriginal = methodArgsSmartWalletExecuteCall[0];
@@ -760,16 +765,16 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
               callData: newCallData,
             };
           }
-          console.info("UserOp after estimation ", finalUserOp);
+          Logger.warn("UserOp after estimation ", finalUserOp);
         } catch (error) {
-          console.error("Failed to estimate gas for userOp with updated callData ", error);
-          console.log("Sending updated userOp. calculateGasLimit flag should be sent to the paymaster to be able to update callGasLimit");
+          Logger.error("Failed to estimate gas for userOp with updated callData ", error);
+          Logger.log("Sending updated userOp. calculateGasLimit flag should be sent to the paymaster to be able to update callGasLimit");
         }
         return finalUserOp;
       }
     } catch (error) {
-      console.log("Failed to update userOp. Sending back original op");
-      console.error("Failed to update callData with error", error);
+      Logger.log("Failed to update userOp. Sending back original op");
+      Logger.error("Failed to update callData with error", error);
       return userOp;
     }
     return userOp;
