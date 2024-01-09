@@ -71,7 +71,7 @@ export type SignerData = {
   pbKey: string;
   pvKey: string;
   chainId?: Chain;
-}
+};
 
 export type CreateSessionDataResponse = {
   data: string;

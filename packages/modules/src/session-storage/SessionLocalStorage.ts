@@ -107,10 +107,10 @@ export class SessionLocalStorage implements ISessionStorage {
     const signers = this.getSignerStore();
     let signer: SignerData;
     if (!signerData) {
-      const pkey = generatePrivateKey()
+      const pkey = generatePrivateKey();
       signer = {
         pvKey: pkey,
-        pbKey: privateKeyToAccount(pkey).publicKey
+        pbKey: privateKeyToAccount(pkey).publicKey,
       };
     } else {
       signer = signerData;
@@ -123,9 +123,9 @@ export class SessionLocalStorage implements ISessionStorage {
     });
     const walletClientSigner: SmartAccountSigner = new WalletClientSigner(
       client,
-      "json-rpc" // signerType
+      "json-rpc", // signerType
     );
-    signers[this.toLowercaseAddress(accountSigner.address)] = signerData
+    signers[this.toLowercaseAddress(accountSigner.address)] = signerData;
     localStorage.setItem(this.getStorageKey("signers"), JSON.stringify(signers));
     return walletClientSigner;
   }
