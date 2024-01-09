@@ -3,6 +3,8 @@
   "version": "3.1.2",
   "description": "Particle auth for Biconomy SDK",
   "main": "./dist/src/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/src/index.d.ts",
   "typings": "./dist/src/index.d.ts",
   "keywords": [
     "legos",
@@ -25,7 +27,10 @@
   },
   "scripts": {
     "unbuild": "rimraf dist *.tsbuildinfo",
-    "build": "rimraf dist && tsc",
+    "build": "yarn unbuild && yarn build:cjs && yarn build:esm && yarn build:typ",
+    "build:cjs": "node .esbuild.js CJS",
+    "build:esm": "node .esbuild.js ESM",
+    "build:typ": "tsc -noEmit && node .esbuild.js TYP",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
     "lint": "tslint -p tsconfig.json"
   },
@@ -39,5 +44,10 @@
     "@particle-network/auth": "^1.2.1",
     "@particle-network/biconomy": "^1.0.0",
     "@particle-network/provider": "^1.2.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.19.11",
+    "esbuild-plugin-tsc": "^0.4.0",
+    "npm-dts": "^1.3.12"
   }
 }
