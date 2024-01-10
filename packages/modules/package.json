@@ -3,6 +3,8 @@
   "version": "3.1.2",
   "description": "This package provides different validation modules/plugins for ERC4337 compatible modular account",
   "main": "./dist/src/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/src/index.d.ts",
   "typings": "./dist/src/index.d.ts",
   "keywords": [
     "Smart Account",
@@ -15,7 +17,10 @@
   ],
   "scripts": {
     "unbuild": "rimraf dist *.tsbuildinfo",
-    "build": "rimraf dist && tsc",
+    "build": "yarn unbuild && yarn build:cjs && yarn build:esm && yarn build:typ",
+    "build:cjs": "node .esbuild.js CJS",
+    "build:esm": "node .esbuild.js ESM",
+    "build:typ": "tsc -noEmit && node .esbuild.js TYP",
     "test:file": "TS_NODE_PROJECT=../../tsconfig.json mocha -r ts-node/register --timeout 30000",
     "test:concurrently": "concurrently -k --success first 'yarn start:ganache > /dev/null'",
     "test:cov": "jest --coverage",
@@ -37,5 +42,10 @@
     "@alchemy/aa-core": "^1.2.2",
     "merkletreejs": "^0.3.9",
     "viem": "^1.20.3"
+  },
+  "devDependencies": {
+    "esbuild": "^0.19.11",
+    "esbuild-plugin-tsc": "^0.4.0",
+    "npm-dts": "^1.3.12"
   }
 }

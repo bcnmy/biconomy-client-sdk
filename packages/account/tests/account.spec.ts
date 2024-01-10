@@ -1,4 +1,4 @@
-import { Paymaster, createSmartWalletClient } from "../";
+import { Paymaster, createSmartWalletClient } from "../src";
 import { TestData } from ".";
 
 describe("Account Tests", () => {
