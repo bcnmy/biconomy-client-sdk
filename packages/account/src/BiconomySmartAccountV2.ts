@@ -159,7 +159,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     // Signer needs to be initialised here before defaultValidationModule is set
     if (biconomySmartAccountConfig.signer) {
       const signer = biconomySmartAccountConfig.signer;
-      const isViemWalletClient = !(signer instanceof WalletClientSigner);
+      // AA's WalletClientSigner has a signerType, viems' walletClient does not:
+      const isViemWalletClient = !(signer as WalletClientSigner)?.signerType;
       if (isViemWalletClient) {
         const walletClient = signer as WalletClient;
         if (!walletClient.account) {

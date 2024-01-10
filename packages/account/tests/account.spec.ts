@@ -1,4 +1,7 @@
 import { Paymaster, createSmartWalletClient } from "../src";
+import { createWalletClient, http } from "viem";
+import { localhost } from "viem/chains";
+import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { TestData } from ".";
 
 describe("Account Tests", () => {
@@ -123,4 +126,38 @@ describe("Account Tests", () => {
     expect(smartWallet.paymaster).not.toBeNull();
     expect(smartWallet.paymaster).not.toBeUndefined();
   }, 10000);
+
+  it("should fail to create a smartWalletClient from a walletClient without a chainId", async () => {
+    const { bundlerUrl } = chainData;
+
+    const account = privateKeyToAccount(generatePrivateKey());
+    const viemWalletClientNoChainId = createWalletClient({
+      account,
+      transport: http(localhost.rpcUrls.public.http[0]),
+    });
+
+    expect(
+      async () =>
+        await createSmartWalletClient({
+          signer: viemWalletClientNoChainId,
+          bundlerUrl,
+        }),
+    ).rejects.toThrow("Cannot consume a viem wallet without a chainId");
+  });
+
+  it("should fail to create a smartWalletClient from a walletClient without an account", async () => {
+    const { bundlerUrl } = chainData;
+
+    const viemWalletNoAccount = createWalletClient({
+      transport: http(localhost.rpcUrls.public.http[0]),
+    });
+
+    expect(
+      async () =>
+        await createSmartWalletClient({
+          signer: viemWalletNoAccount,
+          bundlerUrl,
+        }),
+    ).rejects.toThrow("Cannot consume a viem wallet without an account");
+  });
 });
