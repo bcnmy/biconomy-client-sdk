@@ -1,8 +1,9 @@
-import { Hex, createWalletClient, http } from "viem";
-import { WalletClientSigner } from "@alchemy/aa-core";
+import { Hex, createWalletClient, http, toHex } from "viem";
+import { SmartAccountSigner, WalletClientSigner } from "@alchemy/aa-core";
 import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "../interfaces/ISessionStorage";
 import { mainnet } from "viem/chains";
-import { privateKeyToAccount } from "viem/accounts";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { SignerData } from "utils/Types";
 
 export class SessionLocalStorage implements ISessionStorage {
   private smartAccountAddress: string;
@@ -102,21 +103,31 @@ export class SessionLocalStorage implements ISessionStorage {
     localStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data));
   }
 
-  async addSigner(signer: WalletClientSigner): Promise<WalletClientSigner> {
-    // const signers = this.getSignerStore();
-    // if (!signer) {
-    //   const pkey = generatePrivateKey()
-    //   signer = {
-    //     privateKey: pkey,
-    //     publicKey: pkey.publicKey,
-    //   };
-    // }
-    // signers[this.toLowercaseAddress(signer?.inner.)] = {
-    //   privateKey: signer.privateKey,
-    //   publicKey: signer.publicKey,
-    // };
-    // localStorage.setItem(this.getStorageKey("signers"), JSON.stringify(signers));
-    return signer;
+  async addSigner(signerData: SignerData): Promise<WalletClientSigner> {
+    const signers = this.getSignerStore();
+    let signer: SignerData;
+    if (!signerData) {
+      const pkey = generatePrivateKey();
+      signer = {
+        pvKey: pkey,
+        pbKey: privateKeyToAccount(pkey).publicKey,
+      };
+    } else {
+      signer = signerData;
+    }
+    const accountSigner = privateKeyToAccount(toHex(signer.pvKey));
+    const client = createWalletClient({
+      account: accountSigner,
+      chain: signerData.chainId,
+      transport: http(),
+    });
+    const walletClientSigner: SmartAccountSigner = new WalletClientSigner(
+      client,
+      "json-rpc", // signerType
+    );
+    signers[this.toLowercaseAddress(accountSigner.address)] = signerData;
+    localStorage.setItem(this.getStorageKey("signers"), JSON.stringify(signers));
+    return walletClientSigner;
   }
 
   async getSignerByKey(sessionPublicKey: string): Promise<WalletClientSigner> {
