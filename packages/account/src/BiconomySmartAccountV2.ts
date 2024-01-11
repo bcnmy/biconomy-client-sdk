@@ -17,8 +17,16 @@ import {
   Chain,
   getContract,
   decodeFunctionData,
+  WalletClient,
 } from "viem";
-import { BaseSmartContractAccount, getChain, type BigNumberish, type UserOperationStruct, BatchUserOperationCallData } from "@alchemy/aa-core";
+import {
+  BaseSmartContractAccount,
+  getChain,
+  type BigNumberish,
+  type UserOperationStruct,
+  BatchUserOperationCallData,
+  WalletClientSigner,
+} from "@alchemy/aa-core";
 import { isNullOrUndefined, packUserOp } from "./utils/Utils";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import { IHybridPaymaster, IPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from "@biconomy/paymaster";
@@ -32,6 +40,7 @@ import {
   NonceOptions,
   Transaction,
   QueryParamsForAddressResolver,
+  BiconomySmartAccountV2ConfigConstructorProps,
 } from "./utils/Types";
 import {
   ADDRESS_RESOLVER_ADDRESS,
@@ -78,7 +87,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   // Deployed Smart Account can have more than one module enabled. When sending a transaction activeValidationModule is used to prepare and validate userOp signature.
   activeValidationModule!: BaseValidationModule;
 
-  private constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountV2Config) {
+  private constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountV2ConfigConstructorProps) {
     super({
       ...biconomySmartAccountConfig,
       chain: getChain(biconomySmartAccountConfig.chainId),
@@ -87,6 +96,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       accountAddress: (biconomySmartAccountConfig.accountAddress as Hex) ?? undefined,
       factoryAddress: biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS,
     });
+
+    this.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
+    this.activeValidationModule = biconomySmartAccountConfig.activeValidationModule;
+
     this.index = biconomySmartAccountConfig.index ?? 0;
     this.chainId = biconomySmartAccountConfig.chainId;
     this.bundler = biconomySmartAccountConfig.bundler;
@@ -141,18 +154,48 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @throws An error if something is wrong with the smart account instance creation.
    */
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
-    const config = {
-      ...biconomySmartAccountConfig,
-    };
+    let chainId = biconomySmartAccountConfig.chainId;
+
+    // Signer needs to be initialised here before defaultValidationModule is set
+    if (biconomySmartAccountConfig.signer) {
+      const signer = biconomySmartAccountConfig.signer;
+      // AA's WalletClientSigner has a signerType, viems' walletClient does not:
+      const isViemWalletClient = !(signer as WalletClientSigner)?.signerType;
+      if (isViemWalletClient) {
+        const walletClient = signer as WalletClient;
+        if (!walletClient.account) {
+          throw new Error("Cannot consume a viem wallet without an account");
+        }
+        if (!walletClient.chain) {
+          throw new Error("Cannot consume a viem wallet without a chainId");
+        }
+        chainId = walletClient.chain.id;
+        biconomySmartAccountConfig.signer = new WalletClientSigner(walletClient, "viem");
+      }
+    }
+
+    if (!chainId) {
+      // Chain ID still not found
+      throw new Error("chainId required");
+    }
+
+    let defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
 
     // Note: If no module is provided, we will use ECDSA_OWNERSHIP as default
-    if (!config?.defaultValidationModule) {
+    if (!defaultValidationModule) {
       const newModule = await ECDSAOwnershipValidationModule.create({
+        // @ts-expect-error: Signer always present if no defaultValidationModule
         signer: biconomySmartAccountConfig.signer!,
       });
-      config.defaultValidationModule = newModule;
+      defaultValidationModule = newModule;
     }
-    config.activeValidationModule = config?.activeValidationModule ?? config.defaultValidationModule;
+    const activeValidationModule = biconomySmartAccountConfig?.activeValidationModule ?? defaultValidationModule;
+    const config = {
+      ...biconomySmartAccountConfig,
+      defaultValidationModule,
+      activeValidationModule,
+      chainId,
+    };
 
     return new BiconomySmartAccountV2(config);
   }

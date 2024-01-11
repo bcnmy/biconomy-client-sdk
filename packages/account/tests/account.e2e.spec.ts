@@ -15,16 +15,13 @@ describe("Account Tests", () => {
 
   it("should send some native token to a recipient", async () => {
     const {
-      chainId,
-      whale: { signer, publicAddress: sender },
+      whale: { viemWallet: signer },
       minnow: { publicAddress: recipient },
       bundlerUrl,
-      entryPointAddress,
       publicClient,
     } = chainData;
 
     const smartWallet = await createSmartWalletClient({
-      chainId,
       signer,
       bundlerUrl,
     });
@@ -45,15 +42,12 @@ describe("Account Tests", () => {
 
   it("Create a smart account with paymaster with an api key", async () => {
     const {
-      chainId,
-      whale: { signer },
+      whale: { viemWallet: signer },
       bundlerUrl,
-      entryPointAddress,
       biconomyPaymasterApiKey,
     } = chainData;
 
     const smartWallet = await createSmartWalletClient({
-      chainId,
       signer,
       biconomyPaymasterApiKey,
       bundlerUrl,
@@ -67,15 +61,13 @@ describe("Account Tests", () => {
   it("Should gaslessly mint an NFT", async () => {
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
     const {
-      chainId,
-      whale: { signer, publicAddress: recipient },
+      whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
       biconomyPaymasterApiKey,
       publicClient,
     } = chainData;
 
     const smartWallet = await createSmartWalletClient({
-      chainId,
       signer,
       biconomyPaymasterApiKey,
       bundlerUrl,
@@ -108,8 +100,7 @@ describe("Account Tests", () => {
 
   it("#getUserOpHash should match entryPoint.getUserOpHash", async () => {
     const {
-      chainId,
-      whale: { signer },
+      whale: { viemWallet: signer },
       bundlerUrl,
       entryPointAddress,
       publicClient,
@@ -117,7 +108,6 @@ describe("Account Tests", () => {
     } = chainData;
 
     const smartWallet = await createSmartWalletClient({
-      chainId,
       signer,
       biconomyPaymasterApiKey,
       bundlerUrl,
@@ -151,15 +141,13 @@ describe("Account Tests", () => {
 
   it("should be deployed to counterfactual address", async () => {
     const {
-      chainId,
-      whale: { signer },
+      whale: { viemWallet: signer },
       bundlerUrl,
       publicClient,
       biconomyPaymasterApiKey,
     } = chainData;
 
     const smartWallet = await createSmartWalletClient({
-      chainId,
       signer,
       biconomyPaymasterApiKey,
       bundlerUrl,
@@ -175,13 +163,11 @@ describe("Account Tests", () => {
     const ecdsaOwnershipModule = "0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e";
 
     const {
-      chainId,
-      whale: { signer },
+      whale: { viemWallet: signer },
       bundlerUrl,
     } = chainData;
 
     const smartWallet = await createSmartWalletClient({
-      chainId,
       signer,
       bundlerUrl,
     });

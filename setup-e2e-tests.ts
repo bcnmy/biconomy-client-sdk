@@ -28,18 +28,19 @@ beforeAll(async () => {
       chain: chain.viemChain,
       transport: http(),
     });
-    const walletOneClient = createWalletClient({
+
+    const viemWalletClientOne = createWalletClient({
       account: walletOne,
       chain: chain.viemChain,
       transport: http(chain.viemChain.rpcUrls.public.http[0]),
     });
-    const walletTwoClient = createWalletClient({
+    const viemWalletClientTwo = createWalletClient({
       account: walletTwo,
       chain: chain.viemChain,
       transport: http(chain.viemChain.rpcUrls.public.http[0]),
     });
-    const signerOne = new WalletClientSigner(walletOneClient, "json-rpc");
-    const signerTwo = new WalletClientSigner(walletTwoClient, "json-rpc");
+    const walletClientSignerOne = new WalletClientSigner(viemWalletClientOne, "viem");
+    const walletClientSignerTwo = new WalletClientSigner(viemWalletClientTwo, "viem");
 
     return Promise.all([
       Promise.all([
@@ -48,8 +49,8 @@ beforeAll(async () => {
           publicClient,
           account: walletOne,
           publicAddress: walletOne.address,
-          signer: signerOne,
-          walletClient: walletOneClient,
+          viemWallet: viemWalletClientOne,
+          alchemyWalletClientSigner: walletClientSignerOne,
         },
         publicClient.getBalance({
           address: walletOne.address,
@@ -61,8 +62,8 @@ beforeAll(async () => {
           publicClient,
           account: walletTwo,
           publicAddress: walletTwo.address,
-          signer: signerTwo,
-          walletClient: walletTwoClient,
+          viemWallet: viemWalletClientTwo,
+          alchemyWalletClientSigner: walletClientSignerTwo,
         },
         publicClient.getBalance({
           address: walletTwo.address,
@@ -100,15 +101,15 @@ beforeAll(async () => {
       biconomyPaymasterApiKey: whaleBalance.biconomyPaymasterApiKey,
       whale: {
         balance: whaleBalance.balance,
-        signer: whaleBalance.signer,
-        walletClient: whaleBalance.walletClient,
+        viemWallet: whaleBalance.viemWallet,
+        alchemyWalletClientSigner: whaleBalance.alchemyWalletClientSigner,
         publicAddress: whaleBalance.publicAddress,
         account: whaleBalance.account,
       },
       minnow: {
         balance: minnowBalance.balance,
-        signer: minnowBalance.signer,
-        walletClient: minnowBalance.walletClient,
+        viemWallet: minnowBalance.viemWallet,
+        alchemyWalletClientSigner: minnowBalance.alchemyWalletClientSigner,
         publicAddress: minnowBalance.publicAddress,
         account: minnowBalance.account,
       },

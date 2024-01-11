@@ -2,8 +2,8 @@ import { Chain, Hex, PrivateKeyAccount, PublicClient, WalletClient } from "viem"
 import { WalletClientSigner } from "@alchemy/aa-core";
 
 interface WalletProps {
-  signer: WalletClientSigner;
-  walletClient: WalletClient;
+  alchemyWalletClientSigner: WalletClientSigner;
+  viemWallet: WalletClient;
   balance: BigInt;
   publicAddress: Hex;
   account: PrivateKeyAccount;
