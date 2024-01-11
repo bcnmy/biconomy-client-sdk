@@ -56,3 +56,10 @@ export const DefaultGasLimit = {
   verificationGasLimit: 1000000,
   preVerificationGas: 100000,
 };
+
+export type SupportedSigner = "AlchemySmartAccountSigner" | "Ethers" | "Viem";
+export const UNIQUE_PROPERTIES_PER_SIGNER: Record<SupportedSigner, string> = {
+  AlchemySmartAccountSigner: "signerType",
+  Ethers: "provider",
+  Viem: "transport",
+};

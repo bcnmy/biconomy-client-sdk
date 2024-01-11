@@ -8,7 +8,7 @@ import { BaseValidationModule } from "./BaseValidationModule";
 import { SessionKeyManagerModule } from "./SessionKeyManagerModule";
 import { SessionSearchParam, SessionStatus } from "./interfaces/ISessionStorage";
 import { Hex, concat, encodeAbiParameters, keccak256, pad, parseAbiParameters, toBytes, toHex } from "viem";
-import { WalletClientSigner } from "@alchemy/aa-core";
+import { SmartAccountSigner } from "@alchemy/aa-core";
 
 export class BatchedSessionRouterModule extends BaseValidationModule {
   version: ModuleVersion = "V1_0_0";
@@ -189,7 +189,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
   /**
    * @remarks This is the version of the module contract
    */
-  async getSigner(): Promise<WalletClientSigner> {
+  async getSigner(): Promise<SmartAccountSigner> {
     throw new Error("Method not implemented.");
   }
 

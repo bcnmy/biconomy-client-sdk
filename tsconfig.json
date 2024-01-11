@@ -9,7 +9,7 @@
     "lib": ["es2020"],
     "types": ["node", "jest"]
   },
-  "include": ["packages/**/*"],
+  "include": ["packages/**/*", "types.ts"],
   "references": [
     { "path": "./packages/transak" },
     { "path": "./packages/bundler" },

@@ -18,9 +18,9 @@ beforeAll(() => {
   const { chainId, bundlerUrl, viemChain, entryPointAddress } = chain;
   const accountOne = mnemonicToAccount(MNEMONIC);
 
-  const { privateKey } = ethers.Wallet.fromPhrase(MNEMONIC);
+  const { privateKey } = ethers.Wallet.fromMnemonic(MNEMONIC);
 
-  const ethersProvider = new ethers.JsonRpcProvider(chain.viemChain.rpcUrls.public.http[0]);
+  const ethersProvider = new ethers.providers.JsonRpcProvider(chain.viemChain.rpcUrls.public.http[0]);
   const ethersSignerOne = new ethers.Wallet(privateKey, ethersProvider);
 
   const viemWalletClientOne = createWalletClient({

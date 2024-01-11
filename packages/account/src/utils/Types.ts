@@ -1,8 +1,9 @@
-import { BigNumberish, UserOperationStruct, WalletClientSigner } from "@alchemy/aa-core";
+import { BigNumberish, SmartAccountSigner, UserOperationStruct, WalletClientSigner } from "@alchemy/aa-core";
 import { IBundler } from "@biconomy/bundler";
 import { IPaymaster, PaymasterFeeQuote, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { Hex, WalletClient } from "viem";
+import { Signer } from "ethers";
 
 export type EntryPointAddresses = {
   [address: string]: string;
@@ -95,10 +96,12 @@ type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyo
     [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>;
   }[Keys];
 
+export type Writeable<T> = { -readonly [P in keyof T]: T[P] };
+
 type ConditionalValidationProps = RequireAtLeastOne<
   {
     defaultValidationModule: BaseValidationModule;
-    signer: WalletClientSigner | WalletClient;
+    signer: SmartAccountSigner | WalletClient | Signer;
   },
   "defaultValidationModule" | "signer"
 >;

@@ -28,9 +28,9 @@ import {
   WalletClientSigner,
 } from "@alchemy/aa-core";
 import { isNullOrUndefined, packUserOp } from "./utils/Utils";
+import { Bundler, IBundler, UserOpResponse } from "@biconomy/bundler";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import { IHybridPaymaster, IPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from "@biconomy/paymaster";
-import { Bundler, IBundler, UserOpResponse } from "@biconomy/bundler";
 import {
   BiconomyTokenPaymasterRequest,
   BiconomySmartAccountV2Config,
@@ -50,11 +50,14 @@ import {
   PROXY_CREATION_CODE,
   ADDRESS_ZERO,
   DEFAULT_ENTRYPOINT_ADDRESS,
+  UNIQUE_PROPERTIES_PER_SIGNER,
 } from "./utils/Constants";
 import { BiconomyFactoryAbi } from "./abi/Factory";
 import { BiconomyAccountAbi } from "./abi/SmartAccount";
 import { AccountResolverAbi } from "./abi/AccountResolver";
 import { Logger } from "./utils/Logger";
+import { Signer } from "ethers";
+import EthersSigner from "./utils/EthersSigner";
 
 type UserOperationKey = keyof UserOperationStruct;
 
@@ -159,18 +162,34 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     // Signer needs to be initialised here before defaultValidationModule is set
     if (biconomySmartAccountConfig.signer) {
       const signer = biconomySmartAccountConfig.signer;
-      // AA's WalletClientSigner has a signerType, viems' walletClient does not:
-      const isViemWalletClient = !(signer as WalletClientSigner)?.signerType;
-      if (isViemWalletClient) {
-        const walletClient = signer as WalletClient;
-        if (!walletClient.account) {
-          throw new Error("Cannot consume a viem wallet without an account");
+
+      const isAnAlchemySmartWallet = signer.hasOwnProperty(UNIQUE_PROPERTIES_PER_SIGNER.AlchemySmartAccountSigner);
+      const isAnEthersSigner = signer.hasOwnProperty(UNIQUE_PROPERTIES_PER_SIGNER.Ethers);
+      const isAViemWallet = signer.hasOwnProperty(UNIQUE_PROPERTIES_PER_SIGNER.Viem);
+
+      if (!isAnAlchemySmartWallet) {
+        if (isAnEthersSigner) {
+          const ethersSigner = signer as Signer;
+          if (!ethersSigner.provider) {
+            throw new Error("Cannot consume an ethers signer without a provider");
+          }
+          const chainIdFromProvider = await ethersSigner.provider.getNetwork();
+          chainId = Number(chainIdFromProvider.chainId);
+          if (!chainId) {
+            throw new Error("Cannot consume an ethers signer without a chainId");
+          }
+          biconomySmartAccountConfig.signer = new EthersSigner(ethersSigner, "ethers");
+        } else if (isAViemWallet) {
+          const walletClient = signer as WalletClient;
+          if (!walletClient.account) {
+            throw new Error("Cannot consume a viem wallet without an account");
+          }
+          if (!walletClient.chain) {
+            throw new Error("Cannot consume a viem wallet without a chainId");
+          }
+          chainId = walletClient.chain.id;
+          biconomySmartAccountConfig.signer = new WalletClientSigner(walletClient, "viem");
         }
-        if (!walletClient.chain) {
-          throw new Error("Cannot consume a viem wallet without a chainId");
-        }
-        chainId = walletClient.chain.id;
-        biconomySmartAccountConfig.signer = new WalletClientSigner(walletClient, "viem");
       }
     }
 
@@ -184,7 +203,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     // Note: If no module is provided, we will use ECDSA_OWNERSHIP as default
     if (!defaultValidationModule) {
       const newModule = await ECDSAOwnershipValidationModule.create({
-        // @ts-expect-error: Signer always present if no defaultValidationModule
+        // @ts-ignore
         signer: biconomySmartAccountConfig.signer!,
       });
       defaultValidationModule = newModule;

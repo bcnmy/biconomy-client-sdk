@@ -1,5 +1,5 @@
 import { Hex, createWalletClient, http, toHex } from "viem";
-import { SmartAccountSigner, WalletClientSigner } from "@alchemy/aa-core";
+import { SmartAccountSigner, SmartAccountSigner } from "@alchemy/aa-core";
 import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "../interfaces/ISessionStorage";
 import { mainnet } from "viem/chains";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
@@ -103,7 +103,7 @@ export class SessionLocalStorage implements ISessionStorage {
     localStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data));
   }
 
-  async addSigner(signerData: SignerData): Promise<WalletClientSigner> {
+  async addSigner(signerData: SignerData): Promise<SmartAccountSigner> {
     const signers = this.getSignerStore();
     let signer: SignerData;
     if (!signerData) {
@@ -121,16 +121,16 @@ export class SessionLocalStorage implements ISessionStorage {
       chain: signerData.chainId,
       transport: http(),
     });
-    const walletClientSigner: SmartAccountSigner = new WalletClientSigner(
+    const SmartAccountSigner: SmartAccountSigner = new SmartAccountSigner(
       client,
       "json-rpc", // signerType
     );
     signers[this.toLowercaseAddress(accountSigner.address)] = signerData;
     localStorage.setItem(this.getStorageKey("signers"), JSON.stringify(signers));
-    return walletClientSigner;
+    return SmartAccountSigner;
   }
 
-  async getSignerByKey(sessionPublicKey: string): Promise<WalletClientSigner> {
+  async getSignerByKey(sessionPublicKey: string): Promise<SmartAccountSigner> {
     const signers = this.getSignerStore();
     const signerData = signers[this.toLowercaseAddress(sessionPublicKey)];
     if (!signerData) {
@@ -142,11 +142,11 @@ export class SessionLocalStorage implements ISessionStorage {
       chain: mainnet,
       transport: http(),
     });
-    const signer = new WalletClientSigner(client, "viem");
+    const signer = new SmartAccountSigner(client, "viem");
     return signer;
   }
 
-  async getSignerBySession(param: SessionSearchParam): Promise<WalletClientSigner> {
+  async getSignerBySession(param: SessionSearchParam): Promise<SmartAccountSigner> {
     const session = await this.getSessionData(param);
     return this.getSignerByKey(session.sessionPublicKey);
   }

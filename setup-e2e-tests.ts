@@ -28,7 +28,7 @@ beforeAll(async () => {
   const walletTwo = privateKeyToAccount(privateKeytwo);
 
   const promises = TEST_CHAINS.map((chain) => {
-    const ethersProvider = new ethers.JsonRpcProvider(chain.viemChain.rpcUrls.public.http[0]);
+    const ethersProvider = new ethers.providers.JsonRpcProvider(chain.viemChain.rpcUrls.public.http[0]);
     const ethersSignerOne = new ethers.Wallet(privateKeyOne, ethersProvider);
     const ethersSignerTwo = new ethers.Wallet(privateKeytwo, ethersProvider);
 
