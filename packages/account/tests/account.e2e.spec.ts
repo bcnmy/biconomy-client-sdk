@@ -1,5 +1,5 @@
 import { PaymasterMode } from "@biconomy/paymaster";
-import { TestData } from ".";
+import { TestData } from "./";
 import { createSmartWalletClient } from "../src/index";
 import { Hex, encodeFunctionData, parseAbi } from "viem";
 import { UserOperationStruct } from "@alchemy/aa-core";

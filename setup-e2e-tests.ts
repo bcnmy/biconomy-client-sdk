@@ -1,4 +1,5 @@
-import { createWalletClient, http, createPublicClient } from "viem";
+import { createWalletClient, http, createPublicClient, Hex } from "viem";
+import { ethers } from "ethers";
 import { privateKeyToAccount } from "viem/accounts";
 import { polygonMumbai } from "viem/chains";
 import { WalletClientSigner } from "@alchemy/aa-core";
@@ -17,13 +18,20 @@ const TEST_CHAINS = [
   },
 ];
 
+const privateKeyOne: Hex = `0x${process.env.E2E_PRIVATE_KEY_ONE}`;
+const privateKeytwo: Hex = `0x${process.env.E2E_PRIVATE_KEY_TWO}`;
+
 beforeAll(async () => {
   envVarCheck();
 
-  const walletOne = privateKeyToAccount(`0x${process.env.E2E_PRIVATE_KEY_ONE}`);
-  const walletTwo = privateKeyToAccount(`0x${process.env.E2E_PRIVATE_KEY_TWO}`);
+  const walletOne = privateKeyToAccount(privateKeyOne);
+  const walletTwo = privateKeyToAccount(privateKeytwo);
 
   const promises = TEST_CHAINS.map((chain) => {
+    const ethersProvider = new ethers.JsonRpcProvider(chain.viemChain.rpcUrls.public.http[0]);
+    const ethersSignerOne = new ethers.Wallet(privateKeyOne, ethersProvider);
+    const ethersSignerTwo = new ethers.Wallet(privateKeytwo, ethersProvider);
+
     const publicClient = createPublicClient({
       chain: chain.viemChain,
       transport: http(),
@@ -51,6 +59,8 @@ beforeAll(async () => {
           publicAddress: walletOne.address,
           viemWallet: viemWalletClientOne,
           alchemyWalletClientSigner: walletClientSignerOne,
+          ethersProvider,
+          ethersSigner: ethersSignerOne,
         },
         publicClient.getBalance({
           address: walletOne.address,
@@ -64,6 +74,9 @@ beforeAll(async () => {
           publicAddress: walletTwo.address,
           viemWallet: viemWalletClientTwo,
           alchemyWalletClientSigner: walletClientSignerTwo,
+          ethersProvider,
+          ethersSignerTwo,
+          ethersSigner: ethersSignerTwo,
         },
         publicClient.getBalance({
           address: walletTwo.address,
@@ -99,12 +112,14 @@ beforeAll(async () => {
       entryPointAddress: whaleBalance.entryPointAddress,
       viemChain: whaleBalance.viemChain,
       biconomyPaymasterApiKey: whaleBalance.biconomyPaymasterApiKey,
+      ethersProvider: whaleBalance.ethersProvider,
       whale: {
         balance: whaleBalance.balance,
         viemWallet: whaleBalance.viemWallet,
         alchemyWalletClientSigner: whaleBalance.alchemyWalletClientSigner,
         publicAddress: whaleBalance.publicAddress,
         account: whaleBalance.account,
+        ethersSigner: whaleBalance.ethersSigner,
       },
       minnow: {
         balance: minnowBalance.balance,
@@ -112,6 +127,7 @@ beforeAll(async () => {
         alchemyWalletClientSigner: minnowBalance.alchemyWalletClientSigner,
         publicAddress: minnowBalance.publicAddress,
         account: minnowBalance.account,
+        ethersSigner: whaleBalance.ethersSigner,
       },
     };
     return datum;

@@ -6,7 +6,7 @@ export * from "./utils/Constants";
 export * from "./BiconomySmartAccountV2";
 export * from "./provider";
 
-export { WalletClientSigner } from "@alchemy/aa-core";
+export { WalletClientSigner, LocalAccountSigner } from "@alchemy/aa-core";
 export { BiconomyPaymaster as Paymaster, IPaymaster } from "@biconomy/paymaster";
 export { Bundler, IBundler } from "@biconomy/bundler";
 export const createSmartWalletClient = BiconomySmartAccountV2.create;

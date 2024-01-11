@@ -12,6 +12,14 @@ describe("Account Tests", () => {
     chainData = testDataPerChain[0];
   });
 
+  it("should create a smartWalletClient from an ethers signer", async () => {
+    const {
+      minnow: { ethersSigner: signer },
+    } = chainData;
+
+    console.log(signer);
+  });
+
   it("should create a smartWalletClient from a walletClient", async () => {
     const {
       whale: { viemWallet: signer },
