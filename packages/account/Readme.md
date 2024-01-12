@@ -3,7 +3,7 @@
 Using `npm` package manager
 
 ```bash
-npm i @biconomy/account
+npm i @biconomy-devx/account
 ```
 
 OR
@@ -11,7 +11,7 @@ OR
 Using `yarn` package manager
 
 ```bash
-yarn add @biconomy/account
+yarn add @biconomy-devx/account
 ```
 
 ### Account
@@ -38,7 +38,7 @@ The account package achieves this by providing a comprehensive set of methods th
 ```typescript
 // This is how you create BiconomySmartAccount instance in your dapp's
 
-import { BiconomySmartAccount, BiconomySmartAccountConfig } from "@biconomy/account";
+import { BiconomySmartAccount, BiconomySmartAccountConfig } from "@biconomy-devx/account";
 
 // Note that paymaster and bundler are optional. You can choose to create new instances of this later and make account API use
 const biconomySmartAccountConfig: BiconomySmartAccountConfig = {

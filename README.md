@@ -26,11 +26,11 @@ Unlock the full potential of **ERC4337 Account Abstraction** with methods that s
 
 ```javascript
 
-import { ECDSAOwnershipValidationModule, DEFAULT_ECDSA_OWNERSHIP_MODULE } from "@biconomy/modules";
-import { IBundler, Bundler } from '@biconomy/bundler'
-import { DEFAULT_ENTRYPOINT_ADDRESS } from "@biconomy/account"
+import { ECDSAOwnershipValidationModule, DEFAULT_ECDSA_OWNERSHIP_MODULE } from "@biconomy-devx/modules";
+import { IBundler, Bundler } from '@biconomy-devx/bundler'
+import { DEFAULT_ENTRYPOINT_ADDRESS } from "@biconomy-devx/account"
 import { providers } from 'ethers'
-import { ChainId } from "@biconomy/core-types"
+import { ChainId } from "@biconomy-devx/core-types"
 
 
 const module = await ECDSAOwnershipValidationModule.create({
@@ -56,7 +56,7 @@ Leverage standardized bundler infrastructure for efficient operation of account 
 
 ```javascript
 
-import { IBundler, Bundler } from '@biconomy/bundler'
+import { IBundler, Bundler } from '@biconomy-devx/bundler'
 
 
 const bundler: IBundler = new Bundler({

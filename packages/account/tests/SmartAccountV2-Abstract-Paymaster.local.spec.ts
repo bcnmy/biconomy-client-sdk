@@ -7,14 +7,14 @@ import {
   SmartAccount_v200__factory,
   SmartAccountFactory_v200__factory,
   ECDSAOwnershipRegistryModule_v100__factory,
-} from "@biconomy/common";
+} from "@biconomy-devx/common";
 
 import { BiconomySmartAccountV2 } from "../src/BiconomySmartAccountV2";
-import { ChainId } from "@biconomy/core-types";
-import { ECDSAOwnershipValidationModule } from "@biconomy/modules";
-import { BaseValidationModule } from "@biconomy/modules";
-import { ECDSAOwnershipRegistryModule_v100 } from "@biconomy/common";
-import { BiconomyPaymaster } from "@biconomy/paymaster";
+import { ChainId } from "@biconomy-devx/core-types";
+import { ECDSAOwnershipValidationModule } from "@biconomy-devx/modules";
+import { BaseValidationModule } from "@biconomy-devx/modules";
+import { ECDSAOwnershipRegistryModule_v100 } from "@biconomy-devx/common";
+import { BiconomyPaymaster } from "@biconomy-devx/paymaster";
 
 const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
 const signer = provider.getSigner();
