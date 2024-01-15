@@ -1,4 +1,4 @@
-import { Hex } from "viem";
+import { Chain, Hex } from "viem";
 import { UserOperationStruct, WalletClientSigner } from "@alchemy/aa-core";
 import { SessionKeyManagerModule } from "../SessionKeyManagerModule";
 import { ISessionStorage } from "../interfaces/ISessionStorage";
@@ -66,6 +66,12 @@ export interface SendUserOpParams extends ModuleInfo {
 }
 
 export type SimulationType = "validation" | "validation_and_execution";
+
+export type SignerData = {
+  pbKey: string;
+  pvKey: string;
+  chainId?: Chain;
+};
 
 export type CreateSessionDataResponse = {
   data: string;

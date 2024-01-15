@@ -17,8 +17,16 @@ import {
   Chain,
   getContract,
   decodeFunctionData,
+  WalletClient,
 } from "viem";
-import { BaseSmartContractAccount, getChain, type BigNumberish, type UserOperationStruct, BatchUserOperationCallData } from "@alchemy/aa-core";
+import {
+  BaseSmartContractAccount,
+  getChain,
+  type BigNumberish,
+  type UserOperationStruct,
+  BatchUserOperationCallData,
+  WalletClientSigner,
+} from "@alchemy/aa-core";
 import { isNullOrUndefined, packUserOp } from "./utils/Utils";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import { IHybridPaymaster, IPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from "@biconomy/paymaster";
@@ -32,6 +40,7 @@ import {
   NonceOptions,
   Transaction,
   QueryParamsForAddressResolver,
+  BiconomySmartAccountV2ConfigConstructorProps,
 } from "./utils/Types";
 import {
   ADDRESS_RESOLVER_ADDRESS,
@@ -45,6 +54,7 @@ import {
 import { BiconomyFactoryAbi } from "./abi/Factory";
 import { BiconomyAccountAbi } from "./abi/SmartAccount";
 import { AccountResolverAbi } from "./abi/AccountResolver";
+import { Logger } from "./utils/Logger";
 
 type UserOperationKey = keyof UserOperationStruct;
 
@@ -77,7 +87,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   // Deployed Smart Account can have more than one module enabled. When sending a transaction activeValidationModule is used to prepare and validate userOp signature.
   activeValidationModule!: BaseValidationModule;
 
-  private constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountV2Config) {
+  private constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountV2ConfigConstructorProps) {
     super({
       ...biconomySmartAccountConfig,
       chain: getChain(biconomySmartAccountConfig.chainId),
@@ -86,6 +96,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       accountAddress: (biconomySmartAccountConfig.accountAddress as Hex) ?? undefined,
       factoryAddress: biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS,
     });
+
+    this.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
+    this.activeValidationModule = biconomySmartAccountConfig.activeValidationModule;
+
     this.index = biconomySmartAccountConfig.index ?? 0;
     this.chainId = biconomySmartAccountConfig.chainId;
     this.bundler = biconomySmartAccountConfig.bundler;
@@ -115,6 +129,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
     this.defaultFallbackHandlerAddress = defaultFallbackHandlerAddress;
 
+    // Added bang operator to avoid null check as the constructor have these params as optional
+    this.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule!;
+    this.activeValidationModule = biconomySmartAccountConfig.activeValidationModule!;
+
     this.provider = createPublicClient({
       chain: getChain(biconomySmartAccountConfig.chainId),
       transport: http(biconomySmartAccountConfig.rpcUrl || getChain(biconomySmartAccountConfig.chainId).rpcUrls.public.http[0]),
@@ -136,19 +154,50 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @throws An error if something is wrong with the smart account instance creation.
    */
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
-    const instance = new BiconomySmartAccountV2(biconomySmartAccountConfig);
+    let chainId = biconomySmartAccountConfig.chainId;
+
+    // Signer needs to be initialised here before defaultValidationModule is set
+    if (biconomySmartAccountConfig.signer) {
+      const signer = biconomySmartAccountConfig.signer;
+      // AA's WalletClientSigner has a signerType, viems' walletClient does not:
+      const isViemWalletClient = !(signer as WalletClientSigner)?.signerType;
+      if (isViemWalletClient) {
+        const walletClient = signer as WalletClient;
+        if (!walletClient.account) {
+          throw new Error("Cannot consume a viem wallet without an account");
+        }
+        if (!walletClient.chain) {
+          throw new Error("Cannot consume a viem wallet without a chainId");
+        }
+        chainId = walletClient.chain.id;
+        biconomySmartAccountConfig.signer = new WalletClientSigner(walletClient, "viem");
+      }
+    }
+
+    if (!chainId) {
+      // Chain ID still not found
+      throw new Error("chainId required");
+    }
+
+    let defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
 
     // Note: If no module is provided, we will use ECDSA_OWNERSHIP as default
-    if (biconomySmartAccountConfig.defaultValidationModule) {
-      instance.defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
-    } else {
-      instance.defaultValidationModule = await ECDSAOwnershipValidationModule.create({
+    if (!defaultValidationModule) {
+      const newModule = await ECDSAOwnershipValidationModule.create({
+        // @ts-expect-error: Signer always present if no defaultValidationModule
         signer: biconomySmartAccountConfig.signer!,
       });
+      defaultValidationModule = newModule;
     }
-    instance.activeValidationModule = biconomySmartAccountConfig.activeValidationModule ?? instance.defaultValidationModule;
+    const activeValidationModule = biconomySmartAccountConfig?.activeValidationModule ?? defaultValidationModule;
+    const config = {
+      ...biconomySmartAccountConfig,
+      defaultValidationModule,
+      activeValidationModule,
+      chainId,
+    };
 
-    return instance;
+    return new BiconomySmartAccountV2(config);
   }
 
   // Calls the getCounterFactualAddress
@@ -455,7 +504,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     ];
     this.validateUserOp(userOp, requiredFields);
     if (!this.bundler) throw new Error("Bundler is not provided");
-    console.info("userOp being sent to the bundler", userOp);
+    Logger.warn("userOp being sent to the bundler", userOp);
     const bundlerResponse = await this.bundler.sendUserOp(userOp);
     return bundlerResponse;
   }
@@ -528,7 +577,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       }
     } catch (error) {
       // Not throwing this error as nonce would be 0 if this.getNonce() throw exception, which is expected flow for undeployed account
-      console.info("Error while getting nonce for the account. This is expected for undeployed accounts set nonce to 0");
+      Logger.warn("Error while getting nonce for the account. This is expected for undeployed accounts set nonce to 0");
     }
     return nonce;
   }
@@ -550,7 +599,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       return gasFeeValues;
     } catch (error: any) {
       // TODO: should throw error here?
-      console.error("Error while getting gasFeeValues from bundler. Provided bundler might not have getGasFeeValues endpoint", error);
+      Logger.error("Error while getting gasFeeValues from bundler. Provided bundler might not have getGasFeeValues endpoint", error);
       return gasFeeValues;
     }
   }
@@ -603,7 +652,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     // Note: Can change the default behaviour of calling estimations using bundler/local
     userOp = await this.estimateUserOpGas(userOp);
     userOp.paymasterAndData = userOp.paymasterAndData ?? "0x";
-    console.log("UserOp after estimation ", userOp);
+    Logger.log("UserOp after estimation ", userOp);
 
     return userOp;
   }
@@ -614,14 +663,14 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
 
     const feeTokenAddress = tokenPaymasterRequest?.feeQuote?.tokenAddress;
-    console.info("Requested fee token is ", feeTokenAddress);
+    Logger.warn("Requested fee token is ", feeTokenAddress);
 
     if (!feeTokenAddress || feeTokenAddress === ADDRESS_ZERO) {
       throw new Error("Invalid or missing token address. Token address must be part of the feeQuote in tokenPaymasterRequest");
     }
 
     const spender = tokenPaymasterRequest?.spender;
-    console.info("Spender address is ", spender);
+    Logger.warn("Spender address is ", spender);
 
     if (!spender || spender === ADDRESS_ZERO) {
       throw new Error("Invalid or missing spender address. Sepnder address must be part of tokenPaymasterRequest");
@@ -648,7 +697,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       let batchData: Array<Hex> = [];
 
       let newCallData = userOp.callData;
-      console.info("Received information about fee token address and quote ", tokenPaymasterRequest);
+      Logger.warn("Received information about fee token address and quote ", tokenPaymasterRequest);
 
       if (this.paymaster && this.paymaster instanceof BiconomyPaymaster) {
         // Make a call to paymaster.buildTokenApprovalTransaction() with necessary details
@@ -657,7 +706,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         const approvalRequest: Transaction = await (this.paymaster as IHybridPaymaster<SponsorUserOperationDto>).buildTokenApprovalTransaction(
           tokenPaymasterRequest,
         );
-        console.info("ApprovalRequest is for erc20 token ", approvalRequest.to);
+        Logger.warn("ApprovalRequest is for erc20 token ", approvalRequest.to);
 
         if (approvalRequest.data === "0x" || approvalRequest.to === ADDRESS_ZERO) {
           return userOp;
@@ -678,7 +727,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
         const smartAccountExecFunctionName = decodedSmartAccountData.functionName;
 
-        console.info(`Originally an ${smartAccountExecFunctionName} method call for Biconomy Account V2`);
+        Logger.warn(`Originally an ${smartAccountExecFunctionName} method call for Biconomy Account V2`);
         if (smartAccountExecFunctionName === "execute" || smartAccountExecFunctionName === "execute_ncC") {
           const methodArgsSmartWalletExecuteCall = decodedSmartAccountData.args;
           const toOriginal = methodArgsSmartWalletExecuteCall[0];
@@ -717,16 +766,16 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
               callData: newCallData,
             };
           }
-          console.info("UserOp after estimation ", finalUserOp);
+          Logger.warn("UserOp after estimation ", finalUserOp);
         } catch (error) {
-          console.error("Failed to estimate gas for userOp with updated callData ", error);
-          console.log("Sending updated userOp. calculateGasLimit flag should be sent to the paymaster to be able to update callGasLimit");
+          Logger.error("Failed to estimate gas for userOp with updated callData ", error);
+          Logger.log("Sending updated userOp. calculateGasLimit flag should be sent to the paymaster to be able to update callGasLimit");
         }
         return finalUserOp;
       }
     } catch (error) {
-      console.log("Failed to update userOp. Sending back original op");
-      console.error("Failed to update callData with error", error);
+      Logger.log("Failed to update userOp. Sending back original op");
+      Logger.error("Failed to update callData with error", error);
       return userOp;
     }
     return userOp;
