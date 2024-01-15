@@ -18,7 +18,7 @@ describe("Account with MultiChainValidation Module Tests", () => {
 
   it("Should mint an NFT gasless on Base Goerli and Polygon Mumbai", async () => {
     const {
-      whale: { signer, publicAddress: recipient },
+      whale: { alchemyWalletClientSigner, publicAddress: recipient },
       biconomyPaymasterApiKey,
       bundlerUrl,
     } = chainData;
@@ -26,13 +26,13 @@ describe("Account with MultiChainValidation Module Tests", () => {
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
 
     const multiChainModule = await MultiChainValidationModule.create({
-        signer: signer,
+        signer: alchemyWalletClientSigner,
         moduleAddress: DEFAULT_MULTICHAIN_MODULE,
     });
 
     const polygonAccount = await createSmartWalletClient({
       chainId: 80001,
-      signer,
+      signer: alchemyWalletClientSigner,
       bundlerUrl,
       defaultValidationModule: multiChainModule,
       activeValidationModule: multiChainModule,
