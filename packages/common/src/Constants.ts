@@ -38,5 +38,5 @@ export const RPC_PROVIDER_URLS: { [key in ChainId]?: string } = {
   [ChainId.CORE_TESTNET]: "https://rpc.testnet.core.chain.com",
   [ChainId.MANTA_PACIFIC_MAINNET]: "https://pacific-rpc.manta.network/http",
   [ChainId.MANTA_PACIFIC_TESTNET]: "https://pacific-rpc.testnet.manta.network/http",
-  [ChainId.CAPX_TESTNET]: "http://13.234.72.203:8124",
+  [ChainId.CAPX_TESTNET]: "https://capx-zk-rpc.lgns.me/sequencer-api",
 };
