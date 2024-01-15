@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 3.1.3 (2023-12-28)
+
+* update capx url and rebase ([92c1ef0](https://github.com/bcnmy/biconomy-client-sdk/pull/360/commits/92c1ef0fcfeafbd89a6872b1e2689eea7c722bc3))
+
 ## 3.1.2 (2023-12-28)
 
 VERSION Bump Only.
