@@ -2,7 +2,7 @@ import * as fs from "fs";
 import { SmartAccountSigner, WalletClientSigner } from "@alchemy/aa-core";
 import { SignerData } from "@biconomy/modules/src";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { createWalletClient, http } from "viem";
+import { Hex, createWalletClient, http } from "viem";
 import { polygonMumbai } from "viem/chains";
 import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "@biconomy/modules/src/interfaces/ISessionStorage";
 
@@ -87,8 +87,8 @@ export class SessionFileStorage implements ISessionStorage {
     return `${this.smartAccountAddress}_${type}`;
   }
 
-  private toLowercaseAddress(address: string): `0x${string}` {
-    return `0x${address.toLowerCase()}`;
+  private toLowercaseAddress(address: string): Hex {
+    return address.toLowerCase() as Hex;
   }
 
   async getSessionData(): Promise<SessionLeafNode> {
