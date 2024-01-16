@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/common",
-  "version": "3.1.2",
+  "version": "3.1.3",
   "description": "common utils to be used for aa transactions",
   "keywords": [
     "utils"
@@ -41,8 +41,8 @@
   },
   "dependencies": {
     "@account-abstraction/contracts": "^0.6.0",
-    "@biconomy/core-types": "^3.1.2",
-    "@biconomy/node-client": "^3.1.2",
+    "@biconomy/core-types": "^3.1.3",
+    "@biconomy/node-client": "^3.1.3",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/bytes": "^5.7.0",
     "@ethersproject/providers": "^5.7.0",
