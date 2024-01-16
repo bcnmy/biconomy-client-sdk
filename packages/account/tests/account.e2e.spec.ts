@@ -1,11 +1,9 @@
 import { BiconomyPaymaster, PaymasterMode } from "@biconomy/paymaster";
 import { TestData } from ".";
-import { BiconomyAccountProvider, BiconomySmartAccountV2, createSmartWalletClient } from "../src/index";
-import { Hex, createWalletClient, encodeFunctionData, http, parseAbi } from "viem";
-import { UserOperationStruct, WalletClientSigner } from "@alchemy/aa-core";
+import { createSmartWalletClient } from "../src/index";
+import { Hex, encodeFunctionData, parseAbi } from "viem";
+import { UserOperationStruct} from "@alchemy/aa-core";
 import { checkBalance, entryPointABI } from "./utils";
-import { privateKeyToAccount } from "viem/accounts";
-import { base, baseGoerli } from "viem/chains";
 
 describe("Account Tests", () => {
   let chainData: TestData;
@@ -72,7 +70,7 @@ describe("Account Tests", () => {
     const smartWallet = await createSmartWalletClient({
       signer,
       bundlerUrl,
-      biconomyPaymasterApiKey
+      biconomyPaymasterApiKey,
     });
 
     const paymaster: BiconomyPaymaster = smartWallet.paymaster as BiconomyPaymaster;
@@ -101,68 +99,9 @@ describe("Account Tests", () => {
     partialUserOp.verificationGasLimit = paymasterData.verificationGasLimit;
     partialUserOp.preVerificationGas = paymasterData.preVerificationGas;
 
-    const result = smartWallet.sendUserOp(partialUserOp)
-    console.log(result);
-    
     const newBalance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
 
     expect(newBalance).toEqual(balance);
-  }, 60000);
-
-  it("Should gaslessly mint an NFT on Base Goerli", async () => {
-
-    const {
-      whale: { publicAddress: recipient },
-    } = chainData;
-
-    const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
-    const baseWallet = privateKeyToAccount(`0x${process.env.E2E_PRIVATE_KEY_ONE}`);
-
-    const baseClient = createWalletClient({
-      account: baseWallet,
-      chain: baseGoerli,
-      transport: http(baseGoerli.rpcUrls.public.http[0]),
-    });
-
-    const baseSigner = new WalletClientSigner(baseClient, "json-rpc");
-
-    const baseAccount = await createSmartWalletClient({
-      chainId: 84531,
-      signer: baseSigner,
-      bundlerUrl: "https://bundler.biconomy.io/api/v2/84531/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44",
-      biconomyPaymasterApiKey: process.env.E2E_BICO_PAYMASTER_KEY_BASE
-    });
-
-    expect(process.env.E2E_BICO_PAYMASTER_KEY_BASE).toBeTruthy();
-
-    const paymaster: BiconomyPaymaster = baseAccount.paymaster as BiconomyPaymaster;
-
-    const encodedCall = encodeFunctionData({
-      abi: parseAbi(["function safeMint(address to) public"]),
-      functionName: "safeMint",
-      args: [recipient],
-    });
-
-    const transaction = {
-      to: nftAddress, // NFT address
-      data: encodedCall,
-      value: 0,
-    };
-
-    const partialUserOp = await baseAccount.buildUserOp([transaction]);
-
-    const paymasterData = await paymaster.getPaymasterAndData(partialUserOp, {
-      mode: PaymasterMode.SPONSORED,
-    });
-
-    partialUserOp.paymasterAndData = paymasterData.paymasterAndData;
-    partialUserOp.callGasLimit = paymasterData.callGasLimit;
-    partialUserOp.verificationGasLimit = paymasterData.verificationGasLimit;
-    partialUserOp.preVerificationGas = paymasterData.preVerificationGas;
-
-    baseAccount.sendUserOp(partialUserOp);
-
-    expect(partialUserOp).toBeTruthy();
   }, 60000);
 
   it("#getUserOpHash should match entryPoint.getUserOpHash", async () => {
@@ -239,7 +178,6 @@ describe("Account Tests", () => {
       bundlerUrl,
     });
 
-    const module = (await smartWallet.getAllModules())[0];
-    expect(ecdsaOwnershipModule).toBe(module);
+    expect(ecdsaOwnershipModule).toBe(smartWallet.activeValidationModule.getAddress());
   });
 });

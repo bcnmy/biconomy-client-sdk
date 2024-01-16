@@ -1,12 +1,11 @@
-import { BiconomyPaymaster, PaymasterMode, SponsorUserOperationDto } from "@biconomy/paymaster";
+import { BiconomyPaymaster, PaymasterMode } from "@biconomy/paymaster";
 import { TestData } from "..";
-import { BiconomySmartAccountV2, createSmartWalletClient } from "../../src/index";
+import { createSmartWalletClient } from "../../src/index";
 import { Hex, createWalletClient, encodeFunctionData, http, parseAbi } from "viem";
-import { UserOperationStruct, WalletClientSigner } from "@alchemy/aa-core";
-import { checkBalance, entryPointABI } from "../utils";
+import { WalletClientSigner } from "@alchemy/aa-core";
 import { DEFAULT_MULTICHAIN_MODULE, MultiChainValidationModule } from "@biconomy/modules";
 import { privateKeyToAccount } from "viem/accounts";
-import { base, baseGoerli } from "viem/chains";
+import { baseGoerli } from "viem/chains";
 
 describe("Account with MultiChainValidation Module Tests", () => {
   let chainData: TestData;
@@ -26,8 +25,8 @@ describe("Account with MultiChainValidation Module Tests", () => {
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
 
     const multiChainModule = await MultiChainValidationModule.create({
-        signer: alchemyWalletClientSigner,
-        moduleAddress: DEFAULT_MULTICHAIN_MODULE,
+      signer: alchemyWalletClientSigner,
+      moduleAddress: DEFAULT_MULTICHAIN_MODULE,
     });
 
     const polygonAccount = await createSmartWalletClient({
@@ -36,7 +35,7 @@ describe("Account with MultiChainValidation Module Tests", () => {
       bundlerUrl,
       defaultValidationModule: multiChainModule,
       activeValidationModule: multiChainModule,
-      biconomyPaymasterApiKey
+      biconomyPaymasterApiKey,
     });
 
     const polygonPaymaster: BiconomyPaymaster = polygonAccount.paymaster as BiconomyPaymaster;
@@ -55,7 +54,7 @@ describe("Account with MultiChainValidation Module Tests", () => {
       bundlerUrl: "https://bundler.biconomy.io/api/v2/84531/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44",
       defaultValidationModule: multiChainModule,
       activeValidationModule: multiChainModule,
-      biconomyPaymasterApiKey: process.env.E2E_BICO_PAYMASTER_KEY_BASE
+      biconomyPaymasterApiKey: process.env.E2E_BICO_PAYMASTER_KEY_BASE,
     });
 
     const basePaymaster: BiconomyPaymaster = baseAccount.paymaster as BiconomyPaymaster;
@@ -67,13 +66,13 @@ describe("Account with MultiChainValidation Module Tests", () => {
     });
 
     const transaction = {
-      to: nftAddress, 
+      to: nftAddress,
       data: encodedCall,
       value: 0,
     };
 
-    let partialUserOp1 = await baseAccount.buildUserOp([transaction]);
-    let partialUserOp2 = await polygonAccount.buildUserOp([transaction]);
+    const partialUserOp1 = await baseAccount.buildUserOp([transaction]);
+    const partialUserOp2 = await polygonAccount.buildUserOp([transaction]);
 
     // Setup paymaster and data for base account
     const basePaymasterData = await basePaymaster.getPaymasterAndData(partialUserOp1, {
@@ -96,17 +95,19 @@ describe("Account with MultiChainValidation Module Tests", () => {
     partialUserOp2.preVerificationGas = polygonPaymasterData.preVerificationGas;
 
     // Sign the user ops using multiChainModule
-    const returnedOps = await multiChainModule.signUserOps([{userOp: partialUserOp1, chainId: 84531}, {userOp: partialUserOp2, chainId: 80001}]);
+    const returnedOps = await multiChainModule.signUserOps([
+      { userOp: partialUserOp1, chainId: 84531 },
+      { userOp: partialUserOp2, chainId: 80001 },
+    ]);
 
     // Send the signed user ops on both chains
-    const userOpResponse1 = await baseAccount.sendSignedUserOp(returnedOps[0] as any)
-    const userOpResponse2 = await polygonAccount.sendSignedUserOp(returnedOps[1] as any)
+    const userOpResponse1 = await baseAccount.sendSignedUserOp(returnedOps[0] as any);
+    const userOpResponse2 = await polygonAccount.sendSignedUserOp(returnedOps[1] as any);
 
-    console.log(userOpResponse1.userOpHash, 'BASE USER OP HASH');
-    console.log(userOpResponse2.userOpHash, 'POLYGON USER OP HASH');
+    console.log(userOpResponse1.userOpHash, "MULTICHAIN BASE USER OP HASH");
+    console.log(userOpResponse2.userOpHash, "MULTICHAIN POLYGON USER OP HASH");
 
     expect(userOpResponse1.userOpHash).toBeTruthy();
     expect(userOpResponse2.userOpHash).toBeTruthy();
-
   }, 30000);
 });
