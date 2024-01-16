@@ -1,7 +1,7 @@
 import { DEFAULT_SESSION_KEY_MANAGER_MODULE, SessionKeyManagerModule } from "@biconomy/modules";
 import { SessionFileStorage } from "./utils/customSession";
 import { privateKeyToAccount } from "viem/accounts";
-import { createSmartWalletClient } from "../../src/index";
+import { WalletClientSigner, createSmartWalletClient } from "../../src/index";
 import { Hex, createWalletClient, encodeAbiParameters, encodeFunctionData, getContract, http, parseAbi, parseUnits, toHex } from "viem";
 import { PaymasterMode } from "@biconomy/paymaster";
 
@@ -92,34 +92,37 @@ describe("Account Tests", () => {
 
   it("Should send a user op using Session Validation Module", async () => {
     try {
+      // Creating wallet and session 
       const wallet = privateKeyToAccount(`0x${process.env.E2E_PRIVATE_KEY_ONE}`);
       const sessionKeyEOA = wallet.address;
+      let sessionSigner: WalletClientSigner;
 
-      await sessionFileStorage.addSigner({ pbKey: sessionKeyEOA, pvKey: `0x${process.env.E2E_PRIVATE_KEY_ONE}` });
+      try {
+        sessionSigner = await sessionFileStorage.getSignerByKey(sessionKeyEOA);
+      } catch (error) {
+        sessionSigner = await sessionFileStorage.addSigner({ pbKey: sessionKeyEOA, pvKey: `0x${process.env.E2E_PRIVATE_KEY_ONE}` });
+      }
 
-      const addedSigner = await sessionFileStorage.getSignerByKey(sessionKeyEOA);
+      expect(sessionSigner).toBeTruthy();
 
-      expect(addedSigner).toBeTruthy();
-
-      const smartWallet = await createSmartWalletClient({
+      // Create smart account
+      let smartWallet = await createSmartWalletClient({
         chainId: 80001,
-        signer: addedSigner,
+        signer: sessionSigner,
         bundlerUrl: "https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44",
         biconomyPaymasterApiKey: "nxPxZluSF.aeacea05-e564-4bd2-b8d8-94a8167fb192",
       });
 
+      // Create session module
       const sessionModule = await SessionKeyManagerModule.create({
         moduleAddress: DEFAULT_SESSION_KEY_MANAGER_MODULE,
         smartAccountAddress: await smartWallet.getAddress(),
         sessionStorageClient: sessionFileStorage,
       });
 
-      smartWallet.setActiveValidationModule(sessionModule);
+      smartWallet = smartWallet.setActiveValidationModule(sessionModule);
 
-      smartWallet.activeValidationModule = sessionModule;
-
-      const txArray: any = [];
-
+      // Set enabled call on session
       const sessionKeyData = encodeAbiParameters(
         [{ type: "address" }, { type: "address" }, { type: "address" }, { type: "uint256" }],
         [
@@ -128,7 +131,7 @@ describe("Account Tests", () => {
           "0xfCF6Eb210E5Fd84D679b14fe170f9aB05C9B21e7", // receiver address
           parseUnits("1", 6),
         ],
-      ); // 1 usdc amount])
+      );
 
       const erc20ModuleAddr = "0x000000D50C68705bd6897B2d17c7de32FB519fDA";
 
@@ -148,7 +151,21 @@ describe("Account Tests", () => {
         value: 0,
       };
 
-      txArray.push(setSessionAllowedTrx);
+      // Check if module is enabled
+      const isEnabled = await smartWallet.isModuleEnabled(DEFAULT_SESSION_KEY_MANAGER_MODULE);
+      if (!isEnabled) {
+        const txArray: any = [];
+        const enableModuleTrx = await smartWallet.getEnableModuleData(DEFAULT_SESSION_KEY_MANAGER_MODULE);
+        txArray.push(enableModuleTrx);
+        txArray.push(setSessionAllowedTrx);
+
+        const userOp = await smartWallet.buildUserOp(txArray, {
+          skipBundlerGasEstimation: false,
+        });
+        await smartWallet.sendUserOp(userOp);
+      } else {
+        console.log("MODULE ALREADY ENABLED");
+      }
 
       const encodedCall = encodeFunctionData({
         abi: parseAbi(["function transfer(address receiver)"]),
@@ -156,27 +173,27 @@ describe("Account Tests", () => {
         args: ["0xfCF6Eb210E5Fd84D679b14fe170f9aB05C9B21e7"],
       });
 
-      const tx1 = {
+      const transferTx = {
         to: "0xdA5289fCAAF71d52a80A254da614a192b693e977", //erc20 token address
         data: encodedCall,
         value: 0,
       };
 
-      txArray.push(tx1);
-
-      const mintUserOp = await smartWallet.buildUserOp(txArray, {
+      console.log("BEFORE Transfer tx");
+      const transferUserOp = await smartWallet.buildUserOp([transferTx], {
         skipBundlerGasEstimation: false,
         params: {
-          sessionSigner: addedSigner,
+          sessionSigner: sessionSigner,
           sessionValidationModule: erc20ModuleAddr,
         },
       });
+      console.log("AFTER Transfer tx");
 
-      const mintUserOpResponse = await smartWallet.sendUserOp(mintUserOp, {
-        sessionSigner: addedSigner,
+      const userOpResponse = await smartWallet.sendUserOp(transferUserOp, {
+        sessionSigner: sessionSigner,
         sessionValidationModule: erc20ModuleAddr,
       });
-      console.log(`Tx at: https://jiffyscan.xyz/userOpHash/${mintUserOpResponse.userOpHash}?network=mumbai`);
+      console.log(`Tx at: https://jiffyscan.xyz/userOpHash/${userOpResponse.userOpHash}?network=mumbai`);
     } catch (error) {
       console.log(error);
     }
