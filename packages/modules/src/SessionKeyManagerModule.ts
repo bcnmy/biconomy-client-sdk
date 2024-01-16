@@ -266,12 +266,14 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       this.merkleTree.getHexProof(keccak256(leafDataHex)) as Hex[],
       this.mockEcdsaSessionKeySig,
     ]);
+    console.log("paddedSignature", paddedSignature);
     if (params?.additionalSessionData) {
       paddedSignature += params.additionalSessionData;
     }
 
     const dummySig = encodeAbiParameters(parseAbiParameters(["bytes, address"]), [paddedSignature as Hex, this.getAddress()]);
 
+    console.log("dummySig", dummySig);
     return dummySig;
   }
 

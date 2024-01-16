@@ -14,6 +14,8 @@ interface HttpRequest {
 }
 
 export async function sendRequest<T>({ url, method, body }: HttpRequest): Promise<T> {
+  Logger.log("Bundler RPC Request", { url, method, body });
+  console.log(body);
   const response = await fetch(url, {
     method,
     headers: {
@@ -36,6 +38,7 @@ export async function sendRequest<T>({ url, method, body }: HttpRequest): Promis
     return jsonResponse as T;
   }
   if (jsonResponse.error) {
+    console.log("jsonResponse.error", jsonResponse);
     throw new Error(jsonResponse.error);
   }
   if (jsonResponse.message) {

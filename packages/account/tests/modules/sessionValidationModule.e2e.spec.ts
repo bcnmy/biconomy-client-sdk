@@ -92,7 +92,7 @@ describe("Account Tests", () => {
 
   it("Should send a user op using Session Validation Module", async () => {
     try {
-      // Creating wallet and session 
+      // Creating wallet and session
       const wallet = privateKeyToAccount(`0x${process.env.E2E_PRIVATE_KEY_ONE}`);
       const sessionKeyEOA = wallet.address;
       let sessionSigner: WalletClientSigner;
@@ -120,8 +120,6 @@ describe("Account Tests", () => {
         sessionStorageClient: sessionFileStorage,
       });
 
-      smartWallet = smartWallet.setActiveValidationModule(sessionModule);
-
       // Set enabled call on session
       const sessionKeyData = encodeAbiParameters(
         [{ type: "address" }, { type: "address" }, { type: "address" }, { type: "uint256" }],
@@ -129,7 +127,7 @@ describe("Account Tests", () => {
           sessionKeyEOA,
           "0xdA5289fCAAF71d52a80A254da614a192b693e977", // erc20 token address
           "0xfCF6Eb210E5Fd84D679b14fe170f9aB05C9B21e7", // receiver address
-          parseUnits("1", 6),
+          parseUnits("10", 6),
         ],
       );
 
@@ -151,26 +149,31 @@ describe("Account Tests", () => {
         value: 0,
       };
 
+      const txArray: any = [];
+
       // Check if module is enabled
       const isEnabled = await smartWallet.isModuleEnabled(DEFAULT_SESSION_KEY_MANAGER_MODULE);
       if (!isEnabled) {
-        const txArray: any = [];
         const enableModuleTrx = await smartWallet.getEnableModuleData(DEFAULT_SESSION_KEY_MANAGER_MODULE);
         txArray.push(enableModuleTrx);
         txArray.push(setSessionAllowedTrx);
-
-        const userOp = await smartWallet.buildUserOp(txArray, {
-          skipBundlerGasEstimation: false,
-        });
-        await smartWallet.sendUserOp(userOp);
       } else {
         console.log("MODULE ALREADY ENABLED");
+        txArray.push(setSessionAllowedTrx);
       }
 
+      const userOp = await smartWallet.buildUserOp(txArray, {
+        skipBundlerGasEstimation: false,
+      });
+
+      const userOpResponse1 = await smartWallet.sendUserOp(userOp);
+      const transactionDetails = await userOpResponse1.wait();
+      console.log("Tx Hash: ", transactionDetails.receipt.transactionHash);
+
       const encodedCall = encodeFunctionData({
-        abi: parseAbi(["function transfer(address receiver)"]),
+        abi: parseAbi(["function transfer(address _to, uint256 _value)"]),
         functionName: "transfer",
-        args: ["0xfCF6Eb210E5Fd84D679b14fe170f9aB05C9B21e7"],
+        args: ["0xfCF6Eb210E5Fd84D679b14fe170f9aB05C9B21e7", parseUnits("1", 6)],
       });
 
       const transferTx = {
@@ -179,24 +182,28 @@ describe("Account Tests", () => {
         value: 0,
       };
 
+      smartWallet = smartWallet.setActiveValidationModule(sessionModule);
+
       console.log("BEFORE Transfer tx");
       const transferUserOp = await smartWallet.buildUserOp([transferTx], {
         skipBundlerGasEstimation: false,
         params: {
           sessionSigner: sessionSigner,
-          sessionValidationModule: erc20ModuleAddr,
+          sessionValidationModule: erc20ModuleAddr.toLowerCase() as Hex,
         },
       });
       console.log("AFTER Transfer tx");
 
-      const userOpResponse = await smartWallet.sendUserOp(transferUserOp, {
+      const userOpResponse2 = await smartWallet.sendUserOp(transferUserOp, {
         sessionSigner: sessionSigner,
         sessionValidationModule: erc20ModuleAddr,
       });
-      console.log(`Tx at: https://jiffyscan.xyz/userOpHash/${userOpResponse.userOpHash}?network=mumbai`);
+      const transactionDetails2 = await userOpResponse2.wait();
+      console.log("Tx Hash: ", transactionDetails2.receipt.transactionHash);
+
+      // console.log(`Tx at: https://jiffyscan.xyz/userOpHash/${userOpResponse2.userOpHash}?network=mumbai`);
     } catch (error) {
       console.log(error);
     }
   }, 50000);
 });
-
