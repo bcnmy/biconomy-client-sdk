@@ -57,7 +57,7 @@ import { BiconomyFactoryAbi } from "./abi/Factory";
 import { BiconomyAccountAbi } from "./abi/SmartAccount";
 import { AccountResolverAbi } from "./abi/AccountResolver";
 import { Logger } from "./utils/Logger";
-import { Signer } from "ethers";
+import { JsonRpcSigner as Signer } from "@ethersproject/providers";
 import EthersSigner from "./utils/EthersSigner";
 
 type UserOperationKey = keyof UserOperationStruct;
@@ -195,6 +195,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
           // convert viems walletClient to alchemy's SmartAccountSigner under the hood
           resolvedSmartAccountSigner = new WalletClientSigner(walletClient, "viem");
         }
+      } else {
+        resolvedSmartAccountSigner = signer as SmartAccountSigner;
       }
     }
 
@@ -202,15 +204,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       // Chain ID still not found
       throw new Error("chainId required");
     }
-    let bundler: IBundler = biconomySmartAccountConfig.bundler ?? new Bundler({ bundlerUrl: biconomySmartAccountConfig.bundlerUrl!, chainId });
+    const bundler: IBundler = biconomySmartAccountConfig.bundler ?? new Bundler({ bundlerUrl: biconomySmartAccountConfig.bundlerUrl!, chainId });
     let defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
 
     // Note: If no module is provided, we will use ECDSA_OWNERSHIP as default
     if (!defaultValidationModule) {
-      const newModule = await ECDSAOwnershipValidationModule.create({
-        // @ts-expect-error: Signer always present if no defaultValidationModule
-        signer: smartAccountSigner,
-      });
+      const newModule = await ECDSAOwnershipValidationModule.create({ signer: resolvedSmartAccountSigner! });
       defaultValidationModule = newModule;
     }
     const activeValidationModule = biconomySmartAccountConfig?.activeValidationModule ?? defaultValidationModule;

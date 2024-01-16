@@ -2,7 +2,8 @@ import { createWalletClient, http, createPublicClient } from "viem";
 import { privateKeyToAccount, generatePrivateKey, mnemonicToAccount } from "viem/accounts";
 import { localhost } from "viem/chains";
 import { WalletClientSigner } from "@alchemy/aa-core";
-import { ethers } from "ethers";
+import { JsonRpcProvider, JsonRpcSigner as Signer } from "@ethersproject/providers";
+import { Wallet } from "@ethersproject/wallet";
 
 const TEST_CHAIN = {
   chainId: 1337,
@@ -18,10 +19,10 @@ beforeAll(() => {
   const { chainId, bundlerUrl, viemChain, entryPointAddress } = chain;
   const accountOne = mnemonicToAccount(MNEMONIC);
 
-  const { privateKey } = ethers.Wallet.fromMnemonic(MNEMONIC);
+  const { privateKey } = Wallet.fromMnemonic(MNEMONIC);
 
-  const ethersProvider = new ethers.providers.JsonRpcProvider(chain.viemChain.rpcUrls.public.http[0]);
-  const ethersSignerOne = new ethers.Wallet(privateKey, ethersProvider);
+  const ethersProvider = new JsonRpcProvider(chain.viemChain.rpcUrls.public.http[0]);
+  const ethersSignerOne = new Wallet(privateKey, ethersProvider);
 
   const viemWalletClientOne = createWalletClient({
     account: accountOne,
@@ -38,7 +39,7 @@ beforeAll(() => {
   const privateKeyTwo = generatePrivateKey();
   const accountTwo = privateKeyToAccount(privateKeyTwo);
 
-  const ethersSignerTwo = new ethers.Wallet(privateKeyTwo, ethersProvider);
+  const ethersSignerTwo = new Wallet(privateKeyTwo, ethersProvider);
   const viemWalletClientTwo = createWalletClient({
     account: accountTwo,
     chain: viemChain,

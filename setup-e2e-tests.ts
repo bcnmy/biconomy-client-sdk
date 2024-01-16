@@ -1,5 +1,6 @@
 import { createWalletClient, http, createPublicClient, Hex } from "viem";
-import { ethers } from "ethers";
+import { JsonRpcProvider, JsonRpcSigner as Signer } from "@ethersproject/providers";
+import { Wallet } from "@ethersproject/wallet";
 import { privateKeyToAccount } from "viem/accounts";
 import { polygonMumbai } from "viem/chains";
 import { WalletClientSigner } from "@alchemy/aa-core";
@@ -28,9 +29,9 @@ beforeAll(async () => {
   const walletTwo = privateKeyToAccount(privateKeytwo);
 
   const promises = TEST_CHAINS.map((chain) => {
-    const ethersProvider = new ethers.providers.JsonRpcProvider(chain.viemChain.rpcUrls.public.http[0]);
-    const ethersSignerOne = new ethers.Wallet(privateKeyOne, ethersProvider);
-    const ethersSignerTwo = new ethers.Wallet(privateKeytwo, ethersProvider);
+    const ethersProvider = new JsonRpcProvider(chain.viemChain.rpcUrls.public.http[0]);
+    const ethersSignerOne = new Wallet(privateKeyOne, ethersProvider);
+    const ethersSignerTwo = new Wallet(privateKeytwo, ethersProvider);
 
     const publicClient = createPublicClient({
       chain: chain.viemChain,

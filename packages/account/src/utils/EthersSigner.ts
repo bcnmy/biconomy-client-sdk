@@ -1,6 +1,6 @@
 import { SignTypedDataParams, SmartAccountSigner } from "@alchemy/aa-core";
 import { Hex } from "viem";
-import { Signer, TypedDataField } from "ethers";
+import { JsonRpcSigner as Signer } from "@ethersproject/providers";
 
 export class EthersSigner<T extends Signer> implements SmartAccountSigner<T> {
   signerType: string = "ethers";
@@ -25,8 +25,8 @@ export class EthersSigner<T extends Signer> implements SmartAccountSigner<T> {
     if (!domain) {
       throw new Error("Could not sign typed data");
     }
-    const newTypes = types as unknown as Record<string, TypedDataField[]>; // Casting cross-provider: viem -> ethers
-    return (await this.inner.signTypedData(domain, newTypes, message)) as Hex;
+    const newTypes = types as unknown as Record<string, any[]>; // Casting cross-provider: viem -> ethersProject
+    return (await this.inner._signTypedData(domain, newTypes, message)) as Hex;
   }
 
   #correctSignature = (signature: Hex): Hex => {
