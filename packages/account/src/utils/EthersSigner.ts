@@ -4,6 +4,7 @@ import { Signer, TypedDataField } from "ethers";
 
 export class EthersSigner<T extends Signer> implements SmartAccountSigner<T> {
   signerType: string = "ethers";
+
   inner: T;
 
   constructor(inner: T, signerType: string) {

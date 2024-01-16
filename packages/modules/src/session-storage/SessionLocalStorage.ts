@@ -1,5 +1,5 @@
 import { Hex, createWalletClient, http, toHex } from "viem";
-import { SmartAccountSigner, SmartAccountSigner } from "@alchemy/aa-core";
+import { SmartAccountSigner, WalletClientSigner } from "@alchemy/aa-core";
 import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "../interfaces/ISessionStorage";
 import { mainnet } from "viem/chains";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
@@ -121,13 +121,13 @@ export class SessionLocalStorage implements ISessionStorage {
       chain: signerData.chainId,
       transport: http(),
     });
-    const SmartAccountSigner: SmartAccountSigner = new SmartAccountSigner(
+    const walletClientSigner = new WalletClientSigner(
       client,
       "json-rpc", // signerType
     );
     signers[this.toLowercaseAddress(accountSigner.address)] = signerData;
     localStorage.setItem(this.getStorageKey("signers"), JSON.stringify(signers));
-    return SmartAccountSigner;
+    return walletClientSigner;
   }
 
   async getSignerByKey(sessionPublicKey: string): Promise<SmartAccountSigner> {
@@ -142,7 +142,7 @@ export class SessionLocalStorage implements ISessionStorage {
       chain: mainnet,
       transport: http(),
     });
-    const signer = new SmartAccountSigner(client, "viem");
+    const signer = new WalletClientSigner(client, "viem");
     return signer;
   }
 

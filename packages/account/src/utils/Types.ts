@@ -56,14 +56,6 @@ export interface GasOverheads {
   // MULTICHAIN = DEFAULT_MULTICHAIN_MODULE,
 }*/
 
-type ConditionalBundlerProps = RequireAtLeastOne<
-  {
-    bundler: IBundler;
-    bundlerUrl: string;
-  },
-  "bundler" | "bundlerUrl"
->;
-
 export type BaseSmartAccountConfig = {
   // owner?: Signer // can be in child classes
   index?: number;
@@ -96,8 +88,16 @@ type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyo
     [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>;
   }[Keys];
 
-export type Writeable<T> = { -readonly [P in keyof T]: T[P] };
-
+type ConditionalBundlerProps = RequireAtLeastOne<
+  {
+    bundler: IBundler;
+    bundlerUrl: string;
+  },
+  "bundler" | "bundlerUrl"
+>;
+type ResolvedBundlerProps = {
+  bundler: IBundler;
+};
 type ConditionalValidationProps = RequireAtLeastOne<
   {
     defaultValidationModule: BaseValidationModule;
@@ -105,6 +105,13 @@ type ConditionalValidationProps = RequireAtLeastOne<
   },
   "defaultValidationModule" | "signer"
 >;
+
+type ResolvedValidationProps = {
+  defaultValidationModule: BaseValidationModule;
+  activeValidationModule: BaseValidationModule;
+  signer: SmartAccountSigner;
+  chainId: number;
+};
 
 type BiconomySmartAccountV2ConfigBaseProps = {
   factoryAddress?: Hex;
@@ -123,13 +130,10 @@ export type BiconomySmartAccountV2Config = BiconomySmartAccountV2ConfigBaseProps
   ConditionalBundlerProps &
   ConditionalValidationProps;
 
-type BiconomySmartAccountV2ConfigResolvedConstructorProps = {
-  defaultValidationModule: BaseValidationModule;
-  activeValidationModule: BaseValidationModule;
-  chainId: number;
-};
-
-export type BiconomySmartAccountV2ConfigConstructorProps = BiconomySmartAccountV2Config & BiconomySmartAccountV2ConfigResolvedConstructorProps;
+export type BiconomySmartAccountV2ConfigConstructorProps = BiconomySmartAccountV2ConfigBaseProps &
+  BaseSmartAccountConfig &
+  ResolvedBundlerProps &
+  ResolvedValidationProps;
 
 export type BuildUserOpOptions = {
   overrides?: Overrides;

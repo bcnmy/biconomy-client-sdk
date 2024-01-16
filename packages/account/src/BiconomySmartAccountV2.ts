@@ -26,6 +26,7 @@ import {
   type UserOperationStruct,
   BatchUserOperationCallData,
   WalletClientSigner,
+  SmartAccountSigner,
 } from "@alchemy/aa-core";
 import { isNullOrUndefined, packUserOp } from "./utils/Utils";
 import { Bundler, IBundler, UserOpResponse } from "@biconomy/bundler";
@@ -116,14 +117,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       this.paymaster = biconomySmartAccountConfig.paymaster;
     }
 
-    if (biconomySmartAccountConfig.bundlerUrl) {
-      this.bundler = new Bundler({
-        bundlerUrl: biconomySmartAccountConfig.bundlerUrl,
-        chainId: biconomySmartAccountConfig.chainId,
-      });
-    } else {
-      this.bundler = biconomySmartAccountConfig.bundler;
-    }
+    this.bundler = biconomySmartAccountConfig.bundler;
 
     const defaultFallbackHandlerAddress =
       this.factoryAddress === DEFAULT_BICONOMY_FACTORY_ADDRESS ? DEFAULT_FALLBACK_HANDLER_ADDRESS : biconomySmartAccountConfig.defaultFallbackHandler;
@@ -158,37 +152,48 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    */
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
     let chainId = biconomySmartAccountConfig.chainId;
+    let resolvedSmartAccountSigner!: SmartAccountSigner;
 
     // Signer needs to be initialised here before defaultValidationModule is set
     if (biconomySmartAccountConfig.signer) {
       const signer = biconomySmartAccountConfig.signer;
 
-      const isAnAlchemySmartWallet = signer.hasOwnProperty(UNIQUE_PROPERTIES_PER_SIGNER.AlchemySmartAccountSigner);
-      const isAnEthersSigner = signer.hasOwnProperty(UNIQUE_PROPERTIES_PER_SIGNER.Ethers);
-      const isAViemWallet = signer.hasOwnProperty(UNIQUE_PROPERTIES_PER_SIGNER.Viem);
+      // Alchemy currently only provides two signer types: LocalAccountSigner and WalletClientSigner.
+      // Futureproof support for other signers by checking if signerType exists
+      const isAnAlchemySigner = UNIQUE_PROPERTIES_PER_SIGNER.alchemy in signer;
+      const isAnEthersSigner = UNIQUE_PROPERTIES_PER_SIGNER.ethers in signer;
+      const isAViemSigner = UNIQUE_PROPERTIES_PER_SIGNER.viem in signer;
 
-      if (!isAnAlchemySmartWallet) {
+      if (!isAnAlchemySigner) {
         if (isAnEthersSigner) {
           const ethersSigner = signer as Signer;
-          if (!ethersSigner.provider) {
-            throw new Error("Cannot consume an ethers signer without a provider");
-          }
-          const chainIdFromProvider = await ethersSigner.provider.getNetwork();
-          chainId = Number(chainIdFromProvider.chainId);
           if (!chainId) {
-            throw new Error("Cannot consume an ethers signer without a chainId");
+            // If chainId not provided, get it from walletClient
+            if (!ethersSigner.provider) {
+              throw new Error("Cannot consume an ethers Wallet without a provider");
+            }
+            const chainIdFromProvider = await ethersSigner.provider.getNetwork();
+            if (!chainIdFromProvider?.chainId) {
+              throw new Error("Cannot consume an ethers Wallet without a chainId");
+            }
+            chainId = Number(chainIdFromProvider.chainId);
           }
-          biconomySmartAccountConfig.signer = new EthersSigner(ethersSigner, "ethers");
-        } else if (isAViemWallet) {
+          // convert ethers Wallet to alchemy's SmartAccountSigner under the hood
+          resolvedSmartAccountSigner = new EthersSigner(ethersSigner, "ethers");
+        } else if (isAViemSigner) {
           const walletClient = signer as WalletClient;
           if (!walletClient.account) {
             throw new Error("Cannot consume a viem wallet without an account");
           }
-          if (!walletClient.chain) {
-            throw new Error("Cannot consume a viem wallet without a chainId");
+          if (!chainId) {
+            // If chainId not provided, get it from walletClient
+            if (!walletClient.chain) {
+              throw new Error("Cannot consume a viem wallet without a chainId");
+            }
+            chainId = walletClient.chain.id;
           }
-          chainId = walletClient.chain.id;
-          biconomySmartAccountConfig.signer = new WalletClientSigner(walletClient, "viem");
+          // convert viems walletClient to alchemy's SmartAccountSigner under the hood
+          resolvedSmartAccountSigner = new WalletClientSigner(walletClient, "viem");
         }
       }
     }
@@ -197,23 +202,31 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       // Chain ID still not found
       throw new Error("chainId required");
     }
-
+    let bundler: IBundler = biconomySmartAccountConfig.bundler ?? new Bundler({ bundlerUrl: biconomySmartAccountConfig.bundlerUrl!, chainId });
     let defaultValidationModule = biconomySmartAccountConfig.defaultValidationModule;
 
     // Note: If no module is provided, we will use ECDSA_OWNERSHIP as default
     if (!defaultValidationModule) {
       const newModule = await ECDSAOwnershipValidationModule.create({
-        // @ts-ignore
-        signer: biconomySmartAccountConfig.signer!,
+        // @ts-expect-error: Signer always present if no defaultValidationModule
+        signer: smartAccountSigner,
       });
       defaultValidationModule = newModule;
     }
     const activeValidationModule = biconomySmartAccountConfig?.activeValidationModule ?? defaultValidationModule;
-    const config = {
+    if (!resolvedSmartAccountSigner) {
+      resolvedSmartAccountSigner = await activeValidationModule.getSigner();
+    }
+    if (!resolvedSmartAccountSigner) {
+      throw new Error("signer required");
+    }
+    const config: BiconomySmartAccountV2ConfigConstructorProps = {
       ...biconomySmartAccountConfig,
       defaultValidationModule,
       activeValidationModule,
       chainId,
+      bundler,
+      signer: resolvedSmartAccountSigner,
     };
 
     return new BiconomySmartAccountV2(config);
