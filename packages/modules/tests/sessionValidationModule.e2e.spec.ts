@@ -1,24 +1,36 @@
 import { DEFAULT_SESSION_KEY_MANAGER_MODULE, SessionKeyManagerModule } from "@biconomy/modules";
-import { SessionFileStorage } from "./utils/customSession";
-import { privateKeyToAccount } from "viem/accounts";
-import { WalletClientSigner, createSmartWalletClient } from "../../src/index";
+import { SessionFileStorage } from "@biconomy/modules/tests/utils/customSession";
+import { WalletClientSigner, createSmartWalletClient } from "../../account/src/index";
 import { Hex, encodeAbiParameters, encodeFunctionData, parseAbi, parseUnits } from "viem";
+import { TestData } from "../../../tests";
 
 describe("Account Tests", () => {
+  let mumbai: TestData;
+  let baseGoerli: TestData;
+
+  beforeEach(() => {
+    // @ts-ignore: Comes from setup-e2e-tests
+    [mumbai, baseGoerli] = testDataPerChain;
+  });
+
   const sessionFileStorage: SessionFileStorage = new SessionFileStorage(DEFAULT_SESSION_KEY_MANAGER_MODULE);
 
   it("Should send a user op using Session Validation Module", async () => {
     try {
-      // Creating wallet and session
-      const wallet = privateKeyToAccount(`0x${process.env.E2E_PRIVATE_KEY_ONE}`);
-      const recipient = privateKeyToAccount(`0x${process.env.E2E_PRIVATE_KEY_TWO}`);
-      const sessionKeyEOA = wallet.address;
       let sessionSigner: WalletClientSigner;
+
+      const {
+        whale: {
+          account: { address: sessionKeyEOA },
+          privateKey: pvKey,
+        },
+        minnow: { publicAddress: recipient },
+      } = mumbai;
 
       try {
         sessionSigner = await sessionFileStorage.getSignerByKey(sessionKeyEOA);
       } catch (error) {
-        sessionSigner = await sessionFileStorage.addSigner({ pbKey: sessionKeyEOA, pvKey: `0x${process.env.E2E_PRIVATE_KEY_ONE}` });
+        sessionSigner = await sessionFileStorage.addSigner({ pbKey: sessionKeyEOA, pvKey });
       }
 
       expect(sessionSigner).toBeTruthy();
@@ -45,7 +57,7 @@ describe("Account Tests", () => {
         [
           sessionKeyEOA,
           "0xdA5289fCAAF71d52a80A254da614a192b693e977", // erc20 token address
-          recipient.address, // receiver address
+          recipient, // receiver address
           parseUnits("10", 6),
         ],
       );
@@ -93,7 +105,7 @@ describe("Account Tests", () => {
       const encodedCall = encodeFunctionData({
         abi: parseAbi(["function transfer(address _to, uint256 _value)"]),
         functionName: "transfer",
-        args: [recipient.address, parseUnits("0.01", 6)],
+        args: [recipient, parseUnits("0.01", 6)],
       });
 
       const transferTx = {

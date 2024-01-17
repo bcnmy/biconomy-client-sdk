@@ -7,6 +7,7 @@ interface WalletProps {
   balance: BigInt;
   publicAddress: Hex;
   account: PrivateKeyAccount;
+  privateKey: Hex;
 }
 
 export type TestData = {
