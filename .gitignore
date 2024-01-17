@@ -68,7 +68,7 @@ package-lock.json
 yarn.lock
 
 #session storage files
-packages/account/tests/modules/utils/sessionStorageData
+packages/modules/tests/utils/sessionStorageData/*
 
 # Typechain
 typechain

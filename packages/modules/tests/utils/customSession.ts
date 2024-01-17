@@ -33,7 +33,7 @@ export class SessionFileStorage implements ISessionStorage {
   }
 
   private getStorageFilePath(type: "sessions" | "signers"): string {
-    return `./packages/account/tests/modules/utils/sessionStorageData/${this.smartAccountAddress}_${type}.json`;
+    return `./packages/modules/tests/utils/sessionStorageData/${this.smartAccountAddress}_${type}.json`;
   }
 
   private async writeDataToFile(data: any, type: "sessions" | "signers"): Promise<void> {
