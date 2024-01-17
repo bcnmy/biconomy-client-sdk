@@ -67,6 +67,9 @@ packages/transak/package-lock.json
 package-lock.json
 yarn.lock
 
+#session storage files
+packages/modules/tests/utils/sessionStorageData/*
+
 # Typechain
 typechain
 

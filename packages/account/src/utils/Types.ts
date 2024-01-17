@@ -55,7 +55,15 @@ export interface GasOverheads {
   // MULTICHAIN = DEFAULT_MULTICHAIN_MODULE,
 }*/
 
-export type BaseSmartAccountConfig = ConditionalBundlerProps & {
+type ConditionalBundlerProps = RequireAtLeastOne<
+  {
+    bundler: IBundler;
+    bundlerUrl: string;
+  },
+  "bundler" | "bundlerUrl"
+>;
+
+export type BaseSmartAccountConfig = {
   // owner?: Signer // can be in child classes
   index?: number;
   provider?: WalletClient;
@@ -63,7 +71,7 @@ export type BaseSmartAccountConfig = ConditionalBundlerProps & {
   accountAddress?: string;
   overheads?: Partial<GasOverheads>;
   paymaster?: IPaymaster; // PaymasterAPI
-  chainId: number;
+  chainId?: number;
 };
 
 export type BiconomyTokenPaymasterRequest = {
@@ -90,32 +98,35 @@ type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyo
 type ConditionalValidationProps = RequireAtLeastOne<
   {
     defaultValidationModule: BaseValidationModule;
-    signer: WalletClientSigner;
+    signer: WalletClientSigner | WalletClient;
   },
   "defaultValidationModule" | "signer"
 >;
 
-type ConditionalBundlerProps = RequireAtLeastOne<
-  {
-    bundler: IBundler;
-    bundlerUrl: string;
-  },
-  "bundler" | "bundlerUrl"
->;
+type BiconomySmartAccountV2ConfigBaseProps = {
+  factoryAddress?: Hex;
+  senderAddress?: Hex;
+  implementationAddress?: Hex;
+  defaultFallbackHandler?: Hex;
+  rpcUrl?: string; // as good as Provider
+  nodeClientUrl?: string; // very specific to Biconomy
+  biconomyPaymasterApiKey?: string;
+  activeValidationModule?: BaseValidationModule;
+  scanForUpgradedAccountsFromV1?: boolean;
+  maxIndexForScan?: number;
+};
+export type BiconomySmartAccountV2Config = BiconomySmartAccountV2ConfigBaseProps &
+  BaseSmartAccountConfig &
+  ConditionalBundlerProps &
+  ConditionalValidationProps;
 
-export type BiconomySmartAccountV2Config = BaseSmartAccountConfig &
-  ConditionalValidationProps & {
-    factoryAddress?: Hex;
-    senderAddress?: Hex;
-    implementationAddress?: Hex;
-    defaultFallbackHandler?: Hex;
-    rpcUrl?: string; // as good as Provider
-    nodeClientUrl?: string; // very specific to Biconomy
-    biconomyPaymasterApiKey?: string;
-    activeValidationModule?: BaseValidationModule;
-    scanForUpgradedAccountsFromV1?: boolean;
-    maxIndexForScan?: number;
-  };
+type BiconomySmartAccountV2ConfigResolvedConstructorProps = {
+  defaultValidationModule: BaseValidationModule;
+  activeValidationModule: BaseValidationModule;
+  chainId: number;
+};
+
+export type BiconomySmartAccountV2ConfigConstructorProps = BiconomySmartAccountV2Config & BiconomySmartAccountV2ConfigResolvedConstructorProps;
 
 export type BuildUserOpOptions = {
   overrides?: Overrides;
