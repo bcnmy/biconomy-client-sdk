@@ -9,7 +9,7 @@
     "lib": ["es2020"],
     "types": ["node", "jest"]
   },
-  "include": ["packages/**/*", "packages/modules/tests/utils", "packages/modules/tests/multiChainValidationModule.e2e.spec.ts", "packages/modules/tests/sessionValidationModule.e2e.spec.ts", "tests/index.d.ts"],
+  "include": ["packages/**/*"],
   "references": [
     { "path": "./packages/transak" },
     { "path": "./packages/bundler" },
