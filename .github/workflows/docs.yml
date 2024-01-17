@@ -16,6 +16,7 @@ jobs:
       - name: Install and Build
         run: |
           yarn
+          yarn build
           yarn --cwd ./packages/account docs
 
       - name: Deploy 🚀
