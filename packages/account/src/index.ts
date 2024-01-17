@@ -4,7 +4,6 @@ import { BiconomySmartAccountV2Config } from "./utils/Types";
 export * from "./utils/Types";
 export * from "./utils/Constants";
 export * from "./BiconomySmartAccountV2";
-export * from "./provider";
 
 export { WalletClientSigner } from "@alchemy/aa-core";
 export { BiconomyPaymaster as Paymaster, IPaymaster } from "@biconomy/paymaster";

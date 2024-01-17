@@ -21,7 +21,7 @@ import {
 import { BaseSmartContractAccount, getChain, type BigNumberish, type UserOperationStruct, BatchUserOperationCallData } from "@alchemy/aa-core";
 import { isNullOrUndefined, packUserOp } from "./utils/Utils";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, ECDSAOwnershipValidationModule } from "@biconomy/modules";
-import { IHybridPaymaster, IPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from "@biconomy/paymaster";
+import { IHybridPaymaster, IPaymaster, BiconomyPaymaster, SponsorUserOperationDto, PaymasterMode } from "@biconomy/paymaster";
 import { Bundler, IBundler, UserOpResponse } from "@biconomy/bundler";
 import {
   BiconomyTokenPaymasterRequest,
@@ -429,10 +429,23 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @param userOp
    * @param params
-   * @description This function call will take 'unsignedUserOp' as an input, sign it with the owner key, and send it to the bundler.
+   * @description This function call will setup paymaster values (if paymaster is used), take 'unsignedUserOp' as an input, sign it with the owner key, and send it to the bundler.
    * @returns Promise<UserOpResponse>
    */
   async sendUserOp(userOp: Partial<UserOperationStruct>, params?: SendUserOpParams): Promise<UserOpResponse> {
+    if (this.paymaster !== undefined) {
+      try {
+        const paymasterData = await (this.paymaster as IHybridPaymaster<SponsorUserOperationDto>).getPaymasterAndData(userOp, {
+          mode: PaymasterMode.SPONSORED,
+        });
+        userOp.paymasterAndData = paymasterData.paymasterAndData;
+        userOp.callGasLimit = paymasterData.callGasLimit;
+        userOp.verificationGasLimit = paymasterData.verificationGasLimit;
+        userOp.preVerificationGas = paymasterData.preVerificationGas;
+      } catch (e: any) {
+        Logger.error("Error while fetching paymaster data", e);
+      }
+    }
     delete userOp.signature;
     const userOperation = await this.signUserOp(userOp, params);
     const bundlerResponse = await this.sendSignedUserOp(userOperation);
@@ -566,7 +579,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @param buildUseropDto options for building the userOp
    * @returns Promise<UserOpResponse>
    */
-  async sendTransaction(manyOrOneTransactions: Transaction | Transaction[], buildUseropDto?: BuildUserOpOptions) {
+  async sendTransaction(manyOrOneTransactions: Transaction | Transaction[], buildUseropDto?: BuildUserOpOptions): Promise<UserOpResponse> {
     const userOp = await this.buildUserOp(Array.isArray(manyOrOneTransactions) ? manyOrOneTransactions : [manyOrOneTransactions], buildUseropDto);
     return this.sendUserOp(userOp);
   }

@@ -186,7 +186,6 @@ describe("Account Tests", () => {
       bundlerUrl,
     });
 
-    const module = (await smartWallet.getAllModules())[0];
-    expect(ecdsaOwnershipModule).toBe(module);
+    expect(ecdsaOwnershipModule).toBe(smartWallet.activeValidationModule.getAddress());
   });
 });
