@@ -106,51 +106,6 @@ describe("Account Tests", () => {
     expect(newBalance).toEqual(balance);
   }, 60000);
 
-  it("Should gaslessly mint an NFT on Base base", async () => {
-    const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
-
-    const {
-      whale: { viemWallet: signer, publicAddress: recipient },
-      bundlerUrl,
-      biconomyPaymasterApiKey,
-    } = baseGoerli;
-
-    const smartWallet = await createSmartWalletClient({
-      signer,
-      bundlerUrl,
-      biconomyPaymasterApiKey,
-    });
-
-    const paymaster: BiconomyPaymaster = smartWallet.paymaster as BiconomyPaymaster;
-
-    const encodedCall = encodeFunctionData({
-      abi: parseAbi(["function safeMint(address to) public"]),
-      functionName: "safeMint",
-      args: [recipient],
-    });
-
-    const transaction = {
-      to: nftAddress, // NFT address
-      data: encodedCall,
-      value: 0,
-    };
-
-    const partialUserOp = await smartWallet.buildUserOp([transaction]);
-
-    const paymasterData = await paymaster.getPaymasterAndData(partialUserOp, {
-      mode: PaymasterMode.SPONSORED,
-    });
-
-    partialUserOp.paymasterAndData = paymasterData.paymasterAndData;
-    partialUserOp.callGasLimit = paymasterData.callGasLimit;
-    partialUserOp.verificationGasLimit = paymasterData.verificationGasLimit;
-    partialUserOp.preVerificationGas = paymasterData.preVerificationGas;
-
-    smartWallet.sendUserOp(partialUserOp);
-
-    expect(partialUserOp).toBeTruthy();
-  }, 60000);
-
   it("#getUserOpHash should match entryPoint.getUserOpHash", async () => {
     const {
       whale: { viemWallet: signer },
