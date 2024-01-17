@@ -16,7 +16,7 @@ jobs:
       - name: Install and Build
         run: |
           yarn
-          yarn docs
+          yarn --cwd ./packages/account docs
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
