@@ -197,7 +197,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
           // check all objects iterate and populate below calculation for all tokens
           return { feeQuotes: feeQuotesResponse, tokenPaymasterAddress: paymasterAddress };
         } else if (response.result.mode == PaymasterMode.SPONSORED) {
-          const paymasterAndData: Hex  = response.result.paymasterAndData;
+          const paymasterAndData: Hex = response.result.paymasterAndData;
           const preVerificationGas = response.result.preVerificationGas;
           const verificationGasLimit = response.result.verificationGasLimit;
           const callGasLimit = response.result.callGasLimit;
