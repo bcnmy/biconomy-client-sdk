@@ -11,6 +11,7 @@ import {
   PaymasterMode,
   PaymasterAndDataResponse,
   Transaction,
+  Hex,
 } from "./utils/Types";
 import { IHybridPaymaster } from "./interfaces/IHybridPaymaster";
 import { MAX_UINT256, ERC20_ABI, ADDRESS_ZERO } from "./utils/Constants";
@@ -192,11 +193,11 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
       if (response && response.result) {
         if (response.result.mode == PaymasterMode.ERC20) {
           const feeQuotesResponse: Array<PaymasterFeeQuote> = response.result.feeQuotes;
-          const paymasterAddress: string = response.result.paymasterAddress;
+          const paymasterAddress: Hex = response.result.paymasterAddress;
           // check all objects iterate and populate below calculation for all tokens
           return { feeQuotes: feeQuotesResponse, tokenPaymasterAddress: paymasterAddress };
         } else if (response.result.mode == PaymasterMode.SPONSORED) {
-          const paymasterAndData: string = response.result.paymasterAndData;
+          const paymasterAndData: Hex  = response.result.paymasterAndData;
           const preVerificationGas = response.result.preVerificationGas;
           const verificationGasLimit = response.result.verificationGasLimit;
           const callGasLimit = response.result.callGasLimit;

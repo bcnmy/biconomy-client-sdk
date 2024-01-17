@@ -95,8 +95,8 @@ export type BiconomyTokenPaymasterRequest = {
 
 export type FeeQuotesOrDataResponse = {
   feeQuotes?: PaymasterFeeQuote[];
-  tokenPaymasterAddress?: string; // spender
-  paymasterAndData?: string;
+  tokenPaymasterAddress?: Hex; 
+  paymasterAndData?: Uint8Array| Hex;
   preVerificationGas?: BigNumberish;
   verificationGasLimit?: BigNumberish;
   callGasLimit?: BigNumberish;

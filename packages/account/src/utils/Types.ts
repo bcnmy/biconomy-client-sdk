@@ -222,8 +222,13 @@ export type SmartAccountInfo = {
   deploymentIndex: BigNumberish;
 };
 
+type ValueOrData = RequireAtLeastOne<
+  {
+    value: BigNumberish;
+    data: string;
+  },
+  "value" | "data"
+>;
 export type Transaction = {
   to: string;
-  value: BigNumberish;
-  data: string;
-};
+} & ValueOrData;
