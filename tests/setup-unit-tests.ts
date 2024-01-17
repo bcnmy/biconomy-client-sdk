@@ -1,12 +1,12 @@
 import { createWalletClient, http, createPublicClient } from "viem";
-import { privateKeyToAccount, generatePrivateKey, mnemonicToAccount } from "viem/accounts";
+import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { WalletClientSigner } from "@alchemy/aa-core";
 import { UNIT_TEST_CHAIN } from "./chains.config";
 
 beforeAll(() => {
   const { chainId, bundlerUrl, viemChain, entryPointAddress } = UNIT_TEST_CHAIN;
   const privateKeyOne = generatePrivateKey();
-  const accountOne = mnemonicToAccount(privateKeyOne);
+  const accountOne = privateKeyToAccount(privateKeyOne);
   const viemWalletClientOne = createWalletClient({
     account: accountOne,
     chain: viemChain,
