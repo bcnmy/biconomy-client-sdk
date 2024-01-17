@@ -90,20 +90,13 @@ describe("Account Tests", () => {
     };
 
     const balance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
-    const partialUserOp = await smartWallet.buildUserOp([transaction]);
 
-    const paymasterData = await paymaster.getPaymasterAndData(partialUserOp, {
-      mode: PaymasterMode.SPONSORED,
-    });
-
-    partialUserOp.paymasterAndData = paymasterData.paymasterAndData;
-    partialUserOp.callGasLimit = paymasterData.callGasLimit;
-    partialUserOp.verificationGasLimit = paymasterData.verificationGasLimit;
-    partialUserOp.preVerificationGas = paymasterData.preVerificationGas;
+    const { userOpHash } = await smartWallet.sendTransaction(transaction);
+    expect(userOpHash).toBeTruthy();
 
     const newBalance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
 
-    expect(newBalance).toEqual(balance);
+    expect(newBalance - balance).toBe(1n);
   }, 60000);
 
   it("#getUserOpHash should match entryPoint.getUserOpHash", async () => {
