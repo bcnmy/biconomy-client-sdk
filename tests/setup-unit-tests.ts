@@ -1,21 +1,12 @@
 import { createWalletClient, http, createPublicClient } from "viem";
-import { privateKeyToAccount, generatePrivateKey, mnemonicToAccount } from "viem/accounts";
-import { localhost } from "viem/chains";
+import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { WalletClientSigner } from "@alchemy/aa-core";
-
-const TEST_CHAIN = {
-  chainId: 1337,
-  entryPointAddress: "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789",
-  bundlerUrl: "https://bundler.biconomy.io/api/v2/1/cJPK7B3ru.dd7f7861-190d-45ic-af80-6877f74b8f44",
-  viemChain: localhost,
-};
-
-const MNEMONIC = "direct buyer cliff train rice spirit census refuse glare expire innocent quote";
+import { UNIT_TEST_CHAIN } from "./chains.config";
 
 beforeAll(() => {
-  const chain = TEST_CHAIN;
-  const { chainId, bundlerUrl, viemChain, entryPointAddress } = chain;
-  const accountOne = mnemonicToAccount(MNEMONIC);
+  const { chainId, bundlerUrl, viemChain, entryPointAddress } = UNIT_TEST_CHAIN;
+  const privateKeyOne = generatePrivateKey();
+  const accountOne = privateKeyToAccount(privateKeyOne);
   const viemWalletClientOne = createWalletClient({
     account: accountOne,
     chain: viemChain,
@@ -28,7 +19,8 @@ beforeAll(() => {
     transport: http(),
   });
 
-  const accountTwo = privateKeyToAccount(generatePrivateKey());
+  const privateKeyTwo = generatePrivateKey();
+  const accountTwo = privateKeyToAccount(privateKeyTwo);
   const viemWalletClientTwo = createWalletClient({
     account: accountTwo,
     chain: viemChain,
@@ -42,6 +34,8 @@ beforeAll(() => {
     alchemyWalletClientSigner: walletClientSignerOne,
     balance: 0,
     publicAddress: publicAddressOne,
+    account: accountOne,
+    prvateKey: privateKeyOne,
   };
 
   const minnow = {
@@ -49,6 +43,8 @@ beforeAll(() => {
     alchemyWalletClientSigner: walletClientSignerTwo,
     balance: 0,
     publicAddress: publicAddressTwo,
+    account: accountTwo,
+    prvateKey: privateKeyTwo,
   };
 
   // @ts-ignore

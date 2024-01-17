@@ -2,21 +2,21 @@ import { Paymaster, createSmartWalletClient } from "../src";
 import { createWalletClient, http } from "viem";
 import { localhost } from "viem/chains";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
-import { TestData } from ".";
+import { TestData } from "../../../tests";
 
 describe("Account Tests", () => {
-  let chainData: TestData;
+  let ganache: TestData;
 
   beforeEach(() => {
-    // @ts-ignore
-    chainData = testDataPerChain[0];
+    // @ts-ignore: Comes from setup-unit-tests
+    [ganache] = testDataPerChain;
   });
 
   it("should create a smartWalletClient from a walletClient", async () => {
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
-    } = chainData;
+    } = ganache;
 
     const smartWallet = await createSmartWalletClient({
       signer,
@@ -31,7 +31,7 @@ describe("Account Tests", () => {
       chainId,
       whale: { alchemyWalletClientSigner: signer },
       bundlerUrl,
-    } = chainData;
+    } = ganache;
 
     const smartWallet = await createSmartWalletClient({
       chainId,
@@ -46,7 +46,7 @@ describe("Account Tests", () => {
     const {
       bundlerUrl,
       whale: { viemWallet: signer },
-    } = chainData;
+    } = ganache;
 
     const smartWallet = await createSmartWalletClient({
       signer,
@@ -62,7 +62,7 @@ describe("Account Tests", () => {
       bundlerUrl,
       whale: { viemWallet: signer },
       minnow: { publicAddress: recipient },
-    } = chainData;
+    } = ganache;
 
     const smartWallet = await createSmartWalletClient({
       entryPointAddress,
@@ -81,7 +81,7 @@ describe("Account Tests", () => {
     const {
       bundlerUrl,
       whale: { viemWallet: signer },
-    } = chainData;
+    } = ganache;
 
     const smartWallet = await createSmartWalletClient({
       signer,
@@ -97,7 +97,7 @@ describe("Account Tests", () => {
       whale: { viemWallet: signer },
       minnow: { publicAddress: recipient },
       bundlerUrl,
-    } = chainData;
+    } = ganache;
 
     const smartWallet = await createSmartWalletClient({
       signer,
@@ -113,7 +113,7 @@ describe("Account Tests", () => {
       whale: { viemWallet: signer },
       bundlerUrl,
       biconomyPaymasterApiKey,
-    } = chainData;
+    } = ganache;
 
     const paymasterUrl = "https://paymaster.biconomy.io/api/v1/80001/" + biconomyPaymasterApiKey;
     const paymaster = new Paymaster({ paymasterUrl });
@@ -128,7 +128,7 @@ describe("Account Tests", () => {
   }, 10000);
 
   it("should fail to create a smartWalletClient from a walletClient without a chainId", async () => {
-    const { bundlerUrl } = chainData;
+    const { bundlerUrl } = ganache;
 
     const account = privateKeyToAccount(generatePrivateKey());
     const viemWalletClientNoChainId = createWalletClient({
@@ -146,7 +146,7 @@ describe("Account Tests", () => {
   });
 
   it("should fail to create a smartWalletClient from a walletClient without an account", async () => {
-    const { bundlerUrl } = chainData;
+    const { bundlerUrl } = ganache;
 
     const viemWalletNoAccount = createWalletClient({
       transport: http(localhost.rpcUrls.public.http[0]),
