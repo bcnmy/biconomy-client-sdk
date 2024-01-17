@@ -69,7 +69,7 @@ export type SimulationType = "validation" | "validation_and_execution";
 
 export type SignerData = {
   pbKey: string;
-  pvKey: string;
+  pvKey: `0x${string}`;
   chainId?: Chain;
 };
 

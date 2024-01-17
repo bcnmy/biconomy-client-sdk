@@ -8,6 +8,7 @@ interface WalletProps {
   balance: BigInt;
   publicAddress: Hex;
   account: PrivateKeyAccount;
+  privateKey: Hex;
   ethersSigner: Signer;
 }
 

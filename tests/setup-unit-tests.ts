@@ -1,28 +1,17 @@
 import { createWalletClient, http, createPublicClient } from "viem";
-import { privateKeyToAccount, generatePrivateKey, mnemonicToAccount } from "viem/accounts";
-import { localhost } from "viem/chains";
 import { WalletClientSigner } from "@alchemy/aa-core";
-import { JsonRpcProvider, JsonRpcSigner as Signer } from "@ethersproject/providers";
+import { JsonRpcProvider } from "@ethersproject/providers";
 import { Wallet } from "@ethersproject/wallet";
-
-const TEST_CHAIN = {
-  chainId: 1337,
-  entryPointAddress: "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789",
-  bundlerUrl: "https://bundler.biconomy.io/api/v2/1/cJPK7B3ru.dd7f7861-190d-45ic-af80-6877f74b8f44",
-  viemChain: localhost,
-};
-
-const MNEMONIC = "direct buyer cliff train rice spirit census refuse glare expire innocent quote";
+import { UNIT_TEST_CHAIN } from "./chains.config";
+import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 
 beforeAll(() => {
-  const chain = TEST_CHAIN;
-  const { chainId, bundlerUrl, viemChain, entryPointAddress } = chain;
-  const accountOne = mnemonicToAccount(MNEMONIC);
+  const { chainId, bundlerUrl, viemChain, entryPointAddress } = UNIT_TEST_CHAIN;
+  const privateKeyOne = generatePrivateKey();
+  const accountOne = privateKeyToAccount(privateKeyOne);
 
-  const { privateKey } = Wallet.fromMnemonic(MNEMONIC);
-
-  const ethersProvider = new JsonRpcProvider(chain.viemChain.rpcUrls.public.http[0]);
-  const ethersSignerOne = new Wallet(privateKey, ethersProvider);
+  const ethersProvider = new JsonRpcProvider(viemChain.rpcUrls.public.http[0]);
+  const ethersSignerOne = new Wallet(privateKeyOne, ethersProvider);
 
   const viemWalletClientOne = createWalletClient({
     account: accountOne,
@@ -40,6 +29,7 @@ beforeAll(() => {
   const accountTwo = privateKeyToAccount(privateKeyTwo);
 
   const ethersSignerTwo = new Wallet(privateKeyTwo, ethersProvider);
+
   const viemWalletClientTwo = createWalletClient({
     account: accountTwo,
     chain: viemChain,
@@ -54,6 +44,8 @@ beforeAll(() => {
     balance: 0,
     publicAddress: publicAddressOne,
     ethersSigner: ethersSignerOne,
+    account: accountOne,
+    privateKey: privateKeyOne,
   };
 
   const minnow = {
@@ -62,6 +54,8 @@ beforeAll(() => {
     balance: 0,
     publicAddress: publicAddressTwo,
     ethersSigner: ethersSignerTwo,
+    account: accountTwo,
+    privateKey: privateKeyTwo,
   };
 
   // @ts-ignore
