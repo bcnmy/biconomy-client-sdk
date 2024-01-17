@@ -91,8 +91,10 @@ describe("Account Tests", () => {
 
     const balance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
 
-    const { userOpHash } = await smartWallet.sendTransaction(transaction);
-    expect(userOpHash).toBeTruthy();
+    const response = await smartWallet.sendTransaction(transaction);
+    const userOpReceipt = await response.wait(3);
+    expect(userOpReceipt.userOpHash).toBeTruthy();
+    expect(userOpReceipt.success).toBe("true");
 
     const newBalance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
 
