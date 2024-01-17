@@ -4,6 +4,7 @@ import { Signer } from "@ethersproject/abstract-signer";
 
 export class EthersSigner<T extends Signer> implements SmartAccountSigner<T> {
   signerType: string = "ethers";
+
   inner: T;
 
   constructor(inner: T, signerType: string) {
@@ -21,9 +22,7 @@ export class EthersSigner<T extends Signer> implements SmartAccountSigner<T> {
   }
 
   async signTypedData(_notUsed: SignTypedDataParams): Promise<Hex> {
-    throw new Error(
-      "signTypedData is not supported for Ethers Signer"
-    );  
+    throw new Error("signTypedData is not supported for Ethers Signer");
   }
 
   #correctSignature = (signature: Hex): Hex => {
