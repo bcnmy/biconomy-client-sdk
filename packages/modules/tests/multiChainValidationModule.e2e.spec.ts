@@ -1,68 +1,64 @@
 import { BiconomyPaymaster, PaymasterMode } from "@biconomy/paymaster";
-import { TestData } from "..";
-import { createSmartWalletClient } from "../../src/index";
-import { Hex, createWalletClient, encodeFunctionData, http, parseAbi } from "viem";
-import { WalletClientSigner } from "@alchemy/aa-core";
+import { TestData } from "../../../tests";
+import { createSmartWalletClient } from "../../account/src/index";
+import { Hex, encodeFunctionData, parseAbi } from "viem";
 import { DEFAULT_MULTICHAIN_MODULE, MultiChainValidationModule } from "@biconomy/modules";
-import { privateKeyToAccount } from "viem/accounts";
-import { baseGoerli } from "viem/chains";
 
 describe("Account with MultiChainValidation Module Tests", () => {
-  let chainData: TestData;
+  let mumbai: TestData;
+  let baseGoerli: TestData;
 
   beforeEach(() => {
-    // @ts-ignore
-    chainData = testDataPerChain[0];
+    // @ts-ignore: Comes from setup-e2e-tests
+    [mumbai, baseGoerli] = testDataPerChain;
   });
 
-  it("Should mint an NFT gasless on Base Goerli and Polygon Mumbai", async () => {
+  it("Should mint an NFT gasless on baseGoerli and mumbai", async () => {
     const {
-      whale: { alchemyWalletClientSigner, publicAddress: recipient },
-      biconomyPaymasterApiKey,
-      bundlerUrl,
-    } = chainData;
+      whale: { alchemyWalletClientSigner: signerMumbai, publicAddress: recipientForBothChains },
+      biconomyPaymasterApiKey: biconomyPaymasterApiKeyMumbai,
+      bundlerUrl: bundlerUrlMumbai,
+    } = mumbai;
+
+    const {
+      whale: { alchemyWalletClientSigner: signerBase },
+      biconomyPaymasterApiKey: biconomyPaymasterApiKeyBase,
+      bundlerUrl: bundlerUrlBase,
+    } = baseGoerli;
 
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
 
     const multiChainModule = await MultiChainValidationModule.create({
-      signer: alchemyWalletClientSigner,
+      signer: signerMumbai,
       moduleAddress: DEFAULT_MULTICHAIN_MODULE,
     });
 
-    const polygonAccount = await createSmartWalletClient({
-      chainId: 80001,
-      signer: alchemyWalletClientSigner,
-      bundlerUrl,
-      defaultValidationModule: multiChainModule,
-      activeValidationModule: multiChainModule,
-      biconomyPaymasterApiKey,
-    });
+    const [polygonAccount, baseAccount] = await Promise.all([
+      createSmartWalletClient({
+        chainId: 80001,
+        signer: signerMumbai,
+        bundlerUrl: bundlerUrlMumbai,
+        defaultValidationModule: multiChainModule,
+        activeValidationModule: multiChainModule,
+        biconomyPaymasterApiKey: biconomyPaymasterApiKeyMumbai,
+      }),
+      createSmartWalletClient({
+        chainId: 84531,
+        signer: signerBase,
+        bundlerUrl: "https://bundler.biconomy.io/api/v2/84531/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44",
+        defaultValidationModule: multiChainModule,
+        activeValidationModule: multiChainModule,
+        biconomyPaymasterApiKey: biconomyPaymasterApiKeyBase,
+      }),
+    ]);
 
     const polygonPaymaster: BiconomyPaymaster = polygonAccount.paymaster as BiconomyPaymaster;
-
-    const baseWallet = privateKeyToAccount(`0x${process.env.E2E_PRIVATE_KEY_ONE}`);
-    const baseClient = createWalletClient({
-      account: baseWallet,
-      chain: baseGoerli,
-      transport: http(baseGoerli.rpcUrls.public.http[0]),
-    });
-    const baseSigner = new WalletClientSigner(baseClient, "json-rpc");
-
-    const baseAccount = await createSmartWalletClient({
-      chainId: 84531,
-      signer: baseSigner,
-      bundlerUrl: "https://bundler.biconomy.io/api/v2/84531/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44",
-      defaultValidationModule: multiChainModule,
-      activeValidationModule: multiChainModule,
-      biconomyPaymasterApiKey: process.env.E2E_BICO_PAYMASTER_KEY_BASE,
-    });
-
     const basePaymaster: BiconomyPaymaster = baseAccount.paymaster as BiconomyPaymaster;
 
     const encodedCall = encodeFunctionData({
       abi: parseAbi(["function safeMint(address owner) view returns (uint balance)"]),
       functionName: "safeMint",
-      args: [recipient],
+      args: [recipientForBothChains],
     });
 
     const transaction = {
@@ -71,8 +67,7 @@ describe("Account with MultiChainValidation Module Tests", () => {
       value: 0,
     };
 
-    const partialUserOp1 = await baseAccount.buildUserOp([transaction]);
-    const partialUserOp2 = await polygonAccount.buildUserOp([transaction]);
+    const [partialUserOp1, partialUserOp2] = await Promise.all([baseAccount.buildUserOp([transaction]), polygonAccount.buildUserOp([transaction])]);
 
     // Setup paymaster and data for base account
     const basePaymasterData = await basePaymaster.getPaymasterAndData(partialUserOp1, {

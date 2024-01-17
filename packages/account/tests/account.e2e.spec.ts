@@ -1,16 +1,17 @@
+import { TestData } from "../../../tests";
 import { BiconomyPaymaster, PaymasterMode } from "@biconomy/paymaster";
-import { TestData } from ".";
 import { createSmartWalletClient } from "../src/index";
 import { Hex, encodeFunctionData, parseAbi } from "viem";
-import { UserOperationStruct} from "@alchemy/aa-core";
-import { checkBalance, entryPointABI } from "./utils";
+import { UserOperationStruct } from "@alchemy/aa-core";
+import { checkBalance, entryPointABI } from "../../../tests/utils";
 
 describe("Account Tests", () => {
-  let chainData: TestData;
+  let mumbai: TestData;
+  let baseGoerli: TestData;
 
   beforeEach(() => {
-    // @ts-ignore
-    chainData = testDataPerChain[0];
+    // @ts-ignore: Comes from setup-e2e-tests
+    [mumbai, baseGoerli] = testDataPerChain;
   });
 
   it("should send some native token to a recipient", async () => {
@@ -19,7 +20,7 @@ describe("Account Tests", () => {
       minnow: { publicAddress: recipient },
       bundlerUrl,
       publicClient,
-    } = chainData;
+    } = mumbai;
 
     const smartWallet = await createSmartWalletClient({
       signer,
@@ -45,7 +46,8 @@ describe("Account Tests", () => {
       whale: { viemWallet: signer },
       bundlerUrl,
       biconomyPaymasterApiKey,
-    } = chainData;
+      chainId,
+    } = mumbai;
 
     const smartWallet = await createSmartWalletClient({
       signer,
@@ -65,7 +67,7 @@ describe("Account Tests", () => {
       bundlerUrl,
       biconomyPaymasterApiKey,
       publicClient,
-    } = chainData;
+    } = mumbai;
 
     const smartWallet = await createSmartWalletClient({
       signer,
@@ -111,7 +113,7 @@ describe("Account Tests", () => {
       entryPointAddress,
       publicClient,
       biconomyPaymasterApiKey,
-    } = chainData;
+    } = mumbai;
 
     const smartWallet = await createSmartWalletClient({
       signer,
@@ -151,7 +153,7 @@ describe("Account Tests", () => {
       bundlerUrl,
       publicClient,
       biconomyPaymasterApiKey,
-    } = chainData;
+    } = mumbai;
 
     const smartWallet = await createSmartWalletClient({
       signer,
@@ -171,7 +173,7 @@ describe("Account Tests", () => {
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
-    } = chainData;
+    } = mumbai;
 
     const smartWallet = await createSmartWalletClient({
       signer,
