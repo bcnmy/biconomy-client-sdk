@@ -3,7 +3,7 @@ import { IBundler } from "@biconomy/bundler";
 import { IPaymaster, PaymasterFeeQuote, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { Hex, WalletClient } from "viem";
-import { JsonRpcSigner as Signer } from "@ethersproject/providers";
+import { Signer } from "@ethersproject/abstract-signer";
 
 export type EntryPointAddresses = {
   [address: string]: string;

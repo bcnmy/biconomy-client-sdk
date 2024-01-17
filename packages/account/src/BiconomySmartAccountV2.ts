@@ -57,7 +57,7 @@ import { BiconomyFactoryAbi } from "./abi/Factory";
 import { BiconomyAccountAbi } from "./abi/SmartAccount";
 import { AccountResolverAbi } from "./abi/AccountResolver";
 import { Logger } from "./utils/Logger";
-import { JsonRpcSigner as Signer } from "@ethersproject/providers";
+import { Signer } from "@ethersproject/abstract-signer";
 import EthersSigner from "./utils/EthersSigner";
 
 type UserOperationKey = keyof UserOperationStruct;

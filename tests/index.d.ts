@@ -1,6 +1,7 @@
 import { Chain, Hex, PrivateKeyAccount, PublicClient, WalletClient } from "viem";
 import { WalletClientSigner } from "@alchemy/aa-core";
-import { JsonRpcProvider, JsonRpcSigner as Signer } from "@ethersproject/providers";
+import { JsonRpcProvider } from "@ethersproject/providers";
+import { Signer } from "@ethersproject/abstract-signer";
 
 interface WalletProps {
   alchemyWalletClientSigner: WalletClientSigner;
