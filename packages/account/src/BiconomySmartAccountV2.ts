@@ -29,7 +29,14 @@ import {
 } from "@alchemy/aa-core";
 import { isNullOrUndefined, packUserOp } from "./utils/Utils";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, ECDSAOwnershipValidationModule } from "@biconomy/modules";
-import { IHybridPaymaster, IPaymaster, BiconomyPaymaster, PaymasterMode, SponsorUserOperationDto, FeeQuotesOrDataResponse } from "@biconomy/paymaster";
+import {
+  IHybridPaymaster,
+  IPaymaster,
+  BiconomyPaymaster,
+  PaymasterMode,
+  SponsorUserOperationDto,
+  FeeQuotesOrDataResponse,
+} from "@biconomy/paymaster";
 import { Bundler, IBundler, UserOpResponse } from "@biconomy/bundler";
 import {
   BiconomyTokenPaymasterRequest,
@@ -475,7 +482,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @param {Partial<UserOperationStruct>} userOp - The partial user operation structure to be modified.
    * @param {PaymasterUserOperationDto} paymasterServiceData - The paymaster service data containing mode and additional information.
    * @returns {Promise<Partial<UserOperationStruct>>} A promise that resolves to the modified user operation structure.
-  */
+   */
   async setPaymasterFields(
     userOp: Partial<UserOperationStruct>,
     paymasterServiceData: PaymasterUserOperationDto,
@@ -492,21 +499,23 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
           userOp.preVerificationGas = paymasterData.preVerificationGas;
           return userOp;
         } else if (paymasterServiceData.mode === PaymasterMode.ERC20) {
-          const feeQuotesResponse: FeeQuotesOrDataResponse = await (this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>).getPaymasterFeeQuotesOrData(userOp, {
+          const feeQuotesResponse: FeeQuotesOrDataResponse = await (
+            this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>
+          ).getPaymasterFeeQuotesOrData(userOp, {
             mode: PaymasterMode.ERC20,
             tokenList: paymasterServiceData.tokenList,
             preferredToken: paymasterServiceData.preferredToken,
           });
           const finalUserOp = await this.buildTokenPaymasterUserOp(userOp, {
-            // @ts-ignore
-            feeQuote: feeQuotesResponse.feeQuotes[0],
-            spender: feeQuotesResponse.tokenPaymasterAddress as Hex || "",
+            // @ts-expect-error There should always be a fee quote
+            feeQuote: feeQuotesResponse.feeQuotes[0]!,
+            spender: (feeQuotesResponse.tokenPaymasterAddress as Hex) || "",
             maxApproval: true,
           });
           const newPaymasterServiceData = {
             mode: PaymasterMode.ERC20,
-            // @ts-ignore
-            feeTokenAddress: feeQuotesResponse.feeQuotes[0].tokenAddress, // TODO: check if this is correct
+            // @ts-expect-error There should always be a fee quote tokenAddress
+            feeTokenAddress: feeQuotesResponse.feeQuotes[0].tokenAddress!, // TODO: check if this is correct
             calculateGasLimits: true, // Always recommended and especially when using token paymaster
           };
           const paymasterAndDataWithLimits = await (this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>).getPaymasterAndData(
@@ -613,7 +622,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     finalUserOp.verificationGasLimit = toHex(Number(verificationGasLimit)) ?? userOp.verificationGasLimit;
     finalUserOp.callGasLimit = toHex(Number(callGasLimit)) ?? userOp.callGasLimit;
     finalUserOp.preVerificationGas = toHex(Number(preVerificationGas)) ?? userOp.preVerificationGas;
-    if(!finalUserOp.paymasterAndData){
+    if (!finalUserOp.paymasterAndData) {
       finalUserOp.paymasterAndData = "0x";
     }
 
@@ -716,7 +725,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     // Note: Can change the default behaviour of calling estimations using bundler/local
     userOp = await this.estimateUserOpGas(userOp);
- 
+
     if (buildUseropDto?.paymasterServiceData) {
       userOp = await this.setPaymasterFields(userOp, buildUseropDto?.paymasterServiceData);
     }
