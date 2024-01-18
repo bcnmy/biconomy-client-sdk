@@ -103,7 +103,7 @@ export class SessionLocalStorage implements ISessionStorage {
     localStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data));
   }
 
-  async addSigner(signerData: SignerData): Promise<WalletClientSigner> {
+  async addSigner(signerData: SignerData): Promise<SmartAccountSigner> {
     const signers = this.getSignerStore();
     let signer: SignerData;
     if (!signerData) {
@@ -121,7 +121,7 @@ export class SessionLocalStorage implements ISessionStorage {
       chain: signerData.chainId,
       transport: http(),
     });
-    const walletClientSigner: SmartAccountSigner = new WalletClientSigner(
+    const walletClientSigner = new WalletClientSigner(
       client,
       "json-rpc", // signerType
     );
@@ -130,7 +130,7 @@ export class SessionLocalStorage implements ISessionStorage {
     return walletClientSigner;
   }
 
-  async getSignerByKey(sessionPublicKey: string): Promise<WalletClientSigner> {
+  async getSignerByKey(sessionPublicKey: string): Promise<SmartAccountSigner> {
     const signers = this.getSignerStore();
     const signerData = signers[this.toLowercaseAddress(sessionPublicKey)];
     if (!signerData) {
@@ -146,7 +146,7 @@ export class SessionLocalStorage implements ISessionStorage {
     return signer;
   }
 
-  async getSignerBySession(param: SessionSearchParam): Promise<WalletClientSigner> {
+  async getSignerBySession(param: SessionSearchParam): Promise<SmartAccountSigner> {
     const session = await this.getSessionData(param);
     return this.getSignerByKey(session.sessionPublicKey);
   }

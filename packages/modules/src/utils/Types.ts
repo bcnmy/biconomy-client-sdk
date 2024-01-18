@@ -1,5 +1,5 @@
 import { Chain, Hex } from "viem";
-import { UserOperationStruct, WalletClientSigner } from "@alchemy/aa-core";
+import { UserOperationStruct, SmartAccountSigner } from "@alchemy/aa-core";
 import { SessionKeyManagerModule } from "../SessionKeyManagerModule";
 import { ISessionStorage } from "../interfaces/ISessionStorage";
 
@@ -12,7 +12,7 @@ export interface BaseValidationModuleConfig {
 export interface ECDSAOwnershipValidationModuleConfig extends BaseValidationModuleConfig {
   moduleAddress?: Hex;
   version?: ModuleVersion;
-  signer: WalletClientSigner;
+  signer: SmartAccountSigner;
 }
 
 export interface SessionKeyManagerModuleConfig extends BaseValidationModuleConfig {
@@ -46,7 +46,7 @@ export enum StorageType {
 
 export type SessionParams = {
   sessionID?: string;
-  sessionSigner: WalletClientSigner;
+  sessionSigner: SmartAccountSigner;
   sessionValidationModule?: Hex;
   additionalSessionData?: string;
 };
@@ -55,7 +55,7 @@ export type ModuleInfo = {
   // Could be a full object of below params and that way it can be an array too!
   // sessionParams?: SessionParams[] // where SessionParams is below four
   sessionID?: string;
-  sessionSigner?: WalletClientSigner;
+  sessionSigner?: SmartAccountSigner;
   sessionValidationModule?: Hex;
   additionalSessionData?: string;
   batchSessionParams?: SessionParams[];
@@ -90,7 +90,7 @@ export interface CreateSessionDataParams {
 export interface MultiChainValidationModuleConfig extends BaseValidationModuleConfig {
   moduleAddress?: Hex;
   version?: ModuleVersion;
-  signer: WalletClientSigner;
+  signer: SmartAccountSigner;
 }
 
 export type MultiChainUserOpDto = {
