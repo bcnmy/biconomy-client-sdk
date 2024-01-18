@@ -98,10 +98,11 @@ type ConditionalBundlerProps = RequireAtLeastOne<
 type ResolvedBundlerProps = {
   bundler: IBundler;
 };
+export type SupportedSigner = SmartAccountSigner | WalletClient | Signer;
 type ConditionalValidationProps = RequireAtLeastOne<
   {
     defaultValidationModule: BaseValidationModule;
-    signer: SmartAccountSigner | WalletClient | Signer;
+    signer: SupportedSigner;
   },
   "defaultValidationModule" | "signer"
 >;

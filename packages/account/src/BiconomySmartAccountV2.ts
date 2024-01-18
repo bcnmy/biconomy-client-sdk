@@ -17,7 +17,6 @@ import {
   Chain,
   getContract,
   decodeFunctionData,
-  WalletClient,
 } from "viem";
 import {
   BaseSmartContractAccount,
@@ -25,7 +24,6 @@ import {
   type BigNumberish,
   type UserOperationStruct,
   BatchUserOperationCallData,
-  WalletClientSigner,
   SmartAccountSigner,
 } from "@alchemy/aa-core";
 import { isNullOrUndefined, packUserOp } from "./utils/Utils";
@@ -51,14 +49,12 @@ import {
   PROXY_CREATION_CODE,
   ADDRESS_ZERO,
   DEFAULT_ENTRYPOINT_ADDRESS,
-  UNIQUE_PROPERTIES_PER_SIGNER,
 } from "./utils/Constants";
 import { BiconomyFactoryAbi } from "./abi/Factory";
 import { BiconomyAccountAbi } from "./abi/SmartAccount";
 import { AccountResolverAbi } from "./abi/AccountResolver";
 import { Logger } from "./utils/Logger";
-import { Signer } from "@ethersproject/abstract-signer";
-import EthersSigner from "./utils/EthersSigner";
+import { getSmartWalletClientSigner } from "./utils/Helpers/getSmartWalletClientSigner";
 
 type UserOperationKey = keyof UserOperationStruct;
 
@@ -156,48 +152,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     // Signer needs to be initialised here before defaultValidationModule is set
     if (biconomySmartAccountConfig.signer) {
-      const signer = biconomySmartAccountConfig.signer;
-
-      // Alchemy currently only provides two signer types: LocalAccountSigner and WalletClientSigner.
-      // Futureproof support for other signers by checking if signerType exists
-      const isAnAlchemySigner = UNIQUE_PROPERTIES_PER_SIGNER.alchemy in signer;
-      const isAnEthersSigner = UNIQUE_PROPERTIES_PER_SIGNER.ethers in signer;
-      const isAViemSigner = UNIQUE_PROPERTIES_PER_SIGNER.viem in signer;
-
-      if (!isAnAlchemySigner) {
-        if (isAnEthersSigner) {
-          const ethersSigner = signer as Signer;
-          if (!chainId) {
-            // If chainId not provided, get it from walletClient
-            if (!ethersSigner.provider) {
-              throw new Error("Cannot consume an ethers Wallet without a provider");
-            }
-            const chainIdFromProvider = await ethersSigner.provider.getNetwork();
-            if (!chainIdFromProvider?.chainId) {
-              throw new Error("Cannot consume an ethers Wallet without a chainId");
-            }
-            chainId = Number(chainIdFromProvider.chainId);
-          }
-          // convert ethers Wallet to alchemy's SmartAccountSigner under the hood
-          resolvedSmartAccountSigner = new EthersSigner(ethersSigner, "ethers");
-        } else if (isAViemSigner) {
-          const walletClient = signer as WalletClient;
-          if (!walletClient.account) {
-            throw new Error("Cannot consume a viem wallet without an account");
-          }
-          if (!chainId) {
-            // If chainId not provided, get it from walletClient
-            if (!walletClient.chain) {
-              throw new Error("Cannot consume a viem wallet without a chainId");
-            }
-            chainId = walletClient.chain.id;
-          }
-          // convert viems walletClient to alchemy's SmartAccountSigner under the hood
-          resolvedSmartAccountSigner = new WalletClientSigner(walletClient, "viem");
-        }
-      } else {
-        resolvedSmartAccountSigner = signer as SmartAccountSigner;
+      const signerResult = await getSmartWalletClientSigner(biconomySmartAccountConfig.signer);
+      if (signerResult.chainId) {
+        chainId = chainId ?? signerResult.chainId;
       }
+      resolvedSmartAccountSigner = signerResult.signer;
     }
 
     if (!chainId) {
