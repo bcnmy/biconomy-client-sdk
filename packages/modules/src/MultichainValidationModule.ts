@@ -1,5 +1,5 @@
 import { Hex, concat, encodeAbiParameters, encodeFunctionData, getAddress, keccak256, pad, parseAbi, parseAbiParameters, toBytes, toHex } from "viem";
-import { UserOperationStruct, WalletClientSigner } from "@alchemy/aa-core";
+import { UserOperationStruct, SmartAccountSigner } from "@alchemy/aa-core";
 import MerkleTree from "merkletreejs";
 import { DEFAULT_MULTICHAIN_MODULE, MULTICHAIN_VALIDATION_MODULE_ADDRESSES_BY_VERSION } from "./utils/Constants";
 import { ModuleVersion, MultiChainUserOpDto, MultiChainValidationModuleConfig } from "./utils/Types";
@@ -8,7 +8,7 @@ import { getUserOpHash } from "./utils/Helper";
 import { Logger } from "./utils/Logger";
 
 export class MultiChainValidationModule extends BaseValidationModule {
-  signer!: WalletClientSigner;
+  signer!: SmartAccountSigner;
 
   moduleAddress!: Hex;
 
@@ -41,7 +41,7 @@ export class MultiChainValidationModule extends BaseValidationModule {
     return this.moduleAddress;
   }
 
-  async getSigner(): Promise<WalletClientSigner> {
+  async getSigner(): Promise<SmartAccountSigner> {
     return Promise.resolve(this.signer);
   }
 

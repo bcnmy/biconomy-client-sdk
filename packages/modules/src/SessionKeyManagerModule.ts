@@ -1,6 +1,6 @@
 import { Hex, concat, encodeAbiParameters, encodeFunctionData, keccak256, pad, parseAbi, parseAbiParameters, toBytes, toHex } from "viem";
 import MerkleTree from "merkletreejs";
-import { WalletClientSigner } from "@alchemy/aa-core";
+import { SmartAccountSigner } from "@alchemy/aa-core";
 import {
   SessionKeyManagerModuleConfig,
   ModuleVersion,
@@ -237,7 +237,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
   /**
    * @remarks This is the version of the module contract
    */
-  async getSigner(): Promise<WalletClientSigner> {
+  async getSigner(): Promise<SmartAccountSigner> {
     throw new Error("Method not implemented.");
   }
 

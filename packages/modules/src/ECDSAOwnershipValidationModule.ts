@@ -1,12 +1,12 @@
 import { Hex, encodeFunctionData, getAddress, parseAbi, toBytes } from "viem";
-import { WalletClientSigner } from "@alchemy/aa-core";
+import { SmartAccountSigner } from "@alchemy/aa-core";
 import { ECDSAOwnershipValidationModuleConfig, ModuleVersion } from "./utils/Types";
 import { DEFAULT_ECDSA_OWNERSHIP_MODULE, ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION } from "./utils/Constants";
 import { BaseValidationModule } from "./BaseValidationModule";
 
 // Could be renamed with suffix API
 export class ECDSAOwnershipValidationModule extends BaseValidationModule {
-  signer!: WalletClientSigner;
+  signer!: SmartAccountSigner;
 
   moduleAddress!: Hex;
 
@@ -39,7 +39,7 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
     return this.moduleAddress;
   }
 
-  async getSigner(): Promise<WalletClientSigner> {
+  async getSigner(): Promise<SmartAccountSigner> {
     return Promise.resolve(this.signer);
   }
 

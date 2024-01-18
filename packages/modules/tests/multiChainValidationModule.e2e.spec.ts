@@ -45,7 +45,7 @@ describe("Account with MultiChainValidation Module Tests", () => {
       createSmartWalletClient({
         chainId: 84531,
         signer: signerBase,
-        bundlerUrl: "https://bundler.biconomy.io/api/v2/84531/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44",
+        bundlerUrl: bundlerUrlBase,
         defaultValidationModule: multiChainModule,
         activeValidationModule: multiChainModule,
         biconomyPaymasterApiKey: biconomyPaymasterApiKeyBase,

@@ -1,4 +1,6 @@
 import { createWalletClient, http, createPublicClient } from "viem";
+import { JsonRpcProvider } from "@ethersproject/providers";
+import { Wallet } from "@ethersproject/wallet";
 import { privateKeyToAccount } from "viem/accounts";
 import { WalletClientSigner } from "@alchemy/aa-core";
 import { config } from "dotenv";
@@ -15,6 +17,10 @@ beforeAll(async () => {
   const walletTwo = privateKeyToAccount(privateKeyTwo);
 
   const promises = E2E_TEST_CHAINS.map((chain) => {
+    const ethersProvider = new JsonRpcProvider(chain.viemChain.rpcUrls.public.http[0]);
+    const ethersSignerOne = new Wallet(privateKeyOne, ethersProvider);
+    const ethersSignerTwo = new Wallet(privateKeyTwo, ethersProvider);
+
     const publicClient = createPublicClient({
       chain: chain.viemChain,
       transport: http(),
@@ -42,6 +48,8 @@ beforeAll(async () => {
           publicAddress: walletOne.address,
           viemWallet: viemWalletClientOne,
           alchemyWalletClientSigner: walletClientSignerOne,
+          ethersProvider,
+          ethersSigner: ethersSignerOne,
           privateKey: privateKeyOne,
         },
         publicClient.getBalance({
@@ -56,6 +64,8 @@ beforeAll(async () => {
           publicAddress: walletTwo.address,
           viemWallet: viemWalletClientTwo,
           alchemyWalletClientSigner: walletClientSignerTwo,
+          ethersProvider,
+          ethersSigner: ethersSignerTwo,
           privateKey: privateKeyTwo,
         },
         publicClient.getBalance({
@@ -93,6 +103,7 @@ beforeAll(async () => {
       entryPointAddress: whaleBalance.entryPointAddress,
       viemChain: whaleBalance.viemChain,
       biconomyPaymasterApiKey: whaleBalance.biconomyPaymasterApiKey,
+      ethersProvider: whaleBalance.ethersProvider,
       paymasterUrl: whaleBalance.paymasterUrl,
     };
 
@@ -104,6 +115,7 @@ beforeAll(async () => {
         alchemyWalletClientSigner: whaleBalance.alchemyWalletClientSigner,
         publicAddress: whaleBalance.publicAddress,
         account: whaleBalance.account,
+        ethersSigner: whaleBalance.ethersSigner,
         privateKey: whaleBalance.privateKey,
       },
       minnow: {
@@ -112,6 +124,7 @@ beforeAll(async () => {
         alchemyWalletClientSigner: minnowBalance.alchemyWalletClientSigner,
         publicAddress: minnowBalance.publicAddress,
         account: minnowBalance.account,
+        ethersSigner: whaleBalance.ethersSigner,
         privateKey: minnowBalance.privateKey,
       },
     };
