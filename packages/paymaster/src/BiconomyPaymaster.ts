@@ -192,7 +192,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
       if (response && response.result) {
         if (response.result.mode == PaymasterMode.ERC20) {
           const feeQuotesResponse: Array<PaymasterFeeQuote> = response.result.feeQuotes;
-          const paymasterAddress: string = response.result.paymasterAddress;
+          const paymasterAddress = response.result.paymasterAddress as `0x${string}`;
           // check all objects iterate and populate below calculation for all tokens
           return { feeQuotes: feeQuotesResponse, tokenPaymasterAddress: paymasterAddress };
         } else if (response.result.mode == PaymasterMode.SPONSORED) {

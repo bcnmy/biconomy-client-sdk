@@ -29,7 +29,7 @@ import {
 } from "@alchemy/aa-core";
 import { isNullOrUndefined, packUserOp } from "./utils/Utils";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, ECDSAOwnershipValidationModule } from "@biconomy/modules";
-import { IHybridPaymaster, IPaymaster, BiconomyPaymaster, SponsorUserOperationDto, PaymasterMode } from "@biconomy/paymaster";
+import { IHybridPaymaster, IPaymaster, BiconomyPaymaster, PaymasterMode, SponsorUserOperationDto, FeeQuotesOrDataResponse } from "@biconomy/paymaster";
 import { Bundler, IBundler, UserOpResponse } from "@biconomy/bundler";
 import {
   BiconomyTokenPaymasterRequest,
@@ -41,6 +41,7 @@ import {
   Transaction,
   QueryParamsForAddressResolver,
   BiconomySmartAccountV2ConfigConstructorProps,
+  PaymasterUserOperationDto,
 } from "./utils/Types";
 import {
   ADDRESS_RESOLVER_ADDRESS,
@@ -210,7 +211,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   // Calls the getCounterFactualAddress
-  async getAccountAddress(params?: CounterFactualAddressParam): Promise<string> {
+  async getAccountAddress(params?: CounterFactualAddressParam): Promise<`0x${string}`> {
     if (this.accountAddress == null || this.accountAddress == undefined) {
       // means it needs deployment
       this.accountAddress = await this.getCounterFactualAddress(params);
@@ -469,6 +470,68 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   /**
+   * Sets paymaster-related fields in the provided user operation based on the specified paymaster service data.
+   *
+   * @param {Partial<UserOperationStruct>} userOp - The partial user operation structure to be modified.
+   * @param {PaymasterUserOperationDto} paymasterServiceData - The paymaster service data containing mode and additional information.
+   * @returns {Promise<Partial<UserOperationStruct>>} A promise that resolves to the modified user operation structure.
+  */
+  async setPaymasterFields(
+    userOp: Partial<UserOperationStruct>,
+    paymasterServiceData: PaymasterUserOperationDto,
+  ): Promise<Partial<UserOperationStruct>> {
+    if (this.paymaster !== undefined) {
+      try {
+        if (paymasterServiceData.mode === PaymasterMode.SPONSORED) {
+          const paymasterData = await (this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>).getPaymasterAndData(userOp, {
+            mode: paymasterServiceData.mode,
+          });
+          userOp.paymasterAndData = paymasterData.paymasterAndData;
+          userOp.callGasLimit = paymasterData.callGasLimit;
+          userOp.verificationGasLimit = paymasterData.verificationGasLimit;
+          userOp.preVerificationGas = paymasterData.preVerificationGas;
+          return userOp;
+        } else if (paymasterServiceData.mode === PaymasterMode.ERC20) {
+          const feeQuotesResponse: FeeQuotesOrDataResponse = await (this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>).getPaymasterFeeQuotesOrData(userOp, {
+            mode: PaymasterMode.ERC20,
+            tokenList: paymasterServiceData.tokenList,
+            preferredToken: paymasterServiceData.preferredToken,
+          });
+          const finalUserOp = await this.buildTokenPaymasterUserOp(userOp, {
+            // @ts-ignore
+            feeQuote: feeQuotesResponse.feeQuotes[0],
+            spender: feeQuotesResponse.tokenPaymasterAddress as Hex || "",
+            maxApproval: true,
+          });
+          const newPaymasterServiceData = {
+            mode: PaymasterMode.ERC20,
+            // @ts-ignore
+            feeTokenAddress: feeQuotesResponse.feeQuotes[0].tokenAddress, // TODO: check if this is correct
+            calculateGasLimits: true, // Always recommended and especially when using token paymaster
+          };
+          const paymasterAndDataWithLimits = await (this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>).getPaymasterAndData(
+            finalUserOp,
+            newPaymasterServiceData,
+          );
+          finalUserOp.paymasterAndData = paymasterAndDataWithLimits.paymasterAndData;
+          finalUserOp.callGasLimit = paymasterAndDataWithLimits.callGasLimit;
+          finalUserOp.verificationGasLimit = paymasterAndDataWithLimits.verificationGasLimit;
+          finalUserOp.preVerificationGas = paymasterAndDataWithLimits.preVerificationGas;
+          return finalUserOp;
+        } else {
+          return userOp;
+        }
+      } catch (e: any) {
+        Logger.error("Error while fetching paymaster data", e);
+        return userOp;
+      }
+    } else {
+      Logger.error("Paymaster is not provided");
+      return userOp;
+    }
+  }
+
+  /**
    *
    * @param userOp
    * @param params
@@ -476,19 +539,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @returns Promise<UserOpResponse>
    */
   async sendUserOp(userOp: Partial<UserOperationStruct>, params?: SendUserOpParams): Promise<UserOpResponse> {
-    if (this.paymaster !== undefined) {
-      try {
-        const paymasterData = await (this.paymaster as IHybridPaymaster<SponsorUserOperationDto>).getPaymasterAndData(userOp, {
-          mode: PaymasterMode.SPONSORED,
-        });
-        userOp.paymasterAndData = paymasterData.paymasterAndData;
-        userOp.callGasLimit = paymasterData.callGasLimit;
-        userOp.verificationGasLimit = paymasterData.verificationGasLimit;
-        userOp.preVerificationGas = paymasterData.preVerificationGas;
-      } catch (e: any) {
-        Logger.error("Error while fetching paymaster data", e);
-      }
-    }
     delete userOp.signature;
     const userOperation = await this.signUserOp(userOp, params);
     const bundlerResponse = await this.sendSignedUserOp(userOperation);
@@ -563,7 +613,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     finalUserOp.verificationGasLimit = toHex(Number(verificationGasLimit)) ?? userOp.verificationGasLimit;
     finalUserOp.callGasLimit = toHex(Number(callGasLimit)) ?? userOp.callGasLimit;
     finalUserOp.preVerificationGas = toHex(Number(preVerificationGas)) ?? userOp.preVerificationGas;
-    finalUserOp.paymasterAndData = "0x";
+    if(!finalUserOp.paymasterAndData){
+      finalUserOp.paymasterAndData = "0x";
+    }
 
     return finalUserOp;
   }
@@ -664,7 +716,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     // Note: Can change the default behaviour of calling estimations using bundler/local
     userOp = await this.estimateUserOpGas(userOp);
-    userOp.paymasterAndData = userOp.paymasterAndData ?? "0x";
+ 
+    if (buildUseropDto?.paymasterServiceData) {
+      userOp = await this.setPaymasterFields(userOp, buildUseropDto?.paymasterServiceData);
+    }
+
     Logger.log("UserOp after estimation ", userOp);
 
     return userOp;

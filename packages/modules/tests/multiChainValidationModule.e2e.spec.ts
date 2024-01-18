@@ -23,7 +23,6 @@ describe("Account with MultiChainValidation Module Tests", () => {
     const {
       whale: { alchemyWalletClientSigner: signerBase },
       biconomyPaymasterApiKey: biconomyPaymasterApiKeyBase,
-      bundlerUrl: bundlerUrlBase,
     } = baseGoerli;
 
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
@@ -52,9 +51,6 @@ describe("Account with MultiChainValidation Module Tests", () => {
       }),
     ]);
 
-    const polygonPaymaster: BiconomyPaymaster = polygonAccount.paymaster as BiconomyPaymaster;
-    const basePaymaster: BiconomyPaymaster = baseAccount.paymaster as BiconomyPaymaster;
-
     const encodedCall = encodeFunctionData({
       abi: parseAbi(["function safeMint(address owner) view returns (uint balance)"]),
       functionName: "safeMint",
@@ -67,27 +63,10 @@ describe("Account with MultiChainValidation Module Tests", () => {
       value: 0,
     };
 
-    const [partialUserOp1, partialUserOp2] = await Promise.all([baseAccount.buildUserOp([transaction]), polygonAccount.buildUserOp([transaction])]);
-
-    // Setup paymaster and data for base account
-    const basePaymasterData = await basePaymaster.getPaymasterAndData(partialUserOp1, {
-      mode: PaymasterMode.SPONSORED,
-    });
-
-    partialUserOp1.paymasterAndData = basePaymasterData.paymasterAndData;
-    partialUserOp1.callGasLimit = basePaymasterData.callGasLimit;
-    partialUserOp1.verificationGasLimit = basePaymasterData.verificationGasLimit;
-    partialUserOp1.preVerificationGas = basePaymasterData.preVerificationGas;
-
-    // Setup paymaster and data for polygon account
-    const polygonPaymasterData = await polygonPaymaster.getPaymasterAndData(partialUserOp2, {
-      mode: PaymasterMode.SPONSORED,
-    });
-
-    partialUserOp2.paymasterAndData = polygonPaymasterData.paymasterAndData;
-    partialUserOp2.callGasLimit = polygonPaymasterData.callGasLimit;
-    partialUserOp2.verificationGasLimit = polygonPaymasterData.verificationGasLimit;
-    partialUserOp2.preVerificationGas = polygonPaymasterData.preVerificationGas;
+    const [partialUserOp1, partialUserOp2] = await Promise.all([
+      baseAccount.buildUserOp([transaction], { paymasterServiceData: { mode: PaymasterMode.SPONSORED } }),
+      polygonAccount.buildUserOp([transaction], { paymasterServiceData: { mode: PaymasterMode.SPONSORED } }),
+    ]);
 
     // Sign the user ops using multiChainModule
     const returnedOps = await multiChainModule.signUserOps([

@@ -1,6 +1,6 @@
 import { BigNumberish, UserOperationStruct, WalletClientSigner } from "@alchemy/aa-core";
 import { IBundler } from "@biconomy/bundler";
-import { IPaymaster, PaymasterFeeQuote, SponsorUserOperationDto } from "@biconomy/paymaster";
+import { IPaymaster, PaymasterFeeQuote, PaymasterMode, SmartAccountData, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { Hex, WalletClient } from "viem";
 
@@ -134,7 +134,7 @@ export type BuildUserOpOptions = {
   params?: ModuleInfo;
   nonceOptions?: NonceOptions;
   forceEncodeForBatch?: boolean;
-  paymasterServiceData?: SponsorUserOperationDto;
+  paymasterServiceData?: PaymasterUserOperationDto;
 };
 
 export type NonceOptions = {
@@ -168,6 +168,20 @@ export type Overrides = {
 export type InitilizationData = {
   accountIndex?: number;
   signerAddress?: string;
+};
+
+export type PaymasterUserOperationDto = {
+  mode: PaymasterMode;
+  calculateGasLimits?: boolean;
+  expiryDuration?: number;
+  webhookData?: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any;
+  };
+  smartAccountInfo?: SmartAccountData;
+  feeTokenAddress?: string;
+  tokenList?: string[];
+  preferredToken?: string;
 };
 
 export type InitializeV2Data = {
