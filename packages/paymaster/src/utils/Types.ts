@@ -109,10 +109,10 @@ export type PaymasterAndDataResponse = {
   callGasLimit: number;
 };
 
-export enum PaymasterMode {
-  ERC20 = "ERC20",
-  SPONSORED = "SPONSORED",
-}
+// export enum PaymasterMode {
+//   ERC20 = "ERC20",
+//   SPONSORED = "SPONSORED",
+// }
 
 // Converted to JsonRpcResponse with strict type
 export type EstimateUserOpGasResponse = {

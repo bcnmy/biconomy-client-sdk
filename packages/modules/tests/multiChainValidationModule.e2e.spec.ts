@@ -23,6 +23,7 @@ describe("Account with MultiChainValidation Module Tests", () => {
     const {
       whale: { alchemyWalletClientSigner: signerBase },
       biconomyPaymasterApiKey: biconomyPaymasterApiKeyBase,
+      bundlerUrl: bundlerUrlBase,
     } = baseGoerli;
 
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
