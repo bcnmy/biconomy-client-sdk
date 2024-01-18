@@ -30,14 +30,7 @@ import {
 } from "@alchemy/aa-core";
 import { isNullOrUndefined, packUserOp } from "./utils/Utils";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, ECDSAOwnershipValidationModule } from "@biconomy/modules";
-import {
-  IHybridPaymaster,
-  IPaymaster,
-  BiconomyPaymaster,
-  PaymasterMode,
-  SponsorUserOperationDto,
-  FeeQuotesOrDataResponse,
-} from "@biconomy/paymaster";
+import { IHybridPaymaster, IPaymaster, BiconomyPaymaster, PaymasterMode, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { Bundler, IBundler, UserOpResponse } from "@biconomy/bundler";
 import {
   BiconomyTokenPaymasterRequest,
@@ -514,7 +507,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @param {PaymasterUserOperationDto} paymasterServiceData - The paymaster service data containing mode and additional information.
    * @returns {Promise<Partial<UserOperationStruct>>} A promise that resolves to the modified user operation structure.
    */
-  async setPaymasterFields(
+  async setPaymasterUserOp(
     userOp: Partial<UserOperationStruct>,
     paymasterServiceData: PaymasterUserOperationDto,
   ): Promise<Partial<UserOperationStruct>> {
@@ -529,24 +522,15 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
           userOp.verificationGasLimit = paymasterData.verificationGasLimit;
           userOp.preVerificationGas = paymasterData.preVerificationGas;
           return userOp;
-        } else if (paymasterServiceData.mode === PaymasterMode.ERC20) {
-          const feeQuotesResponse: FeeQuotesOrDataResponse = await (
-            this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>
-          ).getPaymasterFeeQuotesOrData(userOp, {
-            mode: PaymasterMode.ERC20,
-            tokenList: paymasterServiceData.tokenList,
-            preferredToken: paymasterServiceData.preferredToken,
-          });
+        } else if (paymasterServiceData.mode === PaymasterMode.ERC20 && paymasterServiceData.feeQuote !== undefined) {
           const finalUserOp = await this.buildTokenPaymasterUserOp(userOp, {
-            // @ts-expect-error There should always be a fee quote
-            feeQuote: feeQuotesResponse.feeQuotes[0]!,
-            spender: (feeQuotesResponse.tokenPaymasterAddress as Hex) || "",
-            maxApproval: true,
+            feeQuote: paymasterServiceData.feeQuote,
+            spender: (paymasterServiceData.spender as Hex) || "",
+            maxApproval: paymasterServiceData.maxApproval,
           });
           const newPaymasterServiceData = {
             mode: PaymasterMode.ERC20,
-            // @ts-expect-error There should always be a fee quote tokenAddress
-            feeTokenAddress: feeQuotesResponse.feeQuotes[0].tokenAddress!, // TODO: check if this is correct
+            feeTokenAddress: paymasterServiceData.feeQuote.tokenAddress,
             calculateGasLimits: true, // Always recommended and especially when using token paymaster
           };
           const paymasterAndDataWithLimits = await (this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>).getPaymasterAndData(
@@ -758,7 +742,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     userOp = await this.estimateUserOpGas(userOp);
 
     if (buildUseropDto?.paymasterServiceData) {
-      userOp = await this.setPaymasterFields(userOp, buildUseropDto?.paymasterServiceData);
+      userOp = await this.setPaymasterUserOp(userOp, buildUseropDto?.paymasterServiceData);
     }
 
     Logger.log("UserOp after estimation ", userOp);

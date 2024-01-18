@@ -1,9 +1,9 @@
 import { TestData } from "../../../tests";
-import { createSmartWalletClient } from "../src/index";
+import { PaymasterUserOperationDto, createSmartWalletClient } from "../src/index";
 import { Hex, encodeFunctionData, parseAbi } from "viem";
 import { UserOperationStruct } from "@alchemy/aa-core";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
-import { PaymasterMode } from "@biconomy/paymaster";
+import { FeeQuotesOrDataResponse, IHybridPaymaster, PaymasterFeeQuote, PaymasterMode } from "@biconomy/paymaster";
 
 describe("Account Tests", () => {
   let mumbai: TestData;
@@ -133,12 +133,35 @@ describe("Account Tests", () => {
 
     const balance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
 
-    const maticBalanceBefore = publicClient.getBalance({ address: await smartWallet.getAddress() });
+    const maticBalanceBefore = await checkBalance(publicClient, await smartWallet.getAddress());
+    const usdcBalanceBefore = await checkBalance(publicClient, await smartWallet.getAddress(), "0xda5289fcaaf71d52a80a254da614a192b693e977");
+
+    const userOp = await smartWallet.buildUserOp([transaction]);
+
+    const feeQuotesResponse: FeeQuotesOrDataResponse = await (
+      smartWallet.paymaster as IHybridPaymaster<PaymasterUserOperationDto>
+    ).getPaymasterFeeQuotesOrData(userOp, {
+      mode: PaymasterMode.ERC20,
+      tokenList: ["0xda5289fcaaf71d52a80a254da614a192b693e977"],
+      preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977",
+    });
+
+    const feeQuotes = feeQuotesResponse.feeQuotes as PaymasterFeeQuote[];
+    const spender = feeQuotesResponse.tokenPaymasterAddress as Hex;
+    const selectedFeeQuote = feeQuotes[0];
+
+    // userOp = await smartWallet.buildUserOp([transaction], {
+    //   paymasterServiceData: { mode: PaymasterMode.ERC20, feeQuote: selectedFeeQuote, spender },
+    // });
+
+    // const response = await smartWallet.sendUserOp(userOp);
 
     const response = await smartWallet.sendTransaction(transaction, {
       paymasterServiceData: {
         mode: PaymasterMode.ERC20,
-        preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977",
+        feeQuote: selectedFeeQuote,
+        spender,
+        maxApproval: true,
       },
     });
 
@@ -146,12 +169,13 @@ describe("Account Tests", () => {
     expect(userOpReceipt.userOpHash).toBeTruthy();
     expect(userOpReceipt.success).toBe("true");
 
-    const maticBalanceAfter = publicClient.getBalance({ address: await smartWallet.getAddress() });
+    const maticBalanceAfter = await checkBalance(publicClient, await smartWallet.getAddress());
+    expect(maticBalanceAfter).toEqual(maticBalanceBefore);
 
-    expect((await maticBalanceAfter).toString()).toEqual((await maticBalanceBefore).toString());
+    const usdcBalanceAfter = await checkBalance(publicClient, await smartWallet.getAddress(), "0xda5289fcaaf71d52a80a254da614a192b693e977");
+    expect(usdcBalanceAfter).toBeLessThan(usdcBalanceBefore);
 
     const newBalance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
-
     expect(newBalance - balance).toBe(1n);
   }, 60000);
 

@@ -186,9 +186,9 @@ export type PaymasterUserOperationDto = {
     [key: string]: any;
   };
   smartAccountInfo?: SmartAccountData;
-  feeTokenAddress?: string;
-  tokenList?: string[];
-  preferredToken?: string;
+  feeQuote?: PaymasterFeeQuote;
+  spender?: Hex;
+  maxApproval?: boolean;
 };
 
 export type InitializeV2Data = {

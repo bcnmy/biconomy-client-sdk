@@ -1,8 +1,10 @@
 import { DEFAULT_SESSION_KEY_MANAGER_MODULE, SessionKeyManagerModule } from "@biconomy/modules";
 import { SessionFileStorage } from "@biconomy/modules/tests/utils/customSession";
-import { WalletClientSigner, createSmartWalletClient } from "../../account/src/index";
+import { PaymasterUserOperationDto, WalletClientSigner, createSmartWalletClient } from "../../account/src/index";
 import { Hex, encodeAbiParameters, encodeFunctionData, parseAbi, parseUnits } from "viem";
 import { TestData } from "../../../tests";
+import { FeeQuotesOrDataResponse, IHybridPaymaster, PaymasterMode } from "@biconomy/paymaster";
+import { checkBalance } from "../../../tests/utils";
 
 describe("Account Tests", () => {
   let mumbai: TestData;
@@ -25,6 +27,7 @@ describe("Account Tests", () => {
           privateKey: pvKey,
         },
         minnow: { publicAddress: recipient },
+        publicClient,
       } = mumbai;
 
       try {
@@ -116,11 +119,16 @@ describe("Account Tests", () => {
 
       smartWallet = smartWallet.setActiveValidationModule(sessionModule);
 
+      const maticBalanceBefore = await checkBalance(publicClient, await smartWallet.getAccountAddress());
+
       const transferUserOp = await smartWallet.buildUserOp([transferTx], {
         skipBundlerGasEstimation: false,
         params: {
           sessionSigner: sessionSigner,
           sessionValidationModule: erc20ModuleAddr.toLowerCase() as Hex,
+        },
+        paymasterServiceData: {
+          mode: PaymasterMode.SPONSORED,
         },
       });
 
@@ -131,6 +139,10 @@ describe("Account Tests", () => {
 
       expect(userOpResponse2.userOpHash).toBeTruthy();
       expect(userOpResponse2.userOpHash).not.toBeNull();
+
+      const maticBalanceAfter = await checkBalance(publicClient, await smartWallet.getAccountAddress());
+
+      expect(maticBalanceAfter).toEqual(maticBalanceBefore);
 
       console.log(`Tx at: https://jiffyscan.xyz/userOpHash/${userOpResponse2.userOpHash}?network=mumbai`);
     } catch (error) {
