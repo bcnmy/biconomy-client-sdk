@@ -1,5 +1,7 @@
 import { Chain, Hex, PrivateKeyAccount, PublicClient, WalletClient } from "viem";
 import { WalletClientSigner } from "@alchemy/aa-core";
+import { JsonRpcProvider } from "@ethersproject/providers";
+import { Signer } from "@ethersproject/abstract-signer";
 
 interface WalletProps {
   alchemyWalletClientSigner: WalletClientSigner;
@@ -8,6 +10,7 @@ interface WalletProps {
   publicAddress: Hex;
   account: PrivateKeyAccount;
   privateKey: Hex;
+  ethersSigner: Signer;
 }
 
 export type TestData = {
@@ -19,4 +22,5 @@ export type TestData = {
   entryPointAddress: string;
   viemChain: Chain;
   biconomyPaymasterApiKey: string;
+  ethersProvider: JsonRpcProvider;
 };

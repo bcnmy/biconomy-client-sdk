@@ -24,12 +24,9 @@ jobs:
         run: yarn install --frozen-lockfile && yarn build
 
       - name: Run tests
-        uses: nick-fields/retry@v2
         env:
           E2E_PRIVATE_KEY_ONE: ${{ secrets.E2E_PRIVATE_KEY_ONE }}
           E2E_PRIVATE_KEY_TWO: ${{ secrets.E2E_PRIVATE_KEY_TWO }}
           E2E_BICO_PAYMASTER_KEY_MUMBAI: ${{ secrets.E2E_BICO_PAYMASTER_KEY_MUMBAI }}
-        with:
-          timeout_minutes: 2
-          max_attempts: 3
-          command: yarn test:e2e
+          E2E_BICO_PAYMASTER_KEY_BASE: ${{ secrets.E2E_BICO_PAYMASTER_KEY_BASE }}
+        run: yarn test:e2e

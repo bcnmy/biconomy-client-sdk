@@ -1,8 +1,9 @@
-import { BigNumberish, UserOperationStruct, WalletClientSigner } from "@alchemy/aa-core";
+import { BigNumberish, SmartAccountSigner, UserOperationStruct, WalletClientSigner } from "@alchemy/aa-core";
 import { IBundler } from "@biconomy/bundler";
 import { IPaymaster, PaymasterFeeQuote, PaymasterMode, SmartAccountData, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { Hex, WalletClient } from "viem";
+import { Signer } from "@ethersproject/abstract-signer";
 
 export type EntryPointAddresses = {
   [address: string]: string;
@@ -55,14 +56,6 @@ export interface GasOverheads {
   // MULTICHAIN = DEFAULT_MULTICHAIN_MODULE,
 }*/
 
-type ConditionalBundlerProps = RequireAtLeastOne<
-  {
-    bundler: IBundler;
-    bundlerUrl: string;
-  },
-  "bundler" | "bundlerUrl"
->;
-
 export type BaseSmartAccountConfig = {
   // owner?: Signer // can be in child classes
   index?: number;
@@ -95,13 +88,30 @@ type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyo
     [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>;
   }[Keys];
 
+type ConditionalBundlerProps = RequireAtLeastOne<
+  {
+    bundler: IBundler;
+    bundlerUrl: string;
+  },
+  "bundler" | "bundlerUrl"
+>;
+type ResolvedBundlerProps = {
+  bundler: IBundler;
+};
 type ConditionalValidationProps = RequireAtLeastOne<
   {
     defaultValidationModule: BaseValidationModule;
-    signer: WalletClientSigner | WalletClient;
+    signer: SmartAccountSigner | WalletClient | Signer;
   },
   "defaultValidationModule" | "signer"
 >;
+
+type ResolvedValidationProps = {
+  defaultValidationModule: BaseValidationModule;
+  activeValidationModule: BaseValidationModule;
+  signer: SmartAccountSigner;
+  chainId: number;
+};
 
 type BiconomySmartAccountV2ConfigBaseProps = {
   factoryAddress?: Hex;
@@ -120,13 +130,10 @@ export type BiconomySmartAccountV2Config = BiconomySmartAccountV2ConfigBaseProps
   ConditionalBundlerProps &
   ConditionalValidationProps;
 
-type BiconomySmartAccountV2ConfigResolvedConstructorProps = {
-  defaultValidationModule: BaseValidationModule;
-  activeValidationModule: BaseValidationModule;
-  chainId: number;
-};
-
-export type BiconomySmartAccountV2ConfigConstructorProps = BiconomySmartAccountV2Config & BiconomySmartAccountV2ConfigResolvedConstructorProps;
+export type BiconomySmartAccountV2ConfigConstructorProps = BiconomySmartAccountV2ConfigBaseProps &
+  BaseSmartAccountConfig &
+  ResolvedBundlerProps &
+  ResolvedValidationProps;
 
 export type BuildUserOpOptions = {
   overrides?: Overrides;
@@ -229,8 +236,13 @@ export type SmartAccountInfo = {
   deploymentIndex: BigNumberish;
 };
 
+type ValueOrData = RequireAtLeastOne<
+  {
+    value: BigNumberish;
+    data: string;
+  },
+  "value" | "data"
+>;
 export type Transaction = {
   to: string;
-  value: BigNumberish;
-  data: string;
-};
+} & ValueOrData;

@@ -1,12 +1,18 @@
 import { createWalletClient, http, createPublicClient } from "viem";
-import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { WalletClientSigner } from "@alchemy/aa-core";
+import { JsonRpcProvider } from "@ethersproject/providers";
+import { Wallet } from "@ethersproject/wallet";
 import { UNIT_TEST_CHAIN } from "./chains.config";
+import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 
 beforeAll(() => {
   const { chainId, bundlerUrl, viemChain, entryPointAddress } = UNIT_TEST_CHAIN;
   const privateKeyOne = generatePrivateKey();
   const accountOne = privateKeyToAccount(privateKeyOne);
+
+  const ethersProvider = new JsonRpcProvider(viemChain.rpcUrls.public.http[0]);
+  const ethersSignerOne = new Wallet(privateKeyOne, ethersProvider);
+
   const viemWalletClientOne = createWalletClient({
     account: accountOne,
     chain: viemChain,
@@ -21,6 +27,9 @@ beforeAll(() => {
 
   const privateKeyTwo = generatePrivateKey();
   const accountTwo = privateKeyToAccount(privateKeyTwo);
+
+  const ethersSignerTwo = new Wallet(privateKeyTwo, ethersProvider);
+
   const viemWalletClientTwo = createWalletClient({
     account: accountTwo,
     chain: viemChain,
@@ -34,8 +43,9 @@ beforeAll(() => {
     alchemyWalletClientSigner: walletClientSignerOne,
     balance: 0,
     publicAddress: publicAddressOne,
+    ethersSigner: ethersSignerOne,
     account: accountOne,
-    prvateKey: privateKeyOne,
+    privateKey: privateKeyOne,
   };
 
   const minnow = {
@@ -43,8 +53,9 @@ beforeAll(() => {
     alchemyWalletClientSigner: walletClientSignerTwo,
     balance: 0,
     publicAddress: publicAddressTwo,
+    ethersSigner: ethersSignerTwo,
     account: accountTwo,
-    prvateKey: privateKeyTwo,
+    privateKey: privateKeyTwo,
   };
 
   // @ts-ignore
@@ -57,6 +68,7 @@ beforeAll(() => {
       bundlerUrl,
       entryPointAddress,
       viemChain,
+      ethersProvider,
     },
   ];
 });

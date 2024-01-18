@@ -12,6 +12,20 @@ describe("Account Tests", () => {
     [ganache] = testDataPerChain;
   });
 
+  it("should create a smartWalletClient from an ethers signer", async () => {
+    const {
+      bundlerUrl,
+      minnow: { ethersSigner: signer },
+    } = ganache;
+
+    const smartWallet = await createSmartWalletClient({
+      signer,
+      bundlerUrl,
+    });
+    const address = await smartWallet.getAccountAddress();
+    expect(address).toBeTruthy();
+  });
+
   it("should create a smartWalletClient from a walletClient", async () => {
     const {
       whale: { viemWallet: signer },
