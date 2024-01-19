@@ -512,41 +512,37 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     paymasterServiceData: PaymasterUserOperationDto,
   ): Promise<Partial<UserOperationStruct>> {
     if (this.paymaster !== undefined) {
-      try {
-        if (paymasterServiceData.mode === PaymasterMode.SPONSORED) {
-          const paymasterData = await (this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>).getPaymasterAndData(userOp, {
-            mode: paymasterServiceData.mode,
-          });
-          userOp.paymasterAndData = paymasterData.paymasterAndData;
-          userOp.callGasLimit = paymasterData.callGasLimit;
-          userOp.verificationGasLimit = paymasterData.verificationGasLimit;
-          userOp.preVerificationGas = paymasterData.preVerificationGas;
-          return userOp;
-        } else if (paymasterServiceData.mode === PaymasterMode.ERC20 && paymasterServiceData.feeQuote !== undefined) {
-          const finalUserOp = await this.buildTokenPaymasterUserOp(userOp, {
-            feeQuote: paymasterServiceData.feeQuote,
-            spender: (paymasterServiceData.spender as Hex) || "",
-            maxApproval: paymasterServiceData.maxApproval,
-          });
-          const newPaymasterServiceData = {
-            mode: PaymasterMode.ERC20,
-            feeTokenAddress: paymasterServiceData.feeQuote.tokenAddress,
-            calculateGasLimits: true, // Always recommended and especially when using token paymaster
-          };
-          const paymasterAndDataWithLimits = await (this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>).getPaymasterAndData(
-            finalUserOp,
-            newPaymasterServiceData,
-          );
-          finalUserOp.paymasterAndData = paymasterAndDataWithLimits.paymasterAndData;
-          finalUserOp.callGasLimit = paymasterAndDataWithLimits.callGasLimit;
-          finalUserOp.verificationGasLimit = paymasterAndDataWithLimits.verificationGasLimit;
-          finalUserOp.preVerificationGas = paymasterAndDataWithLimits.preVerificationGas;
-          return finalUserOp;
-        } else {
-          return userOp;
-        }
-      } catch (e: any) {
-        throw new Error("Error while fetching paymaster data");
+      if (paymasterServiceData.mode === PaymasterMode.SPONSORED) {
+        const paymasterData = await (this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>).getPaymasterAndData(userOp, {
+          mode: paymasterServiceData.mode,
+        });
+        userOp.paymasterAndData = paymasterData.paymasterAndData;
+        userOp.callGasLimit = paymasterData.callGasLimit;
+        userOp.verificationGasLimit = paymasterData.verificationGasLimit;
+        userOp.preVerificationGas = paymasterData.preVerificationGas;
+        return userOp;
+      } else if (paymasterServiceData.mode === PaymasterMode.ERC20 && paymasterServiceData.feeQuote !== undefined) {
+        const finalUserOp = await this.buildTokenPaymasterUserOp(userOp, {
+          feeQuote: paymasterServiceData.feeQuote,
+          spender: (paymasterServiceData.spender as Hex) || "",
+          maxApproval: paymasterServiceData.maxApproval,
+        });
+        const newPaymasterServiceData = {
+          mode: PaymasterMode.ERC20,
+          feeTokenAddress: paymasterServiceData.feeQuote.tokenAddress,
+          calculateGasLimits: true, // Always recommended and especially when using token paymaster
+        };
+        const paymasterAndDataWithLimits = await (this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>).getPaymasterAndData(
+          finalUserOp,
+          newPaymasterServiceData,
+        );
+        finalUserOp.paymasterAndData = paymasterAndDataWithLimits.paymasterAndData;
+        finalUserOp.callGasLimit = paymasterAndDataWithLimits.callGasLimit;
+        finalUserOp.verificationGasLimit = paymasterAndDataWithLimits.verificationGasLimit;
+        finalUserOp.preVerificationGas = paymasterAndDataWithLimits.preVerificationGas;
+        return finalUserOp;
+      } else {
+        return userOp;
       }
     } else {
       throw new Error("Paymaster is not provided");
