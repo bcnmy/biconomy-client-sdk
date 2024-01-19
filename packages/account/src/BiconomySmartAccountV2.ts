@@ -27,7 +27,7 @@ import {
   SmartAccountSigner,
 } from "@alchemy/aa-core";
 import { isNullOrUndefined, packUserOp } from "./utils/Utils";
-import { Bundler, IBundler, UserOpResponse } from "@biconomy/bundler";
+import { Bundler, IBundler, UserOpResponse, extractChainIdFromBundlerUrl } from "@biconomy/bundler";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import { IHybridPaymaster, IPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from "@biconomy/paymaster";
 import {
@@ -54,7 +54,7 @@ import { BiconomyFactoryAbi } from "./abi/Factory";
 import { BiconomyAccountAbi } from "./abi/SmartAccount";
 import { AccountResolverAbi } from "./abi/AccountResolver";
 import { Logger } from "./utils/Logger";
-import { getSmartWalletClientSigner } from "./utils/Helpers/getSmartWalletClientSigner";
+import { convertSigner } from "./";
 
 type UserOperationKey = keyof UserOperationStruct;
 
@@ -152,15 +152,22 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     // Signer needs to be initialised here before defaultValidationModule is set
     if (biconomySmartAccountConfig.signer) {
-      const signerResult = await getSmartWalletClientSigner(biconomySmartAccountConfig.signer);
+      const signerResult = await convertSigner(biconomySmartAccountConfig.signer, !!chainId);
       if (signerResult.chainId) {
-        chainId = chainId ?? signerResult.chainId;
+        chainId = chainId || signerResult.chainId;
       }
       resolvedSmartAccountSigner = signerResult.signer;
     }
-
     if (!chainId) {
-      // Chain ID still not found
+      // Get it from bundler
+      if (biconomySmartAccountConfig.bundlerUrl) {
+        chainId = extractChainIdFromBundlerUrl(biconomySmartAccountConfig.bundlerUrl);
+      } else if (biconomySmartAccountConfig.bundler) {
+        const bundlerUrlFromBundler = biconomySmartAccountConfig.bundler.getBundlerUrl();
+        chainId = extractChainIdFromBundlerUrl(bundlerUrlFromBundler);
+      }
+    }
+    if (!chainId) {
       throw new Error("chainId required");
     }
     const bundler: IBundler = biconomySmartAccountConfig.bundler ?? new Bundler({ bundlerUrl: biconomySmartAccountConfig.bundlerUrl!, chainId });

@@ -14,6 +14,7 @@
     { "path": "./packages/transak" },
     { "path": "./packages/bundler" },
     { "path": "./packages/paymaster" },
-    { "path": "./packages/account" }
+    { "path": "./packages/account" },
+    { "path": "./packages/common" }
   ]
 }

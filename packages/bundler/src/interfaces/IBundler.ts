@@ -8,4 +8,5 @@ export interface IBundler {
   getUserOpByHash(_userOpHash: string): Promise<UserOpByHashResponse>;
   getGasFeeValues(): Promise<GasFeeValues>;
   getUserOpStatus(_userOpHash: string): Promise<UserOpStatus>;
+  getBundlerUrl(): string;
 }

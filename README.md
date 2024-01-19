@@ -26,45 +26,23 @@ Unlock the full potential of **ERC4337 Account Abstraction** with methods that s
 
 ```javascript
 
-import { ECDSAOwnershipValidationModule, DEFAULT_ECDSA_OWNERSHIP_MODULE } from "@biconomy/modules";
-import { IBundler, Bundler } from '@biconomy/bundler'
-import { DEFAULT_ENTRYPOINT_ADDRESS } from "@biconomy/account"
-import { providers } from 'ethers'
-import { ChainId } from "@biconomy/core-types"
+import { createSmartWalletClient } from "@biconomy/account";
+import { createWalletClient, http } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { polygonMumbai } from "viem/chains";
 
+const account = privateKeyToAccount(config.privateKey as Hex);
+const signer = createWalletClient({
+  account,
+  chain: polygonMumbai,
+  transport: http(),
+});
 
-const module = await ECDSAOwnershipValidationModule.create({
-  signer: wallet,
-  moduleAddress: DEFAULT_ECDSA_OWNERSHIP_MODULE
-  })
+const bundlerUrl = 'https://bundler.biconomy.io/api/v2/80001/<API_KEY>'
+// Please go to https://dashboard.biconomy.io and generate bundler url
 
-const biconomySmartAccount = await BiconomySmartAccountV2.create({
-    chainId: ChainId.POLYGON_MUMBAI,
-    bundler: bundler,
-    paymaster: paymaster, 
-    entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
-    defaultValidationModule: module,
-    activeValidationModule: module
-})
-
+const biconomySmartAccount = await createSmartWalletClient({ bundlerUrl, signer });
 console.log("address: ", await biconomySmartAccount.getAccountAddress());
-```
-
-### Bundler
-
-Leverage standardized bundler infrastructure for efficient operation of account abstraction across EVM networks.
-
-```javascript
-
-import { IBundler, Bundler } from '@biconomy/bundler'
-
-
-const bundler: IBundler = new Bundler({
-    bundlerUrl: 'https://bundler.biconomy.io/api/v2/80001/<API_KEY>', 
-    // Please go to https://dashboard.biconomy.io and generate bundler url     
-    chainId: ChainId.POLYGON_MUMBAI,
-    entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
-  })
 ```
 
 ### Paymaster
@@ -72,19 +50,22 @@ const bundler: IBundler = new Bundler({
 Acting as third-party intermediaries, Paymasters have the capability to sponsor gas fees for an account, provided specific predefined conditions are met. Additionally, they can accept gas payments in ERC20 tokens from users' smart accounts, with the Paymaster managing the conversion to native tokens for gas payment.
 
 ```javascript
-const paymaster: IPaymaster = new BiconomyPaymaster({
-    paymasterUrl: '' // From Biconomy Dashboard
-});
+import { Paymaster, IPaymaster } from "@biconomy/account";
+const paymasterUrl = "";
+// Please go to https://dashboard.biconomy.io to setup a paymasterUrl
+// ...
+const biconomySmartAccount = await createSmartWalletClient({ bundlerUrl, signer, paymasterUrl });
 ```
 
 ## 🛠️ Quickstart
 
-For a step-by-step guide on integrating **ERC4337 Account Abstraction** and **Smart Accounts** into your dApp using the Biconomy SDK, refer to the [official documentation](https://docs.biconomy.io/docs/overview). You can also start with Quick explore here https://docs.biconomy.io/docs/category/quick-explore  
+For a step-by-step guide on integrating **ERC4337 Account Abstraction** and **Smart Accounts** into your dApp using the Biconomy SDK, refer to the [official documentation](https://docs.biconomy.io/docs/overview). You can also start with Quick explore here https://docs.biconomy.io/docs/category/quick-explore
 
 ## 📚 Resources
 
 - [Biconomy Documentation](https://docs.biconomy.io/docs/overview)
 - [Biconomy Dashboard](https://dashboard.biconomy.io/)
+- [TSDoc](https://bcnmy.github.io/biconomy-client-sdk)
 
 ## 🤝 Contributing
 

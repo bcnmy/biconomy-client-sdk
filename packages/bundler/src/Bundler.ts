@@ -16,6 +16,7 @@ import {
   UserOpStatus,
   GetUserOperationStatusResponse,
   SimulationType,
+  BunderConfigWithChainId,
 } from "./utils/Types";
 import { transformUserOP, getTimestampInSeconds } from "./utils/HelperFunction";
 import {
@@ -26,6 +27,7 @@ import {
   DEFAULT_ENTRYPOINT_ADDRESS,
 } from "./utils/Constants";
 import { sendRequest, HttpMethod } from "./utils/HttpRequests";
+import { extractChainIdFromBundlerUrl } from "utils/Utils";
 
 /**
  * This class implements IBundler interface.
@@ -33,6 +35,8 @@ import { sendRequest, HttpMethod } from "./utils/HttpRequests";
  * Checkout the proposal for more details on Bundlers.
  */
 export class Bundler implements IBundler {
+  private bundlerConfig: BunderConfigWithChainId;
+
   // eslint-disable-next-line no-unused-vars
   UserOpReceiptIntervals!: { [key in number]?: number };
 
@@ -42,7 +46,10 @@ export class Bundler implements IBundler {
 
   UserOpWaitForTxHashMaxDurationIntervals!: { [key in number]?: number };
 
-  constructor(readonly bundlerConfig: Bundlerconfig) {
+  constructor(bundlerConfig: Bundlerconfig) {
+    const parsedChainId: number = bundlerConfig?.chainId || extractChainIdFromBundlerUrl(bundlerConfig.bundlerUrl);
+    this.bundlerConfig = { ...bundlerConfig, chainId: parsedChainId };
+
     this.UserOpReceiptIntervals = {
       ...UserOpReceiptIntervals,
       ...bundlerConfig.userOpReceiptIntervals,
@@ -63,14 +70,10 @@ export class Bundler implements IBundler {
       ...bundlerConfig.userOpWaitForTxHashMaxDurationIntervals,
     };
 
-    if (!bundlerConfig.entryPointAddress) {
-      this.bundlerConfig.entryPointAddress = DEFAULT_ENTRYPOINT_ADDRESS;
-    } else {
-      this.bundlerConfig.entryPointAddress = bundlerConfig.entryPointAddress;
-    }
+    this.bundlerConfig.entryPointAddress = bundlerConfig.entryPointAddress || DEFAULT_ENTRYPOINT_ADDRESS;
   }
 
-  private getBundlerUrl(): string {
+  public getBundlerUrl(): string {
     return `${this.bundlerConfig.bundlerUrl}`;
   }
 

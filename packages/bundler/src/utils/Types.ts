@@ -4,13 +4,14 @@ import { Hex } from "viem";
 export type Bundlerconfig = {
   bundlerUrl: string;
   entryPointAddress?: string;
-  chainId: number;
+  chainId?: number;
   // eslint-disable-next-line no-unused-vars
   userOpReceiptIntervals?: { [key in number]?: number };
   userOpWaitForTxHashIntervals?: { [key in number]?: number };
   userOpReceiptMaxDurationIntervals?: { [key in number]?: number };
   userOpWaitForTxHashMaxDurationIntervals?: { [key in number]?: number };
 };
+export type BunderConfigWithChainId = Bundlerconfig & { chainId: number };
 
 export type UserOpReceipt = {
   userOpHash: string;

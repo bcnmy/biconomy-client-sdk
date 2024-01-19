@@ -2,24 +2,36 @@ import { Hex, concat, encodeAbiParameters, encodeFunctionData, getAddress, kecca
 import { UserOperationStruct, SmartAccountSigner } from "@alchemy/aa-core";
 import MerkleTree from "merkletreejs";
 import { DEFAULT_MULTICHAIN_MODULE, MULTICHAIN_VALIDATION_MODULE_ADDRESSES_BY_VERSION } from "./utils/Constants";
-import { ModuleVersion, MultiChainUserOpDto, MultiChainValidationModuleConfig } from "./utils/Types";
+import {
+  ModuleVersion,
+  MultiChainUserOpDto,
+  MultiChainValidationModuleConfig,
+  MultiChainValidationModuleConfigConstructorProps,
+} from "./utils/Types";
 import { BaseValidationModule } from "./BaseValidationModule";
 import { getUserOpHash } from "./utils/Helper";
 import { Logger } from "./utils/Logger";
+import { convertSigner } from "@biconomy/common";
 
 export class MultiChainValidationModule extends BaseValidationModule {
-  signer!: SmartAccountSigner;
+  signer: SmartAccountSigner;
 
   moduleAddress!: Hex;
 
   version: ModuleVersion = "V1_0_0";
 
-  private constructor(moduleConfig: MultiChainValidationModuleConfig) {
+  private constructor(moduleConfig: MultiChainValidationModuleConfigConstructorProps) {
     super(moduleConfig);
+    this.signer = moduleConfig.signer;
   }
 
   public static async create(moduleConfig: MultiChainValidationModuleConfig): Promise<MultiChainValidationModule> {
-    const instance = new MultiChainValidationModule(moduleConfig);
+    // Signer needs to be initialised here before defaultValidationModule is set
+    const { signer } = await convertSigner(moduleConfig.signer, true);
+    const configForConstructor: MultiChainValidationModuleConfigConstructorProps = { ...moduleConfig, signer };
+
+    // TODO: (Joe) stop doing things in a 'create' call after the instance has been created
+    const instance = new MultiChainValidationModule(configForConstructor);
     if (moduleConfig.moduleAddress) {
       instance.moduleAddress = moduleConfig.moduleAddress;
     } else if (moduleConfig.version) {
@@ -33,7 +45,6 @@ export class MultiChainValidationModule extends BaseValidationModule {
       instance.moduleAddress = DEFAULT_MULTICHAIN_MODULE;
       // Note: in this case Version remains the default one
     }
-    instance.signer = moduleConfig.signer;
     return instance;
   }
 

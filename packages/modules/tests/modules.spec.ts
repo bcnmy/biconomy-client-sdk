@@ -1,6 +1,6 @@
 import { TestData } from "../../../tests";
-import { getSmartWalletClientSigner, createSmartWalletClient } from "@biconomy/account";
-import { createMultiChainValidationModule } from "../src";
+import { createSmartWalletClient } from "@biconomy/account";
+import { createECDSAOwnershipValidationModule, createMultiChainValidationModule } from "../src";
 
 describe("Account Tests", () => {
   let ganache: TestData;
@@ -10,41 +10,36 @@ describe("Account Tests", () => {
     [ganache] = testDataPerChain;
   });
 
-  it("should create a multichainValidationModule from an ethers signer using getSmartWalletClientSigner", async () => {
+  it("should create a MultiChainValidationModule from an ethers signer using convertSigner", async () => {
     const {
       bundlerUrl,
-      whale: { ethersSigner },
+      whale: { ethersSigner: signer },
     } = ganache;
 
-    const signer = await getSmartWalletClientSigner(ethersSigner);
-    const multiChainModule = await createMultiChainValidationModule({ ...signer });
-    const smartWallet = await createSmartWalletClient({
-      ...signer,
-      bundlerUrl,
-      defaultValidationModule: multiChainModule,
-    });
+    const defaultValidationModule = await createMultiChainValidationModule({ signer });
+    // Should not require a signer or chainId
+    const smartWallet = await createSmartWalletClient({ bundlerUrl, defaultValidationModule });
     const address = await smartWallet.getAccountAddress();
     expect(address).toBeTruthy();
     // expect the relevant module to be set
-    expect(smartWallet.activeValidationModule).toEqual(multiChainModule);
+    expect(smartWallet.activeValidationModule).toEqual(defaultValidationModule);
   });
 
-  it("should create a multichainValidationModule from a viem signer using getSmartWalletClientSigner", async () => {
+  it("should create a ECDSAOwnershipValidationModule from a viem signer using convertSigner", async () => {
     const {
       bundlerUrl,
-      whale: { viemWallet },
+      whale: { viemWallet: signer },
     } = ganache;
 
-    const signer = await getSmartWalletClientSigner(viemWallet);
-    const multiChainModule = await createMultiChainValidationModule({ ...signer });
+    const defaultValidationModule = await createECDSAOwnershipValidationModule({ signer });
+    // Should not require a signer or chainId
     const smartWallet = await createSmartWalletClient({
-      ...signer,
       bundlerUrl,
-      defaultValidationModule: multiChainModule,
+      defaultValidationModule,
     });
     const address = await smartWallet.getAccountAddress();
     expect(address).toBeTruthy();
     // expect the relevant module to be set
-    expect(smartWallet.activeValidationModule).toEqual(multiChainModule);
+    expect(smartWallet.activeValidationModule).toEqual(defaultValidationModule);
   });
 });

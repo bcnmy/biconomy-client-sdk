@@ -1,23 +1,30 @@
 import { Hex, encodeFunctionData, getAddress, parseAbi, toBytes } from "viem";
 import { SmartAccountSigner } from "@alchemy/aa-core";
-import { ECDSAOwnershipValidationModuleConfig, ModuleVersion } from "./utils/Types";
+import { ECDSAOwnershipValidationModuleConfig, ECDSAOwnershipValidationModuleConfigConstructorProps, ModuleVersion } from "./utils/Types";
 import { DEFAULT_ECDSA_OWNERSHIP_MODULE, ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION } from "./utils/Constants";
 import { BaseValidationModule } from "./BaseValidationModule";
+import { convertSigner } from "@biconomy/common";
 
 // Could be renamed with suffix API
 export class ECDSAOwnershipValidationModule extends BaseValidationModule {
-  signer!: SmartAccountSigner;
+  signer: SmartAccountSigner;
 
   moduleAddress!: Hex;
 
   version: ModuleVersion = "V1_0_0";
 
-  private constructor(moduleConfig: ECDSAOwnershipValidationModuleConfig) {
+  private constructor(moduleConfig: ECDSAOwnershipValidationModuleConfigConstructorProps) {
     super(moduleConfig);
+    this.signer = moduleConfig.signer;
   }
 
   public static async create(moduleConfig: ECDSAOwnershipValidationModuleConfig): Promise<ECDSAOwnershipValidationModule> {
-    const instance = new ECDSAOwnershipValidationModule(moduleConfig);
+    // Signer needs to be initialised here before defaultValidationModule is set
+    const { signer } = await convertSigner(moduleConfig.signer, true);
+    const configForConstructor: ECDSAOwnershipValidationModuleConfigConstructorProps = { ...moduleConfig, signer };
+
+    // TODO: (Joe) stop doing things in a 'create' call after the instance has been created
+    const instance = new ECDSAOwnershipValidationModule(configForConstructor);
     if (moduleConfig.moduleAddress) {
       instance.moduleAddress = moduleConfig.moduleAddress;
     } else if (moduleConfig.version) {
@@ -31,7 +38,6 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
       instance.moduleAddress = DEFAULT_ECDSA_OWNERSHIP_MODULE;
       // Note: in this case Version remains the default one
     }
-    instance.signer = moduleConfig.signer;
     return instance;
   }
 

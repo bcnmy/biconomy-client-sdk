@@ -1,6 +1,7 @@
-import { EthersSigner, SmartAccountSigner, SupportedSigner } from "../..";
+import { EthersSigner } from "../EthersSigner";
+import { SupportedSigner } from "../Types";
 import { WalletClient } from "viem";
-import { WalletClientSigner } from "@alchemy/aa-core";
+import { WalletClientSigner, SmartAccountSigner } from "@alchemy/aa-core";
 import { UNIQUE_PROPERTIES_PER_SIGNER } from "../Constants";
 import { Signer } from "@ethersproject/abstract-signer";
 
@@ -9,7 +10,7 @@ interface SmartAccountResult {
   chainId: number | undefined;
 }
 
-export const getSmartWalletClientSigner = async (signer: SupportedSigner): Promise<SmartAccountResult> => {
+export const convertSigner = async (signer: SupportedSigner, skipChainIdCalls: boolean = false): Promise<SmartAccountResult> => {
   let resolvedSmartAccountSigner: SmartAccountSigner;
   let chainId: number | undefined;
   const isAnAlchemySigner = UNIQUE_PROPERTIES_PER_SIGNER.alchemy in signer;
@@ -19,7 +20,7 @@ export const getSmartWalletClientSigner = async (signer: SupportedSigner): Promi
   if (!isAnAlchemySigner) {
     if (isAnEthersSigner) {
       const ethersSigner = signer as Signer;
-      if (!chainId) {
+      if (!skipChainIdCalls) {
         // If chainId not provided, get it from walletClient
         if (!ethersSigner.provider) {
           throw new Error("Cannot consume an ethers Wallet without a provider");
@@ -37,7 +38,7 @@ export const getSmartWalletClientSigner = async (signer: SupportedSigner): Promi
       if (!walletClient.account) {
         throw new Error("Cannot consume a viem wallet without an account");
       }
-      if (!chainId) {
+      if (!skipChainIdCalls) {
         // If chainId not provided, get it from walletClient
         if (!walletClient.chain) {
           throw new Error("Cannot consume a viem wallet without a chainId");

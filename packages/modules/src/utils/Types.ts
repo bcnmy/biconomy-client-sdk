@@ -2,7 +2,7 @@ import { Chain, Hex } from "viem";
 import { UserOperationStruct, SmartAccountSigner } from "@alchemy/aa-core";
 import { SessionKeyManagerModule } from "../SessionKeyManagerModule";
 import { ISessionStorage } from "../interfaces/ISessionStorage";
-
+import { SupportedSigner } from "@biconomy/common";
 export type ModuleVersion = "V1_0_0"; // | 'V1_0_1'
 
 export interface BaseValidationModuleConfig {
@@ -10,6 +10,12 @@ export interface BaseValidationModuleConfig {
 }
 
 export interface ECDSAOwnershipValidationModuleConfig extends BaseValidationModuleConfig {
+  moduleAddress?: Hex;
+  version?: ModuleVersion;
+  signer: SupportedSigner;
+}
+
+export interface ECDSAOwnershipValidationModuleConfigConstructorProps extends BaseValidationModuleConfig {
   moduleAddress?: Hex;
   version?: ModuleVersion;
   signer: SmartAccountSigner;
@@ -88,6 +94,11 @@ export interface CreateSessionDataParams {
 }
 
 export interface MultiChainValidationModuleConfig extends BaseValidationModuleConfig {
+  moduleAddress?: Hex;
+  version?: ModuleVersion;
+  signer: SupportedSigner;
+}
+export interface MultiChainValidationModuleConfigConstructorProps extends BaseValidationModuleConfig {
   moduleAddress?: Hex;
   version?: ModuleVersion;
   signer: SmartAccountSigner;
