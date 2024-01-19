@@ -7,7 +7,14 @@ export * from "./BiconomySmartAccountV2";
 export * from "./provider";
 
 export { WalletClientSigner, LocalAccountSigner, SmartAccountSigner } from "@alchemy/aa-core";
-export { BiconomyPaymaster as Paymaster, IPaymaster, PaymasterMode } from "@biconomy/paymaster";
+export {
+  BiconomyPaymaster as Paymaster,
+  IPaymaster,
+  PaymasterMode,
+  IHybridPaymaster,
+  PaymasterFeeQuote,
+  SponsorUserOperationDto,
+} from "@biconomy/paymaster";
 export { EthersSigner, convertSigner } from "@biconomy/common";
 export { Bundler, IBundler } from "@biconomy/bundler";
 
