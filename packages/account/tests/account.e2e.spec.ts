@@ -136,7 +136,7 @@ describe("Account Tests", () => {
     const maticBalanceBefore = await checkBalance(publicClient, await smartWallet.getAddress());
     const usdcBalanceBefore = await checkBalance(publicClient, await smartWallet.getAddress(), "0xda5289fcaaf71d52a80a254da614a192b693e977");
 
-    const userOp = await smartWallet.buildUserOp([transaction]);
+    let userOp = await smartWallet.buildUserOp([transaction]);
 
     const feeQuotesResponse: FeeQuotesOrDataResponse = await (
       smartWallet.paymaster as IHybridPaymaster<PaymasterUserOperationDto>
@@ -150,22 +150,11 @@ describe("Account Tests", () => {
     const spender = feeQuotesResponse.tokenPaymasterAddress as Hex;
     const selectedFeeQuote = feeQuotes[0];
 
-    // userOp = await smartWallet.buildUserOp([transaction], {
-    //   paymasterServiceData: { mode: PaymasterMode.ERC20, feeQuote: selectedFeeQuote, spender },
-    // });
+    userOp = await smartWallet.setPaymasterUserOp(userOp, { mode: PaymasterMode.ERC20, feeQuote: selectedFeeQuote, spender, maxApproval: true });
 
-    // const response = await smartWallet.sendUserOp(userOp);
+    const response = await smartWallet.sendUserOp(userOp);
 
-    const response = await smartWallet.sendTransaction(transaction, {
-      paymasterServiceData: {
-        mode: PaymasterMode.ERC20,
-        feeQuote: selectedFeeQuote,
-        spender,
-        maxApproval: true,
-      },
-    });
-
-    const userOpReceipt = await response.wait(3);
+    const userOpReceipt = await response.wait();
     expect(userOpReceipt.userOpHash).toBeTruthy();
     expect(userOpReceipt.success).toBe("true");
 
