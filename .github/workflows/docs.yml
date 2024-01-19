@@ -1,9 +1,10 @@
 name: Build and Deploy Documentation
 on:
-    push:
-      branches:
-        - feature/SMA-526_add-tsdoc
-  
+  push:
+    branches:
+      - feature/SMA-526_add-tsdoc
+      - master
+
 permissions:
   contents: write
 jobs:
