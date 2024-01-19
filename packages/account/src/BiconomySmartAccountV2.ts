@@ -546,12 +546,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
           return userOp;
         }
       } catch (e: any) {
-        Logger.error("Error while fetching paymaster data", e);
-        return userOp;
+        throw new Error("Error while fetching paymaster data");
       }
     } else {
-      Logger.error("Paymaster is not provided");
-      return userOp;
+      throw new Error("Paymaster is not provided");
     }
   }
 
