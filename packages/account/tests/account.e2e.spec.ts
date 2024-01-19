@@ -87,7 +87,7 @@ describe("Account Tests", () => {
 
     const balance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
 
-    const maticBalanceBefore = publicClient.getBalance({ address: await smartWallet.getAddress() });
+    const maticBalanceBefore = await checkBalance(publicClient, await smartWallet.getAddress());
 
     const response = await smartWallet.sendTransaction(transaction, { paymasterServiceData: { mode: PaymasterMode.SPONSORED } });
 
@@ -95,9 +95,9 @@ describe("Account Tests", () => {
     expect(userOpReceipt.userOpHash).toBeTruthy();
     expect(userOpReceipt.success).toBe("true");
 
-    const maticBalanceAfter = publicClient.getBalance({ address: await smartWallet.getAddress() });
+    const maticBalanceAfter = await checkBalance(publicClient, await smartWallet.getAddress());
 
-    expect((await maticBalanceAfter).toString()).toEqual((await maticBalanceBefore).toString());
+    expect(maticBalanceAfter).toEqual(maticBalanceBefore);
 
     const newBalance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
 
