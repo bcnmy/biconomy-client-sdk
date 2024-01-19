@@ -559,7 +559,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @param userOp
    * @param params
-   * @description This function call will setup paymaster values (if paymaster is used), take 'unsignedUserOp' as an input, sign it with the owner key, and send it to the bundler.
+   * @description This function will take a user op as an input, sign it with the owner key, and send it to the bundler.
    * @returns Promise<UserOpResponse>
    */
   async sendUserOp(userOp: Partial<UserOperationStruct>, params?: SendUserOpParams): Promise<UserOpResponse> {
