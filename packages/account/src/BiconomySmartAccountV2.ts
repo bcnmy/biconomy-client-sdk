@@ -860,9 +860,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return tx;
   }
 
-  async isModuleEnabled(moduleName: Hex): Promise<boolean> {
+  async isModuleEnabled(moduleAddress: Hex): Promise<boolean> {
     const accountContract = await this._getAccountContract();
-    return accountContract.read.isModuleEnabled([moduleName]);
+    return accountContract.read.isModuleEnabled([moduleAddress]);
   }
 
   // Review
