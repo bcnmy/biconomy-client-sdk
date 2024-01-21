@@ -140,15 +140,37 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   /**
-   * Creates a new instance of BiconomySmartAccountV2.
+   * Creates a new instance of BiconomySmartAccountV2
    *
-   * This method will create a BiconomySmartAccountV2 instance but will not deploy the Smart Account.
-   *
+   * This method will create a BiconomySmartAccountV2 instance but will not deploy the Smart Account
    * Deployment of the Smart Account will be donewith the first user operation.
+   *
+   * - Docs: https://docs.biconomy.io/Account/integration#integration-1
    *
    * @param biconomySmartAccountConfig - Configuration for initializing the BiconomySmartAccountV2 instance.
    * @returns A promise that resolves to a new instance of BiconomySmartAccountV2.
    * @throws An error if something is wrong with the smart account instance creation.
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartWalletClient, BiconomySmartAccountV2 } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonMumbai } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonMumbai,
+   *   transport: http(),
+   * });
+   *
+   * const bundlerUrl = "" // Retrieve bundler url from dasboard
+   *
+   * const smartWalletFromStaticCreate = await BiconomySmartAccountV2.create({ signer, bundlerUrl });
+   *
+   * // Is the same as...
+   *
+   * const smartWallet = await createSmartWalletClient({ signer, bundlerUrl });
+   *
    */
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
     let chainId = biconomySmartAccountConfig.chainId;
@@ -500,11 +522,43 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   /**
+   * Sends a user operation
    *
-   * @param userOp
-   * @param params
-   * @description This function call will take 'unsignedUserOp' as an input, sign it with the owner key, and send it to the bundler.
-   * @returns Promise<UserOpResponse>
+   * - Docs: https://docs.biconomy.io/Account/transactions/userpaid#send-useroperation
+   *
+   * @param userOp Partial<{@link UserOperationStruct}> the userOp params to be sent.
+   * @param params {@link SendUserOpParams}.
+   * @returns Promise<{@link UserOpResponse}> that you can use to track user operation.
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartWalletClient } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonMumbai } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonMumbai,
+   *   transport: http(),
+   * });
+   *
+   * const smartWallet = await createSmartWalletClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const encodedCall = encodeFunctionData({
+   *   abi: parseAbi(["function safeMint(address to) public"]),
+   *   functionName: "safeMint",
+   *   args: ["0x..."],
+   * });
+   *
+   * const transaction = {
+   *   to: nftAddress,
+   *   data: encodedCall
+   * }
+   *
+   * const userOp = await smartWallet.buildUserOp([transaction]);
+   *
+   * const { wait } = await smartWallet.sendUserOp(userOp);
+   * const { receipt } = await wait();
+   *
    */
   async sendUserOp(userOp: Partial<UserOperationStruct>, params?: SendUserOpParams): Promise<UserOpResponse> {
     delete userOp.signature;
@@ -636,15 +690,83 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   /**
-   * @param manyOrOneTransactions list of transactions, or single transaction for execution
-   * @param buildUseropDto options for building the userOp
-   * @returns Promise<UserOpResponse>
+   * Sends a transaction (builds and sends a user op in sequence)
+   *
+   * - Docs: https://docs.biconomy.io/Account/transactions/userpaid#send-transaction
+   *
+   * @param manyOrOneTransactions Array of {@link Transaction} to be batched and sent. Can also be a single {@link Transaction}.
+   * @param buildUseropDto {@link BuildUserOpOptions}.
+   * @returns Promise<{@link UserOpResponse}> that you can use to track user operation.
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartWalletClient } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonMumbai } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonMumbai,
+   *   transport: http(),
+   * });
+   *
+   * const smartWallet = await createSmartWalletClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const encodedCall = encodeFunctionData({
+   *   abi: parseAbi(["function safeMint(address to) public"]),
+   *   functionName: "safeMint",
+   *   args: ["0x..."],
+   * });
+   *
+   * const transaction = {
+   *   to: nftAddress,
+   *   data: encodedCall
+   * }
+   *
+   * const { waitForTxHash } = await smartWallet.sendTransaction(transaction);
+   * const { transactionHash, userOperationReceipt } = await wait();
+   *
    */
   async sendTransaction(manyOrOneTransactions: Transaction | Transaction[], buildUseropDto?: BuildUserOpOptions) {
     const userOp = await this.buildUserOp(Array.isArray(manyOrOneTransactions) ? manyOrOneTransactions : [manyOrOneTransactions], buildUseropDto);
     return this.sendUserOp(userOp);
   }
 
+  /**
+   * Builds a user operation
+   *
+   * - Docs: https://docs.biconomy.io/Account/transactions/userpaid#build-useroperation
+   *
+   * @param transactions Array of {@link Transaction} to be sent.
+   * @param buildUseropDto {@link BuildUserOpOptions}.
+   * @returns Promise<Partial{@link UserOperationStruct}>> the built user operation to be sent.
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartWalletClient } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonMumbai } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonMumbai,
+   *   transport: http(),
+   * });
+   *
+   * const smartWallet = await createSmartWalletClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const encodedCall = encodeFunctionData({
+   *   abi: parseAbi(["function safeMint(address to) public"]),
+   *   functionName: "safeMint",
+   *   args: ["0x..."],
+   * });
+   *
+   * const transaction = {
+   *   to: nftAddress,
+   *   data: encodedCall
+   * }
+   *
+   * const userOp = await smartWallet.buildUserOp([{ to: "0x...", data: encodedCall }]);
+   *
+   */
   async buildUserOp(transactions: Transaction[], buildUseropDto?: BuildUserOpOptions): Promise<Partial<UserOperationStruct>> {
     const to = transactions.map((element: Transaction) => element.to as Hex);
     const data = transactions.map((element: Transaction) => (element.data as Hex) ?? "0x");
