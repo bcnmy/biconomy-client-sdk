@@ -15,7 +15,7 @@ export {
   SponsorUserOperationDto,
 } from "@biconomy/paymaster";
 export { EthersSigner, convertSigner } from "@biconomy/common";
-export { Bundler, IBundler } from "@biconomy/bundler";
+export { Bundler, IBundler, extractChainIdFromBundlerUrl, UserOpResponse } from "@biconomy/bundler";
 
 export const createSmartWalletClient = BiconomySmartAccountV2.create;
 
