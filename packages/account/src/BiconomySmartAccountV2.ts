@@ -27,9 +27,18 @@ import {
   SmartAccountSigner,
 } from "@alchemy/aa-core";
 import { isNullOrUndefined, packUserOp } from "./utils/Utils";
-import { Bundler, IBundler, UserOpResponse, extractChainIdFromBundlerUrl } from "@biconomy/bundler";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, ECDSAOwnershipValidationModule } from "@biconomy/modules";
-import { IHybridPaymaster, IPaymaster, Paymaster, PaymasterMode, SponsorUserOperationDto } from "../src/index";
+import {
+  IHybridPaymaster,
+  IPaymaster,
+  Paymaster,
+  PaymasterMode,
+  SponsorUserOperationDto,
+  Bundler,
+  IBundler,
+  UserOpResponse,
+  extractChainIdFromBundlerUrl,
+} from "../src/index";
 import {
   BiconomyTokenPaymasterRequest,
   BiconomySmartAccountV2Config,
