@@ -74,3 +74,6 @@ packages/modules/tests/utils/sessionStorageData/*
 typechain
 
 openapi/
+
+# docs
+packages/account/docs/*
