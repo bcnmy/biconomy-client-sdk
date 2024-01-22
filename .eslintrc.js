@@ -26,6 +26,8 @@ module.exports = {
     "import/extensions": "off",
     "security/detect-object-injection": "off", // turning off Injection Sink rule
     "@typescript-eslint/no-throw-literal": "off", // temp deactivated needs to be removed once fixed
+    "@typescript-eslint/ban-ts-ignore": "off",
+    "@typescript-eslint/ban-ts-comment": "off",
   },
   settings: {},
   overrides: [

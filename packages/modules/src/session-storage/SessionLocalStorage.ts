@@ -3,7 +3,7 @@ import { SmartAccountSigner, WalletClientSigner } from "@alchemy/aa-core";
 import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "../interfaces/ISessionStorage";
 import { mainnet } from "viem/chains";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { SignerData } from "utils/Types";
+import { SignerData } from "../utils/Types";
 
 export class SessionLocalStorage implements ISessionStorage {
   private smartAccountAddress: string;
@@ -23,11 +23,13 @@ export class SessionLocalStorage implements ISessionStorage {
   }
 
   private getSessionStore(): any {
+    // @ts-ignore: LocalStorage is not available in node
     const data = localStorage.getItem(this.getStorageKey("sessions"));
     return data ? JSON.parse(data) : { merkleRoot: "", leafNodes: [] };
   }
 
   private getSignerStore(): any {
+    // @ts-ignore: LocalStorage is not available in node
     const data = localStorage.getItem(this.getStorageKey("signers"));
     return data ? JSON.parse(data) : {};
   }
@@ -45,6 +47,7 @@ export class SessionLocalStorage implements ISessionStorage {
     leaf.sessionValidationModule = this.toLowercaseAddress(leaf.sessionValidationModule) as Hex;
     leaf.sessionPublicKey = this.toLowercaseAddress(leaf.sessionPublicKey) as Hex;
     data.leafNodes.push(leaf);
+    // @ts-ignore: LocalStorage is not available in node
     localStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data));
   }
 
@@ -94,12 +97,14 @@ export class SessionLocalStorage implements ISessionStorage {
     }
 
     session.status = status;
+    // @ts-ignore: LocalStorage is not available in node
     localStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data));
   }
 
   async clearPendingSessions(): Promise<void> {
     const data = this.getSessionStore();
     data.leafNodes = data.leafNodes.filter((s: SessionLeafNode) => s.status !== "PENDING");
+    // @ts-ignore: LocalStorage is not available in node
     localStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data));
   }
 
@@ -126,6 +131,7 @@ export class SessionLocalStorage implements ISessionStorage {
       "json-rpc", // signerType
     );
     signers[this.toLowercaseAddress(accountSigner.address)] = signerData;
+    // @ts-ignore: LocalStorage is not available in node
     localStorage.setItem(this.getStorageKey("signers"), JSON.stringify(signers));
     return walletClientSigner;
   }
@@ -166,6 +172,7 @@ export class SessionLocalStorage implements ISessionStorage {
   setMerkleRoot(merkleRoot: string): Promise<void> {
     const data = this.getSessionStore();
     data.merkleRoot = merkleRoot;
+    // @ts-ignore: LocalStorage is not available in node
     localStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data));
     return Promise.resolve();
   }

@@ -42,6 +42,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @returns A Promise that resolves to an instance of SessionKeyManagerModule
    */
   public static async create(moduleConfig: SessionKeyManagerModuleConfig): Promise<SessionKeyManagerModule> {
+    // TODO: (Joe) stop doing things in a 'create' call after the instance has been created
     const instance = new SessionKeyManagerModule(moduleConfig);
 
     if (moduleConfig.moduleAddress) {

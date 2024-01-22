@@ -3,7 +3,7 @@ import { IBundler } from "@biconomy/bundler";
 import { IPaymaster, PaymasterFeeQuote, PaymasterMode, SmartAccountData, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { Hex, WalletClient } from "viem";
-import { Signer } from "@ethersproject/abstract-signer";
+import { SupportedSigner } from "@biconomy/common";
 
 export type EntryPointAddresses = {
   [address: string]: string;
@@ -101,7 +101,7 @@ type ResolvedBundlerProps = {
 type ConditionalValidationProps = RequireAtLeastOne<
   {
     defaultValidationModule: BaseValidationModule;
-    signer: SmartAccountSigner | WalletClient | Signer;
+    signer: SupportedSigner;
   },
   "defaultValidationModule" | "signer"
 >;
