@@ -20,7 +20,7 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
 
   public static async create(moduleConfig: ECDSAOwnershipValidationModuleConfig): Promise<ECDSAOwnershipValidationModule> {
     // Signer needs to be initialised here before defaultValidationModule is set
-    const { signer } = await convertSigner(moduleConfig.signer, true);
+    const { signer } = await convertSigner(moduleConfig.signer);
     const configForConstructor: ECDSAOwnershipValidationModuleConfigConstructorProps = { ...moduleConfig, signer };
 
     // TODO: (Joe) stop doing things in a 'create' call after the instance has been created
