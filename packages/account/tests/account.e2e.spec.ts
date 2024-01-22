@@ -3,7 +3,7 @@ import { PaymasterUserOperationDto, createSmartWalletClient } from "../src/index
 import { Hex, encodeFunctionData, parseAbi } from "viem";
 import { UserOperationStruct } from "@alchemy/aa-core";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
-import { FeeQuotesOrDataResponse, IHybridPaymaster, PaymasterFeeQuote, PaymasterMode } from "@biconomy/paymaster";
+import { FeeQuotesOrDataResponse, IHybridPaymaster, PaymasterFeeQuote, PaymasterMode } from "@biconomy-devx/paymaster";
 
 describe("Account Tests", () => {
   let mumbai: TestData;

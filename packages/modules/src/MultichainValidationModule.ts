@@ -11,7 +11,7 @@ import {
 import { BaseValidationModule } from "./BaseValidationModule";
 import { getUserOpHash } from "./utils/Helper";
 import { Logger } from "./utils/Logger";
-import { convertSigner } from "@biconomy/common";
+import { convertSigner } from "@biconomy-devx/common";
 
 export class MultiChainValidationModule extends BaseValidationModule {
   signer: SmartAccountSigner;

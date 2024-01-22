@@ -1,8 +1,8 @@
-import { BiconomyPaymaster, PaymasterMode } from "@biconomy/paymaster";
+import { BiconomyPaymaster, PaymasterMode } from "@biconomy-devx/paymaster";
 import { TestData } from "../../../tests";
 import { createSmartWalletClient } from "../../account/src/index";
 import { Hex, encodeFunctionData, parseAbi } from "viem";
-import { DEFAULT_MULTICHAIN_MODULE, MultiChainValidationModule } from "@biconomy/modules";
+import { DEFAULT_MULTICHAIN_MODULE, MultiChainValidationModule } from "@biconomy-devx/modules";
 
 describe("Account with MultiChainValidation Module Tests", () => {
   let mumbai: TestData;

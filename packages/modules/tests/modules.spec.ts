@@ -1,5 +1,5 @@
 import { TestData } from "../../../tests";
-import { createSmartWalletClient } from "@biconomy/account";
+import { createSmartWalletClient } from "@biconomy-devx/account";
 import { createECDSAOwnershipValidationModule, createMultiChainValidationModule } from "../src";
 
 describe("Account Tests", () => {

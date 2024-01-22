@@ -27,7 +27,7 @@ import {
   SmartAccountSigner,
 } from "@alchemy/aa-core";
 import { isNullOrUndefined, packUserOp } from "./utils/Utils";
-import { BaseValidationModule, ModuleInfo, SendUserOpParams, ECDSAOwnershipValidationModule } from "@biconomy/modules";
+import { BaseValidationModule, ModuleInfo, SendUserOpParams, ECDSAOwnershipValidationModule } from "@biconomy-devx/modules";
 import {
   IHybridPaymaster,
   IPaymaster,
@@ -159,7 +159,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @example
    * import { createClient } from "viem"
-   * import { createSmartWalletClient, BiconomySmartAccountV2 } from "@biconomy/account"
+   * import { createSmartWalletClient, BiconomySmartAccountV2 } from "@biconomy-devx/account"
    * import { createWalletClient, http } from "viem";
    * import { polygonMumbai } from "viem/chains";
    *
@@ -562,7 +562,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @example
    * import { createClient } from "viem"
-   * import { createSmartWalletClient } from "@biconomy/account"
+   * import { createSmartWalletClient } from "@biconomy-devx/account"
    * import { createWalletClient, http } from "viem";
    * import { polygonMumbai } from "viem/chains";
    *
@@ -732,7 +732,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @example
    * import { createClient } from "viem"
-   * import { createSmartWalletClient } from "@biconomy/account"
+   * import { createSmartWalletClient } from "@biconomy-devx/account"
    * import { createWalletClient, http } from "viem";
    * import { polygonMumbai } from "viem/chains";
    *
@@ -774,7 +774,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @example
    * import { createClient } from "viem"
-   * import { createSmartWalletClient } from "@biconomy/account"
+   * import { createSmartWalletClient } from "@biconomy-devx/account"
    * import { createWalletClient, http } from "viem";
    * import { polygonMumbai } from "viem/chains";
    *

@@ -1,9 +1,9 @@
-import { DEFAULT_SESSION_KEY_MANAGER_MODULE, SessionKeyManagerModule } from "@biconomy/modules";
-import { SessionFileStorage } from "@biconomy/modules/tests/utils/customSession";
+import { DEFAULT_SESSION_KEY_MANAGER_MODULE, SessionKeyManagerModule } from "@biconomy-devx/modules";
+import { SessionFileStorage } from "@biconomy-devx/modules/tests/utils/customSession";
 import { PaymasterUserOperationDto, WalletClientSigner, createSmartWalletClient } from "../../account/src/index";
 import { Hex, encodeAbiParameters, encodeFunctionData, parseAbi, parseUnits } from "viem";
 import { TestData } from "../../../tests";
-import { FeeQuotesOrDataResponse, IHybridPaymaster, PaymasterMode } from "@biconomy/paymaster";
+import { FeeQuotesOrDataResponse, IHybridPaymaster, PaymasterMode } from "@biconomy-devx/paymaster";
 import { checkBalance } from "../../../tests/utils";
 
 describe("Account Tests", () => {
