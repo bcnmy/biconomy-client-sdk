@@ -61,7 +61,6 @@ describe("Account with MultiChainValidation Module Tests", () => {
     const transaction = {
       to: nftAddress,
       data: encodedCall,
-      value: 0,
     };
 
     const [partialUserOp1, partialUserOp2] = await Promise.all([

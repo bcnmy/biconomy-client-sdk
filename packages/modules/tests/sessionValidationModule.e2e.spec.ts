@@ -80,7 +80,6 @@ describe("Account Tests", () => {
       const setSessionAllowedTrx = {
         to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
         data: sessionTxData.data,
-        value: 0,
       };
 
       const txArray: any = [];
@@ -114,7 +113,6 @@ describe("Account Tests", () => {
       const transferTx = {
         to: "0xdA5289fCAAF71d52a80A254da614a192b693e977", //erc20 token address
         data: encodedCall,
-        value: 0,
       };
 
       smartWallet = smartWallet.setActiveValidationModule(sessionModule);

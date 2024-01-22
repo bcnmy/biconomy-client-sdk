@@ -82,7 +82,6 @@ describe("Account Tests", () => {
     const transaction = {
       to: nftAddress, // NFT address
       data: encodedCall,
-      value: 0,
     };
 
     const balance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
@@ -128,7 +127,6 @@ describe("Account Tests", () => {
     const transaction = {
       to: nftAddress, // NFT address
       data: encodedCall,
-      value: 0,
     };
 
     const balance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
