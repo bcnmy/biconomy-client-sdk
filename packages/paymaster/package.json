@@ -42,7 +42,8 @@
   },
   "dependencies": {
     "@alchemy/aa-core": "^1.2.2",
-    "viem": "^1.20.3"
+    "viem": "^1.20.3",
+    "@biconomy/common": "^3.1.2"
   },
   "devDependencies": {
     "esbuild": "^0.19.11",

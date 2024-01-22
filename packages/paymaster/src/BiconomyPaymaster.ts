@@ -15,9 +15,8 @@ import {
 } from "./utils/Types";
 import { IHybridPaymaster } from "./interfaces/IHybridPaymaster";
 import { MAX_UINT256, ERC20_ABI, ADDRESS_ZERO } from "./utils/Constants";
-import { sendRequest, HttpMethod } from "./utils/HttpRequests";
+import { sendRequest, HttpMethod, Logger } from "@biconomy/common";
 import { getTimestampInSeconds } from "./utils/Helpers";
-import { Logger } from "./utils/Logger";
 
 const defaultPaymasterConfig: PaymasterConfig = {
   paymasterUrl: "",
