@@ -18,14 +18,10 @@ import {
   getContract,
   decodeFunctionData,
 } from "viem";
-import {
-  BaseSmartContractAccount,
-  getChain,
-  type BigNumberish,
-  type UserOperationStruct,
-  BatchUserOperationCallData,
-  SmartAccountSigner,
-} from "@alchemy/aa-core";
+import { BaseSmartContractAccount } from "./account/base";
+import { SmartAccountSigner } from "./signer/types";
+import { getChain } from "./utils/alchemy";
+import type { BigNumberish, UserOperationStruct, BatchUserOperationCallData } from "./types";
 import { isNullOrUndefined, packUserOp } from "./utils/Utils";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import {
