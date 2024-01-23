@@ -26,7 +26,7 @@ export class MultiChainValidationModule extends BaseValidationModule {
 
   public static async create(moduleConfig: MultiChainValidationModuleConfig): Promise<MultiChainValidationModule> {
     // Signer needs to be initialised here before defaultValidationModule is set
-    const { signer } = convertSigner(moduleConfig.signer);
+    const { signer } = await convertSigner(moduleConfig.signer, true);
     const configForConstructor: MultiChainValidationModuleConfigConstructorProps = { ...moduleConfig, signer };
 
     // TODO: (Joe) stop doing things in a 'create' call after the instance has been created

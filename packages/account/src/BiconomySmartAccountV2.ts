@@ -185,7 +185,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     // Signer needs to be initialised here before defaultValidationModule is set
     if (biconomySmartAccountConfig.signer) {
-      const signerResult = convertSigner(biconomySmartAccountConfig.signer);
+      const signerResult = await convertSigner(biconomySmartAccountConfig.signer, !!chainId);
+      if (!chainId && !!signerResult.chainId) {
+        chainId = signerResult.chainId;
+      }
       if (!rpcUrl && !!signerResult.rpcUrl) {
         rpcUrl = signerResult.rpcUrl;
       }
