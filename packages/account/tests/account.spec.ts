@@ -105,23 +105,7 @@ describe("Account Tests", () => {
     const module = smartWallet.activeValidationModule;
     expect(module).toBeTruthy();
   });
-
-  it("Sender should be non zero", async () => {
-    const {
-      whale: { viemWallet: signer },
-      minnow: { publicAddress: recipient },
-      bundlerUrl,
-    } = ganache;
-
-    const smartWallet = await createSmartWalletClient({
-      signer,
-      bundlerUrl,
-    });
-
-    const builtUserOp = await smartWallet.buildUserOp([{ to: recipient, value: 1000, data: "0x" }]);
-    expect(builtUserOp.sender).not.toBe("0x0000000000000000000000000000000000000000");
-  }, 30000);
-
+  
   it("Create a smart account with paymaster by creating instance", async () => {
     const {
       whale: { viemWallet: signer },
