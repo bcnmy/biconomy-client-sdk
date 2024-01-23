@@ -7,12 +7,12 @@ import { Signer } from "@ethersproject/abstract-signer";
 
 interface SmartAccountResult {
   signer: SmartAccountSigner;
-  rpcUrl: string | undefined;
+  rpcUrl: string | null;
 }
 
-export const convertSigner = async (signer: SupportedSigner): Promise<SmartAccountResult> => {
+export const convertSigner = (signer: SupportedSigner): SmartAccountResult => {
   let resolvedSmartAccountSigner: SmartAccountSigner;
-  let rpcUrl: string | undefined;
+  let rpcUrl: string | null = null;
   const isAnAlchemySigner = UNIQUE_PROPERTIES_PER_SIGNER.alchemy in signer;
   const isAnEthersSigner = UNIQUE_PROPERTIES_PER_SIGNER.ethers in signer;
   const isAViemSigner = UNIQUE_PROPERTIES_PER_SIGNER.viem in signer;
@@ -23,7 +23,8 @@ export const convertSigner = async (signer: SupportedSigner): Promise<SmartAccou
       // convert ethers Wallet to alchemy's SmartAccountSigner under the hood
       resolvedSmartAccountSigner = new EthersSigner(ethersSigner, "ethers");
       // @ts-ignore
-      rpcUrl = ethersSigner.provider?.connection?.url;
+      rpcUrl = ethersSigner.provider?.connection?.url ?? null;
+      console.log({ rpcUrl });
     } else if (isAViemSigner) {
       const walletClient = signer as WalletClient;
       if (!walletClient.account) {
@@ -31,7 +32,8 @@ export const convertSigner = async (signer: SupportedSigner): Promise<SmartAccou
       }
       // convert viems walletClient to alchemy's SmartAccountSigner under the hood
       resolvedSmartAccountSigner = new WalletClientSigner(walletClient, "viem");
-      rpcUrl = walletClient?.transport?.url;
+      rpcUrl = walletClient?.transport?.url ?? null;
+      console.log({ rpcUrl });
     } else {
       throw new Error("Unsupported signer");
     }
