@@ -63,7 +63,7 @@ import {
 import { BiconomyFactoryAbi } from "./abi/Factory";
 import { BiconomyAccountAbi } from "./abi/SmartAccount";
 import { AccountResolverAbi } from "./abi/AccountResolver";
-import { Logger } from "./utils/Logger";
+import { Logger } from "@biconomy/common";
 import { convertSigner } from "./";
 
 type UserOperationKey = keyof UserOperationStruct;
