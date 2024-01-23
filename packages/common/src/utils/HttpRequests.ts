@@ -7,7 +7,7 @@ export enum HttpMethod {
 }
 
 /* eslint-disable  @typescript-eslint/no-explicit-any */
-interface HttpRequest {
+export interface HttpRequest {
   url: string;
   method: HttpMethod;
   body?: Record<string, any>;
@@ -26,12 +26,13 @@ export async function sendRequest<T>({ url, method, body }: HttpRequest): Promis
   let jsonResponse;
   try {
     jsonResponse = await response.json();
-    Logger.log("Bundler RPC Response", jsonResponse);
+    Logger.log("Paymaster RPC Response", jsonResponse);
   } catch (error) {
     if (!response.ok) {
       throw new Error(response.statusText);
     }
   }
+
   if (response.ok) {
     return jsonResponse as T;
   }

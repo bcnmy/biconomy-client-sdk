@@ -26,7 +26,7 @@ import {
   UserOpReceiptMaxDurationIntervals,
   DEFAULT_ENTRYPOINT_ADDRESS,
 } from "./utils/Constants";
-import { sendRequest, HttpMethod } from "./utils/HttpRequests";
+import { sendRequest, HttpMethod } from "@biconomy/common";
 import { extractChainIdFromBundlerUrl } from "utils/Utils";
 
 /**
