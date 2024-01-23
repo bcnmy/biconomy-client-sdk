@@ -54,6 +54,7 @@ import type {
   SmartAccountProviderConfig,
   UpgradeToData,
 } from "./types";
+import { Logger } from "../utils/Logger";
 
 export const noOpMiddleware: AccountMiddlewareFn = async (
   struct: Deferrable<UserOperationStruct>,

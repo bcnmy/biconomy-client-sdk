@@ -12,7 +12,7 @@ import {
 } from "viem";
 import { EntryPointAbi } from "../abi/EntryPointAbi";
 import { createPublicErc4337Client } from "../client/create-client";
-import { Logger } from "utils/Logger";
+import { Logger } from "../utils/Logger";
 import type { PublicErc4337Client, SupportedTransports } from "../client/types";
 import type { SmartAccountSigner } from "../signer/types";
 import { wrapSignatureWith6492 } from "../signer/utils";

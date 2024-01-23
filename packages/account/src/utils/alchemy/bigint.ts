@@ -78,11 +78,6 @@ export const bigIntPercent = (base: BigNumberish, percent: bigint) => {
  * example:
  * ```
  * const salt = stringToIndex("alice@example.com");
- *
- * export const account = new SimpleSmartContractAccount({
- *   index: salt,
- *   // other args omitted...
- * });
  * ```
  *
  * @param phrase -- any string value.
