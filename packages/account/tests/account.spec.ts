@@ -3,6 +3,8 @@ import { createWalletClient, http } from "viem";
 import { localhost } from "viem/chains";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { TestData } from "../../../tests";
+import { JsonRpcProvider } from "@ethersproject/providers";
+import { Wallet } from "@ethersproject/wallet";
 
 describe("Account Tests", () => {
   let ganache: TestData;
@@ -38,6 +40,78 @@ describe("Account Tests", () => {
     });
     const address = await smartWallet.getAccountAddress();
     expect(address).toBeTruthy();
+  });
+
+  it("should pickup the rpcUrl from viem wallet and ethers", async () => {
+    const {
+      chainId,
+      bundlerUrl,
+      viemChain,
+      whale: { privateKey, viemWallet: originalViemSigner, ethersSigner: originalEthersSigner },
+    } = ganache;
+
+    const newRpcUrl = "http://localhost:8545";
+    const defaultRpcUrl = viemChain.rpcUrls.public.http[0]; //http://127.0.0.1:8545"
+
+    const ethersProvider = new JsonRpcProvider(newRpcUrl);
+    const ethersSignerWithNewRpcUrl = new Wallet(privateKey, ethersProvider);
+
+    const accountOne = privateKeyToAccount(privateKey);
+    const walletClientWithNewRpcUrl = createWalletClient({
+      account: accountOne,
+      chain: viemChain,
+      transport: http(newRpcUrl),
+    });
+
+    const [smartWalletFromEthersWithNewRpc, smartWalletFromViemWithNewRpc, smartWalletFromEthersWithOldRpc, smartWalletFromViemWithOldRpc] =
+      await Promise.all([
+        createSmartWalletClient({
+          chainId,
+          signer: ethersSignerWithNewRpcUrl,
+          bundlerUrl,
+        }),
+        createSmartWalletClient({
+          chainId,
+          signer: walletClientWithNewRpcUrl,
+          bundlerUrl,
+        }),
+        createSmartWalletClient({
+          chainId,
+          signer: originalEthersSigner,
+          bundlerUrl,
+        }),
+        createSmartWalletClient({
+          chainId,
+          signer: originalViemSigner,
+          bundlerUrl,
+        }),
+      ]);
+
+    const [
+      smartWalletFromEthersWithNewRpcAddress,
+      smartWalletFromViemWithNewRpcAddress,
+      smartWalletFromEthersWithOldRpcAddress,
+      smartWalletFromViemWithOldRpcAddress,
+    ] = await Promise.all([
+      smartWalletFromEthersWithNewRpc.getAccountAddress(),
+      smartWalletFromViemWithNewRpc.getAccountAddress(),
+      smartWalletFromEthersWithOldRpc.getAccountAddress(),
+      smartWalletFromViemWithOldRpc.getAccountAddress(),
+    ]);
+
+    expect(
+      [
+        smartWalletFromEthersWithNewRpcAddress,
+        smartWalletFromViemWithNewRpcAddress,
+        smartWalletFromEthersWithOldRpcAddress,
+        smartWalletFromViemWithOldRpcAddress,
+      ].every(Boolean),
+    ).toBeTruthy();
+
+    expect(smartWalletFromEthersWithNewRpc.rpcProvider.transport.url).toBe(newRpcUrl);
+    expect(smartWalletFromViemWithNewRpc.rpcProvider.transport.url).toBe(newRpcUrl);
+    expect(smartWalletFromEthersWithOldRpc.rpcProvider.transport.url).toBe(defaultRpcUrl);
+    expect(smartWalletFromViemWithOldRpc.rpcProvider.transport.url).toBe(defaultRpcUrl);
   });
 
   it("should create a smartWalletClient from a signer and chainId", async () => {
@@ -105,7 +179,7 @@ describe("Account Tests", () => {
     const module = smartWallet.activeValidationModule;
     expect(module).toBeTruthy();
   });
-  
+
   it("Create a smart account with paymaster by creating instance", async () => {
     const {
       whale: { viemWallet: signer },
