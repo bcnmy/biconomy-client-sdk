@@ -68,6 +68,9 @@ describe("Account with MultiChainValidation Module Tests", () => {
       polygonAccount.buildUserOp([transaction], { paymasterServiceData: { mode: PaymasterMode.SPONSORED } }),
     ]);
 
+    expect(partialUserOp1.paymasterAndData).not.toBe("0x");
+    expect(partialUserOp2.paymasterAndData).not.toBe("0x");
+
     // Sign the user ops using multiChainModule
     const returnedOps = await multiChainModule.signUserOps([
       { userOp: partialUserOp1, chainId: 84531 },
