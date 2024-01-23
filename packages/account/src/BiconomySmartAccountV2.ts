@@ -50,6 +50,7 @@ import {
   QueryParamsForAddressResolver,
   BiconomySmartAccountV2ConfigConstructorProps,
   PaymasterUserOperationDto,
+  TransactionResponse,
 } from "./utils/Types";
 import {
   ADDRESS_RESOLVER_ADDRESS,
@@ -754,13 +755,14 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   data: encodedCall
    * }
    *
-   * const { waitForTxHash } = await smartWallet.sendTransaction(transaction);
+   * const { wait } = await smartWallet.sendTransaction(transaction);
    * const { transactionHash, userOperationReceipt } = await wait();
    *
    */
-  async sendTransaction(manyOrOneTransactions: Transaction | Transaction[], buildUseropDto?: BuildUserOpOptions): Promise<UserOpResponse> {
+  async sendTransaction(manyOrOneTransactions: Transaction | Transaction[], buildUseropDto?: BuildUserOpOptions): Promise<TransactionResponse> {
     const userOp = await this.buildUserOp(Array.isArray(manyOrOneTransactions) ? manyOrOneTransactions : [manyOrOneTransactions], buildUseropDto);
-    return this.sendUserOp(userOp);
+    const { wait: waitForUserOp, waitForTxHash: wait, ...other } = await this.sendUserOp(userOp);
+    return { wait, waitForUserOp, ...other };
   }
 
   /**

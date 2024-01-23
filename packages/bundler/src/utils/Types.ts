@@ -65,7 +65,14 @@ export type UserOpResponse = {
   // Review: waitForTxHash(): vs waitForTxHash?():
   waitForTxHash(): Promise<UserOpStatus>;
 };
-
+export type TransactionResponse = {
+  /** userOpHash of the transaction. */
+  userOpHash: string;
+  /** Wait for the tx to be mined - onchain */
+  wait(): Promise<UserOpStatus>;
+  /** Wait for the userOpHash to be processed by the bundler - offchain */
+  waitForUserOp(_confirmations?: number): Promise<UserOpReceipt>;
+};
 // Converted to JsonRpcResponse with strict type
 export type EstimateUserOpGasResponse = {
   jsonrpc: string;
