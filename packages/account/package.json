@@ -55,10 +55,7 @@
     "@biconomy/common": "^3.1.2",
     "@biconomy/modules": "^3.1.2",
     "@biconomy/paymaster": "^3.1.2",
-    "abitype": "1.0.0",
-    "eventemitter3": "5.0.1",
     "lru-cache": "^10.0.1",
-    "viem": "^1.21.4",
-    "zod": "3.22.4"
+    "viem": "^1.21.4"
   }
 }

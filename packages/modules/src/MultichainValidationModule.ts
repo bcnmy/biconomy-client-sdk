@@ -1,5 +1,5 @@
 import { Hex, concat, encodeAbiParameters, encodeFunctionData, getAddress, keccak256, pad, parseAbi, parseAbiParameters, toBytes, toHex } from "viem";
-import { UserOperationStruct, SmartAccountSigner } from "@alchemy/aa-core";
+import { UserOperationStruct, SmartAccountSigner } from "@biconomy/common";
 import MerkleTree from "merkletreejs";
 import { DEFAULT_MULTICHAIN_MODULE, MULTICHAIN_VALIDATION_MODULE_ADDRESSES_BY_VERSION } from "./utils/Constants";
 import {

@@ -1,5 +1,5 @@
 import { Hex, encodeFunctionData, getAddress, parseAbi, toBytes } from "viem";
-import { SmartAccountSigner } from "@alchemy/aa-core";
+import { SmartAccountSigner } from "@biconomy/common";
 import { ECDSAOwnershipValidationModuleConfig, ECDSAOwnershipValidationModuleConfigConstructorProps, ModuleVersion } from "./utils/Types";
 import { DEFAULT_ECDSA_OWNERSHIP_MODULE, ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION } from "./utils/Constants";
 import { BaseValidationModule } from "./BaseValidationModule";

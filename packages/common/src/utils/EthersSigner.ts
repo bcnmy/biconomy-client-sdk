@@ -1,4 +1,5 @@
-import { SignTypedDataParams, SmartAccountSigner } from "@alchemy/aa-core";
+import { SmartAccountSigner } from "../aa-core/signer/types";
+import { SignTypedDataParams } from "../aa-core/account/types";
 import { Hex } from "viem";
 import { Signer } from "@ethersproject/abstract-signer";
 
@@ -12,7 +13,7 @@ export class EthersSigner<T extends Signer> implements SmartAccountSigner<T> {
     this.signerType = signerType;
   }
 
-  async getAddress() {
+  async getAddress(): Promise<Hex> {
     return (await this.inner.getAddress()) as Hex;
   }
 

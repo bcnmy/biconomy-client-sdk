@@ -1,5 +1,5 @@
 import { Hex } from "viem";
-import { SmartAccountSigner } from "@alchemy/aa-core";
+import { SmartAccountSigner } from "@biconomy/common";
 import { BaseValidationModuleConfig, ModuleInfo } from "./utils/Types";
 import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants";
 import { IValidationModule } from "./interfaces/IValidationModule";

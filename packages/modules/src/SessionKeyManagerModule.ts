@@ -1,6 +1,6 @@
 import { Hex, concat, encodeAbiParameters, encodeFunctionData, keccak256, pad, parseAbi, parseAbiParameters, toBytes, toHex } from "viem";
 import MerkleTree from "merkletreejs";
-import { SmartAccountSigner } from "@alchemy/aa-core";
+import { SmartAccountSigner } from "@biconomy/common";
 import {
   SessionKeyManagerModuleConfig,
   ModuleVersion,

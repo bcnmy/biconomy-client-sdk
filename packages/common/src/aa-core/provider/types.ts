@@ -14,7 +14,7 @@ import type {
   UserOperationResponse,
   UserOperationStruct,
 } from "../types";
-import type { Deferrable, IsUndefined, NoUndefined } from "../utils/alchemy";
+import type { Deferrable, IsUndefined, NoUndefined } from "../utils";
 import type { ConnectionConfigSchema, SmartAccountProviderOptsSchema, createSmartAccountProviderConfigSchema } from "./schema.js";
 
 type WithRequired<T, K extends keyof T> = Required<Pick<T, K>>;

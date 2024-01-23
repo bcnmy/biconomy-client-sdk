@@ -5,7 +5,7 @@ import { createPublicErc4337ClientSchema } from "../client/schema";
 import type { SupportedTransports } from "../client/types";
 import { isSigner } from "../signer/schema";
 import type { SmartAccountSigner } from "../signer/types";
-import { ChainSchema } from "../utils/alchemy/index";
+import { ChainSchema } from "../utils/index";
 
 export const createBaseSmartAccountParamsSchema = <
   TTransport extends SupportedTransports = Transport,

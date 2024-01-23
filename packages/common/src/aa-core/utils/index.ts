@@ -1,7 +1,7 @@
 import type { Address, Chain, Hash, Hex } from "viem";
 import { encodeAbiParameters, hexToBigInt, keccak256, toHex } from "viem";
 import * as chains from "viem/chains";
-import type { BigNumberish, Percentage, PromiseOrValue, UserOperationRequest } from "../../types";
+import type { BigNumberish, Percentage, PromiseOrValue, UserOperationRequest } from "../types";
 import { BigNumberishSchema, PercentageSchema } from "./schema.js";
 
 /**

@@ -1,5 +1,5 @@
 import { UserOpResponse, UserOpGasResponse, UserOpReceipt, UserOpByHashResponse, UserOpStatus, SimulationType, GasFeeValues } from "../utils/Types";
-import { UserOperationStruct } from "@alchemy/aa-core";
+import { UserOperationStruct } from "@biconomy/common";
 
 export interface IBundler {
   estimateUserOpGas(_userOp: Partial<UserOperationStruct>): Promise<UserOpGasResponse>;

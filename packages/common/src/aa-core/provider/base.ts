@@ -1,3 +1,6 @@
+// TODO: (aman) fix the eslint errors
+/* eslint-disable no-case-declarations */
+/* eslint-disable @typescript-eslint/no-shadow */
 import { default as EventEmitter } from "eventemitter3";
 import {
   fromHex,
@@ -40,7 +43,7 @@ import {
   type Deferrable,
   type IsUndefined,
   type NoUndefined,
-} from "../utils/alchemy";
+} from "../utils";
 import { createSmartAccountProviderConfigSchema } from "./schema";
 import type {
   AccountMiddlewareFn,
@@ -54,7 +57,7 @@ import type {
   SmartAccountProviderConfig,
   UpgradeToData,
 } from "./types";
-import { Logger } from "../utils/Logger";
+import { Logger } from "../../utils/Logger";
 
 export const noOpMiddleware: AccountMiddlewareFn = async (
   struct: Deferrable<UserOperationStruct>,

@@ -1,4 +1,4 @@
-import { BigNumberish } from "@alchemy/aa-core";
+import { BigNumberish } from "@biconomy/common";
 export type Hex = `0x${string}`;
 
 export type PaymasterServiceErrorResponse = {

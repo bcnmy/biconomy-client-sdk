@@ -6,11 +6,21 @@ export enum HttpMethod {
   Delete = "delete",
 }
 
-/* eslint-disable  @typescript-eslint/no-explicit-any */
 export interface HttpRequest {
   url: string;
   method: HttpMethod;
   body?: Record<string, any>;
+}
+
+interface JsonResponse {
+  error?: string;
+  message?: string;
+  msg?: string;
+  data?: any;
+  detail?: string;
+  nonFieldErrors?: string;
+  delegate?: string;
+  // Add other properties as needed
 }
 
 export async function sendRequest<T>({ url, method, body }: HttpRequest): Promise<T> {
@@ -23,10 +33,10 @@ export async function sendRequest<T>({ url, method, body }: HttpRequest): Promis
     body: JSON.stringify(body),
   });
 
-  let jsonResponse;
+  let jsonResponse: JsonResponse | null = null;
   try {
-    jsonResponse = await response.json();
-    Logger.log("Paymaster RPC Response", jsonResponse);
+    jsonResponse = (await response.json()) as JsonResponse;
+    Logger.log("RPC Response", jsonResponse);
   } catch (error) {
     if (!response.ok) {
       throw new Error(response.statusText);
@@ -36,29 +46,30 @@ export async function sendRequest<T>({ url, method, body }: HttpRequest): Promis
   if (response.ok) {
     return jsonResponse as T;
   }
-  if (jsonResponse.error) {
+  if (jsonResponse?.error) {
     throw new Error(jsonResponse.error);
   }
-  if (jsonResponse.message) {
+  if (jsonResponse?.message) {
     throw new Error(jsonResponse.message);
   }
-  if (jsonResponse.msg) {
+  if (jsonResponse?.msg) {
     throw new Error(jsonResponse.msg);
   }
-  if (jsonResponse.data) {
+  if (jsonResponse?.data) {
     throw new Error(jsonResponse.data);
   }
-  if (jsonResponse.detail) {
+  if (jsonResponse?.detail) {
     throw new Error(jsonResponse.detail);
   }
-  if (jsonResponse.message) {
+  if (jsonResponse?.message) {
     throw new Error(jsonResponse.message);
   }
-  if (jsonResponse.nonFieldErrors) {
+  if (jsonResponse?.nonFieldErrors) {
     throw new Error(jsonResponse.nonFieldErrors);
   }
-  if (jsonResponse.delegate) {
+  if (jsonResponse?.delegate) {
     throw new Error(jsonResponse.delegate);
   }
+
   throw new Error(response.statusText);
 }

@@ -39,9 +39,11 @@
     "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"
   },
   "dependencies": {
-    "@alchemy/aa-core": "^1.2.2",
+    "@ethersproject/abstract-signer": "^5.7.0",
+    "abitype": "^1.0.0",
+    "eventemitter3": "5.0.1",
     "viem": "^1.20.3",
-    "@ethersproject/abstract-signer": "^5.7.0"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "esbuild": "^0.19.11",

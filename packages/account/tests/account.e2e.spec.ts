@@ -1,7 +1,7 @@
 import { TestData } from "../../../tests";
 import { PaymasterUserOperationDto, createSmartWalletClient } from "../src/index";
 import { Hex, encodeFunctionData, parseAbi } from "viem";
-import { UserOperationStruct } from "@alchemy/aa-core";
+import { UserOperationStruct } from "@biconomy/common";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
 import { FeeQuotesOrDataResponse, IHybridPaymaster, PaymasterFeeQuote, PaymasterMode } from "@biconomy/paymaster";
 

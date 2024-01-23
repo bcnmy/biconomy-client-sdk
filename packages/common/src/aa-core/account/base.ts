@@ -12,12 +12,12 @@ import {
 } from "viem";
 import { EntryPointAbi } from "../abi/EntryPointAbi";
 import { createPublicErc4337Client } from "../client/create-client";
-import { Logger } from "../utils/Logger";
+import { Logger } from "../../utils/Logger";
 import type { PublicErc4337Client, SupportedTransports } from "../client/types";
 import type { SmartAccountSigner } from "../signer/types";
 import { wrapSignatureWith6492 } from "../signer/utils";
 import type { BatchUserOperationCallData } from "../types.js";
-import { getDefaultEntryPointAddress } from "../utils/alchemy/defaults";
+import { getDefaultEntryPointAddress } from "../utils/defaults";
 import { createBaseSmartAccountParamsSchema } from "./schema.js";
 import type { BaseSmartAccountParams, ISmartContractAccount, SignTypedDataParams } from "./types.js";
 

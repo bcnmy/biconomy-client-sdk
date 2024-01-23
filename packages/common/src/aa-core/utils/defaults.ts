@@ -15,7 +15,7 @@ import {
   polygonMumbai,
   sepolia,
 } from "viem/chains";
-import type { UserOperationFeeOptions } from "../../types";
+import type { UserOperationFeeOptions } from "../types";
 
 /**
  * Utility method returning the entry point contrafct address given a {@link Chain} object

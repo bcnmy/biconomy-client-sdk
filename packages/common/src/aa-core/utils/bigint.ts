@@ -1,5 +1,5 @@
 import { keccak256, toHex } from "viem";
-import type { BigNumberish } from "../../types";
+import type { BigNumberish } from "../types";
 
 /**
  * Returns the max bigint in a list of bigints

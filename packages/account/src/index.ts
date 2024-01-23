@@ -5,7 +5,9 @@ export * from "./utils/Types";
 export * from "./utils/Constants";
 export * from "./BiconomySmartAccountV2";
 
-export { WalletClientSigner, LocalAccountSigner, SmartAccountSigner } from "@alchemy/aa-core";
+export { LocalAccountSigner } from "@biconomy/common";
+export { WalletClientSigner } from "@biconomy/common";
+export { SmartAccountSigner } from "@biconomy/common";
 export {
   BiconomyPaymaster as Paymaster,
   IPaymaster,

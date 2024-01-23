@@ -1,4 +1,4 @@
-import { UserOperationStruct } from "@alchemy/aa-core";
+import { UserOperationStruct } from "@biconomy/common";
 import { Hex } from "viem";
 
 export type Bundlerconfig = {

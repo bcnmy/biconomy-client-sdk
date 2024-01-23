@@ -1,7 +1,7 @@
 import { type Address, type Hash } from "viem";
 import type { z } from "zod";
 import type { UserOperationFeeOptionsFieldSchema, UserOperationFeeOptionsSchema } from "./provider/schema";
-import type { BigNumberishRangeSchema, BigNumberishSchema, HexSchema, PercentageSchema } from "./utils/alchemy";
+import type { BigNumberishRangeSchema, BigNumberishSchema, HexSchema, PercentageSchema } from "./utils";
 
 export type Hex = z.input<typeof HexSchema>;
 export type EmptyHex = `0x`;

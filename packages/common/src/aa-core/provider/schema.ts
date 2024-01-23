@@ -3,7 +3,7 @@ import type { Transport } from "viem";
 import z from "zod";
 import { createPublicErc4337ClientSchema } from "../client/schema.js";
 import type { SupportedTransports } from "../client/types";
-import { BigNumberishRangeSchema, ChainSchema, PercentageSchema } from "../utils/alchemy";
+import { BigNumberishRangeSchema, ChainSchema, PercentageSchema } from "../utils";
 
 export const ConnectionConfigSchema = z.union([
   z.object({

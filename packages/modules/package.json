@@ -41,7 +41,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@alchemy/aa-core": "^1.2.2",
     "@biconomy/common": "^3.1.2",
     "merkletreejs": "^0.3.9",
     "viem": "^1.20.3"

@@ -8,7 +8,7 @@ import { BaseValidationModule } from "./BaseValidationModule";
 import { SessionKeyManagerModule } from "./SessionKeyManagerModule";
 import { SessionSearchParam, SessionStatus } from "./interfaces/ISessionStorage";
 import { Hex, concat, encodeAbiParameters, keccak256, pad, parseAbiParameters, toBytes, toHex } from "viem";
-import { SmartAccountSigner } from "@alchemy/aa-core";
+import { SmartAccountSigner } from "@biconomy/common";
 
 export class BatchedSessionRouterModule extends BaseValidationModule {
   version: ModuleVersion = "V1_0_0";

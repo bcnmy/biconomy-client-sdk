@@ -1,4 +1,4 @@
-import { UserOperationStruct } from "@alchemy/aa-core";
+import { UserOperationStruct } from "@biconomy/common";
 import { Hex, encodeAbiParameters, keccak256, parseAbiParameters } from "viem";
 
 function packUserOp(op: Partial<UserOperationStruct>, forSignature = true): string {

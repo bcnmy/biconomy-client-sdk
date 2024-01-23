@@ -1,4 +1,4 @@
-import { type UserOperationStruct } from "@alchemy/aa-core";
+import { type UserOperationStruct } from "@biconomy/common";
 import { PaymasterAndDataResponse } from "../utils/Types";
 
 export interface IPaymaster {

@@ -1,4 +1,4 @@
-import type { BigNumberish, Percentage, UserOperationFeeOptionsField, UserOperationRequest, UserOperationStruct } from "../../types";
+import type { BigNumberish, Percentage, UserOperationFeeOptionsField, UserOperationRequest, UserOperationStruct } from "../types";
 import { bigIntClamp, bigIntPercent } from "./bigint.js";
 import { isBigNumberish } from "./index.js";
 

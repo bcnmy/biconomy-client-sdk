@@ -1,5 +1,5 @@
 import { encodeFunctionData, parseAbi } from "viem";
-import type { BigNumberish, UserOperationStruct } from "@alchemy/aa-core";
+import type { BigNumberish, UserOperationStruct } from "@biconomy/common";
 import {
   PaymasterFeeQuote,
   PaymasterConfig,

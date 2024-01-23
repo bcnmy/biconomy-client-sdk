@@ -1,9 +1,10 @@
-import { EthersSigner } from "../EthersSigner";
-import { SupportedSigner } from "../Types";
 import { WalletClient } from "viem";
-import { WalletClientSigner, SmartAccountSigner } from "@alchemy/aa-core";
-import { UNIQUE_PROPERTIES_PER_SIGNER } from "../Constants";
 import { Signer } from "@ethersproject/abstract-signer";
+import { SupportedSigner } from "../Types";
+import { EthersSigner } from "../EthersSigner";
+import { UNIQUE_PROPERTIES_PER_SIGNER } from "../Constants";
+import { SmartAccountSigner } from "../../aa-core/signer/types";
+import { WalletClientSigner } from "../../aa-core/signer/wallet-client";
 
 interface SmartAccountResult {
   signer: SmartAccountSigner;
