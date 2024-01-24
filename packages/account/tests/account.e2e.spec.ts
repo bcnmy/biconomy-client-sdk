@@ -180,7 +180,7 @@ describe("Account Tests", () => {
       biconomyPaymasterApiKey,
     } = mumbai;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       signer,
       bundlerUrl,
       biconomyPaymasterApiKey,
