@@ -502,7 +502,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     userOp: Partial<UserOperationStruct>,
     paymasterServiceData: FeeQuotesOrDataDto,
   ) => {
-    return await (this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>).getPaymasterFeeQuotesOrData(userOp, paymasterServiceData);
+    return (this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>).getPaymasterFeeQuotesOrData(userOp, paymasterServiceData);
   };
 
   /**
