@@ -1,5 +1,5 @@
 import { TestData } from "../../../tests";
-import { PaymasterUserOperationDto, createSmartWalletClient } from "../src/index";
+import { PaymasterUserOperationDto, createSmartAccountClient } from "../src/index";
 import { Hex, encodeFunctionData, parseAbi } from "viem";
 import { UserOperationStruct } from "@alchemy/aa-core";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
@@ -21,7 +21,7 @@ describe("Account Tests", () => {
       publicClient,
     } = mumbai;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       signer,
       bundlerUrl,
     });
@@ -47,7 +47,7 @@ describe("Account Tests", () => {
       biconomyPaymasterApiKey,
     } = mumbai;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       signer,
       biconomyPaymasterApiKey,
       bundlerUrl,
@@ -67,7 +67,7 @@ describe("Account Tests", () => {
       publicClient,
     } = mumbai;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       signer,
       bundlerUrl,
       biconomyPaymasterApiKey,
@@ -112,7 +112,7 @@ describe("Account Tests", () => {
       publicClient,
     } = mumbai;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       signer,
       bundlerUrl,
       biconomyPaymasterApiKey,
@@ -175,7 +175,7 @@ describe("Account Tests", () => {
       biconomyPaymasterApiKey,
     } = mumbai;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       signer,
       biconomyPaymasterApiKey,
       bundlerUrl,
@@ -215,7 +215,7 @@ describe("Account Tests", () => {
       biconomyPaymasterApiKey,
     } = mumbai;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       signer,
       biconomyPaymasterApiKey,
       bundlerUrl,
@@ -235,7 +235,7 @@ describe("Account Tests", () => {
       bundlerUrl,
     } = mumbai;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       signer,
       bundlerUrl,
     });

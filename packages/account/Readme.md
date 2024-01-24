@@ -35,14 +35,14 @@ The account package achieves this by providing a comprehensive set of methods th
 
 ```typescript
 // This is how you create a smartWallet in your dapp
-import { Bundler, createSmartWalletClient } from "@biconomy/account";
+import { Bundler, createSmartAccountClient } from "@biconomy/account";
 import { createWalletClient, http, createPublicClient } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { mainnet as chain } from "viem/chains";
 
 const account = privateKeyToAccount(generatePrivateKey());
 const signer = createWalletClient({ account, chain, transport: http() });
-const smartWallet = await createSmartWalletClient({ signer, bundlerUrl, biconomyPaymasterApiKey });
+const smartWallet = await createSmartAccountClient({ signer, bundlerUrl, biconomyPaymasterApiKey });
 
 // Send some ETH
 const { waitForTxHash } = await smartWallet.sendTransaction({ to: "0x...", value: 1 });
