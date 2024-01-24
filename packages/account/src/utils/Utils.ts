@@ -1,6 +1,5 @@
 import { encodeAbiParameters, parseAbiParameters, keccak256, Hex } from "viem";
-import type { UserOperationStruct, BigNumberish, BytesLike } from "@alchemy/aa-core";
-import { PaymasterFeeQuote } from "@biconomy/paymaster";
+import type { UserOperationStruct } from "@alchemy/aa-core";
 
 /**
  * pack the userOperation
@@ -41,8 +40,6 @@ export function packUserOp(op: Partial<UserOperationStruct>, forSignature = true
   }
 }
 
-export const isNullOrUndefined = (
-  value: string | number | bigint | BigNumberish | undefined | BytesLike | boolean | PaymasterFeeQuote,
-): value is undefined => {
+export const isNullOrUndefined = (value: any): value is undefined => {
   return value === null || value === undefined;
 };
