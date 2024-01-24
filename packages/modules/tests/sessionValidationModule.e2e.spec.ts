@@ -1,6 +1,6 @@
 import { DEFAULT_SESSION_KEY_MANAGER_MODULE, SessionKeyManagerModule } from "@biconomy/modules";
 import { SessionFileStorage } from "@biconomy/modules/tests/utils/customSession";
-import { WalletClientSigner, createSmartWalletClient } from "../../account/src/index";
+import { WalletClientSigner, createSmartAccountClient } from "../../account/src/index";
 import { Hex, encodeAbiParameters, encodeFunctionData, parseAbi, parseUnits } from "viem";
 import { TestData } from "../../../tests";
 import { checkBalance } from "../../../tests/utils";
@@ -40,7 +40,7 @@ describe("Account Tests", () => {
     expect(sessionSigner).toBeTruthy();
 
     // Create smart account
-    let smartWallet = await createSmartWalletClient({
+    let smartWallet = await createSmartAccountClient({
       chainId,
       signer: sessionSigner,
       bundlerUrl,

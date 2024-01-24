@@ -1,5 +1,5 @@
 import { TestData } from "../../../tests";
-import { createSmartWalletClient } from "@biconomy/account";
+import { createSmartAccountClient } from "@biconomy/account";
 import { createECDSAOwnershipValidationModule, createMultiChainValidationModule } from "../src";
 
 describe("Account Tests", () => {
@@ -18,7 +18,7 @@ describe("Account Tests", () => {
 
     const defaultValidationModule = await createMultiChainValidationModule({ signer });
     // Should not require a signer or chainId
-    const smartWallet = await createSmartWalletClient({ bundlerUrl, defaultValidationModule });
+    const smartWallet = await createSmartAccountClient({ bundlerUrl, defaultValidationModule });
     const address = await smartWallet.getAccountAddress();
     expect(address).toBeTruthy();
     // expect the relevant module to be set
@@ -33,7 +33,7 @@ describe("Account Tests", () => {
 
     const defaultValidationModule = await createECDSAOwnershipValidationModule({ signer });
     // Should not require a signer or chainId
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       bundlerUrl,
       defaultValidationModule,
     });

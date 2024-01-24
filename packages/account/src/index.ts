@@ -17,6 +17,6 @@ export {
 export { EthersSigner, convertSigner } from "@biconomy/common";
 export { Bundler, IBundler, extractChainIdFromBundlerUrl, UserOpResponse } from "@biconomy/bundler";
 
-export const createSmartWalletClient = BiconomySmartAccountV2.create;
+export const createSmartAccountClient = BiconomySmartAccountV2.create;
 
 export type SmartWalletConfig = BiconomySmartAccountV2Config;
