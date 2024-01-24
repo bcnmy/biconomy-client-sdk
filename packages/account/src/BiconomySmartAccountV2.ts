@@ -679,7 +679,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       const address = await this.getAddress();
       return await this.entryPoint.read.getNonce([address, BigInt(nonceSpace)]);
     } catch (e) {
-      return BigInt(0);
+      return Promise.resolve(BigInt(0));
     }
   }
 
