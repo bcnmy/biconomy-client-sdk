@@ -140,6 +140,7 @@ describe("Account Tests", () => {
     const maticBalanceBefore = await checkBalance(publicClient, await smartWallet.getAddress());
     const usdcBalanceBefore = await checkBalance(publicClient, await smartWallet.getAddress(), "0xda5289fcaaf71d52a80a254da614a192b693e977");
 
+    console.time("Shorter way");
     let userOp = await smartWallet.buildUserOp([transaction]);
 
     const feeQuotesResponse: FeeQuotesOrDataResponse = await (
@@ -165,6 +166,7 @@ describe("Account Tests", () => {
     const response = await smartWallet.sendUserOp(userOp);
 
     const userOpReceipt = await response.wait();
+    console.timeEnd("Shorter way");
     expect(userOpReceipt.userOpHash).toBeTruthy();
     expect(userOpReceipt.success).toBe("true");
 
@@ -176,6 +178,69 @@ describe("Account Tests", () => {
 
     const newBalance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
     expect(newBalance - balance).toBe(1n);
+  }, 60000);
+
+  it("Should mint an NFT on Mumbai and pay with ERC20, in an easier but longer way", async () => {
+    const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
+    const {
+      whale: { viemWallet: signer, publicAddress: recipient },
+      bundlerUrl,
+      biconomyPaymasterApiKey,
+      publicClient,
+    } = mumbai;
+
+    const smartWallet = await createSmartAccountClient({
+      signer,
+      bundlerUrl,
+      biconomyPaymasterApiKey,
+    });
+
+    const encodedCall = encodeFunctionData({
+      abi: parseAbi(["function safeMint(address _to)"]),
+      functionName: "safeMint",
+      args: [recipient],
+    });
+
+    const transaction = {
+      to: nftAddress, // NFT address
+      data: encodedCall,
+    };
+
+    const balance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
+
+    const maticBalanceBefore = await checkBalance(publicClient, await smartWallet.getAddress());
+    const usdcBalanceBefore = await checkBalance(publicClient, await smartWallet.getAddress(), "0xda5289fcaaf71d52a80a254da614a192b693e977");
+
+    console.time("Longer way");
+    let userOp = await smartWallet.buildUserOp([transaction]);
+
+    const feeQuotesResponse: FeeQuotesOrDataResponse = await smartWallet.getPaymasterFeeQuotesOrData(userOp, {
+      mode: PaymasterMode.ERC20,
+      tokenList: ["0xda5289fcaaf71d52a80a254da614a192b693e977"],
+      preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977",
+    });
+
+    const spender = feeQuotesResponse.tokenPaymasterAddress;
+
+    const { wait } = await smartWallet.sendTransaction(transaction, {
+      paymasterServiceData: { mode: PaymasterMode.ERC20, feeQuote: feeQuotesResponse?.feeQuotes?.[0], spender, maxApproval: true },
+    });
+
+    const {
+      receipt: { transactionHash },
+    } = await wait();
+    console.timeEnd("Longer way");
+
+    const maticBalanceAfter = await checkBalance(publicClient, await smartWallet.getAddress());
+    expect(maticBalanceAfter).toEqual(maticBalanceBefore);
+
+    const usdcBalanceAfter = await checkBalance(publicClient, await smartWallet.getAddress(), "0xda5289fcaaf71d52a80a254da614a192b693e977");
+    expect(usdcBalanceAfter).toBeLessThan(usdcBalanceBefore);
+
+    const newBalance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
+    expect(newBalance - balance).toBe(1n);
+
+    expect(transactionHash).toBeTruthy();
   }, 60000);
 
   it("Should throw and error if missing field for ERC20 Paymaster user op", async () => {

@@ -65,6 +65,7 @@ import { BiconomyAccountAbi } from "./abi/SmartAccount";
 import { AccountResolverAbi } from "./abi/AccountResolver";
 import { Logger } from "@biconomy/common";
 import { convertSigner } from "./";
+import { FeeQuotesOrDataDto } from "@biconomy/paymaster";
 
 type UserOperationKey = keyof UserOperationStruct;
 
@@ -496,6 +497,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const moduleAddressToUse = moduleAddress ?? (this.activeValidationModule.getAddress() as Hex);
     return encodeAbiParameters(parseAbiParameters("bytes, address"), [moduleSignature, moduleAddressToUse]);
   }
+
+  public getPaymasterFeeQuotesOrData: Paymaster["getPaymasterFeeQuotesOrData"] = async (
+    userOp: Partial<UserOperationStruct>,
+    paymasterServiceData: FeeQuotesOrDataDto,
+  ) => {
+    return await (this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>).getPaymasterFeeQuotesOrData(userOp, paymasterServiceData);
+  };
 
   /**
    *
