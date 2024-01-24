@@ -150,6 +150,8 @@ describe("Account Tests", () => {
 
     userOp = await smartWallet.setPaymasterUserOp(userOp, { mode: PaymasterMode.ERC20, feeQuote: selectedFeeQuote, spender, maxApproval: true });
 
+    expect(userOp.paymasterAndData).not.toBe("0x");
+
     const response = await smartWallet.sendUserOp(userOp);
 
     const userOpReceipt = await response.wait();
