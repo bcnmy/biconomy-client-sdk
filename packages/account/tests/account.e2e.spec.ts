@@ -1,9 +1,15 @@
 import { TestData } from "../../../tests";
-import { PaymasterUserOperationDto, createSmartAccountClient } from "../src/index";
+import {
+  PaymasterUserOperationDto,
+  createSmartAccountClient,
+  FeeQuotesOrDataResponse,
+  IHybridPaymaster,
+  PaymasterFeeQuote,
+  PaymasterMode,
+} from "../src/index";
 import { Hex, encodeFunctionData, parseAbi } from "viem";
 import { UserOperationStruct } from "@alchemy/aa-core";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
-import { FeeQuotesOrDataResponse, IHybridPaymaster, PaymasterFeeQuote, PaymasterMode } from "@biconomy/paymaster";
 
 describe("Account Tests", () => {
   let mumbai: TestData;
