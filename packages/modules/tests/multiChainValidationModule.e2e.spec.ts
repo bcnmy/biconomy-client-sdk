@@ -1,4 +1,4 @@
-import { BiconomyPaymaster, PaymasterMode } from "@biconomy/paymaster";
+import { PaymasterMode } from "@biconomy/paymaster";
 import { TestData } from "../../../tests";
 import { createSmartAccountClient } from "../../account/src/index";
 import { Hex, encodeFunctionData, parseAbi } from "viem";
@@ -18,12 +18,14 @@ describe("Account with MultiChainValidation Module Tests", () => {
       whale: { alchemyWalletClientSigner: signerMumbai, publicAddress: recipientForBothChains },
       biconomyPaymasterApiKey: biconomyPaymasterApiKeyMumbai,
       bundlerUrl: bundlerUrlMumbai,
+      chainId: chainIdMumbai,
     } = mumbai;
 
     const {
       whale: { alchemyWalletClientSigner: signerBase },
       biconomyPaymasterApiKey: biconomyPaymasterApiKeyBase,
       bundlerUrl: bundlerUrlBase,
+      chainId: chainIdBase,
     } = baseGoerli;
 
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
@@ -68,10 +70,13 @@ describe("Account with MultiChainValidation Module Tests", () => {
       polygonAccount.buildUserOp([transaction], { paymasterServiceData: { mode: PaymasterMode.SPONSORED } }),
     ]);
 
+    expect(partialUserOp1.paymasterAndData).not.toBe("0x");
+    expect(partialUserOp2.paymasterAndData).not.toBe("0x");
+
     // Sign the user ops using multiChainModule
     const returnedOps = await multiChainModule.signUserOps([
-      { userOp: partialUserOp1, chainId: 84531 },
-      { userOp: partialUserOp2, chainId: 80001 },
+      { userOp: partialUserOp1, chainId: chainIdBase },
+      { userOp: partialUserOp2, chainId: chainIdMumbai },
     ]);
 
     // Send the signed user ops on both chains
