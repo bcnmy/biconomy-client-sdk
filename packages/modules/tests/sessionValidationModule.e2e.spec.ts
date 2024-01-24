@@ -26,6 +26,9 @@ describe("Account Tests", () => {
       },
       minnow: { publicAddress: recipient },
       publicClient,
+      chainId,
+      bundlerUrl,
+      biconomyPaymasterApiKey,
     } = mumbai;
 
     try {
@@ -38,10 +41,10 @@ describe("Account Tests", () => {
 
     // Create smart account
     let smartWallet = await createSmartWalletClient({
-      chainId: 80001,
+      chainId,
       signer: sessionSigner,
-      bundlerUrl: "https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44",
-      biconomyPaymasterApiKey: "nxPxZluSF.aeacea05-e564-4bd2-b8d8-94a8167fb192",
+      bundlerUrl,
+      biconomyPaymasterApiKey,
       index: 1, // Increasing index to not conflict with other test cases and use a new smart account
     });
 

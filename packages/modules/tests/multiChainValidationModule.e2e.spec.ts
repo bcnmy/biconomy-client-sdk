@@ -1,4 +1,4 @@
-import { BiconomyPaymaster, PaymasterMode } from "@biconomy/paymaster";
+import { PaymasterMode } from "@biconomy/paymaster";
 import { TestData } from "../../../tests";
 import { createSmartWalletClient } from "../../account/src/index";
 import { Hex, encodeFunctionData, parseAbi } from "viem";
@@ -18,12 +18,14 @@ describe("Account with MultiChainValidation Module Tests", () => {
       whale: { alchemyWalletClientSigner: signerMumbai, publicAddress: recipientForBothChains },
       biconomyPaymasterApiKey: biconomyPaymasterApiKeyMumbai,
       bundlerUrl: bundlerUrlMumbai,
+      chainId: chainIdMumbai,
     } = mumbai;
 
     const {
       whale: { alchemyWalletClientSigner: signerBase },
       biconomyPaymasterApiKey: biconomyPaymasterApiKeyBase,
       bundlerUrl: bundlerUrlBase,
+      chainId: chainIdBase,
     } = baseGoerli;
 
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
@@ -35,7 +37,7 @@ describe("Account with MultiChainValidation Module Tests", () => {
 
     const [polygonAccount, baseAccount] = await Promise.all([
       createSmartWalletClient({
-        chainId: 80001,
+        chainId: chainIdMumbai,
         signer: signerMumbai,
         bundlerUrl: bundlerUrlMumbai,
         defaultValidationModule: multiChainModule,
@@ -43,7 +45,7 @@ describe("Account with MultiChainValidation Module Tests", () => {
         biconomyPaymasterApiKey: biconomyPaymasterApiKeyMumbai,
       }),
       createSmartWalletClient({
-        chainId: 84531,
+        chainId: chainIdBase,
         signer: signerBase,
         bundlerUrl: bundlerUrlBase,
         defaultValidationModule: multiChainModule,
@@ -73,8 +75,8 @@ describe("Account with MultiChainValidation Module Tests", () => {
 
     // Sign the user ops using multiChainModule
     const returnedOps = await multiChainModule.signUserOps([
-      { userOp: partialUserOp1, chainId: 84531 },
-      { userOp: partialUserOp2, chainId: 80001 },
+      { userOp: partialUserOp1, chainId: chainIdBase },
+      { userOp: partialUserOp2, chainId: chainIdMumbai },
     ]);
 
     // Send the signed user ops on both chains
