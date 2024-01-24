@@ -518,7 +518,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         userOp.verificationGasLimit = paymasterData.verificationGasLimit;
         userOp.preVerificationGas = paymasterData.preVerificationGas;
         return userOp;
-      } else if (paymasterServiceData.mode === PaymasterMode.ERC20 && paymasterServiceData.feeQuote !== undefined) {
+      } else if (
+        paymasterServiceData.mode === PaymasterMode.ERC20 &&
+        !isNullOrUndefined(paymasterServiceData.feeQuote) &&
+        !isNullOrUndefined(paymasterServiceData.spender) &&
+        !isNullOrUndefined(paymasterServiceData.maxApproval)
+      ) {
         const finalUserOp = await this.buildTokenPaymasterUserOp(userOp, {
           feeQuote: paymasterServiceData.feeQuote,
           spender: (paymasterServiceData.spender as Hex) || "",
@@ -539,7 +544,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         finalUserOp.preVerificationGas = paymasterAndDataWithLimits.preVerificationGas;
         return finalUserOp;
       } else {
-        return userOp;
+        throw new Error("One or more fields are missing (mode, feeQuote, spender, maxApproval)");
       }
     } else {
       throw new Error("Paymaster is not provided");
