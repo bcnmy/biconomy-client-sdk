@@ -535,7 +535,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * let userOp = await smartWallet.buildUserOp([transaction]);
    *
    * // for SPONSORED mode
-   * userOp = await smartWallet.setPaymasterUserOp(userOp, { mode: PaymasterMode.SPONSORED });
+   * userOp = await smartWallet.getPaymasterUserOp(userOp, { mode: PaymasterMode.SPONSORED });
    * 
    * // for ERC20 mode
    *  const feeQuotesResponse: FeeQuotesOrDataResponse = await (
@@ -548,10 +548,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const selectedFeeQuote = feeQuotes[0];
     const spender = feeQuotesResponse.tokenPaymasterAddress;
    * 
-   * userOp = await smartWallet.setPaymasterUserOp(userOp, { mode: PaymasterMode.ERC20, feeQuote: selectedFeeQuote, spender, maxApproval: true });
+   * userOp = await smartWallet.getPaymasterUserOp(userOp, { mode: PaymasterMode.ERC20, feeQuote: selectedFeeQuote, spender, maxApproval: true });
    * const tx = await smartWallet.sendUserOp(userOp);
    */
-  async setPaymasterUserOp(
+  async getPaymasterUserOp(
     userOp: Partial<UserOperationStruct>,
     paymasterServiceData: PaymasterUserOperationDto,
   ): Promise<Partial<UserOperationStruct>> {
@@ -890,7 +890,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     userOp = await this.estimateUserOpGas(userOp);
 
     if (buildUseropDto?.paymasterServiceData) {
-      userOp = await this.setPaymasterUserOp(userOp, buildUseropDto?.paymasterServiceData);
+      userOp = await this.getPaymasterUserOp(userOp, buildUseropDto?.paymasterServiceData);
     }
 
     Logger.log("UserOp after estimation ", userOp);

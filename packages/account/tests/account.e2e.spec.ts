@@ -154,7 +154,7 @@ describe("Account Tests", () => {
     const spender = feeQuotesResponse.tokenPaymasterAddress as Hex;
     const selectedFeeQuote = feeQuotes[0];
 
-    userOp = await smartWallet.setPaymasterUserOp(userOp, { mode: PaymasterMode.ERC20, feeQuote: selectedFeeQuote, spender, maxApproval: true });
+    userOp = await smartWallet.getPaymasterUserOp(userOp, { mode: PaymasterMode.ERC20, feeQuote: selectedFeeQuote, spender, maxApproval: true });
 
     expect(userOp.paymasterAndData).toBeTruthy();
     expect(userOp.verificationGasLimit).toBeTruthy();
@@ -217,7 +217,7 @@ describe("Account Tests", () => {
     const selectedFeeQuote = feeQuotes[0];
 
     // maxApproval and spender are missing
-    await expect(smartWallet.setPaymasterUserOp(userOp, { mode: PaymasterMode.ERC20, feeQuote: selectedFeeQuote })).rejects.toThrow(
+    await expect(smartWallet.getPaymasterUserOp(userOp, { mode: PaymasterMode.ERC20, feeQuote: selectedFeeQuote })).rejects.toThrow(
       "One or more fields are missing (mode, feeQuote, spender, maxApproval)",
     );
   }, 60000);
