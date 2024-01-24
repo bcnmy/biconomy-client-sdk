@@ -1,4 +1,4 @@
-import { Paymaster, createSmartWalletClient } from "../src";
+import { Paymaster, createSmartAccountClient } from "../src";
 import { createWalletClient, http } from "viem";
 import { localhost } from "viem/chains";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
@@ -20,7 +20,7 @@ describe("Account Tests", () => {
       minnow: { ethersSigner: signer },
     } = ganache;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       signer,
       bundlerUrl,
     });
@@ -34,7 +34,7 @@ describe("Account Tests", () => {
       bundlerUrl,
     } = ganache;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       signer,
       bundlerUrl,
     });
@@ -121,7 +121,7 @@ describe("Account Tests", () => {
       bundlerUrl,
     } = ganache;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       chainId,
       signer,
       bundlerUrl,
@@ -136,7 +136,7 @@ describe("Account Tests", () => {
       whale: { viemWallet: signer },
     } = ganache;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       signer,
       bundlerUrl,
     });
@@ -152,7 +152,7 @@ describe("Account Tests", () => {
       minnow: { publicAddress: recipient },
     } = ganache;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       entryPointAddress,
       signer,
       bundlerUrl,
@@ -171,7 +171,7 @@ describe("Account Tests", () => {
       whale: { viemWallet: signer },
     } = ganache;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       signer,
       bundlerUrl,
     });
@@ -190,7 +190,7 @@ describe("Account Tests", () => {
     const paymasterUrl = "https://paymaster.biconomy.io/api/v1/80001/" + biconomyPaymasterApiKey;
     const paymaster = new Paymaster({ paymasterUrl });
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       signer,
       bundlerUrl,
       paymaster,
@@ -209,7 +209,7 @@ describe("Account Tests", () => {
     });
 
     expect(async () =>
-      createSmartWalletClient({
+      createSmartAccountClient({
         signer: viemWalletClientNoChainId,
         bundlerUrl,
       }),
@@ -224,7 +224,7 @@ describe("Account Tests", () => {
     });
 
     expect(async () =>
-      createSmartWalletClient({
+      createSmartAccountClient({
         signer: viemWalletNoAccount,
         bundlerUrl,
       }),

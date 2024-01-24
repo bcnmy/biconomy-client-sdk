@@ -159,7 +159,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @example
    * import { createClient } from "viem"
-   * import { createSmartWalletClient, BiconomySmartAccountV2 } from "@biconomy/account"
+   * import { createSmartAccountClient, BiconomySmartAccountV2 } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
    * import { polygonMumbai } from "viem/chains";
    *
@@ -175,7 +175,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * // Is the same as...
    *
-   * const smartWallet = await createSmartWalletClient({ signer, bundlerUrl });
+   * const smartWallet = await createSmartAccountClient({ signer, bundlerUrl });
    *
    */
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
@@ -567,7 +567,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @example
    * import { createClient } from "viem"
-   * import { createSmartWalletClient } from "@biconomy/account"
+   * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
    * import { polygonMumbai } from "viem/chains";
    *
@@ -577,7 +577,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartWallet = await createSmartWalletClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartWallet = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
@@ -737,7 +737,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @example
    * import { createClient } from "viem"
-   * import { createSmartWalletClient } from "@biconomy/account"
+   * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
    * import { polygonMumbai } from "viem/chains";
    *
@@ -747,7 +747,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartWallet = await createSmartWalletClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartWallet = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
@@ -779,7 +779,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @example
    * import { createClient } from "viem"
-   * import { createSmartWalletClient } from "@biconomy/account"
+   * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
    * import { polygonMumbai } from "viem/chains";
    *
@@ -789,7 +789,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartWallet = await createSmartWalletClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartWallet = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
