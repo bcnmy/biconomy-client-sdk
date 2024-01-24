@@ -18,6 +18,7 @@ beforeAll(() => {
     chain: viemChain,
     transport: http(viemChain.rpcUrls.public.http[0]),
   });
+
   const walletClientSignerOne = new WalletClientSigner(viemWalletClientOne, "viem");
   const publicAddressOne = accountOne.address;
   const publicClient = createPublicClient({
