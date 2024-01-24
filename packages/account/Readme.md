@@ -22,16 +22,14 @@ The account package achieves this by providing a comprehensive set of methods th
 
 ## Smart Account instance configuration
 
-#### BiconomySmartAccount (V1 Smart Account)
+#### BiconomySmartAccount (V2 Smart Account)
 
-| Key       | Description                                                                                                                                                                     |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| signer    | This signer will be used for signing userOps for any transactions you build. You can supply your your EOA wallet signer                                                         |
-| chainId   | This represents the network your smart wallet transactions will be conducted on. Take a look following Link for supported chain id's                                            |
-| rpcUrl    | This represents the EVM node RPC URL you'll interact with, adjustable according to your needs. We recommend to use some private node url for efficient userOp building          |
-| paymaster | you can pass same paymaster instance that you have build in previous step. Alternatively, you can skip this if you are not interested in sponsoring transaction using paymaster |
-|           | Note: if you don't pass the paymaster instance, your smart account will need funds to pay for transaction fees.                                                                 |
-| bundler   | You can pass same bundler instance that you have build in previous step. Alternatively, you can skip this if you are only interested in building userOP                         |
+| Key                     | Description                                                                                                             |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| signer                  | This signer will be used for signing userOps for any transactions you build. You can supply your your EOA wallet signer |
+| biconomyPaymasterApiKey | You can pass in a paymaster url necessary for sponsoring transactions (retrieved from the biconomy dashboard)           |
+|                         | Note: If you don't pass the paymaster instance, your smart account will need funds to pay for transaction fees.         |
+| bundlerUrl              | You can pass in a bundlerUrl (retrieved from the biconomy dashboard) for sending transactions                           |
 
 ## Example Usage
 
@@ -43,25 +41,12 @@ import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { mainnet as chain } from "viem/chains";
 
 const account = privateKeyToAccount(generatePrivateKey());
-const signer = createWalletClient({
-  account,
-  chain,
-  transport: http(),
-});
-
-const smartWallet = await createSmartWalletClient({
-  signer,
-  bundlerUrl,
-});
+const signer = createWalletClient({ account, chain, transport: http() });
+const smartWallet = await createSmartWalletClient({ signer, bundlerUrl, biconomyPaymasterApiKey });
 
 // Send some ETH
-const { wait } = await smartWallet.sendTransaction({
-  to: "0x85B51B068bF0fefFEFD817882a14f6F5BDF7fF2E",
-  value: 1,
-  data: "0x",
-});
-
+const { waitForTxHash } = await smartWallet.sendTransaction({ to: "0x...", value: 1 });
 const {
   receipt: { transactionHash },
-} = await wait();
+} = await waitForTxHash();
 ```
