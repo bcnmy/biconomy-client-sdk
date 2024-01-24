@@ -26,7 +26,7 @@ Unlock the full potential of **ERC4337 Account Abstraction** with methods that s
 
 ```javascript
 
-import { createSmartWalletClient } from "@biconomy/account";
+import { createSmartAccountClient } from "@biconomy/account";
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { polygonMumbai } from "viem/chains";
@@ -41,7 +41,7 @@ const signer = createWalletClient({
 const bundlerUrl = 'https://bundler.biconomy.io/api/v2/80001/<API_KEY>'
 // Please go to https://dashboard.biconomy.io and generate bundler url
 
-const biconomySmartAccount = await createSmartWalletClient({ bundlerUrl, signer });
+const biconomySmartAccount = await createSmartAccountClient({ bundlerUrl, signer });
 console.log("address: ", await biconomySmartAccount.getAccountAddress());
 ```
 
@@ -54,7 +54,7 @@ import { Paymaster, IPaymaster } from "@biconomy/account";
 const paymasterUrl = "";
 // Please go to https://dashboard.biconomy.io to setup a paymasterUrl
 // ...
-const biconomySmartAccount = await createSmartWalletClient({ bundlerUrl, signer, paymasterUrl });
+const biconomySmartAccount = await createSmartAccountClient({ bundlerUrl, signer, paymasterUrl });
 ```
 
 ## 🛠️ Quickstart
