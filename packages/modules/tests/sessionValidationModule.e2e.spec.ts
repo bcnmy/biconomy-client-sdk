@@ -1,6 +1,6 @@
 import { DEFAULT_SESSION_KEY_MANAGER_MODULE, SessionKeyManagerModule } from "@biconomy/modules";
 import { SessionFileStorage } from "@biconomy/modules/tests/utils/customSession";
-import { PaymasterUserOperationDto, WalletClientSigner, createSmartWalletClient } from "../../account/src/index";
+import { PaymasterUserOperationDto, WalletClientSigner, createSmartAccountClient } from "../../account/src/index";
 import { Hex, encodeAbiParameters, encodeFunctionData, parseAbi, parseUnits } from "viem";
 import { TestData } from "../../../tests";
 import { FeeQuotesOrDataResponse, IHybridPaymaster, PaymasterMode } from "@biconomy/paymaster";
@@ -39,7 +39,7 @@ describe("Account Tests", () => {
       expect(sessionSigner).toBeTruthy();
 
       // Create smart account
-      let smartWallet = await createSmartWalletClient({
+      let smartWallet = await createSmartAccountClient({
         chainId: 80001,
         signer: sessionSigner,
         bundlerUrl: "https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44",

@@ -1,6 +1,6 @@
 import { BiconomyPaymaster, PaymasterMode } from "@biconomy/paymaster";
 import { TestData } from "../../../tests";
-import { createSmartWalletClient } from "../../account/src/index";
+import { createSmartAccountClient } from "../../account/src/index";
 import { Hex, encodeFunctionData, parseAbi } from "viem";
 import { DEFAULT_MULTICHAIN_MODULE, MultiChainValidationModule } from "@biconomy/modules";
 
@@ -34,7 +34,7 @@ describe("Account with MultiChainValidation Module Tests", () => {
     });
 
     const [polygonAccount, baseAccount] = await Promise.all([
-      createSmartWalletClient({
+      createSmartAccountClient({
         chainId: 80001,
         signer: signerMumbai,
         bundlerUrl: bundlerUrlMumbai,
@@ -42,7 +42,7 @@ describe("Account with MultiChainValidation Module Tests", () => {
         activeValidationModule: multiChainModule,
         biconomyPaymasterApiKey: biconomyPaymasterApiKeyMumbai,
       }),
-      createSmartWalletClient({
+      createSmartAccountClient({
         chainId: 84531,
         signer: signerBase,
         bundlerUrl: bundlerUrlBase,
