@@ -24,12 +24,12 @@ The account package achieves this by providing a comprehensive set of methods th
 
 #### BiconomySmartAccount (V2 Smart Account)
 
-| Key       | Description                                                                                                                                                                     |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| signer    | This signer will be used for signing userOps for any transactions you build. You can supply your your EOA wallet signer                                                         |
-| biconomyPaymasterApiKey | you can pass in a paymaster url necessary for sponsoring transactions (retrieved from the biconomy dashboard) |
-|           | Note: if you don't pass the paymaster instance, your smart account will need funds to pay for transaction fees.                                                                 |
-| bundlerUrl  | You can pass in a bundlerUrl (retrieved from the biconomy dashboard) for sending transactions|
+| Key                     | Description                                                                                                             |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| signer                  | This signer will be used for signing userOps for any transactions you build. You can supply your your EOA wallet signer |
+| biconomyPaymasterApiKey | You can pass in a paymaster url necessary for sponsoring transactions (retrieved from the biconomy dashboard)           |
+|                         | Note: If you don't pass the paymaster instance, your smart account will need funds to pay for transaction fees.         |
+| bundlerUrl              | You can pass in a bundlerUrl (retrieved from the biconomy dashboard) for sending transactions                           |
 
 ## Example Usage
 
@@ -45,6 +45,8 @@ const signer = createWalletClient({ account, chain, transport: http() });
 const smartWallet = await createSmartWalletClient({ signer, bundlerUrl, biconomyPaymasterApiKey });
 
 // Send some ETH
-const { waitForTxHash } = await smartWallet.sendTransaction({ to: "0x...",  value: 1 });
-const { receipt: { transactionHash } } = await waitForTxHash();
+const { waitForTxHash } = await smartWallet.sendTransaction({ to: "0x...", value: 1 });
+const {
+  receipt: { transactionHash },
+} = await waitForTxHash();
 ```
