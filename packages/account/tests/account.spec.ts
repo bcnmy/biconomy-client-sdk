@@ -65,22 +65,22 @@ describe("Account Tests", () => {
 
     const [smartWalletFromEthersWithNewRpc, smartWalletFromViemWithNewRpc, smartWalletFromEthersWithOldRpc, smartWalletFromViemWithOldRpc] =
       await Promise.all([
-        createSmartWalletClient({
+        createSmartAccountClient({
           chainId,
           signer: ethersSignerWithNewRpcUrl,
           bundlerUrl,
         }),
-        createSmartWalletClient({
+        createSmartAccountClient({
           chainId,
           signer: walletClientWithNewRpcUrl,
           bundlerUrl,
         }),
-        createSmartWalletClient({
+        createSmartAccountClient({
           chainId,
           signer: originalEthersSigner,
           bundlerUrl,
         }),
-        createSmartWalletClient({
+        createSmartAccountClient({
           chainId,
           signer: originalViemSigner,
           bundlerUrl,
