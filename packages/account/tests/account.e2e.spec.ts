@@ -150,6 +150,12 @@ describe("Account Tests", () => {
 
     userOp = await smartWallet.setPaymasterUserOp(userOp, { mode: PaymasterMode.ERC20, feeQuote: selectedFeeQuote, spender, maxApproval: true });
 
+    expect(userOp.paymasterAndData).toBeTruthy();
+    expect(userOp.verificationGasLimit).toBeTruthy();
+    expect(userOp.preVerificationGas).toBeTruthy();
+    expect(userOp.maxFeePerGas).toBeTruthy();
+    expect(userOp.maxPriorityFeePerGas).toBeTruthy();
+
     const response = await smartWallet.sendUserOp(userOp);
 
     const userOpReceipt = await response.wait();
@@ -164,6 +170,50 @@ describe("Account Tests", () => {
 
     const newBalance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
     expect(newBalance - balance).toBe(1n);
+  }, 60000);
+
+  it("Should throw and error if missing field for ERC20 Paymaster user op", async () => {
+    const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
+    const {
+      whale: { viemWallet: signer, publicAddress: recipient },
+      bundlerUrl,
+      biconomyPaymasterApiKey,
+    } = mumbai;
+
+    const smartWallet = await createSmartWalletClient({
+      signer,
+      bundlerUrl,
+      biconomyPaymasterApiKey,
+    });
+
+    const encodedCall = encodeFunctionData({
+      abi: parseAbi(["function safeMint(address _to)"]),
+      functionName: "safeMint",
+      args: [recipient],
+    });
+
+    const transaction = {
+      to: nftAddress, // NFT address
+      data: encodedCall,
+    };
+
+    const userOp = await smartWallet.buildUserOp([transaction]);
+
+    const feeQuotesResponse: FeeQuotesOrDataResponse = await (
+      smartWallet.paymaster as IHybridPaymaster<PaymasterUserOperationDto>
+    ).getPaymasterFeeQuotesOrData(userOp, {
+      mode: PaymasterMode.ERC20,
+      tokenList: ["0xda5289fcaaf71d52a80a254da614a192b693e977"],
+      preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977",
+    });
+
+    const feeQuotes = feeQuotesResponse.feeQuotes as PaymasterFeeQuote[];
+    const selectedFeeQuote = feeQuotes[0];
+
+    // maxApproval and spender are missing
+    await expect(smartWallet.setPaymasterUserOp(userOp, { mode: PaymasterMode.ERC20, feeQuote: selectedFeeQuote })).rejects.toThrow(
+      "One or more fields are missing (mode, feeQuote, spender, maxApproval)",
+    );
   }, 60000);
 
   it("#getUserOpHash should match entryPoint.getUserOpHash", async () => {
