@@ -3,7 +3,7 @@
 Using `npm` package manager
 
 ```bash
-npm i @biconomy/account
+npm i @biconomy-devx/account
 ```
 
 OR
@@ -11,7 +11,7 @@ OR
 Using `yarn` package manager
 
 ```bash
-yarn add @biconomy/account
+yarn add @biconomy-devx/account
 ```
 
 ### Account
@@ -35,7 +35,7 @@ The account package achieves this by providing a comprehensive set of methods th
 
 ```typescript
 // This is how you create a smartWallet in your dapp
-import { Bundler, createSmartAccountClient } from "@biconomy/account";
+import { Bundler, createSmartAccountClient } from "@biconomy-devx/account";
 import { createWalletClient, http, createPublicClient } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { mainnet as chain } from "viem/chains";

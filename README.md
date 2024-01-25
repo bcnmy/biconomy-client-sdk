@@ -26,7 +26,7 @@ Unlock the full potential of **ERC4337 Account Abstraction** with methods that s
 
 ```javascript
 
-import { createSmartAccountClient } from "@biconomy/account";
+import { createSmartAccountClient } from "@biconomy-devx/account";
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { polygonMumbai } from "viem/chains";
@@ -50,7 +50,7 @@ console.log("address: ", await biconomySmartAccount.getAccountAddress());
 Acting as third-party intermediaries, Paymasters have the capability to sponsor gas fees for an account, provided specific predefined conditions are met. Additionally, they can accept gas payments in ERC20 tokens from users' smart accounts, with the Paymaster managing the conversion to native tokens for gas payment.
 
 ```javascript
-import { Paymaster, IPaymaster } from "@biconomy/account";
+import { Paymaster, IPaymaster } from "@biconomy-devx/account";
 const paymasterUrl = "";
 // Please go to https://dashboard.biconomy.io to setup a paymasterUrl
 // ...

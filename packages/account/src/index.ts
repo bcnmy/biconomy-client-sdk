@@ -14,9 +14,9 @@ export {
   PaymasterFeeQuote,
   SponsorUserOperationDto,
   FeeQuotesOrDataResponse,
-} from "@biconomy/paymaster";
-export { EthersSigner, convertSigner } from "@biconomy/common";
-export { Bundler, IBundler, extractChainIdFromBundlerUrl, UserOpResponse } from "@biconomy/bundler";
+} from "@biconomy-devx/paymaster";
+export { EthersSigner, convertSigner } from "@biconomy-devx/common";
+export { Bundler, IBundler, extractChainIdFromBundlerUrl, UserOpResponse } from "@biconomy-devx/bundler";
 
 export const createSmartAccountClient = BiconomySmartAccountV2.create;
 

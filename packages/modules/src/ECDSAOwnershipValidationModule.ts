@@ -3,7 +3,7 @@ import { SmartAccountSigner } from "@alchemy/aa-core";
 import { ECDSAOwnershipValidationModuleConfig, ECDSAOwnershipValidationModuleConfigConstructorProps, ModuleVersion } from "./utils/Types";
 import { DEFAULT_ECDSA_OWNERSHIP_MODULE, ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION } from "./utils/Constants";
 import { BaseValidationModule } from "./BaseValidationModule";
-import { convertSigner } from "@biconomy/common";
+import { convertSigner } from "@biconomy-devx/common";
 
 // Could be renamed with suffix API
 export class ECDSAOwnershipValidationModule extends BaseValidationModule {
