@@ -1,4 +1,4 @@
-import { UserOperationStruct } from "@biconomy/common";
+import { UserOperationStruct } from "@biconomy-devx/common";
 import { Hex, encodeAbiParameters, keccak256, parseAbiParameters } from "viem";
 
 function packUserOp(op: Partial<UserOperationStruct>, forSignature = true): string {

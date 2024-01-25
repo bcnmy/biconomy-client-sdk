@@ -1,10 +1,10 @@
-import { WalletClientSigner, type BigNumberish, type UserOperationStruct } from "@biconomy/common";
-import { SmartAccountSigner } from "@biconomy/common";
-import { IBundler } from "@biconomy/bundler";
-import { IPaymaster, PaymasterFeeQuote, PaymasterMode, SmartAccountData, SponsorUserOperationDto } from "@biconomy/paymaster";
-import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
+import { WalletClientSigner, type BigNumberish, type UserOperationStruct } from "@biconomy-devx/common";
+import { SmartAccountSigner } from "@biconomy-devx/common";
+import { IBundler } from "@biconomy-devx/bundler";
+import { IPaymaster, PaymasterFeeQuote, PaymasterMode, SmartAccountData, SponsorUserOperationDto } from "@biconomy-devx/paymaster";
+import { BaseValidationModule, ModuleInfo } from "@biconomy-devx/modules";
 import { Hex, WalletClient } from "viem";
-import { SupportedSigner } from "@biconomy/common";
+import { SupportedSigner } from "@biconomy-devx/common";
 
 export type EntryPointAddresses = {
   [address: string]: string;

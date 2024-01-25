@@ -1,6 +1,6 @@
 {
-  "name": "@biconomy/paymaster",
-  "version": "3.1.2",
+  "name": "@biconomy-devx/paymaster",
+  "version": "2.0.63",
   "description": "Biconomy Paymaster to interact with Paymaster Services that interacts with ( veriying and token ) paymasters",
   "main": "./dist/src/index.js",
   "module": "./dist/esm/index.js",
@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "viem": "^2.5.0",
-    "@biconomy/common": "^3.1.2"
+    "@biconomy-devx/common": "^2.0.63"
   },
   "devDependencies": {
     "esbuild": "^0.19.11",

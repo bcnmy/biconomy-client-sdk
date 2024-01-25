@@ -1,5 +1,5 @@
 import { Hex } from "viem";
-import { SmartAccountSigner } from "@biconomy/common";
+import { SmartAccountSigner } from "@biconomy-devx/common";
 import { SignerData } from "utils/Types";
 
 export type SessionStatus = "PENDING" | "ACTIVE" | "INACTIVE" | "EXPIRED";

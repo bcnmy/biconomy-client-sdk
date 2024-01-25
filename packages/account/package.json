@@ -1,6 +1,6 @@
 {
-  "name": "@biconomy/account",
-  "version": "3.1.2",
+  "name": "@biconomy-devx/account",
+  "version": "2.0.63",
   "description": "This package provides apis for ERC-4337 based smart account implementations",
   "main": "./dist/src/index.js",
   "module": "./dist/esm/index.js",
@@ -51,10 +51,10 @@
     "typedoc": "^0.25.7"
   },
   "dependencies": {
-    "@biconomy/bundler": "^3.1.2",
-    "@biconomy/common": "^3.1.2",
-    "@biconomy/modules": "^3.1.2",
-    "@biconomy/paymaster": "^3.1.2",
+    "@biconomy-devx/bundler": "^2.0.63",
+    "@biconomy-devx/common": "^2.0.63",
+    "@biconomy-devx/modules": "^2.0.63",
+    "@biconomy-devx/paymaster": "^2.0.63",
     "lru-cache": "^10.0.1",
     "viem": "^2.5.0"
   }

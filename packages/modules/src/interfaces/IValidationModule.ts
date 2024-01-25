@@ -1,4 +1,4 @@
-import { SmartAccountSigner } from "@biconomy/common";
+import { SmartAccountSigner } from "@biconomy-devx/common";
 import { Hex } from "viem";
 
 export interface IValidationModule {
