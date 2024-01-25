@@ -38,6 +38,7 @@ class Logger {
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   static error(message: string, value?: any): void {
     const timestamp = new Date().toISOString();
+    console.log({ timestamp });
     const errorMessage = `\x1b[35m[${timestamp}]\x1b[0m \x1b[31mERROR\x1b[0m: \x1b[36m${message}\x1b[0m`;
 
     if (Logger.isDebug) {
