@@ -223,6 +223,7 @@ describe("Account Tests", () => {
 
     expect(userOpHash).toBeTruthy();
     expect(success).toBe("true");
+    expect(transactionHash).toBeTruthy();
 
     const maticBalanceAfter = await checkBalance(publicClient, await smartWallet.getAddress());
     expect(maticBalanceAfter).toEqual(maticBalanceBefore);
@@ -232,8 +233,6 @@ describe("Account Tests", () => {
 
     const newBalance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
     expect(newBalance - balance).toBe(1n);
-
-    console.log({ transactionHash });
   }, 60000);
 
   it("Should throw and error if missing field for ERC20 Paymaster user op", async () => {
@@ -262,14 +261,22 @@ describe("Account Tests", () => {
       data: encodedCall,
     };
 
+    const feeQuotesResponse: FeeQuotesOrDataResponse = await smartWallet.getTokenFees(transaction, {
+      paymasterServiceData: {
+        mode: PaymasterMode.ERC20,
+        tokenList: ["0xda5289fcaaf71d52a80a254da614a192b693e977"],
+        preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977",
+      },
+    });
+
     expect(
-      smartWallet.getTokenFees(transaction, {
-        paymasterServiceData: {
-          mode: PaymasterMode.ERC20,
-          tokenList: ["0xda5289fcaaf71d52a80a254da614a192b693e977"],
-          preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977",
-        },
-      }),
+      async () =>
+        await smartWallet.sendTransaction(transaction, {
+          paymasterServiceData: {
+            mode: PaymasterMode.ERC20,
+            feeQuote: feeQuotesResponse.feeQuotes?.[0],
+          },
+        }),
     ).rejects.toThrow("spender and maxApproval are required for ERC20 mode");
   }, 60000);
 
