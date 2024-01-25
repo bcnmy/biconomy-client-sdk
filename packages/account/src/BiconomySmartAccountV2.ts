@@ -503,13 +503,60 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   /**
-   * Sets paymaster-related fields in the provided user operation based on the specified paymaster service data.
    *
-   * @param {Partial<UserOperationStruct>} userOp - The partial user operation structure to be modified.
-   * @param {PaymasterUserOperationDto} paymasterServiceData - The paymaster service data containing mode and additional information.
-   * @returns {Promise<Partial<UserOperationStruct>>} A promise that resolves to the modified user operation structure.
+   * @param userOp
+   * @param params
+   * @description This function will setup required fields for paymaster user ops
+   * Configures a sponsored or ERC20 paymaster user op with required fields
+   *
+   * @param userOp Partial<{@link UserOperationStruct}> the userOp params to be sent.
+   * @param paymasterServiceData PaymasterUserOperationDto
+   * @returns Promise<Partial<UserOperationStruct>>
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartAccountClient } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonMumbai } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonMumbai,
+   *   transport: http(),
+   * });
+   *
+   * const smartWallet = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const encodedCall = encodeFunctionData({
+   *   abi: parseAbi(["function safeMint(address to) public"]),
+   *   functionName: "safeMint",
+   *   args: ["0x..."],
+   * });
+   *
+   * const transaction = {
+   *   to: nftAddress,
+   *   data: encodedCall
+   * }
+   *
+   * let userOp = await smartWallet.buildUserOp([transaction]);
+   *
+   * // for SPONSORED mode
+   * userOp = await smartWallet.getPaymasterUserOp(userOp, { mode: PaymasterMode.SPONSORED });
+   * 
+   * // for ERC20 mode
+   *  const feeQuotesResponse: FeeQuotesOrDataResponse = await (
+      smartWallet.paymaster as IHybridPaymaster<PaymasterUserOperationDto>
+    ).getPaymasterFeeQuotesOrData(userOp, {
+      mode: PaymasterMode.ERC20,
+      preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977",
+    });
+    const feeQuotes = feeQuotesResponse.feeQuotes as PaymasterFeeQuote[];
+    const selectedFeeQuote = feeQuotes[0];
+    const spender = feeQuotesResponse.tokenPaymasterAddress;
+   * 
+   * userOp = await smartWallet.getPaymasterUserOp(userOp, { mode: PaymasterMode.ERC20, feeQuote: selectedFeeQuote, spender, maxApproval: true });
+   * const tx = await smartWallet.sendUserOp(userOp);
    */
-  async setPaymasterUserOp(
+  async getPaymasterUserOp(
     userOp: Partial<UserOperationStruct>,
     paymasterServiceData: PaymasterUserOperationDto,
   ): Promise<Partial<UserOperationStruct>> {
@@ -523,7 +570,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         userOp.verificationGasLimit = paymasterData.verificationGasLimit;
         userOp.preVerificationGas = paymasterData.preVerificationGas;
         return userOp;
-      } else if (paymasterServiceData.mode === PaymasterMode.ERC20 && paymasterServiceData.feeQuote !== undefined) {
+      } else if (
+        paymasterServiceData.mode === PaymasterMode.ERC20 &&
+        !isNullOrUndefined(paymasterServiceData.feeQuote) &&
+        !isNullOrUndefined(paymasterServiceData.spender) &&
+        !isNullOrUndefined(paymasterServiceData.maxApproval)
+      ) {
         const finalUserOp = await this.buildTokenPaymasterUserOp(userOp, {
           feeQuote: paymasterServiceData.feeQuote,
           spender: (paymasterServiceData.spender as Hex) || "",
@@ -544,7 +596,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         finalUserOp.preVerificationGas = paymasterAndDataWithLimits.preVerificationGas;
         return finalUserOp;
       } else {
-        return userOp;
+        throw new Error("One or more fields are missing (mode, feeQuote, spender, maxApproval)");
       }
     } else {
       throw new Error("Paymaster is not provided");
@@ -843,7 +895,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     userOp = await this.estimateUserOpGas(userOp);
 
     if (buildUseropDto?.paymasterServiceData) {
-      userOp = await this.setPaymasterUserOp(userOp, buildUseropDto?.paymasterServiceData);
+      userOp = await this.getPaymasterUserOp(userOp, buildUseropDto?.paymasterServiceData);
     }
 
     Logger.log("UserOp after estimation ", userOp);

@@ -13,6 +13,7 @@ export {
   IHybridPaymaster,
   PaymasterFeeQuote,
   SponsorUserOperationDto,
+  FeeQuotesOrDataResponse,
 } from "@biconomy/paymaster";
 export { EthersSigner, convertSigner } from "@biconomy/common";
 export { Bundler, IBundler, extractChainIdFromBundlerUrl, UserOpResponse } from "@biconomy/bundler";
