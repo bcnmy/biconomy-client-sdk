@@ -14,7 +14,6 @@ import {
   http,
   concatHex,
   GetContractReturnType,
-  Chain,
   getContract,
   decodeFunctionData,
 } from "viem";
@@ -81,7 +80,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   bundler?: IBundler;
 
-  private accountContract?: GetContractReturnType<typeof BiconomyAccountAbi, PublicClient, Chain>;
+  private accountContract?: GetContractReturnType<typeof BiconomyAccountAbi, PublicClient>;
 
   private defaultFallbackHandlerAddress: Hex;
 
@@ -308,12 +307,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
   }
 
-  async _getAccountContract(): Promise<GetContractReturnType<typeof BiconomyAccountAbi, PublicClient, Chain>> {
+  async _getAccountContract(): Promise<GetContractReturnType<typeof BiconomyAccountAbi, PublicClient>> {
     if (this.accountContract == null) {
       this.accountContract = getContract({
         address: await this.getAddress(),
         abi: BiconomyAccountAbi,
-        publicClient: this.provider as PublicClient,
+        client: this.provider as PublicClient,
       });
     }
     return this.accountContract;
@@ -349,7 +348,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const addressResolver = getContract({
       address: ADDRESS_RESOLVER_ADDRESS,
       abi: AccountResolverAbi,
-      publicClient: this.provider as PublicClient,
+      client: {
+        public: this.provider as PublicClient,
+      },
     });
     // Note: depending on moduleAddress and moduleSetupData passed call this. otherwise could call resolveAddresses()
 

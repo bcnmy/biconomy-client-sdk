@@ -40,7 +40,7 @@ The account package achieves this by providing a comprehensive set of methods th
 import { Bundler, createSmartWalletClient } from "@biconomy/account";
 import { createWalletClient, http, createPublicClient } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
-import { mainnet as chain } from "viem/chains";
+import { mainnet as chain } from "viem/mainnet";
 
 const account = privateKeyToAccount(generatePrivateKey());
 const signer = createWalletClient({

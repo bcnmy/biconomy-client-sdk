@@ -290,7 +290,7 @@ export class SmartAccountProvider<TTransport extends SupportedTransports = Trans
   };
 
   getTransaction = (hash: Hash): Promise<Transaction> => {
-    return this.rpcClient.getTransaction({ hash: hash });
+    return this.rpcClient.getTransaction({ hash: hash }) as Promise<Transaction>;
   };
 
   buildUserOperation = async (data: UserOperationCallData | BatchUserOperationCallData, overrides?: UserOperationOverrides) => {

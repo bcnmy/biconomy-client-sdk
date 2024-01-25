@@ -42,7 +42,7 @@
     "@ethersproject/abstract-signer": "^5.7.0",
     "abitype": "^1.0.0",
     "eventemitter3": "5.0.1",
-    "viem": "^1.20.3",
+    "viem": "^2.5.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {

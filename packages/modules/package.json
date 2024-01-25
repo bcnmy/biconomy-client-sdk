@@ -43,7 +43,7 @@
   "dependencies": {
     "@biconomy/common": "^3.1.2",
     "merkletreejs": "^0.3.9",
-    "viem": "^1.20.3"
+    "viem": "^2.5.0"
   },
   "devDependencies": {
     "esbuild": "^0.19.11",

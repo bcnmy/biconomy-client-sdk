@@ -41,7 +41,7 @@
     "access": "public"
   },
   "dependencies": {
-    "viem": "^1.20.3",
+    "viem": "^2.5.0",
     "@biconomy/common": "^3.1.2"
   },
   "devDependencies": {

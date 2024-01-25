@@ -56,6 +56,6 @@
     "@biconomy/modules": "^3.1.2",
     "@biconomy/paymaster": "^3.1.2",
     "lru-cache": "^10.0.1",
-    "viem": "^1.21.4"
+    "viem": "^2.5.0"
   }
 }

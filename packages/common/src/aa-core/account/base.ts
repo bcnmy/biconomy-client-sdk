@@ -1,15 +1,5 @@
 import type { Address } from "abitype";
-import {
-  getContract,
-  trim,
-  type Chain,
-  type GetContractReturnType,
-  type Hash,
-  type Hex,
-  type HttpTransport,
-  type PublicClient,
-  type Transport,
-} from "viem";
+import { getContract, trim, type GetContractReturnType, type Hash, type Hex, type HttpTransport, type PublicClient, type Transport } from "viem";
 import { EntryPointAbi } from "../abi/EntryPointAbi";
 import { createPublicErc4337Client } from "../client/create-client";
 import { Logger } from "../../utils/Logger";
@@ -42,7 +32,7 @@ export abstract class BaseSmartContractAccount<
 
   protected owner: TOwner;
 
-  protected entryPoint: GetContractReturnType<typeof EntryPointAbi, PublicClient, Chain>;
+  protected entryPoint: GetContractReturnType<typeof EntryPointAbi, PublicClient>;
 
   protected entryPointAddress: Address;
 
@@ -93,7 +83,7 @@ export abstract class BaseSmartContractAccount<
       abi: EntryPointAbi,
       // Need to cast this as PublicClient or else it breaks ABI typing.
       // This is valid because our PublicClient is a subclass of PublicClient
-      publicClient: this.rpcProvider as PublicClient,
+      client: this.rpcProvider as PublicClient,
     });
   }
 
