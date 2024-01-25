@@ -504,14 +504,14 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     paymasterServiceData: PaymasterUserOperationDto,
   ): Promise<Partial<UserOperationStruct>> {
     if (paymasterServiceData.mode === PaymasterMode.SPONSORED) {
-      return this.#getPaymasterAndDataFromPaymaster(userOp, paymasterServiceData);
+      return await this.#getPaymasterAndDataFromPaymaster(userOp, paymasterServiceData);
     } else if (paymasterServiceData.mode === PaymasterMode.ERC20) {
       if (paymasterServiceData.feeQuote) {
         Logger.log("there is a feeQuote: ", paymasterServiceData.feeQuote);
         if (!paymasterServiceData.spender || !paymasterServiceData.maxApproval) {
           throw new Error("spender and maxApproval are required for ERC20 mode");
         }
-        return this.#getPaymasterAndDataFromPaymaster(userOp, {
+        return await this.#getPaymasterAndDataFromPaymaster(userOp, {
           ...paymasterServiceData,
           feeTokenAddress: paymasterServiceData.feeQuote.tokenAddress,
         });
@@ -523,7 +523,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         if (!feeQuote) {
           throw new Error("Error while getting feeQuote");
         }
-        return this.#getPaymasterAndDataFromPaymaster(userOp, { ...paymasterServiceData, feeQuote, feeTokenAddress: preferredToken });
+        return await this.#getPaymasterAndDataFromPaymaster(userOp, { ...paymasterServiceData, feeQuote, feeTokenAddress: preferredToken });
       } else {
         throw new Error("FeeQuote was not provided, please call smartAccount.getTokenFees() to get feeQuote");
       }
