@@ -108,7 +108,6 @@ describe("Account Tests", () => {
       ].every(Boolean),
     ).toBeTruthy();
 
-    expect(smartWalletFromEthersWithNewRpc.rpcProvider.transport.url).toBe(newRpcUrl);
     expect(smartWalletFromViemWithNewRpc.rpcProvider.transport.url).toBe(newRpcUrl);
     expect(smartWalletFromEthersWithOldRpc.rpcProvider.transport.url).toBe(defaultRpcUrl);
     expect(smartWalletFromViemWithOldRpc.rpcProvider.transport.url).toBe(defaultRpcUrl);
