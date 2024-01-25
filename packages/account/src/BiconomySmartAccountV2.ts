@@ -525,12 +525,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       } else if (paymasterServiceData.preferredToken) {
         Logger.log("there is a preferred token: ", paymasterServiceData.preferredToken);
         const preferredToken = paymasterServiceData.preferredToken;
-        const feeQuotesResponse = await this.getTokenFeesForUserOp(userOp, { ...paymasterServiceData, tokenList: [preferredToken] });
+        const feeQuotesResponse = await this.getPaymasterFeeQuotesOrData(userOp, { ...paymasterServiceData, tokenList: [preferredToken] });
+        const spender = feeQuotesResponse.tokenPaymasterAddress;
         const feeQuote = feeQuotesResponse.feeQuotes?.[0];
         if (!feeQuote) {
           throw new Error("Error while getting feeQuote");
         }
-        return this.getPaymasterAndData(userOp, { ...paymasterServiceData, feeQuote, feeTokenAddress: preferredToken });
+        return this.getPaymasterAndData(userOp, { ...paymasterServiceData, feeQuote, spender, feeTokenAddress: preferredToken });
       } else {
         throw new Error("FeeQuote was not provided, please call smartAccount.getTokenFees() to get feeQuote");
       }
@@ -547,7 +548,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return { ...userOp, ...paymasterData };
   }
 
-  private async getTokenFeesForUserOp(userOp: Partial<UserOperationStruct>, feeQuotesOrData: FeeQuotesOrDataDto): Promise<FeeQuotesOrDataResponse> {
+  private async getPaymasterFeeQuotesOrData(
+    userOp: Partial<UserOperationStruct>,
+    feeQuotesOrData: FeeQuotesOrDataDto,
+  ): Promise<FeeQuotesOrDataResponse> {
     const paymaster = this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>;
     return paymaster.getPaymasterFeeQuotesOrData(userOp, feeQuotesOrData);
   }
@@ -592,10 +596,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *    }
    * });
    *
+   * const userSeletedFeeQuote = feeQuotesResponse.feeQuotes?.[0];
+   *
    * const { wait } = await smartWallet.sendTransaction(transaction, {
    *    paymasterServiceData: {
    *      mode: PaymasterMode.ERC20,
-   *      feeQuote: feeQuotesResponse.feeQuotes?.[0],
+   *      feeQuote: userSeletedFeeQuote,
    *      maxApproval: true,
    *      spender: "0x...",
    *    },
@@ -611,7 +617,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const txs = Array.isArray(manyOrOneTransactions) ? manyOrOneTransactions : [manyOrOneTransactions];
     const userOp = await this.buildUserOp(txs, buildUseropDto);
     if (!buildUseropDto.paymasterServiceData) throw new Error("paymasterServiceData was not provided");
-    return this.getTokenFeesForUserOp(userOp, buildUseropDto.paymasterServiceData);
+    return this.getPaymasterFeeQuotesOrData(userOp, buildUseropDto.paymasterServiceData);
   }
 
   /**

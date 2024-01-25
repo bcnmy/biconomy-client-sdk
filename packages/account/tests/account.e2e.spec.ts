@@ -1,13 +1,6 @@
 import { TestData } from "../../../tests";
-import {
-  PaymasterUserOperationDto,
-  createSmartAccountClient,
-  FeeQuotesOrDataResponse,
-  IHybridPaymaster,
-  PaymasterFeeQuote,
-  PaymasterMode,
-} from "../src/index";
-import { Hex, encodeFunctionData, parseAbi, zeroAddress } from "viem";
+import { createSmartAccountClient, FeeQuotesOrDataResponse, PaymasterMode } from "../src/index";
+import { Hex, encodeFunctionData, parseAbi } from "viem";
 import { UserOperationStruct } from "@alchemy/aa-core";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
 
@@ -143,8 +136,6 @@ describe("Account Tests", () => {
       paymasterServiceData: {
         mode: PaymasterMode.ERC20,
         preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977",
-        spender: zeroAddress,
-        maxApproval: true,
       },
     });
 
