@@ -188,7 +188,6 @@ describe("Account Tests", () => {
     const feeQuotesResponse = await smartWallet.getTokenFees(transaction, {
       paymasterServiceData: {
         mode: PaymasterMode.ERC20,
-        tokenList: ["0xda5289fcaaf71d52a80a254da614a192b693e977"],
         preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977",
       },
     });
@@ -255,7 +254,6 @@ describe("Account Tests", () => {
     const feeQuotesResponse: FeeQuotesOrDataResponse = await smartWallet.getTokenFees(transaction, {
       paymasterServiceData: {
         mode: PaymasterMode.ERC20,
-        tokenList: ["0xda5289fcaaf71d52a80a254da614a192b693e977"],
         preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977",
       },
     });

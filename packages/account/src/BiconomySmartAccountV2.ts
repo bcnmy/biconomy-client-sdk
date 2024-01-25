@@ -525,7 +525,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       } else if (paymasterServiceData.preferredToken) {
         Logger.log("there is a preferred token: ", paymasterServiceData.preferredToken);
         const preferredToken = paymasterServiceData.preferredToken;
-        const feeQuotesResponse = await this.getPaymasterFeeQuotesOrData(userOp, { ...paymasterServiceData, tokenList: [preferredToken] });
+        const feeQuotesResponse = await this.getPaymasterFeeQuotesOrData(userOp, {
+          ...paymasterServiceData,
+          tokenList: paymasterServiceData?.tokenList ?? [preferredToken],
+        });
         const spender = feeQuotesResponse.tokenPaymasterAddress;
         const feeQuote = feeQuotesResponse.feeQuotes?.[0];
         if (!feeQuote) {
