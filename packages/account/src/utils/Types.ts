@@ -1,6 +1,6 @@
 import { BigNumberish, SmartAccountSigner, UserOperationStruct, WalletClientSigner } from "@alchemy/aa-core";
 import { IBundler } from "@biconomy/bundler";
-import { IPaymaster, PaymasterFeeQuote, PaymasterMode, SmartAccountData, SponsorUserOperationDto } from "@biconomy/paymaster";
+import { FeeQuotesOrDataDto, IPaymaster, PaymasterFeeQuote, PaymasterMode, SmartAccountData, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { Hex, WalletClient } from "viem";
 import { SupportedSigner } from "@biconomy/common";
@@ -177,19 +177,20 @@ export type InitilizationData = {
   signerAddress?: string;
 };
 
-export type PaymasterUserOperationDto = {
-  mode: PaymasterMode;
-  calculateGasLimits?: boolean;
-  expiryDuration?: number;
-  webhookData?: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any;
+export type PaymasterUserOperationDto = SponsorUserOperationDto &
+  FeeQuotesOrDataDto & {
+    mode: PaymasterMode;
+    calculateGasLimits?: boolean;
+    expiryDuration?: number;
+    webhookData?: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      [key: string]: any;
+    };
+    smartAccountInfo?: SmartAccountData;
+    feeQuote?: PaymasterFeeQuote;
+    spender?: Hex;
+    maxApproval?: boolean;
   };
-  smartAccountInfo?: SmartAccountData;
-  feeQuote?: PaymasterFeeQuote;
-  spender?: Hex;
-  maxApproval?: boolean;
-};
 
 export type InitializeV2Data = {
   accountIndex?: number;

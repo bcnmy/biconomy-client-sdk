@@ -37,7 +37,7 @@ describe("Account with MultiChainValidation Module Tests", () => {
 
     const [polygonAccount, baseAccount] = await Promise.all([
       createSmartAccountClient({
-        chainId: 80001,
+        chainId: chainIdMumbai,
         signer: signerMumbai,
         bundlerUrl: bundlerUrlMumbai,
         defaultValidationModule: multiChainModule,
@@ -45,7 +45,7 @@ describe("Account with MultiChainValidation Module Tests", () => {
         biconomyPaymasterApiKey: biconomyPaymasterApiKeyMumbai,
       }),
       createSmartAccountClient({
-        chainId: 84531,
+        chainId: chainIdBase,
         signer: signerBase,
         bundlerUrl: bundlerUrlBase,
         defaultValidationModule: multiChainModule,

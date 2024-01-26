@@ -208,11 +208,12 @@ describe("Account Tests", () => {
       transport: http(localhost.rpcUrls.public.http[0]),
     });
 
-    expect(async () =>
-      createSmartAccountClient({
-        signer: viemWalletClientNoChainId,
-        bundlerUrl,
-      }),
+    expect(
+      async () =>
+        await createSmartAccountClient({
+          signer: viemWalletClientNoChainId,
+          bundlerUrl,
+        }),
     ).rejects.toThrow("Cannot consume a viem wallet without a chainId");
   });
 
@@ -223,11 +224,12 @@ describe("Account Tests", () => {
       transport: http(localhost.rpcUrls.public.http[0]),
     });
 
-    expect(async () =>
-      createSmartAccountClient({
-        signer: viemWalletNoAccount,
-        bundlerUrl,
-      }),
+    expect(
+      async () =>
+        await createSmartAccountClient({
+          signer: viemWalletNoAccount,
+          bundlerUrl,
+        }),
     ).rejects.toThrow("Cannot consume a viem wallet without an account");
   });
 });

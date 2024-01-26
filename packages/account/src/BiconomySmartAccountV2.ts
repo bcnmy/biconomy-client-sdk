@@ -65,6 +65,7 @@ import { BiconomyAccountAbi } from "./abi/SmartAccount";
 import { AccountResolverAbi } from "./abi/AccountResolver";
 import { Logger } from "@biconomy/common";
 import { convertSigner } from "./";
+import { FeeQuotesOrDataDto, FeeQuotesOrDataResponse } from "@biconomy/paymaster";
 
 type UserOperationKey = keyof UserOperationStruct;
 
@@ -502,16 +503,69 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return encodeAbiParameters(parseAbiParameters("bytes, address"), [moduleSignature, moduleAddressToUse]);
   }
 
+  public async getPaymasterUserOp(
+    userOp: Partial<UserOperationStruct>,
+    paymasterServiceData: PaymasterUserOperationDto,
+  ): Promise<Partial<UserOperationStruct>> {
+    if (paymasterServiceData.mode === PaymasterMode.SPONSORED) {
+      return this.getPaymasterAndData(userOp, paymasterServiceData);
+    } else if (paymasterServiceData.mode === PaymasterMode.ERC20) {
+      if (paymasterServiceData?.feeQuote) {
+        Logger.log("there is a feeQuote: ", paymasterServiceData.feeQuote);
+        if (!paymasterServiceData.spender || !paymasterServiceData.maxApproval) {
+          throw new Error("spender and maxApproval are required for ERC20 mode");
+        }
+        const finalUserOp = await this.buildTokenPaymasterUserOp(userOp, paymasterServiceData as BiconomyTokenPaymasterRequest);
+        const fromPayMaster = await this.getPaymasterAndData(userOp, {
+          ...paymasterServiceData,
+          feeTokenAddress: paymasterServiceData.feeQuote.tokenAddress,
+          calculateGasLimits: true, // Always recommended and especially when using token paymaster
+        });
+        return { ...finalUserOp, ...fromPayMaster };
+      } else if (paymasterServiceData.preferredToken) {
+        Logger.log("there is a preferred token: ", paymasterServiceData.preferredToken);
+        const preferredToken = paymasterServiceData.preferredToken;
+        const feeQuotesResponse = await this.getPaymasterFeeQuotesOrData(userOp, {
+          ...paymasterServiceData,
+          tokenList: paymasterServiceData?.tokenList ?? [preferredToken],
+        });
+        const spender = feeQuotesResponse.tokenPaymasterAddress;
+        const feeQuote = feeQuotesResponse.feeQuotes?.[0];
+        if (!feeQuote) {
+          throw new Error("Error while getting feeQuote");
+        }
+        return this.getPaymasterAndData(userOp, { ...paymasterServiceData, feeQuote, spender, feeTokenAddress: preferredToken });
+      } else {
+        throw new Error("FeeQuote was not provided, please call smartAccount.getTokenFees() to get feeQuote");
+      }
+    }
+    throw new Error("Invalid paymaster mode");
+  }
+
+  private async getPaymasterAndData(
+    userOp: Partial<UserOperationStruct>,
+    paymasterServiceData: PaymasterUserOperationDto,
+  ): Promise<Partial<UserOperationStruct>> {
+    const paymaster = this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>;
+    const paymasterData = await paymaster.getPaymasterAndData(userOp, paymasterServiceData);
+    return { ...userOp, ...paymasterData };
+  }
+
+  private async getPaymasterFeeQuotesOrData(
+    userOp: Partial<UserOperationStruct>,
+    feeQuotesOrData: FeeQuotesOrDataDto,
+  ): Promise<FeeQuotesOrDataResponse> {
+    const paymaster = this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>;
+    return paymaster.getPaymasterFeeQuotesOrData(userOp, feeQuotesOrData);
+  }
+
   /**
    *
-   * @param userOp
-   * @param params
-   * @description This function will setup required fields for paymaster user ops
-   * Configures a sponsored or ERC20 paymaster user op with required fields
+   * @description This function will retrieve fees from the paymaster in erc20 mode
    *
-   * @param userOp Partial<{@link UserOperationStruct}> the userOp params to be sent.
-   * @param paymasterServiceData PaymasterUserOperationDto
-   * @returns Promise<Partial<UserOperationStruct>>
+   * @param manyOrOneTransactions Array of {@link Transaction} to be batched and sent. Can also be a single {@link Transaction}.
+   * @param buildUseropDto {@link BuildUserOpOptions}.
+   * @returns Promise<FeeQuotesOrDataResponse>
    *
    * @example
    * import { createClient } from "viem"
@@ -537,70 +591,36 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   data: encodedCall
    * }
    *
-   * let userOp = await smartWallet.buildUserOp([transaction]);
+   * const feeQuotesResponse: FeeQuotesOrDataResponse = await smartWallet.getTokenFees(transaction, {
+   *    paymasterServiceData: {
+   *      mode: PaymasterMode.ERC20,
+   *      tokenList: ["0xda5289fcaaf71d52a80a254da614a192b693e977"],
+   *      preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977"
+   *    }
+   * });
    *
-   * // for SPONSORED mode
-   * userOp = await smartWallet.getPaymasterUserOp(userOp, { mode: PaymasterMode.SPONSORED });
-   * 
-   * // for ERC20 mode
-   *  const feeQuotesResponse: FeeQuotesOrDataResponse = await (
-      smartWallet.paymaster as IHybridPaymaster<PaymasterUserOperationDto>
-    ).getPaymasterFeeQuotesOrData(userOp, {
-      mode: PaymasterMode.ERC20,
-      preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977",
-    });
-    const feeQuotes = feeQuotesResponse.feeQuotes as PaymasterFeeQuote[];
-    const selectedFeeQuote = feeQuotes[0];
-    const spender = feeQuotesResponse.tokenPaymasterAddress;
-   * 
-   * userOp = await smartWallet.getPaymasterUserOp(userOp, { mode: PaymasterMode.ERC20, feeQuote: selectedFeeQuote, spender, maxApproval: true });
-   * const tx = await smartWallet.sendUserOp(userOp);
+   * const userSeletedFeeQuote = feeQuotesResponse.feeQuotes?.[0];
+   *
+   * const { wait } = await smartWallet.sendTransaction(transaction, {
+   *    paymasterServiceData: {
+   *      mode: PaymasterMode.ERC20,
+   *      feeQuote: userSeletedFeeQuote,
+   *      maxApproval: true,
+   *      spender: "0x...",
+   *    },
+   * });
+   *
+   * const { receipt } = await wait();
+   *
    */
-  async getPaymasterUserOp(
-    userOp: Partial<UserOperationStruct>,
-    paymasterServiceData: PaymasterUserOperationDto,
-  ): Promise<Partial<UserOperationStruct>> {
-    if (this.paymaster !== undefined) {
-      if (paymasterServiceData.mode === PaymasterMode.SPONSORED) {
-        const paymasterData = await (this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>).getPaymasterAndData(userOp, {
-          mode: paymasterServiceData.mode,
-        });
-        userOp.paymasterAndData = paymasterData.paymasterAndData;
-        userOp.callGasLimit = paymasterData.callGasLimit;
-        userOp.verificationGasLimit = paymasterData.verificationGasLimit;
-        userOp.preVerificationGas = paymasterData.preVerificationGas;
-        return userOp;
-      } else if (
-        paymasterServiceData.mode === PaymasterMode.ERC20 &&
-        !isNullOrUndefined(paymasterServiceData.feeQuote) &&
-        !isNullOrUndefined(paymasterServiceData.spender) &&
-        !isNullOrUndefined(paymasterServiceData.maxApproval)
-      ) {
-        const finalUserOp = await this.buildTokenPaymasterUserOp(userOp, {
-          feeQuote: paymasterServiceData.feeQuote,
-          spender: (paymasterServiceData.spender as Hex) || "",
-          maxApproval: paymasterServiceData.maxApproval,
-        });
-        const newPaymasterServiceData = {
-          mode: PaymasterMode.ERC20,
-          feeTokenAddress: paymasterServiceData.feeQuote.tokenAddress,
-          calculateGasLimits: true, // Always recommended and especially when using token paymaster
-        };
-        const paymasterAndDataWithLimits = await (this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>).getPaymasterAndData(
-          finalUserOp,
-          newPaymasterServiceData,
-        );
-        finalUserOp.paymasterAndData = paymasterAndDataWithLimits.paymasterAndData;
-        finalUserOp.callGasLimit = paymasterAndDataWithLimits.callGasLimit;
-        finalUserOp.verificationGasLimit = paymasterAndDataWithLimits.verificationGasLimit;
-        finalUserOp.preVerificationGas = paymasterAndDataWithLimits.preVerificationGas;
-        return finalUserOp;
-      } else {
-        throw new Error("One or more fields are missing (mode, feeQuote, spender, maxApproval)");
-      }
-    } else {
-      throw new Error("Paymaster is not provided");
-    }
+  public async getTokenFees(
+    manyOrOneTransactions: Transaction | Transaction[],
+    buildUseropDto: BuildUserOpOptions,
+  ): Promise<FeeQuotesOrDataResponse> {
+    const txs = Array.isArray(manyOrOneTransactions) ? manyOrOneTransactions : [manyOrOneTransactions];
+    const userOp = await this.buildUserOp(txs, buildUseropDto);
+    if (!buildUseropDto.paymasterServiceData) throw new Error("paymasterServiceData was not provided");
+    return this.getPaymasterFeeQuotesOrData(userOp, buildUseropDto.paymasterServiceData);
   }
 
   /**
@@ -895,7 +915,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     userOp = await this.estimateUserOpGas(userOp);
 
     if (buildUseropDto?.paymasterServiceData) {
-      userOp = await this.getPaymasterUserOp(userOp, buildUseropDto?.paymasterServiceData);
+      userOp = await this.getPaymasterUserOp(userOp, buildUseropDto.paymasterServiceData);
     }
 
     Logger.log("UserOp after estimation ", userOp);
