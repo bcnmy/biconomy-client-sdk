@@ -503,7 +503,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return encodeAbiParameters(parseAbiParameters("bytes, address"), [moduleSignature, moduleAddressToUse]);
   }
 
-  private async getPaymasterUserOp(
+  public async getPaymasterUserOp(
     userOp: Partial<UserOperationStruct>,
     paymasterServiceData: PaymasterUserOperationDto,
   ): Promise<Partial<UserOperationStruct>> {
