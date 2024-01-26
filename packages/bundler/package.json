@@ -1,6 +1,6 @@
 {
   "name": "@biconomy-devx/bundler",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "Biconomy Bundler package to interact with any bundler node as per ERC4337 standard",
   "main": "./dist/src/index.js",
   "module": "./dist/esm/index.js",
@@ -45,7 +45,7 @@
   },
   "dependencies": {
     "viem": "^2.5.0",
-    "@biconomy-devx/common": "2.2.1"
+    "@biconomy-devx/common": "2.2.2"
   },
   "devDependencies": {
     "esbuild": "^0.19.11",
