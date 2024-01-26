@@ -64,8 +64,10 @@ packages/particle-auth/package-lock.json
 packages/transak/package-lock.json
 package-lock.json
 
-#session storage files
+#ignore sessionStorageData files
 packages/modules/tests/utils/sessionStorageData/*
+#except sessionStorageData folder 
+!packages/modules/tests/utils/sessionStorageData/.gitkeep 
 
 # Typechain
 typechain
