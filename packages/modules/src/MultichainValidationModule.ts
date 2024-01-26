@@ -10,7 +10,7 @@ import {
 } from "./utils/Types";
 import { BaseValidationModule } from "./BaseValidationModule";
 import { getUserOpHash } from "./utils/Helper";
-import { convertSigner, Logger } from "@biconomy/common";
+import { convertSigner, Logger } from "@biconomy-devx/common";
 
 export class MultiChainValidationModule extends BaseValidationModule {
   signer: SmartAccountSigner;

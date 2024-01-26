@@ -1,9 +1,9 @@
 import { BigNumberish, SmartAccountSigner, UserOperationStruct, WalletClientSigner } from "@alchemy/aa-core";
-import { IBundler } from "@biconomy/bundler";
-import { FeeQuotesOrDataDto, IPaymaster, PaymasterFeeQuote, PaymasterMode, SmartAccountData, SponsorUserOperationDto } from "@biconomy/paymaster";
-import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
+import { IBundler } from "@biconomy-devx/bundler";
+import { FeeQuotesOrDataDto, IPaymaster, PaymasterFeeQuote, PaymasterMode, SmartAccountData, SponsorUserOperationDto } from "@biconomy-devx/paymaster";
+import { BaseValidationModule, ModuleInfo } from "@biconomy-devx/modules";
 import { Hex, WalletClient } from "viem";
-import { SupportedSigner } from "@biconomy/common";
+import { SupportedSigner } from "@biconomy-devx/common";
 
 export type EntryPointAddresses = {
   [address: string]: string;
