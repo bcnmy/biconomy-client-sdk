@@ -4,6 +4,7 @@ import { FeeQuotesOrDataDto, IPaymaster, PaymasterFeeQuote, PaymasterMode, Smart
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { Hex, WalletClient } from "viem";
 import { SupportedSigner } from "@biconomy/common";
+import { StateOverrideSet } from "@biconomy/common";
 
 export type EntryPointAddresses = {
   [address: string]: string;
@@ -142,6 +143,7 @@ export type BuildUserOpOptions = {
   nonceOptions?: NonceOptions;
   forceEncodeForBatch?: boolean;
   paymasterServiceData?: PaymasterUserOperationDto;
+  stateOverrideSet?: StateOverrideSet;
 };
 
 export type NonceOptions = {

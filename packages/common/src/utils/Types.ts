@@ -9,3 +9,13 @@ export interface EthersV6Signer {
   getAddress(): Promise<string>;
   signMessage(message: string | Uint8Array): Promise<string>;
 }
+
+export type StateOverrideSet = {
+  [key: string]: {
+    balance?: string;
+    nonce?: string;
+    code?: string;
+    state?: object;
+    stateDiff?: object;
+  };
+};
