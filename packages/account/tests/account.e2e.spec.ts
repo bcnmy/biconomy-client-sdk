@@ -10,6 +10,7 @@ import {
 import { Hex, encodeFunctionData, parseAbi } from "viem";
 import { UserOperationStruct } from "@alchemy/aa-core";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
+import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "@biconomy/modules";
 
 describe("Account Tests", () => {
   let mumbai: TestData;
@@ -300,4 +301,27 @@ describe("Account Tests", () => {
 
     expect(ecdsaOwnershipModule).toBe(smartWallet.activeValidationModule.getAddress());
   });
+
+  it("should get enable module data tx and send it as user op", async () => {
+    const {
+      whale: { viemWallet: signer },
+      bundlerUrl,
+    } = mumbai;
+
+    const smartWallet = await createSmartAccountClient({
+      signer,
+      bundlerUrl,
+    });
+
+    const enabledModuleData = await smartWallet.getEnableModuleData(DEFAULT_ECDSA_OWNERSHIP_MODULE);
+
+    expect(enabledModuleData.data).toBeTruthy();
+    expect(enabledModuleData.to).toBeTruthy();
+    expect(enabledModuleData.value).toBe("0x00");
+
+    const response = await smartWallet.sendTransaction([{ to: await smartWallet.getAddress(), value: 1, data: "0x" }, enabledModuleData]);
+    await response.wait();
+    expect(response).toBeTruthy();
+    expect(response.userOpHash).toBeTruthy();
+  }, 50000);
 });

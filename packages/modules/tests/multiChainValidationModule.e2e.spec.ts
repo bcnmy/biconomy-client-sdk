@@ -54,6 +54,16 @@ describe("Account with MultiChainValidation Module Tests", () => {
       }),
     ]);
 
+    const moduleEnabled1 = await polygonAccount.isModuleEnabled(DEFAULT_MULTICHAIN_MODULE);
+    const moduleActive1 = polygonAccount.activeValidationModule;
+    expect(moduleEnabled1).toBeTruthy();
+    expect(moduleActive1.getAddress()).toBe(DEFAULT_MULTICHAIN_MODULE);
+
+    const moduleEnabled2 = await baseAccount.isModuleEnabled(DEFAULT_MULTICHAIN_MODULE);
+    const moduleActive2 = polygonAccount.activeValidationModule;
+    expect(moduleEnabled2).toBeTruthy();
+    expect(moduleActive2.getAddress()).toBe(DEFAULT_MULTICHAIN_MODULE);
+
     const encodedCall = encodeFunctionData({
       abi: parseAbi(["function safeMint(address owner) view returns (uint balance)"]),
       functionName: "safeMint",
