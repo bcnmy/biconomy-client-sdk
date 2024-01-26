@@ -147,7 +147,7 @@ describe("Account Tests", () => {
     const account = privateKeyToAccount(generatePrivateKey());
     const viemWalletClientNoChainId = createWalletClient({
       account,
-      transport: http(localhost.rpcUrls.public.http[0]),
+      transport: http(localhost.rpcUrls.default.http[0]),
     });
 
     expect(async () =>
@@ -162,7 +162,7 @@ describe("Account Tests", () => {
     const { bundlerUrl } = ganache;
 
     const viemWalletNoAccount = createWalletClient({
-      transport: http(localhost.rpcUrls.public.http[0]),
+      transport: http(localhost.rpcUrls.default.http[0]),
     });
 
     expect(async () =>
