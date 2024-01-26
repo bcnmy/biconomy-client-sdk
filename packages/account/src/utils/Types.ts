@@ -142,6 +142,7 @@ export type BuildUserOpOptions = {
   nonceOptions?: NonceOptions;
   forceEncodeForBatch?: boolean;
   paymasterServiceData?: PaymasterUserOperationDto;
+  simulationType?: SimulationType;
 };
 
 export type NonceOptions = {
