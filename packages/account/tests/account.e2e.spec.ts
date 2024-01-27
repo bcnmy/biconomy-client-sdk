@@ -1,9 +1,8 @@
 import { TestData } from "../../../tests";
-import { PaymasterUserOperationDto, createSmartWalletClient } from "../src/index";
+import { createSmartAccountClient, FeeQuotesOrDataResponse, PaymasterMode } from "../src/index";
 import { Hex, encodeFunctionData, parseAbi } from "viem";
 import { UserOperationStruct } from "@biconomy/common";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
-import { FeeQuotesOrDataResponse, IHybridPaymaster, PaymasterFeeQuote, PaymasterMode } from "@biconomy/paymaster";
 
 describe("Account Tests", () => {
   let mumbai: TestData;
@@ -21,7 +20,7 @@ describe("Account Tests", () => {
       publicClient,
     } = mumbai;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       signer,
       bundlerUrl,
     });
@@ -47,7 +46,7 @@ describe("Account Tests", () => {
       biconomyPaymasterApiKey,
     } = mumbai;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       signer,
       biconomyPaymasterApiKey,
       bundlerUrl,
@@ -67,7 +66,7 @@ describe("Account Tests", () => {
       publicClient,
     } = mumbai;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       signer,
       bundlerUrl,
       biconomyPaymasterApiKey,
@@ -103,16 +102,16 @@ describe("Account Tests", () => {
     expect(newBalance - balance).toBe(1n);
   }, 60000);
 
-  it("Should mint an NFT on Mumbai and pay with ERC20", async () => {
+  it("Should mint an NFT on Mumbai and pay with ERC20 - with preferredToken", async () => {
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
-      biconomyPaymasterApiKey,
       publicClient,
+      biconomyPaymasterApiKey,
     } = mumbai;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       signer,
       bundlerUrl,
       biconomyPaymasterApiKey,
@@ -130,31 +129,25 @@ describe("Account Tests", () => {
     };
 
     const balance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
-
     const maticBalanceBefore = await checkBalance(publicClient, await smartWallet.getAddress());
     const usdcBalanceBefore = await checkBalance(publicClient, await smartWallet.getAddress(), "0xda5289fcaaf71d52a80a254da614a192b693e977");
 
-    let userOp = await smartWallet.buildUserOp([transaction]);
-
-    const feeQuotesResponse: FeeQuotesOrDataResponse = await (
-      smartWallet.paymaster as IHybridPaymaster<PaymasterUserOperationDto>
-    ).getPaymasterFeeQuotesOrData(userOp, {
-      mode: PaymasterMode.ERC20,
-      tokenList: ["0xda5289fcaaf71d52a80a254da614a192b693e977"],
-      preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977",
+    const { wait } = await smartWallet.sendTransaction([transaction], {
+      paymasterServiceData: {
+        mode: PaymasterMode.ERC20,
+        preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977",
+      },
     });
 
-    const feeQuotes = feeQuotesResponse.feeQuotes as PaymasterFeeQuote[];
-    const spender = feeQuotesResponse.tokenPaymasterAddress as Hex;
-    const selectedFeeQuote = feeQuotes[0];
+    const {
+      receipt: { transactionHash },
+      userOpHash,
+      success,
+    } = await wait();
 
-    userOp = await smartWallet.setPaymasterUserOp(userOp, { mode: PaymasterMode.ERC20, feeQuote: selectedFeeQuote, spender, maxApproval: true });
-
-    const response = await smartWallet.sendUserOp(userOp);
-
-    const userOpReceipt = await response.wait();
-    expect(userOpReceipt.userOpHash).toBeTruthy();
-    expect(userOpReceipt.success).toBe("true");
+    expect(transactionHash).toBeTruthy();
+    expect(userOpHash).toBeTruthy();
+    expect(success).toBe("true");
 
     const maticBalanceAfter = await checkBalance(publicClient, await smartWallet.getAddress());
     expect(maticBalanceAfter).toEqual(maticBalanceBefore);
@@ -166,6 +159,116 @@ describe("Account Tests", () => {
     expect(newBalance - balance).toBe(1n);
   }, 60000);
 
+  it("Should mint an NFT on Mumbai and pay with ERC20 - with token selection", async () => {
+    const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
+    const {
+      whale: { viemWallet: signer, publicAddress: recipient },
+      bundlerUrl,
+      biconomyPaymasterApiKey,
+      publicClient,
+    } = mumbai;
+
+    const smartWallet = await createSmartAccountClient({
+      signer,
+      bundlerUrl,
+      biconomyPaymasterApiKey,
+    });
+
+    const encodedCall = encodeFunctionData({
+      abi: parseAbi(["function safeMint(address _to)"]),
+      functionName: "safeMint",
+      args: [recipient],
+    });
+
+    const transaction = {
+      to: nftAddress, // NFT address
+      data: encodedCall,
+    };
+
+    const feeQuotesResponse = await smartWallet.getTokenFees(transaction, {
+      paymasterServiceData: {
+        mode: PaymasterMode.ERC20,
+        preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977",
+      },
+    });
+
+    const balance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
+    const maticBalanceBefore = await checkBalance(publicClient, await smartWallet.getAddress());
+    const usdcBalanceBefore = await checkBalance(publicClient, await smartWallet.getAddress(), "0xda5289fcaaf71d52a80a254da614a192b693e977");
+
+    const { wait } = await smartWallet.sendTransaction(transaction, {
+      paymasterServiceData: {
+        mode: PaymasterMode.ERC20,
+        feeQuote: feeQuotesResponse.feeQuotes?.[0],
+        spender: feeQuotesResponse.tokenPaymasterAddress,
+        maxApproval: true,
+      },
+    });
+
+    const {
+      receipt: { transactionHash },
+      userOpHash,
+      success,
+    } = await wait();
+
+    expect(userOpHash).toBeTruthy();
+    expect(success).toBe("true");
+    expect(transactionHash).toBeTruthy();
+
+    const maticBalanceAfter = await checkBalance(publicClient, await smartWallet.getAddress());
+    expect(maticBalanceAfter).toEqual(maticBalanceBefore);
+
+    const usdcBalanceAfter = await checkBalance(publicClient, await smartWallet.getAddress(), "0xda5289fcaaf71d52a80a254da614a192b693e977");
+    expect(usdcBalanceAfter).toBeLessThan(usdcBalanceBefore);
+
+    const newBalance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
+    expect(newBalance - balance).toBe(1n);
+  }, 60000);
+
+  it("Should throw and error if missing field for ERC20 Paymaster user op", async () => {
+    const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
+    const {
+      whale: { viemWallet: signer, publicAddress: recipient },
+      bundlerUrl,
+      biconomyPaymasterApiKey,
+      publicClient,
+    } = mumbai;
+
+    const smartWallet = await createSmartAccountClient({
+      signer,
+      bundlerUrl,
+      biconomyPaymasterApiKey,
+    });
+
+    const encodedCall = encodeFunctionData({
+      abi: parseAbi(["function safeMint(address _to)"]),
+      functionName: "safeMint",
+      args: [recipient],
+    });
+
+    const transaction = {
+      to: nftAddress, // NFT address
+      data: encodedCall,
+    };
+
+    const feeQuotesResponse: FeeQuotesOrDataResponse = await smartWallet.getTokenFees(transaction, {
+      paymasterServiceData: {
+        mode: PaymasterMode.ERC20,
+        preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977",
+      },
+    });
+
+    expect(
+      async () =>
+        await smartWallet.sendTransaction(transaction, {
+          paymasterServiceData: {
+            mode: PaymasterMode.ERC20,
+            feeQuote: feeQuotesResponse.feeQuotes?.[0],
+          },
+        }),
+    ).rejects.toThrow("spender and maxApproval are required for ERC20 mode");
+  }, 60000);
+
   it("#getUserOpHash should match entryPoint.getUserOpHash", async () => {
     const {
       whale: { viemWallet: signer },
@@ -175,7 +278,7 @@ describe("Account Tests", () => {
       biconomyPaymasterApiKey,
     } = mumbai;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       signer,
       biconomyPaymasterApiKey,
       bundlerUrl,
@@ -215,7 +318,7 @@ describe("Account Tests", () => {
       biconomyPaymasterApiKey,
     } = mumbai;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       signer,
       biconomyPaymasterApiKey,
       bundlerUrl,
@@ -235,7 +338,7 @@ describe("Account Tests", () => {
       bundlerUrl,
     } = mumbai;
 
-    const smartWallet = await createSmartWalletClient({
+    const smartWallet = await createSmartAccountClient({
       signer,
       bundlerUrl,
     });

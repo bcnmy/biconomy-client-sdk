@@ -40,6 +40,6 @@ export function packUserOp(op: Partial<UserOperationStruct>, forSignature = true
   }
 }
 
-export const isNullOrUndefined = (value: string | number | bigint | BigNumberish | undefined | BytesLike): value is undefined => {
+export const isNullOrUndefined = (value: any): value is undefined => {
   return value === null || value === undefined;
 };

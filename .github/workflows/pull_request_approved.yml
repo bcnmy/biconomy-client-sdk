@@ -2,6 +2,7 @@ name: E2E Test workflow
 on:
   pull_request_review:
     types: [submitted]
+  workflow_dispatch:
 jobs:
   e2e_test:
     if: github.event.review.state == 'approved'

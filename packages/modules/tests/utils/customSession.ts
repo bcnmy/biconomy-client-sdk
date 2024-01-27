@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { SmartAccountSigner, WalletClientSigner } from "@biconomy/common";
+import { SmartAccountSigner, WalletClientSigner, Logger } from "@biconomy/common";
 import { SignerData } from "../../src";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { Hex, createWalletClient, http } from "viem";
@@ -93,7 +93,7 @@ export class SessionFileStorage implements ISessionStorage {
 
   async getSessionData(): Promise<SessionLeafNode> {
     const sessions = (await this.getSessionStore()).leafNodes;
-    console.log("Got sessions", sessions);
+    Logger.log("Got sessions", sessions);
     const session = sessions[0];
 
     if (!session) {
@@ -103,7 +103,7 @@ export class SessionFileStorage implements ISessionStorage {
   }
 
   async addSessionData(leaf: SessionLeafNode): Promise<void> {
-    console.log("Add session Data", leaf);
+    Logger.log("Add session Data", leaf);
     const data = await this.getSessionStore();
     leaf.sessionValidationModule = this.toLowercaseAddress(leaf.sessionValidationModule);
     leaf.sessionPublicKey = this.toLowercaseAddress(leaf.sessionPublicKey);
@@ -174,13 +174,13 @@ export class SessionFileStorage implements ISessionStorage {
 
   async getSignerByKey(sessionPublicKey: string): Promise<WalletClientSigner> {
     const signers = await this.getSignerStore();
-    console.log("Got signers", signers);
+    Logger.log("Got signers", signers);
 
     const signerData: SignerData = signers[this.toLowercaseAddress(sessionPublicKey)];
     if (!signerData) {
       throw new Error("Signer not found.");
     }
-    console.log(signerData.pvKey, "PVKEY");
+    Logger.log(signerData.pvKey, "PVKEY");
 
     const signer = privateKeyToAccount(signerData.pvKey);
     const walletClient = createWalletClient({
@@ -192,7 +192,7 @@ export class SessionFileStorage implements ISessionStorage {
 
   async getSignerBySession(): Promise<WalletClientSigner> {
     const session = await this.getSessionData();
-    console.log("got session", session);
+    Logger.log("got session", session);
     const walletClientSinger = await this.getSignerByKey(session.sessionPublicKey);
     return walletClientSinger;
   }

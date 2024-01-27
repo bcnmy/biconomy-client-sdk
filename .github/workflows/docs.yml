@@ -1,8 +1,10 @@
 name: Build and Deploy Documentation
 on:
+  workflow_dispatch:
   push:
     branches:
       - develop
+      - v4
 
 permissions:
   contents: write

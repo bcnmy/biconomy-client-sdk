@@ -64,6 +64,7 @@ import { BiconomyAccountAbi } from "./abi/SmartAccount";
 import { AccountResolverAbi } from "./abi/AccountResolver";
 import { Logger } from "@biconomy/common";
 import { convertSigner } from "./";
+import { FeeQuotesOrDataDto, FeeQuotesOrDataResponse } from "@biconomy/paymaster";
 
 type UserOperationKey = keyof UserOperationStruct;
 
@@ -158,7 +159,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @example
    * import { createClient } from "viem"
-   * import { createSmartWalletClient, BiconomySmartAccountV2 } from "@biconomy/account"
+   * import { createSmartAccountClient, BiconomySmartAccountV2 } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
    * import { polygonMumbai } from "viem/chains";
    *
@@ -174,18 +175,22 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * // Is the same as...
    *
-   * const smartWallet = await createSmartWalletClient({ signer, bundlerUrl });
+   * const smartWallet = await createSmartAccountClient({ signer, bundlerUrl });
    *
    */
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
     let chainId = biconomySmartAccountConfig.chainId;
     let resolvedSmartAccountSigner!: SmartAccountSigner;
+    let rpcUrl = biconomySmartAccountConfig.rpcUrl;
 
     // Signer needs to be initialised here before defaultValidationModule is set
     if (biconomySmartAccountConfig.signer) {
       const signerResult = await convertSigner(biconomySmartAccountConfig.signer, !!chainId);
-      if (signerResult.chainId) {
-        chainId = chainId || signerResult.chainId;
+      if (!chainId && !!signerResult.chainId) {
+        chainId = signerResult.chainId;
+      }
+      if (!rpcUrl && !!signerResult.rpcUrl) {
+        rpcUrl = signerResult.rpcUrl;
       }
       resolvedSmartAccountSigner = signerResult.signer;
     }
@@ -223,6 +228,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       chainId,
       bundler,
       signer: resolvedSmartAccountSigner,
+      rpcUrl,
     };
 
     return new BiconomySmartAccountV2(config);
@@ -498,53 +504,124 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return encodeAbiParameters(parseAbiParameters("bytes, address"), [moduleSignature, moduleAddressToUse]);
   }
 
-  /**
-   * Sets paymaster-related fields in the provided user operation based on the specified paymaster service data.
-   *
-   * @param {Partial<UserOperationStruct>} userOp - The partial user operation structure to be modified.
-   * @param {PaymasterUserOperationDto} paymasterServiceData - The paymaster service data containing mode and additional information.
-   * @returns {Promise<Partial<UserOperationStruct>>} A promise that resolves to the modified user operation structure.
-   */
-  async setPaymasterUserOp(
+  public async getPaymasterUserOp(
     userOp: Partial<UserOperationStruct>,
     paymasterServiceData: PaymasterUserOperationDto,
   ): Promise<Partial<UserOperationStruct>> {
-    if (this.paymaster !== undefined) {
-      if (paymasterServiceData.mode === PaymasterMode.SPONSORED) {
-        const paymasterData = await (this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>).getPaymasterAndData(userOp, {
-          mode: paymasterServiceData.mode,
-        });
-        userOp.paymasterAndData = paymasterData.paymasterAndData;
-        userOp.callGasLimit = paymasterData.callGasLimit;
-        userOp.verificationGasLimit = paymasterData.verificationGasLimit;
-        userOp.preVerificationGas = paymasterData.preVerificationGas;
-        return userOp;
-      } else if (paymasterServiceData.mode === PaymasterMode.ERC20 && paymasterServiceData.feeQuote !== undefined) {
-        const finalUserOp = await this.buildTokenPaymasterUserOp(userOp, {
-          feeQuote: paymasterServiceData.feeQuote,
-          spender: (paymasterServiceData.spender as Hex) || "",
-          maxApproval: paymasterServiceData.maxApproval,
-        });
-        const newPaymasterServiceData = {
-          mode: PaymasterMode.ERC20,
+    if (paymasterServiceData.mode === PaymasterMode.SPONSORED) {
+      return this.getPaymasterAndData(userOp, paymasterServiceData);
+    } else if (paymasterServiceData.mode === PaymasterMode.ERC20) {
+      if (paymasterServiceData?.feeQuote) {
+        Logger.log("there is a feeQuote: ", paymasterServiceData.feeQuote);
+        if (!paymasterServiceData.spender || !paymasterServiceData.maxApproval) {
+          throw new Error("spender and maxApproval are required for ERC20 mode");
+        }
+        const finalUserOp = await this.buildTokenPaymasterUserOp(userOp, paymasterServiceData as BiconomyTokenPaymasterRequest);
+        const fromPayMaster = await this.getPaymasterAndData(userOp, {
+          ...paymasterServiceData,
           feeTokenAddress: paymasterServiceData.feeQuote.tokenAddress,
           calculateGasLimits: true, // Always recommended and especially when using token paymaster
-        };
-        const paymasterAndDataWithLimits = await (this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>).getPaymasterAndData(
-          finalUserOp,
-          newPaymasterServiceData,
-        );
-        finalUserOp.paymasterAndData = paymasterAndDataWithLimits.paymasterAndData;
-        finalUserOp.callGasLimit = paymasterAndDataWithLimits.callGasLimit;
-        finalUserOp.verificationGasLimit = paymasterAndDataWithLimits.verificationGasLimit;
-        finalUserOp.preVerificationGas = paymasterAndDataWithLimits.preVerificationGas;
-        return finalUserOp;
+        });
+        return { ...finalUserOp, ...fromPayMaster };
+      } else if (paymasterServiceData.preferredToken) {
+        Logger.log("there is a preferred token: ", paymasterServiceData.preferredToken);
+        const preferredToken = paymasterServiceData.preferredToken;
+        const feeQuotesResponse = await this.getPaymasterFeeQuotesOrData(userOp, {
+          ...paymasterServiceData,
+          tokenList: paymasterServiceData?.tokenList ?? [preferredToken],
+        });
+        const spender = feeQuotesResponse.tokenPaymasterAddress;
+        const feeQuote = feeQuotesResponse.feeQuotes?.[0];
+        if (!feeQuote) {
+          throw new Error("Error while getting feeQuote");
+        }
+        return this.getPaymasterAndData(userOp, { ...paymasterServiceData, feeQuote, spender, feeTokenAddress: preferredToken });
       } else {
-        return userOp;
+        throw new Error("FeeQuote was not provided, please call smartAccount.getTokenFees() to get feeQuote");
       }
-    } else {
-      throw new Error("Paymaster is not provided");
     }
+    throw new Error("Invalid paymaster mode");
+  }
+
+  private async getPaymasterAndData(
+    userOp: Partial<UserOperationStruct>,
+    paymasterServiceData: PaymasterUserOperationDto,
+  ): Promise<Partial<UserOperationStruct>> {
+    const paymaster = this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>;
+    const paymasterData = await paymaster.getPaymasterAndData(userOp, paymasterServiceData);
+    return { ...userOp, ...paymasterData };
+  }
+
+  private async getPaymasterFeeQuotesOrData(
+    userOp: Partial<UserOperationStruct>,
+    feeQuotesOrData: FeeQuotesOrDataDto,
+  ): Promise<FeeQuotesOrDataResponse> {
+    const paymaster = this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>;
+    return paymaster.getPaymasterFeeQuotesOrData(userOp, feeQuotesOrData);
+  }
+
+  /**
+   *
+   * @description This function will retrieve fees from the paymaster in erc20 mode
+   *
+   * @param manyOrOneTransactions Array of {@link Transaction} to be batched and sent. Can also be a single {@link Transaction}.
+   * @param buildUseropDto {@link BuildUserOpOptions}.
+   * @returns Promise<FeeQuotesOrDataResponse>
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartAccountClient } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonMumbai } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonMumbai,
+   *   transport: http(),
+   * });
+   *
+   * const smartWallet = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const encodedCall = encodeFunctionData({
+   *   abi: parseAbi(["function safeMint(address to) public"]),
+   *   functionName: "safeMint",
+   *   args: ["0x..."],
+   * });
+   *
+   * const transaction = {
+   *   to: nftAddress,
+   *   data: encodedCall
+   * }
+   *
+   * const feeQuotesResponse: FeeQuotesOrDataResponse = await smartWallet.getTokenFees(transaction, {
+   *    paymasterServiceData: {
+   *      mode: PaymasterMode.ERC20,
+   *      tokenList: ["0xda5289fcaaf71d52a80a254da614a192b693e977"],
+   *      preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977"
+   *    }
+   * });
+   *
+   * const userSeletedFeeQuote = feeQuotesResponse.feeQuotes?.[0];
+   *
+   * const { wait } = await smartWallet.sendTransaction(transaction, {
+   *    paymasterServiceData: {
+   *      mode: PaymasterMode.ERC20,
+   *      feeQuote: userSeletedFeeQuote,
+   *      maxApproval: true,
+   *      spender: "0x...",
+   *    },
+   * });
+   *
+   * const { receipt } = await wait();
+   *
+   */
+  public async getTokenFees(
+    manyOrOneTransactions: Transaction | Transaction[],
+    buildUseropDto: BuildUserOpOptions,
+  ): Promise<FeeQuotesOrDataResponse> {
+    const txs = Array.isArray(manyOrOneTransactions) ? manyOrOneTransactions : [manyOrOneTransactions];
+    const userOp = await this.buildUserOp(txs, buildUseropDto);
+    if (!buildUseropDto.paymasterServiceData) throw new Error("paymasterServiceData was not provided");
+    return this.getPaymasterFeeQuotesOrData(userOp, buildUseropDto.paymasterServiceData);
   }
 
   /**
@@ -563,7 +640,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @example
    * import { createClient } from "viem"
-   * import { createSmartWalletClient } from "@biconomy/account"
+   * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
    * import { polygonMumbai } from "viem/chains";
    *
@@ -573,7 +650,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartWallet = await createSmartWalletClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartWallet = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
@@ -733,7 +810,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @example
    * import { createClient } from "viem"
-   * import { createSmartWalletClient } from "@biconomy/account"
+   * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
    * import { polygonMumbai } from "viem/chains";
    *
@@ -743,7 +820,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartWallet = await createSmartWalletClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartWallet = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
@@ -775,7 +852,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @example
    * import { createClient } from "viem"
-   * import { createSmartWalletClient } from "@biconomy/account"
+   * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
    * import { polygonMumbai } from "viem/chains";
    *
@@ -785,7 +862,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartWallet = await createSmartWalletClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartWallet = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
@@ -839,7 +916,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     userOp = await this.estimateUserOpGas(userOp);
 
     if (buildUseropDto?.paymasterServiceData) {
-      userOp = await this.setPaymasterUserOp(userOp, buildUseropDto?.paymasterServiceData);
+      userOp = await this.getPaymasterUserOp(userOp, buildUseropDto.paymasterServiceData);
     }
 
     Logger.log("UserOp after estimation ", userOp);
