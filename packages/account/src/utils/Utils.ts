@@ -1,5 +1,5 @@
 import { encodeAbiParameters, parseAbiParameters, keccak256, Hex } from "viem";
-import type { UserOperationStruct, BigNumberish, BytesLike } from "@biconomy/common";
+import type { UserOperationStruct } from "@biconomy/common";
 
 /**
  * pack the userOperation
