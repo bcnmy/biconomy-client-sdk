@@ -8,11 +8,7 @@ const COMMON_SETTINGS = {
   minify: true,
   bundle: true,
   external: Object.keys(dependencies).concat(Object.keys(peerDependencies)),
-  plugins: [
-    esbuildPluginTsc({
-      force: true,
-    }),
-  ],
+  plugins: [esbuildPluginTsc({ force: true })],
 };
 
 const ESM_SETTINGS = {

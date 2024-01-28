@@ -4,7 +4,7 @@ import { SignerData } from "@biconomy/modules/src";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { Hex, createWalletClient, http } from "viem";
 import { polygonMumbai } from "viem/chains";
-import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "@biconomy/modules/src/interfaces/ISessionStorage";
+import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "@biconomy/modules/src/interfaces/ISessionStorage.js";
 import { Logger } from "@biconomy/common";
 
 export class SessionFileStorage implements ISessionStorage {

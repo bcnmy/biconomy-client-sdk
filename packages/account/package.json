@@ -2,10 +2,18 @@
   "name": "@biconomy/account",
   "version": "3.1.2",
   "description": "This package provides apis for ERC-4337 based smart account implementations",
-  "main": "./dist/src/index.js",
+  "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
-  "types": "./dist/src/index.d.ts",
-  "typings": "./dist/src/index.d.ts",
+  "types": "./dist/types/index.d.ts",
+  "typings": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "default": "./dist/cjs/index.js",
+      "types": "./dist/types/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
   "keywords": [
     "Ethereum",
     "Smart Account",
@@ -20,9 +28,9 @@
     "unbuild": "rimraf dist *.tsbuildinfo",
     "build:watch": "node .esbuild.js CJS --watch",
     "build": "yarn unbuild && yarn build:cjs && yarn build:esm && yarn build:typ",
-    "build:cjs": "node .esbuild.js CJS",
-    "build:esm": "node .esbuild.js ESM",
-    "build:typ": "tsc -noEmit && node .esbuild.js TYP",
+    "build:cjs": "tsc --project tsconfig.build.json --module commonjs --outDir ./dist/cjs --removeComments --verbatimModuleSyntax false && echo > ./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
+    "build:esm": "tsc --project tsconfig.build.esm.json --module esnext --outDir ./dist/esm --removeComments && echo > ./dist/esm/package.json '{\"type\":\"module\"}'",
+    "build:typ": "tsc --project tsconfig.build.json --module esnext --declarationDir ./dist/types --emitDeclarationOnly --declaration --declarationMap",
     "build:tsc": "rimraf dist && tsc",
     "test:concurrently": "concurrently -k --success first 'yarn start:ganache' 'yarn test'",
     "test:cov": "jest --coverage",
@@ -43,6 +51,7 @@
     "access": "public"
   },
   "devDependencies": {
+    "@types/node": "^20.11.10",
     "esbuild": "^0.19.11",
     "esbuild-plugin-tsc": "^0.4.0",
     "gh-pages": "^6.1.1",
@@ -53,10 +62,10 @@
   "dependencies": {
     "@alchemy/aa-core": "^2.0.0",
     "@biconomy/bundler": "^3.1.2",
+    "@biconomy/common": "^3.1.2",
     "@biconomy/modules": "^3.1.2",
     "@biconomy/paymaster": "^3.1.2",
-    "@biconomy/common": "^3.1.2",
     "lru-cache": "^10.0.1",
-    "viem": "^1.20.3"
+    "viem": "^1.21.4"
   }
 }

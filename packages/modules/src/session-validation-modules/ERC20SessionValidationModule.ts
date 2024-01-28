@@ -1,4 +1,4 @@
-import { ISessionValidationModule } from "../interfaces/ISessionValidationModule";
+import { ISessionValidationModule } from "../interfaces/ISessionValidationModule.js";
 import { ERC20SessionKeyData, SessionValidationModuleConfig } from "../utils/Types";
 import { encodeAbiParameters, parseAbiParameters } from "viem";
 

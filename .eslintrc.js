@@ -23,7 +23,7 @@ module.exports = {
     "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
     "security/detect-object-injection": "warn",
     "security/detect-unsafe-regex": "error",
-    "import/extensions": "off",
+    "import/extensions": "on", // Now Requiring file extensions
     "security/detect-object-injection": "off", // turning off Injection Sink rule
     "@typescript-eslint/no-throw-literal": "off", // temp deactivated needs to be removed once fixed
     "@typescript-eslint/ban-ts-ignore": "off",

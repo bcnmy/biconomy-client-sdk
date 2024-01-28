@@ -1,22 +1,22 @@
-import { BiconomySmartAccountV2 } from "./BiconomySmartAccountV2";
-import { BiconomySmartAccountV2Config } from "./utils/Types";
+import { BiconomySmartAccountV2 } from "./BiconomySmartAccountV2.js";
+import { type BiconomySmartAccountV2Config } from "./utils/Types.js";
 
-export * from "./utils/Types";
-export * from "./utils/Constants";
-export * from "./BiconomySmartAccountV2";
+export * from "./utils/Types.js";
+export * from "./utils/Constants.js";
+export * from "./BiconomySmartAccountV2.js";
 
-export { WalletClientSigner, LocalAccountSigner, SmartAccountSigner } from "@alchemy/aa-core";
+export { WalletClientSigner, LocalAccountSigner, type SmartAccountSigner } from "@alchemy/aa-core";
 export {
   BiconomyPaymaster as Paymaster,
-  IPaymaster,
+  type IPaymaster,
   PaymasterMode,
-  IHybridPaymaster,
-  PaymasterFeeQuote,
-  SponsorUserOperationDto,
-  FeeQuotesOrDataResponse,
+  type IHybridPaymaster,
+  type PaymasterFeeQuote,
+  type SponsorUserOperationDto,
+  type FeeQuotesOrDataResponse,
 } from "@biconomy/paymaster";
 export { EthersSigner, convertSigner } from "@biconomy/common";
-export { Bundler, IBundler, extractChainIdFromBundlerUrl, UserOpResponse } from "@biconomy/bundler";
+export { Bundler, type IBundler, extractChainIdFromBundlerUrl, type UserOpResponse } from "@biconomy/bundler";
 
 export const createSmartAccountClient = BiconomySmartAccountV2.create;
 

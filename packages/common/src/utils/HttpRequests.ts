@@ -1,4 +1,4 @@
-import { Logger } from "./Logger";
+import { Logger } from "./Logger.js";
 
 export enum HttpMethod {
   Get = "get",
