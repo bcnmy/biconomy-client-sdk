@@ -6,7 +6,7 @@
  */
 class Logger {
   // By default, the logger is not in debug mode.
-  static isDebug: boolean = process.env.BICONOMY_SDK_DEBUG === "true" ? true : process.env.REACT_APP_BICONOMY_SDK_DEBUG === "true" ? true : false;
+  static isDebug: boolean = false
 
   /**
    * \x1b[0m is an escape sequence to reset the color of the text

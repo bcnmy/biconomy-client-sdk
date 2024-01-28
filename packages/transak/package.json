@@ -1,6 +1,6 @@
 {
   "name": "@biconomy-devx/transak",
-  "version": "2.2.5",
+  "version": "2.2.6",
   "description": "transak for biconomy sdk",
   "main": "./dist/src/index.js",
   "module": "./dist/esm/index.js",
