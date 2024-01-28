@@ -1,4 +1,4 @@
-import { UserOperationStruct } from "@biconomy/common";
+import { UserOperationStruct } from "@biconomy-devx/common";
 import { Hex } from "viem";
 
 export type Bundlerconfig = {

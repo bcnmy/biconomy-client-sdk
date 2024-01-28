@@ -1,9 +1,9 @@
 import { Hex, encodeFunctionData, getAddress, parseAbi, toBytes } from "viem";
-import { SmartAccountSigner } from "@biconomy/common";
+import { SmartAccountSigner } from "@biconomy-devx/common";
 import { ECDSAOwnershipValidationModuleConfig, ECDSAOwnershipValidationModuleConfigConstructorProps, ModuleVersion } from "./utils/Types";
 import { DEFAULT_ECDSA_OWNERSHIP_MODULE, ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION } from "./utils/Constants";
 import { BaseValidationModule } from "./BaseValidationModule";
-import { convertSigner } from "@biconomy/common";
+import { convertSigner } from "@biconomy-devx/common";
 
 // Could be renamed with suffix API
 export class ECDSAOwnershipValidationModule extends BaseValidationModule {

@@ -1,8 +1,8 @@
 import { Chain, Hex } from "viem";
-import { UserOperationStruct, SmartAccountSigner } from "@biconomy/common";
+import { UserOperationStruct, SmartAccountSigner } from "@biconomy-devx/common";
 import { SessionKeyManagerModule } from "../SessionKeyManagerModule";
 import { ISessionStorage } from "../interfaces/ISessionStorage";
-import { SupportedSigner } from "@biconomy/common";
+import { SupportedSigner } from "@biconomy-devx/common";
 export type ModuleVersion = "V1_0_0"; // | 'V1_0_1'
 
 export interface BaseValidationModuleConfig {

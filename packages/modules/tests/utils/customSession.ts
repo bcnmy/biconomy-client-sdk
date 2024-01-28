@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { SmartAccountSigner, WalletClientSigner, Logger } from "@biconomy/common";
+import { SmartAccountSigner, WalletClientSigner, Logger } from "@biconomy-devx/common";
 import { SignerData } from "../../src";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { Hex, createWalletClient, http } from "viem";

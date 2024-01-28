@@ -1,5 +1,5 @@
 import { UserOpResponse, UserOpGasResponse, UserOpReceipt, UserOpByHashResponse, UserOpStatus, SimulationType, GasFeeValues } from "../utils/Types";
-import { UserOperationStruct } from "@biconomy/common";
+import { UserOperationStruct } from "@biconomy-devx/common";
 
 export interface IBundler {
   estimateUserOpGas(_userOp: Partial<UserOperationStruct>): Promise<UserOpGasResponse>;

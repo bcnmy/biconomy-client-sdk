@@ -1,5 +1,5 @@
 import { Hex, concat, encodeAbiParameters, encodeFunctionData, getAddress, keccak256, pad, parseAbi, parseAbiParameters, toBytes, toHex } from "viem";
-import { UserOperationStruct, SmartAccountSigner } from "@biconomy/common";
+import { UserOperationStruct, SmartAccountSigner } from "@biconomy-devx/common";
 import MerkleTree from "merkletreejs";
 import { DEFAULT_MULTICHAIN_MODULE, MULTICHAIN_VALIDATION_MODULE_ADDRESSES_BY_VERSION } from "./utils/Constants";
 import {
@@ -10,7 +10,7 @@ import {
 } from "./utils/Types";
 import { BaseValidationModule } from "./BaseValidationModule";
 import { getUserOpHash } from "./utils/Helper";
-import { convertSigner, Logger } from "@biconomy/common";
+import { convertSigner, Logger } from "@biconomy-devx/common";
 
 export class MultiChainValidationModule extends BaseValidationModule {
   signer: SmartAccountSigner;

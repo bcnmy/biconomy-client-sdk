@@ -5,9 +5,9 @@ export * from "./utils/Types";
 export * from "./utils/Constants";
 export * from "./BiconomySmartAccountV2";
 
-export { LocalAccountSigner } from "@biconomy/common";
-export { WalletClientSigner } from "@biconomy/common";
-export { SmartAccountSigner } from "@biconomy/common";
+export { LocalAccountSigner } from "@biconomy-devx/common";
+export { WalletClientSigner } from "@biconomy-devx/common";
+export { SmartAccountSigner } from "@biconomy-devx/common";
 export {
   BiconomyPaymaster as Paymaster,
   IPaymaster,
@@ -16,9 +16,9 @@ export {
   PaymasterFeeQuote,
   SponsorUserOperationDto,
   FeeQuotesOrDataResponse,
-} from "@biconomy/paymaster";
-export { EthersSigner, convertSigner } from "@biconomy/common";
-export { Bundler, IBundler, extractChainIdFromBundlerUrl, UserOpResponse } from "@biconomy/bundler";
+} from "@biconomy-devx/paymaster";
+export { EthersSigner, convertSigner } from "@biconomy-devx/common";
+export { Bundler, IBundler, extractChainIdFromBundlerUrl, UserOpResponse } from "@biconomy-devx/bundler";
 
 export const createSmartAccountClient = BiconomySmartAccountV2.create;
 

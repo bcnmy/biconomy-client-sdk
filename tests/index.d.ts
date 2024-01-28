@@ -1,5 +1,5 @@
 import { Chain, Hex, PrivateKeyAccount, PublicClient, WalletClient } from "viem";
-import { WalletClientSigner } from "@biconomy/common";
+import { WalletClientSigner } from "@biconomy-devx/common";
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { Signer } from "@ethersproject/abstract-signer";
 

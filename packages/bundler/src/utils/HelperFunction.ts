@@ -1,4 +1,4 @@
-import type { BigNumberish, UserOperationStruct } from "@biconomy/common";
+import type { BigNumberish, UserOperationStruct } from "@biconomy-devx/common";
 
 // Will convert the userOp hex, bigInt and number values to hex strings
 export const transformUserOP = (userOp: UserOperationStruct): UserOperationStruct => {

@@ -1,4 +1,4 @@
-import { BigNumberish } from "@biconomy/common";
+import { BigNumberish } from "@biconomy-devx/common";
 export type Hex = `0x${string}`;
 
 export type PaymasterServiceErrorResponse = {

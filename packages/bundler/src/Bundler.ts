@@ -1,5 +1,5 @@
 import { createPublicClient, http } from "viem";
-import { sendRequest, HttpMethod, getChain, type UserOperationStruct } from "@biconomy/common";
+import { sendRequest, HttpMethod, getChain, type UserOperationStruct } from "@biconomy-devx/common";
 import { IBundler } from "./interfaces/IBundler";
 import {
   GetUserOperationReceiptResponse,

@@ -1,7 +1,7 @@
 import { TestData } from "../../../tests";
 import { createSmartAccountClient, FeeQuotesOrDataResponse, PaymasterMode } from "../src/index";
 import { Hex, encodeFunctionData, parseAbi } from "viem";
-import { UserOperationStruct } from "@biconomy/common";
+import { UserOperationStruct } from "@biconomy-devx/common";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
 
 describe("Account Tests", () => {

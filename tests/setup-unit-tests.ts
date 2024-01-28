@@ -1,5 +1,5 @@
 import { createWalletClient, http, createPublicClient } from "viem";
-import { WalletClientSigner } from "@biconomy/common";
+import { WalletClientSigner } from "@biconomy-devx/common";
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { Wallet } from "@ethersproject/wallet";
 import { UNIT_TEST_CHAIN } from "./chains.config";

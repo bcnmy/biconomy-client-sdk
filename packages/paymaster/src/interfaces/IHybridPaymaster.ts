@@ -1,4 +1,4 @@
-import { type UserOperationStruct } from "@biconomy/common";
+import { type UserOperationStruct } from "@biconomy-devx/common";
 import {
   FeeQuotesOrDataResponse,
   BiconomyTokenPaymasterRequest,
