@@ -6,7 +6,7 @@
  */
 class Logger {
   // By default, the logger is not in debug mode.
-  static isDebug: boolean = false
+  static isDebug: boolean = false;
 
   /**
    * \x1b[0m is an escape sequence to reset the color of the text
