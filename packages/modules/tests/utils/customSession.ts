@@ -158,7 +158,7 @@ export class SessionFileStorage implements ISessionStorage {
     const client = createWalletClient({
       account: accountSigner,
       chain: signerData.chainId,
-      transport: http(polygonMumbai.rpcUrls.public.http[0]),
+      transport: http(polygonMumbai.rpcUrls.default.http[0]),
     });
     const walletClientSigner: SmartAccountSigner = new WalletClientSigner(
       client,
@@ -185,7 +185,7 @@ export class SessionFileStorage implements ISessionStorage {
     const signer = privateKeyToAccount(signerData.pvKey);
     const walletClient = createWalletClient({
       account: signer,
-      transport: http(polygonMumbai.rpcUrls.public.http[0]),
+      transport: http(polygonMumbai.rpcUrls.default.http[0]),
     });
     return new WalletClientSigner(walletClient, "json-rpc");
   }
