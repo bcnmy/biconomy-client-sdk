@@ -19,7 +19,7 @@
     "docs": "typedoc",
     "unbuild": "rimraf dist *.tsbuildinfo",
     "build:watch": "node .esbuild.js CJS --watch",
-    "build": "yarn unbuild && yarn build:cjs && yarn build:esm && yarn build:typ",
+    "build": "yarn unbuild && yarn build:tsc",
     "build:cjs": "node .esbuild.js CJS",
     "build:esm": "node .esbuild.js ESM",
     "build:typ": "tsc -noEmit && node .esbuild.js TYP",
