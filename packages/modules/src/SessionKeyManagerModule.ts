@@ -8,12 +8,12 @@ import {
   ModuleInfo,
   CreateSessionDataResponse,
   StorageType,
-} from "./utils/Types";
-import { SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION, DEFAULT_SESSION_KEY_MANAGER_MODULE } from "./utils/Constants";
-import { generateRandomHex } from "./utils/Uid";
-import { BaseValidationModule } from "./BaseValidationModule";
-import { SessionLocalStorage } from "./session-storage/SessionLocalStorage";
-import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "./interfaces/ISessionStorage";
+} from "./utils/Types.js";
+import { SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION, DEFAULT_SESSION_KEY_MANAGER_MODULE } from "./utils/Constants.js";
+import { generateRandomHex } from "./utils/Uid.js";
+import { BaseValidationModule } from "./BaseValidationModule.js";
+import { SessionLocalStorage } from "./session-storage/SessionLocalStorage.js";
+import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "./interfaces/ISessionStorage.js";
 
 export class SessionKeyManagerModule extends BaseValidationModule {
   version: ModuleVersion = "V1_0_0";

@@ -4,18 +4,27 @@ rm -rf yarn.lock
 rm -rf node_modules
 
 rm -rf packages/account/node_modules
+rm -rf packages/account/yarn.lock
 rm -rf packages/account/package-lock.json
 rm -rf packages/account/dist
 
 rm -rf packages/bundler/node_modules
+rm -rf packages/bundler/yarn.lock
 rm -rf packages/bundler/package-lock.json
 rm -rf packages/bundler/dist
 
+rm -rf packages/common/node_modules
+rm -rf packages/common/yarn.lock
+rm -rf packages/common/package-lock.json
+rm -rf packages/common/dist
+
 rm -rf packages/paymaster/node_modules
+rm -rf packages/paymaster/yarn.lock
 rm -rf packages/paymaster/package-lock.json
 rm -rf packages/paymaster/dist
 
 rm -rf packages/modules/node_modules
+rm -rf packages/modules/yarn.lock
 rm -rf packages/modules/package-lock.json
 rm -rf packages/modules/dist
 

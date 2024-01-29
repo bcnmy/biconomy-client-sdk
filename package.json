@@ -26,10 +26,10 @@
   "author": "Biconomy (https://biconomy.io)",
   "private": true,
   "scripts": {
-    "dev": "yarn rebuild && yarn install && yarn build && yarn link:all",
+    "dev": "yarn rebuild && yarn install && lerna run build && yarn link:all",
     "rebuild": "./rebuild.sh",
     "link:all": "./linkAll.sh",
-    "build": "lerna run build",
+    "build": "yarn rebuild && yarn install && lerna run build",
     "clean": "lerna clean && lerna run unbuild",
     "format": "lerna run format --npm-client=yarn",
     "prettier": "npx prettier --write .",
@@ -57,7 +57,7 @@
   },
   "dependencies": {
     "node-gyp": "^9.4.0",
-    "typescript": "^5.2.2"
+    "typescript": "^5.3.3"
   },
   "devDependencies": {
     "@types/debug": "^4.1.9",

@@ -1,12 +1,12 @@
-import { ModuleVersion, CreateSessionDataParams, BatchedSessionRouterModuleConfig, ModuleInfo, CreateSessionDataResponse } from "./utils/Types";
+import { ModuleVersion, CreateSessionDataParams, BatchedSessionRouterModuleConfig, ModuleInfo, CreateSessionDataResponse } from "./utils/Types.js";
 import {
   BATCHED_SESSION_ROUTER_MODULE_ADDRESSES_BY_VERSION,
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
-} from "./utils/Constants";
-import { BaseValidationModule } from "./BaseValidationModule";
-import { SessionKeyManagerModule } from "./SessionKeyManagerModule";
-import { SessionSearchParam, SessionStatus } from "./interfaces/ISessionStorage";
+} from "./utils/Constants.js";
+import { BaseValidationModule } from "./BaseValidationModule.js";
+import { SessionKeyManagerModule } from "./SessionKeyManagerModule.js";
+import { SessionSearchParam, SessionStatus } from "./interfaces/ISessionStorage.js";
 import { Hex, concat, encodeAbiParameters, keccak256, pad, parseAbiParameters, toBytes, toHex } from "viem";
 import { SmartAccountSigner } from "@alchemy/aa-core";
 

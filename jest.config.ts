@@ -78,7 +78,11 @@ const config: Config = {
   moduleFileExtensions: ["js", "mjs", "cjs", "jsx", "ts", "tsx", "json", "node"],
 
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
-  // moduleNameMapper: {},
+  moduleNameMapper: {
+    '^(?!bn\.js$|hash\.js$)(.+)\\.js$': '$1'
+  },
+
+  extensionsToTreatAsEsm: ['.ts'],
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
   // modulePathIgnorePatterns: [],
@@ -159,7 +163,7 @@ const config: Config = {
 
   // A map from regular expressions to paths to transformers
   transform: {
-    "^.+\\.tsx?$": "ts-jest",
+    "^.+\\.tsx?$": ["ts-jest", { useESM: true }],
   },
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
@@ -181,7 +185,7 @@ const config: Config = {
   // watchman: true,
 
   globals: {
-    testDataPerChain: []
+    testDataPerChain: [],
   }
 };
 

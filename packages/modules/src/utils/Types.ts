@@ -1,7 +1,7 @@
 import { Chain, Hex } from "viem";
 import { UserOperationStruct, SmartAccountSigner } from "@alchemy/aa-core";
 import { SessionKeyManagerModule } from "../SessionKeyManagerModule";
-import { ISessionStorage } from "../interfaces/ISessionStorage";
+import { ISessionStorage } from "../interfaces/ISessionStorage.js";
 import { SupportedSigner } from "@biconomy/common";
 export type ModuleVersion = "V1_0_0"; // | 'V1_0_1'
 
