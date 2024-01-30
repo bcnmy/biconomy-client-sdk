@@ -27,7 +27,7 @@
     "docs": "typedoc",
     "unbuild": "rimraf dist *.tsbuildinfo",
     "build:watch": "node .esbuild.js CJS --watch",
-    "build": "yarn unbuild && yarn build:esbuild",
+    "build": "yarn unbuild && yarn build:tsc",
     "build:esbuild": "yarn build:esbuild:cjs && yarn build:esbuild:esm && yarn build:typ",
     "build:tsc:cjs": "tsc --project tsconfig.build.json --module commonjs --outDir ./dist/cjs --removeComments --verbatimModuleSyntax false && echo > ./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
     "build:tsc:esm": "tsc --project tsconfig.build.json --module esnext --outDir ./dist/esm --removeComments && echo > ./dist/esm/package.json '{\"type\":\"module\"}'",
