@@ -26,11 +26,16 @@ describe("Account Tests", () => {
     });
 
     const balance = (await checkBalance(publicClient, recipient)) as bigint;
-    const { wait } = await smartWallet.sendTransaction({
-      to: recipient,
-      value: 1,
-      data: "0x",
-    });
+    const { wait } = await smartWallet.sendTransaction(
+      {
+        to: recipient,
+        value: 1,
+        data: "0x",
+      },
+      {
+        simulationType: "validation_and_execution",
+      },
+    );
 
     const result = await wait();
     const newBalance = (await checkBalance(publicClient, recipient)) as bigint;
@@ -87,7 +92,10 @@ describe("Account Tests", () => {
 
     const maticBalanceBefore = await checkBalance(publicClient, await smartWallet.getAddress());
 
-    const response = await smartWallet.sendTransaction(transaction, { paymasterServiceData: { mode: PaymasterMode.SPONSORED } });
+    const response = await smartWallet.sendTransaction(transaction, {
+      paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+      simulationType: "validation",
+    });
 
     const userOpReceipt = await response.wait(3);
     expect(userOpReceipt.userOpHash).toBeTruthy();
@@ -231,7 +239,6 @@ describe("Account Tests", () => {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
       biconomyPaymasterApiKey,
-      publicClient,
     } = mumbai;
 
     const smartWallet = await createSmartAccountClient({
@@ -258,14 +265,14 @@ describe("Account Tests", () => {
       },
     });
 
-    expect(
-      async () =>
-        await smartWallet.sendTransaction(transaction, {
-          paymasterServiceData: {
-            mode: PaymasterMode.ERC20,
-            feeQuote: feeQuotesResponse.feeQuotes?.[0],
-          },
-        }),
+    expect(async () =>
+      smartWallet.sendTransaction(transaction, {
+        paymasterServiceData: {
+          mode: PaymasterMode.ERC20,
+          feeQuote: feeQuotesResponse.feeQuotes?.[0],
+        },
+        simulationType: "validation",
+      }),
     ).rejects.toThrow("spender and maxApproval are required for ERC20 mode");
   }, 60000);
 

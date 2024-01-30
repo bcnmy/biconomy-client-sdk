@@ -132,9 +132,14 @@ describe("Account Tests", () => {
     expect(transferUserOp.paymasterAndData).not.toBeNull();
     expect(transferUserOp.paymasterAndData).not.toBe("0x");
 
-    const userOpResponse2 = await smartWallet.sendUserOp(transferUserOp, {
-      sessionSigner: sessionSigner,
-      sessionValidationModule: erc20ModuleAddr,
+    const userOpResponse2 = await smartWallet.sendTransaction(transferTx, {
+      params: {
+        sessionSigner: sessionSigner,
+        sessionValidationModule: erc20ModuleAddr.toLowerCase() as Hex,
+      },
+      paymasterServiceData: {
+        mode: PaymasterMode.SPONSORED,
+      },
     });
 
     expect(userOpResponse2.userOpHash).toBeTruthy();
