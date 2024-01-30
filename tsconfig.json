@@ -13,8 +13,10 @@
   "references": [
     { "path": "./packages/transak" },
     { "path": "./packages/bundler" },
+    { "path": "./packages/particle-auth" },
     { "path": "./packages/paymaster" },
     { "path": "./packages/account" },
-    { "path": "./packages/common" }
+    { "path": "./packages/common" },
+    { "path": "./packages/modules" },
   ]
 }

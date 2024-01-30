@@ -1,4 +1,4 @@
-import { SupportedSignerName } from "./Types";
+import { SupportedSignerName } from "./Types.js";
 
 export const UNIQUE_PROPERTIES_PER_SIGNER: Record<SupportedSignerName, string> = {
   alchemy: "signerType",

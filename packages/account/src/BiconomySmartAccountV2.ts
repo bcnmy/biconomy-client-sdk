@@ -26,8 +26,8 @@ import {
   BatchUserOperationCallData,
   SmartAccountSigner,
 } from "@alchemy/aa-core";
-import { isNullOrUndefined, packUserOp } from "./utils/Utils";
-import { BaseValidationModule, ModuleInfo, SendUserOpParams, ECDSAOwnershipValidationModule } from "@biconomy/modules";
+import { isNullOrUndefined, packUserOp } from "./utils/Utils.js";
+import { BaseValidationModule, ModuleInfo, SendUserOpParams, createECDSAOwnershipValidationModule } from "@biconomy/modules";
 import {
   IHybridPaymaster,
   IPaymaster,
@@ -38,20 +38,20 @@ import {
   IBundler,
   UserOpResponse,
   extractChainIdFromBundlerUrl,
-} from "../src/index";
+  convertSigner,
+} from "./index.js";
 import {
   BiconomyTokenPaymasterRequest,
   BiconomySmartAccountV2Config,
   CounterFactualAddressParam,
   BuildUserOpOptions,
-  Overrides,
   NonceOptions,
   Transaction,
   QueryParamsForAddressResolver,
   BiconomySmartAccountV2ConfigConstructorProps,
   PaymasterUserOperationDto,
   SimulationType,
-} from "./utils/Types";
+} from "./utils/Types.js";
 import {
   ADDRESS_RESOLVER_ADDRESS,
   BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION,
@@ -60,12 +60,11 @@ import {
   PROXY_CREATION_CODE,
   ADDRESS_ZERO,
   DEFAULT_ENTRYPOINT_ADDRESS,
-} from "./utils/Constants";
-import { BiconomyFactoryAbi } from "./abi/Factory";
-import { BiconomyAccountAbi } from "./abi/SmartAccount";
-import { AccountResolverAbi } from "./abi/AccountResolver";
+} from "./utils/Constants.js";
+import { BiconomyFactoryAbi } from "./abi/Factory.js";
+import { BiconomyAccountAbi } from "./abi/SmartAccount.js";
+import { AccountResolverAbi } from "./abi/AccountResolver.js";
 import { Logger } from "@biconomy/common";
-import { convertSigner } from "./";
 import { FeeQuotesOrDataDto, FeeQuotesOrDataResponse } from "@biconomy/paymaster";
 
 type UserOperationKey = keyof UserOperationStruct;
@@ -213,7 +212,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     // Note: If no module is provided, we will use ECDSA_OWNERSHIP as default
     if (!defaultValidationModule) {
-      const newModule = await ECDSAOwnershipValidationModule.create({ signer: resolvedSmartAccountSigner! });
+      const newModule = await createECDSAOwnershipValidationModule({ signer: resolvedSmartAccountSigner! });
       defaultValidationModule = newModule;
     }
     const activeValidationModule = biconomySmartAccountConfig?.activeValidationModule ?? defaultValidationModule;
@@ -776,28 +775,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       Logger.warn("Error while getting nonce for the account. This is expected for undeployed accounts set nonce to 0");
     }
     return nonce;
-  }
-
-  private async getGasFeeValues(
-    overrides: Overrides | undefined,
-    skipBundlerGasEstimation: boolean | undefined,
-  ): Promise<{ maxFeePerGas?: string; maxPriorityFeePerGas?: string }> {
-    const gasFeeValues = {
-      maxFeePerGas: overrides?.maxFeePerGas as string,
-      maxPriorityFeePerGas: overrides?.maxPriorityFeePerGas as string,
-    };
-    try {
-      if (this.bundler && !gasFeeValues.maxFeePerGas && !gasFeeValues.maxPriorityFeePerGas && (skipBundlerGasEstimation ?? true)) {
-        const gasFeeEstimation = await this.bundler.getGasFeeValues();
-        gasFeeValues.maxFeePerGas = gasFeeEstimation.maxFeePerGas;
-        gasFeeValues.maxPriorityFeePerGas = gasFeeEstimation.maxPriorityFeePerGas;
-      }
-      return gasFeeValues;
-    } catch (error: any) {
-      // TODO: should throw error here?
-      Logger.error("Error while getting gasFeeValues from bundler. Provided bundler might not have getGasFeeValues endpoint", error);
-      return gasFeeValues;
-    }
   }
 
   /**

@@ -1,11 +1,13 @@
 {
-    "extends": "../../tsconfig.settings.json",
-    "compilerOptions": {
-      "composite": true,
-      "outDir": "dist",
-      "baseUrl": "src",
-      "resolveJsonModule": true,
-      "esModuleInterop": true,
-    },
-    "include": ["src", "src/**/*.json"]
+  "extends": "../../tsconfig.settings.json",
+  "compilerOptions": {
+    "composite": true,
+    "outDir": "dist",
+    "baseUrl": "src",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "lib": ["es2020"],
+    "types": ["node"],
+  },
+  "include": ["src", "src/**/*.json"]
 }

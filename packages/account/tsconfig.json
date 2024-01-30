@@ -5,7 +5,9 @@
     "outDir": "dist",
     "baseUrl": "src",
     "resolveJsonModule": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "lib": ["es2020"],
+    "types": ["node"]
   },
   "include": ["src", "src/**/*.json"],
 }

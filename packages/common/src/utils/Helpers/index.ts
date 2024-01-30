@@ -1,1 +1,1 @@
-export * from "./convertSigner";
+export * from "./convertSigner.js";

@@ -1,5 +1,5 @@
 import { DEFAULT_SESSION_KEY_MANAGER_MODULE, SessionKeyManagerModule } from "@biconomy/modules";
-import { SessionFileStorage } from "@biconomy/modules/tests/utils/customSession";
+import { SessionFileStorage } from "./utils/customSession";
 import { WalletClientSigner, createSmartAccountClient } from "../../account/src/index";
 import { Hex, encodeAbiParameters, encodeFunctionData, parseAbi, parseUnits } from "viem";
 import { TestData } from "../../../tests";

@@ -1,6 +1,6 @@
 import { getChain, type UserOperationStruct } from "@alchemy/aa-core";
 import { createPublicClient, http } from "viem";
-import { IBundler } from "./interfaces/IBundler";
+import { IBundler } from "./interfaces/IBundler.js";
 import {
   GetUserOperationReceiptResponse,
   GetUserOpByHashResponse,
@@ -17,17 +17,17 @@ import {
   GetUserOperationStatusResponse,
   SimulationType,
   BunderConfigWithChainId,
-} from "./utils/Types";
-import { transformUserOP, getTimestampInSeconds } from "./utils/HelperFunction";
+} from "./utils/Types.js";
+import { transformUserOP, getTimestampInSeconds } from "./utils/HelperFunction.js";
 import {
   UserOpReceiptIntervals,
   UserOpWaitForTxHashIntervals,
   UserOpWaitForTxHashMaxDurationIntervals,
   UserOpReceiptMaxDurationIntervals,
   DEFAULT_ENTRYPOINT_ADDRESS,
-} from "./utils/Constants";
+} from "./utils/Constants.js";
+import { extractChainIdFromBundlerUrl } from "./utils/Utils.js";
 import { sendRequest, HttpMethod } from "@biconomy/common";
-import { extractChainIdFromBundlerUrl } from "./utils/Utils";
 
 /**
  * This class implements IBundler interface.

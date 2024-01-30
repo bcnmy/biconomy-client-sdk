@@ -12,17 +12,7 @@
   resolved "https://registry.yarnpkg.com/@adraffy/ens-normalize/-/ens-normalize-1.10.0.tgz#d2a39395c587e092d77cbbc80acf956a54f38bf7"
   integrity sha512-nA9XHtlAkYfJxY7bce8DcN7eKxWWCWkU+1GR9d+U6MbNpfwQp8TI7vqOsBsMcHoT4mBu2kypKoSKnghEzOOq5Q==
 
-"@alchemy/aa-core@^1.2.2":
-  version "1.2.4"
-  resolved "https://registry.yarnpkg.com/@alchemy/aa-core/-/aa-core-1.2.4.tgz#a224b04d82a51c4a3ccd258caf4433dfc6079420"
-  integrity sha512-Qj9N1V+X3LvFWAgdMV1FoLV+ZNqy8v5j/pjbNecvloDVadNSm4R//3YPjmfYOvSARjvubWzw+BGVRtyUvunKDQ==
-  dependencies:
-    abitype "^0.8.3"
-    eventemitter3 "^5.0.1"
-    viem "^1.21.4"
-    zod "^3.22.4"
-
-"@alchemy/aa-core@^2.0.0":
+"@alchemy/aa-core@^2.3.1":
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/@alchemy/aa-core/-/aa-core-2.3.1.tgz#ebd0abc2a71d1e5803cbbd0b0584a62a681c9a27"
   integrity sha512-iADsVGbhm4rbvFwcauKwD8u5AbzoE+8d8iQpagGHkPDpcNVzFP/FHv48jvdg9M52kf4h2XGdrQviT02bdJFTKw==
@@ -2237,7 +2227,7 @@
   resolved "https://registry.yarnpkg.com/@types/ms/-/ms-0.7.34.tgz#10964ba0dee6ac4cd462e2795b6bebd407303433"
   integrity sha512-nG96G3Wp6acyAgJqGasjODb+acrI7KltPiRxzHPXnP3NgI28bpQDRv53olbqGXbfcgF5aiiHmO3xpwEpS5Ld9g==
 
-"@types/node@*":
+"@types/node@*", "@types/node@^20.11.10":
   version "20.11.10"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-20.11.10.tgz#6c3de8974d65c362f82ee29db6b5adf4205462f9"
   integrity sha512-rZEfe/hJSGYmdfX9tvcPMYeYPW2sNl50nsw4jZmRcaG0HIAb0WYEpsB05GOb53vjqpyE9GUhlDQ4jLSoB5q9kg==
@@ -9277,7 +9267,7 @@ typedoc@^0.25.7:
     minimatch "^9.0.3"
     shiki "^0.14.7"
 
-"typescript@>=3 < 6", typescript@^5.2.2:
+"typescript@>=3 < 6", typescript@^5.3.3:
   version "5.3.3"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.3.3.tgz#b3ce6ba258e72e6305ba66f5c9b452aaee3ffe37"
   integrity sha512-pXWcraxM0uxAS+tN0AG/BF2TyqmHO014Z070UsJ+pFvYuRSq8KH8DmWpnbXe0pEPDHXZV3FcAbJkijJ5oNEnWw==
@@ -9481,7 +9471,7 @@ validate-npm-package-name@^3.0.0:
   dependencies:
     builtins "^1.0.3"
 
-viem@^1.20.3, viem@^1.21.4:
+viem@^1.21.4:
   version "1.21.4"
   resolved "https://registry.yarnpkg.com/viem/-/viem-1.21.4.tgz#883760e9222540a5a7e0339809202b45fe6a842d"
   integrity sha512-BNVYdSaUjeS2zKQgPs+49e5JKocfo60Ib2yiXOWBT6LuVxY1I/6fFX3waEtpXvL1Xn4qu+BVitVtMh9lyThyhQ==

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-ignore
 import transakSDK from "@transak/transak-sdk";
-import { ITransakDto, environments } from "interface";
+import { ITransakDto, environments } from "./interface.js";
 
 class TransakSDK {
   apiKey: string;

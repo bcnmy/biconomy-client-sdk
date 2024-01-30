@@ -1,11 +1,19 @@
 {
   "name": "@biconomy/transak",
-  "version": "3.1.2",
+  "version": "3.1.3",
   "description": "transak for biconomy sdk",
-  "main": "./dist/src/index.js",
+  "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
-  "types": "./dist/src/index.d.ts",
-  "typings": "./dist/src/index.d.ts",
+  "types": "./dist/types/index.d.ts",
+  "typings": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "default": "./dist/cjs/index.js",
+      "types": "./dist/types/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
   "keywords": [
     "legos",
     "batching",
@@ -27,11 +35,15 @@
   "scripts": {
     "unbuild": "rimraf dist *.tsbuildinfo",
     "build:watch": "node .esbuild.js CJS --watch",
-    "build": "yarn unbuild && yarn build:cjs && yarn build:esm && yarn build:typ",
-    "build:cjs": "node .esbuild.js CJS",
-    "build:esm": "node .esbuild.js ESM",
-    "build:typ": "tsc -noEmit && node .esbuild.js TYP",
-    "build:tsc": "rimraf dist && tsc",
+    "dist:minify": "esbuild ./dist/esm/**/*.js ./dist/esm/*.js --minify --outdir=./dist/esm --bundle=false --allow-overwrite",
+    "build": "yarn unbuild && yarn build:tsc",
+    "build:esbuild": "yarn build:esbuild:cjs && yarn build:esbuild:esm && yarn build:typ",
+    "build:tsc:cjs": "tsc --project tsconfig.build.json --module commonjs --outDir ./dist/cjs --removeComments --verbatimModuleSyntax false && echo > ./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
+    "build:tsc:esm": "tsc --project tsconfig.build.json --module esnext --outDir ./dist/esm --removeComments && echo > ./dist/esm/package.json '{\"type\":\"module\"}'",
+    "build:esbuild:cjs": "node .esbuild.js CJS && echo > ./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
+    "build:esbuild:esm": "node .esbuild.js ESM && echo > ./dist/esm/package.json '{\"type\":\"module\"}'",
+    "build:typ": "tsc --project tsconfig.build.json --module esnext --declarationDir ./dist/types --emitDeclarationOnly --declaration --declarationMap",
+    "build:tsc": "yarn build:tsc:cjs && yarn build:tsc:esm && yarn build:typ && yarn dist:minify",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
     "lint": "tslint -p tsconfig.json"
   },
@@ -45,6 +57,7 @@
     "@transak/transak-sdk": "^1.2.3"
   },
   "devDependencies": {
+    "@types/node": "^20.11.10",
     "esbuild": "^0.19.11",
     "esbuild-plugin-tsc": "^0.4.0",
     "npm-dts": "^1.3.12"
