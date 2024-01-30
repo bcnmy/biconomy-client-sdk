@@ -24,6 +24,7 @@ const buildForESM = async () => await esbuild.build(ESM_SETTINGS);
 const CJS_SETTINGS = {
   ...COMMON_SETTINGS,
   format: "cjs",
+  sourcemap: false,
   outfile: "dist/cjs/index.js",
   platform: "node",
 };
