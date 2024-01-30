@@ -1,6 +1,6 @@
 const esbuildPluginTsc = require("esbuild-plugin-tsc");
 const esbuild = require("esbuild");
-const { peerDependencies = {} } = require("./package.json");
+const { dependencies, peerDependencies = {} } = require("./package.json");
 const { Generator } = require("npm-dts");
 
 const COMMON_SETTINGS = {

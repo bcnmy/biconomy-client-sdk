@@ -1,6 +1,6 @@
 const esbuildPluginTsc = require("esbuild-plugin-tsc");
 const esbuild = require("esbuild");
-const { peerDependencies = {} } = require("./package.json");
+const { dependencies, peerDependencies = {} } = require("./package.json");
 const { Generator } = require("npm-dts");
 
 const COMMON_SETTINGS = {
@@ -17,7 +17,6 @@ const ESM_SETTINGS = {
   platform: "browser",
   target: "esnext",
   format: "esm",
-  external: ["http", "https", "url", "net", "tls", "stream", "crypto", "util", "fs", "path", "zlib", "tty", "os", "assert"],
   mainFields: ["browser", "module", "main"],
 };
 const buildForESM = async () => await esbuild.build(ESM_SETTINGS);
