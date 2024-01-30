@@ -93,7 +93,9 @@ describe("Account Tests", () => {
     const maticBalanceBefore = await checkBalance(publicClient, await smartWallet.getAddress());
 
     const response = await smartWallet.sendTransaction(transaction, {
-      paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+      buildUserOpDto: {
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+      },
       simulationType: "validation",
     });
 
@@ -141,9 +143,11 @@ describe("Account Tests", () => {
     const usdcBalanceBefore = await checkBalance(publicClient, await smartWallet.getAddress(), "0xda5289fcaaf71d52a80a254da614a192b693e977");
 
     const { wait } = await smartWallet.sendTransaction([transaction], {
-      paymasterServiceData: {
-        mode: PaymasterMode.ERC20,
-        preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977",
+      buildUserOpDto: {
+        paymasterServiceData: {
+          mode: PaymasterMode.ERC20,
+          preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977",
+        },
       },
     });
 
@@ -205,11 +209,13 @@ describe("Account Tests", () => {
     const usdcBalanceBefore = await checkBalance(publicClient, await smartWallet.getAddress(), "0xda5289fcaaf71d52a80a254da614a192b693e977");
 
     const { wait } = await smartWallet.sendTransaction(transaction, {
-      paymasterServiceData: {
-        mode: PaymasterMode.ERC20,
-        feeQuote: feeQuotesResponse.feeQuotes?.[0],
-        spender: feeQuotesResponse.tokenPaymasterAddress,
-        maxApproval: true,
+      buildUserOpDto: {
+        paymasterServiceData: {
+          mode: PaymasterMode.ERC20,
+          feeQuote: feeQuotesResponse.feeQuotes?.[0],
+          spender: feeQuotesResponse.tokenPaymasterAddress,
+          maxApproval: true,
+        },
       },
     });
 
@@ -267,9 +273,11 @@ describe("Account Tests", () => {
 
     expect(async () =>
       smartWallet.sendTransaction(transaction, {
-        paymasterServiceData: {
-          mode: PaymasterMode.ERC20,
-          feeQuote: feeQuotesResponse.feeQuotes?.[0],
+        buildUserOpDto: {
+          paymasterServiceData: {
+            mode: PaymasterMode.ERC20,
+            feeQuote: feeQuotesResponse.feeQuotes?.[0],
+          },
         },
         simulationType: "validation",
       }),

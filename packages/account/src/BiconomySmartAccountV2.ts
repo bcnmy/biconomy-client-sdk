@@ -51,6 +51,7 @@ import {
   BiconomySmartAccountV2ConfigConstructorProps,
   PaymasterUserOperationDto,
   SimulationType,
+  SendTransactionOpts,
 } from "./utils/Types";
 import {
   ADDRESS_RESOLVER_ADDRESS,
@@ -837,9 +838,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * const { transactionHash, userOperationReceipt } = await wait();
    *
    */
-  async sendTransaction(manyOrOneTransactions: Transaction | Transaction[], buildUseropDto?: BuildUserOpOptions): Promise<UserOpResponse> {
-    const userOp = await this.buildUserOp(Array.isArray(manyOrOneTransactions) ? manyOrOneTransactions : [manyOrOneTransactions], buildUseropDto);
-    return this.sendUserOp(userOp, { simulationType: buildUseropDto?.simulationType });
+  async sendTransaction(manyOrOneTransactions: Transaction | Transaction[], optionals: SendTransactionOpts): Promise<UserOpResponse> {
+    const userOp = await this.buildUserOp(
+      Array.isArray(manyOrOneTransactions) ? manyOrOneTransactions : [manyOrOneTransactions],
+      optionals.buildUserOpDto,
+    );
+    return this.sendUserOp(userOp, { simulationType: optionals.simulationType });
   }
 
   /**
