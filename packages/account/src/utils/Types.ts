@@ -142,6 +142,7 @@ export type BuildUserOpOptions = {
   nonceOptions?: NonceOptions;
   forceEncodeForBatch?: boolean;
   paymasterServiceData?: PaymasterUserOperationDto;
+  simulationType?: SimulationType;
 };
 
 export type NonceOptions = {
@@ -150,11 +151,6 @@ export type NonceOptions = {
 };
 
 export type SimulationType = "validation" | "validation_and_execution";
-
-export type SendTransactionOpts = {
-  buildUserOpDto?: BuildUserOpOptions;
-  simulationType?: SimulationType;
-};
 
 export type Overrides = {
   callGasLimit?: Hex;
