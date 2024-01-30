@@ -142,22 +142,12 @@ export type BuildUserOpOptions = {
   nonceOptions?: NonceOptions;
   forceEncodeForBatch?: boolean;
   paymasterServiceData?: PaymasterUserOperationDto;
+  simulationType?: SimulationType;
 };
 
 export type NonceOptions = {
   nonceKey?: number;
   nonceOverride?: number;
-};
-
-// Used in AccountV1
-export type SendUserOpDto = {
-  signer?: WalletClientSigner;
-  simulationType?: SimulationType;
-};
-
-// Generic options in AccountV2
-export type SendUserOpOptions = {
-  simulationType?: SimulationType;
 };
 
 export type SimulationType = "validation" | "validation_and_execution";

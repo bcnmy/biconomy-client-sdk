@@ -50,6 +50,7 @@ import {
   QueryParamsForAddressResolver,
   BiconomySmartAccountV2ConfigConstructorProps,
   PaymasterUserOperationDto,
+  SimulationType,
 } from "./utils/Types";
 import {
   ADDRESS_RESOLVER_ADDRESS,
@@ -670,17 +671,18 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   async sendUserOp(userOp: Partial<UserOperationStruct>, params?: SendUserOpParams): Promise<UserOpResponse> {
     delete userOp.signature;
     const userOperation = await this.signUserOp(userOp, params);
-    const bundlerResponse = await this.sendSignedUserOp(userOperation);
+    const bundlerResponse = await this.sendSignedUserOp(userOperation, params?.simulationType);
     return bundlerResponse;
   }
 
   /**
    *
-   * @param userOp
+   * @param userOp - The signed user operation to send
+   * @param simulationType - The type of simulation to perform ("validation" | "validation_and_execution")
    * @description This function call will take 'signedUserOp' as input and send it to the bundler
    * @returns
    */
-  async sendSignedUserOp(userOp: UserOperationStruct): Promise<UserOpResponse> {
+  async sendSignedUserOp(userOp: UserOperationStruct, simulationType?: SimulationType): Promise<UserOpResponse> {
     const requiredFields: UserOperationKey[] = [
       "sender",
       "nonce",
@@ -697,7 +699,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     this.validateUserOp(userOp, requiredFields);
     if (!this.bundler) throw new Error("Bundler is not provided");
     Logger.warn("userOp being sent to the bundler", userOp);
-    const bundlerResponse = await this.bundler.sendUserOp(userOp);
+    const bundlerResponse = await this.bundler.sendUserOp(userOp, simulationType);
     return bundlerResponse;
   }
 
@@ -837,7 +839,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    */
   async sendTransaction(manyOrOneTransactions: Transaction | Transaction[], buildUseropDto?: BuildUserOpOptions): Promise<UserOpResponse> {
     const userOp = await this.buildUserOp(Array.isArray(manyOrOneTransactions) ? manyOrOneTransactions : [manyOrOneTransactions], buildUseropDto);
-    return this.sendUserOp(userOp);
+    return this.sendUserOp(userOp, { simulationType: buildUseropDto?.simulationType, ...buildUseropDto?.params });
   }
 
   /**
