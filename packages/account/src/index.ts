@@ -14,16 +14,16 @@ export {
   type PaymasterFeeQuote,
   type SponsorUserOperationDto,
   type FeeQuotesOrDataResponse,
-} from "@biconomy/paymaster";
-export { EthersSigner, convertSigner } from "@biconomy/common";
-export { Bundler, type IBundler, extractChainIdFromBundlerUrl, type UserOpResponse } from "@biconomy/bundler";
+} from "@biconomy-devx/paymaster";
+export { EthersSigner, convertSigner } from "@biconomy-devx/common";
+export { Bundler, type IBundler, extractChainIdFromBundlerUrl, type UserOpResponse } from "@biconomy-devx/bundler";
 export {
   createECDSAOwnershipValidationModule,
   createERC20SessionValidationModule,
   createBatchedSessionRouterModule,
   createSessionKeyManagerModule,
   createMultiChainValidationModule,
-} from "@biconomy/modules";
+} from "@biconomy-devx/modules";
 
 export const createSmartAccountClient = BiconomySmartAccountV2.create;
 
