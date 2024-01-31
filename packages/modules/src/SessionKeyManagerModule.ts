@@ -14,6 +14,7 @@ import { generateRandomHex } from "./utils/Uid.js";
 import { BaseValidationModule } from "./BaseValidationModule.js";
 import { SessionLocalStorage } from "./session-storage/SessionLocalStorage.js";
 import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "./interfaces/ISessionStorage.js";
+import { convertSigner } from "@biconomy/common";
 
 export class SessionKeyManagerModule extends BaseValidationModule {
   version: ModuleVersion = "V1_0_0";
@@ -158,7 +159,8 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     if (!(params && params.sessionSigner)) {
       throw new Error("Session signer is not provided.");
     }
-    const sessionSigner = params.sessionSigner;
+    const { signer: sessionSigner } = await convertSigner(params.sessionSigner);
+
     // Use the sessionSigner to sign the user operation
     const signature = await sessionSigner.signMessage(toBytes(userOpHash));
 
@@ -192,7 +194,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     if (!(params && params.sessionSigner)) {
       throw new Error("Session signer is not provided.");
     }
-    const sessionSigner = params.sessionSigner;
+    const { signer: sessionSigner } = await convertSigner(params.sessionSigner);
     let sessionSignerData;
     if (params?.sessionID) {
       sessionSignerData = await this.sessionStorageClient.getSessionData({

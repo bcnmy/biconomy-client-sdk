@@ -1,4 +1,4 @@
-import { DEFAULT_SESSION_KEY_MANAGER_MODULE, SessionKeyManagerModule } from "@biconomy/modules";
+import { DEFAULT_SESSION_KEY_MANAGER_MODULE, createSessionKeyManagerModule } from "@biconomy/modules";
 import { SessionFileStorage } from "./utils/customSession";
 import { WalletClientSigner, createSmartAccountClient } from "../../account/src/index";
 import { Hex, encodeAbiParameters, encodeFunctionData, parseAbi, parseUnits } from "viem";
@@ -49,7 +49,7 @@ describe("Account Tests", () => {
     });
 
     // Create session module
-    const sessionModule = await SessionKeyManagerModule.create({
+    const sessionModule = await createSessionKeyManagerModule({
       moduleAddress: DEFAULT_SESSION_KEY_MANAGER_MODULE,
       smartAccountAddress: await smartWallet.getAddress(),
       sessionStorageClient: sessionFileStorage,
