@@ -535,8 +535,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
           throw new Error("Error while getting feeQuote");
         }
         return this.getPaymasterAndData(userOp, { ...paymasterServiceData, feeQuote, spender, feeTokenAddress: preferredToken });
-      } else {
-        throw new Error("FeeQuote was not provided, please call smartAccount.getTokenFees() to get feeQuote");
+       } 
+       else {
+        return userOp;
       }
     }
     throw new Error("Invalid paymaster mode");
@@ -556,7 +557,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     feeQuotesOrData: FeeQuotesOrDataDto,
   ): Promise<FeeQuotesOrDataResponse> {
     const paymaster = this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>;
-    return paymaster.getPaymasterFeeQuotesOrData(userOp, feeQuotesOrData);
+    const tokenList = feeQuotesOrData?.preferredToken ? [feeQuotesOrData?.preferredToken] : feeQuotesOrData?.tokenList?.length ? feeQuotesOrData?.tokenList : [];
+    return paymaster.getPaymasterFeeQuotesOrData(userOp, { ...feeQuotesOrData, tokenList});
   }
 
   /**
