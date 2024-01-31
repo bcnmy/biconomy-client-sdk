@@ -167,6 +167,37 @@ describe("Account Tests", () => {
     expect(newBalance - balance).toBe(1n);
   }, 60000);
 
+  it("Should expect several feeQuotes in resonse to empty tokenInfo fields", async () => {
+    const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
+    const {
+      whale: { viemWallet: signer, publicAddress: recipient },
+      bundlerUrl,
+      biconomyPaymasterApiKey,
+      publicClient,
+    } = mumbai;
+
+    const smartWallet = await createSmartAccountClient({
+      signer,
+      bundlerUrl,
+      biconomyPaymasterApiKey,
+    });
+
+    const encodedCall = encodeFunctionData({
+      abi: parseAbi(["function safeMint(address _to)"]),
+      functionName: "safeMint",
+      args: [recipient],
+    });
+
+    const transaction = {
+      to: nftAddress, // NFT address
+      data: encodedCall,
+    };
+
+    const feeQuotesResponse = await smartWallet.getTokenFees(transaction, { paymasterServiceData: { mode: PaymasterMode.ERC20 } } );
+    expect(feeQuotesResponse.feeQuotes?.length).toBeGreaterThan(1);
+
+  })
+
   it("Should mint an NFT on Mumbai and pay with ERC20 - with token selection", async () => {
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
     const {
