@@ -150,5 +150,5 @@ describe("Account Tests", () => {
     expect(maticBalanceAfter).toEqual(maticBalanceBefore);
 
     console.log(`Tx at: https://jiffyscan.xyz/userOpHash/${userOpResponse2.userOpHash}?network=mumbai`);
-  }, 50000);
+  }, 60000);
 });

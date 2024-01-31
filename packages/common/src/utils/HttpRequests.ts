@@ -37,7 +37,7 @@ export async function sendRequest<T>({ url, method, body }: HttpRequest): Promis
     return jsonResponse as T;
   }
   if (jsonResponse.error) {
-    throw new Error(jsonResponse.error);
+    throw new Error(jsonResponse.error.message);
   }
   if (jsonResponse.message) {
     throw new Error(jsonResponse.message);
