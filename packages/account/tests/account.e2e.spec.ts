@@ -173,7 +173,6 @@ describe("Account Tests", () => {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
       biconomyPaymasterApiKey,
-      publicClient,
     } = mumbai;
 
     const smartWallet = await createSmartAccountClient({

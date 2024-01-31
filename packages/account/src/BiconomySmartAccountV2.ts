@@ -535,8 +535,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
           throw new Error("Error while getting feeQuote");
         }
         return this.getPaymasterAndData(userOp, { ...paymasterServiceData, feeQuote, spender, feeTokenAddress: preferredToken });
-       } 
-       else {
+      } else {
         return userOp;
       }
     }
@@ -557,8 +556,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     feeQuotesOrData: FeeQuotesOrDataDto,
   ): Promise<FeeQuotesOrDataResponse> {
     const paymaster = this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>;
-    const tokenList = feeQuotesOrData?.preferredToken ? [feeQuotesOrData?.preferredToken] : feeQuotesOrData?.tokenList?.length ? feeQuotesOrData?.tokenList : [];
-    return paymaster.getPaymasterFeeQuotesOrData(userOp, { ...feeQuotesOrData, tokenList});
+    const tokenList = feeQuotesOrData?.preferredToken
+      ? [feeQuotesOrData?.preferredToken]
+      : feeQuotesOrData?.tokenList?.length
+        ? feeQuotesOrData?.tokenList
+        : [];
+    return paymaster.getPaymasterFeeQuotesOrData(userOp, { ...feeQuotesOrData, tokenList });
   }
 
   /**
@@ -566,7 +569,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @description This function will retrieve fees from the paymaster in erc20 mode
    *
    * @param manyOrOneTransactions Array of {@link Transaction} to be batched and sent. Can also be a single {@link Transaction}.
-   * @param buildUseropDto {@link BuildUserOpOptions}.
+   * @param buildUseropDto {@link BuildUserOpOptions}. Also relevant is the {@link FeeQuoteParams} param.
    * @returns Promise<FeeQuotesOrDataResponse>
    *
    * @example
@@ -594,11 +597,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * }
    *
    * const feeQuotesResponse: FeeQuotesOrDataResponse = await smartWallet.getTokenFees(transaction, {
-   *    paymasterServiceData: {
-   *      mode: PaymasterMode.ERC20,
-   *      tokenList: ["0xda5289fcaaf71d52a80a254da614a192b693e977"],
-   *      preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977"
-   *    }
+   *    paymasterServiceData: { mode: PaymasterMode.ERC20 }
    * });
    *
    * const userSeletedFeeQuote = feeQuotesResponse.feeQuotes?.[0];
