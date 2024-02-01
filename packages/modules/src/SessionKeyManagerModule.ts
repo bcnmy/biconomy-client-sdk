@@ -34,7 +34,6 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    */
   private constructor(moduleConfig: SessionKeyManagerModuleConfig) {
     super(moduleConfig);
-    console.log("TEST");
   }
 
   /**
