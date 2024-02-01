@@ -1,5 +1,5 @@
 import { Hex, concat, encodeAbiParameters, encodeFunctionData, keccak256, pad, parseAbi, parseAbiParameters, toBytes, toHex } from "viem";
-import MerkleTree from "merkletreejs";
+import { MerkleTree } from "merkletreejs";
 import { SmartAccountSigner } from "@alchemy/aa-core";
 import {
   SessionKeyManagerModuleConfig,
@@ -34,6 +34,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    */
   private constructor(moduleConfig: SessionKeyManagerModuleConfig) {
     super(moduleConfig);
+    console.log("TEST");
   }
 
   /**
