@@ -6,7 +6,6 @@ import {
   encodeAbiParameters,
   parseAbiParameters,
   toHex,
-  hexToNumber,
   toBytes,
   encodeFunctionData,
   PublicClient,
@@ -516,7 +515,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
           throw new Error("spender and maxApproval are required for ERC20 mode");
         }
         const finalUserOp = await this.buildTokenPaymasterUserOp(userOp, paymasterServiceData as BiconomyTokenPaymasterRequest);
-        const fromPayMaster = await this.getPaymasterAndData(userOp, {
+        const fromPayMaster = await this.getPaymasterAndData(finalUserOp, {
           ...paymasterServiceData,
           feeTokenAddress: paymasterServiceData.feeQuote.tokenAddress,
           calculateGasLimits: true, // Always recommended and especially when using token paymaster
@@ -527,14 +526,18 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         const preferredToken = paymasterServiceData.preferredToken;
         const feeQuotesResponse = await this.getPaymasterFeeQuotesOrData(userOp, {
           ...paymasterServiceData,
-          tokenList: paymasterServiceData?.tokenList ?? [preferredToken],
+          preferredToken: preferredToken,
         });
         const spender = feeQuotesResponse.tokenPaymasterAddress;
+        if (!spender) {
+          throw new Error("Error while getting spender");
+        }
         const feeQuote = feeQuotesResponse.feeQuotes?.[0];
         if (!feeQuote) {
           throw new Error("Error while getting feeQuote");
         }
-        return this.getPaymasterAndData(userOp, { ...paymasterServiceData, feeQuote, spender, feeTokenAddress: preferredToken });
+        const finalUserOp = await this.buildTokenPaymasterUserOp(userOp, { ...paymasterServiceData, feeQuote, spender });
+        return this.getPaymasterAndData(finalUserOp, { ...paymasterServiceData, feeTokenAddress: preferredToken });
       } else {
         return userOp;
       }
@@ -997,26 +1000,14 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
           newCallData = await this.encodeExecuteBatch(batchTo, batchValue, batchData);
         }
-        let finalUserOp: Partial<UserOperationStruct> = {
+        const finalUserOp: Partial<UserOperationStruct> = {
           ...userOp,
           callData: newCallData,
         };
 
-        // Requesting to update gas limits again (especially callGasLimit needs to be re-calculated)
-        try {
-          finalUserOp = await this.estimateUserOpGas(finalUserOp);
-          const callGasLimit = finalUserOp.callGasLimit;
-          if (callGasLimit && hexToNumber(callGasLimit as Hex) < 21000) {
-            return {
-              ...userOp,
-              callData: newCallData,
-            };
-          }
-          Logger.warn("UserOp after estimation ", finalUserOp);
-        } catch (error) {
-          Logger.error("Failed to estimate gas for userOp with updated callData ", error);
-          Logger.log("Sending updated userOp. calculateGasLimit flag should be sent to the paymaster to be able to update callGasLimit");
-        }
+        // Optionally Requesting to update gas limits again (especially callGasLimit needs to be re-calculated)
+
+
         return finalUserOp;
       }
     } catch (error) {
