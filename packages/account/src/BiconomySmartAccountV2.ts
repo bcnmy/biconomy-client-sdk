@@ -512,7 +512,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     } else if (paymasterServiceData.mode === PaymasterMode.ERC20) {
       if (paymasterServiceData?.feeQuote) {
         Logger.log("there is a feeQuote: ", paymasterServiceData.feeQuote);
-        if (!paymasterServiceData.spender || !paymasterServiceData.maxApproval) {
+        if (!paymasterServiceData.spender || isNullOrUndefined(paymasterServiceData.maxApproval)) {
           throw new Error("spender and maxApproval are required for ERC20 mode");
         }
         const finalUserOp = await this.buildTokenPaymasterUserOp(userOp, paymasterServiceData as BiconomyTokenPaymasterRequest);

@@ -52,7 +52,7 @@ export enum StorageType {
 
 export type SessionParams = {
   sessionID?: string;
-  sessionSigner: SmartAccountSigner;
+  sessionSigner: SupportedSigner;
   sessionValidationModule?: Hex;
   additionalSessionData?: string;
 };
@@ -61,7 +61,7 @@ export type ModuleInfo = {
   // Could be a full object of below params and that way it can be an array too!
   // sessionParams?: SessionParams[] // where SessionParams is below four
   sessionID?: string;
-  sessionSigner?: SmartAccountSigner;
+  sessionSigner?: SupportedSigner;
   sessionValidationModule?: Hex;
   additionalSessionData?: string;
   batchSessionParams?: SessionParams[];
