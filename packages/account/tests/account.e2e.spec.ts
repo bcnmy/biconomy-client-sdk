@@ -1,5 +1,5 @@
 import { TestData } from "../../../tests";
-import { createSmartAccountClient, FeeQuotesOrDataResponse, PaymasterMode } from "../src/index";
+import { createSmartAccountClient, ERROR_MESSAGES, FeeQuotesOrDataResponse, PaymasterMode } from "../src/index";
 import { Hex, encodeFunctionData, parseAbi } from "viem";
 import { UserOperationStruct } from "@alchemy/aa-core";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
@@ -192,10 +192,9 @@ describe("Account Tests", () => {
       data: encodedCall,
     };
 
-    const feeQuotesResponse = await smartWallet.getTokenFees(transaction, { paymasterServiceData: { mode: PaymasterMode.ERC20 } } );
+    const feeQuotesResponse = await smartWallet.getTokenFees(transaction, { paymasterServiceData: { mode: PaymasterMode.ERC20 } });
     expect(feeQuotesResponse.feeQuotes?.length).toBeGreaterThan(1);
-
-  })
+  });
 
   it("Should mint an NFT on Mumbai and pay with ERC20 - with token selection", async () => {
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
@@ -303,7 +302,7 @@ describe("Account Tests", () => {
         },
         simulationType: "validation",
       }),
-    ).rejects.toThrow("spender and maxApproval are required for ERC20 mode");
+    ).rejects.toThrow(ERROR_MESSAGES.SPENDER_REQUIRED);
   }, 60000);
 
   it("#getUserOpHash should match entryPoint.getUserOpHash", async () => {
