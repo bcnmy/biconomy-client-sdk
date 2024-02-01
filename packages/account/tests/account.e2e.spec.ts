@@ -1,8 +1,9 @@
 import { TestData } from "../../../tests";
-import { createSmartAccountClient, ERROR_MESSAGES, FeeQuotesOrDataResponse, PaymasterMode } from "../src/index";
-import { Hex, encodeFunctionData, parseAbi } from "viem";
+import { createSmartAccountClient, ERROR_MESSAGES, FeeQuotesOrDataResponse, IHybridPaymaster, PaymasterMode } from "../src/index";
+import { Hex, encodeFunctionData, getContract, parseAbi } from "viem";
 import { UserOperationStruct } from "@alchemy/aa-core";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
+import { ERC20_ABI } from "@biconomy/modules";
 
 describe("Account Tests", () => {
   let mumbai: TestData;
@@ -196,8 +197,9 @@ describe("Account Tests", () => {
     expect(feeQuotesResponse.feeQuotes?.length).toBeGreaterThan(1);
   });
 
-  it("Should mint an NFT on Mumbai and pay with ERC20 - with token selection", async () => {
+  it("Should mint an NFT on Mumbai and pay with ERC20 - with token selection and no maxApproval", async () => {
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
+    const preferredToken: Hex = "0xda5289fcaaf71d52a80a254da614a192b693e977";
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
@@ -210,6 +212,8 @@ describe("Account Tests", () => {
       bundlerUrl,
       biconomyPaymasterApiKey,
     });
+
+    const smartWalletAddress = await smartWallet.getAddress();
 
     const encodedCall = encodeFunctionData({
       abi: parseAbi(["function safeMint(address _to)"]),
@@ -225,20 +229,44 @@ describe("Account Tests", () => {
     const feeQuotesResponse = await smartWallet.getTokenFees(transaction, {
       paymasterServiceData: {
         mode: PaymasterMode.ERC20,
-        preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977",
+        preferredToken,
       },
     });
 
+    const selectedFeeQuote = feeQuotesResponse.feeQuotes?.[0]!;
+    const spender = feeQuotesResponse.tokenPaymasterAddress!;
+
+    const contract = getContract({
+      address: preferredToken,
+      abi: parseAbi(ERC20_ABI),
+      publicClient,
+    });
+
+    const allowanceBefore = (await contract.read.allowance([smartWalletAddress, spender])) as bigint;
+
+    if (allowanceBefore > 0) {
+      const setAllowanceToZeroTransaction = await (smartWallet?.paymaster as IHybridPaymaster<any>)?.buildTokenApprovalTransaction({
+        feeQuote: { ...selectedFeeQuote, maxGasFee: 0 },
+        spender,
+      });
+
+      const { wait } = await smartWallet.sendTransaction([setAllowanceToZeroTransaction]);
+      const { success } = await wait();
+
+      expect(success).toBe("true");
+      const allowanceAfter = (await contract.read.allowance([smartWalletAddress, spender])) as bigint;
+      expect(allowanceAfter).toBe(0n);
+    }
+
     const balance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
-    const maticBalanceBefore = await checkBalance(publicClient, await smartWallet.getAddress());
-    const usdcBalanceBefore = await checkBalance(publicClient, await smartWallet.getAddress(), "0xda5289fcaaf71d52a80a254da614a192b693e977");
+    const maticBalanceBefore = await checkBalance(publicClient, smartWalletAddress);
+    const usdcBalanceBefore = await checkBalance(publicClient, smartWalletAddress, preferredToken);
 
     const { wait } = await smartWallet.sendTransaction(transaction, {
       paymasterServiceData: {
         mode: PaymasterMode.ERC20,
-        feeQuote: feeQuotesResponse.feeQuotes?.[0],
+        feeQuote: selectedFeeQuote,
         spender: feeQuotesResponse.tokenPaymasterAddress,
-        maxApproval: true,
       },
     });
 
@@ -252,10 +280,10 @@ describe("Account Tests", () => {
     expect(success).toBe("true");
     expect(transactionHash).toBeTruthy();
 
-    const maticBalanceAfter = await checkBalance(publicClient, await smartWallet.getAddress());
+    const maticBalanceAfter = await checkBalance(publicClient, smartWalletAddress);
     expect(maticBalanceAfter).toEqual(maticBalanceBefore);
 
-    const usdcBalanceAfter = await checkBalance(publicClient, await smartWallet.getAddress(), "0xda5289fcaaf71d52a80a254da614a192b693e977");
+    const usdcBalanceAfter = await checkBalance(publicClient, smartWalletAddress, preferredToken);
     expect(usdcBalanceAfter).toBeLessThan(usdcBalanceBefore);
 
     const newBalance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
