@@ -136,7 +136,7 @@ export type BiconomySmartAccountV2ConfigConstructorProps = BiconomySmartAccountV
 export type BuildUserOpOptions = {
   /** overrides: Explicitly set gas values */
   overrides?: Overrides;
-  /** Flag for skipping bundler gas estimation, for use when the paymaster  */
+  /** Not currently in use  */
   skipBundlerGasEstimation?: boolean;
   /**  params relevant to the module, mostly relevant to sessions */
   params?: ModuleInfo;
