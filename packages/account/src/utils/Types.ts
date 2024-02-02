@@ -236,7 +236,7 @@ export type SmartAccountInfo = {
 
 type ValueOrData = RequireAtLeastOne<
   {
-    value: BigNumberish;
+    value: BigNumberish | string;
     data: string;
   },
   "value" | "data"

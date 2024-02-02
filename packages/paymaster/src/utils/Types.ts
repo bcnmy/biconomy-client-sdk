@@ -131,8 +131,18 @@ export type UserOpGasResponse = {
   callGasLimit: string;
 };
 
+type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
+  {
+    [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>;
+  }[Keys];
+
+type ValueOrData = RequireAtLeastOne<
+  {
+    value: BigNumberish | string;
+    data: string;
+  },
+  "value" | "data"
+>;
 export type Transaction = {
   to: string;
-  value: BigNumberish;
-  data: string;
-};
+} & ValueOrData;
