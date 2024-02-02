@@ -172,11 +172,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * const bundlerUrl = "" // Retrieve bundler url from dasboard
    *
-   * const smartWalletFromStaticCreate = await BiconomySmartAccountV2.create({ signer, bundlerUrl });
+   * const smartAccountFromStaticCreate = await BiconomySmartAccountV2.create({ signer, bundlerUrl });
    *
    * // Is the same as...
    *
-   * const smartWallet = await createSmartAccountClient({ signer, bundlerUrl });
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl });
    *
    */
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
@@ -585,7 +585,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartWallet = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
@@ -597,15 +597,15 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   data: encodedCall
    * }
    *
-   * const feeQuotesResponse: FeeQuotesOrDataResponse = await smartWallet.getTokenFees(transaction, { paymasterServiceData: { mode: PaymasterMode.ERC20 } });
+   * const feeQuotesResponse: FeeQuotesOrDataResponse = await smartAccount.getTokenFees(transaction, { paymasterServiceData: { mode: PaymasterMode.ERC20 } });
    *
    * const userSeletedFeeQuote = feeQuotesResponse.feeQuotes?.[0];
    *
-   * const { wait } = await smartWallet.sendTransaction(transaction, {
+   * const { wait } = await smartAccount.sendTransaction(transaction, {
    *    paymasterServiceData: {
    *      mode: PaymasterMode.ERC20,
    *      feeQuote: userSeletedFeeQuote,
-   *      spender: "0x...",
+   *      spender: feeQuotesResponse.tokenPaymasterAddress,
    *    },
    * });
    *
@@ -648,7 +648,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartWallet = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
@@ -660,9 +660,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   data: encodedCall
    * }
    *
-   * const userOp = await smartWallet.buildUserOp([transaction]);
+   * const userOp = await smartAccount.buildUserOp([transaction]);
    *
-   * const { wait } = await smartWallet.sendUserOp(userOp);
+   * const { wait } = await smartAccount.sendUserOp(userOp);
    * const { receipt } = await wait();
    *
    */
@@ -797,7 +797,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartWallet = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
@@ -809,7 +809,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   data: encodedCall
    * }
    *
-   * const { waitForTxHash } = await smartWallet.sendTransaction(transaction);
+   * const { waitForTxHash } = await smartAccount.sendTransaction(transaction);
    * const { transactionHash, userOperationReceipt } = await wait();
    *
    */
@@ -839,7 +839,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartWallet = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
@@ -851,7 +851,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   data: encodedCall
    * }
    *
-   * const userOp = await smartWallet.buildUserOp([{ to: "0x...", data: encodedCall }]);
+   * const userOp = await smartAccount.buildUserOp([{ to: "0x...", data: encodedCall }]);
    *
    */
   async buildUserOp(transactions: Transaction[], buildUseropDto?: BuildUserOpOptions): Promise<Partial<UserOperationStruct>> {
