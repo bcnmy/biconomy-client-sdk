@@ -57,7 +57,6 @@ describe("Account Tests", () => {
       recipientBase,
       reciepientSmartAccountBase.getAddress(),
     ]);
-    console.log({ addresses });
     expect(addresses.every(Boolean)).toBeTruthy();
   });
 
@@ -88,8 +87,6 @@ describe("Account Tests", () => {
 
     const result = await wait();
     const newBalance = (await checkBalance(publicClient, recipient)) as bigint;
-
-    console.log();
 
     expect(result?.receipt?.transactionHash).toBeTruthy();
     expect(newBalance - balance).toBe(1n);

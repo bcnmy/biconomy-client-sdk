@@ -1,4 +1,4 @@
-import { BigNumberish, SmartAccountSigner, UserOperationStruct, WalletClientSigner } from "@alchemy/aa-core";
+import { BigNumberish, SmartAccountSigner, UserOperationStruct } from "@alchemy/aa-core";
 import { IBundler } from "@biconomy/bundler";
 import {
   type FeeQuotesOrDataDto,
