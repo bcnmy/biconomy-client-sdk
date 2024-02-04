@@ -267,9 +267,7 @@ export type SmartAccountInfo = {
 
 export type ValueOrData = RequireAtLeastOne<
   {
-    /** Value to send in wei */
-    value: BigNumberish;
-    /** Data to send. Hex */
+    value: BigNumberish | string;
     data: string;
   },
   "value" | "data"
