@@ -11,7 +11,7 @@ The Biconomy SDK is your all-in-one toolkit for building decentralized applicati
 ## 🛠️ Quickstart
 
 ```typescript
-import { createSmartAccountClient } from "@biconomy/account";
+import { createSmartAccountClient } from "@biconomy-devx/account";
 
 const smartAccount = await createSmartAccountClient({
   signer: viemWalletOrEthersSigner,
@@ -45,7 +45,7 @@ For a step-by-step guide on integrating **ERC4337 Account Abstraction** and **Sm
 ## ⚙️ installation
 
 ```bash
-npm i @biconomy/account
+npm i @biconomy-devx/account
 ```
 
 ## 💼 Example Usages
@@ -59,7 +59,7 @@ npm i @biconomy/account
 | [bundlerUrl](https://dashboard.biconomy.io)                                                                    | You can pass in a bundlerUrl (retrieved from the biconomy dashboard) for sending transactions                                         |
 
 ```typescript
-import { createSmartAccountClient } from "@biconomy/account";
+import { createSmartAccountClient } from "@biconomy-devx/account";
 import { createWalletClient, http, createPublicClient } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { mainnet as chain } from "viem/chains";
