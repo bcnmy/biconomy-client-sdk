@@ -328,7 +328,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
    *
    * @param userOp user operation
    * @param paymasterServiceData optional extra information to be passed to paymaster service
-   * @returns paymasterAndData with valid length but mock signature
+   * @returns "0x"
    */
   async getDummyPaymasterAndData(
     _userOp: Partial<UserOperationStruct>,
