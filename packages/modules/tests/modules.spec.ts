@@ -18,11 +18,11 @@ describe("Account Tests", () => {
 
     const defaultValidationModule = await createMultiChainValidationModule({ signer });
     // Should not require a signer or chainId
-    const smartWallet = await createSmartAccountClient({ bundlerUrl, defaultValidationModule });
-    const address = await smartWallet.getAccountAddress();
+    const smartAccount = await createSmartAccountClient({ bundlerUrl, defaultValidationModule });
+    const address = await smartAccount.getAccountAddress();
     expect(address).toBeTruthy();
     // expect the relevant module to be set
-    expect(smartWallet.activeValidationModule).toEqual(defaultValidationModule);
+    expect(smartAccount.activeValidationModule).toEqual(defaultValidationModule);
   });
 
   it("should create a ECDSAOwnershipValidationModule from a viem signer using convertSigner", async () => {
@@ -33,13 +33,13 @@ describe("Account Tests", () => {
 
     const defaultValidationModule = await createECDSAOwnershipValidationModule({ signer });
     // Should not require a signer or chainId
-    const smartWallet = await createSmartAccountClient({
+    const smartAccount = await createSmartAccountClient({
       bundlerUrl,
       defaultValidationModule,
     });
-    const address = await smartWallet.getAccountAddress();
+    const address = await smartAccount.getAccountAddress();
     expect(address).toBeTruthy();
     // expect the relevant module to be set
-    expect(smartWallet.activeValidationModule).toEqual(defaultValidationModule);
+    expect(smartAccount.activeValidationModule).toEqual(defaultValidationModule);
   });
 });
