@@ -78,8 +78,7 @@ export class Bundler implements IBundler {
   }
 
   /**
-   *
-   * @param chainId
+   * @param userOpHash
    * @description This function will fetch gasPrices from bundler
    * @returns Promise<UserOpGasPricesResponse>
    */
@@ -267,7 +266,6 @@ export class Bundler implements IBundler {
   /**
    *
    * @param userOpHash
-   * @param chainId
    * @description this function will return UserOpByHashResponse for given UserOpHash
    * @returns Promise<UserOpByHashResponse>
    */

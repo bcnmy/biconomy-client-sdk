@@ -35,7 +35,7 @@
   },
   "scripts": {
     "unbuild": "rimraf dist *.tsbuildinfo",
-    "build:watch": "node .esbuild.js CJS --watch",
+    "build:watch": "yarn build:tsc --watch",
     "dist:minify": "esbuild ./dist/esm/**/*.js ./dist/esm/*.js --minify --outdir=./dist/esm --bundle=false --allow-overwrite",
     "build": "yarn unbuild && yarn build:tsc",
     "build:esbuild": "yarn build:esbuild:cjs && yarn build:esbuild:esm && yarn build:typ",

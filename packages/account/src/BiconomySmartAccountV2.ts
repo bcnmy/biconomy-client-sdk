@@ -6,7 +6,6 @@ import {
   encodeAbiParameters,
   parseAbiParameters,
   toHex,
-  hexToNumber,
   toBytes,
   encodeFunctionData,
   PublicClient,
@@ -60,6 +59,7 @@ import {
   PROXY_CREATION_CODE,
   ADDRESS_ZERO,
   DEFAULT_ENTRYPOINT_ADDRESS,
+  ERROR_MESSAGES,
 } from "./utils/Constants.js";
 import { BiconomyFactoryAbi } from "./abi/Factory.js";
 import { BiconomyAccountAbi } from "./abi/SmartAccount.js";
@@ -172,11 +172,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * const bundlerUrl = "" // Retrieve bundler url from dasboard
    *
-   * const smartWalletFromStaticCreate = await BiconomySmartAccountV2.create({ signer, bundlerUrl });
+   * const smartAccountFromStaticCreate = await BiconomySmartAccountV2.create({ signer, bundlerUrl });
    *
    * // Is the same as...
    *
-   * const smartWallet = await createSmartAccountClient({ signer, bundlerUrl });
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl });
    *
    */
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
@@ -511,32 +511,33 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       return this.getPaymasterAndData(userOp, paymasterServiceData);
     } else if (paymasterServiceData.mode === PaymasterMode.ERC20) {
       if (paymasterServiceData?.feeQuote) {
-        Logger.log("there is a feeQuote: ", paymasterServiceData.feeQuote);
-        if (!paymasterServiceData.spender || !paymasterServiceData.maxApproval) {
-          throw new Error("spender and maxApproval are required for ERC20 mode");
-        }
-        const finalUserOp = await this.buildTokenPaymasterUserOp(userOp, paymasterServiceData as BiconomyTokenPaymasterRequest);
-        const fromPayMaster = await this.getPaymasterAndData(userOp, {
+        const { feeQuote, spender, maxApproval = false } = paymasterServiceData;
+        Logger.log("there is a feeQuote: ", feeQuote);
+        if (!spender) throw new Error(ERROR_MESSAGES.SPENDER_REQUIRED);
+        if (!feeQuote) throw new Error(ERROR_MESSAGES.FAILED_FEE_QUOTE_FETCH);
+        const partialUserOp = await this.buildTokenPaymasterUserOp(userOp, {
           ...paymasterServiceData,
-          feeTokenAddress: paymasterServiceData.feeQuote.tokenAddress,
+          spender,
+          maxApproval,
+          feeQuote,
+        });
+        return this.getPaymasterAndData(partialUserOp, {
+          ...paymasterServiceData,
+          feeTokenAddress: feeQuote.tokenAddress,
           calculateGasLimits: true, // Always recommended and especially when using token paymaster
         });
-        return { ...finalUserOp, ...fromPayMaster };
-      } else if (paymasterServiceData.preferredToken) {
-        Logger.log("there is a preferred token: ", paymasterServiceData.preferredToken);
-        const preferredToken = paymasterServiceData.preferredToken;
-        const feeQuotesResponse = await this.getPaymasterFeeQuotesOrData(userOp, {
-          ...paymasterServiceData,
-          tokenList: paymasterServiceData?.tokenList ?? [preferredToken],
-        });
+      } else if (paymasterServiceData?.preferredToken) {
+        const { preferredToken } = paymasterServiceData;
+        Logger.log("there is a preferred token: ", preferredToken);
+        const feeQuotesResponse = await this.getPaymasterFeeQuotesOrData(userOp, paymasterServiceData);
         const spender = feeQuotesResponse.tokenPaymasterAddress;
         const feeQuote = feeQuotesResponse.feeQuotes?.[0];
-        if (!feeQuote) {
-          throw new Error("Error while getting feeQuote");
-        }
-        return this.getPaymasterAndData(userOp, { ...paymasterServiceData, feeQuote, spender, feeTokenAddress: preferredToken });
+        if (!spender) throw new Error(ERROR_MESSAGES.SPENDER_REQUIRED);
+        if (!feeQuote) throw new Error(ERROR_MESSAGES.FAILED_FEE_QUOTE_FETCH);
+        return this.getPaymasterUserOp(userOp, { ...paymasterServiceData, feeQuote, spender }); // Recursively call getPaymasterUserOp with the feeQuote
       } else {
-        throw new Error("FeeQuote was not provided, please call smartAccount.getTokenFees() to get feeQuote");
+        Logger.log("ERC20 mode without feeQuote or preferredToken provided. Passing through unchanged.");
+        return userOp;
       }
     }
     throw new Error("Invalid paymaster mode");
@@ -556,7 +557,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     feeQuotesOrData: FeeQuotesOrDataDto,
   ): Promise<FeeQuotesOrDataResponse> {
     const paymaster = this.paymaster as IHybridPaymaster<PaymasterUserOperationDto>;
-    return paymaster.getPaymasterFeeQuotesOrData(userOp, feeQuotesOrData);
+    const tokenList = feeQuotesOrData?.preferredToken
+      ? [feeQuotesOrData?.preferredToken]
+      : feeQuotesOrData?.tokenList?.length
+        ? feeQuotesOrData?.tokenList
+        : [];
+    return paymaster.getPaymasterFeeQuotesOrData(userOp, { ...feeQuotesOrData, tokenList });
   }
 
   /**
@@ -579,7 +585,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartWallet = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
@@ -591,22 +597,15 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   data: encodedCall
    * }
    *
-   * const feeQuotesResponse: FeeQuotesOrDataResponse = await smartWallet.getTokenFees(transaction, {
-   *    paymasterServiceData: {
-   *      mode: PaymasterMode.ERC20,
-   *      tokenList: ["0xda5289fcaaf71d52a80a254da614a192b693e977"],
-   *      preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977"
-   *    }
-   * });
+   * const feeQuotesResponse: FeeQuotesOrDataResponse = await smartAccount.getTokenFees(transaction, { paymasterServiceData: { mode: PaymasterMode.ERC20 } });
    *
    * const userSeletedFeeQuote = feeQuotesResponse.feeQuotes?.[0];
    *
-   * const { wait } = await smartWallet.sendTransaction(transaction, {
+   * const { wait } = await smartAccount.sendTransaction(transaction, {
    *    paymasterServiceData: {
    *      mode: PaymasterMode.ERC20,
    *      feeQuote: userSeletedFeeQuote,
-   *      maxApproval: true,
-   *      spender: "0x...",
+   *      spender: feeQuotesResponse.tokenPaymasterAddress,
    *    },
    * });
    *
@@ -649,7 +648,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartWallet = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
@@ -661,9 +660,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   data: encodedCall
    * }
    *
-   * const userOp = await smartWallet.buildUserOp([transaction]);
+   * const userOp = await smartAccount.buildUserOp([transaction]);
    *
-   * const { wait } = await smartWallet.sendUserOp(userOp);
+   * const { wait } = await smartAccount.sendUserOp(userOp);
    * const { receipt } = await wait();
    *
    */
@@ -798,7 +797,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartWallet = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
@@ -810,7 +809,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   data: encodedCall
    * }
    *
-   * const { waitForTxHash } = await smartWallet.sendTransaction(transaction);
+   * const { waitForTxHash } = await smartAccount.sendTransaction(transaction);
    * const { transactionHash, userOperationReceipt } = await wait();
    *
    */
@@ -840,7 +839,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartWallet = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
@@ -852,7 +851,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   data: encodedCall
    * }
    *
-   * const userOp = await smartWallet.buildUserOp([{ to: "0x...", data: encodedCall }]);
+   * const userOp = await smartAccount.buildUserOp([{ to: "0x...", data: encodedCall }]);
    *
    */
   async buildUserOp(transactions: Transaction[], buildUseropDto?: BuildUserOpOptions): Promise<Partial<UserOperationStruct>> {
@@ -996,26 +995,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
           newCallData = await this.encodeExecuteBatch(batchTo, batchValue, batchData);
         }
-        let finalUserOp: Partial<UserOperationStruct> = {
+        const finalUserOp: Partial<UserOperationStruct> = {
           ...userOp,
           callData: newCallData,
         };
 
-        // Requesting to update gas limits again (especially callGasLimit needs to be re-calculated)
-        try {
-          finalUserOp = await this.estimateUserOpGas(finalUserOp);
-          const callGasLimit = finalUserOp.callGasLimit;
-          if (callGasLimit && hexToNumber(callGasLimit as Hex) < 21000) {
-            return {
-              ...userOp,
-              callData: newCallData,
-            };
-          }
-          Logger.warn("UserOp after estimation ", finalUserOp);
-        } catch (error) {
-          Logger.error("Failed to estimate gas for userOp with updated callData ", error);
-          Logger.log("Sending updated userOp. calculateGasLimit flag should be sent to the paymaster to be able to update callGasLimit");
-        }
+        // Optionally Requesting to update gas limits again (especially callGasLimit needs to be re-calculated)
+
         return finalUserOp;
       }
     } catch (error) {

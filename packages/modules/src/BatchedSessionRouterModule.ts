@@ -9,6 +9,7 @@ import { SessionKeyManagerModule } from "./SessionKeyManagerModule.js";
 import { SessionSearchParam, SessionStatus } from "./interfaces/ISessionStorage.js";
 import { Hex, concat, encodeAbiParameters, keccak256, pad, parseAbiParameters, toBytes, toHex } from "viem";
 import { SmartAccountSigner } from "@alchemy/aa-core";
+import { convertSigner } from "@biconomy/common";
 
 export class BatchedSessionRouterModule extends BaseValidationModule {
   version: ModuleVersion = "V1_0_0";
@@ -97,7 +98,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
     const sessionDataTupleArray = [];
 
     // signer must be the same for all the sessions
-    const sessionSigner = sessionParams[0].sessionSigner;
+    const { signer: sessionSigner } = await convertSigner(sessionParams[0].sessionSigner);
 
     const signature = await sessionSigner.signMessage(toBytes(userOpHash));
 
@@ -208,7 +209,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
     // if needed we could do mock signature over userOpHashAndModuleAddress
 
     // signer must be the same for all the sessions
-    const sessionSigner = sessionParams[0].sessionSigner;
+    const { signer: sessionSigner } = await convertSigner(sessionParams[0].sessionSigner);
 
     for (const sessionParam of sessionParams) {
       if (!sessionParam.sessionSigner) {
