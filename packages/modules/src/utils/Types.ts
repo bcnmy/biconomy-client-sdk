@@ -40,10 +40,6 @@ export interface BatchedSessionRouterModuleConfig extends BaseValidationModuleCo
   nodeClientUrl?: string;
   smartAccountAddress: string;
   storageType?: StorageType;
-
-  // sessionSigner?: Signer
-  // sessionPubKey?: string
-  // nodeClientUrl?: string
 }
 
 export enum StorageType {
