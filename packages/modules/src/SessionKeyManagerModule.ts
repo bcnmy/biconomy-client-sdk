@@ -14,7 +14,7 @@ import { generateRandomHex } from "./utils/Uid.js";
 import { BaseValidationModule } from "./BaseValidationModule.js";
 import { SessionLocalStorage } from "./session-storage/SessionLocalStorage.js";
 import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "./interfaces/ISessionStorage.js";
-import { convertSigner } from "@biconomy/common";
+import { convertSigner } from "@biconomy-devx/common";
 
 export class SessionKeyManagerModule extends BaseValidationModule {
   version: ModuleVersion = "V1_0_0";
