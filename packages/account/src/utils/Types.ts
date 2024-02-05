@@ -135,9 +135,9 @@ export type BiconomySmartAccountV2ConfigConstructorProps = BiconomySmartAccountV
 
 export type BuildUserOpOptions = {
   /** overrides: Explicitly set gas values */
-  overrides?: Overrides;
+  // overrides?: Overrides;
   /** Not currently in use  */
-  skipBundlerGasEstimation?: boolean;
+  // skipBundlerGasEstimation?: boolean;
   /**  params relevant to the module, mostly relevant to sessions */
   params?: ModuleInfo;
   /**  nonceOptions: For overriding the nonce */
@@ -209,9 +209,9 @@ export type InitializeV2Data = {
 
 export type EstimateUserOpGasParams = {
   userOp: Partial<UserOperationStruct>;
-  overrides?: Overrides;
+  // overrides?: Overrides;
   /** Currrently has no effect */
-  skipBundlerGasEstimation?: boolean;
+  // skipBundlerGasEstimation?: boolean;
   /**  paymasterServiceData: Options specific to transactions that involve a paymaster */
   paymasterServiceData?: SponsorUserOperationDto;
 };
