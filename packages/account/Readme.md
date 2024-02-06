@@ -8,6 +8,12 @@
 
 The Biconomy SDK is your all-in-one toolkit for building decentralized applications (dApps) with **ERC4337 Account Abstraction** and **Smart Accounts**. It is designed for seamless user experiences and offers non-custodial solutions for user onboarding, sending transactions (userOps), gas sponsorship and much more.
 
+## ⚙️ installation
+
+```bash
+npm i @biconomy/account
+```
+
 ## 🛠️ Quickstart
 
 ```typescript
@@ -41,12 +47,6 @@ For a step-by-step guide on integrating **ERC4337 Account Abstraction** and **Sm
 - [Biconomy Documentation](https://docs.biconomy.io/)
 - [Biconomy Dashboard](https://dashboard.biconomy.io)
 - [TSDoc](https://bcnmy.github.io/biconomy-client-sdk)
-
-## ⚙️ installation
-
-```bash
-npm i @biconomy/account
-```
 
 ## 💼 Example Usages
 
