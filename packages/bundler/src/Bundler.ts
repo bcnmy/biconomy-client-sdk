@@ -158,14 +158,18 @@ export class Bundler implements IBundler {
                   if (confirmations >= confirmedBlocks) {
                     clearInterval(intervalId);
                     resolve(userOpResponse);
+                    return;
                   }
+                } else {
+                  clearInterval(intervalId);
+                  resolve(userOpResponse);
+                  return;
                 }
-                clearInterval(intervalId);
-                resolve(userOpResponse);
               }
             } catch (error) {
               clearInterval(intervalId);
               reject(error);
+              return;
             }
 
             totalDuration += intervalValue;
@@ -188,18 +192,19 @@ export class Bundler implements IBundler {
 
         return new Promise<UserOpStatus>((resolve, reject) => {
           const intervalValue = this.UserOpWaitForTxHashIntervals[chainId] || 500; // default 0.5 seconds
-          const intervalId = setInterval(() => {
-            this.getUserOpStatus(sendUserOperationResponse.result)
-              .then((userOpStatus) => {
-                if (userOpStatus && userOpStatus.state && userOpStatus.transactionHash) {
-                  clearInterval(intervalId);
-                  resolve(userOpStatus);
-                }
-              })
-              .catch((error) => {
+          const intervalId = setInterval(async () => {
+            try {
+              const userOpStatus = await this.getUserOpStatus(sendUserOperationResponse.result);
+              if (userOpStatus && userOpStatus.state && userOpStatus.transactionHash) {
                 clearInterval(intervalId);
-                reject(error);
-              });
+                resolve(userOpStatus);
+                return;
+              }
+            } catch (error) {
+              clearInterval(intervalId);
+              reject(error);
+              return;
+            }
 
             totalDuration += intervalValue;
             if (totalDuration >= maxDuration) {
