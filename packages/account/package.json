@@ -65,11 +65,11 @@
     "lru-cache": "^10.0.1"
   },
   "dependencies": {
-    "@alchemy/aa-core": "^2.3.1",
+    "@alchemy/aa-core": "3.0.0-alpha.4",
     "@biconomy/bundler": "^3.1.3",
     "@biconomy/common": "^3.1.3",
     "@biconomy/modules": "^3.1.3",
     "@biconomy/paymaster": "^3.1.3",
-    "viem": "^1.21.4"
+    "viem": "^2.7.3"
   }
 }

@@ -51,7 +51,7 @@ describe("Account Tests", () => {
     } = ganache;
 
     const newRpcUrl = "http://localhost:8545";
-    const defaultRpcUrl = viemChain.rpcUrls.public.http[0]; //http://127.0.0.1:8545"
+    const defaultRpcUrl = viemChain.rpcUrls.default.http[0]; //http://127.0.0.1:8545"
 
     const ethersProvider = new JsonRpcProvider(newRpcUrl);
     const ethersSignerWithNewRpcUrl = new Wallet(privateKey, ethersProvider);
@@ -205,7 +205,7 @@ describe("Account Tests", () => {
     const account = privateKeyToAccount(generatePrivateKey());
     const viemWalletClientNoChainId = createWalletClient({
       account,
-      transport: http(localhost.rpcUrls.public.http[0]),
+      transport: http(localhost.rpcUrls.default.http[0]),
     });
 
     expect(
@@ -222,7 +222,7 @@ describe("Account Tests", () => {
     const { bundlerUrl } = ganache;
 
     const viemWalletNoAccount = createWalletClient({
-      transport: http(localhost.rpcUrls.public.http[0]),
+      transport: http(localhost.rpcUrls.default.http[0]),
     });
 
     expect(async () =>

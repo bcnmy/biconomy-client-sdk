@@ -286,7 +286,7 @@ describe("Account Tests", () => {
     const contract = getContract({
       address: preferredToken,
       abi: parseAbi(ERC20_ABI),
-      publicClient,
+      client: publicClient,
     });
 
     const allowanceBefore = (await contract.read.allowance([smartAccountAddress, spender])) as bigint;
