@@ -112,7 +112,7 @@ export type FeeQuotesOrDataResponse = {
   feeQuotes?: PaymasterFeeQuote[];
   /** Normally set to the spender in the proceeding call to send the tx */
   tokenPaymasterAddress?: Hex;
-  /** Normally set to the spender in the proceeding call to send the tx */
+  /** Relevant Data returned from the paymaster */
   paymasterAndData?: Uint8Array | Hex;
   /* Gas overhead of this UserOperation */
   preVerificationGas?: BigNumberish;
