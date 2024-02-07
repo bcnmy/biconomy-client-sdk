@@ -14,9 +14,18 @@ export {
   type PaymasterFeeQuote,
   type SponsorUserOperationDto,
   type FeeQuotesOrDataResponse,
+  createPaymaster,
 } from "@biconomy/paymaster";
 export { EthersSigner, convertSigner } from "@biconomy/common";
-export { Bundler, type IBundler, extractChainIdFromBundlerUrl, type UserOpResponse, type UserOpStatus, type UserOpReceipt } from "@biconomy/bundler";
+export {
+  Bundler,
+  type IBundler,
+  extractChainIdFromBundlerUrl,
+  type UserOpResponse,
+  type UserOpStatus,
+  type UserOpReceipt,
+  createBundler,
+} from "@biconomy/bundler";
 export {
   createECDSAOwnershipValidationModule,
   createERC20SessionValidationModule,
