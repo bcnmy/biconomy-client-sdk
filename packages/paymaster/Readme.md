@@ -22,11 +22,11 @@ yarn add @biconomy/paymaster
 
 ```typescript
 // This is how you create paymaster instance in your dapp's
-import { IPaymaster, BiconomyPaymaster } from "@biconomy/paymaster";
+import { IPaymaster, createPaymaster } from "@biconomy/paymaster";
 
 // Currently this package only exports Biconomy Paymaster which acts as a Hybrid paymaster for gas abstraction. You can sponsor user transactions but can also make users pay gas in supported ERC20 tokens.
 
-const paymaster = new BiconomyPaymaster({
+const paymaster = await createPaymaster({
   paymasterUrl: "", // you can get this value from biconomy dashboard. https://dashboard.biconomy.io
 });
 ```
@@ -57,17 +57,17 @@ export interface IPaymaster {
 
 ### Below API methods can be used for Biconomy Hybrid paymaster
 
-**getPaymasterAndData**
+**[getPaymasterAndData](https://bcnmy.github.io/biconomy-client-sdk/classes/Paymaster.html#getPaymasterAndData)**
 
 This function accepts a **`Partial<UserOperation>`** object that includes all properties of **`userOp`** except for the **`signature`** and **`paymasterAndData`** field. It returns **`paymasterAndData`** as part of the **`PaymasterAndDataResponse`**
 
-**buildTokenApprovalTransaction**
+**[buildTokenApprovalTransaction](https://bcnmy.github.io/biconomy-client-sdk/classes/Paymaster.html#buildTokenApprovalTransaction)**
 
 This function is specifically used for token paymaster sponsorship. The primary purpose of this function is to create an approve transaction for paymaster that gets batched with the rest of your transactions.
 
 Note: You don't need to call this function. It will automatically get called as part of the **`buildTokenPaymasterUserOp`** function call.
 
-**getPaymasterFeeQuotesOrData**
+**[getPaymasterFeeQuotesOrData](https://bcnmy.github.io/biconomy-client-sdk/classes/Paymaster.html#getPaymasterFeeQuotesOrData)**
 
 This function is used to fetch quote information or paymaster data based on provided userOperation and paymasterServiceData. If explicit mode is not provided it tries for sponsorship first and then falls back to serving fee quotes for supported/requested token/s
 
