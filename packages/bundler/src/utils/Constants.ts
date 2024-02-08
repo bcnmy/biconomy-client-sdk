@@ -34,6 +34,7 @@ export const UserOpReceiptIntervals: { [key in ChainId]?: number } = {
   [ChainId.CORE_TESTNET]: 2000,
   [ChainId.MANTA_PACIFIC_MAINNET]: 2000,
   [ChainId.MANTA_PACIFIC_TESTNET]: 2000,
+  [ChainId.BLAST_SEPOLIA]: 2000,
   [ChainId.CAPX_TESTNET]: 2000,
 };
 
@@ -71,6 +72,7 @@ export const UserOpWaitForTxHashIntervals: { [key in ChainId]?: number } = {
   [ChainId.CORE_TESTNET]: 500,
   [ChainId.MANTA_PACIFIC_MAINNET]: 500,
   [ChainId.MANTA_PACIFIC_TESTNET]: 500,
+  [ChainId.BLAST_SEPOLIA]: 500,
   [ChainId.CAPX_TESTNET]: 500,
 };
 
@@ -107,6 +109,7 @@ export const UserOpReceiptMaxDurationIntervals: { [key in ChainId]?: number } = 
   [ChainId.CORE_TESTNET]: 40000,
   [ChainId.MANTA_PACIFIC_MAINNET]: 40000,
   [ChainId.MANTA_PACIFIC_TESTNET]: 40000,
+  [ChainId.BLAST_SEPOLIA]: 40000,
   [ChainId.CAPX_TESTNET]: 40000,
 };
 
@@ -143,6 +146,7 @@ export const UserOpWaitForTxHashMaxDurationIntervals: { [key in ChainId]?: numbe
   [ChainId.CORE_TESTNET]: 20000,
   [ChainId.MANTA_PACIFIC_MAINNET]: 20000,
   [ChainId.MANTA_PACIFIC_TESTNET]: 20000,
+  [ChainId.BLAST_SEPOLIA]: 20000,
   [ChainId.CAPX_TESTNET]: 20000,
 };
 
