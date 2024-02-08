@@ -163,31 +163,34 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     smartAccountInfo = paymasterServiceData?.smartAccountInfo ?? smartAccountInfo;
 
     try {
-      const response: JsonRpcResponse = await sendRequest({
-        url: `${this.paymasterConfig.paymasterUrl}`,
-        method: HttpMethod.Post,
-        body: {
-          method: "pm_getFeeQuoteOrData",
-          params: [
-            userOp,
-            {
-              ...(mode !== null && { mode }),
-              calculateGasLimits: calculateGasLimits,
-              ...(expiryDuration !== null && { expiryDuration }),
-              tokenInfo: {
-                tokenList: feeTokensArray,
-                ...(preferredToken !== null && { preferredToken }),
+      const response: JsonRpcResponse = await sendRequest(
+        {
+          url: `${this.paymasterConfig.paymasterUrl}`,
+          method: HttpMethod.Post,
+          body: {
+            method: "pm_getFeeQuoteOrData",
+            params: [
+              userOp,
+              {
+                ...(mode !== null && { mode }),
+                calculateGasLimits: calculateGasLimits,
+                ...(expiryDuration !== null && { expiryDuration }),
+                tokenInfo: {
+                  tokenList: feeTokensArray,
+                  ...(preferredToken !== null && { preferredToken }),
+                },
+                sponsorshipInfo: {
+                  ...(webhookData !== null && { webhookData }),
+                  smartAccountInfo: smartAccountInfo,
+                },
               },
-              sponsorshipInfo: {
-                ...(webhookData !== null && { webhookData }),
-                smartAccountInfo: smartAccountInfo,
-              },
-            },
-          ], // As per current API
-          id: getTimestampInSeconds(),
-          jsonrpc: "2.0",
+            ], // As per current API
+            id: getTimestampInSeconds(),
+            jsonrpc: "2.0",
+          },
         },
-      });
+        "Bundler",
+      );
 
       if (response && response.result) {
         if (response.result.mode == PaymasterMode.ERC20) {
@@ -282,28 +285,31 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     // Note: The idea is before calling this below rpc, userOp values presense and types should be in accordance with how we call eth_estimateUseropGas on the bundler
 
     try {
-      const response: JsonRpcResponse = await sendRequest({
-        url: `${this.paymasterConfig.paymasterUrl}`,
-        method: HttpMethod.Post,
-        body: {
-          method: "pm_sponsorUserOperation",
-          params: [
-            userOp,
-            {
-              mode: mode,
-              calculateGasLimits: calculateGasLimits,
-              ...(expiryDuration !== null && { expiryDuration }),
-              ...(tokenInfo !== null && { tokenInfo }),
-              sponsorshipInfo: {
-                ...(webhookData !== null && { webhookData }),
-                smartAccountInfo: smartAccountInfo,
+      const response: JsonRpcResponse = await sendRequest(
+        {
+          url: `${this.paymasterConfig.paymasterUrl}`,
+          method: HttpMethod.Post,
+          body: {
+            method: "pm_sponsorUserOperation",
+            params: [
+              userOp,
+              {
+                mode: mode,
+                calculateGasLimits: calculateGasLimits,
+                ...(expiryDuration !== null && { expiryDuration }),
+                ...(tokenInfo !== null && { tokenInfo }),
+                sponsorshipInfo: {
+                  ...(webhookData !== null && { webhookData }),
+                  smartAccountInfo: smartAccountInfo,
+                },
               },
-            },
-          ],
-          id: getTimestampInSeconds(),
-          jsonrpc: "2.0",
+            ],
+            id: getTimestampInSeconds(),
+            jsonrpc: "2.0",
+          },
         },
-      });
+        "Paymaster",
+      );
 
       if (response && response.result) {
         const paymasterAndData = response.result.paymasterAndData;

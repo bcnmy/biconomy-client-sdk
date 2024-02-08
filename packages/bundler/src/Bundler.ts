@@ -89,16 +89,19 @@ export class Bundler implements IBundler {
 
     const bundlerUrl = this.getBundlerUrl();
 
-    const response: EstimateUserOpGasResponse = await sendRequest({
-      url: bundlerUrl,
-      method: HttpMethod.Post,
-      body: {
-        method: "eth_estimateUserOperationGas",
-        params: [userOp, this.bundlerConfig.entryPointAddress],
-        id: getTimestampInSeconds(),
-        jsonrpc: "2.0",
+    const response: EstimateUserOpGasResponse = await sendRequest(
+      {
+        url: bundlerUrl,
+        method: HttpMethod.Post,
+        body: {
+          method: "eth_estimateUserOperationGas",
+          params: [userOp, this.bundlerConfig.entryPointAddress],
+          id: getTimestampInSeconds(),
+          jsonrpc: "2.0",
+        },
       },
-    });
+      "Bundler",
+    );
 
     const userOpGasResponse = response.result;
     for (const key in userOpGasResponse) {
@@ -125,16 +128,19 @@ export class Bundler implements IBundler {
     };
     const params = [userOp, this.bundlerConfig.entryPointAddress, simType];
     const bundlerUrl = this.getBundlerUrl();
-    const sendUserOperationResponse: SendUserOpResponse = await sendRequest({
-      url: bundlerUrl,
-      method: HttpMethod.Post,
-      body: {
-        method: "eth_sendUserOperation",
-        params: params,
-        id: getTimestampInSeconds(),
-        jsonrpc: "2.0",
+    const sendUserOperationResponse: SendUserOpResponse = await sendRequest(
+      {
+        url: bundlerUrl,
+        method: HttpMethod.Post,
+        body: {
+          method: "eth_sendUserOperation",
+          params: params,
+          id: getTimestampInSeconds(),
+          jsonrpc: "2.0",
+        },
       },
-    });
+      "Bundler",
+    );
     const response: UserOpResponse = {
       userOpHash: sendUserOperationResponse.result,
       wait: (confirmations?: number): Promise<UserOpReceipt> => {
@@ -232,16 +238,19 @@ export class Bundler implements IBundler {
    */
   async getUserOpReceipt(userOpHash: string): Promise<UserOpReceipt> {
     const bundlerUrl = this.getBundlerUrl();
-    const response: GetUserOperationReceiptResponse = await sendRequest({
-      url: bundlerUrl,
-      method: HttpMethod.Post,
-      body: {
-        method: "eth_getUserOperationReceipt",
-        params: [userOpHash],
-        id: getTimestampInSeconds(),
-        jsonrpc: "2.0",
+    const response: GetUserOperationReceiptResponse = await sendRequest(
+      {
+        url: bundlerUrl,
+        method: HttpMethod.Post,
+        body: {
+          method: "eth_getUserOperationReceipt",
+          params: [userOpHash],
+          id: getTimestampInSeconds(),
+          jsonrpc: "2.0",
+        },
       },
-    });
+      "Bundler",
+    );
     const userOpReceipt: UserOpReceipt = response.result;
     return userOpReceipt;
   }
@@ -254,16 +263,19 @@ export class Bundler implements IBundler {
    */
   async getUserOpStatus(userOpHash: string): Promise<UserOpStatus> {
     const bundlerUrl = this.getBundlerUrl();
-    const response: GetUserOperationStatusResponse = await sendRequest({
-      url: bundlerUrl,
-      method: HttpMethod.Post,
-      body: {
-        method: "biconomy_getUserOperationStatus",
-        params: [userOpHash],
-        id: getTimestampInSeconds(),
-        jsonrpc: "2.0",
+    const response: GetUserOperationStatusResponse = await sendRequest(
+      {
+        url: bundlerUrl,
+        method: HttpMethod.Post,
+        body: {
+          method: "biconomy_getUserOperationStatus",
+          params: [userOpHash],
+          id: getTimestampInSeconds(),
+          jsonrpc: "2.0",
+        },
       },
-    });
+      "Bundler",
+    );
     const userOpStatus: UserOpStatus = response.result;
     return userOpStatus;
   }
@@ -276,16 +288,19 @@ export class Bundler implements IBundler {
    */
   async getUserOpByHash(userOpHash: string): Promise<UserOpByHashResponse> {
     const bundlerUrl = this.getBundlerUrl();
-    const response: GetUserOpByHashResponse = await sendRequest({
-      url: bundlerUrl,
-      method: HttpMethod.Post,
-      body: {
-        method: "eth_getUserOperationByHash",
-        params: [userOpHash],
-        id: getTimestampInSeconds(),
-        jsonrpc: "2.0",
+    const response: GetUserOpByHashResponse = await sendRequest(
+      {
+        url: bundlerUrl,
+        method: HttpMethod.Post,
+        body: {
+          method: "eth_getUserOperationByHash",
+          params: [userOpHash],
+          id: getTimestampInSeconds(),
+          jsonrpc: "2.0",
+        },
       },
-    });
+      "Bundler",
+    );
     const userOpByHashResponse: UserOpByHashResponse = response.result;
     return userOpByHashResponse;
   }
@@ -295,16 +310,19 @@ export class Bundler implements IBundler {
    */
   async getGasFeeValues(): Promise<GasFeeValues> {
     const bundlerUrl = this.getBundlerUrl();
-    const response: GetGasFeeValuesResponse = await sendRequest({
-      url: bundlerUrl,
-      method: HttpMethod.Post,
-      body: {
-        method: "biconomy_getGasFeeValues",
-        params: [],
-        id: getTimestampInSeconds(),
-        jsonrpc: "2.0",
+    const response: GetGasFeeValuesResponse = await sendRequest(
+      {
+        url: bundlerUrl,
+        method: HttpMethod.Post,
+        body: {
+          method: "biconomy_getGasFeeValues",
+          params: [],
+          id: getTimestampInSeconds(),
+          jsonrpc: "2.0",
+        },
       },
-    });
+      "Bundler",
+    );
     return response.result;
   }
 }
