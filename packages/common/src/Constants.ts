@@ -39,4 +39,5 @@ export const RPC_PROVIDER_URLS: { [key in ChainId]?: string } = {
   [ChainId.MANTA_PACIFIC_MAINNET]: "https://pacific-rpc.manta.network/http",
   [ChainId.MANTA_PACIFIC_TESTNET]: "https://pacific-rpc.testnet.manta.network/http",
   [ChainId.CAPX_TESTNET]: "https://capx-zk-rpc.lgns.me/sequencer-api",
+  [ChainId.BLAST_SEPOLIA]: "https://sepolia.blast.io"
 };
