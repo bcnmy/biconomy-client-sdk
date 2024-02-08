@@ -16,7 +16,7 @@ export {
   type FeeQuotesOrDataResponse,
   createPaymaster,
 } from "@biconomy/paymaster";
-export { EthersSigner, convertSigner } from "@biconomy/common";
+export { EthersSigner, convertSigner, LightSigner } from "@biconomy/common";
 export {
   Bundler,
   type IBundler,
