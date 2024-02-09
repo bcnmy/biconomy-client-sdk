@@ -7,7 +7,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 Export createPaymaster alias for static Paymaster.create call
 
-## 3.1.3 (2023-12-28)
+## 4.0.0 (2023-12-28)
 
 VERSION Bump Only.
 

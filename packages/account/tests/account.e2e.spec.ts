@@ -3,7 +3,7 @@ import { createSmartAccountClient, ERROR_MESSAGES, FeeQuotesOrDataResponse, IHyb
 import { Hex, encodeFunctionData, getContract, parseAbi } from "viem";
 import { UserOperationStruct } from "@alchemy/aa-core";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
-import { ERC20_ABI } from "@biconomy/modules";
+import { ERC20_ABI } from "@biconomy-devx/modules";
 
 describe("Account Tests", () => {
   let mumbai: TestData;

@@ -1,6 +1,6 @@
 {
-  "name": "@biconomy/modules",
-  "version": "3.1.3",
+  "name": "@biconomy-devx/modules",
+  "version": "4.0.0",
   "description": "This package provides different validation modules/plugins for ERC4337 compatible modular account",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -54,7 +54,7 @@
   },
   "dependencies": {
     "@alchemy/aa-core": "3.0.0-alpha.4",
-    "@biconomy/common": "^3.1.3",
+    "@biconomy-devx/common": "^4.0.0",
     "merkletreejs": "^0.3.11",
     "viem": "^2.7.3"
   },
