@@ -1,4 +1,5 @@
-import { Logger } from "./Logger";
+import { Logger } from "./Logger.js";
+import { Service } from "./Types.js";
 
 export enum HttpMethod {
   Get = "get",
@@ -13,7 +14,7 @@ export interface HttpRequest {
   body?: Record<string, any>;
 }
 
-export async function sendRequest<T>({ url, method, body }: HttpRequest): Promise<T> {
+export async function sendRequest<T>({ url, method, body }: HttpRequest, service: Service): Promise<T> {
   const response = await fetch(url, {
     method,
     headers: {
@@ -26,7 +27,7 @@ export async function sendRequest<T>({ url, method, body }: HttpRequest): Promis
   let jsonResponse;
   try {
     jsonResponse = await response.json();
-    Logger.log("Paymaster RPC Response", jsonResponse);
+    Logger.log(`${service} RPC Response`, jsonResponse);
   } catch (error) {
     if (!response.ok) {
       throw new Error(response.statusText);
@@ -37,7 +38,7 @@ export async function sendRequest<T>({ url, method, body }: HttpRequest): Promis
     return jsonResponse as T;
   }
   if (jsonResponse.error) {
-    throw new Error(jsonResponse.error);
+    throw new Error(`${jsonResponse.error.message} from ${service}`);
   }
   if (jsonResponse.message) {
     throw new Error(jsonResponse.message);

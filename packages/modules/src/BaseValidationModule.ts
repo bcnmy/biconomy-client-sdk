@@ -1,8 +1,8 @@
 import { Hex } from "viem";
 import { SmartAccountSigner } from "@alchemy/aa-core";
-import { BaseValidationModuleConfig, ModuleInfo } from "./utils/Types";
-import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants";
-import { IValidationModule } from "./interfaces/IValidationModule";
+import { BaseValidationModuleConfig, ModuleInfo } from "./utils/Types.js";
+import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants.js";
+import { IValidationModule } from "./interfaces/IValidationModule.js";
 
 export abstract class BaseValidationModule implements IValidationModule {
   entryPointAddress: Hex;

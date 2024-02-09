@@ -1,4 +1,4 @@
-import { SignTypedDataParams, SmartAccountSigner } from "@alchemy/aa-core";
+import { SmartAccountSigner } from "@alchemy/aa-core";
 import { Hex } from "viem";
 import { Signer } from "@ethersproject/abstract-signer";
 
@@ -21,7 +21,7 @@ export class EthersSigner<T extends Signer> implements SmartAccountSigner<T> {
     return this.#correctSignature(signature as Hex);
   }
 
-  async signTypedData(_notUsed: SignTypedDataParams): Promise<Hex> {
+  async signTypedData(_notUsed: any): Promise<Hex> {
     throw new Error("signTypedData is not supported for Ethers Signer");
   }
 

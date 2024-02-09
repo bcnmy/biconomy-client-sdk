@@ -17,7 +17,7 @@ beforeAll(async () => {
   const walletTwo = privateKeyToAccount(privateKeyTwo);
 
   const promises = E2E_TEST_CHAINS.map((chain) => {
-    const ethersProvider = new JsonRpcProvider(chain.viemChain.rpcUrls.public.http[0]);
+    const ethersProvider = new JsonRpcProvider(chain.viemChain.rpcUrls.default.http[0]);
     const ethersSignerOne = new Wallet(privateKeyOne, ethersProvider);
     const ethersSignerTwo = new Wallet(privateKeyTwo, ethersProvider);
 
@@ -29,12 +29,12 @@ beforeAll(async () => {
     const viemWalletClientOne = createWalletClient({
       account: walletOne,
       chain: chain.viemChain,
-      transport: http(chain.viemChain.rpcUrls.public.http[0]),
+      transport: http(chain.viemChain.rpcUrls.default.http[0]),
     });
     const viemWalletClientTwo = createWalletClient({
       account: walletTwo,
       chain: chain.viemChain,
-      transport: http(chain.viemChain.rpcUrls.public.http[0]),
+      transport: http(chain.viemChain.rpcUrls.default.http[0]),
     });
     const walletClientSignerOne = new WalletClientSigner(viemWalletClientOne, "viem");
     const walletClientSignerTwo = new WalletClientSigner(viemWalletClientTwo, "viem");

@@ -3,7 +3,11 @@
   "compilerOptions": {
     "composite": true,
     "outDir": "dist",
-    "baseUrl": "src"
+    "baseUrl": "src",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "lib": ["es2020"],
+    "types": ["node"]
   },
-  "include": ["./**/*.ts"]
+  "include": ["src", "src/**/*.json"]
 }

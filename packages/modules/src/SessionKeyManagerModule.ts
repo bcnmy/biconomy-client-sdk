@@ -1,5 +1,5 @@
 import { Hex, concat, encodeAbiParameters, encodeFunctionData, keccak256, pad, parseAbi, parseAbiParameters, toBytes, toHex } from "viem";
-import MerkleTree from "merkletreejs";
+import { MerkleTree } from "merkletreejs";
 import { SmartAccountSigner } from "@alchemy/aa-core";
 import {
   SessionKeyManagerModuleConfig,
@@ -8,12 +8,13 @@ import {
   ModuleInfo,
   CreateSessionDataResponse,
   StorageType,
-} from "./utils/Types";
-import { SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION, DEFAULT_SESSION_KEY_MANAGER_MODULE } from "./utils/Constants";
-import { generateRandomHex } from "./utils/Uid";
-import { BaseValidationModule } from "./BaseValidationModule";
-import { SessionLocalStorage } from "./session-storage/SessionLocalStorage";
-import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "./interfaces/ISessionStorage";
+} from "./utils/Types.js";
+import { SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION, DEFAULT_SESSION_KEY_MANAGER_MODULE } from "./utils/Constants.js";
+import { generateRandomHex } from "./utils/Uid.js";
+import { BaseValidationModule } from "./BaseValidationModule.js";
+import { SessionLocalStorage } from "./session-storage/SessionLocalStorage.js";
+import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "./interfaces/ISessionStorage.js";
+import { convertSigner } from "@biconomy/common";
 
 export class SessionKeyManagerModule extends BaseValidationModule {
   version: ModuleVersion = "V1_0_0";
@@ -158,7 +159,8 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     if (!(params && params.sessionSigner)) {
       throw new Error("Session signer is not provided.");
     }
-    const sessionSigner = params.sessionSigner;
+    const { signer: sessionSigner } = await convertSigner(params.sessionSigner);
+
     // Use the sessionSigner to sign the user operation
     const signature = await sessionSigner.signMessage(toBytes(userOpHash));
 
@@ -192,7 +194,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     if (!(params && params.sessionSigner)) {
       throw new Error("Session signer is not provided.");
     }
-    const sessionSigner = params.sessionSigner;
+    const { signer: sessionSigner } = await convertSigner(params.sessionSigner);
     let sessionSignerData;
     if (params?.sessionID) {
       sessionSignerData = await this.sessionStorageClient.getSessionData({

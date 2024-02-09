@@ -1,4 +1,8 @@
-export * from "./interfaces/IBundler";
-export * from "./Bundler";
-export * from "./utils/Types";
-export * from "./utils/Utils";
+import { Bundler } from "./Bundler.js";
+
+export * from "./interfaces/IBundler.js";
+export * from "./Bundler.js";
+export * from "./utils/Types.js";
+export * from "./utils/Utils.js";
+
+export const createBundler = Bundler.create;

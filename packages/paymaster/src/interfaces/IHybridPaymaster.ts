@@ -5,8 +5,8 @@ import {
   FeeQuotesOrDataDto,
   PaymasterAndDataResponse,
   type Transaction,
-} from "../utils/Types";
-import { IPaymaster } from "./IPaymaster";
+} from "../utils/Types.js";
+import { IPaymaster } from "./IPaymaster.js";
 
 export interface IHybridPaymaster<T> extends IPaymaster {
   getPaymasterAndData(_userOp: Partial<UserOperationStruct>, _paymasterServiceData?: T): Promise<PaymasterAndDataResponse>;

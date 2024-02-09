@@ -7,26 +7,25 @@ const COMMON_SETTINGS = {
   entryPoints: ["src/index.ts"],
   minify: true,
   bundle: true,
-  external: Object.keys(dependencies).concat(Object.keys(peerDependencies)),
-  plugins: [
-    esbuildPluginTsc({
-      force: true,
-    }),
-  ],
+  plugins: [esbuildPluginTsc({ force: true })],
 };
 
 const ESM_SETTINGS = {
   ...COMMON_SETTINGS,
+  sourcemap: true,
   outfile: "dist/esm/index.js",
-  platform: "neutral",
+  platform: "browser",
+  target: "esnext",
+  format: "esm",
+  mainFields: ["browser", "module", "main"],
 };
 const buildForESM = async () => await esbuild.build(ESM_SETTINGS);
 
 const CJS_SETTINGS = {
   ...COMMON_SETTINGS,
   format: "cjs",
-  outfile: "dist/src/index.js",
-  sourcemap: true,
+  sourcemap: false,
+  outfile: "dist/cjs/index.js",
   platform: "node",
 };
 
@@ -38,7 +37,7 @@ const watchForCJS = async () => {
 };
 
 const buildForCJS = async () => await esbuild.build(CJS_SETTINGS);
-const buildForTYP = async () => await new Generator({ entry: "src/index.ts", output: "dist/src/index.d.ts" }).generate();
+const buildForTYP = async () => await new Generator({ entry: "src/index.ts", output: "dist/types/index.d.ts" }).generate();
 
 (async () => {
   const buildType = process.argv.slice(2)[0];

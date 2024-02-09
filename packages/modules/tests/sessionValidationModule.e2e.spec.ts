@@ -1,5 +1,5 @@
-import { DEFAULT_SESSION_KEY_MANAGER_MODULE, SessionKeyManagerModule } from "@biconomy/modules";
-import { SessionFileStorage } from "@biconomy/modules/tests/utils/customSession";
+import { DEFAULT_SESSION_KEY_MANAGER_MODULE, createSessionKeyManagerModule } from "@biconomy/modules";
+import { SessionFileStorage } from "./utils/customSession";
 import { WalletClientSigner, createSmartAccountClient } from "../../account/src/index";
 import { Hex, encodeAbiParameters, encodeFunctionData, parseAbi, parseUnits } from "viem";
 import { TestData } from "../../../tests";
@@ -40,7 +40,7 @@ describe("Account Tests", () => {
     expect(sessionSigner).toBeTruthy();
 
     // Create smart account
-    let smartWallet = await createSmartAccountClient({
+    let smartAccount = await createSmartAccountClient({
       chainId,
       signer: sessionSigner,
       bundlerUrl,
@@ -49,9 +49,9 @@ describe("Account Tests", () => {
     });
 
     // Create session module
-    const sessionModule = await SessionKeyManagerModule.create({
+    const sessionModule = await createSessionKeyManagerModule({
       moduleAddress: DEFAULT_SESSION_KEY_MANAGER_MODULE,
-      smartAccountAddress: await smartWallet.getAddress(),
+      smartAccountAddress: await smartAccount.getAddress(),
       sessionStorageClient: sessionFileStorage,
     });
 
@@ -87,9 +87,9 @@ describe("Account Tests", () => {
 
     // Check if module is enabled
 
-    const isEnabled = await smartWallet.isModuleEnabled(DEFAULT_SESSION_KEY_MANAGER_MODULE);
+    const isEnabled = await smartAccount.isModuleEnabled(DEFAULT_SESSION_KEY_MANAGER_MODULE);
     if (!isEnabled) {
-      const enableModuleTrx = await smartWallet.getEnableModuleData(DEFAULT_SESSION_KEY_MANAGER_MODULE);
+      const enableModuleTrx = await smartAccount.getEnableModuleData(DEFAULT_SESSION_KEY_MANAGER_MODULE);
       txArray.push(enableModuleTrx);
       txArray.push(setSessionAllowedTrx);
     } else {
@@ -97,9 +97,9 @@ describe("Account Tests", () => {
       txArray.push(setSessionAllowedTrx);
     }
 
-    const userOp = await smartWallet.buildUserOp(txArray);
+    const userOp = await smartAccount.buildUserOp(txArray);
 
-    const userOpResponse1 = await smartWallet.sendUserOp(userOp);
+    const userOpResponse1 = await smartAccount.sendUserOp(userOp);
     const transactionDetails = await userOpResponse1.wait();
     console.log("Tx Hash: ", transactionDetails.receipt.transactionHash);
 
@@ -114,11 +114,11 @@ describe("Account Tests", () => {
       data: encodedCall,
     };
 
-    smartWallet = smartWallet.setActiveValidationModule(sessionModule);
+    smartAccount = smartAccount.setActiveValidationModule(sessionModule);
 
-    const maticBalanceBefore = await checkBalance(publicClient, await smartWallet.getAccountAddress());
+    const maticBalanceBefore = await checkBalance(publicClient, await smartAccount.getAccountAddress());
 
-    const transferUserOp = await smartWallet.buildUserOp([transferTx], {
+    const transferUserOp = await smartAccount.buildUserOp([transferTx], {
       params: {
         sessionSigner: sessionSigner,
         sessionValidationModule: erc20ModuleAddr.toLowerCase() as Hex,
@@ -132,18 +132,23 @@ describe("Account Tests", () => {
     expect(transferUserOp.paymasterAndData).not.toBeNull();
     expect(transferUserOp.paymasterAndData).not.toBe("0x");
 
-    const userOpResponse2 = await smartWallet.sendUserOp(transferUserOp, {
-      sessionSigner: sessionSigner,
-      sessionValidationModule: erc20ModuleAddr,
+    const userOpResponse2 = await smartAccount.sendTransaction(transferTx, {
+      params: {
+        sessionSigner: sessionSigner,
+        sessionValidationModule: erc20ModuleAddr.toLowerCase() as Hex,
+      },
+      paymasterServiceData: {
+        mode: PaymasterMode.SPONSORED,
+      },
     });
 
     expect(userOpResponse2.userOpHash).toBeTruthy();
     expect(userOpResponse2.userOpHash).not.toBeNull();
 
-    const maticBalanceAfter = await checkBalance(publicClient, await smartWallet.getAccountAddress());
+    const maticBalanceAfter = await checkBalance(publicClient, await smartAccount.getAccountAddress());
 
     expect(maticBalanceAfter).toEqual(maticBalanceBefore);
 
     console.log(`Tx at: https://jiffyscan.xyz/userOpHash/${userOpResponse2.userOpHash}?network=mumbai`);
-  }, 50000);
+  }, 60000);
 });

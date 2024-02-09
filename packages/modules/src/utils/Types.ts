@@ -1,7 +1,7 @@
 import { Chain, Hex } from "viem";
 import { UserOperationStruct, SmartAccountSigner } from "@alchemy/aa-core";
 import { SessionKeyManagerModule } from "../SessionKeyManagerModule";
-import { ISessionStorage } from "../interfaces/ISessionStorage";
+import { ISessionStorage } from "../interfaces/ISessionStorage.js";
 import { SupportedSigner } from "@biconomy/common";
 export type ModuleVersion = "V1_0_0"; // | 'V1_0_1'
 
@@ -40,10 +40,6 @@ export interface BatchedSessionRouterModuleConfig extends BaseValidationModuleCo
   nodeClientUrl?: string;
   smartAccountAddress: string;
   storageType?: StorageType;
-
-  // sessionSigner?: Signer
-  // sessionPubKey?: string
-  // nodeClientUrl?: string
 }
 
 export enum StorageType {
@@ -52,7 +48,7 @@ export enum StorageType {
 
 export type SessionParams = {
   sessionID?: string;
-  sessionSigner: SmartAccountSigner;
+  sessionSigner: SupportedSigner;
   sessionValidationModule?: Hex;
   additionalSessionData?: string;
 };
@@ -61,7 +57,7 @@ export type ModuleInfo = {
   // Could be a full object of below params and that way it can be an array too!
   // sessionParams?: SessionParams[] // where SessionParams is below four
   sessionID?: string;
-  sessionSigner?: SmartAccountSigner;
+  sessionSigner?: SupportedSigner;
   sessionValidationModule?: Hex;
   additionalSessionData?: string;
   batchSessionParams?: SessionParams[];
