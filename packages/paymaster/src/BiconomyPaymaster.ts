@@ -342,4 +342,8 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
   ): Promise<string> {
     return "0x";
   }
+
+  public static async create(config: PaymasterConfig): Promise<BiconomyPaymaster> {
+    return new BiconomyPaymaster(config);
+  }
 }

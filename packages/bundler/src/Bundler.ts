@@ -16,7 +16,7 @@ import {
   UserOpStatus,
   GetUserOperationStatusResponse,
   SimulationType,
-  BunderConfigWithChainId,
+  BundlerConfigWithChainId,
 } from "./utils/Types.js";
 import { transformUserOP, getTimestampInSeconds } from "./utils/HelperFunction.js";
 import {
@@ -35,7 +35,7 @@ import { sendRequest, HttpMethod } from "@biconomy/common";
  * Checkout the proposal for more details on Bundlers.
  */
 export class Bundler implements IBundler {
-  private bundlerConfig: BunderConfigWithChainId;
+  private bundlerConfig: BundlerConfigWithChainId;
 
   // eslint-disable-next-line no-unused-vars
   UserOpReceiptIntervals!: { [key in number]?: number };
@@ -324,5 +324,9 @@ export class Bundler implements IBundler {
       "Bundler",
     );
     return response.result;
+  }
+
+  public static async create(config: Bundlerconfig): Promise<Bundler> {
+    return new Bundler(config);
   }
 }
