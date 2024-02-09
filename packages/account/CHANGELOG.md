@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## 4.0.0 (2023-02-06)
+## 4.0.1 (2023-02-06)
 
 ### Features
 
@@ -37,7 +37,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 - Removed skipBundlerGasEstimation option ([b905dc](https://github.com/bcnmy/biconomy-client-sdk/pull/401/commits/b905dcf3f7849396573fc8b51f808cc68061ee11))
 - Ingest rpcUrl from SupportedSigners (ethers + viem) ([f56b4d](https://github.com/bcnmy/biconomy-client-sdk/pull/401/commits/f56b4da08f47af577c01a641b81a3ef9e354cf97))
 
-## 4.0.0 (2023-12-28)
+## 4.0.1 (2023-12-28)
 
 VERSION Bump Only.
 
