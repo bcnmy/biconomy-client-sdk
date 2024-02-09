@@ -1,12 +1,11 @@
-import { Signer } from "ethers";
-import { Bytes } from "ethers/lib/utils";
-import { BaseValidationModuleConfig, ModuleInfo } from "./utils/Types";
-import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants";
-import { IValidationModule } from "./interfaces/IValidationModule";
-import { WalletClientSigner } from "@alchemy/aa-core";
+import { Hex } from "viem";
+import { SmartAccountSigner } from "@alchemy/aa-core";
+import { BaseValidationModuleConfig, ModuleInfo } from "./utils/Types.js";
+import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants.js";
+import { IValidationModule } from "./interfaces/IValidationModule.js";
 
 export abstract class BaseValidationModule implements IValidationModule {
-  entryPointAddress: string;
+  entryPointAddress: Hex;
 
   constructor(moduleConfig: BaseValidationModuleConfig) {
     const { entryPointAddress } = moduleConfig;
@@ -14,43 +13,31 @@ export abstract class BaseValidationModule implements IValidationModule {
     this.entryPointAddress = entryPointAddress || DEFAULT_ENTRYPOINT_ADDRESS;
   }
 
-  abstract getAddress(): string;
+  abstract getAddress(): Hex;
 
-  setEntryPointAddress(entryPointAddress: string): void {
+  setEntryPointAddress(entryPointAddress: Hex): void {
     this.entryPointAddress = entryPointAddress;
   }
 
-  abstract getInitData(): Promise<string>;
+  abstract getInitData(): Promise<Hex>;
 
   // Anything  required to get dummy signature can be passed as params
-  abstract getDummySignature(_params?: ModuleInfo): Promise<string>;
+  abstract getDummySignature(_params?: ModuleInfo): Promise<Hex>;
 
-  abstract getSigner(): Promise<Signer | WalletClientSigner>;
+  abstract getSigner(): Promise<SmartAccountSigner>;
 
   // Signer specific or any other additional information can be passed as params
-  abstract signUserOpHash(_userOpHash: string, _params?: ModuleInfo): Promise<string>;
+  abstract signUserOpHash(_userOpHash: string, _params?: ModuleInfo): Promise<Hex>;
 
-  abstract signMessage(_message: Bytes | string | Uint8Array): Promise<string>;
+  abstract signMessage(_message: Uint8Array | string): Promise<string>;
 
-  async signMessageWalletClientSigner(message: string | Uint8Array, signer: WalletClientSigner): Promise<string> {
+  async signMessageSmartAccountSigner(message: string | Uint8Array, signer: SmartAccountSigner): Promise<string> {
     let signature: `0x${string}` = await signer.signMessage(message);
 
     const potentiallyIncorrectV = parseInt(signature.slice(-2), 16);
     if (![27, 28].includes(potentiallyIncorrectV)) {
       const correctV = potentiallyIncorrectV + 27;
       signature = `0x${signature.slice(0, -2) + correctV.toString(16)}`;
-    }
-
-    return signature;
-  }
-
-  async signMessageSigner(message: Bytes | string, signer: Signer): Promise<string> {
-    let signature = await signer.signMessage(message);
-
-    const potentiallyIncorrectV = parseInt(signature.slice(-2), 16);
-    if (![27, 28].includes(potentiallyIncorrectV)) {
-      const correctV = potentiallyIncorrectV + 27;
-      signature = signature.slice(0, -2) + correctV.toString(16);
     }
 
     return signature;

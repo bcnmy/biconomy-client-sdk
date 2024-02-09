@@ -28,16 +28,12 @@ yarn add @biconomy/bundler
 
 ```typescript
 // This is how you create bundler instance in your dapp's
-import { IBundler, Bundler } from "@biconomy/bundler";
+import { IBundler, createBundler } from "@biconomy/bundler";
 
 // Make use of core-types package
 import { ChainId } from "@biconomy/core-types";
 
-const bundler: IBundler = new Bundler({
-  bundlerUrl: "",
-  chainId: ChainId.POLYGON_MAINNET,
-  entryPointAddress: "",
-});
+const bundler: IBundler = await createBundler({ bundlerUrl: "" }); // you can get this value from biconomy dashboard. https://dashboard.biconomy.io
 ```
 
 Following are the methods that can be call on bundler instance
@@ -51,7 +47,7 @@ export interface IBundler {
 }
 ```
 
-**estimateUserOpGas**
+**[estimateUserOpGas](https://bcnmy.github.io/biconomy-client-sdk/classes/Bundler.html#estimateUserOpGas)**
 Estimate the gas values for a UserOperation. Given UserOperation optionally without gas limits and gas prices, return the needed gas limits. The signature field is ignored by the wallet, so that the operation will not require user's approval. Still, it might require putting a "semi-valid" signature (e.g. a signature in the right length)
 
 **Return Values**
@@ -62,7 +58,7 @@ Estimate the gas values for a UserOperation. Given UserOperation optionally with
 
                   --------------------------------
 
-**sendUserOp**
+**[sendUserOp](https://bcnmy.github.io/biconomy-client-sdk/classes/Bundler.html#sendUserOp)**
 it submits a User Operation object to the User Operation pool of the client. The client MUST validate the UserOperation, and return a result accordingly.
 
 The result SHOULD be set to the userOpHash if and only if the request passed simulation and was accepted in the client's User Operation pool. If the validation, simulation, or User Operation pool inclusion fails, result SHOULD NOT be returned. Rather, the client SHOULD return the failure reason.
@@ -72,7 +68,7 @@ If the UserOperation is valid, the client MUST return the calculated userOpHash 
 
                   --------------------------------
 
-**getUserOpByHash**
+**[getUserOpByHash](https://bcnmy.github.io/biconomy-client-sdk/classes/Bundler.html#getUserOpByHash)**
 Return a UserOperation based on a hash (userOpHash) returned by sendUserOp (eth_sendUserOperation)
 
 **Return Values**
@@ -81,7 +77,7 @@ null in case the UserOperation is not yet included in a block, or a full UserOpe
 
                   --------------------------------
 
-**getUserOpReceipt**
+**[getUserOpReceipt](https://bcnmy.github.io/biconomy-client-sdk/classes/Bundler.html#getUserOpReceipt)**
 
 Return a UserOperation receipt based on a hash (userOpHash) returned by eth_sendUserOperation
 
