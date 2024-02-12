@@ -146,11 +146,18 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
 
     // Generate the padded signature
 
-    const paddedSignature = encodeAbiParameters(parseAbiParameters("address, tuple(uint48,uint48,address,bytes,bytes32[],bytes)[], bytes"), [
-      this.getSessionKeyManagerAddress(),
-      sessionDataTupleArray,
-      signature,
-    ]);
+    const paddedSignature = encodeAbiParameters(
+      [
+        { type: "address" },
+        {
+          type: "tuple",
+          components: [{ type: "uint48" }, { type: "uint48" }, { type: "address" }, { type: "bytes" }, { type: "bytes32[]" }, { type: "bytes" }],
+        },
+        { type: "bytes" },
+      ],
+      // @ts-ignore
+      [this.getSessionKeyManagerAddress(), sessionDataTupleArray, signature],
+    );
 
     return paddedSignature;
   }
@@ -255,11 +262,18 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
 
     // Generate the padded signature
 
-    const paddedSignature = encodeAbiParameters(parseAbiParameters("address, tuple(uint48,uint48,address,bytes,bytes32[],bytes)[], bytes"), [
-      this.getSessionKeyManagerAddress(),
-      sessionDataTupleArray,
-      this.mockEcdsaSessionKeySig,
-    ]);
+    const paddedSignature = encodeAbiParameters(
+      [
+        { type: "address" },
+        {
+          type: "tuple",
+          components: [{ type: "uint48" }, { type: "uint48" }, { type: "address" }, { type: "bytes" }, { type: "bytes32[]" }, { type: "bytes" }],
+        },
+        { type: "bytes" },
+      ],
+      // @ts-ignore
+      [this.getSessionKeyManagerAddress(), sessionDataTupleArray, this.mockEcdsaSessionKeySig],
+    );
 
     const dummySig = encodeAbiParameters(parseAbiParameters("bytes, address"), [paddedSignature, this.getAddress()]);
     return dummySig;
