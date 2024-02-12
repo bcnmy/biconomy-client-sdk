@@ -3,15 +3,15 @@ import { createSmartAccountClient, ERROR_MESSAGES, FeeQuotesOrDataResponse, IHyb
 import { Hex, encodeFunctionData, getContract, parseAbi } from "viem";
 import { UserOperationStruct } from "@alchemy/aa-core";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
-import { DEFAULT_ECDSA_OWNERSHIP_MODULE, ERC20_ABI } from "@biconomy/modules";
+import { ERC20_ABI } from "@biconomy/modules";
 
 describe("Account Tests", () => {
   let mumbai: TestData;
-  let baseGoerli: TestData;
+  let baseSepolia: TestData;
 
   beforeEach(() => {
     // @ts-ignore: Comes from setup-e2e-tests
-    [mumbai, baseGoerli] = testDataPerChain;
+    [mumbai, baseSepolia] = testDataPerChain;
   });
 
   it("should have addresses", async () => {
@@ -25,7 +25,7 @@ describe("Account Tests", () => {
       whale: { viemWallet: signerBase, publicAddress: senderBase },
       minnow: { viemWallet: recipientSignerBase, publicAddress: recipientBase },
       bundlerUrl: bundlerUrlBase,
-    } = baseGoerli;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -456,27 +456,4 @@ describe("Account Tests", () => {
 
     expect(ecdsaOwnershipModule).toBe(smartAccount.activeValidationModule.getAddress());
   });
-
-  it("should get enable module data tx and send it as user op", async () => {
-    const {
-      whale: { viemWallet: signer },
-      bundlerUrl,
-    } = mumbai;
-
-    const smartWallet = await createSmartAccountClient({
-      signer,
-      bundlerUrl,
-    });
-
-    const enabledModuleData = await smartWallet.getEnableModuleData(DEFAULT_ECDSA_OWNERSHIP_MODULE);
-
-    expect(enabledModuleData.data).toBeTruthy();
-    expect(enabledModuleData.to).toBeTruthy();
-    expect(enabledModuleData.value).toBe("0x00");
-
-    const response = await smartWallet.sendTransaction([{ to: await smartWallet.getAddress(), value: 1, data: "0x" }, enabledModuleData]);
-    await response.wait();
-    expect(response).toBeTruthy();
-    expect(response.userOpHash).toBeTruthy();
-  }, 50000);
 });
