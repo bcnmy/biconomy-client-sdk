@@ -1,6 +1,6 @@
 {
   "name": "@biconomy-devx/account",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "This package provides apis for ERC-4337 based smart account implementations",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -66,10 +66,10 @@
   },
   "dependencies": {
     "@alchemy/aa-core": "3.0.0-alpha.4",
-    "@biconomy-devx/bundler": "4.0.1",
-    "@biconomy-devx/common": "4.0.1",
-    "@biconomy-devx/modules": "4.0.1",
-    "@biconomy-devx/paymaster": "4.0.1",
+    "@biconomy-devx/bundler": "4.0.2",
+    "@biconomy-devx/common": "4.0.2",
+    "@biconomy-devx/modules": "4.0.2",
+    "@biconomy-devx/paymaster": "4.0.2",
     "viem": "^2.7.3"
   }
 }

@@ -525,7 +525,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         return this.getPaymasterAndData(partialUserOp, {
           ...paymasterServiceData,
           feeTokenAddress: feeQuote.tokenAddress,
-          calculateGasLimits: true, // Always recommended and especially when using token paymaster
         });
       } else if (paymasterServiceData?.preferredToken) {
         const { preferredToken } = paymasterServiceData;
