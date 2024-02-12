@@ -10,6 +10,7 @@ import { SessionSearchParam, SessionStatus } from "./interfaces/ISessionStorage.
 import { Hex, concat, encodeAbiParameters, keccak256, pad, parseAbiParameters, toBytes, toHex } from "viem";
 import { SmartAccountSigner } from "@alchemy/aa-core";
 import { convertSigner } from "@biconomy/common";
+import { defaultAbiCoder } from "@ethersproject/abi";
 
 export class BatchedSessionRouterModule extends BaseValidationModule {
   version: ModuleVersion = "V1_0_0";
@@ -146,13 +147,12 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
 
     // Generate the padded signature
 
-    const paddedSignature = encodeAbiParameters(parseAbiParameters("address, tuple(uint48,uint48,address,bytes,bytes32[],bytes)[], bytes"), [
-      this.getSessionKeyManagerAddress(),
-      sessionDataTupleArray,
-      signature,
-    ]);
+    const paddedSignature = defaultAbiCoder.encode(
+      ["address", "tuple(uint48,uint48,address,bytes,bytes32[],bytes)[]", "bytes"],
+      [this.getSessionKeyManagerAddress(), sessionDataTupleArray, signature],
+    );
 
-    return paddedSignature;
+    return paddedSignature as Hex;
   }
 
   /**
@@ -233,8 +233,8 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
         throw new Error("sessionID or sessionValidationModule should be provided.");
       }
 
-      sessionDataTuple.push(sessionSignerData.validUntil);
-      sessionDataTuple.push(sessionSignerData.validAfter);
+      sessionDataTuple.push(BigInt(sessionSignerData.validUntil));
+      sessionDataTuple.push(BigInt(sessionSignerData.validAfter));
       sessionDataTuple.push(sessionSignerData.sessionValidationModule);
       sessionDataTuple.push(sessionSignerData.sessionKeyData);
 
@@ -254,14 +254,12 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
     }
 
     // Generate the padded signature
+    const paddedSignature = defaultAbiCoder.encode(
+      ["address", "tuple(uint48,uint48,address,bytes,bytes32[],bytes)[]", "bytes"],
+      [this.getSessionKeyManagerAddress(), sessionDataTupleArray, this.mockEcdsaSessionKeySig],
+    );
 
-    const paddedSignature = encodeAbiParameters(parseAbiParameters("address, tuple(uint48,uint48,address,bytes,bytes32[],bytes)[], bytes"), [
-      this.getSessionKeyManagerAddress(),
-      sessionDataTupleArray,
-      this.mockEcdsaSessionKeySig,
-    ]);
-
-    const dummySig = encodeAbiParameters(parseAbiParameters("bytes, address"), [paddedSignature, this.getAddress()]);
+    const dummySig = encodeAbiParameters(parseAbiParameters("bytes, address"), [paddedSignature as Hex, this.getAddress()]);
     return dummySig;
   }
 
