@@ -1,4 +1,3 @@
-import { ChainId } from "@biconomy/core-types";
 import {
   EntryPointAddresses,
   BiconomyFactories,
@@ -7,6 +6,8 @@ import {
   BiconomyFactoriesByVersion,
   BiconomyImplementationsByVersion,
 } from "./Types";
+
+export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
 // will always be latest entrypoint address
 export const DEFAULT_ENTRYPOINT_ADDRESS = "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789";
@@ -43,7 +44,7 @@ export const BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION: BiconomyImplementatio
   Object.entries(BICONOMY_IMPLEMENTATION_ADDRESSES).map(([k, v]) => [v, k]),
 );
 
-export const EIP1559_UNSUPPORTED_NETWORKS: Array<ChainId> = [97, 56, 1442, 1101];
+export const EIP1559_UNSUPPORTED_NETWORKS: Array<number> = [97, 56, 1442, 1101];
 
 export const PROXY_CREATION_CODE =
   "0x6080346100aa57601f61012038819003918201601f19168301916001600160401b038311848410176100af578084926020946040528339810103126100aa57516001600160a01b0381168082036100aa5715610065573055604051605a90816100c68239f35b60405162461bcd60e51b815260206004820152601e60248201527f496e76616c696420696d706c656d656e746174696f6e206164647265737300006044820152606490fd5b600080fd5b634e487b7160e01b600052604160045260246000fdfe608060405230546000808092368280378136915af43d82803e156020573d90f35b3d90fdfea2646970667358221220a03b18dce0be0b4c9afe58a9eb85c35205e2cf087da098bbf1d23945bf89496064736f6c63430008110033";
@@ -54,4 +55,10 @@ export const DefaultGasLimit = {
   callGasLimit: 800000,
   verificationGasLimit: 1000000,
   preVerificationGas: 100000,
+};
+
+export const ERROR_MESSAGES = {
+  SPENDER_REQUIRED: "spender is required for ERC20 mode",
+  NO_FEE_QUOTE: "FeeQuote was not provided, please call smartAccount.getTokenFees() to get feeQuote",
+  FAILED_FEE_QUOTE_FETCH: "Failed to fetch fee quote",
 };

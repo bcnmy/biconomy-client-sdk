@@ -1,4 +1,4 @@
-import { ModuleVersion } from "./Types";
+import { ModuleVersion } from "./Types.js";
 
 export const DEFAULT_MODULE_VERSION: ModuleVersion = "V1_0_0";
 

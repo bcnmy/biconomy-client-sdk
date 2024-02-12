@@ -3,7 +3,6 @@ logs
 *.log
 yarn-debug.log*
 yarn-error.log*
-yarn.lock
 lockfiles
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
@@ -47,7 +46,6 @@ node_modules/
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-yarn.lock
 
 # macOS
 .DS_Store
@@ -58,20 +56,23 @@ artifacts
 deployments
 
 # lockfiles
-packages/core-types/package-lock.json
 packages/account/package-lock.json
-packages/common/package-lock.json
+packages/modules/package-lock.json
 packages/bundler/package-lock.json
-packages/node-client/package-lock.json
 packages/paymaster/package-lock.json
 packages/particle-auth/package-lock.json
-packages/web3-auth/package-lock.json
-packages/web3-auth-native/package-lock.json
 packages/transak/package-lock.json
 package-lock.json
-yarn.lock
+
+#ignore sessionStorageData files
+packages/modules/tests/utils/sessionStorageData/*
+#except sessionStorageData folder 
+!packages/modules/tests/utils/sessionStorageData/.gitkeep 
 
 # Typechain
 typechain
 
 openapi/
+
+# docs
+packages/account/docs/*

@@ -1,23 +1,28 @@
-import { ChainId, UserOperation } from "@biconomy/core-types";
-import { Signer } from "ethers";
+import { Chain, Hex } from "viem";
+import { UserOperationStruct, SmartAccountSigner } from "@alchemy/aa-core";
 import { SessionKeyManagerModule } from "../SessionKeyManagerModule";
-import { ISessionStorage } from "../interfaces/ISessionStorage";
-import { WalletClientSigner } from "@alchemy/aa-core";
-
+import { ISessionStorage } from "../interfaces/ISessionStorage.js";
+import { SupportedSigner } from "@biconomy/common";
 export type ModuleVersion = "V1_0_0"; // | 'V1_0_1'
 
 export interface BaseValidationModuleConfig {
-  entryPointAddress?: string;
+  entryPointAddress?: Hex;
 }
 
 export interface ECDSAOwnershipValidationModuleConfig extends BaseValidationModuleConfig {
-  moduleAddress?: string;
+  moduleAddress?: Hex;
   version?: ModuleVersion;
-  signer: Signer | WalletClientSigner;
+  signer: SupportedSigner;
+}
+
+export interface ECDSAOwnershipValidationModuleConfigConstructorProps extends BaseValidationModuleConfig {
+  moduleAddress?: Hex;
+  version?: ModuleVersion;
+  signer: SmartAccountSigner;
 }
 
 export interface SessionKeyManagerModuleConfig extends BaseValidationModuleConfig {
-  moduleAddress?: string;
+  moduleAddress?: Hex;
   version?: ModuleVersion;
   nodeClientUrl?: string;
   smartAccountAddress: string;
@@ -26,19 +31,15 @@ export interface SessionKeyManagerModuleConfig extends BaseValidationModuleConfi
 }
 
 export interface BatchedSessionRouterModuleConfig extends BaseValidationModuleConfig {
-  moduleAddress?: string;
+  moduleAddress?: Hex;
   version?: ModuleVersion;
 
   sessionKeyManagerModule?: SessionKeyManagerModule; // could be BaseValidationModule
 
-  sessionManagerModuleAddress?: string;
+  sessionManagerModuleAddress?: Hex;
   nodeClientUrl?: string;
   smartAccountAddress: string;
   storageType?: StorageType;
-
-  // sessionSigner?: Signer
-  // sessionPubKey?: string
-  // nodeClientUrl?: string
 }
 
 export enum StorageType {
@@ -47,8 +48,8 @@ export enum StorageType {
 
 export type SessionParams = {
   sessionID?: string;
-  sessionSigner: Signer;
-  sessionValidationModule?: string;
+  sessionSigner: SupportedSigner;
+  sessionValidationModule?: Hex;
   additionalSessionData?: string;
 };
 
@@ -56,8 +57,8 @@ export type ModuleInfo = {
   // Could be a full object of below params and that way it can be an array too!
   // sessionParams?: SessionParams[] // where SessionParams is below four
   sessionID?: string;
-  sessionSigner?: Signer;
-  sessionValidationModule?: string;
+  sessionSigner?: SupportedSigner;
+  sessionValidationModule?: Hex;
   additionalSessionData?: string;
   batchSessionParams?: SessionParams[];
 };
@@ -68,6 +69,12 @@ export interface SendUserOpParams extends ModuleInfo {
 
 export type SimulationType = "validation" | "validation_and_execution";
 
+export type SignerData = {
+  pbKey: string;
+  pvKey: `0x${string}`;
+  chainId?: Chain;
+};
+
 export type CreateSessionDataResponse = {
   data: string;
   sessionIDInfo: Array<string>;
@@ -76,33 +83,38 @@ export type CreateSessionDataResponse = {
 export interface CreateSessionDataParams {
   validUntil: number;
   validAfter: number;
-  sessionValidationModule: string;
-  sessionPublicKey: string;
-  sessionKeyData: string;
+  sessionValidationModule: Hex;
+  sessionPublicKey: Hex;
+  sessionKeyData: Hex;
   preferredSessionId?: string;
 }
 
 export interface MultiChainValidationModuleConfig extends BaseValidationModuleConfig {
-  moduleAddress?: string;
+  moduleAddress?: Hex;
   version?: ModuleVersion;
-  signer: Signer | WalletClientSigner;
+  signer: SupportedSigner;
+}
+export interface MultiChainValidationModuleConfigConstructorProps extends BaseValidationModuleConfig {
+  moduleAddress?: Hex;
+  version?: ModuleVersion;
+  signer: SmartAccountSigner;
 }
 
 export type MultiChainUserOpDto = {
   validUntil?: number;
   validAfter?: number;
-  chainId: ChainId;
-  userOp: Partial<UserOperation>;
+  chainId: number;
+  userOp: Partial<UserOperationStruct>;
 };
 
 export interface BaseSessionKeyData {
-  sessionKey: string;
+  sessionKey: Hex;
 }
 
 export interface ERC20SessionKeyData extends BaseSessionKeyData {
-  token: string;
-  recipient: string;
-  maxAmount: string;
+  token: Hex;
+  recipient: Hex;
+  maxAmount: bigint;
 }
 
 export interface SessionValidationModuleConfig {

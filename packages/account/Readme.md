@@ -1,85 +1,138 @@
-# installation
+# Biconomy SDK
 
-Using `npm` package manager
+![Biconomy SDK](https://img.shields.io/badge/Biconomy-SDK-blue.svg)
+![TypeScript](https://img.shields.io/badge/-TypeScript-blue)
+![Test Coverage](https://img.shields.io/badge/Coverage-79.82%25-green.svg)
+
+## 👋 Introduction
+
+The Biconomy SDK is your all-in-one toolkit for building decentralized applications (dApps) with **ERC4337 Account Abstraction** and **Smart Accounts**. It is designed for seamless user experiences and offers non-custodial solutions for user onboarding, sending transactions (userOps), gas sponsorship and much more.
+
+## ⚙️ installation
 
 ```bash
 npm i @biconomy/account
 ```
 
-OR
-
-Using `yarn` package manager
-
-```bash
-yarn add @biconomy/account
-```
-
-### Account
-
-Integrating and deploying Smart Accounts, building and sending user operations is a key offering of any toolkit designed for ERC4337. This package seamlessly integrates the essential features associated with ERC-4337 and simplifies the development of your Dapp's account and transaction rails with added usability features. 
-
-The account package achieves this by providing a comprehensive set of methods that enable developers to effortlessly create UserOperations. Combined with the sophisticated, developer friendly and scalable infrastructure of Biconomy, it ensures efficient and reliable transmission of these operations across multiple EVM chains.
-
-## Smart Account instance configuration
-
-#### BiconomySmartAccount (V1 Smart Account)
-
-| Key       | Description                                                                                                                                                                     |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| signer    | This signer will be used for signing userOps for any transactions you build. You can supply your your EOA wallet signer                                                         |
-| chainId   | This represents the network your smart wallet transactions will be conducted on. Take a look following Link for supported chain id's                                            |
-| rpcUrl    | This represents the EVM node RPC URL you'll interact with, adjustable according to your needs. We recommend to use some private node url for efficient userOp building          |
-| paymaster | you can pass same paymaster instance that you have build in previous step. Alternatively, you can skip this if you are not interested in sponsoring transaction using paymaster |
-|           | Note: if you don't pass the paymaster instance, your smart account will need funds to pay for transaction fees.                                                                 |
-| bundler   | You can pass same bundler instance that you have build in previous step. Alternatively, you can skip this if you are only interested in building userOP                         |
-
-## Example Usage
+## 🛠️ Quickstart
 
 ```typescript
-// This is how you create BiconomySmartAccount instance in your dapp's
+import { createSmartAccountClient } from "@biconomy/account";
 
-import { BiconomySmartAccount, BiconomySmartAccountConfig } from "@biconomy/account";
+const smartAccount = await createSmartAccountClient({
+  signer: viemWalletOrEthersSigner,
+  bundlerUrl: "", // From dashboard.biconomy.io
+  biconomyPaymasterApiKey: "", // From dashboard.biconomy.io
+});
 
-// Note that paymaster and bundler are optional. You can choose to create new instances of this later and make account API use
-const biconomySmartAccountConfig: BiconomySmartAccountConfig = {
-  signer: wallet.getSigner(),
-  chainId: ChainId.POLYGON_MAINNET,
-  rpcUrl: "",
-  // paymaster: paymaster, // check the README.md section of Paymaster package
-  // bundler: bundler, // check the README.md section of Bundler package
+const { wait } = await smartAccount.sendTransaction({ to: "0x...", value: 1 });
+
+const {
+  receipt: { transactionHash },
+  userOpHash,
+} = await wait();
+```
+
+## 🌟 Features
+
+- **ERC4337 Account Abstraction**: Simplify user operations and gas payments.
+- **Smart Accounts**: Enhance user experience with modular smart accounts.
+- **Paymaster Service**: Enable third-party gas sponsorship.
+- **Bundler Infrastructure**: Ensure efficient and reliable transaction bundling.
+
+For a step-by-step guide on integrating **ERC4337 Account Abstraction** and **Smart Accounts** into your dApp using the Biconomy SDK, refer to the [official documentation](https://docs.biconomy.io/docs/overview). You can also start with Quick start [here](https://docs.biconomy.io/quickstart).
+
+## 📚 Resources
+
+- [Biconomy Documentation](https://docs.biconomy.io/)
+- [Biconomy Dashboard](https://dashboard.biconomy.io)
+- [TSDoc](https://bcnmy.github.io/biconomy-client-sdk)
+
+## 💼 Example Usages
+
+### [Initialise the smartAccount](https://bcnmy.github.io/biconomy-client-sdk/functions/createSmartAccountClient.html)
+
+| Key                                                                                                            | Description                                                                                                                           |
+| -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| [signer](https://bcnmy.github.io/biconomy-client-sdk/packages/account/docs/interfaces/SmartAccountSigner.html) | This signer will be used for signing userOps for any transactions you build. Will accept ethers.JsonRpcSigner as well as a viemWallet |
+| [biconomyPaymasterApiKey](https://dashboard.biconomy.io)                                                       | You can pass in a biconomyPaymasterApiKey necessary for sponsoring transactions (retrieved from the biconomy dashboard)               |
+| [bundlerUrl](https://dashboard.biconomy.io)                                                                    | You can pass in a bundlerUrl (retrieved from the biconomy dashboard) for sending transactions                                         |
+
+```typescript
+import { createSmartAccountClient } from "@biconomy/account";
+import { createWalletClient, http, createPublicClient } from "viem";
+import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
+import { mainnet as chain } from "viem/chains";
+
+const account = privateKeyToAccount(generatePrivateKey());
+const signer = createWalletClient({ account, chain, transport: http() });
+
+const smartAccount = await createSmartAccountClient({
+  signer,
+  bundlerUrl,
+  biconomyPaymasterApiKey,
+});
+```
+
+### [Send some ETH, have gas sponsored](https://bcnmy.github.io/biconomy-client-sdk/classes/BiconomySmartAccountV2.html#sendTransaction)
+
+| Key                                                                               | Description                                                    |
+| --------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| [oneOrManyTx](https://bcnmy.github.io/biconomy-client-sdk/types/Transaction.html) | Submit multiple or one transactions                            |
+| [userOpReceipt](https://bcnmy.github.io/biconomy-client-sdk/types/UserOpReceipt)  | Returned information about your tx, receipts, userOpHashes etc |
+
+```typescript
+const oneOrManyTx = { to: "0x...", value: 1 };
+
+const { wait } = await smartAccount.sendTransaction(oneOrManyTx, {
+  mode: PaymasterMode.SPONSORED,
+});
+
+const {
+  receipt: { transactionHash },
+  userOpHash,
+} = await wait();
+```
+
+### [Mint two NFTs, pay gas with token](https://bcnmy.github.io/biconomy-client-sdk/classes/BiconomySmartAccountV2.html#getTokenFees)
+
+| Key                                                                                                      | Description                                |
+| -------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| [buildUseropDto](https://bcnmy.github.io/biconomy-client-sdk/types/BuildUserOpOptions.html)              | Options for building a userOp              |
+| [paymasterServiceData](https://bcnmy.github.io/biconomy-client-sdk/types/PaymasterUserOperationDto.html) | PaymasterOptions set in the buildUseropDto |
+
+```typescript
+import { encodeFunctionData, parseAbi } from "viem";
+
+const encodedCall = encodeFunctionData({
+  abi: parseAbi(["function safeMint(address to) public"]),
+  functionName: "safeMint",
+  args: ["0x..."],
+});
+
+const tx = {
+  to: nftAddress,
+  data: encodedCall,
 };
-
-const biconomyAccount = new BiconomySmartAccount(biconomySmartAccountConfig);
-const biconomySmartAccount = await biconomyAccount.init();
-
-// native token transfer
-// you can create any sort of transaction following same structure
-const transaction = {
-  to: "0x85B51B068bF0fefFEFD817882a14f6F5BDF7fF2E",
-  data: "0x",
-  value: ethers.utils.parseEther("0.1"),
+const oneOrManyTx = [tx, tx]; // Mint twice
+const paymasterServiceData = {
+  mode: PaymasterMode.ERC20,
+  preferredToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", // USDC
 };
+const buildUseropDto = { paymasterServiceData };
 
-// building partialUserOp
-const partialUserOp = await biconomySmartAccount.buildUserOp([transaction]);
+const { wait } = await smartAccount.sendTransaction(oneOrManyTx, buildUseropDto);
 
-// using the paymaster package one can populate paymasterAndData to partial userOp. by default it is '0x'
+const {
+  receipt: { transactionHash },
+  userOpHash,
+} = await wait();
 ```
 
-```typescript
-const userOpResponse = await smartAccount.sendUserOp(partialUserOp);
-const transactionDetails = await userOpResponse.wait();
-console.log("transaction details below");
-console.log(transactionDetails);
-```
+## 🤝 Contributing
 
-Finally we send the userOp and save the value to a variable named userOpResponse and get the transactionDetails after calling `typescript userOpResponse.wait()`
+Community contributions are welcome! For guidelines on contributing, please read our [contribution guidelines](./CONTRIBUTING.md).
 
-```typescript
-const transactionDetails = await userOpResponse.wait();
-console.log("transaction details below");
-console.log(transactionDetails);
-```
+## 📜 License
 
-#### BiconomySmartAccount (V2 Smart Account aka Modular Smart Account)
-
+This project is licensed under the MIT License. See the [LICENSE.md](./LICENSE.md) file for details.

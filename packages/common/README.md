@@ -2,7 +2,7 @@
 
 common utils
 
-methods for processing UserOperations
+common methods for other biconomy packages
 
 ## Usage
 
