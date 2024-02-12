@@ -2,11 +2,11 @@ import { TestData } from "../../../tests";
 
 describe("Bundler Unit Tests", () => {
   let mumbai: TestData;
-  let baseGoerli: TestData;
+  let baseSepolia: TestData;
 
   beforeEach(() => {
     // @ts-ignore: Comes from setup-e2e-tests
-    [mumbai, baseGoerli] = testDataPerChain;
+    [mumbai, baseSepolia] = testDataPerChain;
   });
 
   it("should have chain data for mumbai", () => {
@@ -14,6 +14,6 @@ describe("Bundler Unit Tests", () => {
   });
 
   it("should also have chain data for base", () => {
-    expect(baseGoerli).toHaveProperty("chainId");
+    expect(baseSepolia).toHaveProperty("chainId");
   });
 });

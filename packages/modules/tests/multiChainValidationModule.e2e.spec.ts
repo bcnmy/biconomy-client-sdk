@@ -6,14 +6,14 @@ import { DEFAULT_MULTICHAIN_MODULE, MultiChainValidationModule } from "@biconomy
 
 describe("Account with MultiChainValidation Module Tests", () => {
   let mumbai: TestData;
-  let baseGoerli: TestData;
+  let baseSepolia: TestData;
 
   beforeEach(() => {
     // @ts-ignore: Comes from setup-e2e-tests
-    [mumbai, baseGoerli] = testDataPerChain;
+    [mumbai, baseSepolia] = testDataPerChain;
   });
 
-  it("Should mint an NFT gasless on baseGoerli and mumbai", async () => {
+  it("Should mint an NFT gasless on baseSepolia and mumbai", async () => {
     const {
       whale: { alchemyWalletClientSigner: signerMumbai, publicAddress: recipientForBothChains },
       biconomyPaymasterApiKey: biconomyPaymasterApiKeyMumbai,
@@ -26,7 +26,7 @@ describe("Account with MultiChainValidation Module Tests", () => {
       biconomyPaymasterApiKey: biconomyPaymasterApiKeyBase,
       bundlerUrl: bundlerUrlBase,
       chainId: chainIdBase,
-    } = baseGoerli;
+    } = baseSepolia;
 
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
 

@@ -7,11 +7,11 @@ import { ERC20_ABI } from "@biconomy/modules";
 
 describe("Account Tests", () => {
   let mumbai: TestData;
-  let baseGoerli: TestData;
+  let baseSepolia: TestData;
 
   beforeEach(() => {
     // @ts-ignore: Comes from setup-e2e-tests
-    [mumbai, baseGoerli] = testDataPerChain;
+    [mumbai, baseSepolia] = testDataPerChain;
   });
 
   it("should have addresses", async () => {
@@ -25,7 +25,7 @@ describe("Account Tests", () => {
       whale: { viemWallet: signerBase, publicAddress: senderBase },
       minnow: { viemWallet: recipientSignerBase, publicAddress: recipientBase },
       bundlerUrl: bundlerUrlBase,
-    } = baseGoerli;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
