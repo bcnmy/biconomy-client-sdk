@@ -516,6 +516,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         Logger.log("there is a feeQuote: ", feeQuote);
         if (!spender) throw new Error(ERROR_MESSAGES.SPENDER_REQUIRED);
         if (!feeQuote) throw new Error(ERROR_MESSAGES.FAILED_FEE_QUOTE_FETCH);
+        if (paymasterServiceData.skipPatchCallData && paymasterServiceData.skipPatchCallData === true) {
+          return this.getPaymasterAndData(userOp, {
+            ...paymasterServiceData,
+            feeTokenAddress: feeQuote.tokenAddress,
+          });
+        }
         const partialUserOp = await this.buildTokenPaymasterUserOp(userOp, {
           ...paymasterServiceData,
           spender,
@@ -525,7 +531,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         return this.getPaymasterAndData(partialUserOp, {
           ...paymasterServiceData,
           feeTokenAddress: feeQuote.tokenAddress,
-          calculateGasLimits: true, // Always recommended and especially when using token paymaster
         });
       } else if (paymasterServiceData?.preferredToken) {
         const { preferredToken } = paymasterServiceData;
