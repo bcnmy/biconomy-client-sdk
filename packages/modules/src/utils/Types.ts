@@ -1,5 +1,5 @@
 import { Chain, Hex } from "viem";
-import { UserOperationStruct } from "@alchemy/aa-core";
+import { SmartAccountSigner, UserOperationStruct } from "@alchemy/aa-core";
 import { SessionKeyManagerModule } from "../SessionKeyManagerModule";
 import { ISessionStorage } from "../interfaces/ISessionStorage.js";
 import { SupportedSigner } from "@biconomy/common";
@@ -24,8 +24,8 @@ export interface ECDSAOwnershipValidationModuleConfigConstructorProps extends Ba
   moduleAddress?: Hex;
   /** Version of the module */
   version?: ModuleVersion;
-  /** Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
-  signer: SupportedSigner;
+  /** Signer: Converted from viemWallet or ethers signer to SmartAccountSigner */
+  signer: SmartAccountSigner;
 }
 
 export interface SessionKeyManagerModuleConfig extends BaseValidationModuleConfig {
@@ -129,7 +129,7 @@ export interface MultiChainValidationModuleConfigConstructorProps extends BaseVa
   /** Version of the module */
   version?: ModuleVersion;
   /** Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
-  signer: SupportedSigner;
+  signer: SmartAccountSigner;
 }
 
 export type MultiChainUserOpDto = {
