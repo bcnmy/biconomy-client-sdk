@@ -25,7 +25,7 @@ import {
   SmartAccountSigner,
 } from "@alchemy/aa-core";
 import { isNullOrUndefined, packUserOp } from "./utils/Utils.js";
-import { BaseValidationModule, ModuleInfo, SendUserOpParams, createECDSAOwnershipValidationModule } from "@biconomy/modules";
+import { BaseValidationModule, ModuleInfo, SendUserOpParams, createECDSAOwnershipValidationModule } from "@biconomy-devx/modules";
 import {
   IHybridPaymaster,
   IPaymaster,
@@ -63,8 +63,8 @@ import {
 import { BiconomyFactoryAbi } from "./abi/Factory.js";
 import { BiconomyAccountAbi } from "./abi/SmartAccount.js";
 import { AccountResolverAbi } from "./abi/AccountResolver.js";
-import { Logger } from "@biconomy/common";
-import { FeeQuotesOrDataDto, FeeQuotesOrDataResponse } from "@biconomy/paymaster";
+import { Logger } from "@biconomy-devx/common";
+import { FeeQuotesOrDataDto, FeeQuotesOrDataResponse } from "@biconomy-devx/paymaster";
 
 type UserOperationKey = keyof UserOperationStruct;
 
@@ -159,7 +159,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @example
    * import { createClient } from "viem"
-   * import { createSmartAccountClient, BiconomySmartAccountV2 } from "@biconomy/account"
+   * import { createSmartAccountClient, BiconomySmartAccountV2 } from "@biconomy-devx/account"
    * import { createWalletClient, http } from "viem";
    * import { polygonMumbai } from "viem/chains";
    *
@@ -581,7 +581,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @example
    * import { createClient } from "viem"
-   * import { createSmartAccountClient } from "@biconomy/account"
+   * import { createSmartAccountClient } from "@biconomy-devx/account"
    * import { createWalletClient, http } from "viem";
    * import { polygonMumbai } from "viem/chains";
    *
@@ -644,7 +644,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @example
    * import { createClient } from "viem"
-   * import { createSmartAccountClient } from "@biconomy/account"
+   * import { createSmartAccountClient } from "@biconomy-devx/account"
    * import { createWalletClient, http } from "viem";
    * import { polygonMumbai } from "viem/chains";
    *
@@ -793,7 +793,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @example
    * import { createClient } from "viem"
-   * import { createSmartAccountClient } from "@biconomy/account"
+   * import { createSmartAccountClient } from "@biconomy-devx/account"
    * import { createWalletClient, http } from "viem";
    * import { polygonMumbai } from "viem/chains";
    *
@@ -835,7 +835,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @example
    * import { createClient } from "viem"
-   * import { createSmartAccountClient } from "@biconomy/account"
+   * import { createSmartAccountClient } from "@biconomy-devx/account"
    * import { createWalletClient, http } from "viem";
    * import { polygonMumbai } from "viem/chains";
    *

@@ -1,6 +1,6 @@
 {
-  "name": "@biconomy/particle-auth",
-  "version": "4.0.0",
+  "name": "@biconomy-devx/particle-auth",
+  "version": "4.0.2",
   "description": "Particle auth for Biconomy SDK",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
