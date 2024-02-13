@@ -38,7 +38,7 @@ export async function sendRequest<T>({ url, method, body }: HttpRequest, service
     return jsonResponse as T;
   }
   if (jsonResponse.error) {
-    throw new Error(`${jsonResponse.error.message} from ${service}`);
+    throw new Error(`Error coming from ${service}: ${jsonResponse.error.message}`);
   }
   if (jsonResponse.message) {
     throw new Error(jsonResponse.message);
