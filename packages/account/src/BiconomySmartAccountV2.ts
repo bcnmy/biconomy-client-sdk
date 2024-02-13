@@ -549,7 +549,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     throw new Error("Invalid paymaster mode");
   }
 
-  private async getPaymasterAndData(
+  public async getPaymasterAndData(
     userOp: Partial<UserOperationStruct>,
     paymasterServiceData: PaymasterUserOperationDto,
   ): Promise<Partial<UserOperationStruct>> {

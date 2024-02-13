@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## 4.0.2 (2023-07-02)
+## 4.0.3 (2023-07-02)
 
 Export createBundler alias for static Bundler.create call
 
