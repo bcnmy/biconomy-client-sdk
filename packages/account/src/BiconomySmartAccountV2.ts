@@ -15,6 +15,9 @@ import {
   GetContractReturnType,
   getContract,
   decodeFunctionData,
+  parseAbi,
+  formatUnits,
+  zeroAddress,
 } from "viem";
 import {
   BaseSmartContractAccount,
@@ -49,6 +52,7 @@ import {
   BiconomySmartAccountV2ConfigConstructorProps,
   PaymasterUserOperationDto,
   SimulationType,
+  BalancePayload,
 } from "./utils/Types.js";
 import {
   ADDRESS_RESOLVER_ADDRESS,
@@ -65,6 +69,7 @@ import { BiconomyAccountAbi } from "./abi/SmartAccount.js";
 import { AccountResolverAbi } from "./abi/AccountResolver.js";
 import { Logger } from "@biconomy/common";
 import { FeeQuotesOrDataDto, FeeQuotesOrDataResponse } from "@biconomy/paymaster";
+import { ERC20_ABI } from "@biconomy/modules";
 
 type UserOperationKey = keyof UserOperationStruct;
 
@@ -250,6 +255,79 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       this.accountAddress = await this.getCounterFactualAddress(params);
     }
     return this.accountAddress;
+  }
+
+  /**
+   * Returns token balances of Smart Account
+   *
+   * This method will fetch the token balances of the BiconomySmartAccountV2 instance.
+   * If left empty, it will return the balance of the native token, where the address is 0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE.
+   *
+   * @param tokenAddresses - Optional. Array of token addresses to fetch the balances of.
+   * @returns Promise<Array<BalancePayload>> - An array of token balances (or native token balance) of the BiconomySmartAccountV2 instance.
+   * @throws An error if something is wrong with the smart account instance creation.
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartAccountClient, BiconomySmartAccountV2 } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonMumbai } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonMumbai,
+   *   transport: http(),
+   * });
+   *
+   * const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977";
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl });
+   * const [usdtBalanceFromSmartAccount] = await smartAccount.getBalances([usdt]);
+   *
+   * console.log(usdtBalanceFromSmartAccount);
+   *
+   * // {
+   * //   amount: 1000000000000000n,
+   * //   decimals: 6,
+   * //   address: "0xda5289fcaaf71d52a80a254da614a192b693e977",
+   * //   formattedAmount: "1000000",
+   * //   chainId: 80001
+   * // }
+   *
+   */
+  public async getBalances(tokenAddresses: Array<Hex>): Promise<Array<BalancePayload>> {
+    const accountAddress = this.accountAddress ?? (await this.getAccountAddress());
+
+    if (!tokenAddresses) {
+      const balance = await this.provider.getBalance({ address: accountAddress });
+      return [
+        {
+          amount: balance,
+          decimals: 18,
+          address: "0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE",
+          formattedAmount: formatUnits(balance, 18),
+          chainId: this.chainId,
+        },
+      ];
+    }
+    const tokenContracts = tokenAddresses.map((address) =>
+      getContract({
+        address,
+        abi: parseAbi(ERC20_ABI),
+        client: this.provider,
+      }),
+    );
+
+    const balancePromises = tokenContracts.map((tokenContract) => tokenContract.read.balanceOf([accountAddress])) as Promise<bigint>[];
+    const decimalsPromises = tokenContracts.map((tokenContract) => tokenContract.read.decimals()) as Promise<number>[];
+    const [balances, decimalsPerToken] = await Promise.all([Promise.all(balancePromises), Promise.all(decimalsPromises)]);
+
+    return balances.map((amount, index) => ({
+      amount,
+      decimals: decimalsPerToken[index],
+      address: tokenAddresses[index],
+      formattedAmount: formatUnits(amount, decimalsPerToken[index]),
+      chainId: this.chainId,
+    }));
   }
 
   /**
