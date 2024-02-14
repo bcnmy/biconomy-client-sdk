@@ -259,16 +259,16 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   /**
    * Returns token balances of Smart Account
    *
-   * This method will fetch the token balances of the BiconomySmartAccountV2 instance.
+   * This method will fetch the token balances of the smartAccount instance.
    * If left empty, it will return the balance of the native token, where the address is 0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE.
    *
    * @param tokenAddresses - Optional. Array of token addresses to fetch the balances of.
-   * @returns Promise<Array<BalancePayload>> - An array of token balances (or native token balance) of the BiconomySmartAccountV2 instance.
+   * @returns Promise<Array<BalancePayload>> - An array of token balances (or native token balance) of the smartAccount instance.
    * @throws An error if something is wrong with the smart account instance creation.
    *
    * @example
    * import { createClient } from "viem"
-   * import { createSmartAccountClient, BiconomySmartAccountV2 } from "@biconomy/account"
+   * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
    * import { polygonMumbai } from "viem/chains";
    *
