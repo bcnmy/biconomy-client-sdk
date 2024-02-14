@@ -282,8 +282,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl });
    * const [usdtBalanceFromSmartAccount] = await smartAccount.getBalances([usdt]);
    *
-   * console.log(usdtBalanceFromSmartAccount);
-   *
    * // {
    * //   amount: 1000000000000000n,
    * //   decimals: 6,
