@@ -17,7 +17,6 @@ import {
   decodeFunctionData,
   parseAbi,
   formatUnits,
-  zeroAddress,
 } from "viem";
 import {
   BaseSmartContractAccount,
