@@ -39,6 +39,7 @@ import {
   UserOpResponse,
   extractChainIdFromBundlerUrl,
   convertSigner,
+  NATIVE_TOKEN_ALIAS,
 } from "./index.js";
 import {
   BiconomyTokenPaymasterRequest,
@@ -62,13 +63,13 @@ import {
   ADDRESS_ZERO,
   DEFAULT_ENTRYPOINT_ADDRESS,
   ERROR_MESSAGES,
+  ERC20_ABI,
 } from "./utils/Constants.js";
 import { BiconomyFactoryAbi } from "./abi/Factory.js";
 import { BiconomyAccountAbi } from "./abi/SmartAccount.js";
 import { AccountResolverAbi } from "./abi/AccountResolver.js";
 import { Logger } from "@biconomy/common";
 import { FeeQuotesOrDataDto, FeeQuotesOrDataResponse } from "@biconomy/paymaster";
-import { ERC20_ABI } from "@biconomy/modules";
 
 type UserOperationKey = keyof UserOperationStruct;
 
@@ -260,7 +261,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * Returns token balances of Smart Account
    *
    * This method will fetch the token balances of the smartAccount instance.
-   * If left empty, it will return the balance of the native token, where the address is 0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE.
+   * If left empty, it will return the balance of the native token, with the address set to 0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE.
    *
    * @param tokenAddresses - Optional. Array of token addresses to fetch the balances of.
    * @returns Promise<Array<BalancePayload>> - An array of token balances (or native token balance) of the smartAccount instance.
@@ -300,7 +301,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         {
           amount: balance,
           decimals: 18,
-          address: "0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE",
+          address: NATIVE_TOKEN_ALIAS,
           formattedAmount: formatUnits(balance, 18),
           chainId: this.chainId,
         },
