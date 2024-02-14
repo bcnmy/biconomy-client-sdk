@@ -516,6 +516,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         Logger.log("there is a feeQuote: ", feeQuote);
         if (!spender) throw new Error(ERROR_MESSAGES.SPENDER_REQUIRED);
         if (!feeQuote) throw new Error(ERROR_MESSAGES.FAILED_FEE_QUOTE_FETCH);
+        if (paymasterServiceData.skipPatchCallData && paymasterServiceData.skipPatchCallData === true) {
+          return this.getPaymasterAndData(userOp, {
+            ...paymasterServiceData,
+            feeTokenAddress: feeQuote.tokenAddress,
+          });
+        }
         const partialUserOp = await this.buildTokenPaymasterUserOp(userOp, {
           ...paymasterServiceData,
           spender,
