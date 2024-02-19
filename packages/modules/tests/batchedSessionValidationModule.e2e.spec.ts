@@ -19,8 +19,6 @@ describe("Batched Session Router Tests", () => {
     [mumbai] = testDataPerChain;
   });
 
-  const sessionFileStorage: SessionFileStorage = new SessionFileStorage(DEFAULT_SESSION_KEY_MANAGER_MODULE);
-
   // Make sure smart account used for tests has at least 0.01 USDC and some MATIC
 
   it("Should send a user op using Batched Session Validation Module", async () => {
@@ -30,12 +28,23 @@ describe("Batched Session Router Tests", () => {
       whale: {
         account: { address: sessionKeyEOA },
         privateKey: pvKey,
+        viemWallet,
       },
       minnow: { publicAddress: recipient },
       publicClient,
       bundlerUrl,
       biconomyPaymasterApiKey,
     } = mumbai;
+
+    // Create smart account
+    let smartAccount = await createSmartAccountClient({
+      signer: viemWallet,
+      bundlerUrl,
+      biconomyPaymasterApiKey,
+      index: 3, // Increasing index to not conflict with other test cases and use a new smart account
+    });
+
+    const sessionFileStorage: SessionFileStorage = new SessionFileStorage(DEFAULT_SESSION_KEY_MANAGER_MODULE);
 
     try {
       sessionSigner = await sessionFileStorage.getSignerByKey(sessionKeyEOA);
@@ -44,14 +53,6 @@ describe("Batched Session Router Tests", () => {
     }
 
     expect(sessionSigner).toBeTruthy();
-
-    // Create smart account
-    const smartAccount = await createSmartAccountClient({
-      signer: sessionSigner,
-      bundlerUrl,
-      biconomyPaymasterApiKey,
-      index: 3, // Increasing index to not conflict with other test cases and use a new smart account
-    });
 
     const smartAccountAddress = await smartAccount.getAddress();
     console.log("Smart Account Address: ", smartAccountAddress);
@@ -121,11 +122,6 @@ describe("Batched Session Router Tests", () => {
       to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
       data: sessionTxData.data,
     };
-    // need to also call batched session module ?
-    // const setSessionAllowedTrx = {
-    //   to: DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
-    //   data: sessionTxData.data,
-    // };
 
     const txArray: any = [];
 
@@ -146,15 +142,14 @@ describe("Batched Session Router Tests", () => {
 
     txArray.push(setSessionAllowedTrx);
 
-    const userOpResponse1 = await smartAccount.sendTransaction(txArray); // this user op will enable the modules and setup session allowed calls
+    const userOpResponse1 = await smartAccount.sendTransaction(txArray, { paymasterServiceData: { mode: PaymasterMode.SPONSORED } }); // this user op will enable the modules and setup session allowed calls
     const transactionDetails = await userOpResponse1.wait();
     console.log("Tx Hash: ", transactionDetails.receipt.transactionHash);
 
-    // await batchedSessionModule.updateSessionStatus({ sessionPublicKey: sessionKeyEOA, sessionValidationModule: mockSessionModuleAddr }, "ACTIVE"); // What does this do ?
-    // smartAccount = smartAccount.setActiveValidationModule(batchedSessionModule); // adding this line throws AA23 reverted: ERC20SV Invalid Token
-
     const usdcBalance = await checkBalance(publicClient, await smartAccount.getAccountAddress(), "0xdA5289fCAAF71d52a80A254da614a192b693e977");
     expect(usdcBalance).toBeGreaterThan(0);
+
+    smartAccount = smartAccount.setActiveValidationModule(batchedSessionModule);
 
     // WARNING* If the smart account does not have enough USDC, user op execution will FAIL
     const encodedCall = encodeFunctionData({
@@ -164,27 +159,28 @@ describe("Batched Session Router Tests", () => {
     });
 
     const encodedCall2 = encodeFunctionData({
-      abi: parseAbi(["function safeMint(address to) public"]),
-      functionName: "safeMint",
-      args: [recipient],
+      abi: parseAbi(["function transfer(address _to, uint256 _value)"]),
+      functionName: "transfer",
+      args: ["0xd3C85Fdd3695Aee3f0A12B3376aCD8DC54020549", parseUnits("0.01", 6)],
     });
 
-    const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
+    const transferTx = {
+      to: "0xdA5289fCAAF71d52a80A254da614a192b693e977",
+      data: encodedCall,
+    };
 
-    const mintTransaction = {
-      to: nftAddress, // NFT address
+    const transferTx2 = {
+      to: "0xdA5289fCAAF71d52a80A254da614a192b693e977",
       data: encodedCall2,
     };
 
-    const transferTx = {
-      to: "0xdA5289fCAAF71d52a80A254da614a192b693e977", //erc20 token address
-      data: encodedCall,
-    };
+    const activeModule = smartAccount.activeValidationModule;
+    expect(activeModule).toEqual(batchedSessionModule);
 
     const maticBalanceBefore = await checkBalance(publicClient, await smartAccount.getAccountAddress());
 
     // failing with dummyTx because of invalid sessionKeyData
-    const userOpResponse2 = await smartAccount.sendTransaction([transferTx, mintTransaction], {
+    const userOp = await smartAccount.buildUserOp([transferTx, transferTx2], {
       params: {
         batchSessionParams: [
           {
@@ -200,6 +196,19 @@ describe("Batched Session Router Tests", () => {
       paymasterServiceData: {
         mode: PaymasterMode.SPONSORED,
       },
+    });
+
+    const userOpResponse2 = await smartAccount.sendUserOp(userOp, {
+      batchSessionParams: [
+        {
+          sessionSigner: sessionSigner,
+          sessionValidationModule: erc20ModuleAddr,
+        },
+        {
+          sessionSigner: sessionSigner,
+          sessionValidationModule: mockSessionModuleAddr,
+        },
+      ],
     });
 
     const receipt = await userOpResponse2.wait();
