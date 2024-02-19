@@ -6,7 +6,7 @@ import {
 } from "@biconomy/modules";
 import { SessionFileStorage } from "./utils/customSession";
 import { WalletClientSigner, createSmartAccountClient } from "../../account/src/index";
-import { Hex, encodeAbiParameters, encodeFunctionData, parseAbi, parseUnits } from "viem";
+import { encodeAbiParameters, encodeFunctionData, parseAbi, parseUnits } from "viem";
 import { TestData } from "../../../tests";
 import { checkBalance } from "../../../tests/utils";
 import { PaymasterMode } from "@biconomy/paymaster";
@@ -44,7 +44,7 @@ describe("Batched Session Router Tests", () => {
       index: 3, // Increasing index to not conflict with other test cases and use a new smart account
     });
 
-    const sessionFileStorage: SessionFileStorage = new SessionFileStorage(DEFAULT_SESSION_KEY_MANAGER_MODULE);
+    const sessionFileStorage: SessionFileStorage = new SessionFileStorage(await smartAccount.getAddress());
 
     try {
       sessionSigner = await sessionFileStorage.getSignerByKey(sessionKeyEOA);
@@ -180,7 +180,7 @@ describe("Batched Session Router Tests", () => {
     const maticBalanceBefore = await checkBalance(publicClient, await smartAccount.getAccountAddress());
 
     // failing with dummyTx because of invalid sessionKeyData
-    const userOp = await smartAccount.buildUserOp([transferTx, transferTx2], {
+    const userOpResponse2 = await smartAccount.sendTransaction([transferTx, transferTx2], {
       params: {
         batchSessionParams: [
           {
@@ -198,18 +198,6 @@ describe("Batched Session Router Tests", () => {
       },
     });
 
-    const userOpResponse2 = await smartAccount.sendUserOp(userOp, {
-      batchSessionParams: [
-        {
-          sessionSigner: sessionSigner,
-          sessionValidationModule: erc20ModuleAddr,
-        },
-        {
-          sessionSigner: sessionSigner,
-          sessionValidationModule: mockSessionModuleAddr,
-        },
-      ],
-    });
 
     const receipt = await userOpResponse2.wait();
 
