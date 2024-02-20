@@ -63,7 +63,7 @@ export type SessionParams = {
   sessionID?: string;
   /** Session Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
   sessionSigner: SupportedSigner;
-  /** The session validation module which contains the logic on how to decode the session call data. for example erc20 session validation validates the amount of erc20 transfer */
+  /** The session validation module session validation module is a sub-module smart-contract which works with session key manager validation module. It validates the userop calldata againsnt the defined session permissions (session key data) within the contract. */
   sessionValidationModule?: Hex;
   /** Additional info if needed to be appended in signature */
   additionalSessionData?: string;
@@ -75,7 +75,7 @@ export type ModuleInfo = {
   sessionID?: string;
   /** Session Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
   sessionSigner?: SupportedSigner;
-  /** The session validation module which contains the logic on how to decode the session call data. for example erc20 session validation validates the amount of erc20 transfer */
+  /** The session validation module session validation module is a sub-module smart-contract which works with session key manager validation module. It validates the userop calldata againsnt the defined session permissions (session key data) within the contract. */
   sessionValidationModule?: Hex;
   /** Additional info if needed to be appended in signature */
   additionalSessionData?: string;
@@ -83,7 +83,7 @@ export type ModuleInfo = {
 };
 
 export interface SendUserOpParams extends ModuleInfo {
-  /** Type of similation: validation or validation_and_execution */
+  /** "validation_and_execution" is recommended during development for improved debugging & devEx, but will add some additional latency to calls. "validation" can be used in production ro remove this latency once flows have been tested. */
   simulationType?: SimulationType;
 }
 
@@ -111,7 +111,7 @@ export interface CreateSessionDataParams {
   sessionValidationModule: Hex;
   sessionPublicKey: Hex;
   sessionKeyData: Hex;
-  /** if multiple session keys are there can pass the uuid here to filter that session key EOA */
+  /** we generate uuid based sessionId. but if you prefer to track it on your side and attach custom session identifier this can be passed */
   preferredSessionId?: string;
 }
 
