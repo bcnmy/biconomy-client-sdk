@@ -25,7 +25,13 @@ import {
   SmartAccountSigner,
 } from "@alchemy/aa-core";
 import { isNullOrUndefined, packUserOp } from "./utils/Utils.js";
-import { BaseValidationModule, ModuleInfo, SendUserOpParams, createECDSAOwnershipValidationModule } from "@biconomy/modules";
+import {
+  BaseValidationModule,
+  DEFAULT_ECDSA_OWNERSHIP_MODULE,
+  ModuleInfo,
+  SendUserOpParams,
+  createECDSAOwnershipValidationModule,
+} from "@biconomy/modules";
 import {
   IHybridPaymaster,
   IPaymaster,
@@ -49,6 +55,7 @@ import {
   BiconomySmartAccountV2ConfigConstructorProps,
   PaymasterUserOperationDto,
   SimulationType,
+  SupportedToken,
 } from "./utils/Types.js";
 import {
   ADDRESS_RESOLVER_ADDRESS,
@@ -621,6 +628,45 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const userOp = await this.buildUserOp(txs, buildUseropDto);
     if (!buildUseropDto.paymasterServiceData) throw new Error("paymasterServiceData was not provided");
     return this.getPaymasterFeeQuotesOrData(userOp, buildUseropDto.paymasterServiceData);
+  }
+
+  /**
+   *
+   * @description This function will return an array supported tokens from the erc20 paymaster associated with the Smart Account
+   * @returns Promise<{@link SupportedToken}>
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartAccountClient } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonMumbai } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonMumbai,
+   *   transport: http(),
+   * });
+   *
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, biconomyPaymasterApiKey }); // Retrieve bundler url from dasboard
+   * const tokens = await smartAccount.getSupportedTokens();
+   *
+   * // [
+   * //   {
+   * //     symbol: "USDC",
+   * //     tokenAddress: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+   * //     decimal: 6,
+   * //     logoUrl: "https://assets.coingecko.com/coins/images/279/large/usd-coin.png?1595353707",
+   * //     premiumPercentage: 0.1,
+   * //   }
+   * // ]
+   *
+   */
+  public async getSupportedTokens(): Promise<SupportedToken[]> {
+    const anyTransactionThatShouldSucceedForEveryone = await this.getEnableModuleData(DEFAULT_ECDSA_OWNERSHIP_MODULE);
+    const feeQuotesResponse = await this.getTokenFees(anyTransactionThatShouldSucceedForEveryone, {
+      paymasterServiceData: { mode: PaymasterMode.ERC20 },
+    });
+    return (feeQuotesResponse?.feeQuotes ?? []).map(({ maxGasFee, maxGasFeeUSD, validUntil, usdPayment, ...rest }) => rest);
   }
 
   /**

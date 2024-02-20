@@ -7,6 +7,7 @@ import {
   PaymasterMode,
   type SmartAccountData,
   type SponsorUserOperationDto,
+  FeeQuotesOrDataResponse,
 } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { Hex, WalletClient } from "viem";
@@ -275,3 +276,5 @@ export type ValueOrData = RequireAtLeastOne<
 export type Transaction = {
   to: string;
 } & ValueOrData;
+
+export type SupportedToken = Omit<PaymasterFeeQuote, "maxGasFeeUSD" | "usdPayment" | "maxGasFee" | "validUntil">;

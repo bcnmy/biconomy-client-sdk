@@ -93,6 +93,7 @@ export type PaymasterFeeQuote = {
   /** maxGasFee: in dollars */
   maxGasFeeUSD?: number;
   usdPayment?: number;
+  /** The premium paid on the token */
   premiumPercentage: number;
   /** validUntil: Unix timestamp */
   validUntil?: number;
