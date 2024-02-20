@@ -632,7 +632,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   /**
    *
-   * @description This function will return an array supported tokens from the erc20 paymaster associated with the Smart Account
+   * @description This function will return an array of supported tokens from the erc20 paymaster associated with the Smart Account
    * @returns Promise<{@link SupportedToken}>
    *
    * @example
@@ -666,7 +666,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const feeQuotesResponse = await this.getTokenFees(anyTransactionThatShouldSucceedForEveryone, {
       paymasterServiceData: { mode: PaymasterMode.ERC20 },
     });
-    return (feeQuotesResponse?.feeQuotes ?? []).map(({ maxGasFee, maxGasFeeUSD, validUntil, usdPayment, ...rest }) => rest);
+    return (feeQuotesResponse?.feeQuotes ?? []).map(({ maxGasFee: _, maxGasFeeUSD: __, validUntil: ___, usdPayment: ____, ...rest }) => rest);
   }
 
   /**

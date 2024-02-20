@@ -7,7 +7,6 @@ import {
   PaymasterMode,
   type SmartAccountData,
   type SponsorUserOperationDto,
-  FeeQuotesOrDataResponse,
 } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { Hex, WalletClient } from "viem";
