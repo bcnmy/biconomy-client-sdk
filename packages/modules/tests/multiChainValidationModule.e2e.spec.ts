@@ -19,6 +19,7 @@ describe("Account with MultiChainValidation Module Tests", () => {
       biconomyPaymasterApiKey: biconomyPaymasterApiKeyMumbai,
       bundlerUrl: bundlerUrlMumbai,
       chainId: chainIdMumbai,
+      viemChain: mumbaiChain,
     } = mumbai;
 
     const {
@@ -26,6 +27,7 @@ describe("Account with MultiChainValidation Module Tests", () => {
       biconomyPaymasterApiKey: biconomyPaymasterApiKeyBase,
       bundlerUrl: bundlerUrlBase,
       chainId: chainIdBase,
+      viemChain: baseSepoliaChain,
     } = baseSepolia;
 
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
@@ -43,6 +45,7 @@ describe("Account with MultiChainValidation Module Tests", () => {
         defaultValidationModule: multiChainModule,
         activeValidationModule: multiChainModule,
         biconomyPaymasterApiKey: biconomyPaymasterApiKeyMumbai,
+        rpcUrl: mumbaiChain.rpcUrls.default.http[0],
       }),
       createSmartAccountClient({
         chainId: chainIdBase,
@@ -51,6 +54,7 @@ describe("Account with MultiChainValidation Module Tests", () => {
         defaultValidationModule: multiChainModule,
         activeValidationModule: multiChainModule,
         biconomyPaymasterApiKey: biconomyPaymasterApiKeyBase,
+        rpcUrl: baseSepoliaChain.rpcUrls.default.http[0],
       }),
     ]);
 
