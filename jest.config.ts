@@ -74,6 +74,8 @@ const config: Config = {
   //   "node_modules"
   // ],
 
+  workerThreads: true,
+
   // An array of file extensions your modules use
   moduleFileExtensions: ["js", "mjs", "cjs", "jsx", "ts", "tsx", "json", "node"],
 
