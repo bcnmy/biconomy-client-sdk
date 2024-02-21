@@ -95,7 +95,9 @@ export class Bundler implements IBundler {
         method: HttpMethod.Post,
         body: {
           method: "eth_estimateUserOperationGas",
-          params: [userOp, this.bundlerConfig.entryPointAddress, stateOverrideSet],
+          params: stateOverrideSet
+            ? [userOp, this.bundlerConfig.entryPointAddress, stateOverrideSet]
+            : [userOp, this.bundlerConfig.entryPointAddress],
           id: getTimestampInSeconds(),
           jsonrpc: "2.0",
         },
