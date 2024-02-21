@@ -1028,7 +1028,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   /**
    * Deploys the smart contract
    *
-   * This method will deploy a Smart Account. It is useful for deploying when you know that gas prices are low,
+   * This method will deploy a Smart Account contract. It is useful for deploying in a moment when you know that gas prices are low,
    * and you want to deploy the account before sending the first user operation. This step can otherwise be skipped,
    * as the deployment will alternatively be bundled with the first user operation.
    *
@@ -1060,14 +1060,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   paymasterServiceData: { mode: PaymasterMode.SPONSORED },
    * });
    *
-   *
    * // Or if you can't use a paymaster send native token to this address:
    * const counterfactualAddress = await smartAccount.getAccountAddress();
    *
    * // Then deploy the account
    * const { wait } = await smartAccount.deploy();
    *
-   * const { success } = await wait();
+   * const { success, receipt } = await wait();
    *
    */
   public async deploy(buildUseropDto?: BuildUserOpOptions): Promise<UserOpResponse> {
