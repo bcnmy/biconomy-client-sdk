@@ -100,6 +100,8 @@ beforeAll(async () => {
       publicClient: whaleBalance.publicClient,
       chainId: whaleBalance.chainId,
       bundlerUrl: whaleBalance.bundlerUrl,
+      deploymentCost: whaleBalance.deploymentCost,
+      nftAddress: whaleBalance.nftAddress,
       entryPointAddress: whaleBalance.entryPointAddress,
       viemChain: whaleBalance.viemChain,
       biconomyPaymasterApiKey: whaleBalance.biconomyPaymasterApiKey,
