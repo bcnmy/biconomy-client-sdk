@@ -27,7 +27,7 @@ import {
   DEFAULT_ENTRYPOINT_ADDRESS,
 } from "./utils/Constants.js";
 import { extractChainIdFromBundlerUrl } from "./utils/Utils.js";
-import { sendRequest, HttpMethod } from "@biconomy/common";
+import { sendRequest, HttpMethod, StateOverrideSet } from "@biconomy/common";
 
 /**
  * This class implements IBundler interface.
@@ -82,7 +82,7 @@ export class Bundler implements IBundler {
    * @description This function will fetch gasPrices from bundler
    * @returns Promise<UserOpGasPricesResponse>
    */
-  async estimateUserOpGas(userOp: UserOperationStruct): Promise<UserOpGasResponse> {
+  async estimateUserOpGas(userOp: UserOperationStruct, stateOverrideSet?: StateOverrideSet): Promise<UserOpGasResponse> {
     // expected dummySig and possibly dummmy paymasterAndData should be provided by the caller
     // bundler doesn't know account and paymaster implementation
     userOp = transformUserOP(userOp);
@@ -95,7 +95,7 @@ export class Bundler implements IBundler {
         method: HttpMethod.Post,
         body: {
           method: "eth_estimateUserOperationGas",
-          params: [userOp, this.bundlerConfig.entryPointAddress],
+          params: [userOp, this.bundlerConfig.entryPointAddress, stateOverrideSet],
           id: getTimestampInSeconds(),
           jsonrpc: "2.0",
         },

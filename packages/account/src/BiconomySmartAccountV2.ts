@@ -63,7 +63,7 @@ import {
 import { BiconomyFactoryAbi } from "./abi/Factory.js";
 import { BiconomyAccountAbi } from "./abi/SmartAccount.js";
 import { AccountResolverAbi } from "./abi/AccountResolver.js";
-import { Logger } from "@biconomy/common";
+import { Logger, StateOverrideSet } from "@biconomy/common";
 import { FeeQuotesOrDataDto, FeeQuotesOrDataResponse } from "@biconomy/paymaster";
 
 type UserOperationKey = keyof UserOperationStruct;
@@ -708,7 +708,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return keccak256(enc);
   }
 
-  async estimateUserOpGas(userOp: Partial<UserOperationStruct>): Promise<Partial<UserOperationStruct>> {
+  async estimateUserOpGas(userOp: Partial<UserOperationStruct>, stateOverrideSet?: StateOverrideSet): Promise<Partial<UserOperationStruct>> {
     if (!this.bundler) throw new Error("Bundler is not provided");
     const requiredFields: UserOperationKey[] = ["sender", "nonce", "initCode", "callData"];
     this.validateUserOp(userOp, requiredFields);
@@ -716,8 +716,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const finalUserOp = userOp;
 
     // Making call to bundler to get gas estimations for userOp
-    const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas } =
-      await this.bundler.estimateUserOpGas(userOp);
+    const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas } = await this.bundler.estimateUserOpGas(
+      userOp,
+      stateOverrideSet,
+    );
     // if neither user sent gas fee nor the bundler, estimate gas from provider
     if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas && (!maxFeePerGas || !maxPriorityFeePerGas)) {
       const feeData = await this.provider.estimateFeesPerGas();
@@ -891,7 +893,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     userOp.signature = signature;
 
     // Note: Can change the default behaviour of calling estimations using bundler/local
-    userOp = await this.estimateUserOpGas(userOp);
+    userOp = await this.estimateUserOpGas(userOp, buildUseropDto?.stateOverrideSet);
 
     if (buildUseropDto?.paymasterServiceData) {
       userOp = await this.getPaymasterUserOp(userOp, buildUseropDto.paymasterServiceData);
