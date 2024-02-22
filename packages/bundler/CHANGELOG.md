@@ -6,6 +6,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 ## 4.0.0 (2023-07-02)
 
 Export createBundler alias for static Bundler.create call
+Abstract away chainId: [0fefb35](https://github.com/bcnmy/biconomy-client-sdk/pull/375/commits/0fefb358e3927d7b026774a785d3711e80f1049a)
 
 ## 3.1.3 (2023-12-28)
 
