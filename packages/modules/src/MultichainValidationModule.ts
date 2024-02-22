@@ -74,7 +74,7 @@ export class MultiChainValidationModule extends BaseValidationModule {
   }
 
   async signUserOpHash(userOpHash: string): Promise<Hex> {
-    const sig = await this.signer.signMessage(toBytes(userOpHash));
+    const sig = await this.signer.signMessage({ raw: toBytes(userOpHash) });
     return sig;
   }
 
@@ -85,7 +85,8 @@ export class MultiChainValidationModule extends BaseValidationModule {
    * @returns {Promise<string>} A promise resolving to the signature or error message.
    * @throws {Error} If the signer type is invalid or unsupported.
    */
-  async signMessage(message: Uint8Array | string): Promise<string> {
+  async signMessage(_message: Uint8Array | string): Promise<string> {
+    const message = typeof _message === "string" ? _message : { raw: _message };
     let signature = await this.signer.signMessage(message);
 
     const potentiallyIncorrectV = parseInt(signature.slice(-2), 16);
@@ -116,7 +117,7 @@ export class MultiChainValidationModule extends BaseValidationModule {
       // Create a new Merkle tree using the leaves array
       const merkleTree = new MerkleTree(leaves, keccak256, { sortPairs: true });
 
-      let multichainSignature = await this.signer.signMessage(toBytes(merkleTree.getHexRoot()));
+      let multichainSignature = await this.signer.signMessage({ raw: toBytes(merkleTree.getHexRoot()) });
 
       const potentiallyIncorrectV = parseInt(multichainSignature.slice(-2), 16);
       if (![27, 28].includes(potentiallyIncorrectV)) {
