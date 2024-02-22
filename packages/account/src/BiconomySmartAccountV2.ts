@@ -185,6 +185,19 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     // Signer needs to be initialised here before defaultValidationModule is set
     if (biconomySmartAccountConfig.signer) {
       const signerResult = await convertSigner(biconomySmartAccountConfig.signer, !!chainId);
+      if (!chainId && !!signerResult.chainId) {
+        let chainIdFromBundler: number | undefined;
+        if (biconomySmartAccountConfig.bundlerUrl) {
+          chainIdFromBundler = extractChainIdFromBundlerUrl(biconomySmartAccountConfig.bundlerUrl);
+        } else if (biconomySmartAccountConfig.bundler) {
+          const bundlerUrlFromBundler = biconomySmartAccountConfig.bundler.getBundlerUrl();
+          chainIdFromBundler = extractChainIdFromBundlerUrl(bundlerUrlFromBundler);
+        }
+        if (chainIdFromBundler !== signerResult.chainId) {
+          throw new Error("ChainId from bundler and signer do not match");
+        }
+        chainId = signerResult.chainId;
+      }
       resolvedSmartAccountSigner = signerResult.signer;
     }
     if (!chainId) {
