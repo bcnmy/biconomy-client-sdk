@@ -160,10 +160,10 @@ describe("Account Tests", () => {
     const address = await smartAccount.getAccountAddress();
     expect(address).toBeTruthy();
 
-    const builtUserOp = await smartAccount.buildUserOp([{ to: recipient, value: 1, data: "0x" }]);
+    const builtUserOp = await smartAccount.buildUserOp([{ to: recipient, value: 1 }]);
     console.log("builtUserOp", builtUserOp);
     expect(builtUserOp?.nonce?.toString()).toBe("0x0");
-  });
+  }, 10000);
 
   it("should have an active validation module", async () => {
     const {

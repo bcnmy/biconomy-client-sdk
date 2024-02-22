@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/account",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "This package provides apis for ERC-4337 based smart account implementations",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -55,21 +55,23 @@
     "access": "public"
   },
   "devDependencies": {
+    "@ethersproject/providers": "^5.7.2",
+    "@ethersproject/wallet": "^5.7.0",
     "@types/node": "^20.11.10",
     "esbuild": "^0.19.11",
     "esbuild-plugin-tsc": "^0.4.0",
     "gh-pages": "^6.1.1",
+    "lru-cache": "^10.0.1",
     "nock": "^13.2.9",
     "npm-dts": "^1.3.12",
-    "typedoc": "^0.25.7",
-    "lru-cache": "^10.0.1"
+    "typedoc": "^0.25.7"
   },
   "dependencies": {
-    "@alchemy/aa-core": "3.0.0-alpha.4",
-    "@biconomy/bundler": "4.0.0",
-    "@biconomy/common": "4.0.0",
-    "@biconomy/modules": "4.0.0",
-    "@biconomy/paymaster": "4.0.0",
-    "viem": "^2.7.3"
+    "@alchemy/aa-core": "^3.0.1",
+    "@biconomy/bundler": "^4.0.1",
+    "@biconomy/common": "^4.0.1",
+    "@biconomy/modules": "^4.0.1",
+    "@biconomy/paymaster": "^4.0.1",
+    "viem": "^2.7.12"
   }
 }
