@@ -1,6 +1,6 @@
 {
   "name": "@biconomy/paymaster",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Biconomy Paymaster to interact with Paymaster Services that interacts with ( veriying and token ) paymasters",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -54,7 +54,7 @@
   },
   "dependencies": {
     "@alchemy/aa-core": "^3.0.1",
-    "@biconomy/common": "^4.0.1",
+    "@biconomy/common": "^4.0.2",
     "viem": "^2.7.12"
   },
   "devDependencies": {
