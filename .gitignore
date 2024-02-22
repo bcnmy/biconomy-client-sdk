@@ -69,9 +69,6 @@ packages/modules/tests/utils/sessionStorageData/*
 #except sessionStorageData folder 
 !packages/modules/tests/utils/sessionStorageData/.gitkeep 
 
-# Typechain
-typechain
-
 openapi/
 
 # docs
