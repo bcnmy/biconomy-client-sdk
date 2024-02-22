@@ -63,7 +63,7 @@ export type SessionParams = {
   sessionID?: string;
   /** Session Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
   sessionSigner: SupportedSigner;
-  /** The session validation module session validation module is a sub-module smart-contract which works with session key manager validation module. It validates the userop calldata againsnt the defined session permissions (session key data) within the contract. */
+  /** The session validation module is a sub-module smart-contract which works with session key manager validation module. It validates the userop calldata against the defined session permissions (session key data) within the contract. */
   sessionValidationModule?: Hex;
   /** Additional info if needed to be appended in signature */
   additionalSessionData?: string;
@@ -75,7 +75,7 @@ export type ModuleInfo = {
   sessionID?: string;
   /** Session Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
   sessionSigner?: SupportedSigner;
-  /** The session validation module session validation module is a sub-module smart-contract which works with session key manager validation module. It validates the userop calldata againsnt the defined session permissions (session key data) within the contract. */
+  /** The session validation module is a sub-module smart-contract which works with session key manager validation module. It validates the userop calldata against the defined session permissions (session key data) within the contract. */
   sessionValidationModule?: Hex;
   /** Additional info if needed to be appended in signature */
   additionalSessionData?: string;
