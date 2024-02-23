@@ -16,14 +16,14 @@ describe("Account with MultiChainValidation Module Tests", () => {
   it("Should mint an NFT gasless on baseSepolia and mumbai", async () => {
     const {
       whale: { alchemyWalletClientSigner: signerMumbai, publicAddress: recipientForBothChains },
-      biconomyPaymasterApiKey: biconomyPaymasterApiKeyMumbai,
+      paymasterUrl: biconomyPaymasterApiKeyMumbai,
       bundlerUrl: bundlerUrlMumbai,
       chainId: chainIdMumbai,
     } = mumbai;
 
     const {
       whale: { alchemyWalletClientSigner: signerBase },
-      biconomyPaymasterApiKey: biconomyPaymasterApiKeyBase,
+      paymasterUrl: biconomyPaymasterApiKeyBase,
       bundlerUrl: bundlerUrlBase,
       chainId: chainIdBase,
     } = baseSepolia;
@@ -42,7 +42,7 @@ describe("Account with MultiChainValidation Module Tests", () => {
         bundlerUrl: bundlerUrlMumbai,
         defaultValidationModule: multiChainModule,
         activeValidationModule: multiChainModule,
-        biconomyPaymasterApiKey: biconomyPaymasterApiKeyMumbai,
+        paymasterUrl: biconomyPaymasterApiKeyMumbai,
       }),
       createSmartAccountClient({
         chainId: chainIdBase,
@@ -50,7 +50,7 @@ describe("Account with MultiChainValidation Module Tests", () => {
         bundlerUrl: bundlerUrlBase,
         defaultValidationModule: multiChainModule,
         activeValidationModule: multiChainModule,
-        biconomyPaymasterApiKey: biconomyPaymasterApiKeyBase,
+        paymasterUrl: biconomyPaymasterApiKeyBase,
       }),
     ]);
 

@@ -114,8 +114,8 @@ export type BiconomySmartAccountV2ConfigBaseProps = {
   defaultFallbackHandler?: Hex;
   /** rpcUrl: Explicitly set the rpc else it is pulled out of the signer. */
   rpcUrl?: string; // as good as Provider
-  /** biconomyPaymasterApiKey: The API key retrieved from the Biconomy dashboard */
-  biconomyPaymasterApiKey?: string;
+  /** paymasterUrl: The Paymaster URL retrieved from the Biconomy dashboard */
+  paymasterUrl?: string;
   /** activeValidationModule: The active validation module. Will default to the defaultValidationModule */
   activeValidationModule?: BaseValidationModule;
   /** scanForUpgradedAccountsFromV1: set to true if you you want the userwho was using biconomy SA v1 to upgrade to biconomy SA v2 */

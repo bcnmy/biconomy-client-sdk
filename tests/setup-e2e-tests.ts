@@ -102,7 +102,6 @@ beforeAll(async () => {
       bundlerUrl: whaleBalance.bundlerUrl,
       entryPointAddress: whaleBalance.entryPointAddress,
       viemChain: whaleBalance.viemChain,
-      biconomyPaymasterApiKey: whaleBalance.biconomyPaymasterApiKey,
       ethersProvider: whaleBalance.ethersProvider,
       paymasterUrl: whaleBalance.paymasterUrl,
     };

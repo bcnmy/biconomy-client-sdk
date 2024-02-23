@@ -24,7 +24,7 @@ import {
   BatchUserOperationCallData,
   SmartAccountSigner,
 } from "@alchemy/aa-core";
-import { isNullOrUndefined, packUserOp } from "./utils/Utils.js";
+import { compareChainIds, isNullOrUndefined, packUserOp } from "./utils/Utils.js";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, createECDSAOwnershipValidationModule } from "@biconomy/modules";
 import {
   IHybridPaymaster,
@@ -115,9 +115,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     this.bundler = biconomySmartAccountConfig.bundler;
     this.implementationAddress = biconomySmartAccountConfig.implementationAddress ?? (BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0 as Hex);
 
-    if (biconomySmartAccountConfig.biconomyPaymasterApiKey) {
+    if (biconomySmartAccountConfig.paymasterUrl) {
       this.paymaster = new Paymaster({
-        paymasterUrl: `https://paymaster.biconomy.io/api/v1/${biconomySmartAccountConfig.chainId}/${biconomySmartAccountConfig.biconomyPaymasterApiKey}`,
+        paymasterUrl: biconomySmartAccountConfig.paymasterUrl,
       });
     } else {
       this.paymaster = biconomySmartAccountConfig.paymaster;
@@ -182,7 +182,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     let chainId = biconomySmartAccountConfig.chainId;
     let resolvedSmartAccountSigner!: SmartAccountSigner;
     let rpcUrl = biconomySmartAccountConfig.rpcUrl;
-
     // Signer needs to be initialised here before defaultValidationModule is set
     if (biconomySmartAccountConfig.signer) {
       const signerResult = await convertSigner(biconomySmartAccountConfig.signer, !!chainId);
@@ -230,6 +229,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       signer: resolvedSmartAccountSigner,
       rpcUrl,
     };
+
+    // We check if chain ids match (skip this if chainId is passed by in the config)
+    // if chainId is passed directly in biconomySmartAccountConfig we skip this check
+    // This check is at the end of the function for cases when the signer is not passed in the config but a validation modules is and we get the signer from the validation module in this case
+    if (!biconomySmartAccountConfig.chainId) {
+      await compareChainIds(config, false);
+    }
 
     return new BiconomySmartAccountV2(config);
   }

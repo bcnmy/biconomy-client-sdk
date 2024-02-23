@@ -28,7 +28,7 @@ describe("Account Tests", () => {
       publicClient,
       chainId,
       bundlerUrl,
-      biconomyPaymasterApiKey,
+      paymasterUrl,
     } = mumbai;
 
     try {
@@ -44,7 +44,7 @@ describe("Account Tests", () => {
       chainId,
       signer: sessionSigner,
       bundlerUrl,
-      biconomyPaymasterApiKey,
+      paymasterUrl,
       index: 1, // Increasing index to not conflict with other test cases and use a new smart account
     });
 

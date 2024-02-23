@@ -11,7 +11,6 @@ type BaseChainConfig = {
   bundlerUrl: string;
   paymasterUrl?: string;
   viemChain: Chain;
-  biconomyPaymasterApiKey?: string;
 };
 export const CHAIN_CONFIG: Record<SupportedTestChain, BaseChainConfig> = {
   ganache: { // No useful bundler or paymaster tests for ganache
@@ -26,7 +25,6 @@ export const CHAIN_CONFIG: Record<SupportedTestChain, BaseChainConfig> = {
     bundlerUrl: "https://bundler.biconomy.io/api/v2/84532/cJPK7B3ru.dd7f7861-190d-45ic-af80-6877f74b8f44",
     paymasterUrl: "https://paymaster.biconomy.io/api/v1/84532/" + process.env.E2E_BICO_PAYMASTER_KEY_BASE!,
     viemChain: baseSepolia,
-    biconomyPaymasterApiKey: process.env.E2E_BICO_PAYMASTER_KEY_BASE!,
   },
   mumbai: {
     chainId: 80001,
@@ -34,7 +32,6 @@ export const CHAIN_CONFIG: Record<SupportedTestChain, BaseChainConfig> = {
     bundlerUrl: "https://bundler.biconomy.io/api/v2/80001/cJPK7B3ru.dd7f7861-190d-45ic-af80-6877f74b8f44",
     paymasterUrl: "https://paymaster.biconomy.io/api/v1/80001/" + process.env.E2E_BICO_PAYMASTER_KEY_MUMBAI!,
     viemChain: polygonMumbai,
-    biconomyPaymasterApiKey: process.env.E2E_BICO_PAYMASTER_KEY_MUMBAI!,
   },
 };
 export const E2E_TEST_CHAINS = [CHAIN_CONFIG.mumbai, CHAIN_CONFIG.baseSepolia];
