@@ -47,7 +47,7 @@ describe("Account Tests", () => {
 
     const reciepientSmartAccountBase = await createSmartAccountClient({
       signer: recipientSignerBase,
-      bundlerUrl,
+      bundlerUrl: bundlerUrlBase,
       rpcUrl: baseSepolia.viemChain.rpcUrls.default.http[0],
     });
 

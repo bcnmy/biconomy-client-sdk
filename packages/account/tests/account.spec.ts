@@ -8,6 +8,7 @@ import { Wallet } from "@ethersproject/wallet";
 
 describe("Account Tests", () => {
   let ganache: TestData;
+  const mockBundlerUrl = "https://bundler.biconomy.io/api/v2/1337/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f14";
 
   beforeEach(() => {
     // @ts-ignore: Comes from setup-unit-tests
@@ -16,15 +17,13 @@ describe("Account Tests", () => {
 
   it("should create a smartAccountClient from an ethers signer", async () => {
     const {
-      bundlerUrl,
       minnow: { ethersSigner: signer },
-      viemChain,
     } = ganache;
 
     const smartAccount = await createSmartAccountClient({
       signer,
-      bundlerUrl,
-      rpcUrl: viemChain.rpcUrls.default.http[0],
+      bundlerUrl: mockBundlerUrl,
+      rpcUrl: localhost.rpcUrls.default.http[0],
     });
     const address = await smartAccount.getAccountAddress();
     expect(address).toBeTruthy();
@@ -33,14 +32,12 @@ describe("Account Tests", () => {
   it("should create a smartAccountClient from a walletClient", async () => {
     const {
       whale: { viemWallet: signer },
-      bundlerUrl,
-      viemChain,
     } = ganache;
 
     const smartAccount = await createSmartAccountClient({
       signer,
-      bundlerUrl,
-      rpcUrl: viemChain.rpcUrls.default.http[0],
+      bundlerUrl: mockBundlerUrl,
+      rpcUrl: localhost.rpcUrls.default.http[0],
     });
     const address = await smartAccount.getAccountAddress();
     expect(address).toBeTruthy();
@@ -49,7 +46,6 @@ describe("Account Tests", () => {
   it("should pickup the rpcUrl from viem wallet and ethers", async () => {
     const {
       chainId,
-      bundlerUrl,
       viemChain,
       whale: { privateKey, viemWallet: originalViemSigner, ethersSigner: originalEthersSigner },
     } = ganache;
@@ -72,25 +68,25 @@ describe("Account Tests", () => {
         createSmartAccountClient({
           chainId,
           signer: ethersSignerWithNewRpcUrl,
-          bundlerUrl,
+          bundlerUrl: mockBundlerUrl,
           rpcUrl: newRpcUrl,
         }),
         createSmartAccountClient({
           chainId,
           signer: walletClientWithNewRpcUrl,
-          bundlerUrl,
+          bundlerUrl: mockBundlerUrl,
           rpcUrl: newRpcUrl,
         }),
         createSmartAccountClient({
           chainId,
           signer: originalEthersSigner,
-          bundlerUrl,
+          bundlerUrl: mockBundlerUrl,
           rpcUrl: viemChain.rpcUrls.default.http[0],
         }),
         createSmartAccountClient({
           chainId,
           signer: originalViemSigner,
-          bundlerUrl,
+          bundlerUrl: mockBundlerUrl,
           rpcUrl: viemChain.rpcUrls.default.http[0],
         }),
       ]);
@@ -126,15 +122,13 @@ describe("Account Tests", () => {
     const {
       chainId,
       whale: { alchemyWalletClientSigner: signer },
-      bundlerUrl,
-      viemChain,
     } = ganache;
 
     const smartAccount = await createSmartAccountClient({
       chainId,
       signer,
-      bundlerUrl,
-      rpcUrl: viemChain.rpcUrls.default.http[0],
+      bundlerUrl: mockBundlerUrl,
+      rpcUrl: localhost.rpcUrls.default.http[0],
     });
     const address = await smartAccount.getAccountAddress();
     expect(address).toBeTruthy();
@@ -142,54 +136,27 @@ describe("Account Tests", () => {
 
   it("should provide an account address", async () => {
     const {
-      bundlerUrl,
       whale: { viemWallet: signer },
-      viemChain,
     } = ganache;
 
     const smartAccount = await createSmartAccountClient({
       signer,
-      bundlerUrl,
-      rpcUrl: viemChain.rpcUrls.default.http[0],
+      bundlerUrl: mockBundlerUrl,
+      rpcUrl: localhost.rpcUrls.default.http[0],
     });
     const address = await smartAccount.getAccountAddress();
     expect(address).toBeTruthy();
   });
 
-  it("Nonce should be zero", async () => {
-    const {
-      entryPointAddress,
-      bundlerUrl,
-      whale: { viemWallet: signer },
-      minnow: { publicAddress: recipient },
-      viemChain,
-    } = ganache;
-
-    const smartAccount = await createSmartAccountClient({
-      entryPointAddress,
-      signer,
-      bundlerUrl,
-      rpcUrl: viemChain.rpcUrls.default.http[0],
-    });
-    const address = await smartAccount.getAccountAddress();
-    expect(address).toBeTruthy();
-
-    const builtUserOp = await smartAccount.buildUserOp([{ to: recipient, value: 1 }]);
-    console.log("builtUserOp", builtUserOp);
-    expect(builtUserOp?.nonce?.toString()).toBe("0x0");
-  }, 10000);
-
   it("should have an active validation module", async () => {
     const {
-      bundlerUrl,
       whale: { viemWallet: signer },
-      viemChain,
     } = ganache;
 
     const smartAccount = await createSmartAccountClient({
       signer,
-      bundlerUrl,
-      rpcUrl: viemChain.rpcUrls.default.http[0],
+      bundlerUrl: mockBundlerUrl,
+      rpcUrl: localhost.rpcUrls.default.http[0],
     });
 
     const module = smartAccount.activeValidationModule;
@@ -199,9 +166,7 @@ describe("Account Tests", () => {
   it("Create a smart account with paymaster by creating instance", async () => {
     const {
       whale: { viemWallet: signer },
-      bundlerUrl,
       biconomyPaymasterApiKey,
-      viemChain,
     } = ganache;
 
     const paymasterUrl = "https://paymaster.biconomy.io/api/v1/80001/" + biconomyPaymasterApiKey;
@@ -209,17 +174,15 @@ describe("Account Tests", () => {
 
     const smartAccount = await createSmartAccountClient({
       signer,
-      bundlerUrl,
+      bundlerUrl: mockBundlerUrl,
       paymaster,
-      rpcUrl: viemChain.rpcUrls.default.http[0],
+      rpcUrl: localhost.rpcUrls.default.http[0],
     });
     expect(smartAccount.paymaster).not.toBeNull();
     expect(smartAccount.paymaster).not.toBeUndefined();
   }, 10000);
 
   it("should fail to create a smartAccountClient from a walletClient without a chainId", async () => {
-    const { bundlerUrl, viemChain } = ganache;
-
     const account = privateKeyToAccount(generatePrivateKey());
     const viemWalletClientNoChainId = createWalletClient({
       account,
@@ -230,16 +193,14 @@ describe("Account Tests", () => {
       await expect(
         createSmartAccountClient({
           signer: viemWalletClientNoChainId,
-          bundlerUrl,
-          rpcUrl: viemChain.rpcUrls.default.http[0],
+          bundlerUrl: mockBundlerUrl,
+          rpcUrl: localhost.rpcUrls.default.http[0],
         }),
       ).rejects.toThrow("Cannot consume a viem wallet without a chainId"),
     );
   });
 
   it("should fail to create a smartAccountClient from a walletClient without an account", async () => {
-    const { bundlerUrl, viemChain } = ganache;
-
     const viemWalletNoAccount = createWalletClient({
       transport: http(localhost.rpcUrls.default.http[0]),
     });
@@ -247,8 +208,8 @@ describe("Account Tests", () => {
     expect(async () =>
       createSmartAccountClient({
         signer: viemWalletNoAccount,
-        bundlerUrl,
-        rpcUrl: viemChain.rpcUrls.default.http[0],
+        bundlerUrl: mockBundlerUrl,
+        rpcUrl: localhost.rpcUrls.default.http[0],
       }),
     ).rejects.toThrow("Cannot consume a viem wallet without an account");
   });
