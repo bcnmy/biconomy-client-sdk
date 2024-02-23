@@ -717,10 +717,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return bundlerResponse;
   }
 
-  /**
-   * @class
-   * @ignore
-   */
   async getUserOpHash(userOp: Partial<UserOperationStruct>): Promise<Hex> {
     const userOpHash = keccak256(packUserOp(userOp, true) as Hex);
     const enc = encodeAbiParameters(parseAbiParameters("bytes32, address, uint256"), [userOpHash, this.entryPoint.address, BigInt(this.chainId)]);
@@ -769,10 +765,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return finalUserOp;
   }
 
-  /**
-   * @class
-   * @ignore
-   */
+  // Could call it nonce space
   async getNonce(nonceKey?: number): Promise<bigint> {
     const nonceSpace = nonceKey ?? 0;
     try {
