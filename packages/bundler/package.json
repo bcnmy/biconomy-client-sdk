@@ -56,7 +56,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@alchemy/aa-core": "^3.0.1",
+    "@alchemy/aa-core": "^3.1.1",
     "@biconomy/common": "^4.0.2",
     "viem": "^2.7.12"
   },
