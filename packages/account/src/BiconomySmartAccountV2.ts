@@ -81,7 +81,18 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   bundler?: IBundler;
 
+  /**
+   * @class
+   * @ignore
+   */
   private accountContract?: GetContractReturnType<typeof BiconomyAccountAbi, PublicClient>;
+
+  /**
+   * @class
+   * @ignore
+   */
+  // @ts-ignore
+  protected entryPoint: BaseSmartContractAccount["entryPoint"];
 
   private defaultFallbackHandlerAddress: Hex;
 
@@ -313,6 +324,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
   }
 
+  /**
+   * @class
+   * @ignore
+   */
   async _getAccountContract(): Promise<GetContractReturnType<typeof BiconomyAccountAbi, PublicClient>> {
     if (this.accountContract == null) {
       this.accountContract = getContract({
@@ -702,6 +717,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return bundlerResponse;
   }
 
+  /**
+   * @class
+   * @ignore
+   */
   async getUserOpHash(userOp: Partial<UserOperationStruct>): Promise<Hex> {
     const userOpHash = keccak256(packUserOp(userOp, true) as Hex);
     const enc = encodeAbiParameters(parseAbiParameters("bytes32, address, uint256"), [userOpHash, this.entryPoint.address, BigInt(this.chainId)]);
@@ -750,7 +769,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return finalUserOp;
   }
 
-  // Could call it nonce space
+  /**
+   * @class
+   * @ignore
+   */
   async getNonce(nonceKey?: number): Promise<bigint> {
     const nonceSpace = nonceKey ?? 0;
     try {
