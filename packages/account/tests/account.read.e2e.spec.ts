@@ -23,7 +23,7 @@ describe("Account Tests", () => {
 
     const isEnabled = await smartWallet.isModuleEnabled(DEFAULT_ECDSA_OWNERSHIP_MODULE);
     expect(isEnabled).toBeTruthy();
-  });
+  }, 30000);
 
   it("should get all modules", async () => {
     const {
@@ -40,7 +40,7 @@ describe("Account Tests", () => {
     expect(modules).toContain("0x000000D50C68705bd6897B2d17c7de32FB519fDA"); // erc20 module
     expect(modules).toContain("0x000002FbFfedd9B33F4E7156F2DE8D48945E7489"); // session manager module
     expect(modules).toContain("0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e"); // ecdsa ownership module
-  });
+  }, 30000);
 
   it("should disabled module data", async () => {
     const {
@@ -55,7 +55,7 @@ describe("Account Tests", () => {
 
     const disableModuleData = await smartWallet.getDisableModuleData(DEFAULT_ECDSA_OWNERSHIP_MODULE, DEFAULT_ECDSA_OWNERSHIP_MODULE);
     expect(disableModuleData).toBeTruthy();
-  });
+  }, 30000);
 
   it("should get setup and enable module data", async () => {
     const {
@@ -72,7 +72,7 @@ describe("Account Tests", () => {
     const initData = await module.getInitData();
     const setupAndEnableModuleData = await smartWallet.getSetupAndEnableModuleData(DEFAULT_ECDSA_OWNERSHIP_MODULE, initData);
     expect(setupAndEnableModuleData).toBeTruthy();
-  });
+  }, 30000);
 
   it("should read estimated user op gas values", async () => {
     const {
@@ -99,5 +99,5 @@ describe("Account Tests", () => {
     expect(estimatedGas.callGasLimit).toBeTruthy();
     expect(estimatedGas.preVerificationGas).toBeTruthy();
     expect(estimatedGas).toHaveProperty("paymasterAndData", "0x");
-  });
+  }, 35000);
 });
