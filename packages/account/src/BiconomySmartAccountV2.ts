@@ -81,7 +81,18 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   bundler?: IBundler;
 
+  /**
+   * @class
+   * @ignore
+   */
   private accountContract?: GetContractReturnType<typeof BiconomyAccountAbi, PublicClient>;
+
+  /**
+   * @class
+   * @ignore
+   */
+  // @ts-ignore
+  protected entryPoint: BaseSmartContractAccount["entryPoint"];
 
   private defaultFallbackHandlerAddress: Hex;
 
@@ -313,6 +324,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
   }
 
+  /**
+   * @class
+   * @ignore
+   */
   async _getAccountContract(): Promise<GetContractReturnType<typeof BiconomyAccountAbi, PublicClient>> {
     if (this.accountContract == null) {
       this.accountContract = getContract({
