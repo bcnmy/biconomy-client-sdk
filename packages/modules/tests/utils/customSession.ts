@@ -92,10 +92,21 @@ export class SessionFileStorage implements ISessionStorage {
     return address.toLowerCase() as Hex;
   }
 
-  async getSessionData(): Promise<SessionLeafNode> {
+  async getSessionData(param: SessionSearchParam): Promise<SessionLeafNode> {
     const sessions = (await this.getSessionStore()).leafNodes;
-    Logger.log("Got sessions", sessions);
-    const session = sessions[0];
+    const session = sessions.find((s: SessionLeafNode) => {
+      if (param.sessionID) {
+        return s.sessionID === param.sessionID && (!param.status || s.status === param.status);
+      } else if (param.sessionPublicKey && param.sessionValidationModule) {
+        return (
+          s.sessionPublicKey === this.toLowercaseAddress(param.sessionPublicKey) &&
+          s.sessionValidationModule === this.toLowercaseAddress(param.sessionValidationModule) &&
+          (!param.status || s.status === param.status)
+        );
+      } else {
+        return undefined;
+      }
+    });
 
     if (!session) {
       throw new Error("Session not found.");
@@ -191,8 +202,8 @@ export class SessionFileStorage implements ISessionStorage {
     return new WalletClientSigner(walletClient, "json-rpc");
   }
 
-  async getSignerBySession(): Promise<WalletClientSigner> {
-    const session = await this.getSessionData();
+  async getSignerBySession(param: SessionSearchParam): Promise<WalletClientSigner> {
+    const session = await this.getSessionData(param);
     Logger.log("got session", session);
     const walletClientSinger = await this.getSignerByKey(session.sessionPublicKey);
     return walletClientSinger;
