@@ -714,7 +714,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *    },
    * });
    *
-   * const { receipt } = await wait();
+   * const { success, receipt } = await wait();
    *
    */
   public async getTokenFees(
@@ -784,7 +784,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @param userOp Partial<{@link UserOperationStruct}> the userOp params to be sent.
    * @param params {@link SendUserOpParams}.
-   * @returns Promise<{@link UserOpResponse}> that you can use to track user operation.
+   * @returns Promise<{@link UserOpResponse}> that you can use to track the user operation.
    *
    * @example
    * import { createClient } from "viem"
@@ -813,7 +813,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * const userOp = await smartAccount.buildUserOp([transaction]);
    *
    * const { wait } = await smartAccount.sendUserOp(userOp);
-   * const { receipt } = await wait();
+   * const { success, receipt } = await wait();
    *
    */
   async sendUserOp(userOp: Partial<UserOperationStruct>, params?: SendUserOpParams): Promise<UserOpResponse> {
@@ -935,7 +935,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @param manyOrOneTransactions Array of {@link Transaction} to be batched and sent. Can also be a single {@link Transaction}.
    * @param buildUseropDto {@link BuildUserOpOptions}.
-   * @returns Promise<{@link UserOpResponse}> that you can use to track user operation.
+   * @returns Promise<{@link UserOpResponse}> that you can use to track the user operation.
    *
    * @example
    * import { createClient } from "viem"
@@ -1024,18 +1024,20 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       throw new Error("Transactions array cannot be empty");
     }
     let callData: Hex = "0x";
-    if (transactions.length > 1 || buildUseropDto?.forceEncodeForBatch) {
-      callData = await this.encodeExecuteBatch(to, value, data);
-    } else {
-      // transactions.length must be 1
-      callData = await this.encodeExecute(to[0], value[0], data[0]);
+    if (!buildUseropDto?.useEmptyDeployCallData) {
+      if (transactions.length > 1 || buildUseropDto?.forceEncodeForBatch) {
+        callData = await this.encodeExecuteBatch(to, value, data);
+      } else {
+        // transactions.length must be 1
+        callData = await this.encodeExecute(to[0], value[0], data[0]);
+      }
     }
 
     let userOp: Partial<UserOperationStruct> = {
       sender: (await this.getAccountAddress()) as Hex,
       nonce: toHex(nonceFromFetch),
       initCode,
-      callData: callData,
+      callData,
     };
 
     // for this Smart Account current validation module dummy signature will be used to estimate gas
@@ -1174,6 +1176,78 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     ]);
 
     return signatureWithModuleAddress;
+  }
+
+  /**
+   * Deploys the smart contract
+   *
+   * This method will deploy a Smart Account contract. It is useful for deploying in a moment when you know that gas prices are low,
+   * and you want to deploy the account before sending the first user operation. This step can otherwise be skipped,
+   * as the deployment will alternatively be bundled with the first user operation.
+   *
+   * @param buildUseropDto {@link BuildUserOpOptions}.
+   * @returns Promise<{@link UserOpResponse}> that you can use to track the user operation.
+   * @error Throws an error if the account has already been deployed.
+   * @error Throws an error if the account has not enough native token balance to deploy, if not using a paymaster.
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartAccountClient } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonMumbai } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonMumbai,
+   *   transport: http(),
+   * });
+   *
+   * const smartAccount = await createSmartAccountClient({
+   *  signer,
+   *  biconomyPaymasterApiKey,
+   *  bundlerUrl
+   * });
+   *
+   * // If you want to use a paymaster...
+   * const { wait } = await smartAccount.deploy({
+   *   paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+   * });
+   *
+   * // Or if you can't use a paymaster send native token to this address:
+   * const counterfactualAddress = await smartAccount.getAccountAddress();
+   *
+   * // Then deploy the account
+   * const { wait } = await smartAccount.deploy();
+   *
+   * const { success, receipt } = await wait();
+   *
+   */
+  public async deploy(buildUseropDto?: BuildUserOpOptions): Promise<UserOpResponse> {
+    const accountAddress = this.accountAddress ?? (await this.getAccountAddress());
+
+    // Check that the account has not already been deployed
+    const byteCode = await this.provider?.getBytecode({ address: accountAddress as Hex });
+    if (byteCode !== undefined) {
+      throw new Error(ERROR_MESSAGES.ACCOUNT_ALREADY_DEPLOYED);
+    }
+
+    // Check that the account has enough native token balance to deploy, if not using a paymaster
+    if (!buildUseropDto?.paymasterServiceData?.mode) {
+      const nativeTokenBalance = await this.provider?.getBalance({ address: accountAddress });
+      if (nativeTokenBalance === BigInt(0)) {
+        throw new Error(ERROR_MESSAGES.NO_NATIVE_TOKEN_BALANCE_DURING_DEPLOY);
+      }
+    }
+
+    const useEmptyDeployCallData = true;
+
+    return this.sendTransaction(
+      {
+        to: accountAddress,
+        data: "0x",
+      },
+      { ...buildUseropDto, useEmptyDeployCallData },
+    );
   }
 
   async signMessage(message: string | Uint8Array): Promise<Hex> {
