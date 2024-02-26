@@ -467,7 +467,6 @@ describe("Account Tests", () => {
     expect(ecdsaOwnershipModule).toBe(smartAccount.activeValidationModule.getAddress());
   });
 
-<<<<<<< HEAD
   it("should deploy a smart account with native token balance", async () => {
     const {
       bundlerUrl,
@@ -563,9 +562,6 @@ describe("Account Tests", () => {
   });
 
   it("should fail to deploy a smart account if already deployed", async () => {
-=======
-  it("should get supported tokens from the paymaster", async () => {
->>>>>>> origin/develop
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
@@ -578,10 +574,6 @@ describe("Account Tests", () => {
       bundlerUrl,
     });
 
-<<<<<<< HEAD
-    expect(async () => smartAccount.deploy()).rejects.toThrow(ERROR_MESSAGES.ACCOUNT_ALREADY_DEPLOYED);
-  });
-=======
     const tokens = await smartAccount.getSupportedTokens();
 
     expect(tokens.length).toBeGreaterThan(0);
@@ -591,7 +583,22 @@ describe("Account Tests", () => {
     expect(tokens[0]).toHaveProperty("premiumPercentage");
     expect(tokens[0]).toHaveProperty("logoUrl");
   }, 60000);
->>>>>>> origin/develop
+
+  it("should get supported tokens from the paymaster", async () => {
+    const {
+      whale: { viemWallet: signer },
+      bundlerUrl,
+      biconomyPaymasterApiKey,
+    } = mumbai;
+
+    const smartAccount = await createSmartAccountClient({
+      signer,
+      biconomyPaymasterApiKey,
+      bundlerUrl,
+    });
+
+    expect(async () => smartAccount.deploy()).rejects.toThrow(ERROR_MESSAGES.ACCOUNT_ALREADY_DEPLOYED);
+  }, 60000);
 
   it("should fetch balances for smartAccount", async () => {
     const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977";
