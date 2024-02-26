@@ -36,6 +36,11 @@ export {
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   DEFAULT_MULTICHAIN_MODULE,
   DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
+  type ECDSAOwnershipValidationModuleConfig,
+  type BatchedSessionRouterModuleConfig,
+  type SessionKeyManagerModuleConfig,
+  type MultiChainValidationModuleConfig,
+  type SessionValidationModuleConfig,
 } from "@biconomy/modules";
 
 export const createSmartAccountClient = BiconomySmartAccountV2.create;

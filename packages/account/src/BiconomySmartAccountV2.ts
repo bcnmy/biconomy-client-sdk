@@ -15,6 +15,8 @@ import {
   GetContractReturnType,
   getContract,
   decodeFunctionData,
+  parseAbi,
+  formatUnits,
 } from "viem";
 import {
   BaseSmartContractAccount,
@@ -37,6 +39,7 @@ import {
   UserOpResponse,
   extractChainIdFromBundlerUrl,
   convertSigner,
+  NATIVE_TOKEN_ALIAS,
 } from "./index.js";
 import {
   BiconomyTokenPaymasterRequest,
@@ -49,6 +52,7 @@ import {
   BiconomySmartAccountV2ConfigConstructorProps,
   PaymasterUserOperationDto,
   SimulationType,
+  BalancePayload,
 } from "./utils/Types.js";
 import {
   ADDRESS_RESOLVER_ADDRESS,
@@ -59,11 +63,12 @@ import {
   ADDRESS_ZERO,
   DEFAULT_ENTRYPOINT_ADDRESS,
   ERROR_MESSAGES,
+  ERC20_ABI,
 } from "./utils/Constants.js";
 import { BiconomyFactoryAbi } from "./abi/Factory.js";
 import { BiconomyAccountAbi } from "./abi/SmartAccount.js";
 import { AccountResolverAbi } from "./abi/AccountResolver.js";
-import { Logger } from "@biconomy/common";
+import { Logger, StateOverrideSet } from "@biconomy/common";
 import { FeeQuotesOrDataDto, FeeQuotesOrDataResponse } from "@biconomy/paymaster";
 
 type UserOperationKey = keyof UserOperationStruct;
@@ -81,7 +86,18 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   bundler?: IBundler;
 
+  /**
+   * @class
+   * @ignore
+   */
   private accountContract?: GetContractReturnType<typeof BiconomyAccountAbi, PublicClient>;
+
+  /**
+   * @class
+   * @ignore
+   */
+  // @ts-ignore
+  protected entryPoint: BaseSmartContractAccount["entryPoint"];
 
   private defaultFallbackHandlerAddress: Hex;
 
@@ -253,6 +269,77 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   /**
+   * Returns token balances of Smart Account
+   *
+   * This method will fetch the token balances of the smartAccount instance.
+   * If left empty, it will return the balance of the native token, with the address set to 0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE.
+   *
+   * @param tokenAddresses - Optional. Array of token addresses to fetch the balances of.
+   * @returns Promise<Array<BalancePayload>> - An array of token balances (or native token balance) of the smartAccount instance.
+   * @throws An error if something is wrong with the smart account instance creation.
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartAccountClient } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonMumbai } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonMumbai,
+   *   transport: http(),
+   * });
+   *
+   * const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977";
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl });
+   * const [usdtBalanceFromSmartAccount] = await smartAccount.getBalances([usdt]);
+   *
+   * // {
+   * //   amount: 1000000000000000n,
+   * //   decimals: 6,
+   * //   address: "0xda5289fcaaf71d52a80a254da614a192b693e977",
+   * //   formattedAmount: "1000000",
+   * //   chainId: 80001
+   * // }
+   *
+   */
+  public async getBalances(tokenAddresses: Array<Hex>): Promise<Array<BalancePayload>> {
+    const accountAddress = this.accountAddress ?? (await this.getAccountAddress());
+
+    if (!tokenAddresses) {
+      const balance = await this.provider.getBalance({ address: accountAddress });
+      return [
+        {
+          amount: balance,
+          decimals: 18,
+          address: NATIVE_TOKEN_ALIAS,
+          formattedAmount: formatUnits(balance, 18),
+          chainId: this.chainId,
+        },
+      ];
+    }
+    const tokenContracts = tokenAddresses.map((address) =>
+      getContract({
+        address,
+        abi: parseAbi(ERC20_ABI),
+        client: this.provider,
+      }),
+    );
+
+    const balancePromises = tokenContracts.map((tokenContract) => tokenContract.read.balanceOf([accountAddress])) as Promise<bigint>[];
+    const decimalsPromises = tokenContracts.map((tokenContract) => tokenContract.read.decimals()) as Promise<number>[];
+    const [balances, decimalsPerToken] = await Promise.all([Promise.all(balancePromises), Promise.all(decimalsPromises)]);
+
+    return balances.map((amount, index) => ({
+      amount,
+      decimals: decimalsPerToken[index],
+      address: tokenAddresses[index],
+      formattedAmount: formatUnits(amount, decimalsPerToken[index]),
+      chainId: this.chainId,
+    }));
+  }
+
+  /**
    * Return the account's address. This value is valid even before deploying the contract.
    */
   async getCounterFactualAddress(params?: CounterFactualAddressParam): Promise<Hex> {
@@ -313,6 +400,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
   }
 
+  /**
+   * @class
+   * @ignore
+   */
   async _getAccountContract(): Promise<GetContractReturnType<typeof BiconomyAccountAbi, PublicClient>> {
     if (this.accountContract == null) {
       this.accountContract = getContract({
@@ -708,7 +799,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return keccak256(enc);
   }
 
-  async estimateUserOpGas(userOp: Partial<UserOperationStruct>): Promise<Partial<UserOperationStruct>> {
+  async estimateUserOpGas(userOp: Partial<UserOperationStruct>, stateOverrideSet?: StateOverrideSet): Promise<Partial<UserOperationStruct>> {
     if (!this.bundler) throw new Error("Bundler is not provided");
     const requiredFields: UserOperationKey[] = ["sender", "nonce", "initCode", "callData"];
     this.validateUserOp(userOp, requiredFields);
@@ -716,8 +807,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const finalUserOp = userOp;
 
     // Making call to bundler to get gas estimations for userOp
-    const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas } =
-      await this.bundler.estimateUserOpGas(userOp);
+    const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas } = await this.bundler.estimateUserOpGas(
+      userOp,
+      stateOverrideSet,
+    );
     // if neither user sent gas fee nor the bundler, estimate gas from provider
     if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas && (!maxFeePerGas || !maxPriorityFeePerGas)) {
       const feeData = await this.provider.estimateFeesPerGas();
@@ -891,7 +984,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     userOp.signature = signature;
 
     // Note: Can change the default behaviour of calling estimations using bundler/local
-    userOp = await this.estimateUserOpGas(userOp);
+    userOp = await this.estimateUserOpGas(userOp, buildUseropDto?.stateOverrideSet);
 
     if (buildUseropDto?.paymasterServiceData) {
       userOp = await this.getPaymasterUserOp(userOp, buildUseropDto.paymasterServiceData);

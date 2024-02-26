@@ -43,6 +43,13 @@ body:
     validations:
     required: false
 
+  - type: textarea
+    attributes:
+    label: Package.json (or lockfile) content
+    description: Packages used in your project. This will help us understand the environment you are working in, and check if there are dependencies that might be causing the issue.
+    validations:
+    required: false
+
   - type: input
     attributes:
     label: Link to Minimal Reproducible Example (StackBlitz, CodeSandbox, GitHub repo etc.)
