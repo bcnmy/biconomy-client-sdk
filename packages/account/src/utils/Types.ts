@@ -10,7 +10,7 @@ import {
 } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { Hex, WalletClient } from "viem";
-import { SupportedSigner } from "@biconomy/common";
+import { SupportedSigner, StateOverrideSet } from "@biconomy/common";
 
 export type EntryPointAddresses = Record<string, string>;
 export type BiconomyFactories = Record<string, string>;
@@ -20,7 +20,7 @@ export type BiconomyFactoriesByVersion = Record<string, string>;
 export type BiconomyImplementationsByVersion = Record<string, string>;
 
 export type SmartAccountConfig = {
-  /** entryPointAddress: address of the smart account factory */
+  /** entryPointAddress: address of the entry point */
   entryPointAddress: string;
   /** factoryAddress: address of the smart account factory */
   bundler?: IBundler;
@@ -168,6 +168,8 @@ export type BuildUserOpOptions = {
   paymasterServiceData?: PaymasterUserOperationDto;
   /**  simulationType: Determine which parts of the tx a bundler will simulate: "validation" | "validation_and_execution".  */
   simulationType?: SimulationType;
+  /**  stateOverrideSet: For overriding the state */
+  stateOverrideSet?: StateOverrideSet;
 };
 
 export type NonceOptions = {

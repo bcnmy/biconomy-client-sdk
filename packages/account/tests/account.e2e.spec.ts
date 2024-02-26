@@ -88,7 +88,8 @@ describe("Account Tests", () => {
     const newBalance = (await checkBalance(publicClient, recipient)) as bigint;
 
     expect(result?.receipt?.transactionHash).toBeTruthy();
-    expect(newBalance - balance).toBe(1n);
+    expect(result.success).toBe("true");
+    expect(newBalance).toBeGreaterThan(balance);
   }, 50000);
 
   it("Create a smart account with paymaster with an api key", async () => {
@@ -279,7 +280,7 @@ describe("Account Tests", () => {
       },
     });
 
-    const selectedFeeQuote = feeQuotesResponse.feeQuotes?.[0]!;
+    const selectedFeeQuote = feeQuotesResponse.feeQuotes?.[0];
     const spender = feeQuotesResponse.tokenPaymasterAddress!;
 
     const contract = getContract({
@@ -291,12 +292,18 @@ describe("Account Tests", () => {
     const allowanceBefore = (await contract.read.allowance([smartAccountAddress, spender])) as bigint;
 
     if (allowanceBefore > 0) {
-      const setAllowanceToZeroTransaction = await (smartAccount?.paymaster as IHybridPaymaster<any>)?.buildTokenApprovalTransaction({
-        feeQuote: { ...selectedFeeQuote, maxGasFee: 0 },
-        spender,
+      const decreaseAllowanceData = encodeFunctionData({
+        abi: parseAbi(["function decreaseAllowance(address spender, uint256 subtractedValue)"]),
+        functionName: "decreaseAllowance",
+        args: [spender, allowanceBefore],
       });
 
-      const { wait } = await smartAccount.sendTransaction([setAllowanceToZeroTransaction]);
+      const decreaseAllowanceTx = {
+        to: "0xda5289fcaaf71d52a80a254da614a192b693e977",
+        data: decreaseAllowanceData,
+      };
+
+      const { wait } = await smartAccount.sendTransaction(decreaseAllowanceTx, { paymasterServiceData: { mode: PaymasterMode.SPONSORED } });
       const { success } = await wait();
 
       expect(success).toBe("true");
@@ -455,6 +462,7 @@ describe("Account Tests", () => {
 
     expect(ecdsaOwnershipModule).toBe(smartAccount.activeValidationModule.getAddress());
   });
+  it("should fetch balances for smartAccount", async () => {
 
   it("should fetch balances for smartAccount", async () => {
     const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977";

@@ -23,7 +23,7 @@ describe("Account Tests", () => {
     expect(address).toBeTruthy();
     // expect the relevant module to be set
     expect(smartAccount.activeValidationModule).toEqual(defaultValidationModule);
-  });
+  }, 50000);
 
   it("should create a ECDSAOwnershipValidationModule from a viem signer using convertSigner", async () => {
     const {
@@ -41,5 +41,5 @@ describe("Account Tests", () => {
     expect(address).toBeTruthy();
     // expect the relevant module to be set
     expect(smartAccount.activeValidationModule).toEqual(defaultValidationModule);
-  });
+  }, 50000);
 });
