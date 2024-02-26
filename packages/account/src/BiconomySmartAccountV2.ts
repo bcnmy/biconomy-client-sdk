@@ -306,11 +306,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, biconomyPaymasterApiKey });
    *
    * const { wait } = await smartAccount.withdraw(
-   *  account.pubKey, // recipient
    *  [
    *    { address: USDT, amount: BigInt(1) },
    *    { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) }
    *  ],
+   *  account.pubKey, // Default recipient used if no recipient is present in the withdrawal request
    *  {
    *    paymasterServiceData: { mode: PaymasterMode.SPONSORED },
    *  }
@@ -318,18 +318,22 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * // OR to withdraw all of the native token, leaving no dust in the smart account
    *
-   * const { wait } = await smartAccount.withdraw(account.pubKey, [], {
+   * const { wait } = await smartAccount.withdraw([], account.pubKey, {
    *  paymasterServiceData: { mode: PaymasterMode.SPONSORED },
    * });
    *
    * const { success } = await wait();
    */
   public async withdraw(
-    recipient: Hex,
     withdrawalRequests?: WithdrawalRequest[] | null,
+    defaultRecipient?: Hex | null,
     buildUseropDto?: BuildUserOpOptions,
   ): Promise<UserOpResponse> {
     const accountAddress = this.accountAddress ?? (await this.getAccountAddress());
+
+    if (!defaultRecipient && withdrawalRequests?.some(({ recipient }) => !recipient)) {
+      throw new Error(ERROR_MESSAGES.NO_RECIPIENT);
+    }
 
     // Remove the native token from the withdrawal requests
     let tokenRequests = withdrawalRequests?.filter(({ address }) => !addressEquals(address, NATIVE_TOKEN_ALIAS)) ?? [];
@@ -340,16 +344,19 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     // Get the balances of the tokens if the amount is not present in the withdrawal requests
     if (shouldFetchMaxBalances) {
       const balances = await this.getBalances(tokenRequests.map(({ address }) => address));
-      tokenRequests = tokenRequests.map(({ amount, address }, i) => ({ address, amount: amount ?? balances[i].amount }));
+      tokenRequests = tokenRequests.map(({ amount, address }, i) => ({
+        address,
+        amount: amount ?? balances[i].amount,
+      }));
     }
 
     // Create the transactions
-    const txs: Transaction[] = tokenRequests.map(({ address, amount }) => ({
+    const txs: Transaction[] = tokenRequests.map(({ address, amount, recipient: recipientFromRequest }) => ({
       to: address,
       data: encodeFunctionData({
         abi: parseAbi(ERC20_ABI),
         functionName: "transfer",
-        args: [recipient, amount],
+        args: [recipientFromRequest ?? defaultRecipient, amount],
       }),
     }));
 
@@ -366,7 +373,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       const nativeTokenAmountToWithdraw = nativeTokenRequest?.amount ?? (await this.provider.getBalance({ address: accountAddress }));
 
       txs.push({
-        to: recipient,
+        to: (nativeTokenRequest?.recipient ?? defaultRecipient) as Hex,
         value: nativeTokenAmountToWithdraw,
       });
     }

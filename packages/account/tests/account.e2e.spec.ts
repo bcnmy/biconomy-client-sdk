@@ -32,7 +32,7 @@ describe("Account Tests", () => {
       bundlerUrl,
     });
 
-    const reciepientSmartAccount = await createSmartAccountClient({
+    const recipientSmartAccount = await createSmartAccountClient({
       signer: recipientSigner,
       bundlerUrl,
     });
@@ -42,7 +42,7 @@ describe("Account Tests", () => {
       bundlerUrl: bundlerUrlBase,
     });
 
-    const reciepientSmartAccountBase = await createSmartAccountClient({
+    const recipientSmartAccountBase = await createSmartAccountClient({
       signer: recipientSignerBase,
       bundlerUrl: bundlerUrlBase,
     });
@@ -51,11 +51,11 @@ describe("Account Tests", () => {
       sender,
       smartAccount.getAddress(),
       recipient,
-      reciepientSmartAccount.getAddress(),
+      recipientSmartAccount.getAddress(),
       senderBase,
       smartAccountBase.getAddress(),
       recipientBase,
-      reciepientSmartAccountBase.getAddress(),
+      recipientSmartAccountBase.getAddress(),
     ]);
     expect(addresses.every(Boolean)).toBeTruthy();
   });
@@ -453,41 +453,15 @@ describe("Account Tests", () => {
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
-      viemChain,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl,
-      rpcUrl: viemChain.rpcUrls.default.http[0],
     });
 
     expect(ecdsaOwnershipModule).toBe(smartAccount.activeValidationModule.getAddress());
   });
-  it("should fetch balances for smartAccount", async () => {
-
-  it("should get supported tokens from the paymaster", async () => {
-    const {
-      whale: { viemWallet: signer },
-      bundlerUrl,
-      biconomyPaymasterApiKey,
-    } = mumbai;
-
-    const smartAccount = await createSmartAccountClient({
-      signer,
-      biconomyPaymasterApiKey,
-      bundlerUrl,
-    });
-
-    const tokens = await smartAccount.getSupportedTokens();
-
-    expect(tokens.length).toBeGreaterThan(0);
-    expect(tokens[0]).toHaveProperty("tokenAddress");
-    expect(tokens[0]).toHaveProperty("symbol");
-    expect(tokens[0]).toHaveProperty("decimal");
-    expect(tokens[0]).toHaveProperty("premiumPercentage");
-    expect(tokens[0]).toHaveProperty("logoUrl");
-  }, 60000);
 
   it("should fetch balances for smartAccount", async () => {
     const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977";
@@ -580,7 +554,7 @@ describe("Account Tests", () => {
     const usdtBalanceOfSABefore = await checkBalance(publicClient, smartAccountAddress, usdt);
     const usdtBalanceOfRecipientBefore = await checkBalance(publicClient, smartAccountOwner, usdt);
 
-    const { wait } = await smartAccount.withdraw(smartAccountOwner, [{ address: usdt, amount: BigInt(1) }]);
+    const { wait } = await smartAccount.withdraw([{ address: usdt, amount: BigInt(1), recipient: smartAccountOwner }]);
 
     const {
       receipt: { transactionHash },
@@ -597,7 +571,7 @@ describe("Account Tests", () => {
 
     expect(usdtBalanceOfSAAfter - usdtBalanceOfSABefore).toBe(-1n);
     expect(usdtBalanceOfRecipientAfter - usdtBalanceOfRecipientBefore).toBe(1n);
-  }, 60000);
+  }, 15000);
 
   it("should gaslessly withdraw nativeToken", async () => {
     const {
@@ -617,7 +591,7 @@ describe("Account Tests", () => {
     const balanceOfSABefore = (await checkBalance(publicClient, smartAccountAddress)) as bigint;
     const balanceOfRecipientBefore = (await checkBalance(publicClient, smartAccountOwner)) as bigint;
 
-    const { wait } = await smartAccount.withdraw(smartAccountOwner, [{ address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) }], {
+    const { wait } = await smartAccount.withdraw([{ address: NATIVE_TOKEN_ALIAS, amount: BigInt(1), recipient: smartAccountAddress }], null, {
       paymasterServiceData: { mode: PaymasterMode.SPONSORED },
     });
 
@@ -636,7 +610,7 @@ describe("Account Tests", () => {
 
     expect(balanceOfSABefore - balanceOfSAAfter).toBe(1n);
     expect(balanceOfRecipientAfter - balanceOfRecipientBefore).toBe(1n);
-  }, 60000);
+  }, 12000);
 
   it("should withdraw nativeToken and an erc20 token", async () => {
     const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977";
@@ -661,11 +635,11 @@ describe("Account Tests", () => {
     const usdtBalanceOfRecipientBefore = await checkBalance(publicClient, smartAccountOwner, usdt);
 
     const { wait } = await smartAccount.withdraw(
-      smartAccountOwner,
       [
         { address: usdt, amount: BigInt(1) },
         { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) },
       ],
+      smartAccountOwner,
       {
         paymasterServiceData: { mode: PaymasterMode.SPONSORED },
       },
@@ -711,7 +685,7 @@ describe("Account Tests", () => {
     const balanceOfSABefore = (await checkBalance(publicClient, smartAccountAddress)) as bigint;
     const balanceOfRecipientBefore = (await checkBalance(publicClient, smartAccountOwner)) as bigint;
 
-    const { wait } = await smartAccount.withdraw(smartAccountOwner, undefined /* null or undefined or [] */, {
+    const { wait } = await smartAccount.withdraw([] /* null or undefined or [] */, smartAccountOwner, {
       paymasterServiceData: { mode: PaymasterMode.SPONSORED }, // Will leave no dust
     });
 
@@ -736,6 +710,29 @@ describe("Account Tests", () => {
     expect(teardownHash).toBeTruthy();
   }, 60000);
 
+  it("should error if no recipient exists", async () => {
+    const usdt: Hex = "0xda5289fcaaf71d52a80a254da614a192b693e977";
+
+    const {
+      whale: { viemWallet: signer, publicAddress: smartAccountOwner },
+      bundlerUrl,
+      biconomyPaymasterApiKey,
+    } = mumbai;
+
+    const smartAccount = await createSmartAccountClient({
+      signer,
+      biconomyPaymasterApiKey,
+      bundlerUrl,
+    });
+
+    const txs = [
+      { address: usdt, amount: BigInt(1), recipient: smartAccountOwner },
+      { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) },
+    ];
+
+    expect(async () => smartAccount.withdraw(txs)).rejects.toThrow(ERROR_MESSAGES.NO_RECIPIENT);
+  });
+
   it("should error when withdraw all of native token is attempted without an amount explicitly set", async () => {
     const {
       whale: { viemWallet: signer, publicAddress: smartAccountOwner },
@@ -749,6 +746,6 @@ describe("Account Tests", () => {
       bundlerUrl,
     });
 
-    expect(async () => smartAccount.withdraw(smartAccountOwner)).rejects.toThrow(ERROR_MESSAGES.NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT);
-  }, 60000);
+    expect(async () => smartAccount.withdraw(null, smartAccountOwner)).rejects.toThrow(ERROR_MESSAGES.NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT);
+  }, 6000);
 });

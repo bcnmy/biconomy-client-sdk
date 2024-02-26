@@ -5,6 +5,7 @@ import { Hex, encodeAbiParameters, encodeFunctionData, parseAbi, parseUnits } fr
 import { TestData } from "../../../tests";
 import { checkBalance } from "../../../tests/utils";
 import { PaymasterMode } from "@biconomy/paymaster";
+import { Logger } from "@biconomy/common";
 
 describe("Session Validation Module Tests", () => {
   let mumbai: TestData;
@@ -94,7 +95,7 @@ describe("Session Validation Module Tests", () => {
       txArray.push(enableModuleTrx);
       txArray.push(setSessionAllowedTrx);
     } else {
-      console.log("MODULE ALREADY ENABLED");
+      Logger.log("MODULE ALREADY ENABLED");
       txArray.push(setSessionAllowedTrx);
     }
 
@@ -102,7 +103,7 @@ describe("Session Validation Module Tests", () => {
 
     const userOpResponse1 = await smartAccount.sendUserOp(userOp);
     const transactionDetails = await userOpResponse1.wait();
-    console.log("Tx Hash: ", transactionDetails.receipt.transactionHash);
+    Logger.log("Tx Hash: ", transactionDetails.receipt.transactionHash);
 
     const encodedCall = encodeFunctionData({
       abi: parseAbi(["function transfer(address _to, uint256 _value)"]),
@@ -150,6 +151,6 @@ describe("Session Validation Module Tests", () => {
 
     expect(maticBalanceAfter).toEqual(maticBalanceBefore);
 
-    console.log(`Tx at: https://jiffyscan.xyz/userOpHash/${userOpResponse2.userOpHash}?network=mumbai`);
+    Logger.log(`Tx at: https://jiffyscan.xyz/userOpHash/${userOpResponse2.userOpHash}?network=mumbai`);
   }, 60000);
 });

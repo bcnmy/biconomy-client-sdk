@@ -44,6 +44,8 @@ export interface WithdrawalRequest {
   address: Hex;
   /** The amount to withdraw. Expects unformatted amount. Will use max amount if unset */
   amount?: bigint;
+  /** The destination address of the funds. The first argument from the `withdraw(...)` function will be used as the default if left unset. */
+  recipient?: Hex;
 }
 
 export interface GasOverheads {
