@@ -561,7 +561,7 @@ describe("Account Tests", () => {
     expect(async () => smartAccount.deploy()).rejects.toThrow(ERROR_MESSAGES.NO_NATIVE_TOKEN_BALANCE_DURING_DEPLOY);
   });
 
-  it("should fail to deploy a smart account if already deployed", async () => {
+  it("should get supported tokens from the paymaster", async () => {
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
@@ -584,7 +584,7 @@ describe("Account Tests", () => {
     expect(tokens[0]).toHaveProperty("logoUrl");
   }, 60000);
 
-  it("should get supported tokens from the paymaster", async () => {
+  it("should fail to deploy a smart account if already deployed", async () => {
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
