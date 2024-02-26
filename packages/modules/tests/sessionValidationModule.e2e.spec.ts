@@ -6,15 +6,13 @@ import { TestData } from "../../../tests";
 import { checkBalance } from "../../../tests/utils";
 import { PaymasterMode } from "@biconomy/paymaster";
 
-describe("Account Tests", () => {
+describe("Session Validation Module Tests", () => {
   let mumbai: TestData;
 
   beforeEach(() => {
     // @ts-ignore: Comes from setup-e2e-tests
     [mumbai] = testDataPerChain;
   });
-
-  const sessionFileStorage: SessionFileStorage = new SessionFileStorage(DEFAULT_SESSION_KEY_MANAGER_MODULE);
 
   it("Should send a user op using Session Validation Module", async () => {
     let sessionSigner: WalletClientSigner;
@@ -23,6 +21,7 @@ describe("Account Tests", () => {
       whale: {
         account: { address: sessionKeyEOA },
         privateKey: pvKey,
+        viemWallet,
       },
       minnow: { publicAddress: recipient },
       publicClient,
@@ -31,6 +30,17 @@ describe("Account Tests", () => {
       biconomyPaymasterApiKey,
     } = mumbai;
 
+    // Create smart account
+    let smartAccount = await createSmartAccountClient({
+      chainId,
+      signer: viemWallet,
+      bundlerUrl,
+      biconomyPaymasterApiKey,
+      index: 1, // Increasing index to not conflict with other test cases and use a new smart account
+    });
+
+    const sessionFileStorage: SessionFileStorage = new SessionFileStorage(await smartAccount.getAccountAddress());
+
     try {
       sessionSigner = await sessionFileStorage.getSignerByKey(sessionKeyEOA);
     } catch (error) {
@@ -38,15 +48,6 @@ describe("Account Tests", () => {
     }
 
     expect(sessionSigner).toBeTruthy();
-
-    // Create smart account
-    let smartAccount = await createSmartAccountClient({
-      chainId,
-      signer: sessionSigner,
-      bundlerUrl,
-      biconomyPaymasterApiKey,
-      index: 1, // Increasing index to not conflict with other test cases and use a new smart account
-    });
 
     // Create session module
     const sessionModule = await createSessionKeyManagerModule({

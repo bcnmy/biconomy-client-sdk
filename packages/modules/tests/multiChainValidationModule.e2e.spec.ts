@@ -4,7 +4,7 @@ import { createSmartAccountClient } from "../../account/src/index";
 import { Hex, encodeFunctionData, parseAbi } from "viem";
 import { DEFAULT_MULTICHAIN_MODULE, MultiChainValidationModule } from "@biconomy/modules";
 
-describe("Account with MultiChainValidation Module Tests", () => {
+describe("MultiChainValidation Module Tests", () => {
   let mumbai: TestData;
   let baseSepolia: TestData;
 
@@ -54,6 +54,16 @@ describe("Account with MultiChainValidation Module Tests", () => {
       }),
     ]);
 
+    const moduleEnabled1 = await polygonAccount.isModuleEnabled(DEFAULT_MULTICHAIN_MODULE);
+    const moduleActive1 = polygonAccount.activeValidationModule;
+    expect(moduleEnabled1).toBeTruthy();
+    expect(moduleActive1.getAddress()).toBe(DEFAULT_MULTICHAIN_MODULE);
+
+    const moduleEnabled2 = await baseAccount.isModuleEnabled(DEFAULT_MULTICHAIN_MODULE);
+    const moduleActive2 = polygonAccount.activeValidationModule;
+    expect(moduleEnabled2).toBeTruthy();
+    expect(moduleActive2.getAddress()).toBe(DEFAULT_MULTICHAIN_MODULE);
+
     const encodedCall = encodeFunctionData({
       abi: parseAbi(["function safeMint(address owner) view returns (uint balance)"]),
       functionName: "safeMint",
@@ -88,5 +98,11 @@ describe("Account with MultiChainValidation Module Tests", () => {
 
     expect(userOpResponse1.userOpHash).toBeTruthy();
     expect(userOpResponse2.userOpHash).toBeTruthy();
-  }, 30000);
+
+    const { success: success1 } = await userOpResponse1.wait();
+    const { success: success2 } = await userOpResponse2.wait();
+
+    expect(success1).toBe("true");
+    expect(success2).toBe("true");
+  }, 50000);
 });
