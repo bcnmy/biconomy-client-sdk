@@ -45,3 +45,8 @@ export const addressEquals = (a?: string, b?: string): boolean => !!a && !!b && 
 export const isNullOrUndefined = (value: any): value is undefined => {
   return value === null || value === undefined;
 };
+
+export const isValidRpcUrl = (url: string): boolean => {
+  const regex = /^(https:\/\/|wss:\/\/).*/;
+  return regex.test(url);
+};

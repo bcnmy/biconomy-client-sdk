@@ -132,7 +132,7 @@ export type BiconomySmartAccountV2ConfigBaseProps = {
   implementationAddress?: Hex;
   /** defaultFallbackHandler: override the default fallback contract address */
   defaultFallbackHandler?: Hex;
-  /** rpcUrl: Explicitly set the rpc else it is pulled out of the signer. */
+  /** rpcUrl: Rpc url, optional, we set default rpc url if not passed. */
   rpcUrl?: string; // as good as Provider
   /** biconomyPaymasterApiKey: The API key retrieved from the Biconomy dashboard */
   biconomyPaymasterApiKey?: string;
@@ -297,3 +297,5 @@ export type ValueOrData = RequireAtLeastOne<
 export type Transaction = {
   to: string;
 } & ValueOrData;
+
+export type SupportedToken = Omit<PaymasterFeeQuote, "maxGasFeeUSD" | "usdPayment" | "maxGasFee" | "validUntil">;
