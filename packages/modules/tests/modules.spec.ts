@@ -14,11 +14,12 @@ describe("Account Tests", () => {
     const {
       bundlerUrl,
       whale: { ethersSigner: signer },
+      viemChain,
     } = ganache;
 
     const defaultValidationModule = await createMultiChainValidationModule({ signer });
     // Should not require a signer or chainId
-    const smartAccount = await createSmartAccountClient({ bundlerUrl, defaultValidationModule });
+    const smartAccount = await createSmartAccountClient({ bundlerUrl, defaultValidationModule, rpcUrl: viemChain.rpcUrls.default.http[0], });
     const address = await smartAccount.getAccountAddress();
     expect(address).toBeTruthy();
     // expect the relevant module to be set
@@ -29,6 +30,7 @@ describe("Account Tests", () => {
     const {
       bundlerUrl,
       whale: { viemWallet: signer },
+      viemChain,
     } = ganache;
 
     const defaultValidationModule = await createECDSAOwnershipValidationModule({ signer });
@@ -36,6 +38,7 @@ describe("Account Tests", () => {
     const smartAccount = await createSmartAccountClient({
       bundlerUrl,
       defaultValidationModule,
+      rpcUrl: viemChain.rpcUrls.default.http[0],
     });
     const address = await smartAccount.getAccountAddress();
     expect(address).toBeTruthy();

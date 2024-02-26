@@ -44,7 +44,7 @@ describe("Account Tests", () => {
 
     const reciepientSmartAccountBase = await createSmartAccountClient({
       signer: recipientSignerBase,
-      bundlerUrl,
+      bundlerUrl: bundlerUrlBase,
     });
 
     const addresses = await Promise.all([
@@ -454,11 +454,13 @@ describe("Account Tests", () => {
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
+      viemChain,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl,
+      rpcUrl: viemChain.rpcUrls.default.http[0],
     });
 
     expect(ecdsaOwnershipModule).toBe(smartAccount.activeValidationModule.getAddress());

@@ -26,7 +26,7 @@ import {
   BatchUserOperationCallData,
   SmartAccountSigner,
 } from "@alchemy/aa-core";
-import { isNullOrUndefined, packUserOp } from "./utils/Utils.js";
+import { isNullOrUndefined, isValidRpcUrl, packUserOp } from "./utils/Utils.js";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, createECDSAOwnershipValidationModule } from "@biconomy/modules";
 import {
   IHybridPaymaster,
@@ -197,17 +197,29 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    */
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
     let chainId = biconomySmartAccountConfig.chainId;
-    let resolvedSmartAccountSigner!: SmartAccountSigner;
     let rpcUrl = biconomySmartAccountConfig.rpcUrl;
+    let resolvedSmartAccountSigner!: SmartAccountSigner;
 
     // Signer needs to be initialised here before defaultValidationModule is set
     if (biconomySmartAccountConfig.signer) {
       const signerResult = await convertSigner(biconomySmartAccountConfig.signer, !!chainId);
       if (!chainId && !!signerResult.chainId) {
+        let chainIdFromBundler: number | undefined;
+        if (biconomySmartAccountConfig.bundlerUrl) {
+          chainIdFromBundler = extractChainIdFromBundlerUrl(biconomySmartAccountConfig.bundlerUrl);
+        } else if (biconomySmartAccountConfig.bundler) {
+          const bundlerUrlFromBundler = biconomySmartAccountConfig.bundler.getBundlerUrl();
+          chainIdFromBundler = extractChainIdFromBundlerUrl(bundlerUrlFromBundler);
+        }
+        if (chainIdFromBundler !== signerResult.chainId) {
+          throw new Error("ChainId from bundler and signer do not match");
+        }
         chainId = signerResult.chainId;
       }
       if (!rpcUrl && !!signerResult.rpcUrl) {
-        rpcUrl = signerResult.rpcUrl;
+        if (isValidRpcUrl(signerResult.rpcUrl)) {
+          rpcUrl = signerResult.rpcUrl;
+        }
       }
       resolvedSmartAccountSigner = signerResult.signer;
     }
