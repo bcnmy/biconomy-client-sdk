@@ -24,7 +24,7 @@ import {
   BatchUserOperationCallData,
   SmartAccountSigner,
 } from "@alchemy/aa-core";
-import { isNullOrUndefined, packUserOp } from "./utils/Utils.js";
+import { isNullOrUndefined, isValidRpcUrl, packUserOp } from "./utils/Utils.js";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, createECDSAOwnershipValidationModule } from "@biconomy/modules";
 import {
   IHybridPaymaster,
@@ -180,6 +180,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    */
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
     let chainId = biconomySmartAccountConfig.chainId;
+    let rpcUrl = biconomySmartAccountConfig.rpcUrl;
     let resolvedSmartAccountSigner!: SmartAccountSigner;
 
     // Signer needs to be initialised here before defaultValidationModule is set
@@ -197,6 +198,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
           throw new Error("ChainId from bundler and signer do not match");
         }
         chainId = signerResult.chainId;
+      }
+      if (!rpcUrl && !!signerResult.rpcUrl) {
+        if (isValidRpcUrl(signerResult.rpcUrl)) {
+          rpcUrl = signerResult.rpcUrl;
+        }
       }
       resolvedSmartAccountSigner = signerResult.signer;
     }
@@ -234,6 +240,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       chainId,
       bundler,
       signer: resolvedSmartAccountSigner,
+      rpcUrl,
     };
 
     return new BiconomySmartAccountV2(config);

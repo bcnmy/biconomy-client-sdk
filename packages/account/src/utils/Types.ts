@@ -112,8 +112,8 @@ export type BiconomySmartAccountV2ConfigBaseProps = {
   implementationAddress?: Hex;
   /** defaultFallbackHandler: override the default fallback contract address */
   defaultFallbackHandler?: Hex;
-  /** rpcUrl: Rpc url, required for all cases. */
-  rpcUrl: string; // as good as Provider
+  /** rpcUrl: Rpc url, optional, we set default rpc url if not passed. */
+  rpcUrl?: string; // as good as Provider
   /** biconomyPaymasterApiKey: The API key retrieved from the Biconomy dashboard */
   biconomyPaymasterApiKey?: string;
   /** activeValidationModule: The active validation module. Will default to the defaultValidationModule */

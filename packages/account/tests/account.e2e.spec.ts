@@ -30,25 +30,21 @@ describe("Account Tests", () => {
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl,
-      rpcUrl: mumbai.viemChain.rpcUrls.default.http[0],
     });
 
     const reciepientSmartAccount = await createSmartAccountClient({
       signer: recipientSigner,
       bundlerUrl,
-      rpcUrl: mumbai.viemChain.rpcUrls.default.http[0],
     });
 
     const smartAccountBase = await createSmartAccountClient({
       signer: signerBase,
       bundlerUrl: bundlerUrlBase,
-      rpcUrl: baseSepolia.viemChain.rpcUrls.default.http[0],
     });
 
     const reciepientSmartAccountBase = await createSmartAccountClient({
       signer: recipientSignerBase,
       bundlerUrl: bundlerUrlBase,
-      rpcUrl: baseSepolia.viemChain.rpcUrls.default.http[0],
     });
 
     const addresses = await Promise.all([
@@ -75,7 +71,6 @@ describe("Account Tests", () => {
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl,
-      rpcUrl: mumbai.viemChain.rpcUrls.default.http[0],
     });
 
     const balance = (await checkBalance(publicClient, recipient)) as bigint;
@@ -102,14 +97,12 @@ describe("Account Tests", () => {
       whale: { viemWallet: signer },
       bundlerUrl,
       biconomyPaymasterApiKey,
-      viemChain,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
       signer,
       biconomyPaymasterApiKey,
       bundlerUrl,
-      rpcUrl: viemChain.rpcUrls.default.http[0],
     });
 
     const paymaster = smartAccount.paymaster;
@@ -124,14 +117,12 @@ describe("Account Tests", () => {
       bundlerUrl,
       biconomyPaymasterApiKey,
       publicClient,
-      viemChain,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl,
       biconomyPaymasterApiKey,
-      rpcUrl: viemChain.rpcUrls.default.http[0],
     });
 
     const encodedCall = encodeFunctionData({
@@ -174,14 +165,12 @@ describe("Account Tests", () => {
       bundlerUrl,
       publicClient,
       biconomyPaymasterApiKey,
-      viemChain,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl,
       biconomyPaymasterApiKey,
-      rpcUrl: viemChain.rpcUrls.default.http[0],
     });
 
     const encodedCall = encodeFunctionData({
@@ -232,14 +221,12 @@ describe("Account Tests", () => {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
       biconomyPaymasterApiKey,
-      viemChain,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl,
       biconomyPaymasterApiKey,
-      rpcUrl: viemChain.rpcUrls.default.http[0],
     });
 
     const encodedCall = encodeFunctionData({
@@ -265,14 +252,12 @@ describe("Account Tests", () => {
       bundlerUrl,
       biconomyPaymasterApiKey,
       publicClient,
-      viemChain,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl,
       biconomyPaymasterApiKey,
-      rpcUrl: viemChain.rpcUrls.default.http[0],
     });
 
     const smartAccountAddress = await smartAccount.getAddress();
@@ -358,14 +343,12 @@ describe("Account Tests", () => {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
       biconomyPaymasterApiKey,
-      viemChain,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl,
       biconomyPaymasterApiKey,
-      rpcUrl: viemChain.rpcUrls.default.http[0],
     });
 
     const encodedCall = encodeFunctionData({
@@ -404,14 +387,12 @@ describe("Account Tests", () => {
       entryPointAddress,
       publicClient,
       biconomyPaymasterApiKey,
-      viemChain,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
       signer,
       biconomyPaymasterApiKey,
       bundlerUrl,
-      rpcUrl: viemChain.rpcUrls.default.http[0],
     });
 
     const userOp: UserOperationStruct = {
@@ -446,14 +427,12 @@ describe("Account Tests", () => {
       bundlerUrl,
       publicClient,
       biconomyPaymasterApiKey,
-      viemChain,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
       signer,
       biconomyPaymasterApiKey,
       bundlerUrl,
-      rpcUrl: viemChain.rpcUrls.default.http[0],
     });
 
     const accountAddress = await smartAccount.getAccountAddress();

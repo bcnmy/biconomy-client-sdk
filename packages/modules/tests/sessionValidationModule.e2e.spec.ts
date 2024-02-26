@@ -29,7 +29,6 @@ describe("Account Tests", () => {
       chainId,
       bundlerUrl,
       biconomyPaymasterApiKey,
-      viemChain,
     } = mumbai;
 
     try {
@@ -47,7 +46,6 @@ describe("Account Tests", () => {
       bundlerUrl,
       biconomyPaymasterApiKey,
       index: 1, // Increasing index to not conflict with other test cases and use a new smart account
-      rpcUrl: viemChain.rpcUrls.default.http[0],
     });
 
     // Create session module
