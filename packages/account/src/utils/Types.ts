@@ -26,6 +26,19 @@ export type SmartAccountConfig = {
   bundler?: IBundler;
 };
 
+export interface BalancePayload {
+  /** address: The address of the account */
+  address: string;
+  /** chainId: The chainId of the network */
+  chainId: number;
+  /** amount: The amount of the balance */
+  amount: bigint;
+  /** decimals: The number of decimals */
+  decimals: number;
+  /** formattedAmount: The amount of the balance formatted */
+  formattedAmount: string;
+}
+
 export interface GasOverheads {
   /** fixed: fixed gas overhead */
   fixed: number;
