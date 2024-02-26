@@ -64,7 +64,7 @@ import { BiconomyFactoryAbi } from "./abi/Factory.js";
 import { BiconomyAccountAbi } from "./abi/SmartAccount.js";
 import { AccountResolverAbi } from "./abi/AccountResolver.js";
 import { Logger } from "@biconomy/common";
-import { /*BiconomyPaymaster,*/ FeeQuotesOrDataDto, FeeQuotesOrDataResponse } from "@biconomy/paymaster";
+import { /*BiconomyPaymaster,*/ BiconomyPaymaster, FeeQuotesOrDataDto, FeeQuotesOrDataResponse } from "@biconomy/paymaster";
 
 type UserOperationKey = keyof UserOperationStruct;
 
@@ -905,49 +905,27 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     // for this Smart Account current validation module dummy signature will be used to estimate gas
     userOp.signature = signature;
 
-    // try {
-    //   if (
-    //     buildUseropDto?.paymasterServiceData &&
-    //     buildUseropDto?.paymasterServiceData.mode === PaymasterMode.SPONSORED &&
-    //     this.paymaster instanceof BiconomyPaymaster
-    //   ) {
-    //     const gasFeeValues = await this.bundler?.getGasFeeValues();
+    if (
+      buildUseropDto?.paymasterServiceData &&
+      buildUseropDto?.paymasterServiceData.mode === PaymasterMode.SPONSORED &&
+      this.paymaster instanceof BiconomyPaymaster
+    ) {
+      const gasFeeValues = await this.bundler?.getGasFeeValues();
 
-    //     console.log("gasFeeValues", gasFeeValues);
+      // populate gasfee values and make a call to paymaster
+      userOp.maxFeePerGas = gasFeeValues?.maxFeePerGas as Hex;
+      userOp.maxPriorityFeePerGas = gasFeeValues?.maxPriorityFeePerGas as Hex;
 
-    //     // populate gasfee values and make a call to paymaster
-
-    //     // userOp.maxFeePerGas = gasFeeValues?.maxFeePerGas;
-    //     //userOp.maxPriorityFeePerGas = gasFeeValues?.maxPriorityFeePerGas;
-
-    //     userOp = await this.getPaymasterUserOp(userOp, buildUseropDto.paymasterServiceData);
-    //     return userOp;
-    //   } else {
-    //     userOp = await this.estimateUserOpGas(userOp);
-
-    //     if (buildUseropDto?.paymasterServiceData) {
-    //       userOp = await this.getPaymasterUserOp(userOp, buildUseropDto.paymasterServiceData);
-    //     }
-
-    //     return userOp;
-    //   }
-    // } catch (err) {
-    //   userOp = await this.estimateUserOpGas(userOp);
-    //   if (buildUseropDto?.paymasterServiceData) {
-    //     userOp = await this.getPaymasterUserOp(userOp, buildUseropDto.paymasterServiceData);
-    //   }
-    //   return userOp;
-    // }
-
-    userOp = await this.estimateUserOpGas(userOp);
-
-    if (buildUseropDto?.paymasterServiceData) {
       userOp = await this.getPaymasterUserOp(userOp, buildUseropDto.paymasterServiceData);
+      return userOp;
+    } else {
+      userOp = await this.estimateUserOpGas(userOp);
+
+      if (buildUseropDto?.paymasterServiceData) {
+        userOp = await this.getPaymasterUserOp(userOp, buildUseropDto.paymasterServiceData);
+      }
+      return userOp;
     }
-
-    Logger.log("UserOp after estimation ", userOp);
-
-    return userOp;
   }
 
   private validateUserOpAndPaymasterRequest(userOp: Partial<UserOperationStruct>, tokenPaymasterRequest: BiconomyTokenPaymasterRequest): void {
