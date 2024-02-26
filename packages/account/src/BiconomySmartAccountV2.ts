@@ -53,6 +53,7 @@ import {
   PaymasterUserOperationDto,
   SimulationType,
   BalancePayload,
+  SupportedToken,
 } from "./utils/Types.js";
 import {
   ADDRESS_RESOLVER_ADDRESS,
@@ -712,6 +713,51 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const userOp = await this.buildUserOp(txs, buildUseropDto);
     if (!buildUseropDto.paymasterServiceData) throw new Error("paymasterServiceData was not provided");
     return this.getPaymasterFeeQuotesOrData(userOp, buildUseropDto.paymasterServiceData);
+  }
+
+  /**
+   *
+   * @description This function will return an array of supported tokens from the erc20 paymaster associated with the Smart Account
+   * @returns Promise<{@link SupportedToken}>
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartAccountClient } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonMumbai } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonMumbai,
+   *   transport: http(),
+   * });
+   *
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, biconomyPaymasterApiKey }); // Retrieve bundler url from dasboard
+   * const tokens = await smartAccount.getSupportedTokens();
+   *
+   * // [
+   * //   {
+   * //     symbol: "USDC",
+   * //     tokenAddress: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+   * //     decimal: 6,
+   * //     logoUrl: "https://assets.coingecko.com/coins/images/279/large/usd-coin.png?1595353707",
+   * //     premiumPercentage: 0.1,
+   * //   }
+   * // ]
+   *
+   */
+  public async getSupportedTokens(): Promise<SupportedToken[]> {
+    const feeQuotesResponse = await this.getTokenFees(
+      {
+        data: "0x",
+        value: BigInt(0),
+        to: await this.getAccountAddress(),
+      },
+      {
+        paymasterServiceData: { mode: PaymasterMode.ERC20 },
+      },
+    );
+    return (feeQuotesResponse?.feeQuotes ?? []).map(({ maxGasFee: _, maxGasFeeUSD: __, validUntil: ___, usdPayment: ____, ...rest }) => rest);
   }
 
   /**

@@ -290,3 +290,5 @@ export type ValueOrData = RequireAtLeastOne<
 export type Transaction = {
   to: string;
 } & ValueOrData;
+
+export type SupportedToken = Omit<PaymasterFeeQuote, "maxGasFeeUSD" | "usdPayment" | "maxGasFee" | "validUntil">;
