@@ -39,6 +39,13 @@ export interface BalancePayload {
   formattedAmount: string;
 }
 
+export interface WithdrawalRequest {
+  /** The address of the tokenAddress */
+  address: Hex;
+  /** The amount to withdraw. Expects unformatted amount. Will use max amount if unset */
+  amount?: bigint;
+}
+
 export interface GasOverheads {
   /** fixed: fixed gas overhead */
   fixed: number;

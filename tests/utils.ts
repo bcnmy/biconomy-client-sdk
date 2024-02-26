@@ -1,17 +1,16 @@
 import { Hex, PublicClient, parseAbi } from "viem";
 
-export const checkBalance = (publicClient: PublicClient, address: Hex, tokenAddress?: Hex) => {
+export const checkBalance = (publicClient: PublicClient, address: Hex, tokenAddress?: Hex): Promise<bigint> => {
   if (!tokenAddress) {
     return publicClient.getBalance({ address });
-  } else {
-    return publicClient.readContract({
-      address: tokenAddress,
-      abi: parseAbi(["function balanceOf(address owner) view returns (uint balance)"]),
-      functionName: "balanceOf",
-      // @ts-ignore
-      args: [address],
-    });
   }
+  return publicClient.readContract({
+    address: tokenAddress,
+    abi: parseAbi(["function balanceOf(address owner) view returns (uint balance)"]),
+    functionName: "balanceOf",
+    // @ts-ignore
+    args: [address],
+  });
 };
 
 // TODO(Joe): Make human readable

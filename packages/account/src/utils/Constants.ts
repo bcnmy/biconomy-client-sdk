@@ -61,9 +61,10 @@ export const ERROR_MESSAGES = {
   SPENDER_REQUIRED: "spender is required for ERC20 mode",
   NO_FEE_QUOTE: "FeeQuote was not provided, please call smartAccount.getTokenFees() to get feeQuote",
   FAILED_FEE_QUOTE_FETCH: "Failed to fetch fee quote",
+  NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT: "'Amount' is required for withdrawal of native token without using a paymaster",
 };
 
-export const NATIVE_TOKEN_ALIAS = "0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE";
+export const NATIVE_TOKEN_ALIAS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 export const ERC20_ABI = [
   "function transfer(address to, uint256 value) external returns (bool)",
   "function transferFrom(address from, address to, uint256 value) external returns (bool)",

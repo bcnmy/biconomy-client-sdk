@@ -26,7 +26,7 @@ import {
   BatchUserOperationCallData,
   SmartAccountSigner,
 } from "@alchemy/aa-core";
-import { isNullOrUndefined, packUserOp } from "./utils/Utils.js";
+import { addressEquals, isNullOrUndefined, packUserOp } from "./utils/Utils.js";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, createECDSAOwnershipValidationModule } from "@biconomy/modules";
 import {
   IHybridPaymaster,
@@ -53,6 +53,7 @@ import {
   PaymasterUserOperationDto,
   SimulationType,
   BalancePayload,
+  WithdrawalRequest,
 } from "./utils/Types.js";
 import {
   ADDRESS_RESOLVER_ADDRESS,
@@ -258,12 +259,104 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   /**
+   * Transfers funds from Smart Account to recipient (usually EOA)
+   * @param recipient - Address of the recipient
+   * @param withdrawalRequests - Array of withdrawal requests {@link WithdrawalRequest}. If withdrawal request is an empty array, it will transfer the balance of the native token. Using a paymaster will ensure no dust remains in the smart account.
+   * @param buildUseropDto - Optional. {@link BuildUserOpOptions}
+   *
+   * @returns Promise<UserOpResponse> - An object containing the status of the transaction.
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartAccountClient, NATIVE_TOKEN_ALIAS } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonMumbai } from "viem/chains";
+   *
+   * const USDT = "0xda5289fcaaf71d52a80a254da614a192b693e977";
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonMumbai,
+   *   transport: http(),
+   * });
+   *
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, biconomyPaymasterApiKey });
+   *
+   * const { wait } = await smartAccount.withdraw(
+   *  account.pubKey, // recipient
+   *  [
+   *    { address: USDT, amount: BigInt(1) },
+   *    { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) }
+   *  ],
+   *  {
+   *    paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+   *  }
+   * );
+   *
+   * // OR to withdraw all of the native token, leaving no dust in the smart account
+   *
+   * const { wait } = await smartAccount.withdraw(account.pubKey, [], {
+   *  paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+   * });
+   *
+   * const { success } = await wait();
+   */
+  public async withdraw(
+    recipient: Hex,
+    withdrawalRequests?: WithdrawalRequest[] | null,
+    buildUseropDto?: BuildUserOpOptions,
+  ): Promise<UserOpResponse> {
+    const accountAddress = this.accountAddress ?? (await this.getAccountAddress());
+
+    // Remove the native token from the withdrawal requests
+    let tokenRequests = withdrawalRequests?.filter(({ address }) => !addressEquals(address, NATIVE_TOKEN_ALIAS)) ?? [];
+
+    // Check if the amount is not present in all withdrawal requests
+    const shouldFetchMaxBalances = tokenRequests.some(({ amount }) => !amount);
+
+    // Get the balances of the tokens if the amount is not present in the withdrawal requests
+    if (shouldFetchMaxBalances) {
+      const balances = await this.getBalances(tokenRequests.map(({ address }) => address));
+      tokenRequests = tokenRequests.map(({ amount, address }, i) => ({ address, amount: amount ?? balances[i].amount }));
+    }
+
+    // Create the transactions
+    const txs: Transaction[] = tokenRequests.map(({ address, amount }) => ({
+      to: address,
+      data: encodeFunctionData({
+        abi: parseAbi(ERC20_ABI),
+        functionName: "transfer",
+        args: [recipient, amount],
+      }),
+    }));
+
+    // Check if eth alias is present in the original withdrawal requests
+    const nativeTokenRequest = withdrawalRequests?.find(({ address }) => addressEquals(address, NATIVE_TOKEN_ALIAS));
+    const hasNoRequests = !withdrawalRequests?.length;
+    if (!!nativeTokenRequest || hasNoRequests) {
+      // Check that an amount is present in the withdrawal request, if no paymaster service data is present, as max amounts cannot be calculated without a paymaster.
+      if (!nativeTokenRequest?.amount && !buildUseropDto?.paymasterServiceData?.mode) {
+        throw new Error(ERROR_MESSAGES.NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT);
+      }
+
+      // get eth balance if not present in withdrawal requests
+      const nativeTokenAmountToWithdraw = nativeTokenRequest?.amount ?? (await this.provider.getBalance({ address: accountAddress }));
+
+      txs.push({
+        to: recipient,
+        value: nativeTokenAmountToWithdraw,
+      });
+    }
+
+    return this.sendTransaction(txs, buildUseropDto);
+  }
+
+  /**
    * Returns token balances of Smart Account
    *
    * This method will fetch the token balances of the smartAccount instance.
-   * If left empty, it will return the balance of the native token, with the address set to 0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE.
+   * The balance of the native token will always be returned as the last element in the reponse array, with the address set to 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE.
    *
-   * @param tokenAddresses - Optional. Array of token addresses to fetch the balances of.
+   * @param addresses - Optional. Array of asset addresses to fetch the balances of.
    * @returns Promise<Array<BalancePayload>> - An array of token balances (or native token balance) of the smartAccount instance.
    * @throws An error if something is wrong with the smart account instance creation.
    *
@@ -292,40 +385,47 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * // }
    *
    */
-  public async getBalances(tokenAddresses: Array<Hex>): Promise<Array<BalancePayload>> {
+  public async getBalances(addresses?: Array<Hex>): Promise<Array<BalancePayload>> {
     const accountAddress = this.accountAddress ?? (await this.getAccountAddress());
+    const result: BalancePayload[] = [];
 
-    if (!tokenAddresses) {
-      const balance = await this.provider.getBalance({ address: accountAddress });
-      return [
-        {
-          amount: balance,
-          decimals: 18,
-          address: NATIVE_TOKEN_ALIAS,
-          formattedAmount: formatUnits(balance, 18),
+    if (addresses) {
+      const tokenContracts = addresses
+        .filter((address) => !addressEquals(address, NATIVE_TOKEN_ALIAS))
+        .map((address) =>
+          getContract({
+            address,
+            abi: parseAbi(ERC20_ABI),
+            client: this.provider,
+          }),
+        );
+
+      const balancePromises = tokenContracts.map((tokenContract) => tokenContract.read.balanceOf([accountAddress])) as Promise<bigint>[];
+      const decimalsPromises = tokenContracts.map((tokenContract) => tokenContract.read.decimals()) as Promise<number>[];
+      const [balances, decimalsPerToken] = await Promise.all([Promise.all(balancePromises), Promise.all(decimalsPromises)]);
+
+      balances.forEach((amount, index) =>
+        result.push({
+          amount,
+          decimals: decimalsPerToken[index],
+          address: addresses[index],
+          formattedAmount: formatUnits(amount, decimalsPerToken[index]),
           chainId: this.chainId,
-        },
-      ];
+        }),
+      );
     }
-    const tokenContracts = tokenAddresses.map((address) =>
-      getContract({
-        address,
-        abi: parseAbi(ERC20_ABI),
-        client: this.provider,
-      }),
-    );
 
-    const balancePromises = tokenContracts.map((tokenContract) => tokenContract.read.balanceOf([accountAddress])) as Promise<bigint>[];
-    const decimalsPromises = tokenContracts.map((tokenContract) => tokenContract.read.decimals()) as Promise<number>[];
-    const [balances, decimalsPerToken] = await Promise.all([Promise.all(balancePromises), Promise.all(decimalsPromises)]);
+    const balance = await this.provider.getBalance({ address: accountAddress });
 
-    return balances.map((amount, index) => ({
-      amount,
-      decimals: decimalsPerToken[index],
-      address: tokenAddresses[index],
-      formattedAmount: formatUnits(amount, decimalsPerToken[index]),
+    result.push({
+      amount: balance,
+      decimals: 18,
+      address: NATIVE_TOKEN_ALIAS,
+      formattedAmount: formatUnits(balance, 18),
       chainId: this.chainId,
-    }));
+    });
+
+    return result;
   }
 
   /**
