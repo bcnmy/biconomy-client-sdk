@@ -1,10 +1,10 @@
 import { localhost, Chain } from "viem/chains";
-import { polygonMumbai, baseGoerli } from "viem/chains";
+import { polygonMumbai, baseSepolia } from "viem/chains";
 import { config } from "dotenv";
 
 config();
 
-export type SupportedTestChain = "ganache" | "baseGoerli" | "mumbai";
+export type SupportedTestChain = "ganache" | "baseSepolia" | "mumbai";
 type BaseChainConfig = {
   chainId: number;
   entryPointAddress: string;
@@ -20,12 +20,12 @@ export const CHAIN_CONFIG: Record<SupportedTestChain, BaseChainConfig> = {
     bundlerUrl: "https://bundler.biconomy.io/api/v2/1/cJPK7B3ru.dd7f7861-190d-45ic-af80-6877f74b8f44",
     viemChain: localhost,
   },
-  baseGoerli: {
-    chainId: 84531,
+  baseSepolia: {
+    chainId: 84532,
     entryPointAddress: "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789",
-    bundlerUrl: "https://bundler.biconomy.io/api/v2/84531/cJPK7B3ru.dd7f7861-190d-45ic-af80-6877f74b8f44",
-    paymasterUrl: "https://paymaster.biconomy.io/api/v1/84531/" + process.env.E2E_BICO_PAYMASTER_KEY_BASE!,
-    viemChain: baseGoerli,
+    bundlerUrl: "https://bundler.biconomy.io/api/v2/84532/cJPK7B3ru.dd7f7861-190d-45ic-af80-6877f74b8f44",
+    paymasterUrl: "https://paymaster.biconomy.io/api/v1/84532/" + process.env.E2E_BICO_PAYMASTER_KEY_BASE!,
+    viemChain: baseSepolia,
     biconomyPaymasterApiKey: process.env.E2E_BICO_PAYMASTER_KEY_BASE!,
   },
   mumbai: {
@@ -37,7 +37,7 @@ export const CHAIN_CONFIG: Record<SupportedTestChain, BaseChainConfig> = {
     biconomyPaymasterApiKey: process.env.E2E_BICO_PAYMASTER_KEY_MUMBAI!,
   },
 };
-export const E2E_TEST_CHAINS = [CHAIN_CONFIG.mumbai, CHAIN_CONFIG.baseGoerli];
+export const E2E_TEST_CHAINS = [CHAIN_CONFIG.mumbai, CHAIN_CONFIG.baseSepolia];
 export const UNIT_TEST_CHAIN = CHAIN_CONFIG.ganache;
 
 export default CHAIN_CONFIG;

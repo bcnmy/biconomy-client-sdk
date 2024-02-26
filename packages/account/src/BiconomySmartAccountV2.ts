@@ -13,7 +13,6 @@ import {
   http,
   concatHex,
   GetContractReturnType,
-  Chain,
   getContract,
   decodeFunctionData,
 } from "viem";
@@ -82,7 +81,18 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   bundler?: IBundler;
 
-  private accountContract?: GetContractReturnType<typeof BiconomyAccountAbi, PublicClient, Chain>;
+  /**
+   * @class
+   * @ignore
+   */
+  private accountContract?: GetContractReturnType<typeof BiconomyAccountAbi, PublicClient>;
+
+  /**
+   * @class
+   * @ignore
+   */
+  // @ts-ignore
+  protected entryPoint: BaseSmartContractAccount["entryPoint"];
 
   private defaultFallbackHandlerAddress: Hex;
 
@@ -102,7 +112,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     super({
       ...biconomySmartAccountConfig,
       chain: getChain(biconomySmartAccountConfig.chainId),
-      rpcClient: biconomySmartAccountConfig.rpcUrl || getChain(biconomySmartAccountConfig.chainId).rpcUrls.public.http[0],
+      rpcClient: biconomySmartAccountConfig.rpcUrl || getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0],
       entryPointAddress: (biconomySmartAccountConfig.entryPointAddress as Hex) ?? DEFAULT_ENTRYPOINT_ADDRESS,
       accountAddress: (biconomySmartAccountConfig.accountAddress as Hex) ?? undefined,
       factoryAddress: biconomySmartAccountConfig.factoryAddress ?? DEFAULT_BICONOMY_FACTORY_ADDRESS,
@@ -139,7 +149,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     this.provider = createPublicClient({
       chain: getChain(biconomySmartAccountConfig.chainId),
-      transport: http(biconomySmartAccountConfig.rpcUrl || getChain(biconomySmartAccountConfig.chainId).rpcUrls.public.http[0]),
+      transport: http(biconomySmartAccountConfig.rpcUrl || getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0]),
     });
 
     this.scanForUpgradedAccountsFromV1 = biconomySmartAccountConfig.scanForUpgradedAccountsFromV1 ?? false;
@@ -314,12 +324,16 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
   }
 
-  async _getAccountContract(): Promise<GetContractReturnType<typeof BiconomyAccountAbi, PublicClient, Chain>> {
+  /**
+   * @class
+   * @ignore
+   */
+  async _getAccountContract(): Promise<GetContractReturnType<typeof BiconomyAccountAbi, PublicClient>> {
     if (this.accountContract == null) {
       this.accountContract = getContract({
         address: await this.getAddress(),
         abi: BiconomyAccountAbi,
-        publicClient: this.provider as PublicClient,
+        client: this.provider as PublicClient,
       });
     }
     return this.accountContract;
@@ -355,7 +369,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const addressResolver = getContract({
       address: ADDRESS_RESOLVER_ADDRESS,
       abi: AccountResolverAbi,
-      publicClient: this.provider as PublicClient,
+      client: {
+        public: this.provider as PublicClient,
+      },
     });
     // Note: depending on moduleAddress and moduleSetupData passed call this. otherwise could call resolveAddresses()
 
@@ -368,7 +384,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       ]);
 
       const desiredV1Account = result.find(
-        (smartAccountInfo) =>
+        (smartAccountInfo: { factoryVersion: string; currentVersion: string; deploymentIndex: { toString: () => any } }) =>
           smartAccountInfo.factoryVersion === "v1" &&
           smartAccountInfo.currentVersion === "2.0.0" &&
           Number(smartAccountInfo.deploymentIndex.toString()) === params.index,

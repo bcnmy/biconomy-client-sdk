@@ -11,7 +11,7 @@ export type Bundlerconfig = {
   userOpReceiptMaxDurationIntervals?: { [key in number]?: number };
   userOpWaitForTxHashMaxDurationIntervals?: { [key in number]?: number };
 };
-export type BunderConfigWithChainId = Bundlerconfig & { chainId: number };
+export type BundlerConfigWithChainId = Bundlerconfig & { chainId: number };
 
 export type UserOpReceipt = {
   /* The request hash of the UserOperation. */

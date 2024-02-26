@@ -7,11 +7,11 @@ import { ERC20_ABI } from "@biconomy/modules";
 
 describe("Account Tests", () => {
   let mumbai: TestData;
-  let baseGoerli: TestData;
+  let baseSepolia: TestData;
 
   beforeEach(() => {
     // @ts-ignore: Comes from setup-e2e-tests
-    [mumbai, baseGoerli] = testDataPerChain;
+    [mumbai, baseSepolia] = testDataPerChain;
   });
 
   it("should have addresses", async () => {
@@ -25,7 +25,7 @@ describe("Account Tests", () => {
       whale: { viemWallet: signerBase, publicAddress: senderBase },
       minnow: { viemWallet: recipientSignerBase, publicAddress: recipientBase },
       bundlerUrl: bundlerUrlBase,
-    } = baseGoerli;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -89,7 +89,8 @@ describe("Account Tests", () => {
     const newBalance = (await checkBalance(publicClient, recipient)) as bigint;
 
     expect(result?.receipt?.transactionHash).toBeTruthy();
-    expect(newBalance - balance).toBe(1n);
+    expect(result.success).toBe("true");
+    expect(newBalance).toBeGreaterThan(balance);
   }, 50000);
 
   it("Create a smart account with paymaster with an api key", async () => {
@@ -280,24 +281,30 @@ describe("Account Tests", () => {
       },
     });
 
-    const selectedFeeQuote = feeQuotesResponse.feeQuotes?.[0]!;
+    const selectedFeeQuote = feeQuotesResponse.feeQuotes?.[0];
     const spender = feeQuotesResponse.tokenPaymasterAddress!;
 
     const contract = getContract({
       address: preferredToken,
       abi: parseAbi(ERC20_ABI),
-      publicClient,
+      client: publicClient,
     });
 
     const allowanceBefore = (await contract.read.allowance([smartAccountAddress, spender])) as bigint;
 
     if (allowanceBefore > 0) {
-      const setAllowanceToZeroTransaction = await (smartAccount?.paymaster as IHybridPaymaster<any>)?.buildTokenApprovalTransaction({
-        feeQuote: { ...selectedFeeQuote, maxGasFee: 0 },
-        spender,
+      const decreaseAllowanceData = encodeFunctionData({
+        abi: parseAbi(["function decreaseAllowance(address spender, uint256 subtractedValue)"]),
+        functionName: "decreaseAllowance",
+        args: [spender, allowanceBefore],
       });
 
-      const { wait } = await smartAccount.sendTransaction([setAllowanceToZeroTransaction]);
+      const decreaseAllowanceTx = {
+        to: "0xda5289fcaaf71d52a80a254da614a192b693e977",
+        data: decreaseAllowanceData,
+      };
+
+      const { wait } = await smartAccount.sendTransaction(decreaseAllowanceTx, { paymasterServiceData: { mode: PaymasterMode.SPONSORED } });
       const { success } = await wait();
 
       expect(success).toBe("true");

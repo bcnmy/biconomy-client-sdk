@@ -10,13 +10,13 @@ beforeAll(() => {
   const privateKeyOne = generatePrivateKey();
   const accountOne = privateKeyToAccount(privateKeyOne);
 
-  const ethersProvider = new JsonRpcProvider(viemChain.rpcUrls.public.http[0]);
+  const ethersProvider = new JsonRpcProvider(viemChain.rpcUrls.default.http[0]);
   const ethersSignerOne = new Wallet(privateKeyOne, ethersProvider);
 
   const viemWalletClientOne = createWalletClient({
     account: accountOne,
     chain: viemChain,
-    transport: http(viemChain.rpcUrls.public.http[0]),
+    transport: http(viemChain.rpcUrls.default.http[0]),
   });
 
   const walletClientSignerOne = new WalletClientSigner(viemWalletClientOne, "viem");
@@ -34,7 +34,7 @@ beforeAll(() => {
   const viemWalletClientTwo = createWalletClient({
     account: accountTwo,
     chain: viemChain,
-    transport: http(viemChain.rpcUrls.public.http[0]),
+    transport: http(viemChain.rpcUrls.default.http[0]),
   });
   const walletClientSignerTwo = new WalletClientSigner(viemWalletClientTwo, "viem");
   const publicAddressTwo = accountTwo.address;
