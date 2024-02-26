@@ -356,7 +356,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       data: encodeFunctionData({
         abi: parseAbi(ERC20_ABI),
         functionName: "transfer",
-        args: [recipientFromRequest ?? defaultRecipient, amount],
+        args: [recipientFromRequest || defaultRecipient, amount],
       }),
     }));
 
