@@ -966,18 +966,20 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       throw new Error("Transactions array cannot be empty");
     }
     let callData: Hex = "0x";
-    if (transactions.length > 1 || buildUseropDto?.forceEncodeForBatch) {
-      callData = await this.encodeExecuteBatch(to, value, data);
-    } else {
-      // transactions.length must be 1
-      callData = await this.encodeExecute(to[0], value[0], data[0]);
+    if (!buildUseropDto?.useDeployCallData) {
+      if (transactions.length > 1 || buildUseropDto?.forceEncodeForBatch) {
+        callData = await this.encodeExecuteBatch(to, value, data);
+      } else {
+        // transactions.length must be 1
+        callData = await this.encodeExecute(to[0], value[0], data[0]);
+      }
     }
 
     let userOp: Partial<UserOperationStruct> = {
       sender: (await this.getAccountAddress()) as Hex,
       nonce: toHex(nonceFromFetch),
       initCode,
-      callData: callData,
+      callData,
     };
 
     // for this Smart Account current validation module dummy signature will be used to estimate gas
@@ -1179,12 +1181,14 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       }
     }
 
+    const useDeployCallData = true;
+
     return this.sendTransaction(
       {
         to: accountAddress,
         data: "0x",
       },
-      buildUseropDto,
+      { ...buildUseropDto, useDeployCallData },
     );
   }
 
