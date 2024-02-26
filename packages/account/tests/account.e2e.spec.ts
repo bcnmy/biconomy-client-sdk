@@ -45,7 +45,7 @@ describe("Account Tests", () => {
 
     const reciepientSmartAccountBase = await createSmartAccountClient({
       signer: recipientSignerBase,
-      bundlerUrl,
+      bundlerUrl: bundlerUrlBase,
     });
 
     const addresses = await Promise.all([
@@ -455,16 +455,19 @@ describe("Account Tests", () => {
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
+      viemChain,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl,
+      rpcUrl: viemChain.rpcUrls.default.http[0],
     });
 
     expect(ecdsaOwnershipModule).toBe(smartAccount.activeValidationModule.getAddress());
   });
 
+<<<<<<< HEAD
   it("should deploy a smart account with native token balance", async () => {
     const {
       bundlerUrl,
@@ -560,6 +563,9 @@ describe("Account Tests", () => {
   });
 
   it("should fail to deploy a smart account if already deployed", async () => {
+=======
+  it("should get supported tokens from the paymaster", async () => {
+>>>>>>> origin/develop
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
@@ -572,8 +578,20 @@ describe("Account Tests", () => {
       bundlerUrl,
     });
 
+<<<<<<< HEAD
     expect(async () => smartAccount.deploy()).rejects.toThrow(ERROR_MESSAGES.ACCOUNT_ALREADY_DEPLOYED);
   });
+=======
+    const tokens = await smartAccount.getSupportedTokens();
+
+    expect(tokens.length).toBeGreaterThan(0);
+    expect(tokens[0]).toHaveProperty("tokenAddress");
+    expect(tokens[0]).toHaveProperty("symbol");
+    expect(tokens[0]).toHaveProperty("decimal");
+    expect(tokens[0]).toHaveProperty("premiumPercentage");
+    expect(tokens[0]).toHaveProperty("logoUrl");
+  }, 60000);
+>>>>>>> origin/develop
 
   it("should fetch balances for smartAccount", async () => {
     const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977";

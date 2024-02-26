@@ -26,7 +26,7 @@ import {
   BatchUserOperationCallData,
   SmartAccountSigner,
 } from "@alchemy/aa-core";
-import { isNullOrUndefined, packUserOp } from "./utils/Utils.js";
+import { isNullOrUndefined, isValidRpcUrl, packUserOp } from "./utils/Utils.js";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, createECDSAOwnershipValidationModule } from "@biconomy/modules";
 import {
   IHybridPaymaster,
@@ -53,6 +53,7 @@ import {
   PaymasterUserOperationDto,
   SimulationType,
   BalancePayload,
+  SupportedToken,
 } from "./utils/Types.js";
 import {
   ADDRESS_RESOLVER_ADDRESS,
@@ -196,17 +197,29 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    */
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
     let chainId = biconomySmartAccountConfig.chainId;
-    let resolvedSmartAccountSigner!: SmartAccountSigner;
     let rpcUrl = biconomySmartAccountConfig.rpcUrl;
+    let resolvedSmartAccountSigner!: SmartAccountSigner;
 
     // Signer needs to be initialised here before defaultValidationModule is set
     if (biconomySmartAccountConfig.signer) {
       const signerResult = await convertSigner(biconomySmartAccountConfig.signer, !!chainId);
       if (!chainId && !!signerResult.chainId) {
+        let chainIdFromBundler: number | undefined;
+        if (biconomySmartAccountConfig.bundlerUrl) {
+          chainIdFromBundler = extractChainIdFromBundlerUrl(biconomySmartAccountConfig.bundlerUrl);
+        } else if (biconomySmartAccountConfig.bundler) {
+          const bundlerUrlFromBundler = biconomySmartAccountConfig.bundler.getBundlerUrl();
+          chainIdFromBundler = extractChainIdFromBundlerUrl(bundlerUrlFromBundler);
+        }
+        if (chainIdFromBundler !== signerResult.chainId) {
+          throw new Error("ChainId from bundler and signer do not match");
+        }
         chainId = signerResult.chainId;
       }
       if (!rpcUrl && !!signerResult.rpcUrl) {
-        rpcUrl = signerResult.rpcUrl;
+        if (isValidRpcUrl(signerResult.rpcUrl)) {
+          rpcUrl = signerResult.rpcUrl;
+        }
       }
       resolvedSmartAccountSigner = signerResult.signer;
     }
@@ -712,6 +725,51 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const userOp = await this.buildUserOp(txs, buildUseropDto);
     if (!buildUseropDto.paymasterServiceData) throw new Error("paymasterServiceData was not provided");
     return this.getPaymasterFeeQuotesOrData(userOp, buildUseropDto.paymasterServiceData);
+  }
+
+  /**
+   *
+   * @description This function will return an array of supported tokens from the erc20 paymaster associated with the Smart Account
+   * @returns Promise<{@link SupportedToken}>
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartAccountClient } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonMumbai } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonMumbai,
+   *   transport: http(),
+   * });
+   *
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, biconomyPaymasterApiKey }); // Retrieve bundler url from dasboard
+   * const tokens = await smartAccount.getSupportedTokens();
+   *
+   * // [
+   * //   {
+   * //     symbol: "USDC",
+   * //     tokenAddress: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+   * //     decimal: 6,
+   * //     logoUrl: "https://assets.coingecko.com/coins/images/279/large/usd-coin.png?1595353707",
+   * //     premiumPercentage: 0.1,
+   * //   }
+   * // ]
+   *
+   */
+  public async getSupportedTokens(): Promise<SupportedToken[]> {
+    const feeQuotesResponse = await this.getTokenFees(
+      {
+        data: "0x",
+        value: BigInt(0),
+        to: await this.getAccountAddress(),
+      },
+      {
+        paymasterServiceData: { mode: PaymasterMode.ERC20 },
+      },
+    );
+    return (feeQuotesResponse?.feeQuotes ?? []).map(({ maxGasFee: _, maxGasFeeUSD: __, validUntil: ___, usdPayment: ____, ...rest }) => rest);
   }
 
   /**
