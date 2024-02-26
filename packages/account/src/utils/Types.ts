@@ -172,6 +172,8 @@ export type BuildUserOpOptions = {
   simulationType?: SimulationType;
   /**  stateOverrideSet: For overriding the state */
   stateOverrideSet?: StateOverrideSet;
+  /** set to true if the tx is being used *only* to deploy the smartContract, so "0x" is set as the userOp.callData  */
+  useEmptyDeployCallData?: boolean;
 };
 
 export type NonceOptions = {

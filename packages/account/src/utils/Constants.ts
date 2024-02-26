@@ -59,6 +59,8 @@ export const DefaultGasLimit = {
 };
 
 export const ERROR_MESSAGES = {
+  ACCOUNT_ALREADY_DEPLOYED: "Account already deployed",
+  NO_NATIVE_TOKEN_BALANCE_DURING_DEPLOY: "Native token balance is not available during deploy",
   NO_RECIPIENT: "One or more of your withdrawals is missing a recipient",
   SPENDER_REQUIRED: "spender is required for ERC20 mode",
   NO_FEE_QUOTE: "FeeQuote was not provided, please call smartAccount.getTokenFees() to get feeQuote",
