@@ -20,7 +20,7 @@ export type BiconomyFactoriesByVersion = Record<string, string>;
 export type BiconomyImplementationsByVersion = Record<string, string>;
 
 export type SmartAccountConfig = {
-  /** entryPointAddress: address of the smart account factory */
+  /** entryPointAddress: address of the entry point */
   entryPointAddress: string;
   /** factoryAddress: address of the smart account factory */
   bundler?: IBundler;
