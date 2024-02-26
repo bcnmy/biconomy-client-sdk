@@ -1024,7 +1024,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       throw new Error("Transactions array cannot be empty");
     }
     let callData: Hex = "0x";
-    if (!buildUseropDto?.useDeployCallData) {
+    if (!buildUseropDto?.useEmptyDeployCallData) {
       if (transactions.length > 1 || buildUseropDto?.forceEncodeForBatch) {
         callData = await this.encodeExecuteBatch(to, value, data);
       } else {
@@ -1239,14 +1239,14 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       }
     }
 
-    const useDeployCallData = true;
+    const useEmptyDeployCallData = true;
 
     return this.sendTransaction(
       {
         to: accountAddress,
         data: "0x",
       },
-      { ...buildUseropDto, useDeployCallData },
+      { ...buildUseropDto, useEmptyDeployCallData },
     );
   }
 
