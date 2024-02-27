@@ -3119,9 +3119,9 @@ camelcase@^6.0.0, camelcase@^6.2.0:
   integrity sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==
 
 caniuse-lite@^1.0.30001587:
-  version "1.0.30001591"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001591.tgz#16745e50263edc9f395895a7cd468b9f3767cf33"
-  integrity sha512-PCzRMei/vXjJyL5mJtzNiUCKP59dm8Apqc3PH8gJkMnMXZGox93RbE76jHsmLwmIo6/3nsYIpJtx0O7u5PqFuQ==
+  version "1.0.30001589"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001589.tgz#7ad6dba4c9bf6561aec8291976402339dc157dfb"
+  integrity sha512-vNQWS6kI+q6sBlHbh71IIeC+sRwK2N3EDySc/updIGhIee2x5z00J4c1242/5/d6EpEMdOnk/m+6tuk4/tcsqg==
 
 catering@^2.0.0, catering@^2.1.0:
   version "2.1.1"
@@ -3824,9 +3824,9 @@ ejs@^3.1.7:
     jake "^10.8.5"
 
 electron-to-chromium@^1.4.668:
-  version "1.4.682"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.682.tgz#27577b88ccccc810e09b05093345cf1830f1bd65"
-  integrity sha512-oCglfs8yYKs9RQjJFOHonSnhikPK3y+0SvSYc/YpYJV//6rqc0/hbwd0c7vgK4vrl6y2gJAwjkhkSGWK+z4KRA==
+  version "1.4.681"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.681.tgz#5f23fad8aa7e1f64cbb7dd9d15c7e39a1cd7e6e3"
+  integrity sha512-1PpuqJUFWoXZ1E54m8bsLPVYwIVCRzvaL+n5cjigGga4z854abDnFRc+cTa2th4S79kyGqya/1xoR7h+Y5G5lg==
 
 elliptic@6.5.4, elliptic@^6.5.2, elliptic@^6.5.4:
   version "6.5.4"
@@ -7082,9 +7082,9 @@ neo-async@^2.6.2:
   integrity sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==
 
 nock@^13.2.9:
-  version "13.5.4"
-  resolved "https://registry.yarnpkg.com/nock/-/nock-13.5.4.tgz#8918f0addc70a63736170fef7106a9721e0dc479"
-  integrity sha512-yAyTfdeNJGGBFxWdzSKCBYxs5FxLbCg5X5Q4ets974hcQzG1+qCxvIyOo4j2Ry6MUlhWVMX4OoYDefAIIwupjw==
+  version "13.5.3"
+  resolved "https://registry.yarnpkg.com/nock/-/nock-13.5.3.tgz#9858adf5b840696a410baf98bda720d5fad4f075"
+  integrity sha512-2NlGmHIK2rTeyy7UaY1ZNg0YZfEJMxghXgZi0b4DBsUyoDNTTxZeCSG1nmirAWF44RkkoV8NnegLVQijgVapNQ==
   dependencies:
     debug "^4.1.0"
     json-stringify-safe "^5.0.1"
@@ -9389,9 +9389,9 @@ validate-npm-package-name@^3.0.0:
     builtins "^1.0.3"
 
 viem@^2.5.0, viem@^2.7.3:
-  version "2.7.15"
-  resolved "https://registry.yarnpkg.com/viem/-/viem-2.7.15.tgz#0dfdcb75be196c85839950b0ccb88be0b377609c"
-  integrity sha512-I2RMQpg1/MC7fXVjHxeXRPU9k/WEOvZajK/KZSr7DChS0AaZ7uovsQWppwBn2wvZWguTCIRAHqzMwIEGku95yQ==
+  version "2.7.14"
+  resolved "https://registry.yarnpkg.com/viem/-/viem-2.7.14.tgz#347d316cb5400f0b896b2205b1bc8073aa5e27e0"
+  integrity sha512-5b1KB1gXli02GOQHZIUsRluNUwssl2t4hqdFAzyWPwJ744N83jAOBOjOkrGz7K3qMIv9b0GQt3DoZIErSQTPkQ==
   dependencies:
     "@adraffy/ens-normalize" "1.10.0"
     "@noble/curves" "1.2.0"

@@ -189,7 +189,7 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
             jsonrpc: "2.0",
           },
         },
-        "Bundler",
+        "Paymaster",
       );
 
       if (response && response.result) {

@@ -10,7 +10,7 @@ import {
 } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { Hex, WalletClient } from "viem";
-import { SupportedSigner } from "@biconomy/common";
+import { SupportedSigner, StateOverrideSet } from "@biconomy/common";
 
 export type EntryPointAddresses = Record<string, string>;
 export type BiconomyFactories = Record<string, string>;
@@ -20,11 +20,24 @@ export type BiconomyFactoriesByVersion = Record<string, string>;
 export type BiconomyImplementationsByVersion = Record<string, string>;
 
 export type SmartAccountConfig = {
-  /** entryPointAddress: address of the smart account factory */
+  /** entryPointAddress: address of the entry point */
   entryPointAddress: string;
   /** factoryAddress: address of the smart account factory */
   bundler?: IBundler;
 };
+
+export interface BalancePayload {
+  /** address: The address of the account */
+  address: string;
+  /** chainId: The chainId of the network */
+  chainId: number;
+  /** amount: The amount of the balance */
+  amount: bigint;
+  /** decimals: The number of decimals */
+  decimals: number;
+  /** formattedAmount: The amount of the balance formatted */
+  formattedAmount: string;
+}
 
 export interface GasOverheads {
   /** fixed: fixed gas overhead */
@@ -112,7 +125,7 @@ export type BiconomySmartAccountV2ConfigBaseProps = {
   implementationAddress?: Hex;
   /** defaultFallbackHandler: override the default fallback contract address */
   defaultFallbackHandler?: Hex;
-  /** rpcUrl: Explicitly set the rpc else it is pulled out of the signer. */
+  /** rpcUrl: Rpc url, optional, we set default rpc url if not passed. */
   rpcUrl?: string; // as good as Provider
   /** paymasterUrl: The Paymaster URL retrieved from the Biconomy dashboard */
   paymasterUrl?: string;
@@ -150,6 +163,10 @@ export type BuildUserOpOptions = {
   paymasterServiceData?: PaymasterUserOperationDto;
   /**  simulationType: Determine which parts of the tx a bundler will simulate: "validation" | "validation_and_execution".  */
   simulationType?: SimulationType;
+  /**  stateOverrideSet: For overriding the state */
+  stateOverrideSet?: StateOverrideSet;
+  /** set to true if the tx is being used *only* to deploy the smartContract, so "0x" is set as the userOp.callData  */
+  useEmptyDeployCallData?: boolean;
 };
 
 export type NonceOptions = {
@@ -277,3 +294,5 @@ export type ValueOrData = RequireAtLeastOne<
 export type Transaction = {
   to: string;
 } & ValueOrData;
+
+export type SupportedToken = Omit<PaymasterFeeQuote, "maxGasFeeUSD" | "usdPayment" | "maxGasFee" | "validUntil">;

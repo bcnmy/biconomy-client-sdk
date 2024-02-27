@@ -23,6 +23,7 @@ describe("Account Tests", () => {
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl: mockBundlerUrl,
+      rpcUrl: localhost.rpcUrls.default.http[0],
     });
     const address = await smartAccount.getAccountAddress();
     expect(address).toBeTruthy();
@@ -36,6 +37,7 @@ describe("Account Tests", () => {
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl: mockBundlerUrl,
+      rpcUrl: localhost.rpcUrls.default.http[0],
     });
     const address = await smartAccount.getAccountAddress();
     expect(address).toBeTruthy();
@@ -67,21 +69,25 @@ describe("Account Tests", () => {
           chainId,
           signer: ethersSignerWithNewRpcUrl,
           bundlerUrl: mockBundlerUrl,
+          rpcUrl: newRpcUrl,
         }),
         createSmartAccountClient({
           chainId,
           signer: walletClientWithNewRpcUrl,
           bundlerUrl: mockBundlerUrl,
+          rpcUrl: newRpcUrl,
         }),
         createSmartAccountClient({
           chainId,
           signer: originalEthersSigner,
           bundlerUrl: mockBundlerUrl,
+          rpcUrl: viemChain.rpcUrls.default.http[0],
         }),
         createSmartAccountClient({
           chainId,
           signer: originalViemSigner,
           bundlerUrl: mockBundlerUrl,
+          rpcUrl: viemChain.rpcUrls.default.http[0],
         }),
       ]);
 
@@ -122,6 +128,7 @@ describe("Account Tests", () => {
       chainId,
       signer,
       bundlerUrl: mockBundlerUrl,
+      rpcUrl: localhost.rpcUrls.default.http[0],
     });
     const address = await smartAccount.getAccountAddress();
     expect(address).toBeTruthy();
@@ -135,6 +142,7 @@ describe("Account Tests", () => {
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl: mockBundlerUrl,
+      rpcUrl: localhost.rpcUrls.default.http[0],
     });
     const address = await smartAccount.getAccountAddress();
     expect(address).toBeTruthy();
@@ -148,6 +156,7 @@ describe("Account Tests", () => {
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl: mockBundlerUrl,
+      rpcUrl: localhost.rpcUrls.default.http[0],
     });
 
     const module = smartAccount.activeValidationModule;
@@ -166,6 +175,7 @@ describe("Account Tests", () => {
       signer,
       bundlerUrl: mockBundlerUrl,
       paymaster,
+      rpcUrl: localhost.rpcUrls.default.http[0],
     });
     expect(smartAccount.paymaster).not.toBeNull();
     expect(smartAccount.paymaster).not.toBeUndefined();
@@ -183,6 +193,7 @@ describe("Account Tests", () => {
         createSmartAccountClient({
           signer: viemWalletClientNoChainId,
           bundlerUrl: mockBundlerUrl,
+          rpcUrl: localhost.rpcUrls.default.http[0],
         }),
       ).rejects.toThrow("Cannot consume a viem wallet without a chainId"),
     );
@@ -197,6 +208,7 @@ describe("Account Tests", () => {
       createSmartAccountClient({
         signer: viemWalletNoAccount,
         bundlerUrl: mockBundlerUrl,
+        rpcUrl: localhost.rpcUrls.default.http[0],
       }),
     ).rejects.toThrow("Cannot consume a viem wallet without an account");
   });

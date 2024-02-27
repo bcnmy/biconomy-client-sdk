@@ -83,3 +83,8 @@ export const compareChainIds = async (
     }
   }
 };
+
+export const isValidRpcUrl = (url: string): boolean => {
+  const regex = /^(https:\/\/|wss:\/\/).*/;
+  return regex.test(url);
+};
