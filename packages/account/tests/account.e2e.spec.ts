@@ -160,19 +160,17 @@ describe("Account Tests", () => {
     expect(newBalance - balance).toBe(1n);
   }, 60000);
 
-  it("Should mint an NFT on Mumbai and pay with ERC20 - with preferredToken", async () => {
+  it("Should fail to sponsor user op if method not whitelisted", async () => {
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
-      publicClient,
-      biconomyPaymasterApiKey,
       nftAddress,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl,
-      biconomyPaymasterApiKey,
+      biconomyPaymasterApiKey: "7K_k68BFN.ed274da8-69a1-496d-a897-508fc2653666",
     });
 
     const encodedCall = encodeFunctionData({
@@ -186,35 +184,13 @@ describe("Account Tests", () => {
       data: encodedCall,
     };
 
-    const balance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
-    const maticBalanceBefore = await checkBalance(publicClient, await smartAccount.getAddress());
-    const usdcBalanceBefore = await checkBalance(publicClient, await smartAccount.getAddress(), "0xda5289fcaaf71d52a80a254da614a192b693e977");
-
-    const { wait } = await smartAccount.sendTransaction([transaction], {
-      paymasterServiceData: {
-        mode: PaymasterMode.ERC20,
-        preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977",
-      },
-    });
-
-    const {
-      receipt: { transactionHash },
-      userOpHash,
-      success,
-    } = await wait();
-
-    expect(transactionHash).toBeTruthy();
-    expect(userOpHash).toBeTruthy();
-    expect(success).toBe("true");
-
-    const maticBalanceAfter = await checkBalance(publicClient, await smartAccount.getAddress());
-    expect(maticBalanceAfter).toEqual(maticBalanceBefore);
-
-    const usdcBalanceAfter = await checkBalance(publicClient, await smartAccount.getAddress(), "0xda5289fcaaf71d52a80a254da614a192b693e977");
-    expect(usdcBalanceAfter).toBeLessThan(usdcBalanceBefore);
-
-    const newBalance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
-    expect(newBalance - balance).toBe(1n);
+    expect(async () =>
+      smartAccount.sendTransaction(transaction, {
+        paymasterServiceData: {
+          mode: PaymasterMode.SPONSORED,
+        },
+      }),
+    ).rejects.toThrow(`Error coming from Paymaster: Smart contract address: ${nftAddress.toLocaleLowerCase()} is not whitelisted`);
   }, 60000);
 
   it("Should expect several feeQuotes in resonse to empty tokenInfo fields", async () => {
