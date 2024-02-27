@@ -93,13 +93,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    */
   private accountContract?: GetContractReturnType<typeof BiconomyAccountAbi, PublicClient>;
 
-  /**
-   * @class
-   * @ignore
-   */
-  // @ts-ignore
-  protected entryPoint: BaseSmartContractAccount["entryPoint"];
-
   private defaultFallbackHandlerAddress: Hex;
 
   private implementationAddress: Hex;
@@ -208,16 +201,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     if (biconomySmartAccountConfig.signer) {
       const signerResult = await convertSigner(biconomySmartAccountConfig.signer, !!chainId);
       if (!chainId && !!signerResult.chainId) {
-        let chainIdFromBundler: number | undefined;
-        if (biconomySmartAccountConfig.bundlerUrl) {
-          chainIdFromBundler = extractChainIdFromBundlerUrl(biconomySmartAccountConfig.bundlerUrl);
-        } else if (biconomySmartAccountConfig.bundler) {
-          const bundlerUrlFromBundler = biconomySmartAccountConfig.bundler.getBundlerUrl();
-          chainIdFromBundler = extractChainIdFromBundlerUrl(bundlerUrlFromBundler);
-        }
-        if (chainIdFromBundler !== signerResult.chainId) {
-          throw new Error("ChainId from bundler and signer do not match");
-        }
         chainId = signerResult.chainId;
       }
       if (!rpcUrl && !!signerResult.rpcUrl) {

@@ -53,7 +53,6 @@ export const compareChainIds = async (
   biconomySmartAccountConfig: BiconomySmartAccountV2Config,
   skipChainIdCalls: boolean,
 ): Promise<Error | void> => {
-  console.log(biconomySmartAccountConfig.signer, "biconomySmartAccountConfig.signer");
   const signerResult = await convertSigner(signer, skipChainIdCalls);
 
   const chainIdFromBundler = biconomySmartAccountConfig.bundlerUrl
@@ -62,13 +61,9 @@ export const compareChainIds = async (
       ? extractChainIdFromBundlerUrl(biconomySmartAccountConfig.bundler.getBundlerUrl())
       : undefined;
 
-  console.log(chainIdFromBundler, "chainIdFromBundler");
-
   const chainIdFromPaymasterUrl = biconomySmartAccountConfig.paymasterUrl
     ? extractChainIdFromPaymasterUrl(biconomySmartAccountConfig.paymasterUrl)
     : undefined;
-  console.log(chainIdFromPaymasterUrl, "chainIdFromPaymasterUrl");
-  console.log(signerResult.chainId, "signerResult.chainId");
 
   if (!isNullOrUndefined(signerResult.chainId)) {
     if (chainIdFromBundler !== undefined && signerResult.chainId !== chainIdFromBundler) {

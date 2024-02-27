@@ -26,7 +26,7 @@ describe("Utils tests", () => {
       paymasterUrl: mockPaymasterUrl,
     };
 
-    await expect(compareChainIds(config, false)).resolves.not.toThrow();
+    await expect(compareChainIds(walletClient, config, false)).resolves.not.toThrow();
   });
 
   it("Should throw and error, bundlerUrl chain id and signer chain id does not match", async () => {
@@ -43,7 +43,7 @@ describe("Utils tests", () => {
       paymasterUrl,
     };
 
-    await expect(compareChainIds(config, false)).rejects.toThrow();
+    await expect(compareChainIds(walletClient, config, false)).rejects.toThrow();
   });
 
   it("Should throw and error, bundlerUrl chain id and paymaster url chain id does not match", async () => {
@@ -60,7 +60,7 @@ describe("Utils tests", () => {
       paymasterUrl: mockPaymasterUrl,
     };
 
-    await expect(compareChainIds(config, false)).rejects.toThrow();
+    await expect(compareChainIds(walletClient, config, false)).rejects.toThrow();
   });
 
   it("Should throw and error, bundlerUrl chain id and paymaster url chain id does not match", async () => {
@@ -82,7 +82,7 @@ describe("Utils tests", () => {
       paymasterUrl: mockPaymasterUrl,
     };
 
-    await expect(compareChainIds(config, false)).rejects.toThrow();
+    await expect(compareChainIds(walletClient, config, false)).rejects.toThrow();
   });
 
   it("Should throw and error, signer has chain id (56) and paymasterUrl has chain id (80001)", async () => {
@@ -102,6 +102,6 @@ describe("Utils tests", () => {
       paymasterUrl: mockPaymasterUrl,
     };
 
-    await expect(compareChainIds(config, false)).rejects.toThrow();
+    await expect(compareChainIds(walletClient, config, false)).rejects.toThrow();
   });
 });

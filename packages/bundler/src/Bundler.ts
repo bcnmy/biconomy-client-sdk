@@ -86,7 +86,6 @@ export class Bundler implements IBundler {
     // expected dummySig and possibly dummmy paymasterAndData should be provided by the caller
     // bundler doesn't know account and paymaster implementation
     userOp = transformUserOP(userOp);
-
     const bundlerUrl = this.getBundlerUrl();
 
     const response: EstimateUserOpGasResponse = await sendRequest(
