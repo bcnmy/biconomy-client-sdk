@@ -1,6 +1,6 @@
 import { encodeAbiParameters, parseAbiParameters, keccak256, Hex } from "viem";
 import type { UserOperationStruct } from "@alchemy/aa-core";
-import { convertSigner } from "@biconomy/common";
+import { SupportedSigner, convertSigner } from "@biconomy/common";
 import { extractChainIdFromBundlerUrl } from "@biconomy/bundler";
 import { BiconomySmartAccountV2Config } from "./Types";
 import { extractChainIdFromPaymasterUrl } from "@biconomy/bundler";
@@ -48,11 +48,13 @@ export const isNullOrUndefined = (value: any): value is undefined => {
   return value === null || value === undefined;
 };
 
-export const compareChainIds = async (biconomySmartAccountConfig: BiconomySmartAccountV2Config, skipChainIdCalls: boolean): Promise<Error | void> => {
-  let signerResult: any;
-  if (biconomySmartAccountConfig.signer) {
-    signerResult = await convertSigner(biconomySmartAccountConfig.signer, skipChainIdCalls);
-  }
+export const compareChainIds = async (
+  signer: SupportedSigner,
+  biconomySmartAccountConfig: BiconomySmartAccountV2Config,
+  skipChainIdCalls: boolean,
+): Promise<Error | void> => {
+  console.log(biconomySmartAccountConfig.signer, "biconomySmartAccountConfig.signer");
+  const signerResult = await convertSigner(signer, skipChainIdCalls);
 
   const chainIdFromBundler = biconomySmartAccountConfig.bundlerUrl
     ? extractChainIdFromBundlerUrl(biconomySmartAccountConfig.bundlerUrl)
@@ -60,9 +62,13 @@ export const compareChainIds = async (biconomySmartAccountConfig: BiconomySmartA
       ? extractChainIdFromBundlerUrl(biconomySmartAccountConfig.bundler.getBundlerUrl())
       : undefined;
 
+  console.log(chainIdFromBundler, "chainIdFromBundler");
+
   const chainIdFromPaymasterUrl = biconomySmartAccountConfig.paymasterUrl
     ? extractChainIdFromPaymasterUrl(biconomySmartAccountConfig.paymasterUrl)
     : undefined;
+  console.log(chainIdFromPaymasterUrl, "chainIdFromPaymasterUrl");
+  console.log(signerResult.chainId, "signerResult.chainId");
 
   if (!isNullOrUndefined(signerResult.chainId)) {
     if (chainIdFromBundler !== undefined && signerResult.chainId !== chainIdFromBundler) {

@@ -116,6 +116,8 @@ export type BiconomySmartAccountV2ConfigBaseProps = {
   rpcUrl?: string; // as good as Provider
   /** paymasterUrl: The Paymaster URL retrieved from the Biconomy dashboard */
   paymasterUrl?: string;
+  /** biconomyPaymasterApiKey: The API key retrieved from the Biconomy dashboard */
+  biconomyPaymasterApiKey?: string;
   /** activeValidationModule: The active validation module. Will default to the defaultValidationModule */
   activeValidationModule?: BaseValidationModule;
   /** scanForUpgradedAccountsFromV1: set to true if you you want the userwho was using biconomy SA v1 to upgrade to biconomy SA v2 */
