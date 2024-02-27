@@ -10,7 +10,7 @@ describe("Account Tests", () => {
     [mumbai] = testDataPerChain;
   });
 
-  it("sould enable batched module", async () => {
+  it("should enable batched module", async () => {
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
