@@ -29,6 +29,21 @@ describe("Account Tests", () => {
     expect(address).toBeTruthy();
   });
 
+  it("should create a whale smartAccountClient from an ethers signer", async () => {
+    const {
+      bundlerUrl,
+      whale: { ethersSigner: signer },
+    } = ganache;
+
+    const smartAccount = await createSmartAccountClient({
+      signer,
+      bundlerUrl,
+    });
+    const address = await smartAccount.getAccountAddress();
+    console.log({ address });
+    expect(address).toBeTruthy();
+  });
+
   it("should create a smartAccountClient from a walletClient", async () => {
     const {
       whale: { viemWallet: signer },

@@ -10,6 +10,7 @@ import { encodeAbiParameters, encodeFunctionData, parseAbi, parseUnits } from "v
 import { TestData } from "../../../tests";
 import { checkBalance } from "../../../tests/utils";
 import { PaymasterMode } from "@biconomy/paymaster";
+import { Logger } from "@biconomy/common";
 
 describe("Batched Session Router Tests", () => {
   let mumbai: TestData;
@@ -55,18 +56,15 @@ describe("Batched Session Router Tests", () => {
     expect(sessionSigner).toBeTruthy();
 
     const smartAccountAddress = await smartAccount.getAddress();
-    console.log("Smart Account Address: ", smartAccountAddress);
 
     // First we need to check if smart account is deployed
     // if not deployed, send an empty transaction to deploy it
     const isDeployed = await smartAccount.isAccountDeployed();
+
     if (!isDeployed) {
-      const emptyTx = {
-        to: smartAccountAddress,
-        data: "0x",
-      };
-      const userOpResponse = await smartAccount.sendTransaction(emptyTx, { paymasterServiceData: { mode: PaymasterMode.SPONSORED } });
-      await userOpResponse.wait();
+      const { wait } = await smartAccount.deploy({ paymasterServiceData: { mode: PaymasterMode.SPONSORED } });
+      const { success } = await wait();
+      expect(success).toBe("true");
     }
 
     // Create session module
@@ -127,6 +125,7 @@ describe("Batched Session Router Tests", () => {
 
     // Check if session module is enabled
     const isEnabled = await smartAccount.isModuleEnabled(DEFAULT_SESSION_KEY_MANAGER_MODULE);
+    Logger.log("batched: session module", { isEnabled });
     if (!isEnabled) {
       const enableModuleTrx = await smartAccount.getEnableModuleData(DEFAULT_SESSION_KEY_MANAGER_MODULE);
       txArray.push(enableModuleTrx);
@@ -144,7 +143,7 @@ describe("Batched Session Router Tests", () => {
 
     const userOpResponse1 = await smartAccount.sendTransaction(txArray, { paymasterServiceData: { mode: PaymasterMode.SPONSORED } }); // this user op will enable the modules and setup session allowed calls
     const transactionDetails = await userOpResponse1.wait();
-    console.log("Tx Hash: ", transactionDetails.receipt.transactionHash);
+    Logger.log("Tx Hash: ", transactionDetails.receipt.transactionHash);
 
     const usdcBalance = await checkBalance(publicClient, await smartAccount.getAccountAddress(), "0xdA5289fCAAF71d52a80A254da614a192b693e977");
     expect(usdcBalance).toBeGreaterThan(0);
@@ -198,7 +197,6 @@ describe("Batched Session Router Tests", () => {
       },
     });
 
-
     const receipt = await userOpResponse2.wait();
 
     expect(receipt.success).toBe("true");
@@ -210,6 +208,6 @@ describe("Batched Session Router Tests", () => {
 
     expect(maticBalanceAfter).toEqual(maticBalanceBefore);
 
-    console.log(`Tx at: https://jiffyscan.xyz/userOpHash/${userOpResponse2.userOpHash}?network=mumbai`);
+    Logger.log(`Tx at: https://jiffyscan.xyz/userOpHash/${userOpResponse2.userOpHash}?network=mumbai`);
   }, 60000);
 });
