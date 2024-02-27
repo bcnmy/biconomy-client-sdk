@@ -37,7 +37,8 @@ describe("Account Tests", () => {
 
     const smartAccount = await createSmartAccountClient({
       signer,
-      bundlerUrl,
+      bundlerUrl: mockBundlerUrl,
+      rpcUrl: localhost.rpcUrls.default.http[0],
     });
     const address = await smartAccount.getAccountAddress();
     console.log({ address });
