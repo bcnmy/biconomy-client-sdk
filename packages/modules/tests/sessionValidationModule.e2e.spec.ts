@@ -101,7 +101,6 @@ describe("Session Validation Module Tests", () => {
     const txArray: any = [];
 
     // Check if module is enabled
-
     const isEnabled = await smartAccount.isModuleEnabled(DEFAULT_SESSION_KEY_MANAGER_MODULE);
 
     if (!isEnabled) {
@@ -113,10 +112,15 @@ describe("Session Validation Module Tests", () => {
       txArray.push(setSessionAllowedTrx);
     }
 
-    const userOp = await smartAccount.buildUserOp(txArray);
+    const userOp = await smartAccount.buildUserOp(txArray, {
+      paymasterServiceData: {
+        mode: PaymasterMode.SPONSORED,
+      },
+    });
 
     const userOpResponse1 = await smartAccount.sendUserOp(userOp);
     const transactionDetails = await userOpResponse1.wait();
+    expect(transactionDetails.success).toBe("true");
     Logger.log("Tx Hash: ", transactionDetails.receipt.transactionHash);
 
     const encodedCall = encodeFunctionData({
