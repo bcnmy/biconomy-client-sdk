@@ -1,9 +1,10 @@
 import { TestData } from "../../../tests";
 import { createSmartAccountClient, ERROR_MESSAGES, FeeQuotesOrDataResponse, IHybridPaymaster, PaymasterMode } from "../src/index";
-import { Hex, encodeFunctionData, getContract, parseAbi } from "viem";
+import { Hex, createWalletClient, encodeFunctionData, getContract, http, parseAbi } from "viem";
 import { UserOperationStruct } from "@alchemy/aa-core";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
 import { ERC20_ABI } from "@biconomy/modules";
+import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 
 describe("Account Tests", () => {
   let mumbai: TestData;
@@ -44,7 +45,7 @@ describe("Account Tests", () => {
 
     const reciepientSmartAccountBase = await createSmartAccountClient({
       signer: recipientSignerBase,
-      bundlerUrl,
+      bundlerUrl: bundlerUrlBase,
     });
 
     const addresses = await Promise.all([
@@ -112,12 +113,12 @@ describe("Account Tests", () => {
   });
 
   it("Should gaslessly mint an NFT on Mumbai", async () => {
-    const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
       biconomyPaymasterApiKey,
       publicClient,
+      nftAddress,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
@@ -160,12 +161,12 @@ describe("Account Tests", () => {
   }, 60000);
 
   it("Should mint an NFT on Mumbai and pay with ERC20 - with preferredToken", async () => {
-    const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
       publicClient,
       biconomyPaymasterApiKey,
+      nftAddress,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
@@ -217,11 +218,11 @@ describe("Account Tests", () => {
   }, 60000);
 
   it("Should expect several feeQuotes in resonse to empty tokenInfo fields", async () => {
-    const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
       biconomyPaymasterApiKey,
+      nftAddress,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
@@ -246,13 +247,13 @@ describe("Account Tests", () => {
   });
 
   it("Should mint an NFT on Mumbai and pay with ERC20 - with token selection and no maxApproval", async () => {
-    const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
     const preferredToken: Hex = "0xda5289fcaaf71d52a80a254da614a192b693e977";
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
       biconomyPaymasterApiKey,
       publicClient,
+      nftAddress,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
@@ -345,11 +346,11 @@ describe("Account Tests", () => {
   }, 60000);
 
   it("Should throw and error if missing field for ERC20 Paymaster user op", async () => {
-    const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
       biconomyPaymasterApiKey,
+      nftAddress,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
@@ -454,13 +455,169 @@ describe("Account Tests", () => {
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
+      viemChain,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl,
+      rpcUrl: viemChain.rpcUrls.default.http[0],
     });
 
     expect(ecdsaOwnershipModule).toBe(smartAccount.activeValidationModule.getAddress());
+  });
+
+  it("should deploy a smart account with native token balance", async () => {
+    const {
+      bundlerUrl,
+      biconomyPaymasterApiKey,
+      viemChain,
+      publicClient,
+      whale: { viemWallet: signer, account },
+      deploymentCost,
+    } = mumbai;
+
+    const newPrivateKey = generatePrivateKey();
+    const newAccount = privateKeyToAccount(newPrivateKey);
+
+    const newViemWallet = createWalletClient({
+      account: newAccount,
+      chain: viemChain,
+      transport: http(viemChain.rpcUrls.default.http[0]),
+    });
+
+    const smartAccount = await createSmartAccountClient({
+      signer: newViemWallet,
+      biconomyPaymasterApiKey,
+      bundlerUrl,
+    });
+
+    const smartAccountAddress = await smartAccount.getAccountAddress();
+
+    // Setup:
+    const hash = await signer.sendTransaction({ to: smartAccountAddress, value: BigInt(deploymentCost), account, chain: viemChain }); // Send enough native token to counterfactual address to deploy the smart account
+    const transaction = await publicClient.waitForTransactionReceipt({ hash });
+    expect(transaction).toBeTruthy();
+
+    // Test:
+    const { wait } = await smartAccount.deploy();
+    const { success } = await wait();
+
+    const byteCode = await publicClient.getBytecode({ address: smartAccountAddress });
+    expect(success).toBe("true");
+    expect(byteCode).toBeTruthy();
+  }, 60000);
+
+  it("should deploy a smart account with sponsorship", async () => {
+    const { bundlerUrl, biconomyPaymasterApiKey, viemChain, publicClient } = mumbai;
+
+    const newPrivateKey = generatePrivateKey();
+    const newAccount = privateKeyToAccount(newPrivateKey);
+
+    const newViemWallet = createWalletClient({
+      account: newAccount,
+      chain: viemChain,
+      transport: http(viemChain.rpcUrls.default.http[0]),
+    });
+
+    const smartAccount = await createSmartAccountClient({
+      signer: newViemWallet,
+      biconomyPaymasterApiKey,
+      bundlerUrl,
+    });
+
+    const smartAccountAddress = await smartAccount.getAccountAddress();
+    const balance = await publicClient.getBalance({ address: smartAccountAddress });
+    expect(balance).toBe(0n);
+
+    const { wait } = await smartAccount.deploy({
+      paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+    });
+    const { success } = await wait();
+
+    const byteCode = await publicClient.getBytecode({ address: smartAccountAddress });
+    expect(success).toBe("true");
+    expect(byteCode).toBeTruthy();
+  }, 60000);
+
+  it("should fail to deploy a smart account if no native token balance or paymaster", async () => {
+    const { bundlerUrl, biconomyPaymasterApiKey, viemChain } = mumbai;
+
+    const newPrivateKey = generatePrivateKey();
+    const newAccount = privateKeyToAccount(newPrivateKey);
+
+    const newViemWallet = createWalletClient({
+      account: newAccount,
+      chain: viemChain,
+      transport: http(viemChain.rpcUrls.default.http[0]),
+    });
+
+    const smartAccount = await createSmartAccountClient({
+      signer: newViemWallet,
+      biconomyPaymasterApiKey,
+      bundlerUrl,
+    });
+
+    expect(async () => smartAccount.deploy()).rejects.toThrow(ERROR_MESSAGES.NO_NATIVE_TOKEN_BALANCE_DURING_DEPLOY);
+  });
+
+  it("should get supported tokens from the paymaster", async () => {
+    const {
+      whale: { viemWallet: signer },
+      bundlerUrl,
+      biconomyPaymasterApiKey,
+    } = mumbai;
+
+    const smartAccount = await createSmartAccountClient({
+      signer,
+      biconomyPaymasterApiKey,
+      bundlerUrl,
+    });
+
+    const tokens = await smartAccount.getSupportedTokens();
+
+    expect(tokens.length).toBeGreaterThan(0);
+    expect(tokens[0]).toHaveProperty("tokenAddress");
+    expect(tokens[0]).toHaveProperty("symbol");
+    expect(tokens[0]).toHaveProperty("decimal");
+    expect(tokens[0]).toHaveProperty("premiumPercentage");
+    expect(tokens[0]).toHaveProperty("logoUrl");
+  }, 60000);
+
+  it("should fail to deploy a smart account if already deployed", async () => {
+    const {
+      whale: { viemWallet: signer },
+      bundlerUrl,
+      biconomyPaymasterApiKey,
+    } = mumbai;
+
+    const smartAccount = await createSmartAccountClient({
+      signer,
+      biconomyPaymasterApiKey,
+      bundlerUrl,
+    });
+
+    expect(async () => smartAccount.deploy()).rejects.toThrow(ERROR_MESSAGES.ACCOUNT_ALREADY_DEPLOYED);
+  }, 60000);
+
+  it("should fetch balances for smartAccount", async () => {
+    const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977";
+    const {
+      whale: { viemWallet: signer },
+      bundlerUrl,
+      publicClient,
+      biconomyPaymasterApiKey,
+    } = mumbai;
+
+    const smartAccount = await createSmartAccountClient({
+      signer,
+      biconomyPaymasterApiKey,
+      bundlerUrl,
+    });
+
+    const usdcBalanceBefore = await checkBalance(publicClient, await smartAccount.getAddress(), usdt);
+    const [usdtBalanceFromSmartAccount] = await smartAccount.getBalances([usdt]);
+
+    expect(usdcBalanceBefore).toBe(usdtBalanceFromSmartAccount.amount);
   });
 });
