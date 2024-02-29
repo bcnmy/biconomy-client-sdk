@@ -1,0 +1,32 @@
+name: E2E Test workflow - with mainnet tests
+on:
+  workflow_dispatch:
+jobs:
+  e2e_test:
+    name: E2E tests - with mainnet tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - name: Checkout
+        uses: "actions/checkout@main"
+
+      - name: Set Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile && yarn build
+
+      - name: Run tests
+        env:
+          E2E_PRIVATE_KEY_ONE: ${{ secrets.E2E_PRIVATE_KEY_ONE }}
+          E2E_PRIVATE_KEY_TWO: ${{ secrets.E2E_PRIVATE_KEY_TWO }}
+          E2E_BICO_PAYMASTER_KEY_MUMBAI: ${{ secrets.E2E_BICO_PAYMASTER_KEY_MUMBAI }}
+          E2E_BICO_PAYMASTER_KEY_BASE: ${{ secrets.E2E_BICO_PAYMASTER_KEY_BASE }}
+          E2E_BICO_PAYMASTER_KEY_OP: ${{ secrets.E2E_BICO_PAYMASTER_KEY_OP }}
+          WITH_MAINNET_TESTS: true
+        run: yarn test:e2e

@@ -5,6 +5,7 @@ import { Hex, encodeAbiParameters, encodeFunctionData, parseAbi, parseUnits } fr
 import { TestData } from "../../../tests";
 import { checkBalance } from "../../../tests/utils";
 import { PaymasterMode } from "@biconomy/paymaster";
+import { Logger } from "@biconomy/common";
 
 describe("Session Validation Module Tests", () => {
   let mumbai: TestData;
@@ -39,7 +40,20 @@ describe("Session Validation Module Tests", () => {
       index: 1, // Increasing index to not conflict with other test cases and use a new smart account
     });
 
-    const sessionFileStorage: SessionFileStorage = new SessionFileStorage(await smartAccount.getAccountAddress());
+    const accountAddress = await smartAccount.getAccountAddress();
+    const sessionFileStorage: SessionFileStorage = new SessionFileStorage(accountAddress);
+
+    // First we need to check if smart account is deployed
+    // if not deployed, send an empty transaction to deploy it
+    const isDeployed = await smartAccount.isAccountDeployed();
+
+    Logger.log("session", { isDeployed });
+
+    if (!isDeployed) {
+      const { wait } = await smartAccount.deploy({ paymasterServiceData: { mode: PaymasterMode.SPONSORED } });
+      const { success } = await wait();
+      expect(success).toBe("true");
+    }
 
     try {
       sessionSigner = await sessionFileStorage.getSignerByKey(sessionKeyEOA);
@@ -87,22 +101,27 @@ describe("Session Validation Module Tests", () => {
     const txArray: any = [];
 
     // Check if module is enabled
-
     const isEnabled = await smartAccount.isModuleEnabled(DEFAULT_SESSION_KEY_MANAGER_MODULE);
+
     if (!isEnabled) {
       const enableModuleTrx = await smartAccount.getEnableModuleData(DEFAULT_SESSION_KEY_MANAGER_MODULE);
       txArray.push(enableModuleTrx);
       txArray.push(setSessionAllowedTrx);
     } else {
-      console.log("MODULE ALREADY ENABLED");
+      Logger.log("MODULE ALREADY ENABLED");
       txArray.push(setSessionAllowedTrx);
     }
 
-    const userOp = await smartAccount.buildUserOp(txArray);
+    const userOp = await smartAccount.buildUserOp(txArray, {
+      paymasterServiceData: {
+        mode: PaymasterMode.SPONSORED,
+      },
+    });
 
     const userOpResponse1 = await smartAccount.sendUserOp(userOp);
     const transactionDetails = await userOpResponse1.wait();
-    console.log("Tx Hash: ", transactionDetails.receipt.transactionHash);
+    expect(transactionDetails.success).toBe("true");
+    Logger.log("Tx Hash: ", transactionDetails.receipt.transactionHash);
 
     const encodedCall = encodeFunctionData({
       abi: parseAbi(["function transfer(address _to, uint256 _value)"]),
@@ -150,6 +169,6 @@ describe("Session Validation Module Tests", () => {
 
     expect(maticBalanceAfter).toEqual(maticBalanceBefore);
 
-    console.log(`Tx at: https://jiffyscan.xyz/userOpHash/${userOpResponse2.userOpHash}?network=mumbai`);
+    Logger.log(`Tx at: https://jiffyscan.xyz/userOpHash/${userOpResponse2.userOpHash}?network=mumbai`);
   }, 60000);
 });

@@ -74,6 +74,12 @@ const config: Config = {
   //   "node_modules"
   // ],
 
+  workerThreads: true,
+  // This is experimental feature. Keep in mind that the worker threads use structured clone instead of JSON.stringify() to serialize messages. 
+  // This means that built-in JavaScript objects as BigInt, Map or Set will get serialized properly. 
+  // However extra properties set on Error, Map or Set will not be passed on through the serialization step. 
+  // For more details see the article on structured clone.
+
   // An array of file extensions your modules use
   moduleFileExtensions: ["js", "mjs", "cjs", "jsx", "ts", "tsx", "json", "node"],
 
