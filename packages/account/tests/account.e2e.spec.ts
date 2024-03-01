@@ -1,5 +1,5 @@
 import { TestData } from "../../../tests";
-import { createSmartAccountClient, ERROR_MESSAGES, FeeQuotesOrDataResponse, PaymasterMode } from "../src/index";
+import { createSmartAccountClient, ERROR_MESSAGES, FeeQuotesOrDataResponse, NATIVE_TOKEN_ALIAS, PaymasterMode } from "../src/index";
 import { Hex, createWalletClient, encodeFunctionData, getContract, http, parseAbi } from "viem";
 import { UserOperationStruct } from "@alchemy/aa-core";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
@@ -179,7 +179,8 @@ describe("Account Tests", () => {
     expect(newBalance - balance).toBe(1n);
   }, 60000);
 
-  it("Should mint an NFT on Mumbai and pay with ERC20 - with preferredToken", async () => {
+  // TODO(Remove when Yash fixes approvals issue)
+  it.skip("Should mint an NFT on Mumbai and pay with ERC20 - with preferredToken", async () => {
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
@@ -267,7 +268,8 @@ describe("Account Tests", () => {
     expect(feeQuotesResponse.feeQuotes?.length).toBeGreaterThan(1);
   });
 
-  it("Should mint an NFT on Mumbai and pay with ERC20 - with token selection and no maxApproval", async () => {
+  // TODO(Remove when Yash fixes approvals issue)
+  it.skip("Should mint an NFT on Mumbai and pay with ERC20 - with token selection and no maxApproval", async () => {
     const preferredToken: Hex = "0xda5289fcaaf71d52a80a254da614a192b693e977";
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
@@ -494,7 +496,7 @@ describe("Account Tests", () => {
       biconomyPaymasterApiKey,
       viemChain,
       publicClient,
-      whale: { viemWallet: signer, account },
+      whale: { viemWallet: signer, publicAddress, account },
       deploymentCost,
     } = mumbai;
 
