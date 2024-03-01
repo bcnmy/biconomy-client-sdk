@@ -604,6 +604,7 @@ describe("Account Tests", () => {
   });
 
   it("should fetch balances for smartAccount", async () => {
+    const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977";
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
