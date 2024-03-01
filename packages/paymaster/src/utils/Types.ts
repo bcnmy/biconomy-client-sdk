@@ -106,6 +106,8 @@ export type BiconomyTokenPaymasterRequest = {
   spender: Hex;
   /** Not recommended */
   maxApproval?: boolean;
+  /* skip option to patch callData if approval is already given to the paymaster */
+  skipPatchCallData?: boolean;
 };
 
 export type FeeQuotesOrDataResponse = {
