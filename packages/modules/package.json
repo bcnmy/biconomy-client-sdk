@@ -57,8 +57,7 @@
     "@biconomy/common": "4.0.0",
     "@ethersproject/abi": "^5.7.0",
     "merkletreejs": "^0.3.11",
-    "viem": "^2.7.3",
-    "@ethersproject/abi": "^5.7.0"
+    "viem": "^2.7.3"
   },
   "devDependencies": {
     "@types/node": "^20.11.10",
