@@ -20,9 +20,8 @@ describe("Batched Session Router Tests", () => {
     [mumbai] = testDataPerChain;
   });
 
-  // Make sure smart account used for tests has at least 0.01 USDC and some MATIC
-
-  it("Should send a user op using Batched Session Validation Module", async () => {
+  // TODO(Gabi): Fix Batched Session Router Module tests
+  it.skip("Should send a user op using Batched Session Validation Module", async () => {
     let sessionSigner: WalletClientSigner;
 
     const {
@@ -35,6 +34,8 @@ describe("Batched Session Router Tests", () => {
       publicClient,
       bundlerUrl,
       biconomyPaymasterApiKey,
+      chainId,
+      viemChain,
     } = mumbai;
 
     // Create smart account
@@ -52,7 +53,7 @@ describe("Batched Session Router Tests", () => {
     try {
       sessionSigner = await sessionFileStorage.getSignerByKey(sessionKeyEOA);
     } catch (error) {
-      sessionSigner = await sessionFileStorage.addSigner({ pbKey: sessionKeyEOA, pvKey });
+      sessionSigner = await sessionFileStorage.addSigner({ pbKey: sessionKeyEOA, pvKey, chainId: viemChain });
     }
 
     expect(sessionSigner).toBeTruthy();

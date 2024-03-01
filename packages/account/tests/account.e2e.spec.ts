@@ -1,5 +1,5 @@
 import { TestData } from "../../../tests";
-import { createSmartAccountClient, ERROR_MESSAGES, FeeQuotesOrDataResponse, PaymasterMode } from "../src/index";
+import { createSmartAccountClient, ERROR_MESSAGES, FeeQuotesOrDataResponse, NATIVE_TOKEN_ALIAS, PaymasterMode } from "../src/index";
 import { Hex, createWalletClient, encodeFunctionData, getContract, http, parseAbi } from "viem";
 import { UserOperationStruct } from "@alchemy/aa-core";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
@@ -496,7 +496,7 @@ describe("Account Tests", () => {
       biconomyPaymasterApiKey,
       viemChain,
       publicClient,
-      whale: { viemWallet: signer, account },
+      whale: { viemWallet: signer, publicAddress, account },
       deploymentCost,
     } = mumbai;
 

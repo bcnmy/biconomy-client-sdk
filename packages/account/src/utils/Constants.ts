@@ -65,7 +65,7 @@ export const ERROR_MESSAGES = {
   FAILED_FEE_QUOTE_FETCH: "Failed to fetch fee quote",
 };
 
-export const NATIVE_TOKEN_ALIAS = "0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE";
+export const NATIVE_TOKEN_ALIAS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 export const ERC20_ABI = [
   "function transfer(address to, uint256 value) external returns (bool)",
   "function transferFrom(address from, address to, uint256 value) external returns (bool)",
