@@ -316,8 +316,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * // }
    *
    */
-  public async getBalances(tokenAddresses: Array<Hex>): Promise<Array<BalancePayload>> {
-    const accountAddress = this.accountAddress ?? (await this.getAccountAddress());
+  public async getBalances(tokenAddresses?: Array<Hex>): Promise<Array<BalancePayload>> {
+    const accountAddress = await this.getAccountAddress();
 
     if (!tokenAddresses) {
       const balance = await this.provider.getBalance({ address: accountAddress });
@@ -331,7 +331,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         },
       ];
     }
-    const tokenContracts = tokenAddresses.map((address) =>
+    const tokenContracts = (tokenAddresses ?? []).map((address) =>
       getContract({
         address,
         abi: parseAbi(ERC20_ABI),

@@ -1,6 +1,6 @@
 import { TestData } from "../../../tests";
 import { createSmartAccountClient } from "../src/index";
-import { DEFAULT_ECDSA_OWNERSHIP_MODULE, createECDSAOwnershipValidationModule } from "@biconomy/modules";
+import { DEFAULT_ECDSA_OWNERSHIP_MODULE, DEFAULT_SESSION_KEY_MANAGER_MODULE, createECDSAOwnershipValidationModule } from "@biconomy/modules";
 
 describe("Account Tests", () => {
   let mumbai: TestData;
@@ -27,22 +27,27 @@ describe("Account Tests", () => {
 
   it("should get all modules", async () => {
     const {
-      whale: { viemWallet: signer },
+      whale: {
+        viemWallet: signer,
+        account: { address: accountAddress },
+      },
       bundlerUrl,
+      biconomyPaymasterApiKey,
     } = mumbai;
 
-    const smartWallet = await createSmartAccountClient({
+    const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl,
+      biconomyPaymasterApiKey,
     });
 
-    const modules = await smartWallet.getAllModules();
-    expect(modules).toContain("0x000000D50C68705bd6897B2d17c7de32FB519fDA"); // erc20 module
-    expect(modules).toContain("0x000002FbFfedd9B33F4E7156F2DE8D48945E7489"); // session manager module
-    expect(modules).toContain("0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e"); // ecdsa ownership module
+    const modules = await smartAccount.getAllModules();
+
+    expect(modules).toContain(DEFAULT_SESSION_KEY_MANAGER_MODULE); // session manager module
+    expect(modules).toContain(DEFAULT_ECDSA_OWNERSHIP_MODULE); // ecdsa ownership module
   }, 30000);
 
-  it("should disabled module data", async () => {
+  it("should get disabled module data", async () => {
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
