@@ -1,5 +1,5 @@
 import { SmartAccountSigner } from "@alchemy/aa-core";
-import { Hex } from "viem";
+import { Hex, SignableMessage } from "viem";
 import { Signer } from "@ethersproject/abstract-signer";
 
 export class EthersSigner<T extends Signer> implements SmartAccountSigner<T> {
@@ -16,7 +16,8 @@ export class EthersSigner<T extends Signer> implements SmartAccountSigner<T> {
     return (await this.inner.getAddress()) as Hex;
   }
 
-  async signMessage(message: string | Uint8Array): Promise<Hex> {
+  async signMessage(_message: SignableMessage): Promise<Hex> {
+    const message = typeof _message === "string" ? _message : _message.raw;
     const signature = await this.inner?.signMessage(message);
     return this.#correctSignature(signature as Hex);
   }
