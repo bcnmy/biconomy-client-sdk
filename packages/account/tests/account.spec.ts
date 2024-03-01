@@ -41,7 +41,6 @@ describe("Account Tests", () => {
       rpcUrl: localhost.rpcUrls.default.http[0],
     });
     const address = await smartAccount.getAccountAddress();
-    console.log({ address });
     expect(address).toBeTruthy();
   });
 

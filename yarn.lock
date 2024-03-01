@@ -12,14 +12,14 @@
   resolved "https://registry.yarnpkg.com/@adraffy/ens-normalize/-/ens-normalize-1.10.0.tgz#d2a39395c587e092d77cbbc80acf956a54f38bf7"
   integrity sha512-nA9XHtlAkYfJxY7bce8DcN7eKxWWCWkU+1GR9d+U6MbNpfwQp8TI7vqOsBsMcHoT4mBu2kypKoSKnghEzOOq5Q==
 
-"@alchemy/aa-core@3.0.0-alpha.4":
-  version "3.0.0-alpha.4"
-  resolved "https://registry.yarnpkg.com/@alchemy/aa-core/-/aa-core-3.0.0-alpha.4.tgz#3abe0911f7c35cc6f0fc0cd03faad5673a01f0a9"
-  integrity sha512-mTVMDciBYIrXRgJnDiew2nRhjeAMKIK3RijGR3TQ7Gn6cpY8ZKSiJoTM5yRCttx368jqz0BACD1mjTg/zU8+Cg==
+"@alchemy/aa-core@^3.1.1":
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/@alchemy/aa-core/-/aa-core-3.4.0.tgz#08e514bf2f97a9c1452424a7f7915aa48daf4db2"
+  integrity sha512-kEqsMwweMxQU6b8mKNmkUacyZRxdU7WBBiAYNmGxJK5djOdsGlfCBZGHu2AyAb8ogfrGWX8J+uVuYTnCIZS6ew==
   dependencies:
     abitype "^0.8.3"
     eventemitter3 "^5.0.1"
-    viem "^2.5.0"
+    viem "^2.7.8"
     zod "^3.22.4"
 
 "@ampproject/remapping@^2.2.0":
@@ -9393,7 +9393,11 @@ validate-npm-package-name@^3.0.0:
   dependencies:
     builtins "^1.0.3"
 
+<<<<<<< HEAD
 viem@^2.5.0, viem@^2.7.3:
+=======
+viem@^2.7.12, viem@^2.7.8:
+>>>>>>> origin/develop
   version "2.7.16"
   resolved "https://registry.yarnpkg.com/viem/-/viem-2.7.16.tgz#99e66bbec661b2284bc32061474f20a90381bdcb"
   integrity sha512-yOPa9yaoJUm44m0Qe3ugHnkHol3QQlFxN3jT+bq+lQip7X7cWdPfmguyfLWX2viCXcmYZUDiQdeFbkPW9lw11Q==

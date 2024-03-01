@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { SmartAccountSigner, WalletClientSigner } from "@alchemy/aa-core";
+import { SmartAccountSigner, WalletClientSigner, getChain } from "@alchemy/aa-core";
 import { SignerData } from "@biconomy/modules/src";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { Hex, createWalletClient, http } from "viem";
@@ -167,10 +167,11 @@ export class SessionFileStorage implements ISessionStorage {
       signer = signerData;
     }
     const accountSigner = privateKeyToAccount(signer.pvKey);
+    const viemChain = getChain(signerData?.chainId?.id || 1);
     const client = createWalletClient({
       account: accountSigner,
       chain: signerData.chainId,
-      transport: http(polygonMumbai.rpcUrls.default.http[0]),
+      transport: http(viemChain.rpcUrls.default.http[0]),
     });
     const walletClientSigner: SmartAccountSigner = new WalletClientSigner(
       client,
