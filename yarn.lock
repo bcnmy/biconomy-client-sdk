@@ -9393,11 +9393,7 @@ validate-npm-package-name@^3.0.0:
   dependencies:
     builtins "^1.0.3"
 
-<<<<<<< HEAD
-viem@^2.5.0, viem@^2.7.3:
-=======
 viem@^2.7.12, viem@^2.7.8:
->>>>>>> origin/develop
   version "2.7.16"
   resolved "https://registry.yarnpkg.com/viem/-/viem-2.7.16.tgz#99e66bbec661b2284bc32061474f20a90381bdcb"
   integrity sha512-yOPa9yaoJUm44m0Qe3ugHnkHol3QQlFxN3jT+bq+lQip7X7cWdPfmguyfLWX2viCXcmYZUDiQdeFbkPW9lw11Q==
