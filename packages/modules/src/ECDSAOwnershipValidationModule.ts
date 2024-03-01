@@ -68,7 +68,7 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
   }
 
   async signUserOpHash(userOpHash: string): Promise<Hex> {
-    const sig = await this.signer.signMessage(toBytes(userOpHash));
+    const sig = await this.signer.signMessage({ raw: toBytes(userOpHash) });
     return sig;
   }
 
@@ -79,7 +79,8 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
    * @returns {Promise<string>} A promise resolving to the signature or error message.
    * @throws {Error} If the signer type is invalid or unsupported.
    */
-  async signMessage(message: Uint8Array | string): Promise<string> {
+  async signMessage(_message: Uint8Array | string): Promise<string> {
+    const message = typeof _message === "string" ? _message : { raw: _message };
     let signature = await this.signer.signMessage(message);
 
     const potentiallyIncorrectV = parseInt(signature.slice(-2), 16);

@@ -85,9 +85,9 @@ beforeAll(async () => {
       }))
       .sort((a, b) => {
         if (a.balance > b.balance) {
-          return 1;
-        } else if (a.balance > b.balance) {
           return -1;
+        } else if (a.balance > b.balance) {
+          return 1;
         } else {
           return 0;
         }
@@ -135,10 +135,16 @@ beforeAll(async () => {
 });
 
 const envVarCheck = () => {
-  const REQUIRED_FIELDS = ["E2E_PRIVATE_KEY_ONE", "E2E_PRIVATE_KEY_TWO", "E2E_BICO_PAYMASTER_KEY_MUMBAI", "E2E_BICO_PAYMASTER_KEY_BASE"];
+  const REQUIRED_FIELDS = [
+    "E2E_PRIVATE_KEY_ONE",
+    "E2E_PRIVATE_KEY_TWO",
+    "E2E_BICO_PAYMASTER_KEY_MUMBAI",
+    "E2E_BICO_PAYMASTER_KEY_BASE",
+    "E2E_BICO_PAYMASTER_KEY_OP",
+  ];
   const hasFields = REQUIRED_FIELDS.every((field) => !!process.env[field]);
   if (!hasFields) {
     console.error("Missing env var");
-    process.exit(0);
+    process.exit(1);
   }
 };

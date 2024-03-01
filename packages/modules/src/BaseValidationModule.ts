@@ -31,7 +31,8 @@ export abstract class BaseValidationModule implements IValidationModule {
 
   abstract signMessage(_message: Uint8Array | string): Promise<string>;
 
-  async signMessageSmartAccountSigner(message: string | Uint8Array, signer: SmartAccountSigner): Promise<string> {
+  async signMessageSmartAccountSigner(_message: string | Uint8Array, signer: SmartAccountSigner): Promise<string> {
+    const message = typeof _message === "string" ? _message : { raw: _message };
     let signature: `0x${string}` = await signer.signMessage(message);
 
     const potentiallyIncorrectV = parseInt(signature.slice(-2), 16);

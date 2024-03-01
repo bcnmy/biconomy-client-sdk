@@ -162,7 +162,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     const { signer: sessionSigner } = await convertSigner(params.sessionSigner, false);
 
     // Use the sessionSigner to sign the user operation
-    const signature = await sessionSigner.signMessage(toBytes(userOpHash));
+    const signature = await sessionSigner.signMessage({ raw: toBytes(userOpHash) });
 
     const sessionSignerData = await this.getLeafInfo(params);
 

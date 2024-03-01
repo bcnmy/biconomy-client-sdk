@@ -3,6 +3,7 @@ import { TestData } from "../../../tests";
 import { createSmartAccountClient } from "../../account/src/index";
 import { Hex, encodeFunctionData, parseAbi } from "viem";
 import { DEFAULT_MULTICHAIN_MODULE, MultiChainValidationModule } from "@biconomy/modules";
+import { Logger } from "@biconomy/common";
 
 describe("MultiChainValidation Module Tests", () => {
   let mumbai: TestData;
@@ -54,6 +55,19 @@ describe("MultiChainValidation Module Tests", () => {
       }),
     ]);
 
+    // Check if the smart account has been deployed
+    const [isPolygonDeployed, isBaseDeployed] = await Promise.all([polygonAccount.isAccountDeployed(), baseAccount.isAccountDeployed()]);
+    if (!isPolygonDeployed) {
+      const { wait } = await polygonAccount.deploy({ paymasterServiceData: { mode: PaymasterMode.SPONSORED } });
+      const { success } = await wait();
+      expect(success).toBe("true");
+    }
+    if (!isBaseDeployed) {
+      const { wait } = await baseAccount.deploy({ paymasterServiceData: { mode: PaymasterMode.SPONSORED } });
+      const { success } = await wait();
+      expect(success).toBe("true");
+    }
+
     const moduleEnabled1 = await polygonAccount.isModuleEnabled(DEFAULT_MULTICHAIN_MODULE);
     const moduleActive1 = polygonAccount.activeValidationModule;
     expect(moduleEnabled1).toBeTruthy();
@@ -93,8 +107,8 @@ describe("MultiChainValidation Module Tests", () => {
     const userOpResponse1 = await baseAccount.sendSignedUserOp(returnedOps[0] as any);
     const userOpResponse2 = await polygonAccount.sendSignedUserOp(returnedOps[1] as any);
 
-    console.log(userOpResponse1.userOpHash, "MULTICHAIN BASE USER OP HASH");
-    console.log(userOpResponse2.userOpHash, "MULTICHAIN POLYGON USER OP HASH");
+    Logger.log(userOpResponse1.userOpHash, "MULTICHAIN BASE USER OP HASH");
+    Logger.log(userOpResponse2.userOpHash, "MULTICHAIN POLYGON USER OP HASH");
 
     expect(userOpResponse1.userOpHash).toBeTruthy();
     expect(userOpResponse2.userOpHash).toBeTruthy();
