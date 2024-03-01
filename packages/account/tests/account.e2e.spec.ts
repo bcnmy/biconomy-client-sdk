@@ -9,10 +9,11 @@ import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 describe("Account Tests", () => {
   let mumbai: TestData;
   let baseSepolia: TestData;
+  let optimism: TestData;
 
   beforeEach(() => {
     // @ts-ignore: Comes from setup-e2e-tests
-    [mumbai, baseSepolia] = testDataPerChain;
+    [mumbai, baseSepolia, optimism] = testDataPerChain;
   });
 
   it("should have addresses", async () => {
@@ -27,6 +28,12 @@ describe("Account Tests", () => {
       minnow: { viemWallet: recipientSignerBase, publicAddress: recipientBase },
       bundlerUrl: bundlerUrlBase,
     } = baseSepolia;
+
+    const {
+      whale: { viemWallet: signerOp, publicAddress: senderOp },
+      minnow: { viemWallet: recipientSignerOp, publicAddress: recipientOp },
+      bundlerUrl: bundlerUrlOp,
+    } = optimism;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -48,6 +55,16 @@ describe("Account Tests", () => {
       bundlerUrl: bundlerUrlBase,
     });
 
+    const smartAccountOp = await createSmartAccountClient({
+      signer: signerOp,
+      bundlerUrl: bundlerUrlOp,
+    });
+
+    const reciepientSmartAccountOp = await createSmartAccountClient({
+      signer: recipientSignerOp,
+      bundlerUrl: bundlerUrlOp,
+    });
+
     const addresses = await Promise.all([
       sender,
       smartAccount.getAddress(),
@@ -57,6 +74,10 @@ describe("Account Tests", () => {
       smartAccountBase.getAddress(),
       recipientBase,
       recipientSmartAccountBase.getAddress(),
+      senderOp,
+      smartAccountOp.getAddress(),
+      recipientOp,
+      reciepientSmartAccountOp.getAddress(),
     ]);
     expect(addresses.every(Boolean)).toBeTruthy();
   });
@@ -89,8 +110,7 @@ describe("Account Tests", () => {
     const newBalance = (await checkBalance(publicClient, recipient)) as bigint;
 
     expect(result?.receipt?.transactionHash).toBeTruthy();
-    expect(result.success).toBe("true");
-    expect(newBalance).toBeGreaterThan(balance);
+    expect(newBalance - balance).toBe(1n);
   }, 50000);
 
   it("Create a smart account with paymaster with an api key", async () => {
@@ -174,6 +194,8 @@ describe("Account Tests", () => {
       biconomyPaymasterApiKey,
     });
 
+    const accountAddress = await smartAccount.getAddress();
+
     const encodedCall = encodeFunctionData({
       abi: parseAbi(["function safeMint(address _to)"]),
       functionName: "safeMint",
@@ -186,8 +208,8 @@ describe("Account Tests", () => {
     };
 
     const balance = (await checkBalance(publicClient, recipient, nftAddress)) as bigint;
-    const maticBalanceBefore = await checkBalance(publicClient, await smartAccount.getAddress());
-    const usdcBalanceBefore = await checkBalance(publicClient, await smartAccount.getAddress(), "0xda5289fcaaf71d52a80a254da614a192b693e977");
+    const maticBalanceBefore = await checkBalance(publicClient, accountAddress);
+    const usdcBalanceBefore = await checkBalance(publicClient, accountAddress, "0xda5289fcaaf71d52a80a254da614a192b693e977");
 
     const { wait } = await smartAccount.sendTransaction([transaction], {
       paymasterServiceData: {

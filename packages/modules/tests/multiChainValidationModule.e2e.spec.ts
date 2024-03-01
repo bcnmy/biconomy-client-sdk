@@ -55,6 +55,19 @@ describe("MultiChainValidation Module Tests", () => {
       }),
     ]);
 
+    // Check if the smart account has been deployed
+    const [isPolygonDeployed, isBaseDeployed] = await Promise.all([polygonAccount.isAccountDeployed(), baseAccount.isAccountDeployed()]);
+    if (!isPolygonDeployed) {
+      const { wait } = await polygonAccount.deploy({ paymasterServiceData: { mode: PaymasterMode.SPONSORED } });
+      const { success } = await wait();
+      expect(success).toBe("true");
+    }
+    if (!isBaseDeployed) {
+      const { wait } = await baseAccount.deploy({ paymasterServiceData: { mode: PaymasterMode.SPONSORED } });
+      const { success } = await wait();
+      expect(success).toBe("true");
+    }
+
     const moduleEnabled1 = await polygonAccount.isModuleEnabled(DEFAULT_MULTICHAIN_MODULE);
     const moduleActive1 = polygonAccount.activeValidationModule;
     expect(moduleEnabled1).toBeTruthy();

@@ -45,7 +45,9 @@ describe("Batched Session Router Tests", () => {
       index: 3, // Increasing index to not conflict with other test cases and use a new smart account
     });
 
-    const sessionFileStorage: SessionFileStorage = new SessionFileStorage(await smartAccount.getAddress());
+    const smartAccountAddress = await smartAccount.getAddress();
+
+    const sessionFileStorage: SessionFileStorage = new SessionFileStorage(smartAccountAddress);
 
     try {
       sessionSigner = await sessionFileStorage.getSignerByKey(sessionKeyEOA);
@@ -61,26 +63,24 @@ describe("Batched Session Router Tests", () => {
     // First we need to check if smart account is deployed
     // if not deployed, send an empty transaction to deploy it
     const isDeployed = await smartAccount.isAccountDeployed();
+
     if (!isDeployed) {
-      const emptyTx = {
-        to: smartAccountAddress,
-        data: "0x",
-      };
-      const userOpResponse = await smartAccount.sendTransaction(emptyTx, { paymasterServiceData: { mode: PaymasterMode.SPONSORED } });
-      await userOpResponse.wait();
+      const { wait } = await smartAccount.deploy({ paymasterServiceData: { mode: PaymasterMode.SPONSORED } });
+      const { success } = await wait();
+      expect(success).toBe("true");
     }
 
     // Create session module
     const sessionModule = await createSessionKeyManagerModule({
       moduleAddress: DEFAULT_SESSION_KEY_MANAGER_MODULE,
-      smartAccountAddress: await smartAccount.getAddress(),
+      smartAccountAddress,
       sessionStorageClient: sessionFileStorage,
     });
 
     // Create batched session module
     const batchedSessionModule = await createBatchedSessionRouterModule({
       moduleAddress: DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
-      smartAccountAddress: await smartAccount.getAddress(),
+      smartAccountAddress,
       sessionKeyManagerModule: sessionModule,
     });
 
@@ -145,9 +145,10 @@ describe("Batched Session Router Tests", () => {
 
     const userOpResponse1 = await smartAccount.sendTransaction(txArray, { paymasterServiceData: { mode: PaymasterMode.SPONSORED } }); // this user op will enable the modules and setup session allowed calls
     const transactionDetails = await userOpResponse1.wait();
+    expect(transactionDetails.success).toBe("true");
     Logger.log("Tx Hash: ", transactionDetails.receipt.transactionHash);
 
-    const usdcBalance = await checkBalance(publicClient, await smartAccount.getAccountAddress(), "0xdA5289fCAAF71d52a80A254da614a192b693e977");
+    const usdcBalance = await checkBalance(publicClient, smartAccountAddress, "0xdA5289fCAAF71d52a80A254da614a192b693e977");
     expect(usdcBalance).toBeGreaterThan(0);
 
     smartAccount = smartAccount.setActiveValidationModule(batchedSessionModule);
@@ -178,7 +179,7 @@ describe("Batched Session Router Tests", () => {
     const activeModule = smartAccount.activeValidationModule;
     expect(activeModule).toEqual(batchedSessionModule);
 
-    const maticBalanceBefore = await checkBalance(publicClient, await smartAccount.getAccountAddress());
+    const maticBalanceBefore = await checkBalance(publicClient, smartAccountAddress);
 
     // failing with dummyTx because of invalid sessionKeyData
     const userOpResponse2 = await smartAccount.sendTransaction([transferTx, transferTx2], {
@@ -206,7 +207,7 @@ describe("Batched Session Router Tests", () => {
     expect(userOpResponse2.userOpHash).toBeTruthy();
     expect(userOpResponse2.userOpHash).not.toBeNull();
 
-    const maticBalanceAfter = await checkBalance(publicClient, await smartAccount.getAccountAddress());
+    const maticBalanceAfter = await checkBalance(publicClient, smartAccountAddress);
 
     expect(maticBalanceAfter).toEqual(maticBalanceBefore);
 
