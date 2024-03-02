@@ -1,6 +1,6 @@
 import { TestData } from "../../../tests";
 import { createSmartAccountClient } from "../src/index";
-import { DEFAULT_ECDSA_OWNERSHIP_MODULE, DEFAULT_SESSION_KEY_MANAGER_MODULE, createECDSAOwnershipValidationModule } from "@biconomy/modules";
+import { DEFAULT_ECDSA_OWNERSHIP_MODULE, DEFAULT_SESSION_KEY_MANAGER_MODULE, createECDSAOwnershipValidationModule } from "@biconomy-devx/modules";
 
 describe("Account Tests", () => {
   let mumbai: TestData;
