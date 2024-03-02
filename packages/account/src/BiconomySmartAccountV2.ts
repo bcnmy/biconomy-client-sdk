@@ -117,7 +117,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   private constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountV2ConfigConstructorProps) {
     super({
       ...biconomySmartAccountConfig,
-      chain: getChain(biconomySmartAccountConfig.chainId),
+      chain: biconomySmartAccountConfig.viemChain ?? getChain(biconomySmartAccountConfig.chainId),
       rpcClient: biconomySmartAccountConfig.rpcUrl || getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0],
       entryPointAddress: (biconomySmartAccountConfig.entryPointAddress as Hex) ?? DEFAULT_ENTRYPOINT_ADDRESS,
       accountAddress: (biconomySmartAccountConfig.accountAddress as Hex) ?? undefined,
@@ -154,7 +154,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     this.activeValidationModule = biconomySmartAccountConfig.activeValidationModule!;
 
     this.provider = createPublicClient({
-      chain: getChain(biconomySmartAccountConfig.chainId),
+      chain: biconomySmartAccountConfig.viemChain ?? getChain(biconomySmartAccountConfig.chainId),
       transport: http(biconomySmartAccountConfig.rpcUrl || getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0]),
     });
 

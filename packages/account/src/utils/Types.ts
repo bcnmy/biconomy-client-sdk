@@ -9,7 +9,7 @@ import {
   type SponsorUserOperationDto,
 } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
-import { Hex, WalletClient } from "viem";
+import { Chain, Hex, WalletClient } from "viem";
 import { SupportedSigner, StateOverrideSet } from "@biconomy/common";
 
 export type EntryPointAddresses = Record<string, string>;
@@ -139,12 +139,12 @@ export type BiconomySmartAccountV2ConfigBaseProps = {
 export type BiconomySmartAccountV2Config = BiconomySmartAccountV2ConfigBaseProps &
   BaseSmartAccountConfig &
   ConditionalBundlerProps &
-  ConditionalValidationProps;
+  ConditionalValidationProps & { viemChain?: Chain };
 
 export type BiconomySmartAccountV2ConfigConstructorProps = BiconomySmartAccountV2ConfigBaseProps &
   BaseSmartAccountConfig &
   ResolvedBundlerProps &
-  ResolvedValidationProps;
+  ResolvedValidationProps & { viemChain?: Chain };
 
 export type BuildUserOpOptions = {
   /** overrides: Explicitly set gas values */
