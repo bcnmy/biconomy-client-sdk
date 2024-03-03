@@ -1,8 +1,8 @@
-import { PaymasterMode } from "@biconomy-devx/paymaster";
+import { PaymasterMode } from "@biconomy/paymaster";
 import { TestData } from "../../../tests";
 import { createSmartAccountClient } from "../../account/src/index";
 import { Hex, encodeFunctionData, parseAbi } from "viem";
-import { DEFAULT_MULTICHAIN_MODULE, createECDSAOwnershipValidationModule } from "@biconomy-devx/modules";
+import { DEFAULT_MULTICHAIN_MODULE, createECDSAOwnershipValidationModule } from "@biconomy/modules";
 
 describe("Account with ECDSAOwnershipValidationModule Module Tests", () => {
   let mumbai: TestData;

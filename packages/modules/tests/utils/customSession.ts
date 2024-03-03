@@ -1,11 +1,11 @@
 import * as fs from "fs";
 import { SmartAccountSigner, WalletClientSigner, getChain } from "@alchemy/aa-core";
-import { SignerData } from "@biconomy-devx/modules/src";
+import { SignerData } from "@biconomy/modules/src";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { Hex, createWalletClient, http } from "viem";
 import { polygonMumbai } from "viem/chains";
-import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "@biconomy-devx/modules/src/interfaces/ISessionStorage.js";
-import { Logger } from "@biconomy-devx/common";
+import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "@biconomy/modules/src/interfaces/ISessionStorage.js";
+import { Logger } from "@biconomy/common";
 
 export class SessionFileStorage implements ISessionStorage {
   private smartAccountAddress: string;

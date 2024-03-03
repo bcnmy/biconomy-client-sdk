@@ -1,5 +1,5 @@
 import { BigNumberish, SmartAccountSigner, UserOperationStruct } from "@alchemy/aa-core";
-import { IBundler } from "@biconomy-devx/bundler";
+import { IBundler } from "@biconomy/bundler";
 import {
   type FeeQuotesOrDataDto,
   type IPaymaster,
@@ -7,10 +7,10 @@ import {
   PaymasterMode,
   type SmartAccountData,
   type SponsorUserOperationDto,
-} from "@biconomy-devx/paymaster";
-import { BaseValidationModule, ModuleInfo } from "@biconomy-devx/modules";
+} from "@biconomy/paymaster";
+import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
 import { Chain, Hex, WalletClient } from "viem";
-import { SupportedSigner, StateOverrideSet } from "@biconomy-devx/common";
+import { SupportedSigner, StateOverrideSet } from "@biconomy/common";
 
 export type EntryPointAddresses = Record<string, string>;
 export type BiconomyFactories = Record<string, string>;

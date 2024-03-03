@@ -1,5 +1,5 @@
 import { TestData } from "../../../tests";
-import { PaymasterMode, Transaction, createSmartAccountClient } from "@biconomy-devx/account";
+import { PaymasterMode, Transaction, createSmartAccountClient } from "@biconomy/account";
 import { DEFAULT_BATCHED_SESSION_ROUTER_MODULE, DEFAULT_ERC20_MODULE, DEFAULT_SESSION_KEY_MANAGER_MODULE } from "../src";
 
 describe("Account Tests", () => {

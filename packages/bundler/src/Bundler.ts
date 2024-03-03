@@ -27,7 +27,7 @@ import {
   DEFAULT_ENTRYPOINT_ADDRESS,
 } from "./utils/Constants.js";
 import { extractChainIdFromBundlerUrl } from "./utils/Utils.js";
-import { sendRequest, HttpMethod, StateOverrideSet } from "@biconomy-devx/common";
+import { sendRequest, HttpMethod, StateOverrideSet } from "@biconomy/common";
 
 /**
  * This class implements IBundler interface.

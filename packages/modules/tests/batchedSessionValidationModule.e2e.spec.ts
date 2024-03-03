@@ -3,14 +3,14 @@ import {
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   createBatchedSessionRouterModule,
   createSessionKeyManagerModule,
-} from "@biconomy-devx/modules";
+} from "@biconomy/modules";
 import { SessionFileStorage } from "./utils/customSession";
 import { WalletClientSigner, createSmartAccountClient } from "../../account/src/index";
 import { encodeAbiParameters, encodeFunctionData, parseAbi, parseUnits } from "viem";
 import { TestData } from "../../../tests";
 import { checkBalance } from "../../../tests/utils";
-import { PaymasterMode } from "@biconomy-devx/paymaster";
-import { Logger } from "@biconomy-devx/common";
+import { PaymasterMode } from "@biconomy/paymaster";
+import { Logger } from "@biconomy/common";
 
 describe("Batched Session Router Tests", () => {
   let mumbai: TestData;

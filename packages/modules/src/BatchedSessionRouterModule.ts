@@ -9,7 +9,7 @@ import { SessionKeyManagerModule } from "./SessionKeyManagerModule.js";
 import { SessionSearchParam, SessionStatus } from "./interfaces/ISessionStorage.js";
 import { Hex, concat, encodeAbiParameters, keccak256, pad, parseAbiParameters, toBytes, toHex } from "viem";
 import { SmartAccountSigner } from "@alchemy/aa-core";
-import { convertSigner } from "@biconomy-devx/common";
+import { convertSigner } from "@biconomy/common";
 import { defaultAbiCoder } from "@ethersproject/abi";
 
 export class BatchedSessionRouterModule extends BaseValidationModule {

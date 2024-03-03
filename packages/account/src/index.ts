@@ -15,8 +15,8 @@ export {
   type SponsorUserOperationDto,
   type FeeQuotesOrDataResponse,
   createPaymaster,
-} from "@biconomy-devx/paymaster";
-export { EthersSigner, convertSigner, type LightSigner, type SupportedSigner } from "@biconomy-devx/common";
+} from "@biconomy/paymaster";
+export { EthersSigner, convertSigner, type LightSigner, type SupportedSigner } from "@biconomy/common";
 export {
   Bundler,
   type IBundler,
@@ -25,7 +25,7 @@ export {
   type UserOpStatus,
   type UserOpReceipt,
   createBundler,
-} from "@biconomy-devx/bundler";
+} from "@biconomy/bundler";
 export {
   createECDSAOwnershipValidationModule,
   createERC20SessionValidationModule,
@@ -41,7 +41,7 @@ export {
   type SessionKeyManagerModuleConfig,
   type MultiChainValidationModuleConfig,
   type SessionValidationModuleConfig,
-} from "@biconomy-devx/modules";
+} from "@biconomy/modules";
 
 export const createSmartAccountClient = BiconomySmartAccountV2.create;
 
