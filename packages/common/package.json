@@ -56,7 +56,7 @@
   "dependencies": {
     "@alchemy/aa-core": "^3.4.0",
     "@ethersproject/abstract-signer": "^5.7.0",
-    "viem": "^2.7.12"
+    "viem": "^2.7.19"
   },
   "devDependencies": {
     "@types/node": "^20.11.10",

@@ -72,6 +72,6 @@
     "@biconomy/common": "4.0.3",
     "@biconomy/modules": "4.0.3",
     "@biconomy/paymaster": "4.0.3",
-    "viem": "^2.7.12"
+    "viem": "^2.7.19"
   }
 }

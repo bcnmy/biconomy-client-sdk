@@ -58,7 +58,7 @@
   "dependencies": {
     "@alchemy/aa-core": "^3.4.0",
     "@biconomy/common": "4.0.3",
-    "viem": "^2.7.12"
+    "viem": "^2.7.19"
   },
   "devDependencies": {
     "@types/node": "^20.11.10",
