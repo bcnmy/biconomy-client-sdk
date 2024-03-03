@@ -9394,9 +9394,9 @@ validate-npm-package-name@^3.0.0:
     builtins "^1.0.3"
 
 viem@^2.7.12, viem@^2.7.8:
-  version "2.7.16"
-  resolved "https://registry.yarnpkg.com/viem/-/viem-2.7.16.tgz#99e66bbec661b2284bc32061474f20a90381bdcb"
-  integrity sha512-yOPa9yaoJUm44m0Qe3ugHnkHol3QQlFxN3jT+bq+lQip7X7cWdPfmguyfLWX2viCXcmYZUDiQdeFbkPW9lw11Q==
+  version "2.7.18"
+  resolved "https://registry.yarnpkg.com/viem/-/viem-2.7.18.tgz#759d864f5bfd584c80fb5ea14b21d0819e78b0f4"
+  integrity sha512-tA7fDLrbnRiTIYb9v57PHdc2ARouLDE5XEEBsNu+BN8O8obgh5JevXDGwn9eSWZdvz1PnydGHkCfJGfSkSS9+w==
   dependencies:
     "@adraffy/ens-normalize" "1.10.0"
     "@noble/curves" "1.2.0"
