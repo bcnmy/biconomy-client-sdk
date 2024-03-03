@@ -853,7 +853,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   async getUserOpHash(userOp: Partial<UserOperationStruct>): Promise<Hex> {
     const userOpHash = keccak256(packUserOp(userOp, true) as Hex);
-    const enc = encodeAbiParameters(parseAbiParameters("bytes32, address, uint256"), [userOpHash, this.entryPointAddress, BigInt(this.chainId)]);
+    const enc = encodeAbiParameters(parseAbiParameters("bytes32, address, uint256"), [userOpHash, this.entryPoint.address, BigInt(this.chainId)]);
     return keccak256(enc);
   }
 
