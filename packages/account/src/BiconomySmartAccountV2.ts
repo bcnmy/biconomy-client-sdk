@@ -71,6 +71,7 @@ import { BiconomyAccountAbi } from "./abi/SmartAccount.js";
 import { AccountResolverAbi } from "./abi/AccountResolver.js";
 import { Logger, StateOverrideSet } from "@biconomy/common";
 import { FeeQuotesOrDataDto, FeeQuotesOrDataResponse } from "@biconomy/paymaster";
+import { EntryPointAbi } from "@alchemy/aa-core";
 
 type UserOperationKey = keyof UserOperationStruct;
 
@@ -853,7 +854,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   async getUserOpHash(userOp: Partial<UserOperationStruct>): Promise<Hex> {
     const userOpHash = keccak256(packUserOp(userOp, true) as Hex);
-    const enc = encodeAbiParameters(parseAbiParameters("bytes32, address, uint256"), [userOpHash, this.entryPoint.address, BigInt(this.chainId)]);
+    const enc = encodeAbiParameters(parseAbiParameters("bytes32, address, uint256"), [userOpHash, this.entryPointAddress, BigInt(this.chainId)]);
     return keccak256(enc);
   }
 
@@ -906,8 +907,16 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const nonceSpace = nonceKey ?? 0;
     try {
       const address = await this.getAddress();
-      return await this.entryPoint.read.getNonce([address, BigInt(nonceSpace)]);
+      // we could cache this
+      const entryPoint = getContract({
+        address: this.entryPointAddress,
+        abi: EntryPointAbi,
+        client: this.provider,
+      });
+      return await entryPoint.read.getNonce([address, BigInt(nonceSpace)]);
     } catch (e) {
+      Logger.log("in catch block ");
+      Logger.log("error is ", e);
       return BigInt(0);
     }
   }

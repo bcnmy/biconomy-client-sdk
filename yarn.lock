@@ -12,7 +12,7 @@
   resolved "https://registry.yarnpkg.com/@adraffy/ens-normalize/-/ens-normalize-1.10.0.tgz#d2a39395c587e092d77cbbc80acf956a54f38bf7"
   integrity sha512-nA9XHtlAkYfJxY7bce8DcN7eKxWWCWkU+1GR9d+U6MbNpfwQp8TI7vqOsBsMcHoT4mBu2kypKoSKnghEzOOq5Q==
 
-"@alchemy/aa-core@^3.4.0":
+"@alchemy/aa-core@^3.1.1":
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/@alchemy/aa-core/-/aa-core-3.4.0.tgz#08e514bf2f97a9c1452424a7f7915aa48daf4db2"
   integrity sha512-kEqsMwweMxQU6b8mKNmkUacyZRxdU7WBBiAYNmGxJK5djOdsGlfCBZGHu2AyAb8ogfrGWX8J+uVuYTnCIZS6ew==

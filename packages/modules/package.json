@@ -53,7 +53,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@alchemy/aa-core": "^3.4.0",
+    "@alchemy/aa-core": "^3.1.1",
     "@biconomy/common": "4.0.3",
     "@ethersproject/abi": "^5.7.0",
     "merkletreejs": "^0.3.11",
