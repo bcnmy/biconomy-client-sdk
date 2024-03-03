@@ -1,6 +1,6 @@
 {
-  "name": "@biconomy/modules",
-  "version": "4.0.3",
+  "name": "@biconomy-devx/modules",
+  "version": "4.0.6",
   "description": "This package provides different validation modules/plugins for ERC4337 compatible modular account",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -54,7 +54,7 @@
   },
   "dependencies": {
     "@alchemy/aa-core": "^3.1.1",
-    "@biconomy/common": "4.0.3",
+    "@biconomy-devx/common": "4.0.6",
     "@ethersproject/abi": "^5.7.0",
     "merkletreejs": "^0.3.11",
     "viem": "^2.7.19"
@@ -64,7 +64,7 @@
     "esbuild": "^0.19.11",
     "esbuild-plugin-tsc": "^0.4.0",
     "npm-dts": "^1.3.12",
-    "@biconomy/paymaster": "4.0.3",
-    "@biconomy/modules": "4.0.3"
+    "@biconomy-devx/paymaster": "4.0.6",
+    "@biconomy-devx/modules": "4.0.6"
   }
 }

@@ -1,11 +1,11 @@
-import { DEFAULT_SESSION_KEY_MANAGER_MODULE, createSessionKeyManagerModule } from "@biconomy/modules";
+import { DEFAULT_SESSION_KEY_MANAGER_MODULE, createSessionKeyManagerModule } from "@biconomy-devx/modules";
 import { SessionFileStorage } from "./utils/customSession";
 import { WalletClientSigner, createSmartAccountClient } from "../../account/src/index";
 import { Hex, encodeAbiParameters, encodeFunctionData, parseAbi, parseUnits } from "viem";
 import { TestData } from "../../../tests";
 import { checkBalance } from "../../../tests/utils";
-import { PaymasterMode } from "@biconomy/paymaster";
-import { Logger } from "@biconomy/common";
+import { PaymasterMode } from "@biconomy-devx/paymaster";
+import { Logger } from "@biconomy-devx/common";
 
 describe("Session Validation Module Tests", () => {
   let mumbai: TestData;
