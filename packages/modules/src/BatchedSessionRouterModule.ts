@@ -98,7 +98,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
     const sessionDataTupleArray = [];
 
     // signer must be the same for all the sessions
-    const { signer: sessionSigner } = await convertSigner(sessionParams[0].sessionSigner);
+    const { signer: sessionSigner } = await convertSigner(sessionParams[0].sessionSigner, false);
 
     const signature = await sessionSigner.signMessage({ raw: toBytes(userOpHash) });
 
@@ -208,7 +208,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
     // if needed we could do mock signature over userOpHashAndModuleAddress
 
     // signer must be the same for all the sessions
-    const { signer: sessionSigner } = await convertSigner(sessionParams[0].sessionSigner);
+    const { signer: sessionSigner } = await convertSigner(sessionParams[0].sessionSigner, false);
 
     for (const sessionParam of sessionParams) {
       if (!sessionParam.sessionSigner) {

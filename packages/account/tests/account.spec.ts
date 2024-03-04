@@ -235,10 +235,9 @@ describe("Account Tests", () => {
   it("Create a smart account with paymaster by creating instance", async () => {
     const {
       whale: { viemWallet: signer },
-      biconomyPaymasterApiKey,
+      paymasterUrl,
     } = ganache;
 
-    const paymasterUrl = "https://paymaster.biconomy.io/api/v1/80001/" + biconomyPaymasterApiKey;
     const paymaster = new Paymaster({ paymasterUrl });
 
     const smartAccount = await createSmartAccountClient({
