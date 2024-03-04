@@ -155,13 +155,13 @@ describe("Batched Session Router Tests", () => {
     const encodedCall = encodeFunctionData({
       abi: parseAbi(["function transfer(address _to, uint256 _value)"]),
       functionName: "transfer",
-      args: [recipient, parseUnits("0.01", 6)],
+      args: [recipient, parseUnits("0.001", 6)],
     });
 
     const encodedCall2 = encodeFunctionData({
       abi: parseAbi(["function transfer(address _to, uint256 _value)"]),
       functionName: "transfer",
-      args: ["0xd3C85Fdd3695Aee3f0A12B3376aCD8DC54020549", parseUnits("0.01", 6)],
+      args: ["0xd3C85Fdd3695Aee3f0A12B3376aCD8DC54020549", parseUnits("0.001", 6)],
     });
 
     const transferTx = {
@@ -199,7 +199,7 @@ describe("Batched Session Router Tests", () => {
     });
 
     const receipt = await userOpResponse2.wait();
-
+    console.log(receipt.userOpHash, "Batched user op hash");
     expect(receipt.success).toBe("true");
 
     expect(userOpResponse2.userOpHash).toBeTruthy();
