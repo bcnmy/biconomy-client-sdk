@@ -185,6 +185,7 @@ describe("Account Tests", () => {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
       nftAddress,
+      publicClient
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
