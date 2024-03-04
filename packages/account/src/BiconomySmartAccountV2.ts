@@ -293,13 +293,27 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977";
    * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl });
-   * const [usdtBalanceFromSmartAccount] = await smartAccount.getBalances([usdt]);
+   * const [usdtBalanceFromSmartAccount, nativeTokenBalanceFromSmartAccount] = await smartAccount.getBalances([usdt]);
    *
+   * console.log(usdtBalanceFromSmartAccount);
    * // {
    * //   amount: 1000000000000000n,
    * //   decimals: 6,
    * //   address: "0xda5289fcaaf71d52a80a254da614a192b693e977",
    * //   formattedAmount: "1000000",
+   * //   chainId: 80001
+   * // }
+   *
+   * // or to get the nativeToken balance
+   *
+   * const [nativeTokenBalanceFromSmartAccount] = await smartAccount.getBalances();
+   *
+   * console.log(usdtBalanceFromSmartAccount);
+   * // {
+   * //   amount: 1000000000000000n,
+   * //   decimals: 18,
+   * //   address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+   * //   formattedAmount: "1",
    * //   chainId: 80001
    * // }
    *
@@ -309,15 +323,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const result: BalancePayload[] = [];
 
     if (addresses) {
-      const tokenContracts = addresses
-        .filter((address) => !addressEquals(address, NATIVE_TOKEN_ALIAS))
-        .map((address) =>
-          getContract({
-            address,
-            abi: parseAbi(ERC20_ABI),
-            client: this.provider,
-          }),
-        );
+      const tokenContracts = addresses.map((address) =>
+        getContract({
+          address,
+          abi: parseAbi(ERC20_ABI),
+          client: this.provider,
+        }),
+      );
 
       const balancePromises = tokenContracts.map((tokenContract) => tokenContract.read.balanceOf([accountAddress])) as Promise<bigint>[];
       const decimalsPromises = tokenContracts.map((tokenContract) => tokenContract.read.decimals()) as Promise<number>[];
