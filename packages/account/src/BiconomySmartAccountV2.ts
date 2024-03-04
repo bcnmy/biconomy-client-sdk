@@ -26,7 +26,7 @@ import {
   BatchUserOperationCallData,
   SmartAccountSigner,
 } from "@alchemy/aa-core";
-import { addressEquals, isNullOrUndefined, isValidRpcUrl, packUserOp } from "./utils/Utils.js";
+import { compareChainIds, isNullOrUndefined, packUserOp, isValidRpcUrl } from "./utils/Utils.js";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, createECDSAOwnershipValidationModule } from "@biconomy/modules";
 import {
   IHybridPaymaster,
@@ -121,7 +121,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     this.bundler = biconomySmartAccountConfig.bundler;
     this.implementationAddress = biconomySmartAccountConfig.implementationAddress ?? (BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0 as Hex);
 
-    if (biconomySmartAccountConfig.biconomyPaymasterApiKey) {
+    if (biconomySmartAccountConfig.paymasterUrl) {
+      this.paymaster = new Paymaster({
+        paymasterUrl: biconomySmartAccountConfig.paymasterUrl,
+      });
+    } else if (biconomySmartAccountConfig.biconomyPaymasterApiKey) {
       this.paymaster = new Paymaster({
         paymasterUrl: `https://paymaster.biconomy.io/api/v1/${biconomySmartAccountConfig.chainId}/${biconomySmartAccountConfig.biconomyPaymasterApiKey}`,
       });
@@ -193,16 +197,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     if (biconomySmartAccountConfig.signer) {
       const signerResult = await convertSigner(biconomySmartAccountConfig.signer, !!chainId);
       if (!chainId && !!signerResult.chainId) {
-        let chainIdFromBundler: number | undefined;
-        if (biconomySmartAccountConfig.bundlerUrl) {
-          chainIdFromBundler = extractChainIdFromBundlerUrl(biconomySmartAccountConfig.bundlerUrl);
-        } else if (biconomySmartAccountConfig.bundler) {
-          const bundlerUrlFromBundler = biconomySmartAccountConfig.bundler.getBundlerUrl();
-          chainIdFromBundler = extractChainIdFromBundlerUrl(bundlerUrlFromBundler);
-        }
-        if (chainIdFromBundler !== signerResult.chainId) {
-          throw new Error("ChainId from bundler and signer do not match");
-        }
         chainId = signerResult.chainId;
       }
       if (!rpcUrl && !!signerResult.rpcUrl) {
@@ -248,6 +242,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       signer: resolvedSmartAccountSigner,
       rpcUrl,
     };
+
+    // We check if chain ids match (skip this if chainId is passed by in the config)
+    // This check is at the end of the function for cases when the signer is not passed in the config but a validation modules is and we get the signer from the validation module in this case
+    if (!biconomySmartAccountConfig.chainId) {
+      await compareChainIds(biconomySmartAccountConfig.signer || resolvedSmartAccountSigner, config, false);
+    }
 
     return new BiconomySmartAccountV2(config);
   }

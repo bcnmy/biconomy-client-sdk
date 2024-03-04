@@ -22,7 +22,7 @@ import { createSmartAccountClient } from "@biconomy/account";
 const smartAccount = await createSmartAccountClient({
   signer: viemWalletOrEthersSigner,
   bundlerUrl: "", // From dashboard.biconomy.io
-  biconomyPaymasterApiKey: "", // From dashboard.biconomy.io
+  paymasterUrl: "", // From dashboard.biconomy.io
 });
 
 const { wait } = await smartAccount.sendTransaction({ to: "0x...", value: 1 });
@@ -55,7 +55,7 @@ For a step-by-step guide on integrating **ERC4337 Account Abstraction** and **Sm
 | Key                                                                                                            | Description                                                                                                                           |
 | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | [signer](https://bcnmy.github.io/biconomy-client-sdk/packages/account/docs/interfaces/SmartAccountSigner.html) | This signer will be used for signing userOps for any transactions you build. Will accept ethers.JsonRpcSigner as well as a viemWallet |
-| [biconomyPaymasterApiKey](https://dashboard.biconomy.io)                                                       | You can pass in a biconomyPaymasterApiKey necessary for sponsoring transactions (retrieved from the biconomy dashboard)               |
+| [paymasterUrl](https://dashboard.biconomy.io)                                                       | You can pass in a paymasterUrl necessary for sponsoring transactions (retrieved from the biconomy dashboard)               |
 | [bundlerUrl](https://dashboard.biconomy.io)                                                                    | You can pass in a bundlerUrl (retrieved from the biconomy dashboard) for sending transactions                                         |
 
 ```typescript
@@ -70,7 +70,7 @@ const signer = createWalletClient({ account, chain, transport: http() });
 const smartAccount = await createSmartAccountClient({
   signer,
   bundlerUrl,
-  biconomyPaymasterApiKey,
+  paymasterUrl,
 });
 ```
 

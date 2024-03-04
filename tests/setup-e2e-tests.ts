@@ -104,9 +104,9 @@ beforeAll(async () => {
       nftAddress: whaleBalance.nftAddress,
       entryPointAddress: whaleBalance.entryPointAddress,
       viemChain: whaleBalance.viemChain,
-      biconomyPaymasterApiKey: whaleBalance.biconomyPaymasterApiKey,
       ethersProvider: whaleBalance.ethersProvider,
       paymasterUrl: whaleBalance.paymasterUrl,
+      biconomyPaymasterApiKey: whaleBalance.biconomyPaymasterApiKey,
     };
 
     const datum = {

@@ -159,7 +159,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     if (!(params && params.sessionSigner)) {
       throw new Error("Session signer is not provided.");
     }
-    const { signer: sessionSigner } = await convertSigner(params.sessionSigner);
+    const { signer: sessionSigner } = await convertSigner(params.sessionSigner, false);
 
     // Use the sessionSigner to sign the user operation
     const signature = await sessionSigner.signMessage({ raw: toBytes(userOpHash) });
@@ -194,7 +194,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     if (!(params && params.sessionSigner)) {
       throw new Error("Session signer is not provided.");
     }
-    const { signer: sessionSigner } = await convertSigner(params.sessionSigner);
+    const { signer: sessionSigner } = await convertSigner(params.sessionSigner, false);
     let sessionSignerData;
     if (params?.sessionID) {
       sessionSignerData = await this.sessionStorageClient.getSessionData({

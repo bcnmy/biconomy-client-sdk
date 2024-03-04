@@ -117,12 +117,12 @@ describe("Account Tests", () => {
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
-      biconomyPaymasterApiKey,
+      paymasterUrl,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
       signer,
-      biconomyPaymasterApiKey,
+      paymasterUrl,
       bundlerUrl,
     });
 
@@ -135,7 +135,7 @@ describe("Account Tests", () => {
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
-      biconomyPaymasterApiKey,
+      paymasterUrl,
       publicClient,
       nftAddress,
     } = mumbai;
@@ -143,7 +143,7 @@ describe("Account Tests", () => {
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl,
-      biconomyPaymasterApiKey,
+      paymasterUrl,
     });
 
     const encodedCall = encodeFunctionData({
@@ -273,7 +273,7 @@ describe("Account Tests", () => {
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
-      biconomyPaymasterApiKey,
+      paymasterUrl,
       publicClient,
       nftAddress,
     } = mumbai;
@@ -281,7 +281,7 @@ describe("Account Tests", () => {
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl,
-      biconomyPaymasterApiKey,
+      paymasterUrl,
     });
 
     const smartAccountAddress = await smartAccount.getAddress();
@@ -416,12 +416,12 @@ describe("Account Tests", () => {
       bundlerUrl,
       entryPointAddress,
       publicClient,
-      biconomyPaymasterApiKey,
+      paymasterUrl,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
       signer,
-      biconomyPaymasterApiKey,
+      paymasterUrl,
       bundlerUrl,
     });
 
@@ -456,12 +456,12 @@ describe("Account Tests", () => {
       whale: { viemWallet: signer },
       bundlerUrl,
       publicClient,
-      biconomyPaymasterApiKey,
+      paymasterUrl,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
       signer,
-      biconomyPaymasterApiKey,
+      paymasterUrl,
       bundlerUrl,
     });
 
@@ -489,6 +489,32 @@ describe("Account Tests", () => {
     expect(ecdsaOwnershipModule).toBe(smartAccount.activeValidationModule.getAddress());
   });
 
+  it("Should throw, chain id from signer and bundlerUrl do not match", async () => {
+    const {
+      whale: { viemWallet: signer },
+    } = mumbai;
+
+    const createAccount = createSmartAccountClient({
+      signer,
+      bundlerUrl: "https://bundler.biconomy.io/api/v2/1/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44", // mock
+    });
+
+    await expect(createAccount).rejects.toThrow();
+  });
+
+  it("Should throw, chain id from paymasterUrl and bundlerUrl do not match", async () => {
+    const {
+      whale: { viemWallet: signer },
+    } = mumbai;
+
+    const createAccount = createSmartAccountClient({
+      signer,
+      paymasterUrl: "https://paymaster.biconomy.io/api/v1/1/-RObQRX9ei.fc6918eb-c582-4417-9d5a-0507b17cfe71",
+      bundlerUrl: "https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44", // mock
+    });
+
+    await expect(createAccount).rejects.toThrow();
+  });
   it("should deploy a smart account with native token balance", async () => {
     const {
       bundlerUrl,

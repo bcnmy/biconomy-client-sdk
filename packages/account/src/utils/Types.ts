@@ -129,6 +129,8 @@ export type BiconomySmartAccountV2ConfigBaseProps = {
   defaultFallbackHandler?: Hex;
   /** rpcUrl: Rpc url, optional, we set default rpc url if not passed. */
   rpcUrl?: string; // as good as Provider
+  /** paymasterUrl: The Paymaster URL retrieved from the Biconomy dashboard */
+  paymasterUrl?: string;
   /** biconomyPaymasterApiKey: The API key retrieved from the Biconomy dashboard */
   biconomyPaymasterApiKey?: string;
   /** activeValidationModule: The active validation module. Will default to the defaultValidationModule */

@@ -23,6 +23,7 @@ export type TestData = {
   bundlerUrl: string;
   entryPointAddress: string;
   viemChain: Chain;
+  paymasterUrl: string;
   biconomyPaymasterApiKey: string;
   ethersProvider: JsonRpcProvider;
 };
