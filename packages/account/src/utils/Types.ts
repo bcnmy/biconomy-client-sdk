@@ -9,7 +9,7 @@ import {
   type SponsorUserOperationDto,
 } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
-import { Hex, WalletClient } from "viem";
+import { Chain, Hex, WalletClient } from "viem";
 import { SupportedSigner, StateOverrideSet } from "@biconomy/common";
 
 export type EntryPointAddresses = Record<string, string>;
@@ -137,6 +137,8 @@ export type BiconomySmartAccountV2ConfigBaseProps = {
   scanForUpgradedAccountsFromV1?: boolean;
   /** the index of SA the EOA have generated and till which indexes the upgraded SA should scan */
   maxIndexForScan?: number;
+  /** Can be used to optionally override the chain with a custom chain if it doesn't already exist in viems list of supported chains */
+  viemChain?: Chain;
 };
 export type BiconomySmartAccountV2Config = BiconomySmartAccountV2ConfigBaseProps &
   BaseSmartAccountConfig &
