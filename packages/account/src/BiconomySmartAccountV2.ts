@@ -308,7 +308,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * const [nativeTokenBalanceFromSmartAccount] = await smartAccount.getBalances();
    *
-   * console.log(usdtBalanceFromSmartAccount);
+   * console.log(nativeTokenBalanceFromSmartAccount);
    * // {
    * //   amount: 1000000000000000n,
    * //   decimals: 18,
