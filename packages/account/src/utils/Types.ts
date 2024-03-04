@@ -80,6 +80,8 @@ export type BiconomyTokenPaymasterRequest = {
   spender: Hex;
   /** maxApproval: If set to true, the paymaster will approve the maximum amount of tokens required for the transaction. Not recommended */
   maxApproval?: boolean;
+  /* skip option to patch callData if approval is already given to the paymaster */
+  skipPatchCallData?: boolean;
 };
 
 export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
@@ -218,6 +220,8 @@ export type PaymasterUserOperationDto = SponsorUserOperationDto &
     spender?: Hex;
     /** Not recommended */
     maxApproval?: boolean;
+    /* skip option to patch callData if approval is already given to the paymaster */
+    skipPatchCallData?: boolean;
   };
 
 export type InitializeV2Data = {
