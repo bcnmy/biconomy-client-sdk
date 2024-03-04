@@ -184,15 +184,13 @@ describe("Account Tests", () => {
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
-      publicClient,
-      biconomyPaymasterApiKey,
       nftAddress,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl,
-      biconomyPaymasterApiKey,
+      biconomyPaymasterApiKey: "7K_k68BFN.ed274da8-69a1-496d-a897-508fc2653666",
     });
 
     const accountAddress = await smartAccount.getAddress();
