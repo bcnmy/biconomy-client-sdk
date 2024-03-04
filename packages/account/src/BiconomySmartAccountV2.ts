@@ -26,7 +26,7 @@ import {
   BatchUserOperationCallData,
   SmartAccountSigner,
 } from "@alchemy/aa-core";
-import { isNullOrUndefined, isValidRpcUrl, packUserOp } from "./utils/Utils.js";
+import { addressEquals, isNullOrUndefined, isValidRpcUrl, packUserOp } from "./utils/Utils.js";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, createECDSAOwnershipValidationModule } from "@biconomy/modules";
 import {
   IHybridPaymaster,
@@ -271,14 +271,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   /**
-   * Returns token balances of Smart Account
+   * Returns token balances (and native token balance) of the smartAccount instance.
    *
    * This method will fetch the token balances of the smartAccount instance.
-   * If left empty, it will return the balance of the native token, with the address set to 0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE.
+   * The balance of the native token will always be returned as the last element in the reponse array, with the address set to 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE.
    *
-   * @param tokenAddresses - Optional. Array of token addresses to fetch the balances of.
-   * @returns Promise<Array<BalancePayload>> - An array of token balances (or native token balance) of the smartAccount instance.
-   * @throws An error if something is wrong with the smart account instance creation.
+   * @param addresses - Optional. Array of asset addresses to fetch the balances of. If not provided, the method will return only the balance of the native token.
+   * @returns Promise<Array<BalancePayload>> - An array of token balances (plus the native token balance) of the smartAccount instance.
    *
    * @example
    * import { createClient } from "viem"
@@ -305,40 +304,47 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * // }
    *
    */
-  public async getBalances(tokenAddresses?: Array<Hex>): Promise<Array<BalancePayload>> {
+  public async getBalances(addresses?: Array<Hex>): Promise<Array<BalancePayload>> {
     const accountAddress = await this.getAccountAddress();
+    const result: BalancePayload[] = [];
 
-    if (!tokenAddresses) {
-      const balance = await this.provider.getBalance({ address: accountAddress });
-      return [
-        {
-          amount: balance,
-          decimals: 18,
-          address: NATIVE_TOKEN_ALIAS,
-          formattedAmount: formatUnits(balance, 18),
+    if (addresses) {
+      const tokenContracts = addresses
+        .filter((address) => !addressEquals(address, NATIVE_TOKEN_ALIAS))
+        .map((address) =>
+          getContract({
+            address,
+            abi: parseAbi(ERC20_ABI),
+            client: this.provider,
+          }),
+        );
+
+      const balancePromises = tokenContracts.map((tokenContract) => tokenContract.read.balanceOf([accountAddress])) as Promise<bigint>[];
+      const decimalsPromises = tokenContracts.map((tokenContract) => tokenContract.read.decimals()) as Promise<number>[];
+      const [balances, decimalsPerToken] = await Promise.all([Promise.all(balancePromises), Promise.all(decimalsPromises)]);
+
+      balances.forEach((amount, index) =>
+        result.push({
+          amount,
+          decimals: decimalsPerToken[index],
+          address: addresses[index],
+          formattedAmount: formatUnits(amount, decimalsPerToken[index]),
           chainId: this.chainId,
-        },
-      ];
+        }),
+      );
     }
-    const tokenContracts = (tokenAddresses ?? []).map((address) =>
-      getContract({
-        address,
-        abi: parseAbi(ERC20_ABI),
-        client: this.provider,
-      }),
-    );
 
-    const balancePromises = tokenContracts.map((tokenContract) => tokenContract.read.balanceOf([accountAddress])) as Promise<bigint>[];
-    const decimalsPromises = tokenContracts.map((tokenContract) => tokenContract.read.decimals()) as Promise<number>[];
-    const [balances, decimalsPerToken] = await Promise.all([Promise.all(balancePromises), Promise.all(decimalsPromises)]);
+    const balance = await this.provider.getBalance({ address: accountAddress });
 
-    return balances.map((amount, index) => ({
-      amount,
-      decimals: decimalsPerToken[index],
-      address: tokenAddresses[index],
-      formattedAmount: formatUnits(amount, decimalsPerToken[index]),
+    result.push({
+      amount: balance,
+      decimals: 18,
+      address: NATIVE_TOKEN_ALIAS,
+      formattedAmount: formatUnits(balance, 18),
       chainId: this.chainId,
-    }));
+    });
+
+    return result;
   }
 
   /**
