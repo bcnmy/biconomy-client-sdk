@@ -83,3 +83,5 @@ export const isValidRpcUrl = (url: string): boolean => {
   const regex = /^(https:\/\/|wss:\/\/).*/;
   return regex.test(url);
 };
+
+export const addressEquals = (a?: string, b?: string): boolean => !!a && !!b && a?.toLowerCase() === b.toLowerCase();
