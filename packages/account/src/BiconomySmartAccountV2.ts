@@ -87,18 +87,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   bundler?: IBundler;
 
-  /**
-   * @class
-   * @ignore
-   */
   private accountContract?: GetContractReturnType<typeof BiconomyAccountAbi, PublicClient>;
-
-  /**
-   * @class
-   * @ignore
-   */
-  // @ts-ignore
-  protected entryPoint: BaseSmartContractAccount["entryPoint"];
 
   private defaultFallbackHandlerAddress: Hex;
 
@@ -117,7 +106,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   private constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountV2ConfigConstructorProps) {
     super({
       ...biconomySmartAccountConfig,
-      chain: getChain(biconomySmartAccountConfig.chainId),
+      chain: biconomySmartAccountConfig.viemChain ?? getChain(biconomySmartAccountConfig.chainId),
       rpcClient: biconomySmartAccountConfig.rpcUrl || getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0],
       entryPointAddress: (biconomySmartAccountConfig.entryPointAddress as Hex) ?? DEFAULT_ENTRYPOINT_ADDRESS,
       accountAddress: (biconomySmartAccountConfig.accountAddress as Hex) ?? undefined,
@@ -154,7 +143,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     this.activeValidationModule = biconomySmartAccountConfig.activeValidationModule!;
 
     this.provider = createPublicClient({
-      chain: getChain(biconomySmartAccountConfig.chainId),
+      chain: biconomySmartAccountConfig.viemChain ?? getChain(biconomySmartAccountConfig.chainId),
       transport: http(biconomySmartAccountConfig.rpcUrl || getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0]),
     });
 
@@ -413,10 +402,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
   }
 
-  /**
-   * @class
-   * @ignore
-   */
   async _getAccountContract(): Promise<GetContractReturnType<typeof BiconomyAccountAbi, PublicClient>> {
     if (this.accountContract == null) {
       this.accountContract = getContract({

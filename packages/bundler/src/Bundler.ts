@@ -1,5 +1,5 @@
 import { getChain, type UserOperationStruct } from "@alchemy/aa-core";
-import { createPublicClient, http } from "viem";
+import { createPublicClient, http, PublicClient } from "viem";
 import { IBundler } from "./interfaces/IBundler.js";
 import {
   GetUserOperationReceiptResponse,
@@ -46,9 +46,16 @@ export class Bundler implements IBundler {
 
   UserOpWaitForTxHashMaxDurationIntervals!: { [key in number]?: number };
 
+  private provider: PublicClient;
+
   constructor(bundlerConfig: Bundlerconfig) {
     const parsedChainId: number = bundlerConfig?.chainId || extractChainIdFromBundlerUrl(bundlerConfig.bundlerUrl);
     this.bundlerConfig = { ...bundlerConfig, chainId: parsedChainId };
+
+    this.provider = createPublicClient({
+      chain: bundlerConfig.viemChain ?? getChain(parsedChainId),
+      transport: http((bundlerConfig.viemChain || getChain(parsedChainId)).rpcUrls.default.http[0]),
+    });
 
     this.UserOpReceiptIntervals = {
       ...UserOpReceiptIntervals,
@@ -146,10 +153,6 @@ export class Bundler implements IBundler {
     const response: UserOpResponse = {
       userOpHash: sendUserOperationResponse.result,
       wait: (confirmations?: number): Promise<UserOpReceipt> => {
-        const providerClient = createPublicClient({
-          chain: getChain(chainId),
-          transport: http(),
-        });
         // Note: maxDuration can be defined per chainId
         const maxDuration = this.UserOpReceiptMaxDurationIntervals[chainId] || 30000; // default 30 seconds
         let totalDuration = 0;
@@ -161,7 +164,7 @@ export class Bundler implements IBundler {
               const userOpResponse = await this.getUserOpReceipt(sendUserOperationResponse.result);
               if (userOpResponse && userOpResponse.receipt && userOpResponse.receipt.blockNumber) {
                 if (confirmations) {
-                  const latestBlock = await providerClient.getBlockNumber();
+                  const latestBlock = await this.provider.getBlockNumber();
                   const confirmedBlocks = Number(latestBlock) - userOpResponse.receipt.blockNumber;
                   if (confirmations >= confirmedBlocks) {
                     clearInterval(intervalId);

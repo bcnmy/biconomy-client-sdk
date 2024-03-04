@@ -14,6 +14,8 @@ export const checkBalance = (publicClient: PublicClient, address: Hex, tokenAddr
   }
 };
 
+export const getMockBundlerUrl = (chainId: number) => `https://bundler.biconomy.io/api/v2/${chainId}/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f14`;
+
 // TODO(Joe): Make human readable
 export const entryPointABI = [
   {
