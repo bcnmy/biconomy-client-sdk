@@ -5,7 +5,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ## 4.1.0 (2023-04-03)
 
-Features
+Features:
 
 - Added Speed optimisation, removing redundant gasEstimate call to bundler ([2371b2](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/2371b230cd5806ec4c7c95ba604d6f924b4be768))
 - Added smartAccount.getBalances() method ([4b8bae](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/4b8bae412577b846e700b168976cefa6b0803ff6))
@@ -13,6 +13,8 @@ Features
 - Added smartAccount.deploy() method ([be9dc4](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/be9dc4d74a3e5a22e69416983436997cf2ea417c))
 - Increased checking of the chainId from the bundler, paymaster and the provider ([5d2f3](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/5d2f34d8f0fb4f9ff7c7ddc00336471e57efdcfd))
 - Added entity name to Logger calls ([9278ec](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/9278ecc21e060ef75ab29a0d054d95d69cd4ae27))
+- Export a 'getChain' by id helper, which returns a viem chain ([ab2ba](https://github.com/bcnmy/biconomy-client-sdk/pull/449/commits/ab2ba2c518ce867c52bf90b9018dfc1b4ec3b4d4))
+- Add "stateOverride" optional param ([20fd54](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/20fd54c817d2dcbc6b7d9a247d890d91b19a9c2f))
 
 Fixes:
 
