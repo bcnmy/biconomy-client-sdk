@@ -3,6 +3,7 @@ import { type BiconomySmartAccountV2Config } from "./utils/Types.js";
 
 export * from "./utils/Types.js";
 export * from "./utils/Constants.js";
+export * from "./utils/Utils.js";
 export * from "./BiconomySmartAccountV2.js";
 
 export { WalletClientSigner, LocalAccountSigner, type SmartAccountSigner } from "@alchemy/aa-core";
