@@ -3,7 +3,7 @@ import { createSmartAccountClient, ERROR_MESSAGES, FeeQuotesOrDataResponse, NATI
 import { Hex, createWalletClient, encodeFunctionData, getContract, http, parseAbi } from "viem";
 import { UserOperationStruct } from "@alchemy/aa-core";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
-import { ERC20_ABI } from "@biconomy/modules";
+import { ERC20_ABI } from "@biconomy-devx/modules";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 
 describe("Account Tests", () => {

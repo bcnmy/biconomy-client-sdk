@@ -2,7 +2,7 @@ import { Hex, encodeFunctionData, getAddress, parseAbi, toBytes } from "viem";
 import { SmartAccountSigner } from "@alchemy/aa-core";
 import { ECDSAOwnershipValidationModuleConfig, ECDSAOwnershipValidationModuleConfigConstructorProps, ModuleVersion } from "./utils/Types.js";
 import { DEFAULT_ECDSA_OWNERSHIP_MODULE, ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION } from "./utils/Constants.js";
-import { convertSigner } from "@biconomy/common";
+import { convertSigner } from "@biconomy-devx/common";
 import { BaseValidationModule } from "./BaseValidationModule.js";
 
 // Could be renamed with suffix API
