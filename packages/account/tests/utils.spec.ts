@@ -1,6 +1,6 @@
-import { BiconomySmartAccountV2Config, createECDSAOwnershipValidationModule } from "../src";
+import { BiconomySmartAccountV2Config, ERROR_MESSAGES, createECDSAOwnershipValidationModule } from "../src";
 import { TestData } from "../../../tests";
-import { compareChainIds } from "../src/utils";
+import { compareChainIds, getChain } from "../src/utils";
 import { createWalletClient, http } from "viem";
 import { bsc } from "viem/chains";
 
@@ -103,5 +103,28 @@ describe("Utils tests", () => {
     };
 
     await expect(compareChainIds(walletClient, config, false)).rejects.toThrow();
+  });
+
+  // test chains
+  it("Should return chain object for chain id 1", () => {
+    const chainId = 1;
+    const chain = getChain(chainId);
+    expect(chain.id).toBe(chainId);
+  });
+
+  // should have correct fields
+  it("Should have correct fields", () => {
+    const chainId = 1;
+    const chain = getChain(chainId);
+
+    ["blockExplorers", "contracts", "fees", "formatters", "id", "name", "nativeCurrency", "rpcUrls", "serializers"].every((field) => {
+      expect(chain).toHaveProperty(field);
+    });
+  });
+
+  // Should throw an error, chain id not found
+  it("Should throw an error, chain id not found", () => {
+    const chainId = 0;
+    expect(() => getChain(chainId)).toThrow(ERROR_MESSAGES.CHAIN_NOT_FOUND);
   });
 });

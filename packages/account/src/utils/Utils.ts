@@ -1,9 +1,11 @@
-import { encodeAbiParameters, parseAbiParameters, keccak256, Hex } from "viem";
+import { encodeAbiParameters, parseAbiParameters, keccak256, Hex, Chain } from "viem";
 import type { UserOperationStruct } from "@alchemy/aa-core";
 import { SupportedSigner, convertSigner } from "@biconomy/common";
 import { extractChainIdFromBundlerUrl } from "@biconomy/bundler";
 import { BiconomySmartAccountV2Config } from "./Types";
 import { extractChainIdFromPaymasterUrl } from "@biconomy/bundler";
+import * as chains from "viem/chains";
+import { ERROR_MESSAGES } from "./Constants";
 
 /**
  * pack the userOperation
@@ -85,3 +87,19 @@ export const isValidRpcUrl = (url: string): boolean => {
 };
 
 export const addressEquals = (a?: string, b?: string): boolean => !!a && !!b && a?.toLowerCase() === b.toLowerCase();
+
+/**
+ * Utility method for converting a chainId to a {@link Chain} object
+ *
+ * @param chainId
+ * @returns a {@link Chain} object for the given chainId
+ * @throws if the chainId is not found
+ */
+export const getChain = (chainId: number): Chain => {
+  for (const chain of Object.values(chains)) {
+    if (chain.id === chainId) {
+      return chain;
+    }
+  }
+  throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND);
+};
