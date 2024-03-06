@@ -1,12 +1,9 @@
-name: E2E Test workflow
+name: E2E Test workflow - with mainnet tests
 on:
-  pull_request_review:
-    types: [submitted]
   workflow_dispatch:
 jobs:
   e2e_test:
-    if: github.event.review.state == 'approved'
-    name: E2E tests
+    name: E2E tests - with mainnet tests
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -31,4 +28,5 @@ jobs:
           E2E_BICO_PAYMASTER_KEY_MUMBAI: ${{ secrets.E2E_BICO_PAYMASTER_KEY_MUMBAI }}
           E2E_BICO_PAYMASTER_KEY_BASE: ${{ secrets.E2E_BICO_PAYMASTER_KEY_BASE }}
           E2E_BICO_PAYMASTER_KEY_OP: ${{ secrets.E2E_BICO_PAYMASTER_KEY_OP }}
+          WITH_MAINNET_TESTS: true
         run: yarn test:e2e

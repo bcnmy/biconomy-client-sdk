@@ -15,6 +15,8 @@ import {
   GetContractReturnType,
   getContract,
   decodeFunctionData,
+  parseAbi,
+  formatUnits,
 } from "viem";
 import {
   BaseSmartContractAccount,
@@ -24,7 +26,7 @@ import {
   BatchUserOperationCallData,
   SmartAccountSigner,
 } from "@alchemy/aa-core";
-import { isNullOrUndefined, packUserOp } from "./utils/Utils.js";
+import { compareChainIds, isNullOrUndefined, packUserOp, isValidRpcUrl } from "./utils/Utils.js";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, createECDSAOwnershipValidationModule } from "@biconomy/modules";
 import {
   IHybridPaymaster,
@@ -37,6 +39,7 @@ import {
   UserOpResponse,
   extractChainIdFromBundlerUrl,
   convertSigner,
+  NATIVE_TOKEN_ALIAS,
 } from "./index.js";
 import {
   BiconomyTokenPaymasterRequest,
@@ -49,6 +52,8 @@ import {
   BiconomySmartAccountV2ConfigConstructorProps,
   PaymasterUserOperationDto,
   SimulationType,
+  BalancePayload,
+  SupportedToken,
 } from "./utils/Types.js";
 import {
   ADDRESS_RESOLVER_ADDRESS,
@@ -59,12 +64,13 @@ import {
   ADDRESS_ZERO,
   DEFAULT_ENTRYPOINT_ADDRESS,
   ERROR_MESSAGES,
+  ERC20_ABI,
 } from "./utils/Constants.js";
 import { BiconomyFactoryAbi } from "./abi/Factory.js";
 import { BiconomyAccountAbi } from "./abi/SmartAccount.js";
 import { AccountResolverAbi } from "./abi/AccountResolver.js";
-import { Logger } from "@biconomy/common";
-import { FeeQuotesOrDataDto, FeeQuotesOrDataResponse } from "@biconomy/paymaster";
+import { Logger, StateOverrideSet } from "@biconomy/common";
+import { BiconomyPaymaster, FeeQuotesOrDataDto, FeeQuotesOrDataResponse } from "@biconomy/paymaster";
 
 type UserOperationKey = keyof UserOperationStruct;
 
@@ -100,7 +106,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   private constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountV2ConfigConstructorProps) {
     super({
       ...biconomySmartAccountConfig,
-      chain: getChain(biconomySmartAccountConfig.chainId),
+      chain: biconomySmartAccountConfig.viemChain ?? getChain(biconomySmartAccountConfig.chainId),
       rpcClient: biconomySmartAccountConfig.rpcUrl || getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0],
       entryPointAddress: (biconomySmartAccountConfig.entryPointAddress as Hex) ?? DEFAULT_ENTRYPOINT_ADDRESS,
       accountAddress: (biconomySmartAccountConfig.accountAddress as Hex) ?? undefined,
@@ -115,7 +121,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     this.bundler = biconomySmartAccountConfig.bundler;
     this.implementationAddress = biconomySmartAccountConfig.implementationAddress ?? (BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0 as Hex);
 
-    if (biconomySmartAccountConfig.biconomyPaymasterApiKey) {
+    if (biconomySmartAccountConfig.paymasterUrl) {
+      this.paymaster = new Paymaster({
+        paymasterUrl: biconomySmartAccountConfig.paymasterUrl,
+      });
+    } else if (biconomySmartAccountConfig.biconomyPaymasterApiKey) {
       this.paymaster = new Paymaster({
         paymasterUrl: `https://paymaster.biconomy.io/api/v1/${biconomySmartAccountConfig.chainId}/${biconomySmartAccountConfig.biconomyPaymasterApiKey}`,
       });
@@ -137,7 +147,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     this.activeValidationModule = biconomySmartAccountConfig.activeValidationModule!;
 
     this.provider = createPublicClient({
-      chain: getChain(biconomySmartAccountConfig.chainId),
+      chain: biconomySmartAccountConfig.viemChain ?? getChain(biconomySmartAccountConfig.chainId),
       transport: http(biconomySmartAccountConfig.rpcUrl || getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0]),
     });
 
@@ -180,8 +190,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    */
   public static async create(biconomySmartAccountConfig: BiconomySmartAccountV2Config): Promise<BiconomySmartAccountV2> {
     let chainId = biconomySmartAccountConfig.chainId;
-    let resolvedSmartAccountSigner!: SmartAccountSigner;
     let rpcUrl = biconomySmartAccountConfig.rpcUrl;
+    let resolvedSmartAccountSigner!: SmartAccountSigner;
 
     // Signer needs to be initialised here before defaultValidationModule is set
     if (biconomySmartAccountConfig.signer) {
@@ -190,7 +200,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         chainId = signerResult.chainId;
       }
       if (!rpcUrl && !!signerResult.rpcUrl) {
-        rpcUrl = signerResult.rpcUrl;
+        if (isValidRpcUrl(signerResult.rpcUrl)) {
+          rpcUrl = signerResult.rpcUrl;
+        }
       }
       resolvedSmartAccountSigner = signerResult.signer;
     }
@@ -231,6 +243,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       rpcUrl,
     };
 
+    // We check if chain ids match (skip this if chainId is passed by in the config)
+    // This check is at the end of the function for cases when the signer is not passed in the config but a validation modules is and we get the signer from the validation module in this case
+    if (!biconomySmartAccountConfig.chainId) {
+      await compareChainIds(biconomySmartAccountConfig.signer || resolvedSmartAccountSigner, config, false);
+    }
+
     return new BiconomySmartAccountV2(config);
   }
 
@@ -250,6 +268,95 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       this.accountAddress = await this.getCounterFactualAddress(params);
     }
     return this.accountAddress;
+  }
+
+  /**
+   * Returns token balances (and native token balance) of the smartAccount instance.
+   *
+   * This method will fetch the token balances of the smartAccount instance.
+   * The balance of the native token will always be returned as the last element in the reponse array, with the address set to 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE.
+   *
+   * @param addresses - Optional. Array of asset addresses to fetch the balances of. If not provided, the method will return only the balance of the native token.
+   * @returns Promise<Array<BalancePayload>> - An array of token balances (plus the native token balance) of the smartAccount instance.
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartAccountClient } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonMumbai } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonMumbai,
+   *   transport: http(),
+   * });
+   *
+   * const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977";
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl });
+   * const [usdtBalanceFromSmartAccount, nativeTokenBalanceFromSmartAccount] = await smartAccount.getBalances([usdt]);
+   *
+   * console.log(usdtBalanceFromSmartAccount);
+   * // {
+   * //   amount: 1000000000000000n,
+   * //   decimals: 6,
+   * //   address: "0xda5289fcaaf71d52a80a254da614a192b693e977",
+   * //   formattedAmount: "1000000",
+   * //   chainId: 80001
+   * // }
+   *
+   * // or to get the nativeToken balance
+   *
+   * const [nativeTokenBalanceFromSmartAccount] = await smartAccount.getBalances();
+   *
+   * console.log(nativeTokenBalanceFromSmartAccount);
+   * // {
+   * //   amount: 1000000000000000n,
+   * //   decimals: 18,
+   * //   address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+   * //   formattedAmount: "1",
+   * //   chainId: 80001
+   * // }
+   *
+   */
+  public async getBalances(addresses?: Array<Hex>): Promise<Array<BalancePayload>> {
+    const accountAddress = await this.getAccountAddress();
+    const result: BalancePayload[] = [];
+
+    if (addresses) {
+      const tokenContracts = addresses.map((address) =>
+        getContract({
+          address,
+          abi: parseAbi(ERC20_ABI),
+          client: this.provider,
+        }),
+      );
+
+      const balancePromises = tokenContracts.map((tokenContract) => tokenContract.read.balanceOf([accountAddress])) as Promise<bigint>[];
+      const decimalsPromises = tokenContracts.map((tokenContract) => tokenContract.read.decimals()) as Promise<number>[];
+      const [balances, decimalsPerToken] = await Promise.all([Promise.all(balancePromises), Promise.all(decimalsPromises)]);
+
+      balances.forEach((amount, index) =>
+        result.push({
+          amount,
+          decimals: decimalsPerToken[index],
+          address: addresses[index],
+          formattedAmount: formatUnits(amount, decimalsPerToken[index]),
+          chainId: this.chainId,
+        }),
+      );
+    }
+
+    const balance = await this.provider.getBalance({ address: accountAddress });
+
+    result.push({
+      amount: balance,
+      decimals: 18,
+      address: NATIVE_TOKEN_ALIAS,
+      formattedAmount: formatUnits(balance, 18),
+      chainId: this.chainId,
+    });
+
+    return result;
   }
 
   /**
@@ -516,6 +623,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         Logger.log("there is a feeQuote: ", feeQuote);
         if (!spender) throw new Error(ERROR_MESSAGES.SPENDER_REQUIRED);
         if (!feeQuote) throw new Error(ERROR_MESSAGES.FAILED_FEE_QUOTE_FETCH);
+        if (paymasterServiceData.skipPatchCallData && paymasterServiceData.skipPatchCallData === true) {
+          return this.getPaymasterAndData(userOp, {
+            ...paymasterServiceData,
+            feeTokenAddress: feeQuote.tokenAddress,
+          });
+        }
         const partialUserOp = await this.buildTokenPaymasterUserOp(userOp, {
           ...paymasterServiceData,
           spender,
@@ -610,7 +723,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *    },
    * });
    *
-   * const { receipt } = await wait();
+   * const { success, receipt } = await wait();
    *
    */
   public async getTokenFees(
@@ -625,6 +738,51 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   /**
    *
+   * @description This function will return an array of supported tokens from the erc20 paymaster associated with the Smart Account
+   * @returns Promise<{@link SupportedToken}>
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartAccountClient } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonMumbai } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonMumbai,
+   *   transport: http(),
+   * });
+   *
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, biconomyPaymasterApiKey }); // Retrieve bundler url from dasboard
+   * const tokens = await smartAccount.getSupportedTokens();
+   *
+   * // [
+   * //   {
+   * //     symbol: "USDC",
+   * //     tokenAddress: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+   * //     decimal: 6,
+   * //     logoUrl: "https://assets.coingecko.com/coins/images/279/large/usd-coin.png?1595353707",
+   * //     premiumPercentage: 0.1,
+   * //   }
+   * // ]
+   *
+   */
+  public async getSupportedTokens(): Promise<SupportedToken[]> {
+    const feeQuotesResponse = await this.getTokenFees(
+      {
+        data: "0x",
+        value: BigInt(0),
+        to: await this.getAccountAddress(),
+      },
+      {
+        paymasterServiceData: { mode: PaymasterMode.ERC20 },
+      },
+    );
+    return (feeQuotesResponse?.feeQuotes ?? []).map(({ maxGasFee: _, maxGasFeeUSD: __, validUntil: ___, usdPayment: ____, ...rest }) => rest);
+  }
+
+  /**
+   *
    * @param userOp
    * @param params
    * @description This function will take a user op as an input, sign it with the owner key, and send it to the bundler.
@@ -635,7 +793,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @param userOp Partial<{@link UserOperationStruct}> the userOp params to be sent.
    * @param params {@link SendUserOpParams}.
-   * @returns Promise<{@link UserOpResponse}> that you can use to track user operation.
+   * @returns Promise<{@link UserOpResponse}> that you can use to track the user operation.
    *
    * @example
    * import { createClient } from "viem"
@@ -664,7 +822,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * const userOp = await smartAccount.buildUserOp([transaction]);
    *
    * const { wait } = await smartAccount.sendUserOp(userOp);
-   * const { receipt } = await wait();
+   * const { success, receipt } = await wait();
    *
    */
   async sendUserOp(userOp: Partial<UserOperationStruct>, params?: SendUserOpParams): Promise<UserOpResponse> {
@@ -708,7 +866,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return keccak256(enc);
   }
 
-  async estimateUserOpGas(userOp: Partial<UserOperationStruct>): Promise<Partial<UserOperationStruct>> {
+  async estimateUserOpGas(userOp: Partial<UserOperationStruct>, stateOverrideSet?: StateOverrideSet): Promise<Partial<UserOperationStruct>> {
     if (!this.bundler) throw new Error("Bundler is not provided");
     const requiredFields: UserOperationKey[] = ["sender", "nonce", "initCode", "callData"];
     this.validateUserOp(userOp, requiredFields);
@@ -716,8 +874,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const finalUserOp = userOp;
 
     // Making call to bundler to get gas estimations for userOp
-    const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas } =
-      await this.bundler.estimateUserOpGas(userOp);
+    const { callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas } = await this.bundler.estimateUserOpGas(
+      userOp,
+      stateOverrideSet,
+    );
     // if neither user sent gas fee nor the bundler, estimate gas from provider
     if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas && (!maxFeePerGas || !maxPriorityFeePerGas)) {
       const feeData = await this.provider.estimateFeesPerGas();
@@ -784,7 +944,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @param manyOrOneTransactions Array of {@link Transaction} to be batched and sent. Can also be a single {@link Transaction}.
    * @param buildUseropDto {@link BuildUserOpOptions}.
-   * @returns Promise<{@link UserOpResponse}> that you can use to track user operation.
+   * @returns Promise<{@link UserOpResponse}> that you can use to track the user operation.
    *
    * @example
    * import { createClient } from "viem"
@@ -873,33 +1033,46 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       throw new Error("Transactions array cannot be empty");
     }
     let callData: Hex = "0x";
-    if (transactions.length > 1 || buildUseropDto?.forceEncodeForBatch) {
-      callData = await this.encodeExecuteBatch(to, value, data);
-    } else {
-      // transactions.length must be 1
-      callData = await this.encodeExecute(to[0], value[0], data[0]);
+    if (!buildUseropDto?.useEmptyDeployCallData) {
+      if (transactions.length > 1 || buildUseropDto?.forceEncodeForBatch) {
+        callData = await this.encodeExecuteBatch(to, value, data);
+      } else {
+        // transactions.length must be 1
+        callData = await this.encodeExecute(to[0], value[0], data[0]);
+      }
     }
 
     let userOp: Partial<UserOperationStruct> = {
       sender: (await this.getAccountAddress()) as Hex,
       nonce: toHex(nonceFromFetch),
       initCode,
-      callData: callData,
+      callData,
     };
 
     // for this Smart Account current validation module dummy signature will be used to estimate gas
     userOp.signature = signature;
 
-    // Note: Can change the default behaviour of calling estimations using bundler/local
-    userOp = await this.estimateUserOpGas(userOp);
+    if (
+      buildUseropDto?.paymasterServiceData &&
+      buildUseropDto?.paymasterServiceData.mode === PaymasterMode.SPONSORED &&
+      this.paymaster instanceof BiconomyPaymaster
+    ) {
+      const gasFeeValues = await this.bundler?.getGasFeeValues();
 
-    if (buildUseropDto?.paymasterServiceData) {
+      // populate gasfee values and make a call to paymaster
+      userOp.maxFeePerGas = gasFeeValues?.maxFeePerGas as Hex;
+      userOp.maxPriorityFeePerGas = gasFeeValues?.maxPriorityFeePerGas as Hex;
+
       userOp = await this.getPaymasterUserOp(userOp, buildUseropDto.paymasterServiceData);
+      return userOp;
+    } else {
+      userOp = await this.estimateUserOpGas(userOp);
+
+      if (buildUseropDto?.paymasterServiceData) {
+        userOp = await this.getPaymasterUserOp(userOp, buildUseropDto.paymasterServiceData);
+      }
+      return userOp;
     }
-
-    Logger.log("UserOp after estimation ", userOp);
-
-    return userOp;
   }
 
   private validateUserOpAndPaymasterRequest(userOp: Partial<UserOperationStruct>, tokenPaymasterRequest: BiconomyTokenPaymasterRequest): void {
@@ -1023,6 +1196,78 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     ]);
 
     return signatureWithModuleAddress;
+  }
+
+  /**
+   * Deploys the smart contract
+   *
+   * This method will deploy a Smart Account contract. It is useful for deploying in a moment when you know that gas prices are low,
+   * and you want to deploy the account before sending the first user operation. This step can otherwise be skipped,
+   * as the deployment will alternatively be bundled with the first user operation.
+   *
+   * @param buildUseropDto {@link BuildUserOpOptions}.
+   * @returns Promise<{@link UserOpResponse}> that you can use to track the user operation.
+   * @error Throws an error if the account has already been deployed.
+   * @error Throws an error if the account has not enough native token balance to deploy, if not using a paymaster.
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartAccountClient } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonMumbai } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonMumbai,
+   *   transport: http(),
+   * });
+   *
+   * const smartAccount = await createSmartAccountClient({
+   *  signer,
+   *  biconomyPaymasterApiKey,
+   *  bundlerUrl
+   * });
+   *
+   * // If you want to use a paymaster...
+   * const { wait } = await smartAccount.deploy({
+   *   paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+   * });
+   *
+   * // Or if you can't use a paymaster send native token to this address:
+   * const counterfactualAddress = await smartAccount.getAccountAddress();
+   *
+   * // Then deploy the account
+   * const { wait } = await smartAccount.deploy();
+   *
+   * const { success, receipt } = await wait();
+   *
+   */
+  public async deploy(buildUseropDto?: BuildUserOpOptions): Promise<UserOpResponse> {
+    const accountAddress = this.accountAddress ?? (await this.getAccountAddress());
+
+    // Check that the account has not already been deployed
+    const byteCode = await this.provider?.getBytecode({ address: accountAddress as Hex });
+    if (byteCode !== undefined) {
+      throw new Error(ERROR_MESSAGES.ACCOUNT_ALREADY_DEPLOYED);
+    }
+
+    // Check that the account has enough native token balance to deploy, if not using a paymaster
+    if (!buildUseropDto?.paymasterServiceData?.mode) {
+      const nativeTokenBalance = await this.provider?.getBalance({ address: accountAddress });
+      if (nativeTokenBalance === BigInt(0)) {
+        throw new Error(ERROR_MESSAGES.NO_NATIVE_TOKEN_BALANCE_DURING_DEPLOY);
+      }
+    }
+
+    const useEmptyDeployCallData = true;
+
+    return this.sendTransaction(
+      {
+        to: accountAddress,
+        data: "0x",
+      },
+      { ...buildUseropDto, useEmptyDeployCallData },
+    );
   }
 
   async signMessage(message: string | Uint8Array): Promise<Hex> {

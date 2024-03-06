@@ -6,7 +6,7 @@ import { UNIT_TEST_CHAIN } from "./chains.config";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 
 beforeAll(() => {
-  const { chainId, bundlerUrl, viemChain, entryPointAddress } = UNIT_TEST_CHAIN;
+  const { chainId, bundlerUrl, viemChain, entryPointAddress, deploymentCost, nftAddress } = UNIT_TEST_CHAIN;
   const privateKeyOne = generatePrivateKey();
   const accountOne = privateKeyToAccount(privateKeyOne);
 
@@ -60,16 +60,5 @@ beforeAll(() => {
   };
 
   // @ts-ignore
-  testDataPerChain = [
-    {
-      whale,
-      minnow,
-      publicClient,
-      chainId,
-      bundlerUrl,
-      entryPointAddress,
-      viemChain,
-      ethersProvider,
-    },
-  ];
+  testDataPerChain = [{ nftAddress, deploymentCost, whale, minnow, publicClient, chainId, bundlerUrl, entryPointAddress, viemChain, ethersProvider }];
 });

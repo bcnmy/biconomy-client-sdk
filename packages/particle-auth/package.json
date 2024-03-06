@@ -1,9 +1,19 @@
 {
   "name": "@biconomy/particle-auth",
-  "version": "4.0.3",
+  "version": "4.1.0",
   "description": "Particle auth for Biconomy SDK",
-  "main": "./dist/src/index.js",
-  "typings": "./dist/src/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "typings": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/cjs/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "keywords": [
     "legos",
     "batching",
@@ -25,7 +35,16 @@
   },
   "scripts": {
     "unbuild": "rimraf dist *.tsbuildinfo",
-    "build": "rimraf dist && tsc",
+    "build:watch": "yarn build:tsc --watch",
+    "dist:minify": "esbuild ./dist/esm/**/*.js ./dist/esm/*.js --minify --outdir=./dist/esm --bundle=false --allow-overwrite",
+    "build": "yarn unbuild && yarn build:tsc",
+    "build:esbuild": "yarn build:esbuild:cjs && yarn build:esbuild:esm && yarn build:typ",
+    "build:tsc:cjs": "tsc --project tsconfig.build.json --module commonjs --outDir ./dist/cjs --removeComments --verbatimModuleSyntax false && echo > ./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
+    "build:tsc:esm": "tsc --project tsconfig.build.json --module esnext --outDir ./dist/esm --removeComments && echo > ./dist/esm/package.json '{\"type\":\"module\"}'",
+    "build:esbuild:cjs": "node .esbuild.js CJS && echo > ./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
+    "build:esbuild:esm": "node .esbuild.js ESM && echo > ./dist/esm/package.json '{\"type\":\"module\"}'",
+    "build:typ": "tsc --project tsconfig.build.json --module esnext --declarationDir ./dist/types --emitDeclarationOnly --declaration --declarationMap",
+    "build:tsc": "yarn build:tsc:cjs && yarn build:tsc:esm && yarn build:typ && yarn dist:minify",
     "format": "prettier --write \"{src,tests}/**/*.ts\"",
     "lint": "tslint -p tsconfig.json"
   },

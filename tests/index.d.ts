@@ -6,7 +6,7 @@ import { Signer } from "@ethersproject/abstract-signer";
 interface WalletProps {
   alchemyWalletClientSigner: WalletClientSigner;
   viemWallet: WalletClient;
-  balance: BigInt;
+  balance: bigint;
   publicAddress: Hex;
   account: PrivateKeyAccount;
   privateKey: Hex;
@@ -14,6 +14,8 @@ interface WalletProps {
 }
 
 export type TestData = {
+  nftAddress: Hex;
+  deploymentCost: number;
   whale: WalletProps;
   minnow: WalletProps;
   publicClient: PublicClient;
@@ -21,6 +23,7 @@ export type TestData = {
   bundlerUrl: string;
   entryPointAddress: string;
   viemChain: Chain;
+  paymasterUrl: string;
   biconomyPaymasterApiKey: string;
   ethersProvider: JsonRpcProvider;
 };

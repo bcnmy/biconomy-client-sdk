@@ -3,8 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - develop
-      - v4
+      - docs
 
 permissions:
   contents: write

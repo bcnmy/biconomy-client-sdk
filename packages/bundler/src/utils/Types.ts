@@ -1,5 +1,5 @@
 import { UserOperationStruct } from "@alchemy/aa-core";
-import { Hex } from "viem";
+import { Chain, Hex } from "viem";
 
 export type Bundlerconfig = {
   bundlerUrl: string;
@@ -10,6 +10,8 @@ export type Bundlerconfig = {
   userOpWaitForTxHashIntervals?: { [key in number]?: number };
   userOpReceiptMaxDurationIntervals?: { [key in number]?: number };
   userOpWaitForTxHashMaxDurationIntervals?: { [key in number]?: number };
+  /** Can be used to optionally override the chain with a custom chain if it doesn't already exist in viems list of supported chains */
+  viemChain?: Chain;
 };
 export type BundlerConfigWithChainId = Bundlerconfig & { chainId: number };
 

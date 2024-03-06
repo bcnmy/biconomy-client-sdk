@@ -9,8 +9,8 @@ import {
   type SponsorUserOperationDto,
 } from "@biconomy/paymaster";
 import { BaseValidationModule, ModuleInfo } from "@biconomy/modules";
-import { Hex, WalletClient } from "viem";
-import { SupportedSigner } from "@biconomy/common";
+import { Chain, Hex, WalletClient } from "viem";
+import { SupportedSigner, StateOverrideSet } from "@biconomy/common";
 
 export type EntryPointAddresses = Record<string, string>;
 export type BiconomyFactories = Record<string, string>;
@@ -20,11 +20,24 @@ export type BiconomyFactoriesByVersion = Record<string, string>;
 export type BiconomyImplementationsByVersion = Record<string, string>;
 
 export type SmartAccountConfig = {
-  /** entryPointAddress: address of the smart account factory */
+  /** entryPointAddress: address of the entry point */
   entryPointAddress: string;
   /** factoryAddress: address of the smart account factory */
   bundler?: IBundler;
 };
+
+export interface BalancePayload {
+  /** address: The address of the account */
+  address: string;
+  /** chainId: The chainId of the network */
+  chainId: number;
+  /** amount: The amount of the balance */
+  amount: bigint;
+  /** decimals: The number of decimals */
+  decimals: number;
+  /** formattedAmount: The amount of the balance formatted */
+  formattedAmount: string;
+}
 
 export interface GasOverheads {
   /** fixed: fixed gas overhead */
@@ -67,6 +80,8 @@ export type BiconomyTokenPaymasterRequest = {
   spender: Hex;
   /** maxApproval: If set to true, the paymaster will approve the maximum amount of tokens required for the transaction. Not recommended */
   maxApproval?: boolean;
+  /* skip option to patch callData if approval is already given to the paymaster */
+  skipPatchCallData?: boolean;
 };
 
 export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
@@ -112,8 +127,10 @@ export type BiconomySmartAccountV2ConfigBaseProps = {
   implementationAddress?: Hex;
   /** defaultFallbackHandler: override the default fallback contract address */
   defaultFallbackHandler?: Hex;
-  /** rpcUrl: Explicitly set the rpc else it is pulled out of the signer. */
+  /** rpcUrl: Rpc url, optional, we set default rpc url if not passed. */
   rpcUrl?: string; // as good as Provider
+  /** paymasterUrl: The Paymaster URL retrieved from the Biconomy dashboard */
+  paymasterUrl?: string;
   /** biconomyPaymasterApiKey: The API key retrieved from the Biconomy dashboard */
   biconomyPaymasterApiKey?: string;
   /** activeValidationModule: The active validation module. Will default to the defaultValidationModule */
@@ -122,6 +139,8 @@ export type BiconomySmartAccountV2ConfigBaseProps = {
   scanForUpgradedAccountsFromV1?: boolean;
   /** the index of SA the EOA have generated and till which indexes the upgraded SA should scan */
   maxIndexForScan?: number;
+  /** Can be used to optionally override the chain with a custom chain if it doesn't already exist in viems list of supported chains */
+  viemChain?: Chain;
 };
 export type BiconomySmartAccountV2Config = BiconomySmartAccountV2ConfigBaseProps &
   BaseSmartAccountConfig &
@@ -148,6 +167,10 @@ export type BuildUserOpOptions = {
   paymasterServiceData?: PaymasterUserOperationDto;
   /**  simulationType: Determine which parts of the tx a bundler will simulate: "validation" | "validation_and_execution".  */
   simulationType?: SimulationType;
+  /**  stateOverrideSet: For overriding the state */
+  stateOverrideSet?: StateOverrideSet;
+  /** set to true if the tx is being used *only* to deploy the smartContract, so "0x" is set as the userOp.callData  */
+  useEmptyDeployCallData?: boolean;
 };
 
 export type NonceOptions = {
@@ -201,6 +224,8 @@ export type PaymasterUserOperationDto = SponsorUserOperationDto &
     spender?: Hex;
     /** Not recommended */
     maxApproval?: boolean;
+    /* skip option to patch callData if approval is already given to the paymaster */
+    skipPatchCallData?: boolean;
   };
 
 export type InitializeV2Data = {
@@ -275,3 +300,5 @@ export type ValueOrData = RequireAtLeastOne<
 export type Transaction = {
   to: string;
 } & ValueOrData;
+
+export type SupportedToken = Omit<PaymasterFeeQuote, "maxGasFeeUSD" | "usdPayment" | "maxGasFee" | "validUntil">;

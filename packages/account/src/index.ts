@@ -3,6 +3,7 @@ import { type BiconomySmartAccountV2Config } from "./utils/Types.js";
 
 export * from "./utils/Types.js";
 export * from "./utils/Constants.js";
+export * from "./utils/Utils.js";
 export * from "./BiconomySmartAccountV2.js";
 
 export { WalletClientSigner, LocalAccountSigner, type SmartAccountSigner } from "@alchemy/aa-core";
@@ -36,6 +37,11 @@ export {
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   DEFAULT_MULTICHAIN_MODULE,
   DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
+  type ECDSAOwnershipValidationModuleConfig,
+  type BatchedSessionRouterModuleConfig,
+  type SessionKeyManagerModuleConfig,
+  type MultiChainValidationModuleConfig,
+  type SessionValidationModuleConfig,
 } from "@biconomy/modules";
 
 export const createSmartAccountClient = BiconomySmartAccountV2.create;

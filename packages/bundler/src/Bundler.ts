@@ -1,5 +1,5 @@
 import { getChain, type UserOperationStruct } from "@alchemy/aa-core";
-import { createPublicClient, http } from "viem";
+import { createPublicClient, http, PublicClient } from "viem";
 import { IBundler } from "./interfaces/IBundler.js";
 import {
   GetUserOperationReceiptResponse,
@@ -27,7 +27,7 @@ import {
   DEFAULT_ENTRYPOINT_ADDRESS,
 } from "./utils/Constants.js";
 import { extractChainIdFromBundlerUrl } from "./utils/Utils.js";
-import { sendRequest, HttpMethod } from "@biconomy/common";
+import { sendRequest, HttpMethod, StateOverrideSet } from "@biconomy/common";
 
 /**
  * This class implements IBundler interface.
@@ -46,9 +46,16 @@ export class Bundler implements IBundler {
 
   UserOpWaitForTxHashMaxDurationIntervals!: { [key in number]?: number };
 
+  private provider: PublicClient;
+
   constructor(bundlerConfig: Bundlerconfig) {
     const parsedChainId: number = bundlerConfig?.chainId || extractChainIdFromBundlerUrl(bundlerConfig.bundlerUrl);
     this.bundlerConfig = { ...bundlerConfig, chainId: parsedChainId };
+
+    this.provider = createPublicClient({
+      chain: bundlerConfig.viemChain ?? getChain(parsedChainId),
+      transport: http((bundlerConfig.viemChain || getChain(parsedChainId)).rpcUrls.default.http[0]),
+    });
 
     this.UserOpReceiptIntervals = {
       ...UserOpReceiptIntervals,
@@ -82,11 +89,10 @@ export class Bundler implements IBundler {
    * @description This function will fetch gasPrices from bundler
    * @returns Promise<UserOpGasPricesResponse>
    */
-  async estimateUserOpGas(userOp: UserOperationStruct): Promise<UserOpGasResponse> {
+  async estimateUserOpGas(userOp: UserOperationStruct, stateOverrideSet?: StateOverrideSet): Promise<UserOpGasResponse> {
     // expected dummySig and possibly dummmy paymasterAndData should be provided by the caller
     // bundler doesn't know account and paymaster implementation
     userOp = transformUserOP(userOp);
-
     const bundlerUrl = this.getBundlerUrl();
 
     const response: EstimateUserOpGasResponse = await sendRequest(
@@ -95,7 +101,9 @@ export class Bundler implements IBundler {
         method: HttpMethod.Post,
         body: {
           method: "eth_estimateUserOperationGas",
-          params: [userOp, this.bundlerConfig.entryPointAddress],
+          params: stateOverrideSet
+            ? [userOp, this.bundlerConfig.entryPointAddress, stateOverrideSet]
+            : [userOp, this.bundlerConfig.entryPointAddress],
           id: getTimestampInSeconds(),
           jsonrpc: "2.0",
         },
@@ -144,10 +152,6 @@ export class Bundler implements IBundler {
     const response: UserOpResponse = {
       userOpHash: sendUserOperationResponse.result,
       wait: (confirmations?: number): Promise<UserOpReceipt> => {
-        const providerClient = createPublicClient({
-          chain: getChain(chainId),
-          transport: http(),
-        });
         // Note: maxDuration can be defined per chainId
         const maxDuration = this.UserOpReceiptMaxDurationIntervals[chainId] || 30000; // default 30 seconds
         let totalDuration = 0;
@@ -159,7 +163,7 @@ export class Bundler implements IBundler {
               const userOpResponse = await this.getUserOpReceipt(sendUserOperationResponse.result);
               if (userOpResponse && userOpResponse.receipt && userOpResponse.receipt.blockNumber) {
                 if (confirmations) {
-                  const latestBlock = await providerClient.getBlockNumber();
+                  const latestBlock = await this.provider.getBlockNumber();
                   const confirmedBlocks = Number(latestBlock) - userOpResponse.receipt.blockNumber;
                   if (confirmations >= confirmedBlocks) {
                     clearInterval(intervalId);
