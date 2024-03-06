@@ -88,8 +88,6 @@ export const isValidRpcUrl = (url: string): boolean => {
   return regex.test(url);
 };
 
-export const addressEquals = (a?: string, b?: string): boolean => !!a && !!b && a?.toLowerCase() === b.toLowerCase();
-
 /**
  * Utility method for converting a chainId to a {@link Chain} object
  *

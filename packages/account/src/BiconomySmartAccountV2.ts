@@ -26,7 +26,7 @@ import {
   BatchUserOperationCallData,
   SmartAccountSigner,
 } from "@alchemy/aa-core";
-import { addressEquals, isNullOrUndefined, isValidRpcUrl, packUserOp, compareChainIds } from "./utils/Utils.js";
+import { isNullOrUndefined, isValidRpcUrl, packUserOp, compareChainIds } from "./utils/Utils.js";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, createECDSAOwnershipValidationModule } from "@biconomy/modules";
 import {
   IHybridPaymaster,
@@ -53,7 +53,6 @@ import {
   PaymasterUserOperationDto,
   SimulationType,
   BalancePayload,
-  WithdrawalRequest,
   SupportedToken,
 } from "./utils/Types.js";
 import {
