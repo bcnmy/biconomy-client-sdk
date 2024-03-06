@@ -26,7 +26,7 @@ import {
   BatchUserOperationCallData,
   SmartAccountSigner,
 } from "@alchemy/aa-core";
-import { addressEquals, isNullOrUndefined, isValidRpcUrl, packUserOp } from "./utils/Utils.js";
+import { addressEquals, isNullOrUndefined, isValidRpcUrl, packUserOp, compareChainIds } from "./utils/Utils.js";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, createECDSAOwnershipValidationModule } from "@biconomy/modules";
 import {
   IHybridPaymaster,
@@ -88,18 +88,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   bundler?: IBundler;
 
-  /**
-   * @class
-   * @ignore
-   */
   private accountContract?: GetContractReturnType<typeof BiconomyAccountAbi, PublicClient>;
-
-  /**
-   * @class
-   * @ignore
-   */
-  // @ts-ignore
-  protected entryPoint: BaseSmartContractAccount["entryPoint"];
 
   private defaultFallbackHandlerAddress: Hex;
 
@@ -118,7 +107,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   private constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountV2ConfigConstructorProps) {
     super({
       ...biconomySmartAccountConfig,
-      chain: getChain(biconomySmartAccountConfig.chainId),
+      chain: biconomySmartAccountConfig.viemChain ?? getChain(biconomySmartAccountConfig.chainId),
       rpcClient: biconomySmartAccountConfig.rpcUrl || getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0],
       entryPointAddress: (biconomySmartAccountConfig.entryPointAddress as Hex) ?? DEFAULT_ENTRYPOINT_ADDRESS,
       accountAddress: (biconomySmartAccountConfig.accountAddress as Hex) ?? undefined,
@@ -133,7 +122,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     this.bundler = biconomySmartAccountConfig.bundler;
     this.implementationAddress = biconomySmartAccountConfig.implementationAddress ?? (BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0 as Hex);
 
-    if (biconomySmartAccountConfig.biconomyPaymasterApiKey) {
+    if (biconomySmartAccountConfig.paymasterUrl) {
+      this.paymaster = new Paymaster({
+        paymasterUrl: biconomySmartAccountConfig.paymasterUrl,
+      });
+    } else if (biconomySmartAccountConfig.biconomyPaymasterApiKey) {
       this.paymaster = new Paymaster({
         paymasterUrl: `https://paymaster.biconomy.io/api/v1/${biconomySmartAccountConfig.chainId}/${biconomySmartAccountConfig.biconomyPaymasterApiKey}`,
       });
@@ -155,7 +148,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     this.activeValidationModule = biconomySmartAccountConfig.activeValidationModule!;
 
     this.provider = createPublicClient({
-      chain: getChain(biconomySmartAccountConfig.chainId),
+      chain: biconomySmartAccountConfig.viemChain ?? getChain(biconomySmartAccountConfig.chainId),
       transport: http(biconomySmartAccountConfig.rpcUrl || getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0]),
     });
 
@@ -205,16 +198,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     if (biconomySmartAccountConfig.signer) {
       const signerResult = await convertSigner(biconomySmartAccountConfig.signer, !!chainId);
       if (!chainId && !!signerResult.chainId) {
-        let chainIdFromBundler: number | undefined;
-        if (biconomySmartAccountConfig.bundlerUrl) {
-          chainIdFromBundler = extractChainIdFromBundlerUrl(biconomySmartAccountConfig.bundlerUrl);
-        } else if (biconomySmartAccountConfig.bundler) {
-          const bundlerUrlFromBundler = biconomySmartAccountConfig.bundler.getBundlerUrl();
-          chainIdFromBundler = extractChainIdFromBundlerUrl(bundlerUrlFromBundler);
-        }
-        if (chainIdFromBundler !== signerResult.chainId) {
-          throw new Error("ChainId from bundler and signer do not match");
-        }
         chainId = signerResult.chainId;
       }
       if (!rpcUrl && !!signerResult.rpcUrl) {
@@ -261,6 +244,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       rpcUrl,
     };
 
+    // We check if chain ids match (skip this if chainId is passed by in the config)
+    // This check is at the end of the function for cases when the signer is not passed in the config but a validation modules is and we get the signer from the validation module in this case
+    if (!biconomySmartAccountConfig.chainId) {
+      await compareChainIds(biconomySmartAccountConfig.signer || resolvedSmartAccountSigner, config, false);
+    }
+
     return new BiconomySmartAccountV2(config);
   }
 
@@ -283,113 +272,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   /**
-   * Transfers funds from Smart Account to recipient (usually EOA)
-   * @param recipient - Address of the recipient
-   * @param withdrawalRequests - Array of withdrawal requests {@link WithdrawalRequest}. If withdrawal request is an empty array, it will transfer the balance of the native token. Using a paymaster will ensure no dust remains in the smart account.
-   * @param buildUseropDto - Optional. {@link BuildUserOpOptions}
-   *
-   * @returns Promise<UserOpResponse> - An object containing the status of the transaction.
-   *
-   * @example
-   * import { createClient } from "viem"
-   * import { createSmartAccountClient, NATIVE_TOKEN_ALIAS } from "@biconomy/account"
-   * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
-   *
-   * const USDT = "0xda5289fcaaf71d52a80a254da614a192b693e977";
-   * const signer = createWalletClient({
-   *   account,
-   *   chain: polygonMumbai,
-   *   transport: http(),
-   * });
-   *
-   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, biconomyPaymasterApiKey });
-   *
-   * const { wait } = await smartAccount.withdraw(
-   *  [
-   *    { address: USDT, amount: BigInt(1) },
-   *    { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) }
-   *  ],
-   *  account.pubKey, // Default recipient used if no recipient is present in the withdrawal request
-   *  {
-   *    paymasterServiceData: { mode: PaymasterMode.SPONSORED },
-   *  }
-   * );
-   *
-   * // OR to withdraw all of the native token, leaving no dust in the smart account
-   *
-   * const { wait } = await smartAccount.withdraw([], account.pubKey, {
-   *  paymasterServiceData: { mode: PaymasterMode.SPONSORED },
-   * });
-   *
-   * const { success } = await wait();
-   */
-  public async withdraw(
-    withdrawalRequests?: WithdrawalRequest[] | null,
-    defaultRecipient?: Hex | null,
-    buildUseropDto?: BuildUserOpOptions,
-  ): Promise<UserOpResponse> {
-    const accountAddress = this.accountAddress ?? (await this.getAccountAddress());
-
-    if (!defaultRecipient && withdrawalRequests?.some(({ recipient }) => !recipient)) {
-      throw new Error(ERROR_MESSAGES.NO_RECIPIENT);
-    }
-
-    // Remove the native token from the withdrawal requests
-    let tokenRequests = withdrawalRequests?.filter(({ address }) => !addressEquals(address, NATIVE_TOKEN_ALIAS)) ?? [];
-
-    // Check if the amount is not present in all withdrawal requests
-    const shouldFetchMaxBalances = tokenRequests.some(({ amount }) => !amount);
-
-    // Get the balances of the tokens if the amount is not present in the withdrawal requests
-    if (shouldFetchMaxBalances) {
-      const balances = await this.getBalances(tokenRequests.map(({ address }) => address));
-      tokenRequests = tokenRequests.map(({ amount, address }, i) => ({
-        address,
-        amount: amount ?? balances[i].amount,
-      }));
-    }
-
-    // Create the transactions
-    const txs: Transaction[] = tokenRequests.map(({ address, amount, recipient: recipientFromRequest }) => ({
-      to: address,
-      data: encodeFunctionData({
-        abi: parseAbi(ERC20_ABI),
-        functionName: "transfer",
-        args: [recipientFromRequest || defaultRecipient, amount],
-      }),
-    }));
-
-    // Check if eth alias is present in the original withdrawal requests
-    const nativeTokenRequest = withdrawalRequests?.find(({ address }) => addressEquals(address, NATIVE_TOKEN_ALIAS));
-    const hasNoRequests = !withdrawalRequests?.length;
-    if (!!nativeTokenRequest || hasNoRequests) {
-      // Check that an amount is present in the withdrawal request, if no paymaster service data is present, as max amounts cannot be calculated without a paymaster.
-      if (!nativeTokenRequest?.amount && !buildUseropDto?.paymasterServiceData?.mode) {
-        throw new Error(ERROR_MESSAGES.NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT);
-      }
-
-      // get eth balance if not present in withdrawal requests
-      const nativeTokenAmountToWithdraw = nativeTokenRequest?.amount ?? (await this.provider.getBalance({ address: accountAddress }));
-
-      txs.push({
-        to: (nativeTokenRequest?.recipient ?? defaultRecipient) as Hex,
-        value: nativeTokenAmountToWithdraw,
-      });
-    }
-
-    return this.sendTransaction(txs, buildUseropDto);
-  }
-
-  /**
-   * Returns token balances of Smart Account
+   * Returns token balances (and native token balance) of the smartAccount instance.
    *
    * This method will fetch the token balances of the smartAccount instance.
    * The balance of the native token will always be returned as the last element in the reponse array, with the address set to 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE.
    *
-   * @param addresses - Optional. Array of asset addresses to fetch the balances of.
-   * @returns Promise<Array<BalancePayload>> - An array of token balances (or native token balance) of the smartAccount instance.
-   * @throws An error if something is wrong with the smart account instance creation.
+   * @param addresses - Optional. Array of asset addresses to fetch the balances of. If not provided, the method will return only the balance of the native token.
+   * @returns Promise<Array<BalancePayload>> - An array of token balances (plus the native token balance) of the smartAccount instance.
    *
    * @example
    * import { createClient } from "viem"
@@ -405,8 +294,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977";
    * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl });
-   * const [usdtBalanceFromSmartAccount] = await smartAccount.getBalances([usdt]);
+   * const [usdtBalanceFromSmartAccount, nativeTokenBalanceFromSmartAccount] = await smartAccount.getBalances([usdt]);
    *
+   * console.log(usdtBalanceFromSmartAccount);
    * // {
    * //   amount: 1000000000000000n,
    * //   decimals: 6,
@@ -415,21 +305,32 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * //   chainId: 80001
    * // }
    *
+   * // or to get the nativeToken balance
+   *
+   * const [nativeTokenBalanceFromSmartAccount] = await smartAccount.getBalances();
+   *
+   * console.log(nativeTokenBalanceFromSmartAccount);
+   * // {
+   * //   amount: 1000000000000000n,
+   * //   decimals: 18,
+   * //   address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+   * //   formattedAmount: "1",
+   * //   chainId: 80001
+   * // }
+   *
    */
   public async getBalances(addresses?: Array<Hex>): Promise<Array<BalancePayload>> {
-    const accountAddress = this.accountAddress ?? (await this.getAccountAddress());
+    const accountAddress = await this.getAccountAddress();
     const result: BalancePayload[] = [];
 
     if (addresses) {
-      const tokenContracts = addresses
-        .filter((address) => !addressEquals(address, NATIVE_TOKEN_ALIAS))
-        .map((address) =>
-          getContract({
-            address,
-            abi: parseAbi(ERC20_ABI),
-            client: this.provider,
-          }),
-        );
+      const tokenContracts = addresses.map((address) =>
+        getContract({
+          address,
+          abi: parseAbi(ERC20_ABI),
+          client: this.provider,
+        }),
+      );
 
       const balancePromises = tokenContracts.map((tokenContract) => tokenContract.read.balanceOf([accountAddress])) as Promise<bigint>[];
       const decimalsPromises = tokenContracts.map((tokenContract) => tokenContract.read.decimals()) as Promise<number>[];
@@ -520,10 +421,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
   }
 
-  /**
-   * @class
-   * @ignore
-   */
   async _getAccountContract(): Promise<GetContractReturnType<typeof BiconomyAccountAbi, PublicClient>> {
     if (this.accountContract == null) {
       this.accountContract = getContract({

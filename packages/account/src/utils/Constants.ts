@@ -65,6 +65,7 @@ export const ERROR_MESSAGES = {
   SPENDER_REQUIRED: "spender is required for ERC20 mode",
   NO_FEE_QUOTE: "FeeQuote was not provided, please call smartAccount.getTokenFees() to get feeQuote",
   FAILED_FEE_QUOTE_FETCH: "Failed to fetch fee quote",
+  CHAIN_NOT_FOUND: "Chain not found",
   NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT: "'Amount' is required for withdrawal of native token without using a paymaster",
 };
 

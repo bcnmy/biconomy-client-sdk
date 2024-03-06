@@ -3,8 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - develop
-      - fix/SMA-682_docs-fix
+      - docs
 
 permissions:
   contents: write

@@ -3,6 +3,34 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 4.1.0 (2023-04-03)
+
+Features:
+
+- Added Speed optimisation, removing redundant gasEstimate call to bundler ([2371b2](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/2371b230cd5806ec4c7c95ba604d6f924b4be768))
+- Added smartAccount.getBalances() method ([4b8bae](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/4b8bae412577b846e700b168976cefa6b0803ff6))
+- Added smartAccount.getSupportedTokens() method ([6d2fb27](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/6d2fb27d6f9b424e440e45990ea06820a9d16d4b))
+- Added smartAccount.deploy() method ([be9dc4](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/be9dc4d74a3e5a22e69416983436997cf2ea417c))
+- Increased checking of the chainId from the bundler, paymaster and the provider ([5d2f3](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/5d2f34d8f0fb4f9ff7c7ddc00336471e57efdcfd))
+- Added entity name to Logger calls ([9278ec](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/9278ecc21e060ef75ab29a0d054d95d69cd4ae27))
+- Export a 'getChain' by id helper, which returns a viem chain ([ab2ba](https://github.com/bcnmy/biconomy-client-sdk/pull/449/commits/ab2ba2c518ce867c52bf90b9018dfc1b4ec3b4d4))
+- Add "stateOverride" optional param ([20fd54](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/20fd54c817d2dcbc6b7d9a247d890d91b19a9c2f))
+
+Fixes:
+
+- Fix for encodeAbiParameters inside batched session module ([b27061](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/b27061e2eec7bafb0620e88e6d94e56e9a13cb76))
+- added flag to skip calldata approval patch ([75698](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/75698c827015533e32acb1f535bdf6b738876217))
+- Fixed the particle auth build
+
+Chores:
+
+- Added tests for ecdsa module ([1a8f29](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/1a8f296c26c9fedd57023f8f6423d7662a3adfee))
+- Increased test coverage ([329003](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/329003cebb6b4034496e41651985804cdec0d311))
+- Improved issue reporting guidelines ([8b9fb5d](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/8b9fb5de9556870611307c12e57df333619d9252))
+- Added e2e tests for optimism, ran from GH actions ([5051ba](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/5051ba5ff14220ad616f1ec3bc93a3f42d6f8887))
+- Added ABI SVM test ([49c96](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/49c968220e2db0aeee5cc6419f45df2b98f9792c))
+- Added tests for batched session router testing ([2eb9765](https://github.com/bcnmy/biconomy-client-sdk/pull/447/commits/2eb9765d066fcb7b35d08223257aeb9b38c7a78b))
+
 ## 4.0.3 (2023-28-02)
 
 VERSION Bump Only.

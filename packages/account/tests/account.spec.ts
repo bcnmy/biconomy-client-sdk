@@ -1,10 +1,11 @@
-import { Paymaster, createSmartAccountClient } from "../src";
-import { createWalletClient, http } from "viem";
+import { Bundler, Paymaster, createBundler, createSmartAccountClient } from "../src";
+import { Chain, createWalletClient, http } from "viem";
 import { localhost } from "viem/chains";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { TestData } from "../../../tests";
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { Wallet } from "@ethersproject/wallet";
+import { getMockBundlerUrl } from "../../../tests/utils";
 
 describe("Account Tests", () => {
   let ganache: TestData;
@@ -56,6 +57,59 @@ describe("Account Tests", () => {
     });
     const address = await smartAccount.getAccountAddress();
     expect(address).toBeTruthy();
+  });
+
+  it("should pickup the rpcUrl when a custom chain is used", async () => {
+    const customBlastChain = {
+      id: 81_457,
+      name: "Blast",
+      //   network: "blast",
+      nativeCurrency: {
+        decimals: 18,
+        name: "Ethereum",
+        symbol: "ETH",
+      },
+      rpcUrls: {
+        public: { http: ["https://rpc.blast.io"] },
+        default: { http: ["https://rpc.blast.io"] },
+      },
+      blockExplorers: {
+        etherscan: { name: "Blastscan", url: "https://blastscan.io/" },
+        default: { name: "Blastscan", url: "https://blastscan.io/" },
+      },
+      contracts: {
+        multicall3: {
+          address: "0xca11bde05977b3631167028862be2a173976ca11",
+          blockCreated: 88_189,
+        },
+      },
+    } as const satisfies Chain;
+
+    const {
+      whale: { privateKey },
+    } = ganache;
+
+    const accountOne = privateKeyToAccount(privateKey);
+
+    const walletClientWithCustomChain = createWalletClient({
+      account: accountOne,
+      chain: customBlastChain,
+      transport: http(customBlastChain.rpcUrls.default.http[0]),
+    });
+
+    const blastBundler = await createBundler({
+      bundlerUrl: getMockBundlerUrl(customBlastChain.id),
+      viemChain: customBlastChain,
+    });
+    const smartAccountFromViemWithCustomChain = await createSmartAccountClient({
+      viemChain: customBlastChain,
+      signer: walletClientWithCustomChain,
+      bundler: blastBundler,
+      rpcUrl: customBlastChain.rpcUrls.default.http[0],
+    });
+
+    expect(smartAccountFromViemWithCustomChain.rpcProvider.transport.url).toBe("https://rpc.blast.io");
+    expect(blastBundler.getBundlerUrl()).toBe(getMockBundlerUrl(customBlastChain.id));
   });
 
   it("should pickup the rpcUrl from viem wallet and ethers", async () => {
@@ -181,10 +235,9 @@ describe("Account Tests", () => {
   it("Create a smart account with paymaster by creating instance", async () => {
     const {
       whale: { viemWallet: signer },
-      biconomyPaymasterApiKey,
+      paymasterUrl,
     } = ganache;
 
-    const paymasterUrl = "https://paymaster.biconomy.io/api/v1/80001/" + biconomyPaymasterApiKey;
     const paymaster = new Paymaster({ paymasterUrl });
 
     const smartAccount = await createSmartAccountClient({
