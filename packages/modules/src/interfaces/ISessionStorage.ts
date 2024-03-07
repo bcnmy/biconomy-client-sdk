@@ -1,6 +1,6 @@
 import { Hex } from "viem";
 import { SmartAccountSigner } from "@alchemy/aa-core";
-import { SignerData } from "../utils/Types";
+import { SignerData } from "../utils/Types.js";
 
 export type SessionStatus = "PENDING" | "ACTIVE" | "INACTIVE" | "EXPIRED";
 

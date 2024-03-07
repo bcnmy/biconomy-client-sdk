@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 4.1.1 (2023-07-03)
+
+- Added missing extensions ([fdbec6](https://github.com/bcnmy/biconomy-client-sdk/pull/451/commits/fdbec68625f4d7f436dc39d4c1779cdbb7c53e6d))
+- Fixed issue reporting format ([815e9440](https://github.com/bcnmy/biconomy-client-sdk/pull/450/commits/815e9440db03ebae98bb24edfcb3bbcabf9b2a61))
+
+
 ## 4.1.0 (2023-04-03)
 
 Features:
