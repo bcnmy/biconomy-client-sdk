@@ -1,6 +1,13 @@
 module.exports = {
   parser: "@typescript-eslint/parser",
-  extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended", "airbnb-typescript/base", "plugin:prettier/recommended"],
+  extends: [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "airbnb-typescript/base",
+    "plugin:import/typescript",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:prettier/recommended",
+  ],
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: "module",
@@ -23,11 +30,12 @@ module.exports = {
     "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
     "security/detect-object-injection": "warn",
     "security/detect-unsafe-regex": "error",
-    "import/extensions": "error", // Now we need to specify extensions for imports for esm builds
     "security/detect-object-injection": "off", // turning off Injection Sink rule
     "@typescript-eslint/no-throw-literal": "off", // temp deactivated needs to be removed once fixed
     "@typescript-eslint/ban-ts-ignore": "off",
     "@typescript-eslint/ban-ts-comment": "off",
+    "import/extensions": ["error", "ignorePackages"],
+    "import/no-unresolved": "off",
   },
   settings: {},
   overrides: [
