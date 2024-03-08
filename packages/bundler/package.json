@@ -57,8 +57,10 @@
   },
   "dependencies": {
     "@alchemy/aa-core": "^3.1.1",
-    "@biconomy/common": "^4.1.0",
-    "viem": "^2.7.12"
+    "@biconomy/common": "^4.1.0"
+  },
+  "peerDependencies": {
+    "viem": "^2"
   },
   "devDependencies": {
     "@types/node": "^20.11.10",

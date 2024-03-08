@@ -56,8 +56,10 @@
     "@alchemy/aa-core": "^3.1.1",
     "@biconomy/common": "^4.1.0",
     "@ethersproject/abi": "^5.7.0",
-    "merkletreejs": "^0.3.11",
-    "viem": "^2.7.12"
+    "merkletreejs": "^0.3.11"
+  },
+  "peerDependencies": {
+    "viem": "^2"
   },
   "devDependencies": {
     "@types/node": "^20.11.10",

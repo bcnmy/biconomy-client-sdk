@@ -11,7 +11,7 @@ The Biconomy SDK is your all-in-one toolkit for building decentralized applicati
 ## ⚙️ installation
 
 ```bash
-npm i @biconomy/account
+npm i viem @biconomy/account
 ```
 
 ## 🛠️ Quickstart
@@ -55,7 +55,7 @@ For a step-by-step guide on integrating **ERC4337 Account Abstraction** and **Sm
 | Key                                                                                                            | Description                                                                                                                           |
 | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | [signer](https://bcnmy.github.io/biconomy-client-sdk/packages/account/docs/interfaces/SmartAccountSigner.html) | This signer will be used for signing userOps for any transactions you build. Will accept ethers.JsonRpcSigner as well as a viemWallet |
-| [paymasterUrl](https://dashboard.biconomy.io)                                                       | You can pass in a paymasterUrl necessary for sponsoring transactions (retrieved from the biconomy dashboard)               |
+| [paymasterUrl](https://dashboard.biconomy.io)                                                                  | You can pass in a paymasterUrl necessary for sponsoring transactions (retrieved from the biconomy dashboard)                          |
 | [bundlerUrl](https://dashboard.biconomy.io)                                                                    | You can pass in a bundlerUrl (retrieved from the biconomy dashboard) for sending transactions                                         |
 
 ```typescript
