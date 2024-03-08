@@ -3,7 +3,7 @@ import { SmartAccountSigner, WalletClientSigner } from "@alchemy/aa-core";
 import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "../interfaces/ISessionStorage.js";
 import { mainnet } from "viem/chains";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { SignerData } from "../utils/Types";
+import { SignerData } from "../utils/Types.js";
 
 export class SessionLocalStorage implements ISessionStorage {
   private smartAccountAddress: string;
