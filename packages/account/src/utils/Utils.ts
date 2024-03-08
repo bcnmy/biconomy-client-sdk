@@ -2,10 +2,10 @@ import { encodeAbiParameters, parseAbiParameters, keccak256, Hex, Chain } from "
 import type { UserOperationStruct } from "@alchemy/aa-core";
 import { SupportedSigner, convertSigner } from "@biconomy/common";
 import { extractChainIdFromBundlerUrl } from "@biconomy/bundler";
-import { BiconomySmartAccountV2Config } from "./Types";
+import { BiconomySmartAccountV2Config } from "./Types.js";
 import { extractChainIdFromPaymasterUrl } from "@biconomy/bundler";
 import * as chains from "viem/chains";
-import { ERROR_MESSAGES } from "./Constants";
+import { ERROR_MESSAGES } from "./Constants.js";
 
 /**
  * pack the userOperation
