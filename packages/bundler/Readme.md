@@ -7,7 +7,7 @@ In the context of (ERC4337), A bundler plays a main role in the infrastructure. 
 Using `npm` package manager
 
 ```bash
-npm i @biconomy/bundler
+npm i viem @biconomy/bundler
 ```
 
 OR
@@ -15,7 +15,7 @@ OR
 Using `yarn` package manager
 
 ```bash
-yarn add @biconomy/bundler
+yarn add viem @biconomy/bundler
 ```
 
 ## configuration

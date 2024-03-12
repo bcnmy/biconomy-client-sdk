@@ -7,7 +7,7 @@ ERC4337, Account abstraction, introduces the concept of Paymasters. These specia
 Using `npm` package manager
 
 ```bash
-npm i @biconomy/paymaster
+npm i viem @biconomy/paymaster
 ```
 
 OR
@@ -15,7 +15,7 @@ OR
 Using `yarn` package manager
 
 ```bash
-yarn add @biconomy/paymaster
+yarn add viem @biconomy/paymaster
 ```
 
 **Usage**
