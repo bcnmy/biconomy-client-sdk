@@ -54,7 +54,7 @@
   },
   "dependencies": {
     "@alchemy/aa-core": "^3.1.1",
-    "@biconomy/common": "^4.1.1",
+    "@biconomy/common": "^4.1.1"
   },
   "peerDependencies": {
     "viem": "^2"
