@@ -233,7 +233,7 @@ export class Bundler implements IBundler {
               if (userOpResponse && userOpResponse.receipt && userOpResponse.receipt.blockNumber) {
                 if (confirmations) {
                   const latestBlock = await this.provider.getBlockNumber();
-                  const confirmedBlocks = Number(latestBlock) - userOpResponse.receipt.blockNumber;
+                  const confirmedBlocks = Number(latestBlock) - Number(userOpResponse.receipt.blockNumber);
                   if (confirmations >= confirmedBlocks) {
                     clearInterval(intervalId);
                     resolve(userOpResponse);
