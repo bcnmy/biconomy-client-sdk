@@ -2111,9 +2111,9 @@
   integrity sha512-nG96G3Wp6acyAgJqGasjODb+acrI7KltPiRxzHPXnP3NgI28bpQDRv53olbqGXbfcgF5aiiHmO3xpwEpS5Ld9g==
 
 "@types/node@*", "@types/node@^20.11.10":
-  version "20.11.26"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.11.26.tgz#3fbda536e51d5c79281e1d9657dcb0131baabd2d"
-  integrity sha512-YwOMmyhNnAWijOBQweOJnQPl068Oqd4K3OFbTc6AHJwzweUwwWG3GIFY74OKks2PJUDkQPeddOQES9mLn1CTEQ==
+  version "20.11.27"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.11.27.tgz#debe5cfc8a507dd60fe2a3b4875b1604f215c2ac"
+  integrity sha512-qyUZfMnCg1KEz57r7pzFtSGt49f6RPkPBis3Vo4PbS7roQEDn22hiHzl/Lo1q4i4hDEgBJmBF/NTNg2XR0HbFg==
   dependencies:
     undici-types "~5.26.4"
 
@@ -3765,9 +3765,9 @@ ejs@^3.1.7:
     jake "^10.8.5"
 
 electron-to-chromium@^1.4.668:
-  version "1.4.701"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.701.tgz#7335e5761331774b4dea54cd24a1b84861d45cdf"
-  integrity sha512-K3WPQ36bUOtXg/1+69bFlFOvdSm0/0bGqmsfPDLRXLanoKXdA+pIWuf/VbA9b+2CwBFuONgl4NEz4OEm+OJOKA==
+  version "1.4.703"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.703.tgz#786ab0c8cfe548b9da03890f923e69b1ae522741"
+  integrity sha512-094ZZC4nHXPKl/OwPinSMtLN9+hoFkdfQGKnvXbY+3WEAYtVDpz9UhJIViiY6Zb8agvqxiaJzNG9M+pRZWvSZw==
 
 elliptic@6.5.4:
   version "6.5.4"
@@ -9324,9 +9324,9 @@ validate-npm-package-name@^3.0.0:
     builtins "^1.0.3"
 
 viem@^2.7.12, viem@^2.7.8:
-  version "2.8.4"
-  resolved "https://registry.yarnpkg.com/viem/-/viem-2.8.4.tgz#553996181d2d22237e31476218178d3fe96e2e3d"
-  integrity sha512-zBC8+YNKzo+XeUsCyXdrFzimH9Ei/nRfUKldPmVRoR/lR56/sqkDPyfCE1yvzwwmA9AJ9m9m2HtSPgl9NiTReA==
+  version "2.8.5"
+  resolved "https://registry.yarnpkg.com/viem/-/viem-2.8.5.tgz#c0120e7f228fbb5be760c625bb2637c7cfa1b8df"
+  integrity sha512-EAmZ/jP7Ycmu72zRrB+N/fINEXMVBaLLsUaHwu5LoIjAzmE/f/33RV9AlhUA6RNZ5kujomylSytIyDakzQYXCQ==
   dependencies:
     "@adraffy/ens-normalize" "1.10.0"
     "@noble/curves" "1.2.0"

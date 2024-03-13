@@ -1,13 +1,20 @@
+/** 
+ * @description The polling interval per chain for the tx receipt in milliseconds. Default value is 5 seconds 
+*/
 export const UserOpReceiptIntervals: { [key in number]?: number } = {
   [1]: 10000,
 };
 
-// Note: Default value is 500(0.5sec)
+/** 
+ * @description The polling interval per chain for the tx hash in milliseconds. Default value is 0.5 seconds 
+ */
 export const UserOpWaitForTxHashIntervals: { [key in number]?: number } = {
   [1]: 1000,
 };
 
-// Note: Default value is 30000 (30sec)
+/** 
+ * @description The maximum duration in milliseconds per chain to wait for the tx receipt. Default value is 30 seconds
+ */
 export const UserOpReceiptMaxDurationIntervals: { [key in number]?: number } = {
   [1]: 300000,
   [80001]: 50000,
@@ -19,7 +26,9 @@ export const UserOpReceiptMaxDurationIntervals: { [key in number]?: number } = {
   [59140]: 50000, // linea testnet
 };
 
-// Note: Default value is 20000 (20sec)
+/** 
+ * @description The maximum duration in milliseconds per chain to wait for the tx hash. Default value is 20 seconds
+ */
 export const UserOpWaitForTxHashMaxDurationIntervals: { [key in number]?: number } = {
   [1]: 20000,
 };

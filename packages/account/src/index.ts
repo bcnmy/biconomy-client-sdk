@@ -6,7 +6,13 @@ export * from "./utils/Constants.js";
 export * from "./utils/Utils.js";
 export * from "./BiconomySmartAccountV2.js";
 
-export { WalletClientSigner, LocalAccountSigner, type SmartAccountSigner } from "@alchemy/aa-core";
+export {
+  WalletClientSigner,
+  LocalAccountSigner,
+  type SmartAccountSigner,
+  type UserOperationStruct,
+  type UserOperationReceipt,
+} from "@alchemy/aa-core";
 export {
   BiconomyPaymaster as Paymaster,
   type IPaymaster,
@@ -15,6 +21,10 @@ export {
   type PaymasterFeeQuote,
   type SponsorUserOperationDto,
   type FeeQuotesOrDataResponse,
+  type Transaction,
+  type BiconomyTokenPaymasterRequest,
+  type PaymasterAndDataResponse,
+  type PaymasterConfig,
   createPaymaster,
 } from "@biconomy/paymaster";
 export { EthersSigner, convertSigner, type LightSigner, type SupportedSigner } from "@biconomy/common";
@@ -25,6 +35,10 @@ export {
   type UserOpResponse,
   type UserOpStatus,
   type UserOpReceipt,
+  type UserOpByHashResponse,
+  type EstimateUserOpGasResponse,
+  type UserOpGasResponse,
+  type GasFeeValues,
   createBundler,
 } from "@biconomy/bundler";
 export {
