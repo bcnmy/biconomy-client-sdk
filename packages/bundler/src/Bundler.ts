@@ -4,7 +4,7 @@ import { IBundler } from "./interfaces/IBundler.js";
 import {
   GetUserOperationReceiptResponse,
   GetUserOpByHashResponse,
-  Bundlerconfig,
+  BundlerConfig,
   UserOpResponse,
   EstimateUserOpGasResponse,
   UserOpReceipt,
@@ -37,18 +37,29 @@ import { sendRequest, HttpMethod, StateOverrideSet } from "@biconomy/common";
 export class Bundler implements IBundler {
   private bundlerConfig: BundlerConfigWithChainId;
 
-  // eslint-disable-next-line no-unused-vars
+  /**
+   * @description The polling interval per chain for the tx receipt in milliseconds. Default value is 5 seconds
+   */
   UserOpReceiptIntervals!: { [key in number]?: number };
 
+  /**
+   * @description The polling interval per chain for the tx result in milliseconds. Default value is 0.5 seconds
+   * */
   UserOpWaitForTxHashIntervals!: { [key in number]?: number };
 
+  /**
+   * @description The maximum duration in milliseconds per chain to wait for the tx receipt. Default value is 30 seconds
+   */
   UserOpReceiptMaxDurationIntervals!: { [key in number]?: number };
 
+  /**
+   * @description The maximum duration in milliseconds per chain to wait for the tx hash. Default value is 20 seconds
+   */
   UserOpWaitForTxHashMaxDurationIntervals!: { [key in number]?: number };
 
   private provider: PublicClient;
 
-  constructor(bundlerConfig: Bundlerconfig) {
+  constructor(bundlerConfig: BundlerConfig) {
     const parsedChainId: number = bundlerConfig?.chainId || extractChainIdFromBundlerUrl(bundlerConfig.bundlerUrl);
     this.bundlerConfig = { ...bundlerConfig, chainId: parsedChainId };
 
@@ -85,13 +96,44 @@ export class Bundler implements IBundler {
   }
 
   /**
-   * @param userOpHash
-   * @description This function will fetch gasPrices from bundler
-   * @returns Promise<UserOpGasPricesResponse>
+   *
+   * @description This function will estimate gasPrices from bundler
+   * It is expected that the userOp is already signed and the paymasterAndData is already provided by the caller
+   *
+   * @param userOpHash {@link UserOperationStruct}
+   * @param stateOverrideSet {@link StateOverrideSet}
+   * @returns Promise<UserOpGasResponse>
+   *
+   * @example
+   *
+   * import { createBundler } from "@biconomy/bundler"
+   * import { createSmartAccountClient } from "@biconomy/smartaccount"
+   *
+   * const bundler = await createBundler({
+   *  bundlerUrl: "", // <-- Read about this at https://docs.biconomy.io/dashboard#bundler-url
+   * });
+   *
+   * const smartWallet = await createSmartAccountClient({
+   *   signer,
+   *   bundler
+   * });
+   *
+   * const tx = {
+   *   to: "0x000000D50C68705bd6897B2d17c7de32FB519fDA",
+   *   data: "0x"
+   * };
+   *
+   * const userOp = await smartWallet.buildUserOp([tx]);
+   * const {
+   *   maxFeePerGas,
+   *   maxPriorityFeePerGas,
+   *   verificationGasLimit,
+   *   callGasLimit,
+   *   preVerificationGas,
+   * } = await bundler.estimateUserOpGas(userOp);
+   *
    */
   async estimateUserOpGas(userOp: UserOperationStruct, stateOverrideSet?: StateOverrideSet): Promise<UserOpGasResponse> {
-    // expected dummySig and possibly dummmy paymasterAndData should be provided by the caller
-    // bundler doesn't know account and paymaster implementation
     userOp = transformUserOP(userOp);
     const bundlerUrl = this.getBundlerUrl();
 
@@ -123,9 +165,36 @@ export class Bundler implements IBundler {
 
   /**
    *
-   * @param userOp
-   * @description This function will send signed userOp to bundler to get mined on chain
-   * @returns Promise<UserOpResponse>
+   *  Sends a user operation via the bundler
+   *
+   * @param userOp {@link UserOperationStruct}
+   * @param simulationParam {@link SimulationType}
+   * @description This function will take a user op as an input and send it to the bundler.
+   * @returns Promise<{@link UserOpResponse}> that you can use to track the user operation.
+   *
+   * @example
+   * import { createBundler } from "@biconomy/bundler"
+   * import { createSmartAccountClient } from "@biconomy/smartaccount"
+   *
+   * const bundler = await createBundler({
+   *  bundlerUrl: "", // <-- Read about this at https://docs.biconomy.io/dashboard#bundler-url
+   * });
+   *
+   * const smartWallet = await createSmartAccountClient({
+   *   signer,
+   *   bundler
+   * });
+   *
+   * const tx = {
+   *   to: "0x000000D50C68705bd6897B2d17c7de32FB519fDA",
+   *   data: "0x"
+   * };
+   *
+   * const userOp = await smartWallet.buildUserOp([tx]);
+   *
+   * const { wait } = await bundler.sendUserOp(userOp);
+   * const { success, receipt } = await wait();
+   *
    */
   async sendUserOp(userOp: UserOperationStruct, simulationParam?: SimulationType): Promise<UserOpResponse> {
     const chainId = this.bundlerConfig.chainId;
@@ -164,7 +233,7 @@ export class Bundler implements IBundler {
               if (userOpResponse && userOpResponse.receipt && userOpResponse.receipt.blockNumber) {
                 if (confirmations) {
                   const latestBlock = await this.provider.getBlockNumber();
-                  const confirmedBlocks = Number(latestBlock) - userOpResponse.receipt.blockNumber;
+                  const confirmedBlocks = Number(latestBlock) - Number(userOpResponse.receipt.blockNumber);
                   if (confirmations >= confirmedBlocks) {
                     clearInterval(intervalId);
                     resolve(userOpResponse);
@@ -238,7 +307,7 @@ export class Bundler implements IBundler {
    *
    * @param userOpHash
    * @description This function will return userOpReceipt for a given userOpHash
-   * @returns Promise<UserOpReceipt>
+   * @returns Promise<{@link UserOpReceipt}>
    */
   async getUserOpReceipt(userOpHash: string): Promise<UserOpReceipt> {
     const bundlerUrl = this.getBundlerUrl();
@@ -260,10 +329,10 @@ export class Bundler implements IBundler {
   }
 
   /**
+   * @description This function will return userOp status for a given hash
    *
    * @param userOpHash
-   * @description This function will return userOpReceipt for a given userOpHash
-   * @returns Promise<UserOpReceipt>
+   * @returns Promise<{@link UserOpStatus}>
    */
   async getUserOpStatus(userOpHash: string): Promise<UserOpStatus> {
     const bundlerUrl = this.getBundlerUrl();
@@ -286,9 +355,20 @@ export class Bundler implements IBundler {
 
   /**
    *
-   * @param userOpHash
    * @description this function will return UserOpByHashResponse for given UserOpHash
-   * @returns Promise<UserOpByHashResponse>
+   *
+   * @param userOpHash hash of the user operation
+   * @returns Promise<{@link UserOpByHashResponse}> that you can use to track the user operation.
+   *
+   * @example
+   * import { createBundler } from "@biconomy/bundler"
+   *
+   * const bundler = await createBundler({
+   *  bundlerUrl: "", // <-- Read about this at https://docs.biconomy.io/dashboard#bundler-url
+   * });
+   *
+   * const { transactionHash } = await bundler.getUserOpByHash("0x...");
+   *
    */
   async getUserOpByHash(userOpHash: string): Promise<UserOpByHashResponse> {
     const bundlerUrl = this.getBundlerUrl();
@@ -311,6 +391,7 @@ export class Bundler implements IBundler {
 
   /**
    * @description This function will return the gas fee values
+   * @returns Promise<{@link GasFeeValues}>
    */
   async getGasFeeValues(): Promise<GasFeeValues> {
     const bundlerUrl = this.getBundlerUrl();
@@ -330,7 +411,7 @@ export class Bundler implements IBundler {
     return response.result;
   }
 
-  public static async create(config: Bundlerconfig): Promise<Bundler> {
+  public static async create(config: BundlerConfig): Promise<Bundler> {
     return new Bundler(config);
   }
 }
