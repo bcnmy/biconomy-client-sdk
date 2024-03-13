@@ -21,7 +21,9 @@ export type JsonRpcError = {
 };
 
 export type PaymasterConfig = {
+  /** Read about at https://docs.biconomy.io/dashboard/paymaster */
   paymasterUrl: string;
+  /** Whether or not to enforce abiding by the paymaster policies */
   strictMode?: boolean;
 };
 

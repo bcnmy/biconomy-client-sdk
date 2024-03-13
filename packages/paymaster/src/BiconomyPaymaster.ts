@@ -20,11 +20,9 @@ import { getTimestampInSeconds } from "./utils/Helpers.js";
 
 const defaultPaymasterConfig: PaymasterConfig = {
   paymasterUrl: "",
-  strictMode: false, // Set your desired default value for strictMode here
+  strictMode: false,
 };
-/**
- * @dev Hybrid - Generic Gas Abstraction paymaster
- */
+
 export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationDto> {
   paymasterConfig: PaymasterConfig;
 
@@ -37,9 +35,9 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
   }
 
   /**
-   * @dev Prepares the user operation by resolving properties and converting certain values to hexadecimal format.
-   * @param userOp The partial user operation.
-   * @returns A Promise that resolves to the prepared partial user operation.
+   * @description Prepares the user operation by resolving properties and converting certain values to hexadecimal format.
+   * @param userOp Partial<{@link UserOperationStruct}> The partial user operation.
+   * @returns Promise<Partial<{@link UserOperationStruct}>> - A Promise that resolves to the prepared partial user operation.
    */
   private async prepareUserOperation(userOp: Partial<UserOperationStruct>): Promise<Partial<UserOperationStruct>> {
     const userOperation = { ...userOp };
@@ -65,22 +63,15 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
   }
 
   /**
-   * @dev Builds a token approval transaction for the Biconomy token paymaster.
-   * @param tokenPaymasterRequest The token paymaster request data. This will include information about chosen feeQuote, spender address and optional flag to provide maxApproval
-   * @param provider Optional provider object.
-   * @returns A Promise that resolves to the built transaction object.
+   * @description Builds a token approval transaction for the Biconomy token paymaster.
+   *
+   * @param tokenPaymasterRequest {@link BiconomyTokenPaymasterRequest} The token paymaster request data. This will include information about chosen feeQuote, spender address and optional flag to provide maxApproval
+   * @returns Promise<{@link Transaction}> - A Promise that resolves to the built transaction object.
    */
   async buildTokenApprovalTransaction(tokenPaymasterRequest: BiconomyTokenPaymasterRequest): Promise<Transaction> {
     const feeTokenAddress: string = tokenPaymasterRequest.feeQuote.tokenAddress;
 
     const spender = tokenPaymasterRequest.spender;
-
-    // logging provider object isProvider
-    // Logger.log("provider object passed - is provider", provider?._isProvider);
-
-    // TODO move below notes to separate method
-    // Note: should also check in caller if the approval is already given, if yes return object with address or data 0
-    // Note: we would need userOp here to get the account/owner info to check allowance
 
     let requiredApproval = BigInt(0);
 
@@ -98,19 +89,6 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
         args: [spender, requiredApproval],
       });
 
-      // TODO?
-      // Note: For some tokens we may need to set allowance to 0 first so that would return batch of transactions and changes the return type to Transaction[]
-      // In that case we would return two objects in an array, first of them being..
-      /*
-    {
-      to: erc20.address,
-      value: ethers.BigNumber.from(0),
-      data: erc20.interface.encodeFunctionData('approve', [spender, BigNumber.from("0")])
-    }
-    */
-
-      // const zeroValue: ethers.BigNumber = ethers.BigNumber.from(0);
-      // const value: BigNumberish | undefined = zeroValue as any;
       return {
         to: feeTokenAddress,
         value: "0x00",
@@ -122,10 +100,10 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
   }
 
   /**
-   * @dev Retrieves paymaster fee quotes or data based on the provided user operation and paymaster service data.
-   * @param userOp The partial user operation.
-   * @param paymasterServiceData The paymaster service data containing token information and sponsorship details. Devs can send just the preferred token or array of token addresses in case of mode "ERC20" and sartAccountInfo in case of "sponsored" mode.
-   * @returns A Promise that resolves to the fee quotes or data response.
+   * @description Retrieves paymaster fee quotes or data based on the provided user operation and paymaster service data.
+   * @param userOp {@link UserOperationStruct} The partial user operation.
+   * @param paymasterServiceData {@link SponsorUserOperationDto} The paymaster service data containing token information and sponsorship details. Devs can send just the preferred token or array of token addresses in case of mode "ERC20" and sartAccountInfo in case of "sponsored" mode.
+   * @returns Promise<{@link FeeQuotesOrDataResponse}> - A Promise that resolves to the fee quotes or data response.
    */
   async getPaymasterFeeQuotesOrData(
     userOp: Partial<UserOperationStruct>,
@@ -241,10 +219,12 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
   }
 
   /**
-   * @dev Retrieves the paymaster and data based on the provided user operation and paymaster service data.
-   * @param userOp The partial user operation.
-   * @param paymasterServiceData Optional paymaster service data.
-   * @returns A Promise that resolves to the paymaster and data string.
+   * @description Retrieves the paymaster and data based on the provided user operation and paymaster service data.
+   *
+   * @param userOp {@link UserOperationStruct}  The partial user operation.
+   * @param paymasterServiceData {@link SponsorUserOperationDto} Optional paymaster service data.
+   * @returns {@link PaymasterAndDataResponse} A Promise that resolves to the paymaster and data string.
+   *
    */
   async getPaymasterAndData(
     userOp: Partial<UserOperationStruct>,
@@ -332,8 +312,8 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
 
   /**
    *
-   * @param userOp user operation
-   * @param paymasterServiceData optional extra information to be passed to paymaster service
+   * @param userOp {@link UserOperationStruct} user operation
+   * @param paymasterServiceData {@link SponsorUserOperationDto} optional extra information to be passed to paymaster service
    * @returns "0x"
    */
   async getDummyPaymasterAndData(
@@ -343,6 +323,12 @@ export class BiconomyPaymaster implements IHybridPaymaster<SponsorUserOperationD
     return "0x";
   }
 
+  /**
+   * @description creates an instance of BiconomyPaymaster
+   *
+   * @param config {@link PaymasterConfig} The config.
+   * @returns Promise<BiconomyPaymaster>
+   */
   public static async create(config: PaymasterConfig): Promise<BiconomyPaymaster> {
     return new BiconomyPaymaster(config);
   }
