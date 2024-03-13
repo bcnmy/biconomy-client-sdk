@@ -1,17 +1,16 @@
 import { Hex, PublicClient, parseAbi } from "viem";
 
-export const checkBalance = (publicClient: PublicClient, address: Hex, tokenAddress?: Hex) => {
+export const checkBalance = (publicClient: PublicClient, address: Hex, tokenAddress?: Hex): Promise<bigint> => {
   if (!tokenAddress) {
     return publicClient.getBalance({ address });
-  } else {
-    return publicClient.readContract({
-      address: tokenAddress,
-      abi: parseAbi(["function balanceOf(address owner) view returns (uint balance)"]),
-      functionName: "balanceOf",
-      // @ts-ignore
-      args: [address],
-    });
   }
+  return publicClient.readContract({
+    address: tokenAddress,
+    abi: parseAbi(["function balanceOf(address owner) view returns (uint balance)"]),
+    functionName: "balanceOf",
+    // @ts-ignore
+    args: [address],
+  });
 };
 
 export const getMockBundlerUrl = (chainId: number) => `https://bundler.biconomy.io/api/v2/${chainId}/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f14`;

@@ -46,6 +46,8 @@ export function packUserOp(op: Partial<UserOperationStruct>, forSignature = true
   }
 }
 
+export const addressEquals = (a?: string, b?: string): boolean => !!a && !!b && a?.toLowerCase() === b.toLowerCase();
+
 export const isNullOrUndefined = (value: any): value is undefined => {
   return value === null || value === undefined;
 };
@@ -85,8 +87,6 @@ export const isValidRpcUrl = (url: string): boolean => {
   const regex = /^(https:\/\/|wss:\/\/).*/;
   return regex.test(url);
 };
-
-export const addressEquals = (a?: string, b?: string): boolean => !!a && !!b && a?.toLowerCase() === b.toLowerCase();
 
 /**
  * Utility method for converting a chainId to a {@link Chain} object
