@@ -108,7 +108,7 @@ export type BiconomyTokenPaymasterRequest = {
   spender: Hex;
   /** Not recommended */
   maxApproval?: boolean;
-  /* skip option to patch callData if approval is already given to the paymaster */
+  /** skip option to patch callData if approval is already given to the paymaster */
   skipPatchCallData?: boolean;
 };
 
@@ -119,21 +119,21 @@ export type FeeQuotesOrDataResponse = {
   tokenPaymasterAddress?: Hex;
   /** Relevant Data returned from the paymaster */
   paymasterAndData?: Uint8Array | Hex;
-  /* Gas overhead of this UserOperation */
+  /** Gas overhead of this UserOperation */
   preVerificationGas?: BigNumberish;
-  /* Actual gas used by the validation of this UserOperation */
+  /** Actual gas used by the validation of this UserOperation */
   verificationGasLimit?: BigNumberish;
-  /* Value used by inner account execution */
+  /** Value used by inner account execution */
   callGasLimit?: BigNumberish;
 };
 
 export type PaymasterAndDataResponse = {
   paymasterAndData: Hex;
-  /* Gas overhead of this UserOperation */
+  /** Gas overhead of this UserOperation */
   preVerificationGas: number;
-  /* Actual gas used by the validation of this UserOperation */
+  /** Actual gas used by the validation of this UserOperation */
   verificationGasLimit: number;
-  /* Value used by inner account execution */
+  /** Value used by inner account execution */
   callGasLimit: number;
 };
 
@@ -152,11 +152,11 @@ export type EstimateUserOpGasResponse = {
 
 export type UserOpGasResponse = {
   paymasterAndData: string;
-  /* Gas overhead of this UserOperation */
+  /** Gas overhead of this UserOperation */
   preVerificationGas: string;
   maxPriorityFeePerGas: string;
   maxFeePerGas: string;
-  /* Actual gas used by the validation of this UserOperation */
+  /** Actual gas used by the validation of this UserOperation */
   verificationGasLimit: string;
   callGasLimit: string;
 };
