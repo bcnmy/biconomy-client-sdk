@@ -1,6 +1,6 @@
 {
-  "name": "@biconomy/bundler",
-  "version": "4.0.3",
+  "name": "@biconomy-devx/bundler",
+  "version": "4.1.1",
   "description": "Biconomy Bundler package to interact with any bundler node as per ERC4337 standard",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -57,7 +57,7 @@
   },
   "dependencies": {
     "@alchemy/aa-core": "^3.1.1",
-    "@biconomy/common": "^4.0.3",
+    "@biconomy-devx/common": "4.1.1",
     "viem": "^2.7.12"
   },
   "devDependencies": {
