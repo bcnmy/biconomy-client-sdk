@@ -15,6 +15,8 @@ export interface HttpRequest {
 }
 
 export async function sendRequest<T>({ url, method, body }: HttpRequest, service: Service): Promise<T> {
+  console.log('send request', { url, method });
+  console.log('body', JSON.stringify(body));
   const response = await fetch(url, {
     method,
     headers: {
@@ -23,6 +25,7 @@ export async function sendRequest<T>({ url, method, body }: HttpRequest, service
     },
     body: JSON.stringify(body),
   });
+  console.log('response', response);
 
   let jsonResponse;
   try {

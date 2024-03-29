@@ -1,4 +1,4 @@
-import { BigNumberish, SmartAccountSigner, UserOperationStruct } from "@alchemy/aa-core";
+import { BigNumberish, BytesLike, SmartAccountSigner, UserOperationStruct } from "@alchemy/aa-core";
 import { IBundler } from "@biconomy/bundler";
 import {
   type FeeQuotesOrDataDto,
@@ -148,6 +148,8 @@ export type BuildUserOpOptions = {
   paymasterServiceData?: PaymasterUserOperationDto;
   /**  simulationType: Determine which parts of the tx a bundler will simulate: "validation" | "validation_and_execution".  */
   simulationType?: SimulationType;
+  /** dummy pnd override */
+  dummyPndOverride?: BytesLike;
 };
 
 export type NonceOptions = {
