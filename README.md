@@ -34,7 +34,7 @@ const {
 - **Paymaster Service**: Enable third-party gas sponsorship.
 - **Bundler Infrastructure**: Ensure efficient and reliable transaction bundling.
 
-For a step-by-step guide on integrating **ERC4337 Account Abstraction** and **Smart Accounts** into your dApp using the Biconomy SDK, refer to the [official documentation](https://docs.biconomy.io/docs/overview). You can also start with Quick start [here](https://docs.biconomy.io/quickstart).
+For a step-by-step guide on integrating **ERC4337 Account Abstraction** and **Smart Accounts** into your dApp using the Biconomy SDK, refer to the [official documentation](https://docs.biconomy.io). You can also start with Quick start [here](https://docs.biconomy.io/quickstart).
 
 ## 📚 Resources
 
