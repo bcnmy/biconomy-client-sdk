@@ -6,7 +6,7 @@ import {
   EntryPointAddressesByVersion,
   BiconomyFactoriesByVersion,
   BiconomyImplementationsByVersion,
-} from "./Types";
+} from "./Types.js";
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 

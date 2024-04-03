@@ -675,7 +675,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   validateUserOp(userOp: Partial<UserOperationStruct>, requiredFields: UserOperationKey[]): boolean {
     for (const field of requiredFields) {
-      if (!userOp[field]) {
+      if (isNullOrUndefined(userOp[field])) {
         throw new Error(`${String(field)} is missing in the UserOp`);
       }
     }
