@@ -13,7 +13,7 @@ describe("Account Tests", () => {
 
   beforeEach(() => {
     // @ts-ignore: Comes from setup-e2e-tests
-    [baseSepolia, baseSepolia, optimism] = testDataPerChain;
+    [baseSepolia, optimism] = testDataPerChain;
   });
 
   it("should have addresses", async () => {
@@ -696,7 +696,7 @@ describe("Account Tests", () => {
     expect(response).toBe(eip1271MagicValue);
   });
 
-  it("should throw an error if signature is not valid", async () => {
+  it("should confirm that signature is not valid", async () => {
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
