@@ -385,7 +385,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * const { wait } = await smartAccount.withdraw(
    *  [
-   *    { address: USDT, amount: BigInt(1) },
+   *    { address: USDT }, // omit the amount to withdraw the full balance
    *    { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) }
    *  ],
    *  account.pubKey, // Default recipient used if no recipient is present in the withdrawal request
