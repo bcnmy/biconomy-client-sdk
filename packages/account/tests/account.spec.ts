@@ -1,4 +1,4 @@
-import { Bundler, Paymaster, createBundler, createSmartAccountClient } from "../src";
+import { Paymaster, createBundler, createSmartAccountClient } from "../src";
 import { Chain, createWalletClient, http } from "viem";
 import { localhost } from "viem/chains";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
@@ -32,7 +32,6 @@ describe("Account Tests", () => {
 
   it("should create a whale smartAccountClient from an ethers signer", async () => {
     const {
-      bundlerUrl,
       whale: { ethersSigner: signer },
     } = ganache;
 
@@ -281,4 +280,33 @@ describe("Account Tests", () => {
       }),
     ).rejects.toThrow("Cannot consume a viem wallet without an account");
   });
+
+  it("should accept PrivateKeyAccount as signer and sign a message", async () => {
+    const { bundlerUrl } = ganache;
+
+    const account = privateKeyToAccount(`0x${process.env.E2E_PRIVATE_KEY_ONE}`);
+
+    const smartAccount = await createSmartAccountClient({
+      signer: account,
+      bundlerUrl,
+      rpcUrl: localhost.rpcUrls.default.http[0],
+    });
+
+    const message = "hello world";
+    const signature = await smartAccount.signMessage(message);
+    expect(signature).toBeTruthy();
+  }, 50000);
+
+  it("should throw if PrivateKeyAccount is used as signer and rpcUrl is not provided", async () => {
+    const { bundlerUrl } = ganache;
+
+    const account = privateKeyToAccount(`0x${process.env.E2E_PRIVATE_KEY_ONE}`);
+
+    const createSmartAccount = createSmartAccountClient({
+      signer: account,
+      bundlerUrl,
+    });
+
+    await expect(createSmartAccount).rejects.toThrow("rpcUrl is required for PrivateKeyAccount signer type, please provide it in the config");
+  }, 50000);
 });

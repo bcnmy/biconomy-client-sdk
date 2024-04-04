@@ -5,6 +5,7 @@ import { UserOperationStruct } from "@alchemy/aa-core";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
 import { ERC20_ABI } from "@biconomy/modules";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
+import { polygonMumbai } from "viem/chains";
 
 describe("Account Tests", () => {
   let mumbai: TestData;
@@ -84,15 +85,15 @@ describe("Account Tests", () => {
 
   it("should send some native token to a recipient", async () => {
     const {
-      whale: { viemWallet: signer },
-      minnow: { publicAddress: recipient },
+      minnow: { publicAddress: recipient, viemWallet: account },
       bundlerUrl,
       publicClient,
     } = mumbai;
 
     const smartAccount = await createSmartAccountClient({
-      signer,
+      signer: account,
       bundlerUrl,
+      rpcUrl: polygonMumbai.rpcUrls.default.http[0],
     });
 
     const balance = (await checkBalance(publicClient, recipient)) as bigint;

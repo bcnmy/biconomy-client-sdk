@@ -55,7 +55,7 @@ export const compareChainIds = async (
   biconomySmartAccountConfig: BiconomySmartAccountV2Config,
   skipChainIdCalls: boolean,
 ): Promise<Error | void> => {
-  const signerResult = await convertSigner(signer, skipChainIdCalls);
+  const signerResult = await convertSigner(signer, skipChainIdCalls, biconomySmartAccountConfig.rpcUrl);
 
   const chainIdFromBundler = biconomySmartAccountConfig.bundlerUrl
     ? extractChainIdFromBundlerUrl(biconomySmartAccountConfig.bundlerUrl)

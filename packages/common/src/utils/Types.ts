@@ -1,9 +1,9 @@
-import { WalletClient } from "viem";
+import { PrivateKeyAccount, WalletClient } from "viem";
 import { Signer } from "@ethersproject/abstract-signer";
 import { SmartAccountSigner } from "@alchemy/aa-core";
 
 export type SupportedSignerName = "alchemy" | "ethers" | "viem";
-export type SupportedSigner = SmartAccountSigner | WalletClient | Signer | LightSigner;
+export type SupportedSigner = SmartAccountSigner | WalletClient | Signer | LightSigner | PrivateKeyAccount;
 
 export type Service = "Bundler" | "Paymaster";
 
