@@ -13,11 +13,11 @@ import { PaymasterMode } from "@biconomy/paymaster";
 import { Logger } from "@biconomy/common";
 
 describe("Batched Session Router Tests", () => {
-  let mumbai: TestData;
+  let baseSepolia: TestData;
 
   beforeEach(() => {
     // @ts-ignore: Comes from setup-e2e-tests
-    [mumbai] = testDataPerChain;
+    [baseSepolia] = testDataPerChain;
   });
 
   // TODO(Gabi): Fix Batched Session Router Module tests
@@ -34,9 +34,8 @@ describe("Batched Session Router Tests", () => {
       publicClient,
       bundlerUrl,
       biconomyPaymasterApiKey,
-      chainId,
       viemChain,
-    } = mumbai;
+    } = baseSepolia;
 
     // Create smart account
     let smartAccount = await createSmartAccountClient({
@@ -209,6 +208,6 @@ describe("Batched Session Router Tests", () => {
 
     expect(maticBalanceAfter).toEqual(maticBalanceBefore);
 
-    Logger.log(`Tx at: https://jiffyscan.xyz/userOpHash/${userOpResponse2.userOpHash}?network=mumbai`);
+    Logger.log(`Tx at: https://jiffyscan.xyz/userOpHash/${userOpResponse2.userOpHash}?network=baseSepolia`);
   }, 60000);
 });

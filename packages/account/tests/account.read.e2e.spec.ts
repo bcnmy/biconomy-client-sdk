@@ -27,10 +27,7 @@ describe("Account Tests", () => {
 
   it("should get all modules", async () => {
     const {
-      whale: {
-        viemWallet: signer,
-        account: { address: accountAddress },
-      },
+      whale: { viemWallet: signer },
       bundlerUrl,
       biconomyPaymasterApiKey,
     } = baseSepolia;

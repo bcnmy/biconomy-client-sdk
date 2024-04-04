@@ -1,23 +1,20 @@
-import { PaymasterMode } from "@biconomy/paymaster";
 import { TestData } from "../../../tests";
 import { createSmartAccountClient } from "../../account/src/index";
-import { Hex, encodeFunctionData, parseAbi } from "viem";
-import { DEFAULT_MULTICHAIN_MODULE, createECDSAOwnershipValidationModule } from "@biconomy/modules";
+import { createECDSAOwnershipValidationModule } from "@biconomy/modules";
 
 describe("Account with ECDSAOwnershipValidationModule Module Tests", () => {
-  let mumbai: TestData;
   let baseSepolia: TestData;
 
   beforeEach(() => {
     // @ts-ignore: Comes from setup-e2e-tests
-    [mumbai, baseSepolia] = testDataPerChain;
+    [baseSepolia] = testDataPerChain;
   });
 
   it("should create a ECDSAOwnershipValidationModule with signer", async () => {
     const {
       bundlerUrl,
       whale: { viemWallet: signer },
-    } = mumbai;
+    } = baseSepolia;
 
     const defaultValidationModule = await createECDSAOwnershipValidationModule({ signer });
     // Should not require a signer or chainId
@@ -35,7 +32,7 @@ describe("Account with ECDSAOwnershipValidationModule Module Tests", () => {
     const {
       bundlerUrl,
       whale: { viemWallet: signer },
-    } = mumbai;
+    } = baseSepolia;
 
     const defaultValidationModule = await createECDSAOwnershipValidationModule({ signer });
     // Should not require a signer or chainId
@@ -52,7 +49,7 @@ describe("Account with ECDSAOwnershipValidationModule Module Tests", () => {
     const {
       bundlerUrl,
       whale: { viemWallet: signer },
-    } = mumbai;
+    } = baseSepolia;
     const defaultValidationModule = await createECDSAOwnershipValidationModule({ signer });
     const smartAccount = await createSmartAccountClient({ bundlerUrl, signer });
     const address = await smartAccount.getAccountAddress();

@@ -171,11 +171,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient, BiconomySmartAccountV2 } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonOptimism } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonOptimism,
    *   transport: http(),
    * });
    *
@@ -283,11 +283,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonOptimism } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonOptimism,
    *   transport: http(),
    * });
    *
@@ -691,11 +691,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonOptimism } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonOptimism,
    *   transport: http(),
    * });
    *
@@ -745,11 +745,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonOptimism } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonOptimism,
    *   transport: http(),
    * });
    *
@@ -799,11 +799,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonOptimism } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonOptimism,
    *   transport: http(),
    * });
    *
@@ -950,11 +950,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonOptimism } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonOptimism,
    *   transport: http(),
    * });
    *
@@ -992,11 +992,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonOptimism } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonOptimism,
    *   transport: http(),
    * });
    *
@@ -1214,11 +1214,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonOptimism } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonOptimism,
    *   transport: http(),
    * });
    *

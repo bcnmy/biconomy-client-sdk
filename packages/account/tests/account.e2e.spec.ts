@@ -131,7 +131,7 @@ describe("Account Tests", () => {
     expect(paymaster).not.toBeUndefined();
   });
 
-  it("Should gaslessly mint an NFT on Mumbai", async () => {
+  it("Should gaslessly mint an NFT on Optimism", async () => {
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
@@ -180,7 +180,7 @@ describe("Account Tests", () => {
   }, 60000);
 
   // TODO(Remove when Yash fixes approvals issue)
-  it.skip("Should mint an NFT on Mumbai and pay with ERC20 - with preferredToken", async () => {
+  it.skip("Should mint an NFT on Optimism and pay with ERC20 - with preferredToken", async () => {
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
@@ -268,7 +268,7 @@ describe("Account Tests", () => {
   });
 
   // TODO(Remove when Yash fixes approvals issue)
-  it.skip("Should mint an NFT on Mumbai and pay with ERC20 - with token selection and no maxApproval", async () => {
+  it.skip("Should mint an NFT on Optimism and pay with ERC20 - with token selection and no maxApproval", async () => {
     const preferredToken: Hex = "0xda5289fcaaf71d52a80a254da614a192b693e977";
     const {
       whale: { viemWallet: signer, publicAddress: recipient },

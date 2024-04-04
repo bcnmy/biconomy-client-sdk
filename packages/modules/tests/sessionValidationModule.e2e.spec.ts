@@ -1,20 +1,19 @@
 import { DEFAULT_SESSION_KEY_MANAGER_MODULE, createSessionKeyManagerModule } from "@biconomy/modules";
 import { SessionFileStorage } from "./utils/customSession";
 import { WalletClientSigner, createSmartAccountClient } from "../../account/src/index";
-import { Hex, encodeAbiParameters, encodeFunctionData, pad, parseAbi, parseEther, parseUnits, slice, toFunctionSelector } from "viem";
+import { Hex, encodeFunctionData, pad, parseAbi, parseEther, slice, toFunctionSelector } from "viem";
 import { TestData } from "../../../tests";
 import { checkBalance } from "../../../tests/utils";
 import { PaymasterMode } from "@biconomy/paymaster";
 import { Logger } from "@biconomy/common";
 import { getABISVMSessionKeyData } from "../src/utils/Helper";
-import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 
 describe("Session Validation Module Tests", () => {
-  let mumbai: TestData;
+  let baseSepolia: TestData;
 
   beforeEach(() => {
     // @ts-ignore: Comes from setup-e2e-tests
-    [mumbai] = testDataPerChain;
+    [baseSepolia] = testDataPerChain;
   });
 
   // TODO(Gabi): Fix Session Validation Module tests
@@ -27,12 +26,11 @@ describe("Session Validation Module Tests", () => {
         viemWallet,
       },
       viemChain,
-      minnow: { publicAddress: recipient },
       publicClient,
       chainId,
       bundlerUrl,
       biconomyPaymasterApiKey,
-    } = mumbai;
+    } = baseSepolia;
 
     // Create smart account
     let smartAccount = await createSmartAccountClient({
@@ -161,6 +159,6 @@ describe("Session Validation Module Tests", () => {
 
     expect(maticBalanceAfter).toEqual(maticBalanceBefore);
 
-    Logger.log(`Tx at: https://jiffyscan.xyz/userOpHash/${userOpResponse2.userOpHash}?network=mumbai`);
+    Logger.log(`Tx at: https://jiffyscan.xyz/userOpHash/${userOpResponse2.userOpHash}?network=baseSepolia`);
   }, 60000);
 });

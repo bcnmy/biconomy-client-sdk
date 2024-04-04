@@ -6,21 +6,21 @@ import { DEFAULT_MULTICHAIN_MODULE, MultiChainValidationModule } from "@biconomy
 import { Logger } from "@biconomy/common";
 
 describe("MultiChainValidation Module Tests", () => {
-  let mumbai: TestData;
+  let optimism: TestData;
   let baseSepolia: TestData;
 
   beforeEach(() => {
     // @ts-ignore: Comes from setup-e2e-tests
-    [mumbai, baseSepolia] = testDataPerChain;
+    [optimism, baseSepolia] = testDataPerChain;
   });
 
-  it("Should mint an NFT gasless on baseSepolia and mumbai", async () => {
+  it("Should mint an NFT gasless on baseSepolia and optimism", async () => {
     const {
-      whale: { alchemyWalletClientSigner: signerMumbai, publicAddress: recipientForBothChains },
-      paymasterUrl: biconomyPaymasterApiKeyMumbai,
-      bundlerUrl: bundlerUrlMumbai,
-      chainId: chainIdMumbai,
-    } = mumbai;
+      whale: { alchemyWalletClientSigner: signerOptimism, publicAddress: recipientForBothChains },
+      paymasterUrl: biconomyPaymasterApiKeyOptimism,
+      bundlerUrl: bundlerUrlOptimism,
+      chainId: chainIdOptimism,
+    } = optimism;
 
     const {
       whale: { alchemyWalletClientSigner: signerBase },
@@ -32,18 +32,18 @@ describe("MultiChainValidation Module Tests", () => {
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
 
     const multiChainModule = await MultiChainValidationModule.create({
-      signer: signerMumbai,
+      signer: signerOptimism,
       moduleAddress: DEFAULT_MULTICHAIN_MODULE,
     });
 
     const [polygonAccount, baseAccount] = await Promise.all([
       createSmartAccountClient({
-        chainId: chainIdMumbai,
-        signer: signerMumbai,
-        bundlerUrl: bundlerUrlMumbai,
+        chainId: chainIdOptimism,
+        signer: signerOptimism,
+        bundlerUrl: bundlerUrlOptimism,
         defaultValidationModule: multiChainModule,
         activeValidationModule: multiChainModule,
-        paymasterUrl: biconomyPaymasterApiKeyMumbai,
+        paymasterUrl: biconomyPaymasterApiKeyOptimism,
       }),
       createSmartAccountClient({
         chainId: chainIdBase,
@@ -100,7 +100,7 @@ describe("MultiChainValidation Module Tests", () => {
     // Sign the user ops using multiChainModule
     const returnedOps = await multiChainModule.signUserOps([
       { userOp: partialUserOp1, chainId: chainIdBase },
-      { userOp: partialUserOp2, chainId: chainIdMumbai },
+      { userOp: partialUserOp2, chainId: chainIdOptimism },
     ]);
 
     // Send the signed user ops on both chains

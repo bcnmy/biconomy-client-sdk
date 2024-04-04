@@ -1,13 +1,13 @@
 import { TestData } from "../../../tests";
-import { PaymasterMode, Transaction, createSmartAccountClient } from "@biconomy/account";
-import { DEFAULT_BATCHED_SESSION_ROUTER_MODULE, DEFAULT_ERC20_MODULE, DEFAULT_SESSION_KEY_MANAGER_MODULE } from "../src";
+import { PaymasterMode, createSmartAccountClient } from "@biconomy/account";
+import { DEFAULT_BATCHED_SESSION_ROUTER_MODULE, DEFAULT_SESSION_KEY_MANAGER_MODULE } from "../src";
 
 describe("Account Tests", () => {
-  let mumbai: TestData;
+  let baseSepolia: TestData;
 
   beforeEach(() => {
     // @ts-ignore: Comes from setup-unit-tests
-    [mumbai] = testDataPerChain;
+    [baseSepolia] = testDataPerChain;
   });
 
   it("should enable batched module", async () => {
@@ -15,7 +15,7 @@ describe("Account Tests", () => {
       whale: { viemWallet: signer },
       bundlerUrl,
       biconomyPaymasterApiKey,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -40,7 +40,7 @@ describe("Account Tests", () => {
       whale: { viemWallet: signer },
       bundlerUrl,
       biconomyPaymasterApiKey,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
