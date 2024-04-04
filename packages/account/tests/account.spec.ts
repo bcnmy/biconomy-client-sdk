@@ -1,4 +1,4 @@
-import { Bundler, Paymaster, createBundler, createSmartAccountClient } from "../src";
+import { Paymaster, createBundler, createSmartAccountClient } from "../src";
 import { Chain, createWalletClient, http } from "viem";
 import { localhost } from "viem/chains";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
@@ -32,7 +32,6 @@ describe("Account Tests", () => {
 
   it("should create a whale smartAccountClient from an ethers signer", async () => {
     const {
-      bundlerUrl,
       whale: { ethersSigner: signer },
     } = ganache;
 
