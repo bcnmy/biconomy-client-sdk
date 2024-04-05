@@ -3,18 +3,18 @@ import { createSmartAccountClient } from "../src/index";
 import { DEFAULT_ECDSA_OWNERSHIP_MODULE, DEFAULT_SESSION_KEY_MANAGER_MODULE, createECDSAOwnershipValidationModule } from "@biconomy/modules";
 
 describe("Account Tests", () => {
-  let mumbai: TestData;
+  let baseSepolia: TestData;
 
   beforeEach(() => {
     // @ts-ignore: Comes from setup-e2e-tests
-    [mumbai] = testDataPerChain;
+    [baseSepolia] = testDataPerChain;
   });
 
   it("should check if module is enabled on the smart account", async () => {
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartWallet = await createSmartAccountClient({
       signer,
@@ -33,7 +33,7 @@ describe("Account Tests", () => {
       },
       bundlerUrl,
       biconomyPaymasterApiKey,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -51,7 +51,7 @@ describe("Account Tests", () => {
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartWallet = await createSmartAccountClient({
       signer,
@@ -66,7 +66,7 @@ describe("Account Tests", () => {
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartWallet = await createSmartAccountClient({
       signer,
@@ -83,7 +83,7 @@ describe("Account Tests", () => {
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartWallet = await createSmartAccountClient({
       signer,

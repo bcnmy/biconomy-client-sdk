@@ -1383,7 +1383,16 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     if (signature.slice(0, 2) !== "0x") {
       signature = "0x" + signature;
     }
+    signature = encodeAbiParameters(parseAbiParameters("bytes, address"), [signature as Hex, this.defaultValidationModule.getAddress()]);
     return signature as Hex;
+  }
+
+  async getIsValidSignatureData(messageHash: Hex, signature: Hex): Promise<Hex> {
+    return encodeFunctionData({
+      abi: BiconomyAccountAbi,
+      functionName: "isValidSignature",
+      args: [messageHash, signature],
+    });
   }
 
   async enableModule(moduleAddress: Hex): Promise<UserOpResponse> {

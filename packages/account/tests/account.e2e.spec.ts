@@ -1,19 +1,19 @@
 import { TestData } from "../../../tests";
 import { createSmartAccountClient, ERROR_MESSAGES, FeeQuotesOrDataResponse, IHybridPaymaster, NATIVE_TOKEN_ALIAS, PaymasterMode } from "../src/index";
-import { Hex, createWalletClient, encodeFunctionData, getContract, http, parseAbi } from "viem";
+import { Hex, createWalletClient, encodeAbiParameters, encodeFunctionData, getContract, hashMessage, http, parseAbi, parseAbiParameters } from "viem";
 import { UserOperationStruct } from "@alchemy/aa-core";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
 import { ERC20_ABI } from "@biconomy/modules";
-import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
+import { privateKeyToAccount, generatePrivateKey, signMessage } from "viem/accounts";
+import { BiconomyAccountAbi } from "../src/abi/SmartAccount";
 
 describe("Account Tests", () => {
-  let mumbai: TestData;
   let baseSepolia: TestData;
   let optimism: TestData;
 
   beforeEach(() => {
     // @ts-ignore: Comes from setup-e2e-tests
-    [mumbai, baseSepolia, optimism] = testDataPerChain;
+    [baseSepolia, optimism] = testDataPerChain;
   });
 
   it("should have addresses", async () => {
@@ -21,7 +21,7 @@ describe("Account Tests", () => {
       whale: { viemWallet: signer, publicAddress: sender },
       minnow: { viemWallet: recipientSigner, publicAddress: recipient },
       bundlerUrl,
-    } = mumbai;
+    } = baseSepolia;
 
     const {
       whale: { viemWallet: signerBase, publicAddress: senderBase },
@@ -88,7 +88,7 @@ describe("Account Tests", () => {
       minnow: { publicAddress: recipient },
       bundlerUrl,
       publicClient,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -118,7 +118,7 @@ describe("Account Tests", () => {
       whale: { viemWallet: signer },
       bundlerUrl,
       paymasterUrl,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -131,14 +131,14 @@ describe("Account Tests", () => {
     expect(paymaster).not.toBeUndefined();
   });
 
-  it("Should gaslessly mint an NFT on Mumbai", async () => {
+  it("Should gaslessly mint an NFT on baseSepolia", async () => {
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
-      paymasterUrl,
       publicClient,
+      paymasterUrl,
       nftAddress,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -180,13 +180,13 @@ describe("Account Tests", () => {
   }, 60000);
 
   // TODO(Remove when Yash fixes approvals issue)
-  it.skip("Should mint an NFT on Mumbai and pay with ERC20 - with preferredToken", async () => {
+  it.skip("Should mint an NFT on baseSepolia and pay with ERC20 - with preferredToken", async () => {
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
       nftAddress,
-      publicClient
-    } = mumbai;
+      publicClient,
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -244,7 +244,7 @@ describe("Account Tests", () => {
       bundlerUrl,
       biconomyPaymasterApiKey,
       nftAddress,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -268,7 +268,7 @@ describe("Account Tests", () => {
   });
 
   // TODO(Remove when Yash fixes approvals issue)
-  it.skip("Should mint an NFT on Mumbai and pay with ERC20 - with token selection and no maxApproval", async () => {
+  it.skip("Should mint an NFT on baseSepolia and pay with ERC20 - with token selection and no maxApproval", async () => {
     const preferredToken: Hex = "0xda5289fcaaf71d52a80a254da614a192b693e977";
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
@@ -276,7 +276,7 @@ describe("Account Tests", () => {
       paymasterUrl,
       publicClient,
       nftAddress,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -373,7 +373,7 @@ describe("Account Tests", () => {
       bundlerUrl,
       biconomyPaymasterApiKey,
       nftAddress,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -417,7 +417,7 @@ describe("Account Tests", () => {
       entryPointAddress,
       publicClient,
       paymasterUrl,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -457,7 +457,7 @@ describe("Account Tests", () => {
       bundlerUrl,
       publicClient,
       paymasterUrl,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -477,7 +477,7 @@ describe("Account Tests", () => {
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -490,7 +490,7 @@ describe("Account Tests", () => {
   it("Should throw, chain id from signer and bundlerUrl do not match", async () => {
     const {
       whale: { viemWallet: signer },
-    } = mumbai;
+    } = baseSepolia;
 
     const createAccount = createSmartAccountClient({
       signer,
@@ -503,7 +503,7 @@ describe("Account Tests", () => {
   it("Should throw, chain id from paymasterUrl and bundlerUrl do not match", async () => {
     const {
       whale: { viemWallet: signer },
-    } = mumbai;
+    } = baseSepolia;
 
     const createAccount = createSmartAccountClient({
       signer,
@@ -519,9 +519,9 @@ describe("Account Tests", () => {
       biconomyPaymasterApiKey,
       viemChain,
       publicClient,
-      whale: { viemWallet: signer, publicAddress, account },
+      whale: { viemWallet: signer, account },
       deploymentCost,
-    } = mumbai;
+    } = baseSepolia;
 
     const newPrivateKey = generatePrivateKey();
     const newAccount = privateKeyToAccount(newPrivateKey);
@@ -555,7 +555,7 @@ describe("Account Tests", () => {
   }, 60000);
 
   it("should deploy a smart account with sponsorship", async () => {
-    const { bundlerUrl, biconomyPaymasterApiKey, viemChain, publicClient } = mumbai;
+    const { bundlerUrl, biconomyPaymasterApiKey, viemChain, publicClient } = baseSepolia;
 
     const newPrivateKey = generatePrivateKey();
     const newAccount = privateKeyToAccount(newPrivateKey);
@@ -587,7 +587,7 @@ describe("Account Tests", () => {
   }, 60000);
 
   it("should fail to deploy a smart account if no native token balance or paymaster", async () => {
-    const { bundlerUrl, biconomyPaymasterApiKey, viemChain } = mumbai;
+    const { bundlerUrl, biconomyPaymasterApiKey, viemChain } = baseSepolia;
 
     const newPrivateKey = generatePrivateKey();
     const newAccount = privateKeyToAccount(newPrivateKey);
@@ -612,7 +612,7 @@ describe("Account Tests", () => {
       whale: { viemWallet: signer },
       bundlerUrl,
       biconomyPaymasterApiKey,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       bundlerUrl,
@@ -637,7 +637,7 @@ describe("Account Tests", () => {
       bundlerUrl,
       publicClient,
       biconomyPaymasterApiKey,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -657,7 +657,7 @@ describe("Account Tests", () => {
       bundlerUrl,
       biconomyPaymasterApiKey,
       chainId,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -678,7 +678,7 @@ describe("Account Tests", () => {
       whale: { viemWallet: signer },
       bundlerUrl,
       biconomyPaymasterApiKey,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -696,7 +696,7 @@ describe("Account Tests", () => {
       bundlerUrl,
       biconomyPaymasterApiKey,
       chainId,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -725,7 +725,7 @@ describe("Account Tests", () => {
       bundlerUrl,
       publicClient,
       biconomyPaymasterApiKey,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -762,7 +762,7 @@ describe("Account Tests", () => {
       bundlerUrl,
       publicClient,
       biconomyPaymasterApiKey,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -803,7 +803,7 @@ describe("Account Tests", () => {
       bundlerUrl,
       publicClient,
       biconomyPaymasterApiKey,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -856,7 +856,7 @@ describe("Account Tests", () => {
       viemChain,
       publicClient,
       biconomyPaymasterApiKey,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -900,7 +900,7 @@ describe("Account Tests", () => {
       whale: { viemWallet: signer, publicAddress: smartAccountOwner },
       bundlerUrl,
       biconomyPaymasterApiKey,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -921,7 +921,7 @@ describe("Account Tests", () => {
       whale: { viemWallet: signer, publicAddress: smartAccountOwner },
       bundlerUrl,
       biconomyPaymasterApiKey,
-    } = mumbai;
+    } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -931,4 +931,65 @@ describe("Account Tests", () => {
 
     expect(async () => smartAccount.withdraw(null, smartAccountOwner)).rejects.toThrow(ERROR_MESSAGES.NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT);
   }, 6000);
+
+  it("should verify a correct signature through isValidSignature", async () => {
+    const {
+      whale: { viemWallet: signer },
+      bundlerUrl,
+      publicClient,
+    } = baseSepolia;
+
+    const smartAccount = await createSmartAccountClient({
+      signer,
+      bundlerUrl,
+    });
+
+    const eip1271MagicValue = "0x1626ba7e";
+    const message = "Some message from dApp";
+    const messageHash = hashMessage(message);
+    const signature = await smartAccount.signMessage(messageHash);
+
+    const response = await publicClient.readContract({
+      address: await smartAccount.getAccountAddress(),
+      abi: BiconomyAccountAbi,
+      functionName: "isValidSignature",
+      args: [messageHash, signature],
+    });
+
+    expect(response).toBe(eip1271MagicValue);
+  });
+
+  it("should confirm that signature is not valid", async () => {
+    const {
+      whale: { viemWallet: signer },
+      bundlerUrl,
+      publicClient,
+    } = baseSepolia;
+
+    const randomPrivKey = generatePrivateKey();
+    const randomWallet = privateKeyToAccount(randomPrivKey);
+
+    const smartAccount = await createSmartAccountClient({
+      signer,
+      bundlerUrl,
+    });
+
+    const eip1271MagicValue = "0xffffffff";
+    const message = "Some message from dApp";
+    const messageHash = hashMessage(message);
+    const signature = await randomWallet.signMessage({ message: messageHash });
+    const signatureWithModuleAddress = encodeAbiParameters(parseAbiParameters("bytes, address"), [
+      signature,
+      smartAccount.defaultValidationModule.getAddress(),
+    ]);
+
+    const response = await publicClient.readContract({
+      address: await smartAccount.getAccountAddress(),
+      abi: BiconomyAccountAbi,
+      functionName: "isValidSignature",
+      args: [messageHash, signatureWithModuleAddress],
+    });
+
+    expect(response).toBe(eip1271MagicValue);
+  });
 });
