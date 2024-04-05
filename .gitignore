@@ -70,6 +70,3 @@ packages/modules/tests/utils/sessionStorageData/*
 !packages/modules/tests/utils/sessionStorageData/.gitkeep 
 
 openapi/
-
-# docs
-packages/account/docs/*
