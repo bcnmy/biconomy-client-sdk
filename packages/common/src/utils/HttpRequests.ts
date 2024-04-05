@@ -1,3 +1,4 @@
+import { getAAError } from "./Helpers/getAAError.js";
 import { Logger } from "./Logger.js";
 import { Service } from "./Types.js";
 
@@ -30,7 +31,7 @@ export async function sendRequest<T>({ url, method, body }: HttpRequest, service
     Logger.log(`${service} RPC Response`, jsonResponse);
   } catch (error) {
     if (!response.ok) {
-      throw new Error(response.statusText);
+      throw await getAAError(response.statusText, service);
     }
   }
 
@@ -38,28 +39,28 @@ export async function sendRequest<T>({ url, method, body }: HttpRequest, service
     return jsonResponse as T;
   }
   if (jsonResponse.error) {
-    throw new Error(`Error coming from ${service}: ${jsonResponse.error.message}`);
+    throw await getAAError(jsonResponse.error.message, service);
   }
   if (jsonResponse.message) {
-    throw new Error(jsonResponse.message);
+    throw await getAAError(jsonResponse.message, service);
   }
   if (jsonResponse.msg) {
-    throw new Error(jsonResponse.msg);
+    throw await getAAError(jsonResponse.msg, service);
   }
   if (jsonResponse.data) {
-    throw new Error(jsonResponse.data);
+    throw await getAAError(jsonResponse.data, service);
   }
   if (jsonResponse.detail) {
-    throw new Error(jsonResponse.detail);
+    throw await getAAError(jsonResponse.detail, service);
   }
   if (jsonResponse.message) {
-    throw new Error(jsonResponse.message);
+    throw await getAAError(jsonResponse.message, service);
   }
   if (jsonResponse.nonFieldErrors) {
-    throw new Error(jsonResponse.nonFieldErrors);
+    throw await getAAError(jsonResponse.nonFieldErrors, service);
   }
   if (jsonResponse.delegate) {
-    throw new Error(jsonResponse.delegate);
+    throw await getAAError(jsonResponse.delegate, service);
   }
-  throw new Error(response.statusText);
+  throw await getAAError(response.statusText, service);
 }
