@@ -26,6 +26,16 @@ const buildErrorStrings = (error: KnownError, service?: Service): string[] =>
     service ? `\nSent via: ${service}` : "",
   ].filter(Boolean);
 
+
+type AccountAbstractionErrorParams = { docsSlug?: string; metaMessages?: string[]; details?: string }
+
+class AccountAbstractionError extends BaseError {
+  override name = "AccountAbstractionError";
+  constructor(title: string, params: AccountAbstractionErrorParams = {}) {
+    super(title, params);
+  }
+}
+
 export const getAAError = async (message: string, service?: Service) => {
   if (!knownErrors.length) {
     const errors = (await (await fetch(ERRORS_URL)).json()) as KnownError[];
@@ -37,5 +47,5 @@ export const getAAError = async (message: string, service?: Service) => {
   const title = matchedError ? matchedError.name : "Unknown Error";
   const docsSlug = matchedError?.docsUrl ?? DOCS_URL;
 
-  return new BaseError(title, { docsSlug, metaMessages, details });
+  return new AccountAbstractionError(title, { docsSlug, metaMessages, details });
 };
