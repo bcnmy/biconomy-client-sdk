@@ -26,11 +26,11 @@ const buildErrorStrings = (error: KnownError, service?: Service): string[] =>
     service ? `\nSent via: ${service}` : "",
   ].filter(Boolean);
 
-
-type AccountAbstractionErrorParams = { docsSlug?: string; metaMessages?: string[]; details?: string }
+type AccountAbstractionErrorParams = { docsSlug?: string; metaMessages?: string[]; details?: string };
 
 class AccountAbstractionError extends BaseError {
   override name = "AccountAbstractionError";
+
   constructor(title: string, params: AccountAbstractionErrorParams = {}) {
     super(title, params);
   }
