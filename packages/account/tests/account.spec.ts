@@ -280,4 +280,6 @@ describe("Account Tests", () => {
       }),
     ).rejects.toThrow("Cannot consume a viem wallet without an account");
   });
+
+
 });

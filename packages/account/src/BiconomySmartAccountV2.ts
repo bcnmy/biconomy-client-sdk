@@ -26,7 +26,7 @@ import {
   BatchUserOperationCallData,
   SmartAccountSigner,
 } from "@alchemy/aa-core";
-import { compareChainIds, isNullOrUndefined, packUserOp, isValidRpcUrl } from "./utils/Utils.js";
+import { compareChainIds, isNullOrUndefined, packUserOp, isValidRpcUrl, addressEquals } from "./utils/Utils.js";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, createECDSAOwnershipValidationModule } from "@biconomy/modules";
 import {
   IHybridPaymaster,
@@ -153,6 +153,34 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     this.scanForUpgradedAccountsFromV1 = biconomySmartAccountConfig.scanForUpgradedAccountsFromV1 ?? false;
     this.maxIndexForScan = biconomySmartAccountConfig.maxIndexForScan ?? 10;
+  }
+
+  /**
+   * Detects that the contract version is 1 or 2.
+   *
+   * @returns A promise which return the biconomy smart contract version.
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartAccountClient, BiconomySmartAccountV2 } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonMumbai } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonMumbai,
+   *   transport: http(),
+   * });
+   *
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   *
+   * const version = await smartAccount.getContractVersion();
+   *
+   */
+  public async getContractVersion(): Promise<1 | 2> {
+    const accountContract = await this._getAccountContract();
+    const implementationAddress = await accountContract.read.getImplementation();
+    return addressEquals(implementationAddress, BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0) ? 2 : 1;
   }
 
   /**

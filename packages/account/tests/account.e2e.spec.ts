@@ -729,4 +729,20 @@ describe("Account Tests", () => {
 
     expect(response).toBe(eip1271MagicValue);
   });
+
+  it("Should be version 2 contract", async () => {
+    const {
+      whale: { viemWallet: signer },
+      bundlerUrl,
+    } = baseSepolia;
+
+    const smartAccount = await createSmartAccountClient({
+      signer,
+      bundlerUrl
+    });
+
+    const version = await smartAccount.getContractVersion();
+    expect(version).toBe(2);
+  })
+
 });
