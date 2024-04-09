@@ -159,6 +159,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * Detects that the contract version is 1 or 2.
    *
    * @returns A promise which return the biconomy smart contract version.
+   * @throws An error if the contract version is unknown.
    *
    * @example
    * import { createClient } from "viem"
@@ -180,7 +181,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   public async getContractVersion(): Promise<1 | 2> {
     const accountContract = await this._getAccountContract();
     const implementationAddress = await accountContract.read.getImplementation();
-    return addressEquals(implementationAddress, BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0) ? 2 : 1;
+    if (addressEquals(implementationAddress, BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0)) {
+      return 2;
+    }
+    else if (addressEquals(implementationAddress, BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V1_0_0)) {
+      return 1;
+    }
+    throw new Error(ERROR_MESSAGES.CONTRACT_VERSION_NOT_FOUND);
   }
 
   /**

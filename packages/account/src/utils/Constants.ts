@@ -64,6 +64,7 @@ export const ERROR_MESSAGES = {
   NO_FEE_QUOTE: "FeeQuote was not provided, please call smartAccount.getTokenFees() to get feeQuote",
   FAILED_FEE_QUOTE_FETCH: "Failed to fetch fee quote",
   CHAIN_NOT_FOUND: "Chain not found",
+  CONTRACT_VERSION_NOT_FOUND: "Contract version not found"
 };
 
 export const NATIVE_TOKEN_ALIAS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
