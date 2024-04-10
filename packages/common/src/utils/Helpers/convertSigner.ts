@@ -2,7 +2,6 @@ import { EthersSigner } from "../EthersSigner.js";
 import { SupportedSigner } from "../Types.js";
 import { WalletClient, PrivateKeyAccount, createWalletClient, http } from "viem";
 import { WalletClientSigner, SmartAccountSigner } from "@alchemy/aa-core";
-import { UNIQUE_PROPERTIES_PER_SIGNER } from "../Constants.js";
 import { Signer } from "@ethersproject/abstract-signer";
 
 interface SmartAccountResult {
@@ -11,15 +10,28 @@ interface SmartAccountResult {
   rpcUrl: string | undefined;
 }
 
+function isPrivateKeyAccount(signer: SupportedSigner): signer is PrivateKeyAccount {
+  return (signer as PrivateKeyAccount).type === "local";
+}
+
+function isWalletClient(signer: SupportedSigner): signer is WalletClient {
+  return (signer as WalletClient).type === "walletClient";
+}
+
+function isEthersSigner(signer: SupportedSigner): signer is Signer {
+  return (signer as Signer).provider !== undefined;
+}
+
+function isAlchemySigner(signer: SupportedSigner): signer is SmartAccountSigner {
+  return (signer as SmartAccountSigner).signerType !== undefined;
+}
+
 export const convertSigner = async (signer: SupportedSigner, skipChainIdCalls: boolean = false, rpcUrl?: string): Promise<SmartAccountResult> => {
   let resolvedSmartAccountSigner: SmartAccountSigner;
   let chainId: number | null = null;
-  const isAnAlchemySigner = UNIQUE_PROPERTIES_PER_SIGNER.alchemy in signer;
-  const isAnEthersSigner = UNIQUE_PROPERTIES_PER_SIGNER.ethers in signer;
-  const isViemWalletClient = UNIQUE_PROPERTIES_PER_SIGNER.viem in signer;
 
-  if (!isAnAlchemySigner) {
-    if (isAnEthersSigner) {
+  if (!isAlchemySigner(signer)) {
+    if (isEthersSigner(signer)) {
       const ethersSigner = signer as Signer;
       if (!skipChainIdCalls) {
         // If chainId not provided, get it from walletClient
@@ -36,7 +48,7 @@ export const convertSigner = async (signer: SupportedSigner, skipChainIdCalls: b
       resolvedSmartAccountSigner = new EthersSigner(ethersSigner, "ethers");
       // @ts-ignore
       rpcUrl = ethersSigner.provider?.connection?.url ?? undefined;
-    } else if (isViemWalletClient) {
+    } else if (isWalletClient(signer)) {
       const walletClient = signer as WalletClient;
       if (!walletClient.account) {
         throw new Error("Cannot consume a viem wallet without an account");
@@ -51,7 +63,7 @@ export const convertSigner = async (signer: SupportedSigner, skipChainIdCalls: b
       // convert viems walletClient to alchemy's SmartAccountSigner under the hood
       resolvedSmartAccountSigner = new WalletClientSigner(walletClient, "viem");
       rpcUrl = walletClient?.transport?.url ?? undefined;
-    } else if (signer as PrivateKeyAccount) {
+    } else if (isPrivateKeyAccount(signer)) {
       if (rpcUrl !== null && rpcUrl !== undefined) {
         const walletClient = createWalletClient({
           account: signer as PrivateKeyAccount,

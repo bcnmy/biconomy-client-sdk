@@ -64,6 +64,7 @@ export const ERROR_MESSAGES = {
   NO_FEE_QUOTE: "FeeQuote was not provided, please call smartAccount.getTokenFees() to get feeQuote",
   FAILED_FEE_QUOTE_FETCH: "Failed to fetch fee quote",
   CHAIN_NOT_FOUND: "Chain not found",
+  MISSING_RPC_URL: "rpcUrl is required for PrivateKeyAccount signer type, please provide it in the config",
 };
 
 export const NATIVE_TOKEN_ALIAS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";

@@ -1,4 +1,4 @@
-import { Paymaster, createBundler, createSmartAccountClient } from "../src";
+import { ERROR_MESSAGES, Paymaster, createBundler, createSmartAccountClient } from "../src";
 import { Chain, createWalletClient, http } from "viem";
 import { localhost } from "viem/chains";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
@@ -307,6 +307,6 @@ describe("Account Tests", () => {
       bundlerUrl,
     });
 
-    await expect(createSmartAccount).rejects.toThrow("rpcUrl is required for PrivateKeyAccount signer type, please provide it in the config");
+    await expect(createSmartAccount).rejects.toThrow(ERROR_MESSAGES.MISSING_RPC_URL);
   }, 50000);
 });
