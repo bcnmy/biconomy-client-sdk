@@ -9,11 +9,11 @@ import { BiconomyAccountAbi } from "../src/abi/SmartAccount";
 
 describe("Account Tests", () => {
   let baseSepolia: TestData;
-  let optimism: TestData;
+  let amoy: TestData;
 
   beforeEach(() => {
     // @ts-ignore: Comes from setup-e2e-tests
-    [baseSepolia, optimism] = testDataPerChain;
+    [baseSepolia, amoy] = testDataPerChain;
   });
 
   it("should have addresses", async () => {
@@ -33,7 +33,7 @@ describe("Account Tests", () => {
       whale: { viemWallet: signerOp, publicAddress: senderOp },
       minnow: { viemWallet: recipientSignerOp, publicAddress: recipientOp },
       bundlerUrl: bundlerUrlOp,
-    } = optimism;
+    } = amoy;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -131,7 +131,7 @@ describe("Account Tests", () => {
     expect(paymaster).not.toBeUndefined();
   });
 
-  it("Should gaslessly mint an NFT on Optimism", async () => {
+  it("Should gaslessly mint an NFT on Base Sepolia", async () => {
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
@@ -180,7 +180,7 @@ describe("Account Tests", () => {
   }, 60000);
 
   // TODO(Remove when Yash fixes approvals issue)
-  it.skip("Should mint an NFT on Optimism and pay with ERC20 - with preferredToken", async () => {
+  it.skip("Should mint an NFT on Base Sepolia and pay with ERC20 - with preferredToken", async () => {
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
@@ -268,7 +268,7 @@ describe("Account Tests", () => {
   });
 
   // TODO(Remove when Yash fixes approvals issue)
-  it.skip("Should mint an NFT on Optimism and pay with ERC20 - with token selection and no maxApproval", async () => {
+  it.skip("Should mint an NFT on Base Sepolia and pay with ERC20 - with token selection and no maxApproval", async () => {
     const preferredToken: Hex = "0xda5289fcaaf71d52a80a254da614a192b693e977";
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
@@ -649,7 +649,7 @@ describe("Account Tests", () => {
   }, 60000);
 
   it("should fetch balances for smartAccount", async () => {
-    const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977";
+    const usdt = "0x9B57B2EB7244D58CCe841E0A45Eb6344B97D7e91"; // Fake USDT
     const {
       whale: { viemWallet: signer },
       bundlerUrl,

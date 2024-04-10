@@ -8,7 +8,7 @@ describe("Paymaster Unit Tests", () => {
     [ganache] = testDataPerChain;
   });
 
-  it("should have chain data for optimism", () => {
+  it("should have chain data for ganache", () => {
     expect(ganache).toHaveProperty("chainId");
   });
 });

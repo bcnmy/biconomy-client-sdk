@@ -3,7 +3,7 @@ import { SmartAccountSigner, WalletClientSigner, getChain } from "@alchemy/aa-co
 import { SignerData } from "@biconomy/modules/src";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { Hex, createWalletClient, http } from "viem";
-import { optimism } from "viem/chains";
+import { polygonAmoy } from "viem/chains";
 import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "@biconomy/modules/src/interfaces/ISessionStorage.js";
 import { Logger } from "@biconomy/common";
 
@@ -198,7 +198,7 @@ export class SessionFileStorage implements ISessionStorage {
     const signer = privateKeyToAccount(signerData.pvKey);
     const walletClient = createWalletClient({
       account: signer,
-      transport: http(optimism.rpcUrls.default.http[0]),
+      transport: http(polygonAmoy.rpcUrls.default.http[0]),
     });
     return new WalletClientSigner(walletClient, "json-rpc");
   }

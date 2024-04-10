@@ -6,32 +6,27 @@ import { checkBalance } from "../../../tests/utils";
 const maybe = process.env.WITH_MAINNET_TESTS === "true" ? describe : describe.skip;
 
 maybe("Account Tests", () => {
-  let optimism: TestData;
-  let _: TestData;
-  let __: TestData;
+  let amoy: TestData;
 
   beforeEach(() => {
     // @ts-ignore: Comes from setup-e2e-tests
-    [_, __, optimism] = testDataPerChain;
+    [_, __, amoy] = testDataPerChain;
   });
 
-  it("should send some native token to a recipient on optimism", async () => {
+  it("should send some native token to a recipient on amoy", async () => {
     const {
-      whale: { viemWallet: signer, publicAddress: sender },
+      whale: { viemWallet: signer },
       minnow: { publicAddress: recipient },
       bundlerUrl,
       publicClient,
-    } = optimism;
+    } = amoy;
 
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl,
     });
 
-    const accountAddress = await smartAccount.getAddress();
-
     const balanceOfRecipient = (await checkBalance(publicClient, recipient)) as bigint;
-    const smartAccountBalance = (await checkBalance(publicClient, accountAddress)) as bigint;
     const { wait } = await smartAccount.sendTransaction(
       {
         to: recipient,
@@ -50,12 +45,12 @@ maybe("Account Tests", () => {
     expect(newBalanceOfRecipient).toBeGreaterThan(balanceOfRecipient);
   }, 50000);
 
-  it("Create a smart account with paymaster with an api key on optimism", async () => {
+  it("Create a smart account with paymaster with an api key on amoy", async () => {
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
       biconomyPaymasterApiKey,
-    } = optimism;
+    } = amoy;
 
     const smartAccount = await createSmartAccountClient({
       signer,
@@ -68,14 +63,14 @@ maybe("Account Tests", () => {
     expect(paymaster).not.toBeUndefined();
   });
 
-  it("Should gaslessly mint an NFT on optimism", async () => {
+  it("Should gaslessly mint an NFT on amoy", async () => {
     const {
       whale: { viemWallet: signer, publicAddress: recipient },
       bundlerUrl,
       biconomyPaymasterApiKey,
       publicClient,
       nftAddress,
-    } = optimism;
+    } = amoy;
 
     const smartAccount = await createSmartAccountClient({
       signer,

@@ -1,16 +1,16 @@
 import { TestData } from "../../../tests";
 
 describe("Paymaster Unit Tests", () => {
-  let optimism: TestData;
+  let amoy: TestData;
   let baseSepolia: TestData;
 
   beforeEach(() => {
     // @ts-ignore: Comes from setup-e2e-tests
-    [optimism, baseSepolia] = testDataPerChain;
+    [amoy, baseSepolia] = testDataPerChain;
   });
 
-  it("should have chain data for optimism", () => {
-    expect(optimism).toHaveProperty("chainId");
+  it("should have chain data for amoy", () => {
+    expect(amoy).toHaveProperty("chainId");
   });
 
   it("should also have chain data for base", () => {

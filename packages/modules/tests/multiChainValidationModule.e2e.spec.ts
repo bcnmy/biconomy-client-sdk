@@ -1,49 +1,49 @@
 import { PaymasterMode } from "@biconomy/paymaster";
 import { TestData } from "../../../tests";
 import { createSmartAccountClient } from "../../account/src/index";
-import { Hex, encodeFunctionData, parseAbi } from "viem";
+import { encodeFunctionData, parseAbi } from "viem";
 import { DEFAULT_MULTICHAIN_MODULE, MultiChainValidationModule } from "@biconomy/modules";
 import { Logger } from "@biconomy/common";
 
 describe("MultiChainValidation Module Tests", () => {
-  let optimism: TestData;
+  let amoy: TestData;
   let baseSepolia: TestData;
 
   beforeEach(() => {
     // @ts-ignore: Comes from setup-e2e-tests
-    [optimism, baseSepolia] = testDataPerChain;
+    [amoy, baseSepolia] = testDataPerChain;
   });
 
-  it("Should mint an NFT gasless on baseSepolia and optimism", async () => {
+  it("Should mint an NFT gasless on baseSepolia and amoy", async () => {
     const {
-      whale: { alchemyWalletClientSigner: signerOptimism, publicAddress: recipientForBothChains },
-      paymasterUrl: biconomyPaymasterApiKeyOptimism,
-      bundlerUrl: bundlerUrlOptimism,
-      chainId: chainIdOptimism,
-    } = optimism;
+      whale: { alchemyWalletClientSigner: signerAmoy, publicAddress: recipientForBothChains },
+      paymasterUrl: biconomyPaymasterApiKeyAmoy,
+      bundlerUrl: bundlerUrlAmoy,
+      chainId: chainIdAmoy,
+      nftAddress: nftAddressAmoy,
+    } = amoy;
 
     const {
       whale: { alchemyWalletClientSigner: signerBase },
       paymasterUrl: biconomyPaymasterApiKeyBase,
       bundlerUrl: bundlerUrlBase,
       chainId: chainIdBase,
+      nftAddress: nftAddressBase,
     } = baseSepolia;
 
-    const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
-
     const multiChainModule = await MultiChainValidationModule.create({
-      signer: signerOptimism,
+      signer: signerAmoy,
       moduleAddress: DEFAULT_MULTICHAIN_MODULE,
     });
 
     const [polygonAccount, baseAccount] = await Promise.all([
       createSmartAccountClient({
-        chainId: chainIdOptimism,
-        signer: signerOptimism,
-        bundlerUrl: bundlerUrlOptimism,
+        chainId: chainIdAmoy,
+        signer: signerAmoy,
+        bundlerUrl: bundlerUrlAmoy,
         defaultValidationModule: multiChainModule,
         activeValidationModule: multiChainModule,
-        paymasterUrl: biconomyPaymasterApiKeyOptimism,
+        paymasterUrl: biconomyPaymasterApiKeyAmoy,
       }),
       createSmartAccountClient({
         chainId: chainIdBase,
@@ -84,14 +84,19 @@ describe("MultiChainValidation Module Tests", () => {
       args: [recipientForBothChains],
     });
 
-    const transaction = {
-      to: nftAddress,
+    const transactionBase = {
+      to: nftAddressBase,
+      data: encodedCall,
+    };
+
+    const transactionAmoy = {
+      to: nftAddressAmoy,
       data: encodedCall,
     };
 
     const [partialUserOp1, partialUserOp2] = await Promise.all([
-      baseAccount.buildUserOp([transaction], { paymasterServiceData: { mode: PaymasterMode.SPONSORED } }),
-      polygonAccount.buildUserOp([transaction], { paymasterServiceData: { mode: PaymasterMode.SPONSORED } }),
+      baseAccount.buildUserOp([transactionBase], { paymasterServiceData: { mode: PaymasterMode.SPONSORED } }),
+      polygonAccount.buildUserOp([transactionAmoy], { paymasterServiceData: { mode: PaymasterMode.SPONSORED } }),
     ]);
 
     expect(partialUserOp1.paymasterAndData).not.toBe("0x");
@@ -100,7 +105,7 @@ describe("MultiChainValidation Module Tests", () => {
     // Sign the user ops using multiChainModule
     const returnedOps = await multiChainModule.signUserOps([
       { userOp: partialUserOp1, chainId: chainIdBase },
-      { userOp: partialUserOp2, chainId: chainIdOptimism },
+      { userOp: partialUserOp2, chainId: chainIdAmoy },
     ]);
 
     // Send the signed user ops on both chains
