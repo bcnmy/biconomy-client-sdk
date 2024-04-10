@@ -1,3 +1,4 @@
+import { Hex } from "viem";
 import {
   EntryPointAddresses,
   BiconomyFactories,
@@ -60,13 +61,15 @@ export const DefaultGasLimit = {
 export const ERROR_MESSAGES = {
   ACCOUNT_ALREADY_DEPLOYED: "Account already deployed",
   NO_NATIVE_TOKEN_BALANCE_DURING_DEPLOY: "Native token balance is not available during deploy",
+  NO_RECIPIENT: "One or more of your withdrawals is missing a recipient",
   SPENDER_REQUIRED: "spender is required for ERC20 mode",
   NO_FEE_QUOTE: "FeeQuote was not provided, please call smartAccount.getTokenFees() to get feeQuote",
   FAILED_FEE_QUOTE_FETCH: "Failed to fetch fee quote",
   CHAIN_NOT_FOUND: "Chain not found",
+  NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT: "'Amount' is required for withdrawal of native token without using a paymaster",
 };
 
-export const NATIVE_TOKEN_ALIAS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
+export const NATIVE_TOKEN_ALIAS: Hex = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 export const ERC20_ABI = [
   "function transfer(address to, uint256 value) external returns (bool)",
   "function transferFrom(address from, address to, uint256 value) external returns (bool)",

@@ -58,6 +58,9 @@ describe("Batched Session Router Tests", () => {
 
     expect(sessionSigner).toBeTruthy();
 
+    const smartAccountAddress = await smartAccount.getAddress();
+    Logger.log("Smart Account Address: ", smartAccountAddress);
+
     // First we need to check if smart account is deployed
     // if not deployed, send an empty transaction to deploy it
     const isDeployed = await smartAccount.isAccountDeployed();
