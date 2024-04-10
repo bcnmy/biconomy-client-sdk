@@ -1,5 +1,5 @@
 import { TestData } from "../../../tests";
-import { createSmartAccountClient, ERROR_MESSAGES, FeeQuotesOrDataResponse, PaymasterMode } from "../src/index";
+import { createSmartAccountClient, ERROR_MESSAGES, FeeQuotesOrDataResponse, IHybridPaymaster, NATIVE_TOKEN_ALIAS, PaymasterMode } from "../src/index";
 import { Hex, createWalletClient, encodeAbiParameters, encodeFunctionData, getContract, hashMessage, http, parseAbi, parseAbiParameters } from "viem";
 import { UserOperationStruct } from "@alchemy/aa-core";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
@@ -40,7 +40,7 @@ describe("Account Tests", () => {
       bundlerUrl,
     });
 
-    const reciepientSmartAccount = await createSmartAccountClient({
+    const recipientSmartAccount = await createSmartAccountClient({
       signer: recipientSigner,
       bundlerUrl,
     });
@@ -50,7 +50,7 @@ describe("Account Tests", () => {
       bundlerUrl: bundlerUrlBase,
     });
 
-    const reciepientSmartAccountBase = await createSmartAccountClient({
+    const recipientSmartAccountBase = await createSmartAccountClient({
       signer: recipientSignerBase,
       bundlerUrl: bundlerUrlBase,
     });
@@ -69,11 +69,11 @@ describe("Account Tests", () => {
       sender,
       smartAccount.getAddress(),
       recipient,
-      reciepientSmartAccount.getAddress(),
+      recipientSmartAccount.getAddress(),
       senderBase,
       smartAccountBase.getAddress(),
       recipientBase,
-      reciepientSmartAccountBase.getAddress(),
+      recipientSmartAccountBase.getAddress(),
       senderOp,
       smartAccountOp.getAddress(),
       recipientOp,
@@ -477,13 +477,11 @@ describe("Account Tests", () => {
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
-      viemChain,
     } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
       signer,
       bundlerUrl,
-      rpcUrl: viemChain.rpcUrls.default.http[0],
     });
 
     expect(ecdsaOwnershipModule).toBe(smartAccount.activeValidationModule.getAddress());
@@ -617,9 +615,9 @@ describe("Account Tests", () => {
     } = baseSepolia;
 
     const smartAccount = await createSmartAccountClient({
+      bundlerUrl,
       signer,
       biconomyPaymasterApiKey,
-      bundlerUrl,
     });
 
     const tokens = await smartAccount.getSupportedTokens();
@@ -630,6 +628,49 @@ describe("Account Tests", () => {
     expect(tokens[0]).toHaveProperty("decimal");
     expect(tokens[0]).toHaveProperty("premiumPercentage");
     expect(tokens[0]).toHaveProperty("logoUrl");
+  });
+
+  it("should fetch balances for smartAccount", async () => {
+    const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977";
+    const {
+      whale: { viemWallet: signer },
+      bundlerUrl,
+      publicClient,
+      biconomyPaymasterApiKey,
+    } = baseSepolia;
+
+    const smartAccount = await createSmartAccountClient({
+      signer,
+      biconomyPaymasterApiKey,
+      bundlerUrl,
+    });
+
+    const usdcBalanceBefore = await checkBalance(publicClient, await smartAccount.getAddress(), usdt);
+    const [usdtBalanceFromSmartAccount] = await smartAccount.getBalances([usdt]);
+
+    expect(usdcBalanceBefore).toBe(usdtBalanceFromSmartAccount.amount);
+  });
+
+  it("should check native token balance for smartAccount", async () => {
+    const {
+      whale: { viemWallet: signer },
+      bundlerUrl,
+      biconomyPaymasterApiKey,
+      chainId,
+    } = baseSepolia;
+
+    const smartAccount = await createSmartAccountClient({
+      signer,
+      biconomyPaymasterApiKey,
+      bundlerUrl,
+    });
+
+    const [ethBalanceFromSmartAccount] = await smartAccount.getBalances();
+
+    expect(ethBalanceFromSmartAccount.amount).toBeGreaterThan(0n);
+    expect(ethBalanceFromSmartAccount.address).toBe(NATIVE_TOKEN_ALIAS);
+    expect(ethBalanceFromSmartAccount.chainId).toBe(chainId);
+    expect(ethBalanceFromSmartAccount.decimals).toBe(18);
   }, 60000);
 
   it("should fail to deploy a smart account if already deployed", async () => {
@@ -653,6 +694,35 @@ describe("Account Tests", () => {
     const {
       whale: { viemWallet: signer },
       bundlerUrl,
+      biconomyPaymasterApiKey,
+      chainId,
+    } = baseSepolia;
+
+    const smartAccount = await createSmartAccountClient({
+      signer,
+      biconomyPaymasterApiKey,
+      bundlerUrl,
+    });
+
+    const [usdtBalanceFromSmartAccount, ethBalanceFromSmartAccount] = await smartAccount.getBalances([usdt]); // last result is always eth balance
+
+    expect(usdtBalanceFromSmartAccount.amount).toBeGreaterThan(0n);
+    expect(ethBalanceFromSmartAccount.amount).toBeGreaterThan(0n);
+    expect(usdtBalanceFromSmartAccount.address).toBe(usdt);
+    expect(ethBalanceFromSmartAccount.address).toBe(NATIVE_TOKEN_ALIAS);
+    expect(usdtBalanceFromSmartAccount.chainId).toBe(chainId);
+    expect(ethBalanceFromSmartAccount.chainId).toBe(chainId);
+    expect(usdtBalanceFromSmartAccount.decimals).toBe(6);
+    expect(ethBalanceFromSmartAccount.decimals).toBe(18);
+    expect(usdtBalanceFromSmartAccount.formattedAmount).toBeTruthy();
+    expect(ethBalanceFromSmartAccount.formattedAmount).toBeTruthy();
+  });
+
+  it("should withdraw erc20 balances", async () => {
+    const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977";
+    const {
+      whale: { viemWallet: signer, publicAddress: smartAccountOwner, account },
+      bundlerUrl,
       publicClient,
       biconomyPaymasterApiKey,
     } = baseSepolia;
@@ -663,11 +733,204 @@ describe("Account Tests", () => {
       bundlerUrl,
     });
 
-    const usdcBalanceBefore = await checkBalance(publicClient, await smartAccount.getAddress(), usdt);
-    const [usdtBalanceFromSmartAccount] = await smartAccount.getBalances([usdt]);
+    const smartAccountAddress = await smartAccount.getAddress();
+    const usdtBalanceOfSABefore = await checkBalance(publicClient, smartAccountAddress, usdt);
+    const usdtBalanceOfRecipientBefore = await checkBalance(publicClient, smartAccountOwner, usdt);
 
-    expect(usdcBalanceBefore).toBe(usdtBalanceFromSmartAccount.amount);
+    const { wait } = await smartAccount.withdraw([{ address: usdt, amount: BigInt(1), recipient: smartAccountOwner }]);
+
+    const {
+      receipt: { transactionHash },
+      userOpHash,
+      success,
+    } = await wait();
+
+    expect(userOpHash).toBeTruthy();
+    expect(success).toBe("true");
+    expect(transactionHash).toBeTruthy();
+
+    const usdtBalanceOfSAAfter = (await checkBalance(publicClient, smartAccountAddress, usdt)) as bigint;
+    const usdtBalanceOfRecipientAfter = (await checkBalance(publicClient, smartAccountOwner, usdt)) as bigint;
+
+    expect(usdtBalanceOfSAAfter - usdtBalanceOfSABefore).toBe(-1n);
+    expect(usdtBalanceOfRecipientAfter - usdtBalanceOfRecipientBefore).toBe(1n);
+  }, 15000);
+
+  it("should gaslessly withdraw nativeToken", async () => {
+    const {
+      whale: { viemWallet: signer, publicAddress: smartAccountOwner },
+      bundlerUrl,
+      publicClient,
+      biconomyPaymasterApiKey,
+    } = baseSepolia;
+
+    const smartAccount = await createSmartAccountClient({
+      signer,
+      biconomyPaymasterApiKey,
+      bundlerUrl,
+    });
+
+    const smartAccountAddress = await smartAccount.getAddress();
+    const balanceOfSABefore = (await checkBalance(publicClient, smartAccountAddress)) as bigint;
+    const balanceOfRecipientBefore = (await checkBalance(publicClient, smartAccountOwner)) as bigint;
+
+    const { wait } = await smartAccount.withdraw([{ address: NATIVE_TOKEN_ALIAS, amount: BigInt(1), recipient: smartAccountAddress }], null, {
+      paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+    });
+
+    const {
+      receipt: { transactionHash },
+      userOpHash,
+      success,
+    } = await wait();
+
+    expect(userOpHash).toBeTruthy();
+    expect(success).toBe("true");
+    expect(transactionHash).toBeTruthy();
+
+    const balanceOfSAAfter = (await checkBalance(publicClient, smartAccountAddress)) as bigint;
+    const balanceOfRecipientAfter = (await checkBalance(publicClient, smartAccountOwner)) as bigint;
+
+    expect(balanceOfSABefore - balanceOfSAAfter).toBe(1n);
+    expect(balanceOfRecipientAfter - balanceOfRecipientBefore).toBe(1n);
+  }, 12000);
+
+  it("should withdraw nativeToken and an erc20 token", async () => {
+    const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977";
+
+    const {
+      whale: { viemWallet: signer, publicAddress: smartAccountOwner },
+      bundlerUrl,
+      publicClient,
+      biconomyPaymasterApiKey,
+    } = baseSepolia;
+
+    const smartAccount = await createSmartAccountClient({
+      signer,
+      biconomyPaymasterApiKey,
+      bundlerUrl,
+    });
+
+    const smartAccountAddress = await smartAccount.getAddress();
+    const balanceOfSABefore = (await checkBalance(publicClient, smartAccountAddress)) as bigint;
+    const balanceOfRecipientBefore = (await checkBalance(publicClient, smartAccountOwner)) as bigint;
+    const usdtBalanceOfSABefore = await checkBalance(publicClient, smartAccountAddress, usdt);
+    const usdtBalanceOfRecipientBefore = await checkBalance(publicClient, smartAccountOwner, usdt);
+
+    const { wait } = await smartAccount.withdraw(
+      [
+        { address: usdt, amount: BigInt(1) },
+        { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) },
+      ],
+      smartAccountOwner,
+      {
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+      },
+    );
+
+    const {
+      receipt: { transactionHash },
+      userOpHash,
+      success,
+    } = await wait();
+
+    expect(userOpHash).toBeTruthy();
+    expect(success).toBe("true");
+    expect(transactionHash).toBeTruthy();
+
+    const balanceOfSAAfter = (await checkBalance(publicClient, smartAccountAddress)) as bigint;
+    const balanceOfRecipientAfter = (await checkBalance(publicClient, smartAccountOwner)) as bigint;
+    const usdtBalanceOfSAAfter = (await checkBalance(publicClient, smartAccountAddress, usdt)) as bigint;
+    const usdtBalanceOfRecipientAfter = (await checkBalance(publicClient, smartAccountOwner, usdt)) as bigint;
+
+    expect(balanceOfSABefore - balanceOfSAAfter).toBe(1n);
+    expect(balanceOfRecipientAfter - balanceOfRecipientBefore).toBe(1n);
+    expect(usdtBalanceOfSAAfter - usdtBalanceOfSABefore).toBe(-1n);
+    expect(usdtBalanceOfRecipientAfter - usdtBalanceOfRecipientBefore).toBe(1n);
+  }, 60000);
+
+  it("should withdraw all native token", async () => {
+    const {
+      whale: { viemWallet: signer, publicAddress: smartAccountOwner, account },
+      bundlerUrl,
+      viemChain,
+      publicClient,
+      biconomyPaymasterApiKey,
+    } = baseSepolia;
+
+    const smartAccount = await createSmartAccountClient({
+      signer,
+      biconomyPaymasterApiKey,
+      bundlerUrl,
+    });
+
+    const smartAccountAddress = await smartAccount.getAddress();
+    const balanceOfSABefore = (await checkBalance(publicClient, smartAccountAddress)) as bigint;
+    const balanceOfRecipientBefore = (await checkBalance(publicClient, smartAccountOwner)) as bigint;
+
+    const { wait } = await smartAccount.withdraw([] /* null or undefined or [] */, smartAccountOwner, {
+      paymasterServiceData: { mode: PaymasterMode.SPONSORED }, // Will leave no dust
+    });
+
+    const {
+      receipt: { transactionHash },
+      userOpHash,
+      success,
+    } = await wait();
+
+    expect(userOpHash).toBeTruthy();
+    expect(success).toBe("true");
+    expect(transactionHash).toBeTruthy();
+
+    const balanceOfSAAfter = (await checkBalance(publicClient, smartAccountAddress)) as bigint;
+    const balanceOfRecipientAfter = (await checkBalance(publicClient, smartAccountOwner)) as bigint;
+
+    expect(balanceOfSAAfter).toBe(0n);
+    expect(balanceOfRecipientAfter).toBe(balanceOfSABefore + balanceOfRecipientBefore);
+
+    // Teardown: send back the native token to the smart account
+    const teardownHash = await signer.sendTransaction({ to: smartAccountAddress, value: balanceOfSABefore, account, chain: viemChain });
+    expect(teardownHash).toBeTruthy();
+  }, 60000);
+
+  it("should error if no recipient exists", async () => {
+    const usdt: Hex = "0xda5289fcaaf71d52a80a254da614a192b693e977";
+
+    const {
+      whale: { viemWallet: signer, publicAddress: smartAccountOwner },
+      bundlerUrl,
+      biconomyPaymasterApiKey,
+    } = baseSepolia;
+
+    const smartAccount = await createSmartAccountClient({
+      signer,
+      biconomyPaymasterApiKey,
+      bundlerUrl,
+    });
+
+    const txs = [
+      { address: usdt, amount: BigInt(1), recipient: smartAccountOwner },
+      { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) },
+    ];
+
+    expect(async () => smartAccount.withdraw(txs)).rejects.toThrow(ERROR_MESSAGES.NO_RECIPIENT);
   });
+
+  it("should error when withdraw all of native token is attempted without an amount explicitly set", async () => {
+    const {
+      whale: { viemWallet: signer, publicAddress: smartAccountOwner },
+      bundlerUrl,
+      biconomyPaymasterApiKey,
+    } = baseSepolia;
+
+    const smartAccount = await createSmartAccountClient({
+      signer,
+      biconomyPaymasterApiKey,
+      bundlerUrl,
+    });
+
+    expect(async () => smartAccount.withdraw(null, smartAccountOwner)).rejects.toThrow(ERROR_MESSAGES.NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT);
+  }, 6000);
 
   it("should verify a correct signature through isValidSignature", async () => {
     const {

@@ -26,7 +26,7 @@ import {
   BatchUserOperationCallData,
   SmartAccountSigner,
 } from "@alchemy/aa-core";
-import { compareChainIds, isNullOrUndefined, packUserOp, isValidRpcUrl } from "./utils/Utils.js";
+import { isNullOrUndefined, isValidRpcUrl, packUserOp, compareChainIds, addressEquals } from "./utils/Utils.js";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, createECDSAOwnershipValidationModule } from "@biconomy/modules";
 import {
   IHybridPaymaster,
@@ -54,6 +54,7 @@ import {
   SimulationType,
   BalancePayload,
   SupportedToken,
+  WithdrawalRequest,
 } from "./utils/Types.js";
 import {
   ADDRESS_RESOLVER_ADDRESS,
@@ -357,6 +358,105 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     });
 
     return result;
+  }
+
+  /**
+   * Transfers funds from Smart Account to recipient (usually EOA)
+   * @param recipient - Address of the recipient
+   * @param withdrawalRequests - Array of withdrawal requests {@link WithdrawalRequest}. If withdrawal request is an empty array, it will transfer the balance of the native token. Using a paymaster will ensure no dust remains in the smart account.
+   * @param buildUseropDto - Optional. {@link BuildUserOpOptions}
+   *
+   * @returns Promise<UserOpResponse> - An object containing the status of the transaction.
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartAccountClient, NATIVE_TOKEN_ALIAS } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonMumbai } from "viem/chains";
+   *
+   * const USDT = "0xda5289fcaaf71d52a80a254da614a192b693e977";
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonMumbai,
+   *   transport: http(),
+   * });
+   *
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, biconomyPaymasterApiKey });
+   *
+   * const { wait } = await smartAccount.withdraw(
+   *  [
+   *    { address: USDT }, // omit the amount to withdraw the full balance
+   *    { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) }
+   *  ],
+   *  account.pubKey, // Default recipient used if no recipient is present in the withdrawal request
+   *  {
+   *    paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+   *  }
+   * );
+   *
+   * // OR to withdraw all of the native token, leaving no dust in the smart account
+   *
+   * const { wait } = await smartAccount.withdraw([], account.pubKey, {
+   *  paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+   * });
+   *
+   * const { success } = await wait();
+   */
+  public async withdraw(
+    withdrawalRequests?: WithdrawalRequest[] | null,
+    defaultRecipient?: Hex | null,
+    buildUseropDto?: BuildUserOpOptions,
+  ): Promise<UserOpResponse> {
+    const accountAddress = this.accountAddress ?? (await this.getAccountAddress());
+
+    if (!defaultRecipient && withdrawalRequests?.some(({ recipient }) => !recipient)) {
+      throw new Error(ERROR_MESSAGES.NO_RECIPIENT);
+    }
+
+    // Remove the native token from the withdrawal requests
+    let tokenRequests = withdrawalRequests?.filter(({ address }) => !addressEquals(address, NATIVE_TOKEN_ALIAS)) ?? [];
+
+    // Check if the amount is not present in all withdrawal requests
+    const shouldFetchMaxBalances = tokenRequests.some(({ amount }) => !amount);
+
+    // Get the balances of the tokens if the amount is not present in the withdrawal requests
+    if (shouldFetchMaxBalances) {
+      const balances = await this.getBalances(tokenRequests.map(({ address }) => address));
+      tokenRequests = tokenRequests.map(({ amount, address }, i) => ({
+        address,
+        amount: amount ?? balances[i].amount,
+      }));
+    }
+
+    // Create the transactions
+    const txs: Transaction[] = tokenRequests.map(({ address, amount, recipient: recipientFromRequest }) => ({
+      to: address,
+      data: encodeFunctionData({
+        abi: parseAbi(ERC20_ABI),
+        functionName: "transfer",
+        args: [recipientFromRequest || defaultRecipient, amount],
+      }),
+    }));
+
+    // Check if eth alias is present in the original withdrawal requests
+    const nativeTokenRequest = withdrawalRequests?.find(({ address }) => addressEquals(address, NATIVE_TOKEN_ALIAS));
+    const hasNoRequests = !withdrawalRequests?.length;
+    if (!!nativeTokenRequest || hasNoRequests) {
+      // Check that an amount is present in the withdrawal request, if no paymaster service data is present, as max amounts cannot be calculated without a paymaster.
+      if (!nativeTokenRequest?.amount && !buildUseropDto?.paymasterServiceData?.mode) {
+        throw new Error(ERROR_MESSAGES.NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT);
+      }
+
+      // get eth balance if not present in withdrawal requests
+      const nativeTokenAmountToWithdraw = nativeTokenRequest?.amount ?? (await this.provider.getBalance({ address: accountAddress }));
+
+      txs.push({
+        to: (nativeTokenRequest?.recipient ?? defaultRecipient) as Hex,
+        value: nativeTokenAmountToWithdraw,
+      });
+    }
+
+    return this.sendTransaction(txs, buildUseropDto);
   }
 
   /**
