@@ -20,10 +20,10 @@ jobs:
         env:
           PRIVATE_KEY: ${{ secrets.E2E_PRIVATE_KEY_ONE }}
           E2E_PRIVATE_KEY_TWO: ${{ secrets.E2E_PRIVATE_KEY_TWO }}
-          BUNDLER_URL: ${{ secrets.BUNDLER_URL }}
+          BUNDLER_URL: https://bundler.biconomy.io/api/v2/80001/cJPK7B3ru.dd7f7861-190d-45ic-af80-6877f74b8f44
           E2E_BICO_PAYMASTER_KEY_MUMBAI: ${{ secrets.E2E_BICO_PAYMASTER_KEY_MUMBAI }}
           E2E_BICO_PAYMASTER_KEY_BASE: ${{ secrets.E2E_BICO_PAYMASTER_KEY_BASE }}
-          CHAIN_ID: ${{ secrets.CHAIN_ID }}
+          CHAIN_ID: 80001
 
       - name: report coverage
         uses: davelosert/vitest-coverage-report-action@v2
