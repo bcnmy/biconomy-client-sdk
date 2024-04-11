@@ -8,7 +8,7 @@ import {
 export const getEnvVars = () => {
   const fields = [
     "BUNDLER_URL",
-    "PRIVATE_KEY",
+    "E2E_PRIVATE_KEY_ONE",
     "E2E_PRIVATE_KEY_TWO",
     "E2E_BICO_PAYMASTER_KEY_MUMBAI",
     "E2E_BICO_PAYMASTER_KEY_BASE",
@@ -24,7 +24,7 @@ export const getEnvVars = () => {
   }
   return {
     bundlerUrl: process.env.BUNDLER_URL || "",
-    privateKey: process.env.PRIVATE_KEY || "",
+    privateKey: process.env.E2E_PRIVATE_KEY_ONE || "",
     privateKeyTwo: process.env.E2E_PRIVATE_KEY_TWO || "",
     paymasterUrl: process.env.E2E_BICO_PAYMASTER_KEY_MUMBAI || "",
     paymasterUrlTwo: process.env.E2E_BICO_PAYMASTER_KEY_BASE || "",
