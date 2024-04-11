@@ -16,7 +16,7 @@ We'll work with you to assess and understand the scope of the issue.
 
 For vulnerabilities that are less critical and do not immediately affect our users:
 
-1. Open an issue in our GitHub repository (`https://github.com/bcnmy/sdk/issues`).
+1. Open an issue in our GitHub repository (`https://github.com/bcnmy/biconomy-client-sdk/issues`).
 
 2. Provide detailed information about the issue and steps to reproduce.
 

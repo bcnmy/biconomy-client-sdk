@@ -1,8 +1,8 @@
-[![Biconomy](https://img.shields.io/badge/Made_with_%F0%9F%8D%8A_by-Biconomy-ff4e17?style=flat)](https://biconomy.io) [![License MIT](https://img.shields.io/badge/License-MIT-blue?&style=flat)](./LICENSE) [![codecov](https://codecov.io/gh/bcnmy/sdk/graph/badge.svg?token=DTdIR5aBDA)](https://codecov.io/gh/bcnmy/sdk)
+[![Biconomy](https://img.shields.io/badge/Made_with_%F0%9F%8D%8A_by-Biconomy-ff4e17?style=flat)](https://biconomy.io) [![License MIT](https://img.shields.io/badge/License-MIT-blue?&style=flat)](./LICENSE) [![codecov](https://codecov.io/gh/bcnmy/biconomy-client-sdk/graph/badge.svg?token=DTdIR5aBDA)](https://codecov.io/gh/bcnmy/biconomy-client-sdk)
 
 # SDK 🚀
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/bcnmy/sdk)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/bcnmy/biconomy-client-sdk)
 
 This repository serves as a comprehensive foundation for typescript account abstraction projects, streamlining the development process with a focus on best practices, security, and efficiency.
 
@@ -37,7 +37,7 @@ To kickstart, follow these steps:
 1. **Clone the repository:**
 
 ```bash
-git clone https://github.com/bcnmy/sdk.git
+git clone https://github.com/bcnmy/biconomy-client-sdk.git
 cd sdk
 ```
 

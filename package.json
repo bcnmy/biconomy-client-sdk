@@ -18,7 +18,7 @@
     "sdk"
   ],
   "license": "MIT",
-  "repository": "github:bcnmy/sdk",
+  "repository": "github:bcnmy/biconomy-client-sdk",
   "exports": {
     ".": {
       "types": "./dist/_types/index.d.ts",

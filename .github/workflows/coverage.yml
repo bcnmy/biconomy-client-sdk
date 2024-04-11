@@ -26,10 +26,10 @@ jobs:
           CHAIN_ID: ${{ secrets.CHAIN_ID }}
 
       - name: report coverage
-        uses:  davelosert/vitest-coverage-report-action@v2
+        uses: davelosert/vitest-coverage-report-action@v2
         with:
-          json-summary-path	: ./coverage/coverage-summary.json
-          json-final-path: './coverage/coverage-final.json'
+          json-summary-path: ./coverage/coverage-summary.json
+          json-final-path: "./coverage/coverage-final.json"
           vite-config-path: ./tests/vitest.config.ts
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -38,4 +38,4 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
-          slug: bcnmy/sdk
+          slug: bcnmy/biconomy-client-sdk
