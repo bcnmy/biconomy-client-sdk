@@ -17,6 +17,7 @@ import {
   decodeFunctionData,
   parseAbi,
   formatUnits,
+  concat,
 } from "viem";
 import {
   BaseSmartContractAccount,
@@ -66,6 +67,7 @@ import {
   DEFAULT_ENTRYPOINT_ADDRESS,
   ERROR_MESSAGES,
   ERC20_ABI,
+  MAGIC_BYTES,
 } from "./utils/Constants.js";
 import { BiconomyFactoryAbi } from "./abi/Factory.js";
 import { BiconomyAccountAbi } from "./abi/SmartAccount.js";
@@ -172,11 +174,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient, BiconomySmartAccountV2 } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonAmoy } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonAmoy,
    *   transport: http(),
    * });
    *
@@ -284,11 +286,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonAmoy } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonAmoy,
    *   transport: http(),
    * });
    *
@@ -791,11 +793,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonAmoy } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonAmoy,
    *   transport: http(),
    * });
    *
@@ -845,11 +847,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonAmoy } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonAmoy,
    *   transport: http(),
    * });
    *
@@ -899,11 +901,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonAmoy } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonAmoy,
    *   transport: http(),
    * });
    *
@@ -1050,11 +1052,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonAmoy } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonAmoy,
    *   transport: http(),
    * });
    *
@@ -1092,11 +1094,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonAmoy } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonAmoy,
    *   transport: http(),
    * });
    *
@@ -1314,11 +1316,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonAmoy } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonAmoy,
    *   transport: http(),
    * });
    *
@@ -1371,9 +1373,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   async signMessage(message: string | Uint8Array): Promise<Hex> {
+    let signature: any;
     this.isActiveValidationModuleDefined();
     const dataHash = typeof message === "string" ? toBytes(message) : message;
-    let signature = await this.activeValidationModule.signMessage(dataHash);
+    signature = await this.activeValidationModule.signMessage(dataHash);
 
     const potentiallyIncorrectV = parseInt(signature.slice(-2), 16);
     if (![27, 28].includes(potentiallyIncorrectV)) {
@@ -1383,8 +1386,34 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     if (signature.slice(0, 2) !== "0x") {
       signature = "0x" + signature;
     }
-    signature = encodeAbiParameters(parseAbiParameters("bytes, address"), [signature as Hex, this.defaultValidationModule.getAddress()]);
-    return signature as Hex;
+    signature = encodeAbiParameters([{ type: "bytes" }, { type: "address" }], [signature as Hex, this.defaultValidationModule.getAddress()]);
+    if (await this.isAccountDeployed()) {
+      return signature as Hex;
+    } else {
+      const abiEncodedMessage = encodeAbiParameters(
+        [
+          {
+            type: "address",
+            name: "create2Factory",
+          },
+          {
+            type: "bytes",
+            name: "factoryCalldata",
+          },
+          {
+            type: "bytes",
+            name: "originalERC1271Signature",
+          },
+        ],
+        [
+          this.getFactoryAddress() ?? "0x", // "0x should never happen if it's deployed"
+          (await this.getAccountInitCode()) ?? "0x", // "0x should never happen if it's deployed"
+          signature,
+        ],
+      );
+
+      return concat([abiEncodedMessage, MAGIC_BYTES]);
+    }
   }
 
   async getIsValidSignatureData(messageHash: Hex, signature: Hex): Promise<Hex> {
