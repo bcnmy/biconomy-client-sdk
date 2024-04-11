@@ -21,7 +21,8 @@ import {
   DEFAULT_ENTRYPOINT_ADDRESS,
   ERROR_MESSAGES,
   compareChainIds,
-  createSmartAccountClient
+  createSmartAccountClient,
+  NATIVE_TOKEN_ALIAS
 } from "../../src/account"
 import { type UserOperationStruct, getChain } from "../../src/account"
 import { BiconomyAccountAbi } from "../../src/account/abi/SmartAccount"
@@ -763,10 +764,54 @@ describe("Account: Read", () => {
       await smartAccount.getAddress(),
       usdt
     )
-    const [usdtBalanceFromSmartAccount] = await smartAccount.getBalances([usdt])
+    const [usdtBalanceFromSmartAccount, ethBalanceFromSmartAccount] =
+      await smartAccount.getBalances([usdt])
 
-    expect(usdcBalanceBefore).toBe(usdtBalanceFromSmartAccount.amount)
+    expect(usdtBalanceFromSmartAccount.amount).toBeGreaterThan(0n)
+    expect(ethBalanceFromSmartAccount.amount).toBeGreaterThan(0n)
+    expect(usdtBalanceFromSmartAccount.address).toBe(usdt)
+    expect(ethBalanceFromSmartAccount.address).toBe(NATIVE_TOKEN_ALIAS)
+    expect(usdtBalanceFromSmartAccount.chainId).toBe(chainId)
+    expect(ethBalanceFromSmartAccount.chainId).toBe(chainId)
+    expect(usdtBalanceFromSmartAccount.decimals).toBe(6)
+    expect(ethBalanceFromSmartAccount.decimals).toBe(18)
+    expect(usdtBalanceFromSmartAccount.formattedAmount).toBeTruthy()
+    expect(ethBalanceFromSmartAccount.formattedAmount).toBeTruthy()
   })
+
+  test("should error if no recipient exists", async () => {
+    const usdt: Hex = "0xda5289fcaaf71d52a80a254da614a192b693e977"
+    const smartAccountOwner = walletClient.account.address
+
+    const txs = [
+      { address: usdt, amount: BigInt(1), recipient: smartAccountOwner },
+      { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) }
+    ]
+
+    expect(async () => smartAccount.withdraw(txs)).rejects.toThrow(
+      ERROR_MESSAGES.NO_RECIPIENT
+    )
+  })
+
+  test("should error when withdraw all of native token is attempted without an amount explicitly set", async () => {
+    const smartAccountOwner = walletClient.account.address
+    expect(async () =>
+      smartAccount.withdraw(null, smartAccountOwner)
+    ).rejects.toThrow(ERROR_MESSAGES.NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT)
+  }, 6000)
+
+  test.concurrent(
+    "should check native token balance for smartAccount",
+    async () => {
+      const [ethBalanceFromSmartAccount] = await smartAccount.getBalances()
+
+      expect(ethBalanceFromSmartAccount.amount).toBeGreaterThan(0n)
+      expect(ethBalanceFromSmartAccount.address).toBe(NATIVE_TOKEN_ALIAS)
+      expect(ethBalanceFromSmartAccount.chainId).toBe(chainId)
+      expect(ethBalanceFromSmartAccount.decimals).toBe(18)
+    },
+    60000
+  )
 
   test.concurrent(
     "should verify a correct signature through isValidSignature",

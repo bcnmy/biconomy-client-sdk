@@ -9,7 +9,8 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
-  createSmartAccountClient
+  createSmartAccountClient,
+  NATIVE_TOKEN_ALIAS
 } from "../../src/account"
 import { PaymasterMode } from "../../src/paymaster"
 import { testOnlyOnOptimism } from "../setupFiles"
@@ -297,6 +298,225 @@ describe("Account: Write", () => {
     },
     50000
   )
+
+  test("should withdraw erc20 balances", async () => {
+    const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977"
+
+    const smartAccountOwner = walletClient.account.address
+    const smartAccountAddress = await smartAccount.getAddress()
+    const usdtBalanceOfSABefore = await checkBalance(
+      publicClient,
+      smartAccountAddress,
+      usdt
+    )
+    const usdtBalanceOfRecipientBefore = await checkBalance(
+      publicClient,
+      smartAccountOwner,
+      usdt
+    )
+
+    const { wait } = await smartAccount.withdraw([
+      { address: usdt, amount: BigInt(1), recipient: smartAccountOwner }
+    ])
+
+    const {
+      receipt: { transactionHash },
+      userOpHash,
+      success
+    } = await wait()
+
+    expect(userOpHash).toBeTruthy()
+    expect(success).toBe("true")
+    expect(transactionHash).toBeTruthy()
+
+    const usdtBalanceOfSAAfter = (await checkBalance(
+      publicClient,
+      smartAccountAddress,
+      usdt
+    )) as bigint
+    const usdtBalanceOfRecipientAfter = (await checkBalance(
+      publicClient,
+      smartAccountOwner,
+      usdt
+    )) as bigint
+
+    expect(usdtBalanceOfSAAfter - usdtBalanceOfSABefore).toBe(-1n)
+    expect(usdtBalanceOfRecipientAfter - usdtBalanceOfRecipientBefore).toBe(1n)
+  }, 15000)
+
+  test("should gaslessly withdraw nativeToken", async () => {
+    const smartAccountOwner = walletClient.account.address
+
+    const smartAccountAddress = await smartAccount.getAddress()
+    const balanceOfSABefore = (await checkBalance(
+      publicClient,
+      smartAccountAddress
+    )) as bigint
+    const balanceOfRecipientBefore = (await checkBalance(
+      publicClient,
+      smartAccountOwner
+    )) as bigint
+
+    const { wait } = await smartAccount.withdraw(
+      [
+        {
+          address: NATIVE_TOKEN_ALIAS,
+          amount: BigInt(1),
+          recipient: smartAccountAddress
+        }
+      ],
+      null,
+      {
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
+      }
+    )
+
+    const {
+      receipt: { transactionHash },
+      userOpHash,
+      success
+    } = await wait()
+
+    expect(userOpHash).toBeTruthy()
+    expect(success).toBe("true")
+    expect(transactionHash).toBeTruthy()
+
+    const balanceOfSAAfter = (await checkBalance(
+      publicClient,
+      smartAccountAddress
+    )) as bigint
+    const balanceOfRecipientAfter = (await checkBalance(
+      publicClient,
+      smartAccountOwner
+    )) as bigint
+
+    expect(balanceOfSABefore - balanceOfSAAfter).toBe(1n)
+    expect(balanceOfRecipientAfter - balanceOfRecipientBefore).toBe(1n)
+  }, 12000)
+
+  test("should withdraw nativeToken and an erc20 token", async () => {
+    const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977"
+    const smartAccountOwner = walletClient.account.address
+
+    const smartAccountAddress = await smartAccount.getAddress()
+    const balanceOfSABefore = (await checkBalance(
+      publicClient,
+      smartAccountAddress
+    )) as bigint
+    const balanceOfRecipientBefore = (await checkBalance(
+      publicClient,
+      smartAccountOwner
+    )) as bigint
+    const usdtBalanceOfSABefore = await checkBalance(
+      publicClient,
+      smartAccountAddress,
+      usdt
+    )
+    const usdtBalanceOfRecipientBefore = await checkBalance(
+      publicClient,
+      smartAccountOwner,
+      usdt
+    )
+
+    const { wait } = await smartAccount.withdraw(
+      [
+        { address: usdt, amount: BigInt(1) },
+        { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) }
+      ],
+      smartAccountOwner,
+      {
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
+      }
+    )
+
+    const {
+      receipt: { transactionHash },
+      userOpHash,
+      success
+    } = await wait()
+
+    expect(userOpHash).toBeTruthy()
+    expect(success).toBe("true")
+    expect(transactionHash).toBeTruthy()
+
+    const balanceOfSAAfter = (await checkBalance(
+      publicClient,
+      smartAccountAddress
+    )) as bigint
+    const balanceOfRecipientAfter = (await checkBalance(
+      publicClient,
+      smartAccountOwner
+    )) as bigint
+    const usdtBalanceOfSAAfter = (await checkBalance(
+      publicClient,
+      smartAccountAddress,
+      usdt
+    )) as bigint
+    const usdtBalanceOfRecipientAfter = (await checkBalance(
+      publicClient,
+      smartAccountOwner,
+      usdt
+    )) as bigint
+
+    expect(balanceOfSABefore - balanceOfSAAfter).toBe(1n)
+    expect(balanceOfRecipientAfter - balanceOfRecipientBefore).toBe(1n)
+    expect(usdtBalanceOfSAAfter - usdtBalanceOfSABefore).toBe(-1n)
+    expect(usdtBalanceOfRecipientAfter - usdtBalanceOfRecipientBefore).toBe(1n)
+  }, 60000)
+
+  test("should withdraw all native token", async () => {
+    const smartAccountOwner = walletClient.account.address
+    const smartAccountAddress = await smartAccount.getAddress()
+    const balanceOfSABefore = (await checkBalance(
+      publicClient,
+      smartAccountAddress
+    )) as bigint
+    const balanceOfRecipientBefore = (await checkBalance(
+      publicClient,
+      smartAccountOwner
+    )) as bigint
+
+    const { wait } = await smartAccount.withdraw(
+      [] /* null or undefined or [] */,
+      smartAccountOwner,
+      {
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED } // Will leave no dust
+      }
+    )
+
+    const {
+      receipt: { transactionHash },
+      userOpHash,
+      success
+    } = await wait()
+
+    expect(userOpHash).toBeTruthy()
+    expect(success).toBe("true")
+    expect(transactionHash).toBeTruthy()
+
+    const balanceOfSAAfter = (await checkBalance(
+      publicClient,
+      smartAccountAddress
+    )) as bigint
+    const balanceOfRecipientAfter = (await checkBalance(
+      publicClient,
+      smartAccountOwner
+    )) as bigint
+
+    expect(balanceOfSAAfter).toBe(0n)
+    expect(balanceOfRecipientAfter).toBe(
+      balanceOfSABefore + balanceOfRecipientBefore
+    )
+
+    // Teardown: send back the native token to the smart account
+    const teardownHash = await signer.sendTransaction({
+      to: smartAccountAddress,
+      value: balanceOfSABefore,
+      account,
+      chain: viemChain
+    })
+    expect(teardownHash).toBeTruthy()
+  }, 60000)
 
   test.skip("should mint an NFT on Mumbai and pay with ERC20 - with preferredToken", async () => {
     // const {
