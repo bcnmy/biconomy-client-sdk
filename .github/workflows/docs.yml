@@ -1,26 +1,30 @@
-name: Build and Deploy Documentation
+name: deploy docs
 on:
   workflow_dispatch:
   push:
     branches:
-      - docs
+      - develop
 
 permissions:
   contents: write
 jobs:
-  build-docs-and-deploy:
+  deploy-docs:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout 🛎️
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+      - run: git config --global user.email "gh@runner.com"
+      - run: git config --global user.name "gh-runner"
 
-      - name: Install and Build
-        run: |
-          yarn
-          yarn build
-          yarn --cwd ./packages/account docs
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependencies
+
+      - name: Set remote url
+        run: git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/bcnmy/sdk.git
+  
+      - name: Run the tests
+        run: bun run docs:deploy
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: ./packages/account/docs
+          folder: ./docs

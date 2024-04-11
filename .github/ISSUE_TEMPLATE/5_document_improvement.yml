@@ -1,0 +1,33 @@
+name: 📚 Documentation Improvement
+description: Propose improvements or report issues with documentation
+title: "[DOCS] "
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: "Help us enhance our documentation for everyone."
+  - type: input
+    attributes:
+      label: Documentation Page/Section
+      description: Which page or section are you referring to?
+      placeholder: "e.g., README.md, TSDoc guidelines."
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Suggested Improvements
+      description: Detail the improvements or corrections needed.
+      placeholder: "The section on XYZ could clarify..."
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Additional Comments
+      description: Any other comments or suggestions?
+      placeholder: "Consider adding examples for..."
+  - type: checkboxes
+    attributes:
+      label: Code of Conduct
+      options:
+        - label: I agree to follow this project's Code of Conduct.
+          required: true

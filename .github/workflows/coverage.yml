@@ -1,0 +1,41 @@
+name: coverage
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+jobs:
+  coverage:
+    name: coverage
+    permissions: write-all
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependencies
+
+      - name: Run the tests
+        run: bun run test:ci
+        env:
+          PRIVATE_KEY: ${{ secrets.E2E_PRIVATE_KEY_ONE }}
+          E2E_PRIVATE_KEY_TWO: ${{ secrets.E2E_PRIVATE_KEY_TWO }}
+          BUNDLER_URL: ${{ secrets.BUNDLER_URL }}
+          E2E_BICO_PAYMASTER_KEY_MUMBAI: ${{ secrets.E2E_BICO_PAYMASTER_KEY_MUMBAI }}
+          E2E_BICO_PAYMASTER_KEY_BASE: ${{ secrets.E2E_BICO_PAYMASTER_KEY_BASE }}
+          CHAIN_ID: ${{ secrets.CHAIN_ID }}
+
+      - name: report coverage
+        uses:  davelosert/vitest-coverage-report-action@v2
+        with:
+          json-summary-path	: ./coverage/coverage-summary.json
+          json-final-path: './coverage/coverage-final.json'
+          vite-config-path: ./tests/vitest.config.ts
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
+          slug: bcnmy/sdk
