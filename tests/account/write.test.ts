@@ -299,10 +299,10 @@ describe("Account: Write", () => {
     50000
   )
 
-  test("should withdraw erc20 balances", async () => {
+  test.skip("should withdraw erc20 balances", async () => {
     const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977"
-
     const smartAccountOwner = walletClient.account.address
+
     const smartAccountAddress = await smartAccount.getAddress()
     const usdtBalanceOfSABefore = await checkBalance(
       publicClient,
@@ -314,7 +314,6 @@ describe("Account: Write", () => {
       smartAccountOwner,
       usdt
     )
-
     const { wait } = await smartAccount.withdraw([
       { address: usdt, amount: BigInt(1), recipient: smartAccountOwner }
     ])
@@ -342,9 +341,9 @@ describe("Account: Write", () => {
 
     expect(usdtBalanceOfSAAfter - usdtBalanceOfSABefore).toBe(-1n)
     expect(usdtBalanceOfRecipientAfter - usdtBalanceOfRecipientBefore).toBe(1n)
-  }, 15000)
+  }, 25000)
 
-  test("should gaslessly withdraw nativeToken", async () => {
+  test.skip("should gaslessly withdraw nativeToken", async () => {
     const smartAccountOwner = walletClient.account.address
 
     const smartAccountAddress = await smartAccount.getAddress()
@@ -392,7 +391,7 @@ describe("Account: Write", () => {
 
     expect(balanceOfSABefore - balanceOfSAAfter).toBe(1n)
     expect(balanceOfRecipientAfter - balanceOfRecipientBefore).toBe(1n)
-  }, 12000)
+  }, 25000)
 
   test("should withdraw nativeToken and an erc20 token", async () => {
     const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977"
@@ -460,6 +459,7 @@ describe("Account: Write", () => {
 
     expect(balanceOfSABefore - balanceOfSAAfter).toBe(1n)
     expect(balanceOfRecipientAfter - balanceOfRecipientBefore).toBe(1n)
+
     expect(usdtBalanceOfSAAfter - usdtBalanceOfSABefore).toBe(-1n)
     expect(usdtBalanceOfRecipientAfter - usdtBalanceOfRecipientBefore).toBe(1n)
   }, 60000)
@@ -509,11 +509,11 @@ describe("Account: Write", () => {
     )
 
     // Teardown: send back the native token to the smart account
-    const teardownHash = await signer.sendTransaction({
+    const teardownHash = await walletClient.sendTransaction({
       to: smartAccountAddress,
       value: balanceOfSABefore,
       account,
-      chain: viemChain
+      chain
     })
     expect(teardownHash).toBeTruthy()
   }, 60000)

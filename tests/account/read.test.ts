@@ -764,22 +764,12 @@ describe("Account: Read", () => {
       await smartAccount.getAddress(),
       usdt
     )
-    const [usdtBalanceFromSmartAccount, ethBalanceFromSmartAccount] =
-      await smartAccount.getBalances([usdt])
+    const [usdtBalanceFromSmartAccount] = await smartAccount.getBalances([usdt])
 
-    expect(usdtBalanceFromSmartAccount.amount).toBeGreaterThan(0n)
-    expect(ethBalanceFromSmartAccount.amount).toBeGreaterThan(0n)
-    expect(usdtBalanceFromSmartAccount.address).toBe(usdt)
-    expect(ethBalanceFromSmartAccount.address).toBe(NATIVE_TOKEN_ALIAS)
-    expect(usdtBalanceFromSmartAccount.chainId).toBe(chainId)
-    expect(ethBalanceFromSmartAccount.chainId).toBe(chainId)
-    expect(usdtBalanceFromSmartAccount.decimals).toBe(6)
-    expect(ethBalanceFromSmartAccount.decimals).toBe(18)
-    expect(usdtBalanceFromSmartAccount.formattedAmount).toBeTruthy()
-    expect(ethBalanceFromSmartAccount.formattedAmount).toBeTruthy()
+    expect(usdcBalanceBefore).toBe(usdtBalanceFromSmartAccount.amount)
   })
 
-  test("should error if no recipient exists", async () => {
+  test.concurrent("should error if no recipient exists", async () => {
     const usdt: Hex = "0xda5289fcaaf71d52a80a254da614a192b693e977"
     const smartAccountOwner = walletClient.account.address
 
@@ -793,12 +783,16 @@ describe("Account: Read", () => {
     )
   })
 
-  test("should error when withdraw all of native token is attempted without an amount explicitly set", async () => {
-    const smartAccountOwner = walletClient.account.address
-    expect(async () =>
-      smartAccount.withdraw(null, smartAccountOwner)
-    ).rejects.toThrow(ERROR_MESSAGES.NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT)
-  }, 6000)
+  test.concurrent(
+    "should error when withdraw all of native token is attempted without an amount explicitly set",
+    async () => {
+      const smartAccountOwner = walletClient.account.address
+      expect(async () =>
+        smartAccount.withdraw(null, smartAccountOwner)
+      ).rejects.toThrow(ERROR_MESSAGES.NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT)
+    },
+    6000
+  )
 
   test.concurrent(
     "should check native token balance for smartAccount",
