@@ -1,3 +1,4 @@
+import type { Hex } from "viem"
 import type {
   BiconomyFactories,
   BiconomyFactoriesByVersion,
@@ -73,10 +74,14 @@ export const ERROR_MESSAGES = {
   NO_FEE_QUOTE:
     "FeeQuote was not provided, please call smartAccount.getTokenFees() to get feeQuote",
   FAILED_FEE_QUOTE_FETCH: "Failed to fetch fee quote",
-  CHAIN_NOT_FOUND: "Chain not found"
+  CHAIN_NOT_FOUND: "Chain not found",
+  NO_RECIPIENT: "Recipient is required",
+  NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT:
+    "'Amount' is required for withdrawal of native token without using a paymaster"
 }
 
-export const NATIVE_TOKEN_ALIAS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
+export const NATIVE_TOKEN_ALIAS: Hex =
+  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
 export const ERC20_ABI = [
   "function transfer(address to, uint256 value) external returns (bool)",
   "function transferFrom(address from, address to, uint256 value) external returns (bool)",

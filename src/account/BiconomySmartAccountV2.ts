@@ -78,9 +78,11 @@ import type {
   QueryParamsForAddressResolver,
   SimulationType,
   SupportedToken,
-  Transaction
+  Transaction,
+  WithdrawalRequest
 } from "./utils/Types.js"
 import {
+  addressEquals,
   compareChainIds,
   isNullOrUndefined,
   isValidRpcUrl,
@@ -484,58 +486,76 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   public async withdraw(
     withdrawalRequests?: WithdrawalRequest[] | null,
     defaultRecipient?: Hex | null,
-    buildUseropDto?: BuildUserOpOptions,
+    buildUseropDto?: BuildUserOpOptions
   ): Promise<UserOpResponse> {
-    const accountAddress = this.accountAddress ?? (await this.getAccountAddress());
+    const accountAddress =
+      this.accountAddress ?? (await this.getAccountAddress())
 
-    if (!defaultRecipient && withdrawalRequests?.some(({ recipient }) => !recipient)) {
-      throw new Error(ERROR_MESSAGES.NO_RECIPIENT);
+    if (
+      !defaultRecipient &&
+      withdrawalRequests?.some(({ recipient }) => !recipient)
+    ) {
+      throw new Error(ERROR_MESSAGES.NO_RECIPIENT)
     }
 
     // Remove the native token from the withdrawal requests
-    let tokenRequests = withdrawalRequests?.filter(({ address }) => !addressEquals(address, NATIVE_TOKEN_ALIAS)) ?? [];
+    let tokenRequests =
+      withdrawalRequests?.filter(
+        ({ address }) => !addressEquals(address, NATIVE_TOKEN_ALIAS)
+      ) ?? []
 
     // Check if the amount is not present in all withdrawal requests
-    const shouldFetchMaxBalances = tokenRequests.some(({ amount }) => !amount);
+    const shouldFetchMaxBalances = tokenRequests.some(({ amount }) => !amount)
 
     // Get the balances of the tokens if the amount is not present in the withdrawal requests
     if (shouldFetchMaxBalances) {
-      const balances = await this.getBalances(tokenRequests.map(({ address }) => address));
+      const balances = await this.getBalances(
+        tokenRequests.map(({ address }) => address)
+      )
       tokenRequests = tokenRequests.map(({ amount, address }, i) => ({
         address,
-        amount: amount ?? balances[i].amount,
-      }));
+        amount: amount ?? balances[i].amount
+      }))
     }
 
     // Create the transactions
-    const txs: Transaction[] = tokenRequests.map(({ address, amount, recipient: recipientFromRequest }) => ({
-      to: address,
-      data: encodeFunctionData({
-        abi: parseAbi(ERC20_ABI),
-        functionName: "transfer",
-        args: [recipientFromRequest || defaultRecipient, amount],
-      }),
-    }));
+    const txs: Transaction[] = tokenRequests.map(
+      ({ address, amount, recipient: recipientFromRequest }) => ({
+        to: address,
+        data: encodeFunctionData({
+          abi: parseAbi(ERC20_ABI),
+          functionName: "transfer",
+          args: [recipientFromRequest || defaultRecipient, amount]
+        })
+      })
+    )
 
     // Check if eth alias is present in the original withdrawal requests
-    const nativeTokenRequest = withdrawalRequests?.find(({ address }) => addressEquals(address, NATIVE_TOKEN_ALIAS));
-    const hasNoRequests = !withdrawalRequests?.length;
+    const nativeTokenRequest = withdrawalRequests?.find(({ address }) =>
+      addressEquals(address, NATIVE_TOKEN_ALIAS)
+    )
+    const hasNoRequests = !withdrawalRequests?.length
     if (!!nativeTokenRequest || hasNoRequests) {
       // Check that an amount is present in the withdrawal request, if no paymaster service data is present, as max amounts cannot be calculated without a paymaster.
-      if (!nativeTokenRequest?.amount && !buildUseropDto?.paymasterServiceData?.mode) {
-        throw new Error(ERROR_MESSAGES.NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT);
+      if (
+        !nativeTokenRequest?.amount &&
+        !buildUseropDto?.paymasterServiceData?.mode
+      ) {
+        throw new Error(ERROR_MESSAGES.NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT)
       }
 
       // get eth balance if not present in withdrawal requests
-      const nativeTokenAmountToWithdraw = nativeTokenRequest?.amount ?? (await this.provider.getBalance({ address: accountAddress }));
+      const nativeTokenAmountToWithdraw =
+        nativeTokenRequest?.amount ??
+        (await this.provider.getBalance({ address: accountAddress }))
 
       txs.push({
         to: (nativeTokenRequest?.recipient ?? defaultRecipient) as Hex,
-        value: nativeTokenAmountToWithdraw,
-      });
+        value: nativeTokenAmountToWithdraw
+      })
     }
 
-    return this.sendTransaction(txs, buildUseropDto);
+    return this.sendTransaction(txs, buildUseropDto)
   }
 
   /**
