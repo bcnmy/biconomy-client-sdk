@@ -1,5 +1,5 @@
 import { Chain, Hex } from "viem";
-import { SmartAccountSigner, UserOperationStruct } from "@alchemy/aa-core";
+import { SmartAccountSigner, UserOperationStruct } from "@biconomy/common";
 import { SessionKeyManagerModule } from "../SessionKeyManagerModule.js";
 import { ISessionStorage } from "../interfaces/ISessionStorage.js";
 import { SupportedSigner } from "@biconomy/common";

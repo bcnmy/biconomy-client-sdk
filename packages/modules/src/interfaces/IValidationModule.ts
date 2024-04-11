@@ -1,4 +1,4 @@
-import { SmartAccountSigner } from "@alchemy/aa-core";
+import { SmartAccountSigner } from "@biconomy/common";
 import { Hex } from "viem";
 
 export interface IValidationModule {

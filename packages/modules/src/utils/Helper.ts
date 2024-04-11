@@ -1,4 +1,4 @@
-import { UserOperationStruct } from "@alchemy/aa-core";
+import { UserOperationStruct } from "@biconomy/common";
 import { Hex, encodeAbiParameters, keccak256, parseAbiParameters, concat, pad, toHex } from "viem";
 
 export interface Rule {

@@ -1,7 +1,7 @@
 import { EthersSigner } from "../EthersSigner.js";
-import { SupportedSigner } from "../Types.js";
+import { SmartAccountSigner, SupportedSigner } from "../Types.js";
 import { WalletClient } from "viem";
-import { WalletClientSigner, SmartAccountSigner } from "@alchemy/aa-core";
+import { WalletClientSigner } from "../../signers/wallet-client.js";
 import { UNIQUE_PROPERTIES_PER_SIGNER } from "../Constants.js";
 import { Signer } from "@ethersproject/abstract-signer";
 

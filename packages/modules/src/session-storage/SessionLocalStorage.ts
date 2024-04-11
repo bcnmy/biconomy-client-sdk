@@ -1,5 +1,5 @@
 import { Hex, createWalletClient, http, toHex } from "viem";
-import { SmartAccountSigner, WalletClientSigner } from "@alchemy/aa-core";
+import { SmartAccountSigner, WalletClientSigner } from "@biconomy/common";
 import { ISessionStorage, SessionLeafNode, SessionSearchParam, SessionStatus } from "../interfaces/ISessionStorage.js";
 import { mainnet } from "viem/chains";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";

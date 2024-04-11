@@ -18,15 +18,8 @@ import {
   parseAbi,
   formatUnits,
 } from "viem";
-import {
-  BaseSmartContractAccount,
-  getChain,
-  type BigNumberish,
-  type UserOperationStruct,
-  BatchUserOperationCallData,
-  SmartAccountSigner,
-} from "@alchemy/aa-core";
-import { compareChainIds, isNullOrUndefined, packUserOp, isValidRpcUrl } from "./utils/Utils.js";
+import { BaseSmartContractAccount } from "./BaseSmartContractAccount/BaseSmartContractAccount.js";
+import { compareChainIds, isNullOrUndefined, packUserOp, isValidRpcUrl, getChain } from "./utils/Utils.js";
 import { BaseValidationModule, ModuleInfo, SendUserOpParams, createECDSAOwnershipValidationModule } from "@biconomy/modules";
 import {
   IHybridPaymaster,
@@ -54,6 +47,7 @@ import {
   SimulationType,
   BalancePayload,
   SupportedToken,
+  BigNumberish,
 } from "./utils/Types.js";
 import {
   ADDRESS_RESOLVER_ADDRESS,
@@ -69,8 +63,9 @@ import {
 import { BiconomyFactoryAbi } from "./abi/Factory.js";
 import { BiconomyAccountAbi } from "./abi/SmartAccount.js";
 import { AccountResolverAbi } from "./abi/AccountResolver.js";
-import { Logger, StateOverrideSet } from "@biconomy/common";
+import { Logger, StateOverrideSet, SmartAccountSigner, UserOperationStruct } from "@biconomy/common";
 import { BiconomyPaymaster, FeeQuotesOrDataDto, FeeQuotesOrDataResponse } from "@biconomy/paymaster";
+import { BatchUserOperationCallData } from "./BaseSmartContractAccount/types.js";
 
 type UserOperationKey = keyof UserOperationStruct;
 

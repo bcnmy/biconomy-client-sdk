@@ -1,7 +1,7 @@
 import { TestData } from "../../../tests";
 import { createSmartAccountClient, ERROR_MESSAGES, FeeQuotesOrDataResponse, PaymasterMode } from "../src/index";
 import { Hex, createWalletClient, encodeAbiParameters, encodeFunctionData, getContract, hashMessage, http, parseAbi, parseAbiParameters } from "viem";
-import { UserOperationStruct } from "@alchemy/aa-core";
+import type { UserOperationStruct } from "@biconomy/common";
 import { checkBalance, entryPointABI } from "../../../tests/utils";
 import { ERC20_ABI } from "@biconomy/modules";
 import { privateKeyToAccount, generatePrivateKey, signMessage } from "viem/accounts";

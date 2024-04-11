@@ -1,5 +1,5 @@
-import { BigNumberish } from "@alchemy/aa-core";
 export type Hex = `0x${string}`;
+import { BigNumberish } from "@biconomy/common";
 
 export type PaymasterServiceErrorResponse = {
   jsonrpc: string;

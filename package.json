@@ -57,7 +57,8 @@
   },
   "dependencies": {
     "node-gyp": "^9.4.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "viem": "^2.9.15"
   },
   "devDependencies": {
     "@types/debug": "^4.1.9",

@@ -1,5 +1,5 @@
-import { encodeAbiParameters, parseAbiParameters, keccak256, Hex, Chain } from "viem";
-import type { UserOperationStruct } from "@alchemy/aa-core";
+import { encodeAbiParameters, parseAbiParameters, keccak256, Hex, Chain, concat, type Address, type Hash } from "viem";
+import type { UserOperationStruct } from "@biconomy/common";
 import { SupportedSigner, convertSigner } from "@biconomy/common";
 import { extractChainIdFromBundlerUrl } from "@biconomy/bundler";
 import { BiconomySmartAccountV2Config } from "./Types.js";
@@ -88,18 +88,22 @@ export const isValidRpcUrl = (url: string): boolean => {
 
 export const addressEquals = (a?: string, b?: string): boolean => !!a && !!b && a?.toLowerCase() === b.toLowerCase();
 
-/**
- * Utility method for converting a chainId to a {@link Chain} object
- *
- * @param chainId
- * @returns a {@link Chain} object for the given chainId
- * @throws if the chainId is not found
- */
-export const getChain = (chainId: number): Chain => {
-  for (const chain of Object.values(chains)) {
-    if (chain.id === chainId) {
-      return chain;
-    }
-  }
-  throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND);
+export type SignWith6492Params = {
+  factoryAddress: Address;
+  factoryCalldata: Hex;
+  signature: Hash;
+};
+
+export const wrapSignatureWith6492 = ({ factoryAddress, factoryCalldata, signature }: SignWith6492Params): Hash => {
+  // wrap the signature as follows: https://eips.ethereum.org/EIPS/eip-6492
+  // concat(
+  //  abi.encode(
+  //    (create2Factory, factoryCalldata, originalERC1271Signature),
+  //    (address, bytes, bytes)),
+  //    magicBytes
+  // )
+  return concat([
+    encodeAbiParameters(parseAbiParameters("address, bytes, bytes"), [factoryAddress, factoryCalldata, signature]),
+    "0x6492649264926492649264926492649264926492649264926492649264926492",
+  ]);
 };

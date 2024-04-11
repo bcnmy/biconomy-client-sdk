@@ -8,7 +8,7 @@ import { BaseValidationModule } from "./BaseValidationModule.js";
 import { SessionKeyManagerModule } from "./SessionKeyManagerModule.js";
 import { SessionSearchParam, SessionStatus } from "./interfaces/ISessionStorage.js";
 import { Hex, concat, encodeAbiParameters, keccak256, pad, parseAbiParameters, toBytes, toHex } from "viem";
-import { SmartAccountSigner } from "@alchemy/aa-core";
+import { SmartAccountSigner } from "@biconomy/common";
 import { convertSigner } from "@biconomy/common";
 import { defaultAbiCoder } from "@ethersproject/abi";
 

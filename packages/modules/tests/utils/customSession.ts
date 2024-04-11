@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { SmartAccountSigner, WalletClientSigner, getChain } from "@alchemy/aa-core";
+import { SmartAccountSigner, WalletClientSigner, getChain } from "@biconomy/common";
 import { SignerData } from "@biconomy/modules/src";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { Hex, createWalletClient, http } from "viem";

@@ -1,4 +1,4 @@
-import { SmartAccountSigner } from "@alchemy/aa-core";
+import type { SmartAccountSigner } from "../utils/Types.js";
 import { Hex, SignableMessage } from "viem";
 import { Signer } from "@ethersproject/abstract-signer";
 

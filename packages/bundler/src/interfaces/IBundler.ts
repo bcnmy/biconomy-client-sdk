@@ -1,4 +1,4 @@
-import { StateOverrideSet } from "@biconomy/common";
+import { StateOverrideSet, type UserOperationStruct } from "@biconomy/common";
 import {
   UserOpResponse,
   UserOpGasResponse,
@@ -8,7 +8,6 @@ import {
   SimulationType,
   GasFeeValues,
 } from "../utils/Types.js";
-import { UserOperationStruct } from "@alchemy/aa-core";
 
 export interface IBundler {
   estimateUserOpGas(_userOp: Partial<UserOperationStruct>, stateOverrideSet?: StateOverrideSet): Promise<UserOpGasResponse>;

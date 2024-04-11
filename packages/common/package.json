@@ -54,7 +54,7 @@
     "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"
   },
   "dependencies": {
-    "@alchemy/aa-core": "^3.1.1",
+    "@biconomy/common": "^3.1.1",
     "@ethersproject/abstract-signer": "^5.7.0"
   },
   "peerDependencies": {

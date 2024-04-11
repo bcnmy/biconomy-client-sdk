@@ -1,4 +1,4 @@
-import { BigNumberish, SmartAccountSigner, UserOperationStruct } from "@alchemy/aa-core";
+import type { SmartAccountSigner, UserOperationStruct } from "@biconomy/common";
 import { IBundler } from "@biconomy/bundler";
 import {
   type FeeQuotesOrDataDto,
@@ -141,6 +141,8 @@ export type BiconomySmartAccountV2ConfigBaseProps = {
   maxIndexForScan?: number;
   /** Can be used to optionally override the chain with a custom chain if it doesn't already exist in viems list of supported chains */
   viemChain?: Chain;
+  /** The initial code to be used for the smart account */
+  initCode?: Hex;
 };
 export type BiconomySmartAccountV2Config = BiconomySmartAccountV2ConfigBaseProps &
   BaseSmartAccountConfig &
@@ -302,3 +304,6 @@ export type Transaction = {
 } & ValueOrData;
 
 export type SupportedToken = Omit<PaymasterFeeQuote, "maxGasFeeUSD" | "usdPayment" | "maxGasFee" | "validUntil">;
+
+export type BigNumberish = Hex | number | bigint;
+export type BytesLike = Uint8Array | Hex;

@@ -2,7 +2,7 @@ import { createWalletClient, http, createPublicClient } from "viem";
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { Wallet } from "@ethersproject/wallet";
 import { privateKeyToAccount } from "viem/accounts";
-import { WalletClientSigner } from "@alchemy/aa-core";
+import { WalletClientSigner } from "@biconomy/common";
 import { config } from "dotenv";
 import { E2E_TEST_CHAINS } from "./chains.config";
 

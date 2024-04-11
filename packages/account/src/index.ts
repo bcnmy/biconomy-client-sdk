@@ -2,11 +2,11 @@ import { BiconomySmartAccountV2 } from "./BiconomySmartAccountV2.js";
 import { type BiconomySmartAccountV2Config } from "./utils/Types.js";
 
 export * from "./utils/Types.js";
+export * from "./BaseSmartContractAccount/types.js";
 export * from "./utils/Constants.js";
 export * from "./utils/Utils.js";
 export * from "./BiconomySmartAccountV2.js";
 
-export { WalletClientSigner, LocalAccountSigner, type SmartAccountSigner } from "@alchemy/aa-core";
 export {
   BiconomyPaymaster as Paymaster,
   type IPaymaster,
@@ -17,7 +17,15 @@ export {
   type FeeQuotesOrDataResponse,
   createPaymaster,
 } from "@biconomy/paymaster";
-export { EthersSigner, convertSigner, type LightSigner, type SupportedSigner } from "@biconomy/common";
+export {
+  EthersSigner,
+  convertSigner,
+  type LightSigner,
+  type SupportedSigner,
+  WalletClientSigner,
+  LocalAccountSigner,
+  type SmartAccountSigner,
+} from "@biconomy/common";
 export {
   Bundler,
   type IBundler,
