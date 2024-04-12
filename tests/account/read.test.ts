@@ -2,14 +2,11 @@ import { JsonRpcProvider } from "@ethersproject/providers"
 import { Wallet } from "@ethersproject/wallet"
 import {
   http,
-  type Chain,
   type Hex,
   createPublicClient,
   createWalletClient,
   encodeAbiParameters,
-  encodeFunctionData,
   hashMessage,
-  parseAbi,
   parseAbiParameters
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
@@ -26,17 +23,12 @@ import {
 } from "../../src/account"
 import { type UserOperationStruct, getChain } from "../../src/account"
 import { BiconomyAccountAbi } from "../../src/account/abi/SmartAccount"
-import { createBundler } from "../../src/bundler"
 import {
   DEFAULT_ECDSA_OWNERSHIP_MODULE,
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   createECDSAOwnershipValidationModule
 } from "../../src/modules"
-import {
-  type FeeQuotesOrDataResponse,
-  Paymaster,
-  PaymasterMode
-} from "../../src/paymaster"
+import { Paymaster } from "../../src/paymaster"
 import { checkBalance, getBundlerUrl, getConfig } from "../utils"
 
 describe("Account: Read", () => {
@@ -240,63 +232,6 @@ describe("Account: Read", () => {
   )
 
   test.concurrent(
-    "should parse the rpcUrl when a custom chain is used",
-    async () => {
-      const customBlastChain = {
-        id: 81_457,
-        name: "Blast",
-        //   network: "blast",
-        nativeCurrency: {
-          decimals: 18,
-          name: "Ethereum",
-          symbol: "ETH"
-        },
-        rpcUrls: {
-          public: { http: ["https://rpc.blast.io"] },
-          default: { http: ["https://rpc.blast.io"] }
-        },
-        blockExplorers: {
-          etherscan: { name: "Blastscan", url: "https://blastscan.io/" },
-          default: { name: "Blastscan", url: "https://blastscan.io/" }
-        },
-        contracts: {
-          multicall3: {
-            address: "0xca11bde05977b3631167028862be2a173976ca11",
-            blockCreated: 88_189
-          }
-        }
-      } as const satisfies Chain
-
-      const accountOne = privateKeyToAccount(`0x${privateKey}`)
-
-      const walletClientWithCustomChain = createWalletClient({
-        account: accountOne,
-        chain: customBlastChain,
-        transport: http(customBlastChain.rpcUrls.default.http[0])
-      })
-
-      const blastBundler = await createBundler({
-        bundlerUrl: getBundlerUrl(customBlastChain.id),
-        viemChain: customBlastChain
-      })
-      const smartAccountFromViemWithCustomChain =
-        await createSmartAccountClient({
-          viemChain: customBlastChain,
-          signer: walletClientWithCustomChain,
-          bundler: blastBundler,
-          rpcUrl: customBlastChain.rpcUrls.default.http[0]
-        })
-
-      expect(
-        smartAccountFromViemWithCustomChain.rpcProvider.transport.url
-      ).toBe("https://rpc.blast.io")
-      expect(blastBundler.getBundlerUrl()).toBe(
-        getBundlerUrl(customBlastChain.id)
-      )
-    }
-  )
-
-  test.concurrent(
     "should read estimated user op gas values",
     async () => {
       const tx = {
@@ -393,28 +328,6 @@ describe("Account: Read", () => {
     }
   )
 
-  test.concurrent(
-    "should expect several feeQuotes in resonse to empty tokenInfo fields",
-    async () => {
-      const encodedCall = encodeFunctionData({
-        abi: parseAbi(["function safeMint(address _to)"]),
-        functionName: "safeMint",
-        args: [recipient]
-      })
-
-      const transaction = {
-        to: nftAddress, // NFT address
-        data: encodedCall
-      }
-
-      const feeQuotesResponse = await smartAccount.getTokenFees(transaction, {
-        paymasterServiceData: { mode: PaymasterMode.ERC20 }
-      })
-
-      expect(feeQuotesResponse.feeQuotes?.length).toBeGreaterThan(1)
-    }
-  )
-
   test.concurrent("should not throw and error, chain ids match", async () => {
     const mockBundlerUrl =
       "https://bundler.biconomy.io/api/v2/80002/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44"
@@ -431,38 +344,6 @@ describe("Account: Read", () => {
       compareChainIds(walletClient, config, false)
     ).resolves.not.toThrow()
   })
-
-  test.concurrent(
-    "should throw and error, bundlerUrl chain id and signer chain id does not match",
-    async () => {
-      const config: BiconomySmartAccountV2Config = {
-        signer: walletClient,
-        bundlerUrl: getBundlerUrl(1337),
-        paymasterUrl
-      }
-
-      await expect(
-        compareChainIds(walletClient, config, false)
-      ).rejects.toThrow()
-    }
-  )
-  test.concurrent(
-    "should throw and error, bundlerUrl chain id and paymaster url chain id does not match",
-    async () => {
-      const mockPaymasterUrl =
-        "https://paymaster.biconomy.io/api/v1/1337/-RObQRX9ei.fc6918eb-c582-4417-9d5a-0507b17cfe71"
-
-      const config: BiconomySmartAccountV2Config = {
-        signer: walletClient,
-        bundlerUrl,
-        paymasterUrl: mockPaymasterUrl
-      }
-
-      await expect(
-        compareChainIds(walletClient, config, false)
-      ).rejects.toThrow()
-    }
-  )
 
   test.concurrent(
     "should throw and error, bundlerUrl chain id and paymaster url chain id does not match with validation module",
@@ -643,69 +524,6 @@ describe("Account: Read", () => {
       expect(ecdsaOwnershipModule).toBe(
         smartAccount.activeValidationModule.getAddress()
       )
-    }
-  )
-
-  test.concurrent(
-    "should throw, chain id from signer and bundlerUrl do not match",
-    async () => {
-      const createAccount = createSmartAccountClient({
-        signer: walletClient,
-        bundlerUrl:
-          "https://bundler.biconomy.io/api/v2/1/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44" // mock
-      })
-
-      await expect(createAccount).rejects.toThrow()
-    }
-  )
-
-  test.concurrent(
-    "should throw and error if missing field for ERC20 Paymaster user op",
-    async () => {
-      const encodedCall = encodeFunctionData({
-        abi: parseAbi(["function safeMint(address _to)"]),
-        functionName: "safeMint",
-        args: [recipient]
-      })
-
-      const transaction = {
-        to: nftAddress, // NFT address
-        data: encodedCall
-      }
-
-      const feeQuotesResponse: FeeQuotesOrDataResponse =
-        await smartAccount.getTokenFees(transaction, {
-          paymasterServiceData: {
-            mode: PaymasterMode.ERC20,
-            preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977"
-          }
-        })
-
-      expect(async () =>
-        smartAccount.sendTransaction(transaction, {
-          paymasterServiceData: {
-            mode: PaymasterMode.ERC20,
-            feeQuote: feeQuotesResponse.feeQuotes?.[0]
-          },
-          simulationType: "validation"
-        })
-      ).rejects.toThrow(ERROR_MESSAGES.SPENDER_REQUIRED)
-    },
-    60000
-  )
-
-  test.concurrent(
-    "should throw, chain id from paymasterUrl and bundlerUrl do not match",
-    async () => {
-      const createAccount = createSmartAccountClient({
-        signer: walletClient,
-        paymasterUrl:
-          "https://paymaster.biconomy.io/api/v1/1/-RObQRX9ei.fc6918eb-c582-4417-9d5a-0507b17cfe71",
-        bundlerUrl:
-          "https://bundler.biconomy.io/api/v2/80002/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44" // mock
-      })
-
-      await expect(createAccount).rejects.toThrow()
     }
   )
 

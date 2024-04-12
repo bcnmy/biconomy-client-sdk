@@ -1,5 +1,7 @@
 name: test
-on: push
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
 jobs:
   test:
     name: test
@@ -14,7 +16,7 @@ jobs:
         uses: ./.github/actions/install-dependencies
 
       - name: Run the tests
-        run: bun run test:readOnly
+        run: bun run test
         env:
           E2E_PRIVATE_KEY_ONE: ${{ secrets.E2E_PRIVATE_KEY_ONE }}
           E2E_PRIVATE_KEY_TWO: ${{ secrets.E2E_PRIVATE_KEY_TWO }}
