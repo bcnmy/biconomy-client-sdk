@@ -1,11 +1,14 @@
+import fs from "node:fs"
 import {
+  http,
   type Chain,
   type Hex,
   type PublicClient,
-  parseAbi,
   createWalletClient,
-  http
+  parseAbi
 } from "viem"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import { polygonMumbai } from "viem/chains"
 import {
   Logger,
   type SmartAccountSigner,
@@ -16,16 +19,13 @@ import {
   extractChainIdFromBundlerUrl,
   extractChainIdFromPaymasterUrl
 } from "../src/bundler"
+import type { SignerData } from "../src/modules"
 import type {
   ISessionStorage,
   SessionLeafNode,
   SessionSearchParam,
   SessionStatus
 } from "../src/modules/interfaces/ISessionStorage"
-import fs from "node:fs"
-import type { SignerData } from "../src/modules"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { polygonMumbai } from "viem/chains"
 
 export const getEnvVars = () => {
   const fields = [

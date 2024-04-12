@@ -9,8 +9,8 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
-  createSmartAccountClient,
-  NATIVE_TOKEN_ALIAS
+  NATIVE_TOKEN_ALIAS,
+  createSmartAccountClient
 } from "../../src/account"
 import { PaymasterMode } from "../../src/paymaster"
 import { testOnlyOnOptimism } from "../setupFiles"

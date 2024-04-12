@@ -4,40 +4,32 @@
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/bcnmy/biconomy-client-sdk)
 
-This repository serves as a comprehensive foundation for typescript account abstraction projects, streamlining the development process with a focus on best practices, security, and efficiency.
+The Biconomy SDK is your all-in-one toolkit for building decentralized applications (dApps) with **ERC4337 Account Abstraction** and **Smart Accounts**. It is designed for seamless user experiences and offers non-custodial solutions for user onboarding, sending transactions (userOps), gas sponsorship and much more.
 
 ## 📚 Table of Contents
 
 - [SDK 🚀](#sdk-)
   - [📚 Table of Contents](#-table-of-contents)
-  - [Getting Started](#getting-started)
+  - [🛠️ Quickstart](#-quickstart)
     - [Prerequisites](#prerequisites)
     - [Installation](#installation)
   - [🛠️ Essential Scripts](#️-essential-scripts)
     - [🧪 Run Tests](#-run-tests)
     - [📊 Coverage Report](#-coverage-report)
     - [🎨 Lint Code](#-lint-code)
-    - [🖌️ Auto-fix Linting Issues](#️-auto-fix-linting-issues)
+    - [🖌️ Format Issues](#️-auto-fix-linting-issues)
   - [📄 Documentation and Resources](#-documentation-and-resources)
   - [License](#license)
   - [Connect with Biconomy 🍊](#connect-with-biconomy-🍊)
 
-## Getting Started
-
-To kickstart, follow these steps:
-
-### Prerequisites
-
-- Node.js (v18.x or later)
-- Bun (or npm)
+## 🛠️ Quickstart
 
 ### Installation
 
-1. **Clone the repository:**
+1. **Add the package and install dependencies:**
 
 ```bash
-git clone https://github.com/bcnmy/biconomy-client-sdk.git
-cd sdk
+bun add @biconomy/account viem
 ```
 
 2. **Install dependencies:**
@@ -46,43 +38,22 @@ cd sdk
 bun i
 ```
 
-3. **Setup environment variables:**
+```typescript
+import { createSmartAccountClient } from "@biconomy/account";
 
-Copy `.env.example` to `.env` and fill in your details.
+const smartAccount = await createSmartAccountClient({
+  signer: viemWalletOrEthersSigner,
+  bundlerUrl: "", // From dashboard.biconomy.io
+  paymasterUrl: "", // From dashboard.biconomy.io
+});
 
-## 🛠️ Essential Scripts
+const { wait } = await smartAccount.sendTransaction({ to: "0x...", value: 1 });
 
-### 🧪 Run Tests
-
-```bash
-bun run test --watch
+const {
+  receipt: { transactionHash },
+  success,
+} = await wait();
 ```
-
-Carries out tests.
-
-### 📊 Coverage Report
-
-```bash
-bun run test --coverage
-```
-
-Creates detailed reports for test coverage.
-
-### 🎨 Lint Code
-
-```bash
-bun run lint:fix
-```
-
-Checks code for style and potential errors.
-
-### 🖌️ Auto-fix Linting Issues
-
-```bash
-bun run lint:fix
-```
-
-Automatically fixes linting problems found.
 
 ## Documentation and Resources
 
@@ -90,7 +61,7 @@ For a comprehensive understanding of our project and to contribute effectively, 
 
 - [**Biconomy Documentation**](https://docs.biconomy.io)
 - [**Biconomy Dashboard**](https://dashboard.biconomy.io)
-- [**TSDoc**](https://bcnmy.github.io/biconomy-client-sdk)
+- [**API Documentation**](https://bcnmy.github.io/biconomy-client-sdk)
 - [**Contributing Guidelines**](./CONTRIBUTING.md): Learn how to contribute to our project, from code contributions to documentation improvements.
 - [**Code of Conduct**](./CODE_OF_CONDUCT.md): Our commitment to fostering an open and welcoming environment.
 - [**Security Policy**](./SECURITY.md): Guidelines for reporting security vulnerabilities.

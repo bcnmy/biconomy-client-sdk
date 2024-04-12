@@ -20,9 +20,9 @@ import {
   type BiconomySmartAccountV2Config,
   DEFAULT_ENTRYPOINT_ADDRESS,
   ERROR_MESSAGES,
+  NATIVE_TOKEN_ALIAS,
   compareChainIds,
-  createSmartAccountClient,
-  NATIVE_TOKEN_ALIAS
+  createSmartAccountClient
 } from "../../src/account"
 import { type UserOperationStruct, getChain } from "../../src/account"
 import { BiconomyAccountAbi } from "../../src/account/abi/SmartAccount"

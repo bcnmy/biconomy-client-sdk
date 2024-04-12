@@ -1,3 +1,4 @@
+import { defaultAbiCoder } from "@ethersproject/abi"
 import { JsonRpcProvider } from "@ethersproject/providers"
 import { Wallet } from "@ethersproject/wallet"
 import {
@@ -17,7 +18,6 @@ import {
   createMultiChainValidationModule
 } from "../../src/modules"
 import { getConfig } from "../utils"
-import { defaultAbiCoder } from "@ethersproject/abi"
 
 describe("Modules: Read", () => {
   const {

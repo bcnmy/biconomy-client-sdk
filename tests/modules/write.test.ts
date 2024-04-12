@@ -1,19 +1,19 @@
 import {
   http,
   type Hex,
+  createPublicClient,
   createWalletClient,
+  encodeAbiParameters,
   encodeFunctionData,
   parseAbi,
-  encodeAbiParameters,
-  parseUnits,
-  createPublicClient
+  parseUnits
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
-  createSmartAccountClient,
-  type WalletClientSigner
+  type WalletClientSigner,
+  createSmartAccountClient
 } from "../../src/account"
 import { Logger, getChain } from "../../src/account"
 import {

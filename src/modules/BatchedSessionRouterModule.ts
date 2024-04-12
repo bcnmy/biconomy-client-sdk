@@ -12,7 +12,6 @@ import { type SmartAccountSigner, convertSigner } from "../account"
 import { BaseValidationModule } from "./BaseValidationModule.js"
 import { SessionKeyManagerModule } from "./SessionKeyManagerModule.js"
 import type {
-  SessionLeafNode,
   SessionSearchParam,
   SessionStatus
 } from "./interfaces/ISessionStorage.js"
