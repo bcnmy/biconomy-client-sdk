@@ -50,6 +50,7 @@ describe("Account: Read", () => {
     transport: http()
   })
   let [smartAccount, smartAccountTwo]: BiconomySmartAccountV2[] = []
+  let [smartAccountAddress, smartAccountAddressTwo]: Hex[] = []
 
   const [walletClient, walletClientTwo] = [
     createWalletClient({
@@ -73,6 +74,11 @@ describe("Account: Read", () => {
           bundlerUrl,
           paymasterUrl
         })
+      )
+    )
+    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+      [smartAccount, smartAccountTwo].map((account) =>
+        account.getAccountAddress()
       )
     )
   })
@@ -597,23 +603,25 @@ describe("Account: Read", () => {
   )
 
   test.concurrent("should fetch balances for smartAccount", async () => {
-    const usdt = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
+    const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
     const usdcBalanceBefore = await checkBalance(
       publicClient,
       await smartAccount.getAddress(),
-      usdt
+      token
     )
-    const [usdtBalanceFromSmartAccount] = await smartAccount.getBalances([usdt])
+    const [tokenBalanceFromSmartAccount] = await smartAccount.getBalances([
+      token
+    ])
 
-    expect(usdcBalanceBefore).toBe(usdtBalanceFromSmartAccount.amount)
+    expect(usdcBalanceBefore).toBe(tokenBalanceFromSmartAccount.amount)
   })
 
   test.concurrent("should error if no recipient exists", async () => {
-    const usdt: Hex = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
+    const token: Hex = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
     const smartAccountOwner = walletClient.account.address
 
     const txs = [
-      { address: usdt, amount: BigInt(1), recipient: smartAccountOwner },
+      { address: token, amount: BigInt(1), recipient: smartAccountOwner },
       { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) }
     ]
 

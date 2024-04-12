@@ -5,13 +5,18 @@ import {
   createWalletClient,
   encodeAbiParameters,
   encodeFunctionData,
+  pad,
   parseAbi,
-  parseUnits
+  parseEther,
+  parseUnits,
+  slice,
+  toFunctionSelector
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
+  type Transaction,
   type WalletClientSigner,
   createSmartAccountClient
 } from "../../src/account"
@@ -24,6 +29,7 @@ import {
   createMultiChainValidationModule,
   createSessionKeyManagerModule
 } from "../../src/modules"
+import { getABISVMSessionKeyData } from "../../src/modules/utils/Helper"
 import { PaymasterMode } from "../../src/paymaster"
 import {
   SessionFileStorage,
@@ -51,6 +57,7 @@ describe("Modules: Write", () => {
   })
 
   let [smartAccount, smartAccountTwo]: BiconomySmartAccountV2[] = []
+  let [smartAccountAddress, smartAccountAddressTwo]: Hex[] = []
 
   const [walletClient, walletClientTwo] = [
     createWalletClient({
@@ -74,6 +81,11 @@ describe("Modules: Write", () => {
           bundlerUrl,
           paymasterUrl
         })
+      )
+    )
+    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+      [smartAccount, smartAccountTwo].map((account) =>
+        account.getAccountAddress()
       )
     )
   })
@@ -124,7 +136,7 @@ describe("Modules: Write", () => {
     }
   }, 50000)
 
-  test("should mint an NFT gasless on baseSepolia and mumbai", async () => {
+  test("should use MultichainValidationModule to gasless mint an NFT on two chains", async () => {
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
     const recipientForBothChains = walletClient.account.address
 
@@ -249,164 +261,149 @@ describe("Modules: Write", () => {
     expect(success2).toBe("true")
   }, 50000)
 
-  test.skip("should send a user op using Session Validation Module", async () => {
-    // let sessionSigner: WalletClientSigner
-    // // Create smart account
-    // let smartAccount = await createSmartAccountClient({
-    //   chainId,
-    //   signer: walletClient,
-    //   bundlerUrl,
-    //   paymasterUrl,
-    //   index: 1 // Increasing index to not conflict with other test cases and use a new smart account
-    // })
-    // const accountAddress = await smartAccount.getAccountAddress()
-    // const sessionFileStorage: SessionFileStorage = new SessionFileStorage(
-    //   accountAddress
-    // )
-    // // First we need to check if smart account is deployed
-    // // if not deployed, send an empty transaction to deploy it
-    // const isDeployed = await smartAccount.isAccountDeployed()
-    // Logger.log("session", { isDeployed })
-    // if (!isDeployed) {
-    //   const { wait } = await smartAccount.deploy({
-    //     paymasterServiceData: { mode: PaymasterMode.SPONSORED }
-    //   })
-    //   const { success } = await wait()
-    //   expect(success).toBe("true")
-    // }
-    // try {
-    //   sessionSigner = await sessionFileStorage.getSignerByKey(sessionKeyEOA)
-    // } catch (error) {
-    //   sessionSigner = await sessionFileStorage.addSigner({
-    //     pbKey: sessionKeyEOA,
-    //     pvKey,
-    //     chainId: viemChain
-    //   })
-    // }
-    // expect(sessionSigner).toBeTruthy()
-    // // Create session module
-    // const sessionModule = await createSessionKeyManagerModule({
-    //   moduleAddress: DEFAULT_SESSION_KEY_MANAGER_MODULE,
-    //   smartAccountAddress: await smartAccount.getAddress(),
-    //   sessionStorageClient: sessionFileStorage
-    // })
-    // const functionSelector = slice(
-    //   toFunctionSelector("safeMint(address)"),
-    //   0,
-    //   4
-    // )
-    // // Set enabled call on session
-    // const sessionKeyData = await getABISVMSessionKeyData(sessionKeyEOA as Hex, {
-    //   destContract: "0xdd526eba63ef200ed95f0f0fb8993fe3e20a23d0" as Hex, // nft address
-    //   functionSelector: functionSelector,
-    //   valueLimit: parseEther("0"),
-    //   rules: [
-    //     {
-    //       offset: 0, // offset 0 means we are checking first parameter of safeMint (recipient address)
-    //       condition: 0, // 0 = Condition.EQUAL
-    //       referenceValue: pad("0xd3C85Fdd3695Aee3f0A12B3376aCD8DC54020549", {
-    //         size: 32
-    //       }) // recipient address
-    //     }
-    //   ]
-    // })
-    // const abiSvmAddress = "0x000006bC2eCdAe38113929293d241Cf252D91861"
-    // const sessionTxData = await sessionModule.createSessionData([
-    //   {
-    //     validUntil: 0,
-    //     validAfter: 0,
-    //     sessionValidationModule: abiSvmAddress,
-    //     sessionPublicKey: sessionKeyEOA as Hex,
-    //     sessionKeyData: sessionKeyData as Hex
-    //   }
-    // ])
-    // const setSessionAllowedTrx = {
-    //   to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
-    //   data: sessionTxData.data
-    // }
-    // const txArray: any = []
-    // // Check if module is enabled
-    // const isEnabled = await smartAccount.isModuleEnabled(
-    //   DEFAULT_SESSION_KEY_MANAGER_MODULE
-    // )
-    // if (!isEnabled) {
-    //   const enableModuleTrx = await smartAccount.getEnableModuleData(
-    //     DEFAULT_SESSION_KEY_MANAGER_MODULE
-    //   )
-    //   txArray.push(enableModuleTrx)
-    //   txArray.push(setSessionAllowedTrx)
-    // } else {
-    //   Logger.log("MODULE ALREADY ENABLED")
-    //   txArray.push(setSessionAllowedTrx)
-    // }
-    // const userOp = await smartAccount.buildUserOp(txArray, {
-    //   paymasterServiceData: {
-    //     mode: PaymasterMode.SPONSORED
-    //   }
-    // })
-    // const userOpResponse1 = await smartAccount.sendUserOp(userOp)
-    // const transactionDetails = await userOpResponse1.wait()
-    // expect(transactionDetails.success).toBe("true")
-    // Logger.log("Tx Hash: ", transactionDetails.receipt.transactionHash)
-    // const encodedCall = encodeFunctionData({
-    //   abi: parseAbi(["function safeMint(address _to)"]),
-    //   functionName: "safeMint",
-    //   args: ["0xd3C85Fdd3695Aee3f0A12B3376aCD8DC54020549"]
-    // })
-    // const nftMintTx = {
-    //   to: "0xdd526eba63ef200ed95f0f0fb8993fe3e20a23d0",
-    //   data: encodedCall
-    // }
-    // smartAccount = smartAccount.setActiveValidationModule(sessionModule)
-    // const maticBalanceBefore = await checkBalance(
-    //   publicClient,
-    //   await smartAccount.getAccountAddress()
-    // )
-    // const userOpResponse2 = await smartAccount.sendTransaction(nftMintTx, {
-    //   params: {
-    //     sessionSigner: sessionSigner,
-    //     sessionValidationModule: abiSvmAddress
-    //   },
-    //   paymasterServiceData: {
-    //     mode: PaymasterMode.SPONSORED
-    //   }
-    // })
-    // expect(userOpResponse2.userOpHash).toBeTruthy()
-    // expect(userOpResponse2.userOpHash).not.toBeNull()
-    // const maticBalanceAfter = await checkBalance(
-    //   publicClient,
-    //   await smartAccount.getAccountAddress()
-    // )
-    // expect(maticBalanceAfter).toEqual(maticBalanceBefore)
-    // Logger.log(
-    //   `Tx at: https://jiffyscan.xyz/userOpHash/${userOpResponse2.userOpHash}?network=mumbai`
-    // )
-  }, 60000)
-
-  test("should send a user op using Batched Session Validation Module", async () => {
+  test("should use SessionValidationModule to send a user op", async () => {
     let sessionSigner: WalletClientSigner
     const sessionKeyEOA = walletClient.account.address
     const recipient = walletClientTwo.account.address
-    // const {
-    //   whale: {
-    //     account: { address: sessionKeyEOA },
-    //     privateKey: pvKey,
-    //     viemWallet
-    //   },
-    //   minnow: { publicAddress: recipient },
-    //   publicClient,
-    //   bundlerUrl,
-    //   biconomyPaymasterApiKey,
-    //   chainId,
-    //   viemChain
-    // } = mumbai
+
     // Create smart account
-    // let smartAccount = await createSmartAccountClient({
-    //   signer: walletClient,
-    //   bundlerUrl,
-    //   paymasterUrl,
-    //   index: 3 // Increasing index to not conflict with other test cases and use a new smart account
-    // })
+    let smartAccount = await createSmartAccountClient({
+      chainId,
+      signer: walletClient,
+      bundlerUrl,
+      paymasterUrl,
+      index: 1 // Increasing index to not conflict with other test cases and use a new smart account
+    })
+    const accountAddress = await smartAccount.getAccountAddress()
+    const sessionFileStorage: SessionFileStorage = new SessionFileStorage(
+      accountAddress
+    )
+    // First we need to check if smart account is deployed
+    // if not deployed, send an empty transaction to deploy it
+    const isDeployed = await smartAccount.isAccountDeployed()
+    Logger.log("session", { isDeployed })
+    if (!isDeployed) {
+      const { wait } = await smartAccount.deploy({
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
+      })
+      const { success } = await wait()
+      expect(success).toBe("true")
+    }
+
+    try {
+      sessionSigner = await sessionFileStorage.getSignerByKey(sessionKeyEOA)
+    } catch (error) {
+      sessionSigner = await sessionFileStorage.addSigner({
+        pbKey: sessionKeyEOA,
+        pvKey: `0x${privateKey}`,
+        chainId: chain
+      })
+    }
+
+    expect(sessionSigner).toBeTruthy()
+    // Create session module
+    const sessionModule = await createSessionKeyManagerModule({
+      moduleAddress: DEFAULT_SESSION_KEY_MANAGER_MODULE,
+      smartAccountAddress: await smartAccount.getAddress(),
+      sessionStorageClient: sessionFileStorage
+    })
+    const functionSelector = slice(
+      toFunctionSelector("safeMint(address)"),
+      0,
+      4
+    )
+    // Set enabled call on session
+    const sessionKeyData = await getABISVMSessionKeyData(sessionKeyEOA as Hex, {
+      destContract: "0xdd526eba63ef200ed95f0f0fb8993fe3e20a23d0" as Hex, // nft address
+      functionSelector: functionSelector,
+      valueLimit: parseEther("0"),
+      rules: [
+        {
+          offset: 0, // offset 0 means we are checking first parameter of safeMint (recipient address)
+          condition: 0, // 0 = Condition.EQUAL
+          referenceValue: pad("0xd3C85Fdd3695Aee3f0A12B3376aCD8DC54020549", {
+            size: 32
+          }) // recipient address
+        }
+      ]
+    })
+    const abiSvmAddress = "0x000006bC2eCdAe38113929293d241Cf252D91861"
+    const sessionTxData = await sessionModule.createSessionData([
+      {
+        validUntil: 0,
+        validAfter: 0,
+        sessionValidationModule: abiSvmAddress,
+        sessionPublicKey: sessionKeyEOA as Hex,
+        sessionKeyData: sessionKeyData as Hex
+      }
+    ])
+    const setSessionAllowedTrx = {
+      to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
+      data: sessionTxData.data
+    }
+    const txArray: any = []
+    // Check if module is enabled
+    const isEnabled = await smartAccount.isModuleEnabled(
+      DEFAULT_SESSION_KEY_MANAGER_MODULE
+    )
+    if (!isEnabled) {
+      const enableModuleTrx = await smartAccount.getEnableModuleData(
+        DEFAULT_SESSION_KEY_MANAGER_MODULE
+      )
+      txArray.push(enableModuleTrx)
+      txArray.push(setSessionAllowedTrx)
+    } else {
+      Logger.log("MODULE ALREADY ENABLED")
+      txArray.push(setSessionAllowedTrx)
+    }
+    const userOp = await smartAccount.buildUserOp(txArray, {
+      paymasterServiceData: {
+        mode: PaymasterMode.SPONSORED
+      }
+    })
+    const userOpResponse1 = await smartAccount.sendUserOp(userOp)
+    const transactionDetails = await userOpResponse1.wait()
+    expect(transactionDetails.success).toBe("true")
+    Logger.log("Tx Hash: ", transactionDetails.receipt.transactionHash)
+    const encodedCall = encodeFunctionData({
+      abi: parseAbi(["function safeMint(address _to)"]),
+      functionName: "safeMint",
+      args: ["0xd3C85Fdd3695Aee3f0A12B3376aCD8DC54020549"]
+    })
+    const nftMintTx = {
+      to: "0xdd526eba63ef200ed95f0f0fb8993fe3e20a23d0",
+      data: encodedCall
+    }
+    smartAccount = smartAccount.setActiveValidationModule(sessionModule)
+    const maticBalanceBefore = await checkBalance(
+      publicClient,
+      await smartAccount.getAccountAddress()
+    )
+    const userOpResponse2 = await smartAccount.sendTransaction(nftMintTx, {
+      params: {
+        sessionSigner: sessionSigner,
+        sessionValidationModule: abiSvmAddress
+      },
+      paymasterServiceData: {
+        mode: PaymasterMode.SPONSORED
+      }
+    })
+    expect(userOpResponse2.userOpHash).toBeTruthy()
+    expect(userOpResponse2.userOpHash).not.toBeNull()
+    const maticBalanceAfter = await checkBalance(
+      publicClient,
+      await smartAccount.getAccountAddress()
+    )
+    expect(maticBalanceAfter).toEqual(maticBalanceBefore)
+    Logger.log(
+      `Tx at: https://jiffyscan.xyz/userOpHash/${userOpResponse2.userOpHash}?network=mumbai`
+    )
+  }, 60000)
+
+  test.skip("should use BatchedSessionValidationModule to send a user op", async () => {
+    let sessionSigner: WalletClientSigner
+    const sessionKeyEOA = walletClient.account.address
+    const recipient = walletClientTwo.account.address
     const smartAccountAddress = await smartAccount.getAddress()
     const sessionFileStorage: SessionFileStorage = new SessionFileStorage(
       smartAccountAddress
@@ -422,17 +419,6 @@ describe("Modules: Write", () => {
     }
 
     expect(sessionSigner).toBeTruthy()
-    // First we need to check if smart account is deployed
-    // if not deployed, send an empty transaction to deploy it
-    // const isDeployed = await smartAccount.isAccountDeployed()
-    // if (!isDeployed) {
-    //   const { wait } = await smartAccount.deploy({
-    //     paymasterServiceData: { mode: PaymasterMode.SPONSORED }
-    //   })
-    //   const { success } = await wait()
-    //   expect(success).toBe("true")
-    // }
-    // Create session module
     const sessionModule = await createSessionKeyManagerModule({
       moduleAddress: DEFAULT_SESSION_KEY_MANAGER_MODULE,
       smartAccountAddress,
@@ -489,7 +475,7 @@ describe("Modules: Write", () => {
       to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
       data: sessionTxData.data
     }
-    const txArray: any = []
+    const txArray: Transaction[] = []
     // Check if session module is enabled
     const isEnabled = await smartAccount.isModuleEnabled(
       DEFAULT_SESSION_KEY_MANAGER_MODULE
@@ -518,11 +504,13 @@ describe("Modules: Write", () => {
     const transactionDetails = await userOpResponse1.wait()
     expect(transactionDetails.success).toBe("true")
     Logger.log("Tx Hash: ", transactionDetails.receipt.transactionHash)
+
     const usdcBalance = await checkBalance(
       publicClient,
       smartAccountAddress,
       "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
     )
+
     expect(usdcBalance).toBeGreaterThan(0)
     smartAccount = smartAccount.setActiveValidationModule(batchedSessionModule)
     // WARNING* If the smart account does not have enough USDC, user op execution will FAIL

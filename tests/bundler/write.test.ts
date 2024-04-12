@@ -1,4 +1,4 @@
-import { http, createPublicClient, createWalletClient } from "viem"
+import { http, type Hex, createPublicClient, createWalletClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
@@ -6,7 +6,7 @@ import {
   createSmartAccountClient
 } from "../../src/account"
 import { createBundler } from "../../src/bundler"
-import { checkBalance, getConfig } from "../utils"
+import { checkBalance, getConfig, topUp } from "../utils"
 
 describe("Bundler: Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
@@ -26,6 +26,7 @@ describe("Bundler: Write", () => {
     transport: http()
   })
   let [smartAccount, smartAccountTwo]: BiconomySmartAccountV2[] = []
+  let [smartAccountAddress, smartAccountAddressTwo]: Hex[] = []
 
   const [walletClient, walletClientTwo] = [
     createWalletClient({
@@ -49,6 +50,11 @@ describe("Bundler: Write", () => {
           bundlerUrl,
           paymasterUrl
         })
+      )
+    )
+    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+      [smartAccount, smartAccountTwo].map((account) =>
+        account.getAccountAddress()
       )
     )
   })

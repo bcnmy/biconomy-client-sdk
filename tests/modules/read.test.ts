@@ -31,6 +31,7 @@ describe("Modules: Read", () => {
   const account = privateKeyToAccount(`0x${privateKey}`)
   const accountTwo = privateKeyToAccount(`0x${privateKeyTwo}`)
   let [smartAccount, smartAccountTwo]: BiconomySmartAccountV2[] = []
+  let [smartAccountAddress, smartAccountAddressTwo]: Hex[] = []
 
   const [walletClient, walletClientTwo] = [
     createWalletClient({
@@ -54,6 +55,11 @@ describe("Modules: Read", () => {
           bundlerUrl,
           paymasterUrl
         })
+      )
+    )
+    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+      [smartAccount, smartAccountTwo].map((account) =>
+        account.getAccountAddress()
       )
     )
   })

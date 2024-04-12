@@ -4,11 +4,15 @@ import {
   type Chain,
   type Hex,
   type PublicClient,
+  type Transaction,
+  createPublicClient,
   createWalletClient,
+  encodeFunctionData,
   parseAbi
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { polygonMumbai } from "viem/chains"
+import { s } from "vitest/dist/reporters-P7C2ytIv.js"
 import {
   Logger,
   type SmartAccountSigner,
@@ -124,6 +128,48 @@ export const checkBalance = (
     // @ts-ignore
     args: [address]
   })
+}
+
+export const topUp = async (
+  recipient: Hex,
+  amount = BigInt(1000000),
+  token?: Hex
+) => {
+  const { chain, privateKey } = getConfig()
+  const account = privateKeyToAccount(`0x${privateKey}`)
+  const sender = account.address
+
+  const publicClient = createPublicClient({
+    chain,
+    transport: http()
+  })
+
+  const balanceOfSender = await checkBalance(publicClient, sender, token)
+  if (balanceOfSender < amount) {
+    throw new Error("Insufficient balance during test setup")
+  }
+
+  const walletClient = createWalletClient({
+    account,
+    chain,
+    transport: http()
+  })
+
+  if (token) {
+    await walletClient.writeContract({
+      address: token,
+      abi: parseAbi([
+        "function transfer(address recipient, uint256 amount) external"
+      ]),
+      functionName: "transfer",
+      args: [recipient, amount]
+    })
+  } else {
+    await walletClient.sendTransaction({
+      to: recipient,
+      value: amount
+    })
+  }
 }
 
 export const getBundlerUrl = (chainId: number) =>

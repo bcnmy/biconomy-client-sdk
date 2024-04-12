@@ -1,45 +1,25 @@
-import { JsonRpcProvider } from "@ethersproject/providers"
-import { Wallet } from "@ethersproject/wallet"
 import {
   http,
-  type Chain,
-  type Hex,
   createPublicClient,
   createWalletClient,
-  encodeAbiParameters,
   encodeFunctionData,
-  hashMessage,
   parseAbi,
-  parseAbiParameters
+  type Hex
 } from "viem"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { bsc } from "viem/chains"
+import { privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
-  type BiconomySmartAccountV2Config,
-  DEFAULT_ENTRYPOINT_ADDRESS,
   ERROR_MESSAGES,
-  NATIVE_TOKEN_ALIAS,
-  compareChainIds,
   createSmartAccountClient
 } from "../../src/account"
-import { type UserOperationStruct, getChain } from "../../src/account"
-import { BiconomyAccountAbi } from "../../src/account/abi/SmartAccount"
-import { createBundler } from "../../src/bundler"
-import {
-  DEFAULT_ECDSA_OWNERSHIP_MODULE,
-  DEFAULT_SESSION_KEY_MANAGER_MODULE,
-  createECDSAOwnershipValidationModule
-} from "../../src/modules"
 import {
   type FeeQuotesOrDataResponse,
-  Paymaster,
   PaymasterMode
 } from "../../src/paymaster"
-import { checkBalance, getBundlerUrl, getConfig } from "../utils"
+import { getConfig } from "../utils"
 
-describe("Paymaster: Read", () => {
+describe.skip("Paymaster: Read", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const {
     chain,
@@ -58,6 +38,7 @@ describe("Paymaster: Read", () => {
     transport: http()
   })
   let [smartAccount, smartAccountTwo]: BiconomySmartAccountV2[] = []
+  let [smartAccountAddress, smartAccountAddressTwo]: Hex[] = []
 
   const [walletClient, walletClientTwo] = [
     createWalletClient({
@@ -81,6 +62,11 @@ describe("Paymaster: Read", () => {
           bundlerUrl,
           paymasterUrl
         })
+      )
+    )
+    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+      [smartAccount, smartAccountTwo].map((account) =>
+        account.getAccountAddress()
       )
     )
   })

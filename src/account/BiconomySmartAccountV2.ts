@@ -365,11 +365,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const usdt = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a";
+   * const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a";
    * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl });
-   * const [usdtBalanceFromSmartAccount, nativeTokenBalanceFromSmartAccount] = await smartAccount.getBalances([usdt]);
+   * const [tokenBalanceFromSmartAccount, nativeTokenBalanceFromSmartAccount] = await smartAccount.getBalances([token]);
    *
-   * console.log(usdtBalanceFromSmartAccount);
+   * console.log(tokenBalanceFromSmartAccount);
    * // {
    * //   amount: 1000000000000000n,
    * //   decimals: 6,
@@ -456,7 +456,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createWalletClient, http } from "viem";
    * import { polygonMumbai } from "viem/chains";
    *
-   * const USDT = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a";
+   * const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a";
    * const signer = createWalletClient({
    *   account,
    *   chain: polygonMumbai,
@@ -467,7 +467,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * const { wait } = await smartAccount.withdraw(
    *  [
-   *    { address: USDT }, // omit the amount to withdraw the full balance
+   *    { address: token }, // omit the amount to withdraw the full balance
    *    { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) }
    *  ],
    *  account.pubKey, // Default recipient used if no recipient is present in the withdrawal request

@@ -1,5 +1,6 @@
 import {
   http,
+  type Hex,
   createPublicClient,
   createWalletClient,
   encodeFunctionData,
@@ -35,6 +36,7 @@ describe("Paymaster: Write", () => {
     transport: http()
   })
   let [smartAccount, smartAccountTwo]: BiconomySmartAccountV2[] = []
+  let [smartAccountAddress, smartAccountAddressTwo]: Hex[] = []
 
   const [walletClient, walletClientTwo] = [
     createWalletClient({
@@ -58,6 +60,11 @@ describe("Paymaster: Write", () => {
           bundlerUrl,
           paymasterUrl
         })
+      )
+    )
+    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+      [smartAccount, smartAccountTwo].map((account) =>
+        account.getAccountAddress()
       )
     )
   })
@@ -247,7 +254,7 @@ describe("Paymaster: Write", () => {
   )
 
   test("should withdraw nativeToken and an erc20 token", async () => {
-    const usdt = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
+    const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
     const smartAccountOwner = walletClient.account.address
 
     const smartAccountAddress = await smartAccount.getAddress()
@@ -259,20 +266,20 @@ describe("Paymaster: Write", () => {
       publicClient,
       smartAccountOwner
     )) as bigint
-    const usdtBalanceOfSABefore = await checkBalance(
+    const tokenBalanceOfSABefore = await checkBalance(
       publicClient,
       smartAccountAddress,
-      usdt
+      token
     )
-    const usdtBalanceOfRecipientBefore = await checkBalance(
+    const tokenBalanceOfRecipientBefore = await checkBalance(
       publicClient,
       smartAccountOwner,
-      usdt
+      token
     )
 
     const { wait } = await smartAccount.withdraw(
       [
-        { address: usdt, amount: BigInt(1) },
+        { address: token, amount: BigInt(1) },
         { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) }
       ],
       smartAccountOwner,
@@ -299,22 +306,24 @@ describe("Paymaster: Write", () => {
       publicClient,
       smartAccountOwner
     )) as bigint
-    const usdtBalanceOfSAAfter = (await checkBalance(
+    const tokenBalanceOfSAAfter = (await checkBalance(
       publicClient,
       smartAccountAddress,
-      usdt
+      token
     )) as bigint
-    const usdtBalanceOfRecipientAfter = (await checkBalance(
+    const tokenBalanceOfRecipientAfter = (await checkBalance(
       publicClient,
       smartAccountOwner,
-      usdt
+      token
     )) as bigint
 
     expect(balanceOfSABefore - balanceOfSAAfter).toBe(1n)
     expect(balanceOfRecipientAfter - balanceOfRecipientBefore).toBe(1n)
 
-    expect(usdtBalanceOfSAAfter - usdtBalanceOfSABefore).toBe(-1n)
-    expect(usdtBalanceOfRecipientAfter - usdtBalanceOfRecipientBefore).toBe(1n)
+    expect(tokenBalanceOfSAAfter - tokenBalanceOfSABefore).toBe(-1n)
+    expect(tokenBalanceOfRecipientAfter - tokenBalanceOfRecipientBefore).toBe(
+      1n
+    )
   }, 60000)
 
   test("should withdraw all native token", async () => {

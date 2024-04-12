@@ -27,6 +27,7 @@ describe("Account: Write", () => {
     transport: http()
   })
   let [smartAccount, smartAccountTwo]: BiconomySmartAccountV2[] = []
+  let [smartAccountAddress, smartAccountAddressTwo]: Hex[] = []
 
   const [walletClient, walletClientTwo] = [
     createWalletClient({
@@ -50,6 +51,11 @@ describe("Account: Write", () => {
           bundlerUrl,
           paymasterUrl
         })
+      )
+    )
+    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+      [smartAccount, smartAccountTwo].map((account) =>
+        account.getAccountAddress()
       )
     )
   })
@@ -139,22 +145,22 @@ describe("Account: Write", () => {
   )
 
   test.skip("should withdraw erc20 balances", async () => {
-    const usdt = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
+    const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
     const smartAccountOwner = walletClient.account.address
 
     const smartAccountAddress = await smartAccount.getAddress()
-    const usdtBalanceOfSABefore = await checkBalance(
+    const tokenBalanceOfSABefore = await checkBalance(
       publicClient,
       smartAccountAddress,
-      usdt
+      token
     )
-    const usdtBalanceOfRecipientBefore = await checkBalance(
+    const tokenBalanceOfRecipientBefore = await checkBalance(
       publicClient,
       smartAccountOwner,
-      usdt
+      token
     )
     const { wait } = await smartAccount.withdraw([
-      { address: usdt, amount: BigInt(1), recipient: smartAccountOwner }
+      { address: token, amount: BigInt(1), recipient: smartAccountOwner }
     ])
 
     const {
@@ -167,19 +173,21 @@ describe("Account: Write", () => {
     expect(success).toBe("true")
     expect(transactionHash).toBeTruthy()
 
-    const usdtBalanceOfSAAfter = (await checkBalance(
+    const tokenBalanceOfSAAfter = (await checkBalance(
       publicClient,
       smartAccountAddress,
-      usdt
+      token
     )) as bigint
-    const usdtBalanceOfRecipientAfter = (await checkBalance(
+    const tokenBalanceOfRecipientAfter = (await checkBalance(
       publicClient,
       smartAccountOwner,
-      usdt
+      token
     )) as bigint
 
-    expect(usdtBalanceOfSAAfter - usdtBalanceOfSABefore).toBe(-1n)
-    expect(usdtBalanceOfRecipientAfter - usdtBalanceOfRecipientBefore).toBe(1n)
+    expect(tokenBalanceOfSAAfter - tokenBalanceOfSABefore).toBe(-1n)
+    expect(tokenBalanceOfRecipientAfter - tokenBalanceOfRecipientBefore).toBe(
+      1n
+    )
   }, 25000)
 
   test.skip("should mint an NFT on Mumbai and pay with ERC20 - with preferredToken", async () => {
