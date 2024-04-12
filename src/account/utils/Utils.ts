@@ -12,7 +12,6 @@ import { type SupportedSigner, convertSigner } from "../../account"
 import { extractChainIdFromBundlerUrl } from "../../bundler"
 import { extractChainIdFromPaymasterUrl } from "../../bundler"
 import type { BiconomySmartAccountV2Config } from "./Types.js"
-import { rpc } from "viem/utils"
 
 /**
  * pack the userOperation

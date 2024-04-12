@@ -5,8 +5,7 @@ import type {
   BiconomyImplementations,
   BiconomyImplementationsByVersion,
   EntryPointAddresses,
-  EntryPointAddressesByVersion,
-  SupportedSignerName
+  EntryPointAddressesByVersion
 } from "./Types.js"
 
 export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000"
