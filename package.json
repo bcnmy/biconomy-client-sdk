@@ -70,6 +70,7 @@
     "@changesets/cli": "^2.27.1",
     "@commitlint/cli": "^19.0.3",
     "@commitlint/config-conventional": "^19.0.3",
+    "@ethersproject/abi": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
     "@ethersproject/wallet": "^5.7.0",
     "@size-limit/esbuild-why": "^11",
@@ -97,7 +98,6 @@
     "commit-msg": "npx --no -- commitlint --edit ${1}"
   },
   "dependencies": {
-    "@ethersproject/abi": "^5.7.0",
     "merkletreejs": "^0.3.11"
   }
 }

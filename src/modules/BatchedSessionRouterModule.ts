@@ -1,5 +1,3 @@
-// @ts-nocheck
-import { defaultAbiCoder } from "@ethersproject/abi"
 import {
   type Hex,
   concat,
@@ -14,6 +12,7 @@ import { type SmartAccountSigner, convertSigner } from "../account"
 import { BaseValidationModule } from "./BaseValidationModule.js"
 import { SessionKeyManagerModule } from "./SessionKeyManagerModule.js"
 import type {
+  SessionLeafNode,
   SessionSearchParam,
   SessionStatus
 } from "./interfaces/ISessionStorage.js"
@@ -28,7 +27,8 @@ import type {
   CreateSessionDataParams,
   CreateSessionDataResponse,
   ModuleInfo,
-  ModuleVersion
+  ModuleVersion,
+  SessionDataTuple
 } from "./utils/Types.js"
 
 export class BatchedSessionRouterModule extends BaseValidationModule {
@@ -123,7 +123,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
       throw new Error("Session parameters are not provided")
     }
 
-    const sessionDataTupleArray = []
+    const sessionDataTupleArray: SessionDataTuple[] = []
 
     // signer must be the same for all the sessions
     const { signer: sessionSigner } = await convertSigner(
@@ -139,37 +139,23 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
       if (!sessionParam.sessionSigner) {
         throw new Error("Session signer is not provided.")
       }
-
-      const sessionDataTuple = []
-
-      // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
-      let sessionSignerData
-
-      if (sessionParam.sessionID) {
-        sessionSignerData =
-          await this.sessionKeyManagerModule.sessionStorageClient.getSessionData(
-            {
-              sessionID: sessionParam.sessionID
-            }
-          )
-      } else if (sessionParam.sessionValidationModule) {
-        sessionSignerData =
-          await this.sessionKeyManagerModule.sessionStorageClient.getSessionData(
-            {
-              sessionValidationModule: sessionParam.sessionValidationModule,
-              sessionPublicKey: await sessionSigner.getAddress()
-            }
-          )
-      } else {
+      if (!sessionParam.sessionID && !sessionParam.sessionValidationModule) {
         throw new Error(
           "sessionID or sessionValidationModule should be provided."
         )
       }
 
-      sessionDataTuple.push(sessionSignerData.validUntil)
-      sessionDataTuple.push(sessionSignerData.validAfter)
-      sessionDataTuple.push(sessionSignerData.sessionValidationModule)
-      sessionDataTuple.push(sessionSignerData.sessionKeyData)
+      const sessionSignerData =
+        await this.sessionKeyManagerModule.sessionStorageClient.getSessionData(
+          sessionParam.sessionID
+            ? {
+                sessionID: sessionParam.sessionID
+              }
+            : {
+                sessionValidationModule: sessionParam.sessionValidationModule,
+                sessionPublicKey: await sessionSigner.getAddress()
+              }
+        )
 
       const leafDataHex = concat([
         pad(toHex(sessionSignerData.validUntil), { size: 6 }),
@@ -182,21 +168,40 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
         keccak256(leafDataHex)
       )
 
-      sessionDataTuple.push(proof)
-      sessionDataTuple.push(sessionParam.additionalSessionData ?? "0x")
+      const sessionDataTuple: SessionDataTuple = [
+        sessionSignerData.validUntil,
+        sessionSignerData.validAfter,
+        sessionSignerData.sessionValidationModule,
+        sessionSignerData.sessionKeyData,
+        proof,
+        sessionParam.additionalSessionData ?? "0x"
+      ]
 
       sessionDataTupleArray.push(sessionDataTuple)
     }
 
     // Generate the padded signature
-    const paddedSignature = defaultAbiCoder.encode(
-      [
-        "address",
-        "tuple(uint48,uint48,address,bytes,bytes32[],bytes)[]",
-        "bytes"
-      ],
-      [this.getSessionKeyManagerAddress(), sessionDataTupleArray, signature]
-    )
+    const abiParameters = [
+      { type: "address" },
+      {
+        type: "tuple[]",
+        components: [
+          { type: "uint48" },
+          { type: "uint48" },
+          { type: "address" },
+          { type: "bytes" },
+          { type: "bytes32[]" },
+          { type: "bytes" }
+        ]
+      },
+      { type: "bytes" }
+    ]
+
+    const paddedSignature = encodeAbiParameters(abiParameters, [
+      this.getSessionKeyManagerAddress(),
+      sessionDataTupleArray,
+      signature
+    ])
 
     return paddedSignature as Hex
   }
@@ -256,7 +261,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
       throw new Error("Session parameters are not provided")
     }
 
-    const sessionDataTupleArray = []
+    const sessionDataTupleArray: SessionDataTuple[] = []
 
     // if needed we could do mock signature over userOpHashAndModuleAddress
 
@@ -271,36 +276,23 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
         throw new Error("Session signer is not provided.")
       }
 
-      const sessionDataTuple = []
-
-      // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
-      let sessionSignerData
-
-      if (sessionParam.sessionID) {
-        sessionSignerData =
-          await this.sessionKeyManagerModule.sessionStorageClient.getSessionData(
-            {
-              sessionID: sessionParam.sessionID
-            }
-          )
-      } else if (sessionParam.sessionValidationModule) {
-        sessionSignerData =
-          await this.sessionKeyManagerModule.sessionStorageClient.getSessionData(
-            {
-              sessionValidationModule: sessionParam.sessionValidationModule,
-              sessionPublicKey: await sessionSigner.getAddress()
-            }
-          )
-      } else {
+      if (!sessionParam.sessionID && !sessionParam.sessionValidationModule) {
         throw new Error(
           "sessionID or sessionValidationModule should be provided."
         )
       }
 
-      sessionDataTuple.push(BigInt(sessionSignerData.validUntil))
-      sessionDataTuple.push(BigInt(sessionSignerData.validAfter))
-      sessionDataTuple.push(sessionSignerData.sessionValidationModule)
-      sessionDataTuple.push(sessionSignerData.sessionKeyData)
+      const sessionSignerData =
+        await this.sessionKeyManagerModule.sessionStorageClient.getSessionData(
+          sessionParam.sessionID
+            ? {
+                sessionID: sessionParam.sessionID
+              }
+            : {
+                sessionValidationModule: sessionParam.sessionValidationModule,
+                sessionPublicKey: await sessionSigner.getAddress()
+              }
+        )
 
       const leafDataHex = concat([
         pad(toHex(sessionSignerData.validUntil), { size: 6 }),
@@ -313,25 +305,41 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
         keccak256(leafDataHex)
       )
 
-      sessionDataTuple.push(proof)
-      sessionDataTuple.push(sessionParam.additionalSessionData ?? "0x")
+      const sessionDataTuple: SessionDataTuple = [
+        BigInt(sessionSignerData.validUntil),
+        BigInt(sessionSignerData.validAfter),
+        sessionSignerData.sessionValidationModule,
+        sessionSignerData.sessionKeyData,
+        proof,
+        sessionParam.additionalSessionData ?? "0x"
+      ]
 
       sessionDataTupleArray.push(sessionDataTuple)
     }
 
     // Generate the padded signature
-    const paddedSignature = defaultAbiCoder.encode(
-      [
-        "address",
-        "tuple(uint48,uint48,address,bytes,bytes32[],bytes)[]",
-        "bytes"
-      ],
-      [
-        this.getSessionKeyManagerAddress(),
-        sessionDataTupleArray,
-        this.mockEcdsaSessionKeySig
-      ]
-    )
+
+    const abiParameters = [
+      { type: "address" },
+      {
+        type: "tuple[]",
+        components: [
+          { type: "uint48" },
+          { type: "uint48" },
+          { type: "address" },
+          { type: "bytes" },
+          { type: "bytes32[]" },
+          { type: "bytes" }
+        ]
+      },
+      { type: "bytes" }
+    ]
+
+    const paddedSignature = encodeAbiParameters(abiParameters, [
+      this.getSessionKeyManagerAddress(),
+      sessionDataTupleArray,
+      this.mockEcdsaSessionKeySig
+    ])
 
     const dummySig = encodeAbiParameters(parseAbiParameters("bytes, address"), [
       paddedSignature as Hex,

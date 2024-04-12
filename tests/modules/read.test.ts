@@ -102,12 +102,27 @@ describe("Modules: Read", () => {
       [sessionKeyManagerAddress, sessionDataTupleArray, mockEcdsaSessionKeySig]
     )
 
-    const paddedSignatureWithViem = encodeAbiParameters(
-      parseAbiParameters(
-        "address, tuple(uint48,uint48,address,bytes,bytes32[],bytes)[], bytes"
-      ),
-      [sessionKeyManagerAddress, sessionDataTupleArray, mockEcdsaSessionKeySig]
-    )
+    const abiParameters = [
+      { type: "address" },
+      {
+        type: "tuple[]",
+        components: [
+          { type: "uint48" },
+          { type: "uint48" },
+          { type: "address" },
+          { type: "bytes" },
+          { type: "bytes32[]" },
+          { type: "bytes" }
+        ]
+      },
+      { type: "bytes" }
+    ]
+
+    const paddedSignatureWithViem = encodeAbiParameters(abiParameters, [
+      sessionKeyManagerAddress,
+      sessionDataTupleArray,
+      mockEcdsaSessionKeySig
+    ])
 
     expect(paddedSignature).toEqual(hardcodedPaddedSignature)
     expect(paddedSignatureWithViem).toEqual(hardcodedPaddedSignature)

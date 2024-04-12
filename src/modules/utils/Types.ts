@@ -66,6 +66,15 @@ export enum StorageType {
   LOCAL_STORAGE = 0
 }
 
+export type SessionDataTuple = [
+  bigint | number,
+  bigint | number,
+  Hex,
+  Hex,
+  string[],
+  string
+]
+
 export type SessionParams = {
   /** Redundant now as we've favoured uuid() */
   sessionID?: string
