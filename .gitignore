@@ -176,3 +176,5 @@ dist
 .DS_Store
 
 docs
+
+tests/sessionStorageData

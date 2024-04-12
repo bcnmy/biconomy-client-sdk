@@ -16,10 +16,9 @@ This repository serves as a comprehensive foundation for typescript account abst
   - [🛠️ Essential Scripts](#️-essential-scripts)
     - [🧪 Run Tests](#-run-tests)
     - [📊 Coverage Report](#-coverage-report)
-    - [📄 Documentation](https://bcnmy.github.io/sdk)
     - [🎨 Lint Code](#-lint-code)
     - [🖌️ Auto-fix Linting Issues](#️-auto-fix-linting-issues)
-  - [Documentation and Resources](#-documentation-and-resources)
+  - [📄 Documentation and Resources](#-documentation-and-resources)
   - [License](#license)
   - [Connect with Biconomy 🍊](#connect-with-biconomy-🍊)
 
@@ -56,7 +55,7 @@ Copy `.env.example` to `.env` and fill in your details.
 ### 🧪 Run Tests
 
 ```bash
-bun run test
+bun run test --watch
 ```
 
 Carries out tests.
@@ -64,7 +63,7 @@ Carries out tests.
 ### 📊 Coverage Report
 
 ```bash
-bun run coverage
+bun run test --coverage
 ```
 
 Creates detailed reports for test coverage.
@@ -72,7 +71,7 @@ Creates detailed reports for test coverage.
 ### 🎨 Lint Code
 
 ```bash
-bun run lint
+bun run lint:fix
 ```
 
 Checks code for style and potential errors.
@@ -89,6 +88,9 @@ Automatically fixes linting problems found.
 
 For a comprehensive understanding of our project and to contribute effectively, please refer to the following resources:
 
+- [**Biconomy Documentation**](https://docs.biconomy.io)
+- [**Biconomy Dashboard**](https://dashboard.biconomy.io)
+- [**TSDoc**](https://bcnmy.github.io/biconomy-client-sdk)
 - [**Contributing Guidelines**](./CONTRIBUTING.md): Learn how to contribute to our project, from code contributions to documentation improvements.
 - [**Code of Conduct**](./CODE_OF_CONDUCT.md): Our commitment to fostering an open and welcoming environment.
 - [**Security Policy**](./SECURITY.md): Guidelines for reporting security vulnerabilities.
