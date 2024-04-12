@@ -376,6 +376,7 @@ export class BiconomyPaymaster
           callGasLimit: callGasLimit
         }
       }
+      // biome-ignore lint/suspicious/noExplicitAny: caught error is any
     } catch (error: any) {
       Logger.error(
         "Error in generating paymasterAndData - reason: ",

@@ -485,21 +485,6 @@ describe("Modules: Write", () => {
       }
     ])
 
-    const batchSessionParams = [
-      {
-        sessionSigner: walletClient,
-        sessionValidationModule: erc20ModuleAddr
-      },
-      {
-        sessionSigner: walletClient,
-        sessionValidationModule: mockSessionModuleAddr
-      }
-    ]
-
-    const dummySigner = batchedSessionModule.getDummySignature({
-      batchSessionParams
-    })
-
     const setSessionAllowedTrx = {
       to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
       data: sessionTxData.data
@@ -573,7 +558,16 @@ describe("Modules: Write", () => {
       [transferTx, transferTx2],
       {
         params: {
-          batchSessionParams
+          batchSessionParams: [
+            {
+              sessionSigner: walletClient,
+              sessionValidationModule: erc20ModuleAddr
+            },
+            {
+              sessionSigner: walletClient,
+              sessionValidationModule: mockSessionModuleAddr
+            }
+          ]
         },
         paymasterServiceData: {
           mode: PaymasterMode.SPONSORED

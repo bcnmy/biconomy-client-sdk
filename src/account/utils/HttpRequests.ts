@@ -1,3 +1,4 @@
+import { getAAError } from "../../bundler/utils/getAAError.js"
 import { Logger } from "./Logger.js"
 import type { Service } from "./Types.js"
 
@@ -34,7 +35,7 @@ export async function sendRequest<T>(
     Logger.log(`${service} RPC Response`, jsonResponse)
   } catch (error) {
     if (!response.ok) {
-      throw new Error(response.statusText)
+      throw await getAAError(response.statusText, service)
     }
   }
 
@@ -42,30 +43,30 @@ export async function sendRequest<T>(
     return jsonResponse as T
   }
   if (jsonResponse.error) {
-    throw new Error(
+    throw await getAAError(
       `Error coming from ${service}: ${jsonResponse.error.message}`
     )
   }
   if (jsonResponse.message) {
-    throw new Error(jsonResponse.message)
+    throw await getAAError(jsonResponse.message)
   }
   if (jsonResponse.msg) {
-    throw new Error(jsonResponse.msg)
+    throw await getAAError(jsonResponse.msg)
   }
   if (jsonResponse.data) {
-    throw new Error(jsonResponse.data)
+    throw await getAAError(jsonResponse.data)
   }
   if (jsonResponse.detail) {
-    throw new Error(jsonResponse.detail)
+    throw await getAAError(jsonResponse.detail)
   }
   if (jsonResponse.message) {
-    throw new Error(jsonResponse.message)
+    throw await getAAError(jsonResponse.message)
   }
   if (jsonResponse.nonFieldErrors) {
-    throw new Error(jsonResponse.nonFieldErrors)
+    throw await getAAError(jsonResponse.nonFieldErrors)
   }
   if (jsonResponse.delegate) {
-    throw new Error(jsonResponse.delegate)
+    throw await getAAError(jsonResponse.delegate)
   }
-  throw new Error(response.statusText)
+  throw await getAAError(response.statusText)
 }

@@ -1,11 +1,11 @@
 import { http, type Chain, createWalletClient } from "viem"
-import { privateKeyToAccount } from "viem/accounts"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
   type BiconomySmartAccountV2Config,
-  createSmartAccountClient,
-  compareChainIds
+  compareChainIds,
+  createSmartAccountClient
 } from "../../src/account"
 import { createBundler } from "../../src/bundler"
 import { getBundlerUrl, getConfig } from "../utils"
@@ -21,6 +21,8 @@ describe("Bundler: Read", () => {
   } = getConfig()
   const account = privateKeyToAccount(`0x${privateKey}`)
   const accountTwo = privateKeyToAccount(`0x${privateKeyTwo}`)
+  const recipient = accountTwo.address
+
   let [smartAccount, smartAccountTwo]: BiconomySmartAccountV2[] = []
 
   const [walletClient, walletClientTwo] = [
@@ -48,6 +50,32 @@ describe("Bundler: Read", () => {
       )
     )
   })
+
+  test.concurrent(
+    "Should throw and give advice",
+    async () => {
+      const randomPrivateKey = generatePrivateKey()
+      const unfundedAccount = privateKeyToAccount(randomPrivateKey)
+
+      const unfundedSmartAccountClient = await createSmartAccountClient({
+        signer: createWalletClient({
+          account: unfundedAccount,
+          chain,
+          transport: http()
+        }),
+        paymasterUrl,
+        bundlerUrl
+      })
+
+      await expect(
+        unfundedSmartAccountClient.sendTransaction({
+          to: recipient,
+          value: 1
+        })
+      ).rejects.toThrow("Send some native tokens in your smart wallet")
+    },
+    20000
+  )
 
   test.concurrent(
     "should parse the rpcUrl when a custom chain and bundler are used",
