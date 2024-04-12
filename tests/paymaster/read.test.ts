@@ -108,6 +108,21 @@ describe("Paymaster: Read", () => {
   )
 
   test.concurrent(
+    "should get supported tokens from the paymaster",
+    async () => {
+      const tokens = await smartAccount.getSupportedTokens()
+
+      expect(tokens.length).toBeGreaterThan(0)
+      expect(tokens[0]).toHaveProperty("tokenAddress")
+      expect(tokens[0]).toHaveProperty("symbol")
+      expect(tokens[0]).toHaveProperty("decimal")
+      expect(tokens[0]).toHaveProperty("premiumPercentage")
+      expect(tokens[0]).toHaveProperty("logoUrl")
+    },
+    60000
+  )
+
+  test.concurrent(
     "should throw and error if missing field for ERC20 Paymaster user op",
     async () => {
       const encodedCall = encodeFunctionData({
@@ -125,7 +140,7 @@ describe("Paymaster: Read", () => {
         await smartAccount.getTokenFees(transaction, {
           paymasterServiceData: {
             mode: PaymasterMode.ERC20,
-            preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977"
+            preferredToken: "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
           }
         })
 

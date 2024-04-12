@@ -455,7 +455,7 @@ describe("Modules: Write", () => {
       ],
       [
         sessionKeyEOA,
-        "0xdA5289fCAAF71d52a80A254da614a192b693e977", // erc20 token address
+        "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a", // erc20 token address
         recipient, // receiver address
         parseUnits("10", 6)
       ]
@@ -521,7 +521,7 @@ describe("Modules: Write", () => {
     const usdcBalance = await checkBalance(
       publicClient,
       smartAccountAddress,
-      "0xdA5289fCAAF71d52a80A254da614a192b693e977"
+      "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
     )
     expect(usdcBalance).toBeGreaterThan(0)
     smartAccount = smartAccount.setActiveValidationModule(batchedSessionModule)
@@ -540,11 +540,11 @@ describe("Modules: Write", () => {
       ]
     })
     const transferTx = {
-      to: "0xdA5289fCAAF71d52a80A254da614a192b693e977",
+      to: "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a",
       data: encodedCall
     }
     const transferTx2 = {
-      to: "0xdA5289fCAAF71d52a80A254da614a192b693e977",
+      to: "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a",
       data: encodedCall2
     }
     const activeModule = smartAccount.activeValidationModule

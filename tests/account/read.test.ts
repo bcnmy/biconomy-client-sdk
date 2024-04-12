@@ -78,6 +78,41 @@ describe("Account: Read", () => {
   })
 
   test.concurrent(
+    "should accept PrivateKeyAccount as signer and sign a message",
+    async () => {
+      const account = privateKeyToAccount(`0x${privateKey}`)
+
+      const smartAccount = await createSmartAccountClient({
+        signer: account,
+        bundlerUrl,
+        rpcUrl: chain.rpcUrls.default.http[0]
+      })
+
+      const message = "hello world"
+      const signature = await smartAccount.signMessage(message)
+      expect(signature).toBeTruthy()
+    },
+    50000
+  )
+
+  test.concurrent(
+    "should throw if PrivateKeyAccount is used as signer and rpcUrl is not provided",
+    async () => {
+      const account = privateKeyToAccount(`0x${privateKey}`)
+
+      const createSmartAccount = createSmartAccountClient({
+        signer: account,
+        bundlerUrl
+      })
+
+      await expect(createSmartAccount).rejects.toThrow(
+        ERROR_MESSAGES.MISSING_RPC_URL
+      )
+    },
+    50000
+  )
+
+  test.concurrent(
     "should get all modules",
     async () => {
       const modules = await smartAccount.getAllModules()
@@ -416,7 +451,7 @@ describe("Account: Read", () => {
     })
   })
 
-  test.concurrent("throw an error, chain id not found", async () => {
+  test.concurrent("should throw an error, chain id not found", async () => {
     const chainId = 0
     expect(() => getChain(chainId)).toThrow(ERROR_MESSAGES.CHAIN_NOT_FOUND)
   })
@@ -552,21 +587,6 @@ describe("Account: Read", () => {
   )
 
   test.concurrent(
-    "should get supported tokens from the paymaster",
-    async () => {
-      const tokens = await smartAccount.getSupportedTokens()
-
-      expect(tokens.length).toBeGreaterThan(0)
-      expect(tokens[0]).toHaveProperty("tokenAddress")
-      expect(tokens[0]).toHaveProperty("symbol")
-      expect(tokens[0]).toHaveProperty("decimal")
-      expect(tokens[0]).toHaveProperty("premiumPercentage")
-      expect(tokens[0]).toHaveProperty("logoUrl")
-    },
-    60000
-  )
-
-  test.concurrent(
     "should fail to deploy a smart account if already deployed",
     async () => {
       expect(async () => smartAccount.deploy()).rejects.toThrow(
@@ -577,7 +597,7 @@ describe("Account: Read", () => {
   )
 
   test.concurrent("should fetch balances for smartAccount", async () => {
-    const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977"
+    const usdt = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
     const usdcBalanceBefore = await checkBalance(
       publicClient,
       await smartAccount.getAddress(),
@@ -589,7 +609,7 @@ describe("Account: Read", () => {
   })
 
   test.concurrent("should error if no recipient exists", async () => {
-    const usdt: Hex = "0xda5289fcaaf71d52a80a254da614a192b693e977"
+    const usdt: Hex = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
     const smartAccountOwner = walletClient.account.address
 
     const txs = [

@@ -12,6 +12,7 @@ import { type SupportedSigner, convertSigner } from "../../account"
 import { extractChainIdFromBundlerUrl } from "../../bundler"
 import { extractChainIdFromPaymasterUrl } from "../../bundler"
 import type { BiconomySmartAccountV2Config } from "./Types.js"
+import { rpc } from "viem/utils"
 
 /**
  * pack the userOperation
@@ -75,7 +76,11 @@ export const compareChainIds = async (
   skipChainIdCalls: boolean
   // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
 ): Promise<Error | void> => {
-  const signerResult = await convertSigner(signer, skipChainIdCalls)
+  const signerResult = await convertSigner(
+    signer,
+    skipChainIdCalls,
+    biconomySmartAccountConfig.rpcUrl
+  )
 
   const chainIdFromBundler = biconomySmartAccountConfig.bundlerUrl
     ? extractChainIdFromBundlerUrl(biconomySmartAccountConfig.bundlerUrl)

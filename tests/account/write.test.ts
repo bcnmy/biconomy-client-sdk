@@ -139,7 +139,7 @@ describe("Account: Write", () => {
   )
 
   test.skip("should withdraw erc20 balances", async () => {
-    const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977"
+    const usdt = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
     const smartAccountOwner = walletClient.account.address
 
     const smartAccountAddress = await smartAccount.getAddress()
@@ -213,12 +213,12 @@ describe("Account: Write", () => {
     // const usdcBalanceBefore = await checkBalance(
     //   publicClient,
     //   accountAddress,
-    //   "0xda5289fcaaf71d52a80a254da614a192b693e977"
+    //   "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
     // )
     // const { wait } = await smartAccount.sendTransaction([transaction], {
     //   paymasterServiceData: {
     //     mode: PaymasterMode.ERC20,
-    //     preferredToken: "0xda5289fcaaf71d52a80a254da614a192b693e977"
+    //     preferredToken: "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
     //   }
     // })
     // const {
@@ -237,7 +237,7 @@ describe("Account: Write", () => {
     // const usdcBalanceAfter = await checkBalance(
     //   publicClient,
     //   await smartAccount.getAddress(),
-    //   "0xda5289fcaaf71d52a80a254da614a192b693e977"
+    //   "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
     // )
     // expect(usdcBalanceAfter).toBeLessThan(usdcBalanceBefore)
     // const newBalance = (await checkBalance(
@@ -249,7 +249,7 @@ describe("Account: Write", () => {
   }, 60000)
 
   test.skip("should mint an NFT on Mumbai and pay with ERC20 - with token selection and no maxApproval", async () => {
-    // const preferredToken: Hex = "0xda5289fcaaf71d52a80a254da614a192b693e977";
+    // const preferredToken: Hex = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a";
     // const {
     //   whale: { viemWallet: signer, publicAddress: recipient },
     //   bundlerUrl,
@@ -293,7 +293,7 @@ describe("Account: Write", () => {
     //     args: [spender, allowanceBefore],
     //   });
     //   const decreaseAllowanceTx = {
-    //     to: "0xda5289fcaaf71d52a80a254da614a192b693e977",
+    //     to: "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a",
     //     data: decreaseAllowanceData,
     //   };
     //   const { wait } = await smartAccount.sendTransaction(decreaseAllowanceTx, { paymasterServiceData: { mode: PaymasterMode.SPONSORED } });

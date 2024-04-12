@@ -246,7 +246,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     if (biconomySmartAccountConfig.signer) {
       const signerResult = await convertSigner(
         biconomySmartAccountConfig.signer,
-        !!chainId
+        !!chainId,
+        rpcUrl
       )
       if (!chainId && !!signerResult.chainId) {
         chainId = signerResult.chainId
@@ -364,7 +365,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977";
+   * const usdt = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a";
    * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl });
    * const [usdtBalanceFromSmartAccount, nativeTokenBalanceFromSmartAccount] = await smartAccount.getBalances([usdt]);
    *
@@ -372,7 +373,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * // {
    * //   amount: 1000000000000000n,
    * //   decimals: 6,
-   * //   address: "0xda5289fcaaf71d52a80a254da614a192b693e977",
+   * //   address: "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a",
    * //   formattedAmount: "1000000",
    * //   chainId: 80002
    * // }
@@ -455,7 +456,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createWalletClient, http } from "viem";
    * import { polygonMumbai } from "viem/chains";
    *
-   * const USDT = "0xda5289fcaaf71d52a80a254da614a192b693e977";
+   * const USDT = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a";
    * const signer = createWalletClient({
    *   account,
    *   chain: polygonMumbai,

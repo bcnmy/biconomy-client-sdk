@@ -77,7 +77,9 @@ export const ERROR_MESSAGES = {
   CHAIN_NOT_FOUND: "Chain not found",
   NO_RECIPIENT: "Recipient is required",
   NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT:
-    "'Amount' is required for withdrawal of native token without using a paymaster"
+    "'Amount' is required for withdrawal of native token without using a paymaster",
+  MISSING_RPC_URL:
+    "rpcUrl is required for PrivateKeyAccount signer type, please provide it in the config"
 }
 
 export const NATIVE_TOKEN_ALIAS: Hex =
@@ -90,10 +92,3 @@ export const ERC20_ABI = [
   "function balanceOf(address owner) external view returns (uint256)",
   "function decimals() external view returns (uint8)"
 ]
-
-export const UNIQUE_PROPERTIES_PER_SIGNER: Record<SupportedSignerName, string> =
-  {
-    alchemy: "signerType",
-    ethers: "provider",
-    viem: "transport"
-  }

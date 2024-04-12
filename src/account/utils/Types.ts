@@ -3,6 +3,7 @@ import type {
   Chain,
   Hash,
   Hex,
+  PrivateKeyAccount,
   PublicClient,
   SignTypedDataParameters,
   SignableMessage,
@@ -341,7 +342,7 @@ export type SupportedSigner =
   | WalletClient
   | Signer
   | LightSigner
-
+  | PrivateKeyAccount
 export type Service = "Bundler" | "Paymaster"
 
 export interface LightSigner {

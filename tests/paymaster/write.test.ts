@@ -247,7 +247,7 @@ describe("Paymaster: Write", () => {
   )
 
   test("should withdraw nativeToken and an erc20 token", async () => {
-    const usdt = "0xda5289fcaaf71d52a80a254da614a192b693e977"
+    const usdt = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
     const smartAccountOwner = walletClient.account.address
 
     const smartAccountAddress = await smartAccount.getAddress()
