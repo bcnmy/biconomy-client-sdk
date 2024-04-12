@@ -120,3 +120,5 @@ export type GasFeeValues = {
   maxPriorityFeePerGas: string
   maxFeePerGas: string
 }
+
+export type Service = "bundler" | "paymaster"

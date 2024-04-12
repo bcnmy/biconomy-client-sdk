@@ -1,5 +1,5 @@
 import { BaseError } from "viem"
-import type { Service } from "../Types.js"
+import type { Service } from "./Types.js"
 
 export type KnownError = {
   name: string
