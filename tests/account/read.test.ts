@@ -410,15 +410,16 @@ describe("Account: Read", () => {
       const feeQuotesResponse = await smartAccount.getTokenFees(transaction, {
         paymasterServiceData: { mode: PaymasterMode.ERC20 }
       })
+
       expect(feeQuotesResponse.feeQuotes?.length).toBeGreaterThan(1)
     }
   )
 
   test.concurrent("should not throw and error, chain ids match", async () => {
     const mockBundlerUrl =
-      "https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44"
+      "https://bundler.biconomy.io/api/v2/80002/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44"
     const mockPaymasterUrl =
-      "https://paymaster.biconomy.io/api/v1/80001/-RObQRX9ei.fc6918eb-c582-4417-9d5a-0507b17cfe71"
+      "https://paymaster.biconomy.io/api/v1/80002/-RObQRX9ei.fc6918eb-c582-4417-9d5a-0507b17cfe71"
 
     const config: BiconomySmartAccountV2Config = {
       signer: walletClient,
@@ -487,10 +488,10 @@ describe("Account: Read", () => {
   )
 
   test.concurrent(
-    "should throw and error, signer has chain id (56) and paymasterUrl has chain id (80001)",
+    "should throw and error, signer has chain id (56) and paymasterUrl has chain id (80002)",
     async () => {
       const mockPaymasterUrl =
-        "https://paymaster.biconomy.io/api/v1/80001/-RObQRX9ei.fc6918eb-c582-4417-9d5a-0507b17cfe71"
+        "https://paymaster.biconomy.io/api/v1/80002/-RObQRX9ei.fc6918eb-c582-4417-9d5a-0507b17cfe71"
 
       const walletClientBsc = createWalletClient({
         account: walletClient.account,
@@ -701,7 +702,7 @@ describe("Account: Read", () => {
         paymasterUrl:
           "https://paymaster.biconomy.io/api/v1/1/-RObQRX9ei.fc6918eb-c582-4417-9d5a-0507b17cfe71",
         bundlerUrl:
-          "https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44" // mock
+          "https://bundler.biconomy.io/api/v2/80002/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44" // mock
       })
 
       await expect(createAccount).rejects.toThrow()

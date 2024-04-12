@@ -218,11 +218,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient, BiconomySmartAccountV2 } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonAmoy } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonAmoy,
    *   transport: http(),
    * });
    *
@@ -356,11 +356,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonAmoy } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonAmoy,
    *   transport: http(),
    * });
    *
@@ -374,7 +374,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * //   decimals: 6,
    * //   address: "0xda5289fcaaf71d52a80a254da614a192b693e977",
    * //   formattedAmount: "1000000",
-   * //   chainId: 80001
+   * //   chainId: 80002
    * // }
    *
    * // or to get the nativeToken balance
@@ -387,7 +387,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * //   decimals: 18,
    * //   address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
    * //   formattedAmount: "1",
-   * //   chainId: 80001
+   * //   chainId: 80002
    * // }
    *
    */
@@ -977,11 +977,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonAmoy } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonAmoy,
    *   transport: http(),
    * });
    *
@@ -1037,11 +1037,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonAmoy } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonAmoy,
    *   transport: http(),
    * });
    *
@@ -1099,11 +1099,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonAmoy } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonAmoy,
    *   transport: http(),
    * });
    *
@@ -1298,11 +1298,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonAmoy } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonAmoy,
    *   transport: http(),
    * });
    *
@@ -1351,11 +1351,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonAmoy } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonAmoy,
    *   transport: http(),
    * });
    *
@@ -1625,11 +1625,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
-   * import { polygonMumbai } from "viem/chains";
+   * import { polygonAmoy } from "viem/chains";
    *
    * const signer = createWalletClient({
    *   account,
-   *   chain: polygonMumbai,
+   *   chain: polygonAmoy,
    *   transport: http(),
    * });
    *

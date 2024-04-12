@@ -32,7 +32,7 @@ export const getEnvVars = () => {
     "BUNDLER_URL",
     "E2E_PRIVATE_KEY_ONE",
     "E2E_PRIVATE_KEY_TWO",
-    "E2E_BICO_PAYMASTER_KEY_MUMBAI",
+    "E2E_BICO_PAYMASTER_KEY_AMOY",
     "E2E_BICO_PAYMASTER_KEY_BASE",
     "CHAIN_ID"
   ]
@@ -48,8 +48,8 @@ export const getEnvVars = () => {
     bundlerUrl: process.env.BUNDLER_URL || "",
     privateKey: process.env.E2E_PRIVATE_KEY_ONE || "",
     privateKeyTwo: process.env.E2E_PRIVATE_KEY_TWO || "",
-    paymasterUrl: `https://paymaster.biconomy.io/api/v1/80001/${
-      process.env.E2E_BICO_PAYMASTER_KEY_MUMBAI || ""
+    paymasterUrl: `https://paymaster.biconomy.io/api/v1/80002/${
+      process.env.E2E_BICO_PAYMASTER_KEY_AMOY || ""
     }`,
     paymasterUrlTwo: `https://paymaster.biconomy.io/api/v1/84532/${
       process.env.E2E_BICO_PAYMASTER_KEY_BASE || ""

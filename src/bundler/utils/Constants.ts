@@ -10,7 +10,7 @@ export const UserOpWaitForTxHashIntervals: { [key in number]?: number } = {
 // Note: Default value is 30000 (30sec)
 export const UserOpReceiptMaxDurationIntervals: { [key in number]?: number } = {
   [1]: 300000,
-  [80001]: 50000,
+  [80002]: 50000,
   [137]: 60000,
   [56]: 50000,
   [97]: 50000,
