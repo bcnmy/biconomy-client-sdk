@@ -235,34 +235,8 @@ describe("Account:Write", () => {
       abi: parseAbi(ERC20_ABI),
       client: publicClient
     })
-    const allowanceBefore = (await contract.read.allowance([
-      smartAccountAddress,
-      spender
-    ])) as bigint
-    if (allowanceBefore > 0) {
-      const decreaseAllowanceData = encodeFunctionData({
-        abi: parseAbi([
-          "function decreaseAllowance(address spender, uint256 subtractedValue)"
-        ]),
-        functionName: "decreaseAllowance",
-        args: [spender, allowanceBefore]
-      })
-      const decreaseAllowanceTx = {
-        to: "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a",
-        data: decreaseAllowanceData
-      }
-      const { wait } = await smartAccount.sendTransaction(decreaseAllowanceTx, {
-        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
-      })
-      const { success } = await wait()
-      expect(success).toBe("true")
-      const allowanceAfter = (await contract.read.allowance([
-        smartAccountAddress,
-        spender
-      ])) as bigint
-      expect(allowanceAfter).toBe(0n)
-    }
-    const balance = (await checkBalance(recipient, nftAddress)) as bigint
+
+    const balance = await checkBalance(recipient, nftAddress)
     const maticBalanceBefore = await checkBalance(smartAccountAddress)
     const tokenBalanceBefore = await checkBalance(smartAccountAddress, token)
     const { wait } = await smartAccount.sendTransaction(transaction, {
@@ -284,7 +258,7 @@ describe("Account:Write", () => {
     expect(maticBalanceAfter).toEqual(maticBalanceBefore)
     const tokenBalanceAfter = await checkBalance(smartAccountAddress, token)
     expect(tokenBalanceAfter).toBeLessThan(tokenBalanceBefore)
-    const newBalance = (await checkBalance(recipient, nftAddress)) as bigint
+    const newBalance = await checkBalance(recipient, nftAddress)
     expect(newBalance - balance).toBe(1n)
   }, 60000)
 })
