@@ -3,6 +3,9 @@ on:
   workflow_dispatch:
   pull_request_review:
     types: [submitted]
+  push:
+    branches:
+      - feature/shrink_package_size
 jobs:
   test-bundler:
     name: test-bundler
