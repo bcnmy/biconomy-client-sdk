@@ -19,7 +19,7 @@ jobs:
         uses: ./.github/actions/install-dependencies
 
       - name: Run the tests
-        run: bun run test:ci
+        run: bun run test:coverage
         env:
           E2E_PRIVATE_KEY_ONE: ${{ secrets.E2E_PRIVATE_KEY_ONE }}
           E2E_PRIVATE_KEY_TWO: ${{ secrets.E2E_PRIVATE_KEY_TWO }}
