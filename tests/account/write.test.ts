@@ -187,7 +187,7 @@ describe("Account:Write", () => {
       data: encodedCall
     }
     const balance = await checkBalance(recipient, nftAddress)
-    const maticBalanceBefore = await checkBalance(smartAccountAddress)
+    const nativeBalanceBefore = await checkBalance(smartAccountAddress)
     const tokenBalanceBefore = await checkBalance(smartAccountAddress, token)
     const { wait } = await smartAccount.sendTransaction([transaction], {
       paymasterServiceData: {
@@ -203,8 +203,8 @@ describe("Account:Write", () => {
     expect(transactionHash).toBeTruthy()
     expect(userOpHash).toBeTruthy()
     expect(success).toBe("true")
-    const maticBalanceAfter = await checkBalance(smartAccountAddress)
-    expect(maticBalanceAfter).toEqual(maticBalanceBefore)
+    const nativeBalanceAfter = await checkBalance(smartAccountAddress)
+    expect(nativeBalanceAfter).toEqual(nativeBalanceBefore)
     const tokenBalanceAfter = await checkBalance(smartAccountAddress, token)
     expect(tokenBalanceAfter).toBeLessThan(tokenBalanceBefore)
     const newBalance = await checkBalance(recipient, nftAddress)
@@ -237,7 +237,7 @@ describe("Account:Write", () => {
     })
 
     const balance = await checkBalance(recipient, nftAddress)
-    const maticBalanceBefore = await checkBalance(smartAccountAddress)
+    const nativeBalanceBefore = await checkBalance(smartAccountAddress)
     const tokenBalanceBefore = await checkBalance(smartAccountAddress, token)
     const { wait } = await smartAccount.sendTransaction(transaction, {
       paymasterServiceData: {
@@ -254,8 +254,8 @@ describe("Account:Write", () => {
     expect(userOpHash).toBeTruthy()
     expect(success).toBe("true")
     expect(transactionHash).toBeTruthy()
-    const maticBalanceAfter = await checkBalance(smartAccountAddress)
-    expect(maticBalanceAfter).toEqual(maticBalanceBefore)
+    const nativeBalanceAfter = await checkBalance(smartAccountAddress)
+    expect(nativeBalanceAfter).toEqual(nativeBalanceBefore)
     const tokenBalanceAfter = await checkBalance(smartAccountAddress, token)
     expect(tokenBalanceAfter).toBeLessThan(tokenBalanceBefore)
     const newBalance = await checkBalance(recipient, nftAddress)
