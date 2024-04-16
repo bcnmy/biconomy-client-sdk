@@ -1,5 +1,11 @@
 # @biconomy-devx/account
 
+## 4.2.8
+
+### Patch Changes
+
+- Updated tooling
+
 ## 4.2.7
 
 ### Patch Changes
