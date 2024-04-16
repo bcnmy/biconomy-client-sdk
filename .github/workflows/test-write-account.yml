@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-test-write
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v3
 
@@ -20,7 +21,7 @@ jobs:
         uses: ./.github/actions/install-dependencies
 
       - name: Run the tests
-        run: bun run test -t=Account:Write
+        run: bun run test:ci -t=Account:Write
         env:
           E2E_PRIVATE_KEY_ONE: ${{ secrets.E2E_PRIVATE_KEY_ONE }}
           E2E_PRIVATE_KEY_TWO: ${{ secrets.E2E_PRIVATE_KEY_TWO }}

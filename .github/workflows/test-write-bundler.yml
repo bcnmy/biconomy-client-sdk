@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-test-write
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v3
 
