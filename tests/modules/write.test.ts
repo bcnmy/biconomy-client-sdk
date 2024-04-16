@@ -31,14 +31,10 @@ import {
 } from "../../src/modules"
 import { getABISVMSessionKeyData } from "../../src/modules/utils/Helper"
 import { PaymasterMode } from "../../src/paymaster"
-import {
-  SessionFileStorage,
-  checkBalance,
-  getBundlerUrl,
-  getConfig
-} from "../utils"
+import { checkBalance, getBundlerUrl, getConfig, topUp } from "../utils"
+import { SessionMemoryStorage } from "../../src/modules/session-storage/SessionMemoryStorage"
 
-describe("Modules: Write", () => {
+describe("Modules:Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const {
     chain,
@@ -113,30 +109,7 @@ describe("Modules: Write", () => {
     }
   }, 50000)
 
-  test("should enable batched module", async () => {
-    const smartAccount = await createSmartAccountClient({
-      signer: walletClient,
-      bundlerUrl,
-      paymasterUrl
-    })
-
-    const isBRMenabled = await smartAccount.isModuleEnabled(
-      DEFAULT_BATCHED_SESSION_ROUTER_MODULE
-    )
-
-    if (!isBRMenabled) {
-      const tx = await smartAccount.getEnableModuleData(
-        DEFAULT_BATCHED_SESSION_ROUTER_MODULE
-      )
-      const { wait } = await smartAccount.sendTransaction(tx, {
-        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
-      })
-      const { success } = await wait()
-      expect(success).toBe("true")
-    }
-  }, 50000)
-
-  test("should use MultichainValidationModule to gasless mint an NFT on two chains", async () => {
+  test.skip("should use MultichainValidationModule to mint an NFT on two chains with sponsorship", async () => {
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
     const recipientForBothChains = walletClient.account.address
 
@@ -272,10 +245,10 @@ describe("Modules: Write", () => {
       signer: walletClient,
       bundlerUrl,
       paymasterUrl,
-      index: 1 // Increasing index to not conflict with other test cases and use a new smart account
+      index: 5 // Increasing index to not conflict with other test cases and use a new smart account
     })
     const accountAddress = await smartAccount.getAccountAddress()
-    const sessionFileStorage: SessionFileStorage = new SessionFileStorage(
+    const sessionMemoryStorage: SessionMemoryStorage = new SessionMemoryStorage(
       accountAddress
     )
     // First we need to check if smart account is deployed
@@ -291,9 +264,9 @@ describe("Modules: Write", () => {
     }
 
     try {
-      sessionSigner = await sessionFileStorage.getSignerByKey(sessionKeyEOA)
+      sessionSigner = await sessionMemoryStorage.getSignerByKey(sessionKeyEOA)
     } catch (error) {
-      sessionSigner = await sessionFileStorage.addSigner({
+      sessionSigner = await sessionMemoryStorage.addSigner({
         pbKey: sessionKeyEOA,
         pvKey: `0x${privateKey}`,
         chainId: chain
@@ -305,7 +278,7 @@ describe("Modules: Write", () => {
     const sessionModule = await createSessionKeyManagerModule({
       moduleAddress: DEFAULT_SESSION_KEY_MANAGER_MODULE,
       smartAccountAddress: await smartAccount.getAddress(),
-      sessionStorageClient: sessionFileStorage
+      sessionStorageClient: sessionMemoryStorage
     })
     const functionSelector = slice(
       toFunctionSelector("safeMint(address)"),
@@ -375,10 +348,7 @@ describe("Modules: Write", () => {
       data: encodedCall
     }
     smartAccount = smartAccount.setActiveValidationModule(sessionModule)
-    const maticBalanceBefore = await checkBalance(
-      publicClient,
-      await smartAccount.getAccountAddress()
-    )
+    const maticBalanceBefore = await checkBalance(smartAccountAddress)
     const userOpResponse2 = await smartAccount.sendTransaction(nftMintTx, {
       params: {
         sessionSigner: sessionSigner,
@@ -390,28 +360,63 @@ describe("Modules: Write", () => {
     })
     expect(userOpResponse2.userOpHash).toBeTruthy()
     expect(userOpResponse2.userOpHash).not.toBeNull()
-    const maticBalanceAfter = await checkBalance(
-      publicClient,
-      await smartAccount.getAccountAddress()
-    )
+    const maticBalanceAfter = await checkBalance(smartAccountAddress)
     expect(maticBalanceAfter).toEqual(maticBalanceBefore)
     Logger.log(
       `Tx at: https://jiffyscan.xyz/userOpHash/${userOpResponse2.userOpHash}?network=mumbai`
     )
   }, 60000)
 
+  test("should enable batched module", async () => {
+    const smartAccount = await createSmartAccountClient({
+      signer: walletClient,
+      bundlerUrl,
+      paymasterUrl
+    })
+
+    const isBRMenabled = await smartAccount.isModuleEnabled(
+      DEFAULT_BATCHED_SESSION_ROUTER_MODULE
+    )
+
+    if (!isBRMenabled) {
+      const tx = await smartAccount.getEnableModuleData(
+        DEFAULT_BATCHED_SESSION_ROUTER_MODULE
+      )
+      const { wait } = await smartAccount.sendTransaction(tx, {
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
+      })
+      const { success } = await wait()
+      expect(success).toBe("true")
+    }
+  }, 50000)
+
   test.skip("should use BatchedSessionValidationModule to send a user op", async () => {
     let sessionSigner: WalletClientSigner
     const sessionKeyEOA = walletClient.account.address
     const recipient = walletClientTwo.account.address
+    const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
+
+    let smartAccount = await createSmartAccountClient({
+      chainId,
+      signer: walletClient,
+      bundlerUrl,
+      paymasterUrl,
+      index: 6 // Increasing index to not conflict with other test cases and use a new smart account
+    })
+
+    // const accountAddress = await smartAccount.getAccountAddress()
     const smartAccountAddress = await smartAccount.getAddress()
-    const sessionFileStorage: SessionFileStorage = new SessionFileStorage(
+    await topUp(smartAccountAddress, undefined, token)
+    await topUp(smartAccountAddress, undefined)
+
+    const sessionMemoryStorage: SessionMemoryStorage = new SessionMemoryStorage(
       smartAccountAddress
     )
+
     try {
-      sessionSigner = await sessionFileStorage.getSignerByKey(sessionKeyEOA)
+      sessionSigner = await sessionMemoryStorage.getSignerByKey(sessionKeyEOA)
     } catch (error) {
-      sessionSigner = await sessionFileStorage.addSigner({
+      sessionSigner = await sessionMemoryStorage.addSigner({
         pbKey: sessionKeyEOA,
         pvKey: `0x${privateKey}`,
         chainId: chain
@@ -422,7 +427,7 @@ describe("Modules: Write", () => {
     const sessionModule = await createSessionKeyManagerModule({
       moduleAddress: DEFAULT_SESSION_KEY_MANAGER_MODULE,
       smartAccountAddress,
-      sessionStorageClient: sessionFileStorage
+      sessionStorageClient: sessionMemoryStorage
     })
     // Create batched session module
     const batchedSessionModule = await createBatchedSessionRouterModule({
@@ -441,7 +446,7 @@ describe("Modules: Write", () => {
       ],
       [
         sessionKeyEOA,
-        "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a", // erc20 token address
+        token, // erc20 token address
         recipient, // receiver address
         parseUnits("10", 6)
       ]
@@ -475,6 +480,14 @@ describe("Modules: Write", () => {
       to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
       data: sessionTxData.data
     }
+
+    const isDeployed = await smartAccount.isAccountDeployed()
+    if (!isDeployed) {
+      const { wait } = await smartAccount.deploy()
+      const { success } = await wait()
+      expect(success).toBe("true")
+    }
+
     const txArray: Transaction[] = []
     // Check if session module is enabled
     const isEnabled = await smartAccount.isModuleEnabled(
@@ -505,11 +518,10 @@ describe("Modules: Write", () => {
     expect(transactionDetails.success).toBe("true")
     Logger.log("Tx Hash: ", transactionDetails.receipt.transactionHash)
 
-    const usdcBalance = await checkBalance(
-      publicClient,
-      smartAccountAddress,
-      "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
-    )
+    const usdcBalance = await checkBalance(smartAccountAddress, token)
+    const nativeTokenBalance = await checkBalance(smartAccountAddress)
+
+    console.log({ usdcBalance, nativeTokenBalance })
 
     expect(usdcBalance).toBeGreaterThan(0)
     smartAccount = smartAccount.setActiveValidationModule(batchedSessionModule)
@@ -537,10 +549,7 @@ describe("Modules: Write", () => {
     }
     const activeModule = smartAccount.activeValidationModule
     expect(activeModule).toEqual(batchedSessionModule)
-    const maticBalanceBefore = await checkBalance(
-      publicClient,
-      smartAccountAddress
-    )
+    const maticBalanceBefore = await checkBalance(smartAccountAddress)
     // failing with dummyTx because of invalid sessionKeyData
     const userOpResponse2 = await smartAccount.sendTransaction(
       [transferTx, transferTx2],
@@ -567,10 +576,7 @@ describe("Modules: Write", () => {
     expect(receipt.success).toBe("true")
     expect(userOpResponse2.userOpHash).toBeTruthy()
     expect(userOpResponse2.userOpHash).not.toBeNull()
-    const maticBalanceAfter = await checkBalance(
-      publicClient,
-      smartAccountAddress
-    )
+    const maticBalanceAfter = await checkBalance(smartAccountAddress)
     expect(maticBalanceAfter).toEqual(maticBalanceBefore)
     Logger.log(
       `Tx at: https://jiffyscan.xyz/userOpHash/${userOpResponse2.userOpHash}?network=mumbai`

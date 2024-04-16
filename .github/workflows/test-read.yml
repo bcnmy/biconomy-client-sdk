@@ -1,12 +1,11 @@
-name: coverage
+name: test:read
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
 jobs:
-  coverage:
-    name: coverage
+  test-read:
+    name: test-read
     permissions: write-all
     runs-on: ubuntu-latest
     concurrency:
@@ -19,7 +18,7 @@ jobs:
         uses: ./.github/actions/install-dependencies
 
       - name: Run the tests
-        run: bun run test:ci
+        run: bun run test:readOnly
         env:
           E2E_PRIVATE_KEY_ONE: ${{ secrets.E2E_PRIVATE_KEY_ONE }}
           E2E_PRIVATE_KEY_TWO: ${{ secrets.E2E_PRIVATE_KEY_TWO }}
@@ -27,18 +26,3 @@ jobs:
           E2E_BICO_PAYMASTER_KEY_BASE: ${{ secrets.E2E_BICO_PAYMASTER_KEY_BASE }}
           E2E_BICO_PAYMASTER_KEY_AMOY: ${{ secrets.E2E_BICO_PAYMASTER_KEY_AMOY }}
           CHAIN_ID: 80002
-
-      - name: report coverage
-        uses: davelosert/vitest-coverage-report-action@v2
-        with:
-          json-summary-path: ./coverage/coverage-summary.json
-          json-final-path: "./coverage/coverage-final.json"
-          vite-config-path: ./tests/vitest.config.ts
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4.0.1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          verbose: true
-          slug: bcnmy/biconomy-client-sdk

@@ -15,9 +15,9 @@ import {
 } from "../../src/account"
 import { PaymasterMode } from "../../src/paymaster"
 import { testOnlyOnOptimism } from "../setupFiles"
-import { checkBalance, getConfig } from "../utils"
+import { checkBalance, getConfig, nonZeroBalance, topUp } from "../utils"
 
-describe("Paymaster: Write", () => {
+describe("Paymaster:Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const {
     chain,
@@ -69,7 +69,9 @@ describe("Paymaster: Write", () => {
     )
   })
 
-  test("should gaslessly mint an NFT", async () => {
+  test("should mint an NFT with sponsorship", async () => {
+    await nonZeroBalance(smartAccountAddress)
+
     const encodedCall = encodeFunctionData({
       abi: parseAbi(["function safeMint(address to) public"]),
       functionName: "safeMint",
@@ -81,16 +83,8 @@ describe("Paymaster: Write", () => {
       data: encodedCall
     }
 
-    const balance = (await checkBalance(
-      publicClient,
-      recipient,
-      nftAddress
-    )) as bigint
-
-    const maticBalanceBefore = await checkBalance(
-      publicClient,
-      await smartAccount.getAddress()
-    )
+    const balance = await checkBalance(recipient, nftAddress)
+    const maticBalanceBefore = await checkBalance(smartAccountAddress)
 
     const response = await smartAccount.sendTransaction(transaction, {
       paymasterServiceData: { mode: PaymasterMode.SPONSORED },
@@ -101,18 +95,11 @@ describe("Paymaster: Write", () => {
     expect(userOpReceipt.userOpHash).toBeTruthy()
     expect(userOpReceipt.success).toBe("true")
 
-    const maticBalanceAfter = await checkBalance(
-      publicClient,
-      await smartAccount.getAddress()
-    )
+    const maticBalanceAfter = await checkBalance(smartAccountAddress)
 
     expect(maticBalanceAfter).toEqual(maticBalanceBefore)
 
-    const newBalance = (await checkBalance(
-      publicClient,
-      recipient,
-      nftAddress
-    )) as bigint
+    const newBalance = (await checkBalance(recipient, nftAddress)) as bigint
 
     expect(newBalance - balance).toBe(1n)
   }, 60000)
@@ -151,25 +138,18 @@ describe("Paymaster: Write", () => {
     expect(byteCode).toBeTruthy()
   }, 60000)
 
-  test.skip("should gaslessly withdraw nativeToken", async () => {
-    const smartAccountOwner = walletClient.account.address
+  test("should withdraw nativeToken with sponsorship", async () => {
+    await nonZeroBalance(smartAccountAddress)
 
-    const smartAccountAddress = await smartAccount.getAddress()
-    const balanceOfSABefore = (await checkBalance(
-      publicClient,
-      smartAccountAddress
-    )) as bigint
-    const balanceOfRecipientBefore = (await checkBalance(
-      publicClient,
-      smartAccountOwner
-    )) as bigint
+    const balanceOfSABefore = await checkBalance(smartAccountAddress)
+    const balanceOfRecipientBefore = await checkBalance(sender)
 
     const { wait } = await smartAccount.withdraw(
       [
         {
           address: NATIVE_TOKEN_ALIAS,
           amount: BigInt(1),
-          recipient: smartAccountAddress
+          recipient: sender
         }
       ],
       null,
@@ -188,21 +168,15 @@ describe("Paymaster: Write", () => {
     expect(success).toBe("true")
     expect(transactionHash).toBeTruthy()
 
-    const balanceOfSAAfter = (await checkBalance(
-      publicClient,
-      smartAccountAddress
-    )) as bigint
-    const balanceOfRecipientAfter = (await checkBalance(
-      publicClient,
-      smartAccountOwner
-    )) as bigint
+    const balanceOfSAAfter = await checkBalance(smartAccountAddress)
+    const balanceOfRecipientAfter = await checkBalance(sender)
 
     expect(balanceOfSABefore - balanceOfSAAfter).toBe(1n)
     expect(balanceOfRecipientAfter - balanceOfRecipientBefore).toBe(1n)
   }, 25000)
 
   testOnlyOnOptimism(
-    "should gaslessly mint an NFT on optimism",
+    "should mint an NFT on optimism with sponsorship",
     async () => {
       const encodedCall = encodeFunctionData({
         abi: parseAbi(["function safeMint(address to) public"]),
@@ -215,16 +189,9 @@ describe("Paymaster: Write", () => {
         data: encodedCall
       }
 
-      const balance = (await checkBalance(
-        publicClient,
-        recipient,
-        nftAddress
-      )) as bigint
+      const balance = await checkBalance(recipient, nftAddress)
 
-      const maticBalanceBefore = await checkBalance(
-        publicClient,
-        await smartAccount.getAddress()
-      )
+      const maticBalanceBefore = await checkBalance(smartAccountAddress)
 
       const response = await smartAccount.sendTransaction(transaction, {
         paymasterServiceData: { mode: PaymasterMode.SPONSORED },
@@ -235,18 +202,9 @@ describe("Paymaster: Write", () => {
       expect(userOpReceipt.userOpHash).toBeTruthy()
       expect(userOpReceipt.success).toBe("true")
 
-      const maticBalanceAfter = await checkBalance(
-        publicClient,
-        await smartAccount.getAddress()
-      )
-
+      const maticBalanceAfter = await checkBalance(smartAccountAddress)
       expect(maticBalanceAfter).toEqual(maticBalanceBefore)
-
-      const newBalance = (await checkBalance(
-        publicClient,
-        recipient,
-        nftAddress
-      )) as bigint
+      const newBalance = (await checkBalance(recipient, nftAddress)) as bigint
 
       expect(newBalance - balance).toBe(1n)
     },
@@ -255,34 +213,24 @@ describe("Paymaster: Write", () => {
 
   test("should withdraw nativeToken and an erc20 token", async () => {
     const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
-    const smartAccountOwner = walletClient.account.address
 
-    const smartAccountAddress = await smartAccount.getAddress()
-    const balanceOfSABefore = (await checkBalance(
-      publicClient,
-      smartAccountAddress
-    )) as bigint
-    const balanceOfRecipientBefore = (await checkBalance(
-      publicClient,
-      smartAccountOwner
-    )) as bigint
+    await nonZeroBalance(smartAccountAddress, token)
+    await nonZeroBalance(smartAccountAddress)
+
+    const balanceOfSABefore = await checkBalance(smartAccountAddress)
+    const balanceOfRecipientBefore = await checkBalance(sender)
     const tokenBalanceOfSABefore = await checkBalance(
-      publicClient,
       smartAccountAddress,
       token
     )
-    const tokenBalanceOfRecipientBefore = await checkBalance(
-      publicClient,
-      smartAccountOwner,
-      token
-    )
+    const tokenBalanceOfRecipientBefore = await checkBalance(sender, token)
 
     const { wait } = await smartAccount.withdraw(
       [
         { address: token, amount: BigInt(1) },
         { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) }
       ],
-      smartAccountOwner,
+      sender,
       {
         paymasterServiceData: { mode: PaymasterMode.SPONSORED }
       }
@@ -298,24 +246,10 @@ describe("Paymaster: Write", () => {
     expect(success).toBe("true")
     expect(transactionHash).toBeTruthy()
 
-    const balanceOfSAAfter = (await checkBalance(
-      publicClient,
-      smartAccountAddress
-    )) as bigint
-    const balanceOfRecipientAfter = (await checkBalance(
-      publicClient,
-      smartAccountOwner
-    )) as bigint
-    const tokenBalanceOfSAAfter = (await checkBalance(
-      publicClient,
-      smartAccountAddress,
-      token
-    )) as bigint
-    const tokenBalanceOfRecipientAfter = (await checkBalance(
-      publicClient,
-      smartAccountOwner,
-      token
-    )) as bigint
+    const balanceOfSAAfter = await checkBalance(smartAccountAddress)
+    const balanceOfRecipientAfter = await checkBalance(sender)
+    const tokenBalanceOfSAAfter = await checkBalance(smartAccountAddress, token)
+    const tokenBalanceOfRecipientAfter = await checkBalance(sender, token)
 
     expect(balanceOfSABefore - balanceOfSAAfter).toBe(1n)
     expect(balanceOfRecipientAfter - balanceOfRecipientBefore).toBe(1n)
@@ -327,20 +261,13 @@ describe("Paymaster: Write", () => {
   }, 60000)
 
   test("should withdraw all native token", async () => {
-    const smartAccountOwner = walletClient.account.address
-    const smartAccountAddress = await smartAccount.getAddress()
-    const balanceOfSABefore = (await checkBalance(
-      publicClient,
-      smartAccountAddress
-    )) as bigint
-    const balanceOfRecipientBefore = (await checkBalance(
-      publicClient,
-      smartAccountOwner
-    )) as bigint
+    await nonZeroBalance(smartAccountAddress)
+    const balanceOfSABefore = await checkBalance(smartAccountAddress)
+    const balanceOfRecipientBefore = await checkBalance(sender)
 
     const { wait } = await smartAccount.withdraw(
       [] /* null or undefined or [] */,
-      smartAccountOwner,
+      sender,
       {
         paymasterServiceData: { mode: PaymasterMode.SPONSORED } // Will leave no dust
       }
@@ -356,14 +283,8 @@ describe("Paymaster: Write", () => {
     expect(success).toBe("true")
     expect(transactionHash).toBeTruthy()
 
-    const balanceOfSAAfter = (await checkBalance(
-      publicClient,
-      smartAccountAddress
-    )) as bigint
-    const balanceOfRecipientAfter = (await checkBalance(
-      publicClient,
-      smartAccountOwner
-    )) as bigint
+    const balanceOfSAAfter = await checkBalance(smartAccountAddress)
+    const balanceOfRecipientAfter = await checkBalance(sender)
 
     expect(balanceOfSAAfter).toBe(0n)
     expect(balanceOfRecipientAfter).toBe(

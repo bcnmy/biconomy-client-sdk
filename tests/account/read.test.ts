@@ -357,6 +357,14 @@ describe("Account: Read", () => {
       recipient,
       smartAccountTwo.getAddress()
     ])
+    /*
+     * addresses: [
+     * '0xFA66E705cf2582cF56528386Bb9dFCA119767262', // sender
+     * '0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC', // smartAccountSender
+     * '0x3079B249DFDE4692D7844aA261f8cf7D927A0DA5', // recipient
+     * '0x5F141ee1390D4c9d033a00CB940E509A4811a5E0' // smartAccountRecipient
+     * ]
+     */
     expect(addresses.every(Boolean)).toBeTruthy()
   })
 
@@ -604,24 +612,19 @@ describe("Account: Read", () => {
 
   test.concurrent("should fetch balances for smartAccount", async () => {
     const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
-    const usdcBalanceBefore = await checkBalance(
-      publicClient,
-      await smartAccount.getAddress(),
-      token
-    )
+    const tokenBalanceBefore = await checkBalance(smartAccountAddress, token)
     const [tokenBalanceFromSmartAccount] = await smartAccount.getBalances([
       token
     ])
 
-    expect(usdcBalanceBefore).toBe(tokenBalanceFromSmartAccount.amount)
+    expect(tokenBalanceBefore).toBe(tokenBalanceFromSmartAccount.amount)
   })
 
   test.concurrent("should error if no recipient exists", async () => {
     const token: Hex = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
-    const smartAccountOwner = walletClient.account.address
 
     const txs = [
-      { address: token, amount: BigInt(1), recipient: smartAccountOwner },
+      { address: token, amount: BigInt(1), recipient: sender },
       { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) }
     ]
 
@@ -633,10 +636,9 @@ describe("Account: Read", () => {
   test.concurrent(
     "should error when withdraw all of native token is attempted without an amount explicitly set",
     async () => {
-      const smartAccountOwner = walletClient.account.address
-      expect(async () =>
-        smartAccount.withdraw(null, smartAccountOwner)
-      ).rejects.toThrow(ERROR_MESSAGES.NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT)
+      expect(async () => smartAccount.withdraw(null, sender)).rejects.toThrow(
+        ERROR_MESSAGES.NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT
+      )
     },
     6000
   )

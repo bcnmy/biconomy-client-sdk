@@ -52,7 +52,8 @@ export const getAAError = async (message: string, service?: Service) => {
     const errors = (await (await fetch(ERRORS_URL)).json()) as KnownError[]
     knownErrors.push(...errors)
   }
-  const details =
+
+  const details: string =
     `${service} - ${typeof message}` === "string"
       ? message
       : JSON.stringify(message)

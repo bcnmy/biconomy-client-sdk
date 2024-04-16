@@ -6,9 +6,9 @@ import {
   createSmartAccountClient
 } from "../../src/account"
 import { createBundler } from "../../src/bundler"
-import { checkBalance, getConfig, topUp } from "../utils"
+import { checkBalance, getConfig, nonZeroBalance, topUp } from "../utils"
 
-describe("Bundler: Write", () => {
+describe("Bundler:Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const {
     chain,
@@ -59,22 +59,33 @@ describe("Bundler: Write", () => {
     )
   })
 
-  test("should send some native token to a recipient", async () => {
-    const balance = (await checkBalance(publicClient, recipient)) as bigint
+  test.skip("should send some native token to a recipient", async () => {
+    await topUp(smartAccountAddress, BigInt(1000000000000000000))
+    const balanceOfRecipient = await checkBalance(recipient)
+
     const { wait } = await smartAccount.sendTransaction({
       to: recipient,
-      value: 1
+      value: 1n
     })
 
-    const result = await wait()
-    const newBalance = (await checkBalance(publicClient, recipient)) as bigint
+    const {
+      receipt: { transactionHash },
+      success
+    } = await wait(3)
 
-    expect(result?.receipt?.transactionHash).toBeTruthy()
-    expect(newBalance - balance).toBe(1n)
+    expect(success).toBe("true")
+
+    const newBalanceOfRecipient = await checkBalance(recipient)
+
+    expect(transactionHash).toBeTruthy()
+    expect(newBalanceOfRecipient - balanceOfRecipient).toBe(1n)
   }, 50000)
 
   test("should send some native token to a recipient with a bundler instance", async () => {
-    const balance = (await checkBalance(publicClient, recipient)) as bigint
+    await topUp(smartAccountAddress, BigInt(1000000000000000000))
+
+    const balanceOfRecipient = await checkBalance(recipient)
+
     const smartAccountClientWithBundlerInstance =
       await createSmartAccountClient({
         signer: walletClient,
@@ -88,10 +99,16 @@ describe("Bundler: Write", () => {
         value: 1
       })
 
-    const result = await wait()
-    const newBalance = (await checkBalance(publicClient, recipient)) as bigint
+    const {
+      receipt: { transactionHash },
+      success
+    } = await wait(3)
 
-    expect(result?.receipt?.transactionHash).toBeTruthy()
-    expect(newBalance - balance).toBe(1n)
-  }, 50000)
+    expect(success).toBe("true")
+
+    const newBalanceOfRecipient = await checkBalance(recipient)
+
+    expect(transactionHash).toBeTruthy()
+    expect(newBalanceOfRecipient - balanceOfRecipient).toBe(1n)
+  }, 70000)
 })

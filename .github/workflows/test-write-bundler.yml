@@ -1,14 +1,15 @@
-name: test
+name: test-bundler
 on:
-  pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+  workflow_dispatch:
+  pull_request_review:
+    types: [submitted]
 jobs:
-  test:
-    name: test
+  test-bundler:
+    name: test-bundler
     permissions: write-all
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
+      group: ${{ github.workflow }}-${{ github.ref }}-test-write
     steps:
       - uses: actions/checkout@v3
 
@@ -16,7 +17,7 @@ jobs:
         uses: ./.github/actions/install-dependencies
 
       - name: Run the tests
-        run: bun run test
+        run: bun run test -t=Bundler:Write
         env:
           E2E_PRIVATE_KEY_ONE: ${{ secrets.E2E_PRIVATE_KEY_ONE }}
           E2E_PRIVATE_KEY_TWO: ${{ secrets.E2E_PRIVATE_KEY_TWO }}
