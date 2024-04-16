@@ -1,10 +1,10 @@
 import {
   http,
+  type Hex,
   createPublicClient,
   createWalletClient,
   encodeFunctionData,
-  parseAbi,
-  type Hex
+  parseAbi
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"

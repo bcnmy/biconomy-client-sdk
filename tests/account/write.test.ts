@@ -1,22 +1,22 @@
 import {
   http,
+  type Hex,
   createPublicClient,
   createWalletClient,
-  type Hex,
   encodeFunctionData,
-  parseAbi,
-  getContract
+  getContract,
+  parseAbi
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
-  createSmartAccountClient,
-  ERC20_ABI
+  ERC20_ABI,
+  createSmartAccountClient
 } from "../../src/account"
+import { PaymasterMode } from "../../src/paymaster"
 import { testOnlyOnOptimism } from "../setupFiles"
 import { checkBalance, getConfig, nonZeroBalance, topUp } from "../utils"
-import { PaymasterMode } from "../../src/paymaster"
 
 describe("Account:Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"

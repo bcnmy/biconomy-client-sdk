@@ -29,10 +29,10 @@ import {
   createMultiChainValidationModule,
   createSessionKeyManagerModule
 } from "../../src/modules"
+import { SessionMemoryStorage } from "../../src/modules/session-storage/SessionMemoryStorage"
 import { getABISVMSessionKeyData } from "../../src/modules/utils/Helper"
 import { PaymasterMode } from "../../src/paymaster"
 import { checkBalance, getBundlerUrl, getConfig, topUp } from "../utils"
-import { SessionMemoryStorage } from "../../src/modules/session-storage/SessionMemoryStorage"
 
 describe("Modules:Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"

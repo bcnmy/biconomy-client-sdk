@@ -1,4 +1,4 @@
-import { http, type Hex, createWalletClient, toHex } from "viem"
+import { http, type Hex, createWalletClient } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { mainnet } from "viem/chains"
 import { type SmartAccountSigner, WalletClientSigner } from "../../account"

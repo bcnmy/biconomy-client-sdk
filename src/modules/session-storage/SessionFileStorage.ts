@@ -1,11 +1,11 @@
-import { type Hex, createWalletClient, http } from "viem"
+import { http, type Hex, createWalletClient } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { polygonMumbai } from "viem/chains"
 import {
   Logger,
+  type SmartAccountSigner,
   WalletClientSigner,
-  getChain,
-  type SmartAccountSigner
+  getChain
 } from "../../account"
 import type {
   ISessionStorage,
@@ -105,9 +105,9 @@ export class SessionFileStorage implements ISessionStorage {
     }
   }
 
-  private getStorageKey(type: "sessions" | "signers"): string {
-    return `${this.smartAccountAddress}_${type}`
-  }
+  // private getStorageKey(type: "sessions" | "signers"): string {
+  //   return `${this.smartAccountAddress}_${type}`
+  // }
 
   private toLowercaseAddress(address: string): Hex {
     return address.toLowerCase() as Hex
