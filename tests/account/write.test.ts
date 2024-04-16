@@ -176,7 +176,7 @@ describe("Account:Write", () => {
     )
   }, 25000)
 
-  test("should mint an NFT on Mumbai and pay with ERC20 - with token", async () => {
+  test("should mint an NFT and pay with ERC20 - with token", async () => {
     const encodedCall = encodeFunctionData({
       abi: parseAbi(["function safeMint(address _to)"]),
       functionName: "safeMint",
@@ -211,7 +211,7 @@ describe("Account:Write", () => {
     expect(newBalance - balance).toBe(1n)
   }, 60000)
 
-  test("should mint an NFT on Mumbai and pay with ERC20 - with token selection and no maxApproval", async () => {
+  test("should mint an NFT and pay with ERC20 - with token selection and no maxApproval", async () => {
     const encodedCall = encodeFunctionData({
       abi: parseAbi(["function safeMint(address _to)"]),
       functionName: "safeMint",
