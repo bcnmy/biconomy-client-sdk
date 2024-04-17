@@ -1,5 +1,5 @@
 name: 🛠 Build & Deployment Issues
-description: Report issues related to building or deploying smart contracts
+description: Report issues
 title: "[BUILD/DEPLOY] "
 labels: ["bug", "help wanted"]
 body:

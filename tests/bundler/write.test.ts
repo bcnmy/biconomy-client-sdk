@@ -89,7 +89,12 @@ describe("Bundler:Write", () => {
     const smartAccountClientWithBundlerInstance =
       await createSmartAccountClient({
         signer: walletClient,
-        bundler: await createBundler({ bundlerUrl }),
+        bundler: await createBundler({
+          bundlerUrl,
+          userOpReceiptMaxDurationIntervals: {
+            [chainId]: 50000
+          }
+        }),
         paymasterUrl
       })
 

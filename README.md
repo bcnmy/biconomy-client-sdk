@@ -9,16 +9,20 @@ The Biconomy SDK is your all-in-one toolkit for building decentralized applicati
 ## 📚 Table of Contents
 
 - [SDK 🚀](#sdk-)
+
   - [📚 Table of Contents](#-table-of-contents)
   - [🛠️ Quickstart](#-quickstart)
+
     - [Prerequisites](#prerequisites)
     - [Installation](#installation)
-  - [🛠️ Essential Scripts](#️-essential-scripts)
-    - [🧪 Run Tests](#-run-tests)
-    - [📊 Coverage Report](#-coverage-report)
-    - [🎨 Lint Code](#-lint-code)
-    - [🖌️ Format Issues](#️-auto-fix-linting-issues)
+
   - [📄 Documentation and Resources](#-documentation-and-resources)
+  - [💼 Examples](#-examples)
+
+    - [🛠️ Initialise a smartAccount](#-initialise-a-smartAccount)
+    - [📨 send some eth with sponsorship](#-send-some-eth-with-sponsorship)
+    - [🔢 send a multi tx and pay gas with a token](#️-send-a-multi-tx-and-pay-gas-with-a-token)
+
   - [License](#license)
   - [Connect with Biconomy 🍊](#connect-with-biconomy-🍊)
 
@@ -66,6 +70,92 @@ For a comprehensive understanding of our project and to contribute effectively, 
 - [**Code of Conduct**](./CODE_OF_CONDUCT.md): Our commitment to fostering an open and welcoming environment.
 - [**Security Policy**](./SECURITY.md): Guidelines for reporting security vulnerabilities.
 - [**Changelog**](./CHANGELOG.md): Stay updated with the changes and versions.
+
+## 💼 Examples
+
+### [Initialise a smartAccount](https://bcnmy.github.io/biconomy-client-sdk/functions/createSmartAccountClient.html)
+
+| Key                                                                                                            | Description                                                                                                                           |
+| -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| [signer](https://bcnmy.github.io/biconomy-client-sdk/packages/account/docs/interfaces/SmartAccountSigner.html) | This signer will be used for signing userOps for any transactions you build. Will accept ethers.JsonRpcSigner as well as a viemWallet |
+| [paymasterUrl](https://dashboard.biconomy.io)                                                                  | You can pass in a paymasterUrl necessary for sponsoring transactions (retrieved from the biconomy dashboard)                          |
+| [bundlerUrl](https://dashboard.biconomy.io)                                                                    | You can pass in a bundlerUrl (retrieved from the biconomy dashboard) for sending transactions                                         |
+
+```typescript
+import { createSmartAccountClient } from "@biconomy/account";
+import { createWalletClient, http, createPublicClient } from "viem";
+import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
+import { mainnet as chain } from "viem/chains";
+
+const account = privateKeyToAccount(generatePrivateKey());
+const signer = createWalletClient({ account, chain, transport: http() });
+
+const smartAccount = await createSmartAccountClient({
+  signer,
+  bundlerUrl,
+  paymasterUrl,
+});
+```
+
+### [Send some eth with sponsorship](https://bcnmy.github.io/biconomy-client-sdk/classes/BiconomySmartAccountV2.html#sendTransaction)
+
+| Key                                                                               | Description                                                    |
+| --------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| [oneOrManyTx](https://bcnmy.github.io/biconomy-client-sdk/types/Transaction.html) | Submit multiple or one transactions                            |
+| [userOpReceipt](https://bcnmy.github.io/biconomy-client-sdk/types/UserOpReceipt)  | Returned information about your tx, receipts, userOpHashes etc |
+
+```typescript
+const oneOrManyTx = { to: "0x...", value: 1 };
+
+const { wait } = await smartAccount.sendTransaction(oneOrManyTx, {
+  mode: PaymasterMode.SPONSORED,
+});
+
+const {
+  receipt: { transactionHash },
+  userOpHash,
+  success,
+} = await wait();
+```
+
+### [Send a multi tx and pay gas with a token](https://bcnmy.github.io/biconomy-client-sdk/classes/BiconomySmartAccountV2.html#getTokenFees)
+
+| Key                                                                                                      | Description                                |
+| -------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| [buildUseropDto](https://bcnmy.github.io/biconomy-client-sdk/types/BuildUserOpOptions.html)              | Options for building a userOp              |
+| [paymasterServiceData](https://bcnmy.github.io/biconomy-client-sdk/types/PaymasterUserOperationDto.html) | PaymasterOptions set in the buildUseropDto |
+
+```typescript
+import { encodeFunctionData, parseAbi } from "viem";
+const preferredToken = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"; // USDC
+
+const tx = {
+  to: nftAddress,
+  data: encodeFunctionData({
+    abi: parseAbi(["function safeMint(address to) public"]),
+    functionName: "safeMint",
+    args: ["0x..."],
+  }),
+};
+
+const buildUseropDto = {
+  paymasterServiceData: {
+    mode: PaymasterMode.ERC20,
+    preferredToken,
+  },
+};
+
+const { wait } = await smartAccount.sendTransaction(
+  [tx, tx] /* Mint twice */,
+  buildUseropDto
+);
+
+const {
+  receipt: { transactionHash },
+  userOpHash,
+  success,
+} = await wait();
+```
 
 ## License
 

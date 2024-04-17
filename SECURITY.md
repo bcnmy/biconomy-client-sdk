@@ -24,7 +24,7 @@ If your findings are eligible for a bounty, we will follow up with you on the pa
 
 ### Scope
 
-The bounty program covers code in the `main` branch of our repository, focusing on Solidity smart contracts. The vulnerability must not have already been addressed or fixed in the `develop` branch.
+The bounty program covers code in the `main` branch of our repository. The vulnerability must not have already been addressed or fixed in the `develop` branch.
 
 ### Eligibility
 
@@ -48,7 +48,7 @@ To be eligible for a bounty, researchers must:
 
 - Known issues listed in the issue tracker or already fixed in the `develop` branch.
 
-- Issues in third-party components unless they directly affect our smart contracts.
+- Issues in third-party components.
 
 ## Legal Notice
 

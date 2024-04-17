@@ -5,12 +5,12 @@ labels: ["security", "triage needed"]
 body:
   - type: markdown
     attributes:
-      value: "Security is our top priority. If you've discovered a potential security issue that is **critical or high** in nature and could affect our deployed contracts, **please do not report it here.** Instead, email us directly at security@biconomy.io for a confidential review. For all other security-related inquiries that do not pose an immediate risk to our deployed contracts, please proceed."
+      value: "Security is our top priority. If you've discovered a potential security issue please proceed."
   - type: checkboxes
     attributes:
       label: Security Level Acknowledgement
       options:
-        - label: "I understand this issue will be public. It is NOT critical or high risk and does not endanger deployed contracts."
+        - label: "I understand this issue will be public. It is NOT critical or high risk and does not endanger deployed contracts. If it is please email: security@biconomy.io"
           required: true
   - type: input
     attributes:

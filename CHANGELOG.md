@@ -1,16 +1,4 @@
-# @biconomy-devx/account
-
-## 4.2.8
-
-### Patch Changes
-
-- Updated tooling
-
-## 4.2.7
-
-### Patch Changes
-
-- Modernise Tooling
+# @biconomy/account
 
 ## 4.1.1 (2023-07-03)
 

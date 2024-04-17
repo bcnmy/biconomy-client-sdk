@@ -20,7 +20,7 @@ body:
     attributes:
       label: Package Version
       description: What version of the SDK are you using?
-      placeholder: 0.1.0
+      placeholder: 4.1.0
     validations:
       required: true
 
