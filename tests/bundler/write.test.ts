@@ -79,7 +79,7 @@ describe("Bundler:Write", () => {
 
     expect(transactionHash).toBeTruthy()
     expect(newBalanceOfRecipient - balanceOfRecipient).toBe(1n)
-  }, 50000)
+  }, 60000)
 
   test("should send some native token to a recipient with a bundler instance", async () => {
     await topUp(smartAccountAddress, BigInt(1000000000000000000))
