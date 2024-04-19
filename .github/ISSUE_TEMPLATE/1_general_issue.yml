@@ -1,0 +1,26 @@
+name: 💡 General Inquiry & Suggestions
+description: Share general questions or suggestions that don't fit other categories
+title: "[GENERAL] "
+labels: ["question", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: "Got a question or suggestion? We're all ears!"
+  - type: textarea
+    attributes:
+      label: Inquiry or Suggestion
+      description: What would you like to share with us?
+      placeholder: "I'm wondering about..."
+    validations:
+      required: false
+  - type: input
+    attributes:
+      label: Relevant Links or References
+      description: Optionally, add any relevant links or references.
+      placeholder: "e.g., https://github.com/example"
+  - type: checkboxes
+    attributes:
+      label: Code of Conduct
+      options:
+        - label: I agree to follow this project's Code of Conduct.
+          required: true

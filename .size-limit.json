@@ -1,0 +1,31 @@
+[
+  {
+    "name": "core (esm)",
+    "path": "./dist/_esm/index.js",
+    "limit": "10 kB",
+    "import": "*"
+  },
+  {
+    "name": "core (cjs)",
+    "path": "./dist/_cjs/index.js",
+    "limit": "25 kB"
+  },
+  {
+    "name": "smartAccount (tree-shaking)",
+    "path": "./dist/_esm/index.js",
+    "limit": "5 kB",
+    "import": "{ createSmartAccountClient }"
+  },
+  {
+    "name": "bundler (tree-shaking)",
+    "path": "./dist/_esm/bundler/index.js",
+    "limit": "5 kB",
+    "import": "{ createBundler }"
+  },
+  {
+    "name": "paymaster (tree-shaking)",
+    "path": "./dist/_esm/paymaster/index.js",
+    "limit": "5 kB",
+    "import": "{ createPaymaster }"
+  }
+]
