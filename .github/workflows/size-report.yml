@@ -25,8 +25,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          bun install buffer
-          bun install --frozen-lockfile --production
+          bun install --frozen-lockfile
 
       - name: Report bundle size
         uses: andresz1/size-limit-action@master

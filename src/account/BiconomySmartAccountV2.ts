@@ -3,6 +3,7 @@ import {
   type GetContractReturnType,
   type Hex,
   type PublicClient,
+  concat,
   concatHex,
   createPublicClient,
   decodeFunctionData,
@@ -16,8 +17,7 @@ import {
   parseAbi,
   parseAbiParameters,
   toBytes,
-  toHex,
-  concat
+  toHex
 } from "viem"
 import type { IBundler } from "../bundler/IBundler.js"
 import {
@@ -739,11 +739,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   async getAccountInitCode(): Promise<Hex> {
     this.isDefaultValidationModuleDefined()
 
-    if(await this.isAccountDeployed()) return "0x";
+    if (await this.isAccountDeployed()) return "0x"
 
     return concatHex([
       this.factoryAddress as Hex,
-      await this.getFactoryData() ?? "0x"
+      (await this.getFactoryData()) ?? "0x"
     ])
   }
 
@@ -1696,24 +1696,22 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     this.isDefaultValidationModuleDefined()
 
-    return (
-      encodeFunctionData({
-        abi: BiconomyFactoryAbi,
-        functionName: "deployCounterFactualAccount",
-        args: [
-          this.defaultValidationModule.getAddress() as Hex,
-          (await this.defaultValidationModule.getInitData()) as Hex,
-          BigInt(this.index)
-        ]
-      })
-    )
+    return encodeFunctionData({
+      abi: BiconomyFactoryAbi,
+      functionName: "deployCounterFactualAccount",
+      args: [
+        this.defaultValidationModule.getAddress() as Hex,
+        (await this.defaultValidationModule.getInitData()) as Hex,
+        BigInt(this.index)
+      ]
+    })
   }
 
   async signMessage(message: string | Uint8Array): Promise<Hex> {
-    let signature: any;
-    this.isActiveValidationModuleDefined();
-    const dataHash = typeof message === "string" ? toBytes(message) : message;
-    signature = await this.activeValidationModule.signMessage(dataHash);
+    let signature: any
+    this.isActiveValidationModuleDefined()
+    const dataHash = typeof message === "string" ? toBytes(message) : message
+    signature = await this.activeValidationModule.signMessage(dataHash)
 
     const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
     if (![27, 28].includes(potentiallyIncorrectV)) {
@@ -1723,28 +1721,35 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     if (signature.slice(0, 2) !== "0x") {
       signature = `0x${signature}`
     }
-    signature = encodeAbiParameters([{ type: "bytes" }, { type: "address" }], [signature as Hex, this.defaultValidationModule.getAddress()]);
+    signature = encodeAbiParameters(
+      [{ type: "bytes" }, { type: "address" }],
+      [signature as Hex, this.defaultValidationModule.getAddress()]
+    )
     if (await this.isAccountDeployed()) {
-      return signature as Hex;
+      return signature as Hex
     } else {
       const abiEncodedMessage = encodeAbiParameters(
         [
           {
             type: "address",
-            name: "create2Factory",
+            name: "create2Factory"
           },
           {
             type: "bytes",
-            name: "factoryCalldata",
+            name: "factoryCalldata"
           },
           {
             type: "bytes",
-            name: "originalERC1271Signature",
-          },
+            name: "originalERC1271Signature"
+          }
         ],
-        [this.getFactoryAddress() ?? "0x", (await this.getFactoryData()) ?? "0x", signature]
-      );
-      return concat([abiEncodedMessage, MAGIC_BYTES]);
+        [
+          this.getFactoryAddress() ?? "0x",
+          (await this.getFactoryData()) ?? "0x",
+          signature
+        ]
+      )
+      return concat([abiEncodedMessage, MAGIC_BYTES])
     }
   }
 
