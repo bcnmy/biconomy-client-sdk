@@ -23,7 +23,8 @@ export class EthersSigner<T extends LightSigner>
     return this.#correctSignature(signature as Hex)
   }
 
-  async signTypedData(_notUsed: any): Promise<Hex> {
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  async signTypedData(_: any): Promise<Hex> {
     throw new Error("signTypedData is not supported for Ethers Signer")
   }
 

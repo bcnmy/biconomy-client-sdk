@@ -3,6 +3,8 @@ on:
   workflow_dispatch:
   pull_request_review:
     types: [submitted]
+  pull_request:
+    types: [opened]
 jobs:
   test-write:
     name: test-write
