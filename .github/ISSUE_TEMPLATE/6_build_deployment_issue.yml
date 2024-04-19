@@ -1,0 +1,33 @@
+name: 🛠 Build & Deployment Issues
+description: Report issues
+title: "[BUILD/DEPLOY] "
+labels: ["bug", "help wanted"]
+body:
+  - type: markdown
+    attributes:
+      value: "Help us identify build or deployment problems to improve our processes."
+  - type: input
+    attributes:
+      label: Issue Summary
+      description: Briefly describe the issue encountered.
+      placeholder: "e.g., Failed to deploy contract due to..."
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Error Logs & Messages
+      description: Provide any error logs or messages seen.
+      placeholder: "Error: Failed to..."
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Environment & Tools
+      description: Mention the tools and environment where the issue occurred.
+      placeholder: "e.g., Truffle v5.3, Rinkeby testnet"
+  - type: checkboxes
+    attributes:
+      label: Code of Conduct
+      options:
+        - label: I agree to follow this project's Code of Conduct.
+          required: true
