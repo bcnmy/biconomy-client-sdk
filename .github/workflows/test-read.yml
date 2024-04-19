@@ -1,4 +1,4 @@
-name: test:read
+name: test-read
 on:
   workflow_dispatch:
   pull_request:

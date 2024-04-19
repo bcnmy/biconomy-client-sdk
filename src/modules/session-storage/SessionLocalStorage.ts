@@ -30,14 +30,13 @@ export class SessionLocalStorage implements ISessionStorage {
       "Either pass sessionId or a combination of sessionPublicKey and sessionValidationModule address."
     )
   }
-
-  private getSessionStore(): any {
+  private getSessionStore() {
     // @ts-ignore: LocalStorage is not available in node
     const data = localStorage.getItem(this.getStorageKey("sessions"))
     return data ? JSON.parse(data) : { merkleRoot: "", leafNodes: [] }
   }
 
-  private getSignerStore(): any {
+  private getSignerStore() {
     // @ts-ignore: LocalStorage is not available in node
     const data = localStorage.getItem(this.getStorageKey("signers"))
     return data ? JSON.parse(data) : {}

@@ -21,8 +21,7 @@ class Logger {
    * warn -  Magenta[time] Yellow[WARN]: Cyan[message]:  [value]
    * error - Magenta[time] Red[ERROR]:   Cyan[message]:  [value]
    */
-  /* eslint-disable  @typescript-eslint/no-explicit-any */
-  static log(message: string, value?: any): void {
+  static log(message: string, value = ""): void {
     const timestamp = new Date().toISOString()
     const logMessage = `\x1b[35m[${timestamp}]\x1b[0m \x1b[36m${message}\x1b[0m:`
 
@@ -31,8 +30,7 @@ class Logger {
     }
   }
 
-  /* eslint-disable  @typescript-eslint/no-explicit-any */
-  static warn(message: string, value?: any): void {
+  static warn(message: string, value = ""): void {
     const timestamp = new Date().toISOString()
     const warnMessage = `\x1b[35m[${timestamp}]\x1b[0m \x1b[33mWARN\x1b[0m: \x1b[36m${message}\x1b[0m`
 
@@ -41,8 +39,7 @@ class Logger {
     }
   }
 
-  /* eslint-disable  @typescript-eslint/no-explicit-any */
-  static error(message: string, value?: any): void {
+  static error(message: string, value = ""): void {
     const timestamp = new Date().toISOString()
     const errorMessage = `\x1b[35m[${timestamp}]\x1b[0m \x1b[31mERROR\x1b[0m: \x1b[36m${message}\x1b[0m`
 

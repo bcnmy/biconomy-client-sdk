@@ -215,9 +215,11 @@ describe("Modules:Write", () => {
 
     // Send the signed user ops on both chains
     const userOpResponse1 = await baseAccount.sendSignedUserOp(
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
       returnedOps[0] as any
     )
     const userOpResponse2 = await polygonAccount.sendSignedUserOp(
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
       returnedOps[1] as any
     )
 
@@ -314,6 +316,7 @@ describe("Modules:Write", () => {
       to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
       data: sessionTxData.data
     }
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     const txArray: any = []
     // Check if module is enabled
     const isEnabled = await smartAccount.isModuleEnabled(
@@ -520,8 +523,6 @@ describe("Modules:Write", () => {
 
     const usdcBalance = await checkBalance(smartAccountAddress, token)
     const nativeTokenBalance = await checkBalance(smartAccountAddress)
-
-    console.log({ usdcBalance, nativeTokenBalance })
 
     expect(usdcBalance).toBeGreaterThan(0)
     smartAccount = smartAccount.setActiveValidationModule(batchedSessionModule)

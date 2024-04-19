@@ -12,7 +12,8 @@
       "_esm",
       "_types",
       "bun.lockb",
-      "docs"
+      "docs",
+      "dist"
     ]
   },
   "organizeImports": {

@@ -1,4 +1,4 @@
-import { http, type Chain, createWalletClient } from "viem"
+import { http, type Chain, type Hex, createWalletClient } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
@@ -10,7 +10,7 @@ import {
 import { createBundler } from "../../src/bundler"
 import { getBundlerUrl, getConfig } from "../utils"
 
-describe("Bundler: Read", () => {
+describe("Bundler:Read", () => {
   const {
     chain,
     chainId,

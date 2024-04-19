@@ -716,7 +716,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         (smartAccountInfo: {
           factoryVersion: string
           currentVersion: string
-          deploymentIndex: { toString: () => any }
+          deploymentIndex: { toString: () => string }
         }) =>
           smartAccountInfo.factoryVersion === "v1" &&
           smartAccountInfo.currentVersion === "2.0.0" &&
@@ -883,7 +883,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     if (paymasterServiceData.mode === PaymasterMode.ERC20) {
       if (paymasterServiceData?.feeQuote) {
         const { feeQuote, spender, maxApproval = false } = paymasterServiceData
-        Logger.log("there is a feeQuote: ", feeQuote)
+        Logger.log("there is a feeQuote: ", JSON.stringify(feeQuote, null, 2))
         if (!spender) throw new Error(ERROR_MESSAGES.SPENDER_REQUIRED)
         if (!feeQuote) throw new Error(ERROR_MESSAGES.FAILED_FEE_QUOTE_FETCH)
         if (
@@ -1162,7 +1162,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     ]
     this.validateUserOp(userOp, requiredFields)
     if (!this.bundler) throw new Error("Bundler is not provided")
-    Logger.warn("userOp being sent to the bundler", userOp)
+    Logger.warn(
+      "userOp being sent to the bundler",
+      JSON.stringify(userOp, null, 2)
+    )
     const bundlerResponse = await this.bundler.sendUserOp(
       userOp,
       simulationType
@@ -1494,7 +1497,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       let newCallData = userOp.callData
       Logger.warn(
         "Received information about fee token address and quote ",
-        tokenPaymasterRequest
+        tokenPaymasterRequest.toString()
       )
 
       if (this.paymaster && this.paymaster instanceof Paymaster) {
@@ -1585,7 +1588,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       }
     } catch (error) {
       Logger.log("Failed to update userOp. Sending back original op")
-      Logger.error("Failed to update callData with error", error)
+      Logger.error(
+        "Failed to update callData with error",
+        JSON.stringify(error)
+      )
       return userOp
     }
     return userOp
