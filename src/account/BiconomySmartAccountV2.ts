@@ -16,7 +16,8 @@ import {
   parseAbi,
   parseAbiParameters,
   toBytes,
-  toHex
+  toHex,
+  concat
 } from "viem"
 import type { IBundler } from "../bundler/IBundler.js"
 import {
@@ -62,6 +63,7 @@ import {
   DEFAULT_FALLBACK_HANDLER_ADDRESS,
   ERC20_ABI,
   ERROR_MESSAGES,
+  MAGIC_BYTES,
   NATIVE_TOKEN_ALIAS,
   PROXY_CREATION_CODE
 } from "./utils/Constants.js"
@@ -737,17 +739,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   async getAccountInitCode(): Promise<Hex> {
     this.isDefaultValidationModuleDefined()
 
+    if(await this.isAccountDeployed()) return "0x";
+
     return concatHex([
       this.factoryAddress as Hex,
-      encodeFunctionData({
-        abi: BiconomyFactoryAbi,
-        functionName: "deployCounterFactualAccount",
-        args: [
-          this.defaultValidationModule.getAddress() as Hex,
-          (await this.defaultValidationModule.getInitData()) as Hex,
-          BigInt(this.index)
-        ]
-      })
+      await this.getFactoryData() ?? "0x"
     ])
   }
 
@@ -1689,6 +1685,24 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     )
   }
 
+  async getFactoryData() {
+    if (await this.isAccountDeployed()) return undefined
+
+    this.isDefaultValidationModuleDefined()
+
+    return (
+      encodeFunctionData({
+        abi: BiconomyFactoryAbi,
+        functionName: "deployCounterFactualAccount",
+        args: [
+          this.defaultValidationModule.getAddress() as Hex,
+          (await this.defaultValidationModule.getInitData()) as Hex,
+          BigInt(this.index)
+        ]
+      })
+    )
+  }
+
   async signMessage(message: string | Uint8Array): Promise<Hex> {
     let signature: any;
     this.isActiveValidationModuleDefined();
@@ -1722,13 +1736,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
             name: "originalERC1271Signature",
           },
         ],
-        [
-          this.getFactoryAddress() ?? "0x", // "0x should never happen if it's deployed"
-          (await this.getAccountInitCode()) ?? "0x", // "0x should never happen if it's deployed"
-          signature,
-        ],
+        [this.getFactoryAddress() ?? "0x", (await this.getFactoryData()) ?? "0x", signature]
       );
-
       return concat([abiEncodedMessage, MAGIC_BYTES]);
     }
   }
