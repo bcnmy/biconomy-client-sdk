@@ -652,4 +652,44 @@ describe("Account:Read", () => {
 
     expect(response).toBe(eip1271MagicValue)
   })
+
+  test.concurrent("should verifySignature of deployed", async () => {
+    const smartAccount = await createSmartAccountClient({
+      signer: walletClient,
+      bundlerUrl,
+      index: 1,
+    });
+
+    const message = "hello world";
+
+    const signature = await smartAccount.signMessage(message);
+    
+    const isVerified = await publicClient.verifyMessage({
+      address: await smartAccount.getAddress(),
+      message,
+      signature,
+    });
+
+    expect(isVerified).toBeTruthy();
+  });
+
+  test.concurrent("should verifySignature of not deployed", async () => {
+    const smartAccount = await createSmartAccountClient({
+      signer: walletClient,
+      bundlerUrl,
+      index: 100,
+    });
+
+    const message = "hello world";
+
+    const signature = await smartAccount.signMessage(message);
+    
+    const isVerified = await publicClient.verifyMessage({
+      address: await smartAccount.getAddress(),
+      message,
+      signature,
+    });
+
+    expect(isVerified).toBeTruthy();
+  });
 })
