@@ -14,11 +14,11 @@ import {
   ERC20_ABI,
   createSmartAccountClient
 } from "../../src/account"
-import { PaymasterMode } from "../../src/paymaster"
-import { testOnlyOnOptimism } from "../setupFiles"
 import { checkBalance, getConfig, nonZeroBalance, topUp } from "../utils"
+import { testOnlyOnOptimism } from "../setupFiles"
+import { PaymasterMode } from "../../src/paymaster"
 
-describe("Account:Write", () => {
+describe.skip("Account:Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
   const {

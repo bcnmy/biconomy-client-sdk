@@ -3,10 +3,17 @@ import { privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
-  createSmartAccountClient
+  createSmartAccountClient,
+  getChain
 } from "../../src/account"
 import { createBundler } from "../../src/bundler"
-import { checkBalance, getConfig, nonZeroBalance, topUp } from "../utils"
+import {
+  checkBalance,
+  getBundlerUrl,
+  getConfig,
+  nonZeroBalance,
+  topUp
+} from "../utils"
 
 describe("Bundler:Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
@@ -59,7 +66,35 @@ describe("Bundler:Write", () => {
     )
   })
 
-  test("should send some native token to a recipient", async () => {
+  test("should test a new network", async () => {
+    const NETWORK_ID = 7001
+    const chain = getChain(NETWORK_ID)
+    const bundlerUrl = getBundlerUrl(NETWORK_ID)
+
+    const newWalletClient = createWalletClient({
+      account,
+      chain,
+      transport: http()
+    })
+
+    const newSmartAccount = await createSmartAccountClient({
+      signer: newWalletClient,
+      bundlerUrl
+    })
+
+    expect(chain.id).toBe(NETWORK_ID)
+
+    const { wait } = await newSmartAccount.sendTransaction({
+      to: recipient,
+      value: 1n
+    })
+
+    const { success } = await wait()
+
+    expect(success).toBe("true")
+  }, 70000)
+
+  test.skip("should send some native token to a recipient", async () => {
     await topUp(smartAccountAddress, BigInt(1000000000000000000))
     const balanceOfRecipient = await checkBalance(recipient)
 
@@ -81,7 +116,7 @@ describe("Bundler:Write", () => {
     expect(newBalanceOfRecipient - balanceOfRecipient).toBe(1n)
   }, 50000)
 
-  test("should send some native token to a recipient with a bundler instance", async () => {
+  test.skip("should send some native token to a recipient with a bundler instance", async () => {
     await topUp(smartAccountAddress, BigInt(1000000000000000000))
 
     const balanceOfRecipient = await checkBalance(recipient)

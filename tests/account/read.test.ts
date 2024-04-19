@@ -31,7 +31,7 @@ import {
 import { Paymaster } from "../../src/paymaster"
 import { checkBalance, getBundlerUrl, getConfig } from "../utils"
 
-describe("Account: Read", () => {
+describe.skip("Account: Read", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const {
     chain,

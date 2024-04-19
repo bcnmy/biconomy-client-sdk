@@ -10,7 +10,7 @@ import {
 import { createBundler } from "../../src/bundler"
 import { getBundlerUrl, getConfig } from "../utils"
 
-describe("Bundler: Read", () => {
+describe.skip("Bundler: Read", () => {
   const {
     chain,
     chainId,

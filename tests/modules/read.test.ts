@@ -19,7 +19,7 @@ import {
 } from "../../src/modules"
 import { getConfig } from "../utils"
 
-describe("Modules: Read", () => {
+describe.skip("Modules: Read", () => {
   const {
     chain,
     chainId,

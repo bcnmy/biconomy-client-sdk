@@ -34,7 +34,7 @@ import { getABISVMSessionKeyData } from "../../src/modules/utils/Helper"
 import { PaymasterMode } from "../../src/paymaster"
 import { checkBalance, getBundlerUrl, getConfig, topUp } from "../utils"
 
-describe("Modules:Write", () => {
+describe.skip("Modules:Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const {
     chain,

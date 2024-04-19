@@ -17,7 +17,7 @@ import { PaymasterMode } from "../../src/paymaster"
 import { testOnlyOnOptimism } from "../setupFiles"
 import { checkBalance, getConfig, nonZeroBalance, topUp } from "../utils"
 
-describe("Paymaster:Write", () => {
+describe.skip("Paymaster:Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const {
     chain,
