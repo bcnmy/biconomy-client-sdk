@@ -239,6 +239,7 @@ export type PaymasterUserOperationDto = SponsorUserOperationDto &
     /** Expiry duration in seconds */
     expiryDuration?: number
     /** Webhooks to be fired after user op is sent */
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     webhookData?: Record<string, any>
     /** Smart account meta data */
     smartAccountInfo?: SmartAccountData
@@ -405,6 +406,8 @@ export interface UserOperationStruct {
  * @method signMessage - sign a message
  * @method signTypedData - sign typed data
  */
+
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 export interface SmartAccountSigner<Inner = any> {
   signerType: string
   inner: Inner

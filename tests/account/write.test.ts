@@ -5,15 +5,18 @@ import {
   createWalletClient,
   encodeFunctionData,
   getContract,
-  parseAbi
+  parseAbi,
+  zeroAddress
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
+  DEFAULT_ENTRYPOINT_ADDRESS,
   ERC20_ABI,
   createSmartAccountClient
 } from "../../src/account"
+import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"
 import { PaymasterMode } from "../../src/paymaster"
 import { testOnlyOnOptimism } from "../setupFiles"
 import { checkBalance, getConfig, nonZeroBalance, topUp } from "../utils"
@@ -70,6 +73,57 @@ describe("Account:Write", () => {
       )
     )
   })
+
+  test("should send some native token to recipient via the entrypoint", async () => {
+    const balanceOfRecipient = await checkBalance(recipient)
+
+    // biome-ignore lint/style/useConst: <explanation>
+    let userOp = await smartAccount.buildUserOp([
+      {
+        to: recipient,
+        value: 1n
+      }
+    ])
+
+    userOp.signature = undefined
+
+    const signedUserOp = await smartAccount.signUserOp(userOp)
+
+    const entrypointContract = getContract({
+      address: DEFAULT_ENTRYPOINT_ADDRESS,
+      abi: EntryPointAbi,
+      client: { public: publicClient, wallet: walletClient }
+    })
+
+    const hash = await entrypointContract.write.handleOps([
+      [
+        {
+          sender: signedUserOp.sender as Hex,
+          nonce: BigInt(signedUserOp.nonce ?? 0),
+          callGasLimit: BigInt(signedUserOp.callGasLimit ?? 0),
+          verificationGasLimit: BigInt(signedUserOp.verificationGasLimit ?? 0),
+          preVerificationGas: BigInt(signedUserOp.preVerificationGas ?? 0),
+          maxFeePerGas: BigInt(signedUserOp.maxFeePerGas ?? 0),
+          maxPriorityFeePerGas: BigInt(signedUserOp.maxPriorityFeePerGas ?? 0),
+          initCode: signedUserOp.initCode as Hex,
+          callData: signedUserOp.callData as Hex,
+          paymasterAndData: signedUserOp.paymasterAndData as Hex,
+          signature: signedUserOp.signature as Hex
+        }
+      ],
+      sender
+    ])
+
+    const { status, transactionHash } =
+      await publicClient.waitForTransactionReceipt({ hash })
+
+    expect(status).toBe("success")
+    expect(transactionHash).toBeTruthy()
+
+    const balanceOfRecipientAfter = await checkBalance(recipient)
+
+    expect(balanceOfRecipientAfter - balanceOfRecipient).toBe(1n)
+  }, 50000)
 
   test("should deploy a smart account with native token balance", async () => {
     const newPrivateKey = generatePrivateKey()

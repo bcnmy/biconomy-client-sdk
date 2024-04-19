@@ -19,8 +19,14 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v3
 
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v1
+
       - name: Install dependencies
-        uses: ./.github/actions/install-dependencies
+        shell: bash
+        run: |
+          bun install buffer
+          bun install --frozen-lockfile --production
 
       - name: Report bundle size
         uses: andresz1/size-limit-action@master

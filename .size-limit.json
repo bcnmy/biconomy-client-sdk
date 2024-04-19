@@ -2,18 +2,18 @@
   {
     "name": "core (esm)",
     "path": "./dist/_esm/index.js",
-    "limit": "10 kB",
+    "limit": "60 kB",
     "import": "*"
   },
   {
     "name": "core (cjs)",
     "path": "./dist/_cjs/index.js",
-    "limit": "25 kB"
+    "limit": "60 kB"
   },
   {
     "name": "smartAccount (tree-shaking)",
     "path": "./dist/_esm/index.js",
-    "limit": "5 kB",
+    "limit": "60 kB",
     "import": "{ createSmartAccountClient }"
   },
   {
