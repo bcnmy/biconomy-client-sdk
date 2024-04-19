@@ -657,39 +657,39 @@ describe("Account:Read", () => {
     const smartAccount = await createSmartAccountClient({
       signer: walletClient,
       bundlerUrl,
-      index: 1,
-    });
+      index: 1
+    })
 
-    const message = "hello world";
+    const message = "hello world"
 
-    const signature = await smartAccount.signMessage(message);
-    
+    const signature = await smartAccount.signMessage(message)
+
     const isVerified = await publicClient.verifyMessage({
       address: await smartAccount.getAddress(),
       message,
-      signature,
-    });
+      signature
+    })
 
-    expect(isVerified).toBeTruthy();
-  });
+    expect(isVerified).toBeTruthy()
+  })
 
   test.concurrent("should verifySignature of not deployed", async () => {
     const smartAccount = await createSmartAccountClient({
       signer: walletClient,
       bundlerUrl,
-      index: 100,
-    });
+      index: 100
+    })
 
-    const message = "hello world";
+    const message = "hello world"
 
-    const signature = await smartAccount.signMessage(message);
-    
+    const signature = await smartAccount.signMessage(message)
+
     const isVerified = await publicClient.verifyMessage({
       address: await smartAccount.getAddress(),
       message,
-      signature,
-    });
+      signature
+    })
 
-    expect(isVerified).toBeTruthy();
-  });
+    expect(isVerified).toBeTruthy()
+  })
 })
