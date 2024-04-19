@@ -276,7 +276,7 @@ describe("Account: Read", () => {
     "should read estimated user op gas values",
     async () => {
       const tx = {
-        to: "0x000000D50C68705bd6897B2d17c7de32FB519fDA",
+        to: recipient,
         data: "0x"
       }
 

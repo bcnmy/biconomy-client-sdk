@@ -59,7 +59,7 @@ describe("Bundler:Write", () => {
     )
   })
 
-  test.skip("should send some native token to a recipient", async () => {
+  test("should send some native token to a recipient", async () => {
     await topUp(smartAccountAddress, BigInt(1000000000000000000))
     const balanceOfRecipient = await checkBalance(recipient)
 
