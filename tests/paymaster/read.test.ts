@@ -19,7 +19,7 @@ import {
 } from "../../src/paymaster"
 import { getConfig } from "../utils"
 
-describe.skip("Paymaster: Read", () => {
+describe("Paymaster:Read", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const {
     chain,

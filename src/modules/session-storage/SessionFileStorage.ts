@@ -23,6 +23,7 @@ export class SessionFileStorage implements ISessionStorage {
   }
 
   // This method reads data from the file and returns it in the JSON format
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   private async readDataFromFile(type: "sessions" | "signers"): Promise<any> {
     return new Promise((resolve) => {
       // @ts-ignore
@@ -47,6 +48,7 @@ export class SessionFileStorage implements ISessionStorage {
   }
 
   private async writeDataToFile(
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     data: any,
     type: "sessions" | "signers"
   ): Promise<void> {
@@ -83,8 +85,7 @@ export class SessionFileStorage implements ISessionStorage {
   }
 
   // Session store is in the form of mekrleRoot and leafnodes, each object will have a root and an array of leafNodes.
-  private async getSessionStore(): Promise<any> {
-    // eslint-disable-next-line no-useless-catch
+  private async getSessionStore() {
     try {
       const data = await this.readDataFromFile("sessions")
       return data || { merkleRoot: "", leafNodes: [] }
@@ -94,8 +95,7 @@ export class SessionFileStorage implements ISessionStorage {
     }
   }
 
-  private async getSignerStore(): Promise<any> {
-    // eslint-disable-next-line no-useless-catch
+  private async getSignerStore() {
     try {
       const data = await this.readDataFromFile("signers")
       return data || {}
@@ -141,7 +141,7 @@ export class SessionFileStorage implements ISessionStorage {
   }
 
   async addSessionData(leaf: SessionLeafNode): Promise<void> {
-    Logger.log("Add session Data", leaf)
+    Logger.log("Add session Data")
     const data = await this.getSessionStore()
     leaf.sessionValidationModule = this.toLowercaseAddress(
       leaf.sessionValidationModule
@@ -244,7 +244,7 @@ export class SessionFileStorage implements ISessionStorage {
     param: SessionSearchParam
   ): Promise<WalletClientSigner> {
     const session = await this.getSessionData(param)
-    Logger.log("got session", session)
+    Logger.log("got session")
     const walletClientSinger = await this.getSignerByKey(
       session.sessionPublicKey
     )

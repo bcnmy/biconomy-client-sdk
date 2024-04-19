@@ -22,6 +22,7 @@ import {
   createSmartAccountClient
 } from "../../src/account"
 import { type UserOperationStruct, getChain } from "../../src/account"
+import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"
 import { BiconomyAccountAbi } from "../../src/account/abi/SmartAccount"
 import {
   DEFAULT_ECDSA_OWNERSHIP_MODULE,
@@ -31,7 +32,7 @@ import {
 import { Paymaster } from "../../src/paymaster"
 import { checkBalance, getBundlerUrl, getConfig } from "../utils"
 
-describe("Account: Read", () => {
+describe("Account:Read", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const {
     chain,
@@ -489,58 +490,7 @@ describe("Account: Read", () => {
 
       const epHash = await publicClient.readContract({
         address: DEFAULT_ENTRYPOINT_ADDRESS,
-        abi: [
-          {
-            inputs: [
-              {
-                components: [
-                  { internalType: "address", name: "sender", type: "address" },
-                  { internalType: "uint256", name: "nonce", type: "uint256" },
-                  { internalType: "bytes", name: "initCode", type: "bytes" },
-                  { internalType: "bytes", name: "callData", type: "bytes" },
-                  {
-                    internalType: "uint256",
-                    name: "callGasLimit",
-                    type: "uint256"
-                  },
-                  {
-                    internalType: "uint256",
-                    name: "verificationGasLimit",
-                    type: "uint256"
-                  },
-                  {
-                    internalType: "uint256",
-                    name: "preVerificationGas",
-                    type: "uint256"
-                  },
-                  {
-                    internalType: "uint256",
-                    name: "maxFeePerGas",
-                    type: "uint256"
-                  },
-                  {
-                    internalType: "uint256",
-                    name: "maxPriorityFeePerGas",
-                    type: "uint256"
-                  },
-                  {
-                    internalType: "bytes",
-                    name: "paymasterAndData",
-                    type: "bytes"
-                  },
-                  { internalType: "bytes", name: "signature", type: "bytes" }
-                ],
-                internalType: "struct UserOperation",
-                name: "userOp",
-                type: "tuple"
-              }
-            ],
-            name: "getUserOpHash",
-            outputs: [{ internalType: "bytes32", name: "", type: "bytes32" }],
-            stateMutability: "view",
-            type: "function"
-          }
-        ],
+        abi: EntryPointAbi,
         functionName: "getUserOpHash",
         // @ts-ignore
         args: [userOp]

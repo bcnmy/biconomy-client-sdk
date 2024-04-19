@@ -8,10 +8,10 @@ export enum HttpMethod {
   Delete = "delete"
 }
 
-/* eslint-disable  @typescript-eslint/no-explicit-any */
 export interface HttpRequest {
   url: string
   method: HttpMethod
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   body?: Record<string, any>
 }
 
@@ -28,7 +28,7 @@ export async function sendRequest<T>(
     body: JSON.stringify(body)
   })
 
-  // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   let jsonResponse: any
   try {
     jsonResponse = await response.json()
