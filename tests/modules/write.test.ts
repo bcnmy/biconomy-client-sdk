@@ -524,8 +524,6 @@ describe("Modules:Write", () => {
     const usdcBalance = await checkBalance(smartAccountAddress, token)
     const nativeTokenBalance = await checkBalance(smartAccountAddress)
 
-    console.log({ usdcBalance, nativeTokenBalance })
-
     expect(usdcBalance).toBeGreaterThan(0)
     smartAccount = smartAccount.setActiveValidationModule(batchedSessionModule)
     // WARNING* If the smart account does not have enough USDC, user op execution will FAIL

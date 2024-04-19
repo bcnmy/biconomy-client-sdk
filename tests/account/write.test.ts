@@ -125,7 +125,7 @@ describe("Account:Write", () => {
     expect(balanceOfRecipientAfter - balanceOfRecipient).toBe(1n)
   }, 50000)
 
-  test.skip("should deploy a smart account with native token balance", async () => {
+  test("should deploy a smart account with native token balance", async () => {
     const newPrivateKey = generatePrivateKey()
     const newAccount = privateKeyToAccount(newPrivateKey)
 
@@ -193,7 +193,7 @@ describe("Account:Write", () => {
     }
   )
 
-  test.skip("should withdraw erc20 balances", async () => {
+  test("should withdraw erc20 balances", async () => {
     await nonZeroBalance(smartAccountAddress, token)
 
     const tokenBalanceOfSABefore = await checkBalance(
@@ -230,7 +230,7 @@ describe("Account:Write", () => {
     )
   }, 25000)
 
-  test.skip("should mint an NFT and pay with ERC20 - with token", async () => {
+  test("should mint an NFT and pay with ERC20 - with token", async () => {
     const encodedCall = encodeFunctionData({
       abi: parseAbi(["function safeMint(address _to)"]),
       functionName: "safeMint",
@@ -265,7 +265,7 @@ describe("Account:Write", () => {
     expect(newBalance - balance).toBe(1n)
   }, 60000)
 
-  test.skip("should mint an NFT and pay with ERC20 - with token selection and no maxApproval", async () => {
+  test("should mint an NFT and pay with ERC20 - with token selection and no maxApproval", async () => {
     const encodedCall = encodeFunctionData({
       abi: parseAbi(["function safeMint(address _to)"]),
       functionName: "safeMint",
