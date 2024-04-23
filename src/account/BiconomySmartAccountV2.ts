@@ -908,7 +908,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         return this.getPaymasterAndData(partialUserOp, {
           ...paymasterServiceData,
           feeTokenAddress: feeQuote.tokenAddress,
-          calculateGasLimits: true // Always recommended and especially when using token paymaster
+          calculateGasLimits: paymasterServiceData.calculateGasLimits ?? true // Always recommended and especially when using token paymaster
         })
       }
       if (paymasterServiceData?.preferredToken) {
@@ -1432,21 +1432,63 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       userOp.maxFeePerGas = gasFeeValues?.maxFeePerGas as Hex
       userOp.maxPriorityFeePerGas = gasFeeValues?.maxPriorityFeePerGas as Hex
 
-      userOp = await this.getPaymasterUserOp(
-        userOp,
-        buildUseropDto.paymasterServiceData
-      )
-      return userOp
+      if(buildUseropDto.gasOffset){
+        userOp = await this.estimateUserOpGas(userOp)
+
+        const {verificationGasLimitIncrement, preVerificationGasIncrement, callGasLimitIncrement, maxFeePerGasIncrement, maxPriorityFeePerGasIncrement} = buildUseropDto.gasOffset;
+        userOp.verificationGasLimit = toHex(Number(userOp.verificationGasLimit ?? 0) + Number(verificationGasLimitIncrement ?? 0));
+        userOp.preVerificationGas = toHex(Number(userOp.preVerificationGas ?? 0) + Number(preVerificationGasIncrement ?? 0));
+        userOp.callGasLimit = toHex(Number(userOp.callGasLimit ?? 0) + Number(callGasLimitIncrement ?? 0));
+        userOp.maxFeePerGas = toHex(Number(userOp.maxFeePerGas ?? 0) + Number(maxFeePerGasIncrement ?? 0));
+        userOp.maxPriorityFeePerGas = toHex(Number(userOp.maxPriorityFeePerGas ?? 0) + Number(maxPriorityFeePerGasIncrement ?? 0));
+
+        userOp = await this.getPaymasterUserOp(
+          userOp,
+          {...buildUseropDto.paymasterServiceData, calculateGasLimits: false},
+        )
+  
+        return userOp
+      } else {
+        if(buildUseropDto.paymasterServiceData.calculateGasLimits === false) {
+          userOp = await this.estimateUserOpGas(userOp)
+        }
+
+        userOp = await this.getPaymasterUserOp(
+          userOp,
+          buildUseropDto.paymasterServiceData,
+        )
+
+        return userOp
+      }
     }
+
     userOp = await this.estimateUserOpGas(userOp)
 
-    if (buildUseropDto?.paymasterServiceData) {
-      userOp = await this.getPaymasterUserOp(
-        userOp,
-        buildUseropDto.paymasterServiceData
-      )
+    if(buildUseropDto?.gasOffset){
+      const {verificationGasLimitIncrement, preVerificationGasIncrement, callGasLimitIncrement, maxFeePerGasIncrement, maxPriorityFeePerGasIncrement} = buildUseropDto.gasOffset;
+      userOp.verificationGasLimit = toHex(Number(userOp.verificationGasLimit ?? 0) + Number(verificationGasLimitIncrement ?? 0));
+      userOp.preVerificationGas = toHex(Number(userOp.preVerificationGas ?? 0) + Number(preVerificationGasIncrement ?? 0));
+      userOp.callGasLimit = toHex(Number(userOp.callGasLimit ?? 0) + Number(callGasLimitIncrement ?? 0));
+      userOp.maxFeePerGas = toHex(Number(userOp.maxFeePerGas ?? 0) + Number(maxFeePerGasIncrement ?? 0));
+      userOp.maxPriorityFeePerGas = toHex(Number(userOp.maxPriorityFeePerGas ?? 0) + Number(maxPriorityFeePerGasIncrement ?? 0));
+
+      if (buildUseropDto?.paymasterServiceData) {
+        userOp = await this.getPaymasterUserOp(
+          userOp,
+          {...buildUseropDto.paymasterServiceData, calculateGasLimits: false}
+        )
+      }
+
+      return userOp
+    } else {
+      if (buildUseropDto?.paymasterServiceData) {
+        userOp = await this.getPaymasterUserOp(
+          userOp,
+          buildUseropDto.paymasterServiceData
+        )
+      }
+      return userOp
     }
-    return userOp
   }
 
   private validateUserOpAndPaymasterRequest(

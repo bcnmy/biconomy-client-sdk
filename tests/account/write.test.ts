@@ -3,20 +3,20 @@ import {
   type Hex,
   createPublicClient,
   createWalletClient,
-  encodeFunctionData,
+  parseAbi,
   getContract,
-  parseAbi
+  encodeFunctionData,
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
-  ERC20_ABI,
-  createSmartAccountClient
+  createSmartAccountClient,
+  ERC20_ABI
 } from "../../src/account"
 import { PaymasterMode } from "../../src/paymaster"
-import { testOnlyOnOptimism } from "../setupFiles"
 import { checkBalance, getConfig, nonZeroBalance, topUp } from "../utils"
+import { testOnlyOnOptimism } from "../setupFiles"
 
 describe("Account:Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
@@ -261,4 +261,205 @@ describe("Account:Write", () => {
     const newBalance = await checkBalance(recipient, nftAddress)
     expect(newBalance - balance).toBe(1n)
   }, 60000)
+
+  describe("Account:User Op Gas Offset", () => {
+    test("should increment user op gas with no paymaster using sendTransaction", async () => {
+      const transaction = {
+        to: recipient,
+        data: "0x"
+      }
+
+      const { wait } = await smartAccount.sendTransaction(transaction, {
+        gasOffset: {
+          verificationGasLimitIncrement: 10000,
+          preVerificationGasIncrement: 1000,
+          maxFeePerGasIncrement: 10,
+          callGasLimitIncrement: 1000,
+          maxPriorityFeePerGasIncrement: 10
+        }
+      })
+      const {
+        receipt: { transactionHash },
+        receipt,
+        userOpHash,
+        success
+      } = await wait()  
+
+      expect(userOpHash).toBeTruthy()
+      expect(success).toBe("true")
+      expect(transactionHash).toBeTruthy()
+    }, 60000)
+
+    test("should increment user op gas with ERC20 Paymaster using sendTransaction", async () => {
+      const transaction = {
+        to: recipient, 
+        data: "0x"
+      }
+
+      const { wait } = await smartAccount.sendTransaction(transaction, {
+        paymasterServiceData: {
+          mode: PaymasterMode.ERC20, preferredToken: token
+        },
+        gasOffset: {
+          verificationGasLimitIncrement: 10000,
+        }
+      })
+      const {
+        receipt: { transactionHash },
+        userOpHash,
+        success
+      } = await wait()
+
+      expect(userOpHash).toBeTruthy()
+      expect(success).toBe("true")
+      expect(transactionHash).toBeTruthy()
+    }, 60000)
+
+    test("should increment user op gas with Sponsored Paymaster using sendTransaction", async () => {
+      const transaction = {
+        to: recipient, 
+        data: "0x"
+      }
+
+      const userOpWithoutGasOffset = await smartAccount.buildUserOp([transaction], {paymasterServiceData: {mode: PaymasterMode.SPONSORED}});
+
+      const { wait } = await smartAccount.sendTransaction(transaction, {
+        paymasterServiceData: {
+          mode: PaymasterMode.SPONSORED
+        },
+        gasOffset: {
+          verificationGasLimitIncrement: 10000,
+          preVerificationGasIncrement: 1000,
+          maxFeePerGasIncrement: 10,
+          callGasLimitIncrement: 1000,
+          maxPriorityFeePerGasIncrement: 10
+        }
+      })
+      const {
+        userOpHash,
+        receipt: { transactionHash },
+        success
+      } = await wait()
+
+      expect(userOpHash).toBeTruthy()
+      expect(success).toBe("true")
+      expect(transactionHash).toBeTruthy()
+    }, 60000)
+
+    test("should increment user op gas fields without Paymaster using buildUserOp + sendUserOp", async () => {
+      const transaction = {
+        to: recipient, // NFT address
+        data: "0x"
+      }
+
+      const userOpWithoutGasOffset = await smartAccount.buildUserOp(
+        [transaction], 
+      );
+
+      const userOp = await smartAccount.buildUserOp(
+        [transaction], 
+        {gasOffset: {
+            verificationGasLimitIncrement: 10000,
+            preVerificationGasIncrement: 1000,
+            maxFeePerGasIncrement: 10,
+            callGasLimitIncrement: 1000,
+            maxPriorityFeePerGasIncrement: 10
+          }
+        }
+      );
+
+      expect(Number(userOp.verificationGasLimit) - Number(userOpWithoutGasOffset.verificationGasLimit)).toEqual(10000); 
+      expect(Number(userOp.preVerificationGas) - Number(userOpWithoutGasOffset.preVerificationGas)).toEqual(1000);
+      expect(Number(userOp.maxFeePerGas) - Number(userOpWithoutGasOffset.maxFeePerGas)).toEqual(10);
+      expect(Number(userOp.callGasLimit) - Number(userOpWithoutGasOffset.callGasLimit)).toEqual(1000);
+      expect(Number(userOp.maxPriorityFeePerGas) - Number(userOpWithoutGasOffset.maxPriorityFeePerGas)).toEqual(10);
+
+      await smartAccount.sendUserOp(userOp);
+    }, 60000)
+
+    test("should increment user op gas fields with paymaster using buildUserOp + sendUserOp", async () => {
+      const transaction = {
+        to: recipient, // NFT address
+        data: "0x"
+      }
+
+      const userOpWithoutGasOffset = await smartAccount.buildUserOp(
+        [transaction], 
+        {
+          paymasterServiceData: {
+            mode: PaymasterMode.SPONSORED,
+            calculateGasLimits: false
+          },
+        },
+      );
+
+      const userOp = await smartAccount.buildUserOp(
+        [transaction], 
+        {paymasterServiceData: 
+          {mode: PaymasterMode.SPONSORED}, 
+          gasOffset: {
+            verificationGasLimitIncrement: 10000,
+            preVerificationGasIncrement: 1000,
+            maxFeePerGasIncrement: 10,
+            callGasLimitIncrement: 1000,
+            maxPriorityFeePerGasIncrement: 10
+          }
+        }
+      );
+
+      console.log(Number(userOpWithoutGasOffset.verificationGasLimit), "USER OP WITHOUT GAS OFFSET");
+      console.log(Number(userOp.verificationGasLimit), "USER OP WITH GAS OFFSET");
+
+      expect(Number(userOp.verificationGasLimit) - Number(userOpWithoutGasOffset.verificationGasLimit)).toEqual(10000); 
+      expect(Number(userOp.preVerificationGas) - Number(userOpWithoutGasOffset.preVerificationGas)).toEqual(1000);
+      expect(Number(userOp.maxFeePerGas) - Number(userOpWithoutGasOffset.maxFeePerGas)).toEqual(10);
+      expect(Number(userOp.callGasLimit) - Number(userOpWithoutGasOffset.callGasLimit)).toEqual(1000);
+      expect(Number(userOp.maxPriorityFeePerGas) - Number(userOpWithoutGasOffset.maxPriorityFeePerGas)).toEqual(10);
+
+      await smartAccount.sendUserOp(userOp);
+    }, 60000)
+
+    test("should increment user op gas fields with ERC20 paymaster using buildUserOp + sendUserOp", async () => {
+      const transaction = {
+        to: recipient, // NFT address
+        data: "0x"
+      }
+
+      const userOpWithoutGasOffset = await smartAccount.buildUserOp(
+        [transaction], 
+        {
+          paymasterServiceData: {
+            mode: PaymasterMode.ERC20,
+            preferredToken: token,
+            calculateGasLimits: false
+          },
+        },
+      );
+
+      const userOp = await smartAccount.buildUserOp(
+        [transaction], 
+        {paymasterServiceData: 
+          {mode: PaymasterMode.ERC20, preferredToken: token}, 
+          gasOffset: {
+            verificationGasLimitIncrement: 10000,
+            preVerificationGasIncrement: 1000,
+            maxFeePerGasIncrement: 10,
+            callGasLimitIncrement: 1000,
+            maxPriorityFeePerGasIncrement: 10
+          }
+        }
+      );
+
+      console.log(Number(userOpWithoutGasOffset.verificationGasLimit), "USER OP WITHOUT GAS OFFSET");
+      console.log(Number(userOp.verificationGasLimit), "USER OP WITH GAS OFFSET");
+
+      expect(Number(userOp.verificationGasLimit) - Number(userOpWithoutGasOffset.verificationGasLimit)).toEqual(10000); 
+      expect(Number(userOp.preVerificationGas) - Number(userOpWithoutGasOffset.preVerificationGas)).toEqual(1000);
+      expect(Number(userOp.maxFeePerGas) - Number(userOpWithoutGasOffset.maxFeePerGas)).toEqual(10);
+      expect(Number(userOp.callGasLimit) - Number(userOpWithoutGasOffset.callGasLimit)).toEqual(1000);
+      expect(Number(userOp.maxPriorityFeePerGas) - Number(userOpWithoutGasOffset.maxPriorityFeePerGas)).toEqual(10);
+
+      await smartAccount.sendUserOp(userOp);
+    }, 60000)
+  })
 })

@@ -1,4 +1,4 @@
-import { http, type Chain, createWalletClient } from "viem"
+import { http, type Chain, createWalletClient, Hex } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {

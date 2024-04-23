@@ -5,7 +5,8 @@ import {
   http,
   createWalletClient,
   encodeAbiParameters,
-  parseAbiParameters
+  parseAbiParameters,
+  Hex
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
