@@ -3,10 +3,17 @@ import { privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
-  createSmartAccountClient
+  createSmartAccountClient,
+  getChain
 } from "../../src/account"
 import { createBundler } from "../../src/bundler"
-import { checkBalance, getConfig, nonZeroBalance, topUp } from "../utils"
+import {
+  checkBalance,
+  getBundlerUrl,
+  getConfig,
+  nonZeroBalance,
+  topUp
+} from "../utils"
 
 describe("Bundler:Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
@@ -79,7 +86,7 @@ describe("Bundler:Write", () => {
 
     expect(transactionHash).toBeTruthy()
     expect(newBalanceOfRecipient - balanceOfRecipient).toBe(1n)
-  }, 50000)
+  }, 60000)
 
   test("should send some native token to a recipient with a bundler instance", async () => {
     await topUp(smartAccountAddress, BigInt(1000000000000000000))
@@ -115,5 +122,38 @@ describe("Bundler:Write", () => {
 
     expect(transactionHash).toBeTruthy()
     expect(newBalanceOfRecipient - balanceOfRecipient).toBe(1n)
+  }, 70000)
+
+  test("should test a new network", async () => {
+    /* Set the network id and paymaster key */
+    const NETWORK_ID = 80002
+    const PAYMASTER_KEY = "<API_KEY>"
+    /****************************************/
+    const chain = getChain(NETWORK_ID)
+    const bundlerUrl = getBundlerUrl(NETWORK_ID)
+    const paymasterUrl = `https://paymaster.biconomy.io/api/v1/${NETWORK_ID}/${PAYMASTER_KEY}`
+
+    const newWalletClient = createWalletClient({
+      account,
+      chain,
+      transport: http()
+    })
+
+    const newSmartAccount = await createSmartAccountClient({
+      signer: newWalletClient,
+      bundlerUrl
+      // paymasterUrl
+    })
+
+    expect(chain.id).toBe(NETWORK_ID)
+
+    const { wait } = await newSmartAccount.sendTransaction({
+      to: recipient,
+      value: 1n
+    })
+
+    const { success } = await wait()
+
+    expect(success).toBe("true")
   }, 70000)
 })

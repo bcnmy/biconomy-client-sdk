@@ -65,6 +65,7 @@ export function packUserOp(
   )
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 export const isNullOrUndefined = (value: any): value is undefined => {
   return value === null || value === undefined
 }

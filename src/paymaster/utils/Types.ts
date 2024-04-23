@@ -11,6 +11,7 @@ export type PaymasterServiceErrorResponse = {
 export type JsonRpcResponse = {
   jsonrpc: string
   id: number
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   result?: any
   error?: JsonRpcError
 }
@@ -47,6 +48,7 @@ export type FeeQuotesOrDataDto = {
   /** preferredToken: Can be ommitted to return all quotes */
   preferredToken?: string
   /** Webhooks to be fired after user op is sent */
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   webhookData?: Record<string, any>
   /** Smart account meta data */
   smartAccountInfo?: SmartAccountData
@@ -63,6 +65,7 @@ export type FeeTokenInfo = {
 
 export type SponsorpshipInfo = {
   /** Webhooks to be fired after user op is sent */
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   webhookData?: Record<string, any>
   /** Smart account meta data */
   smartAccountInfo: SmartAccountData

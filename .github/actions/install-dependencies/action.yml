@@ -10,5 +10,4 @@ runs:
     - name: Install dependencies
       shell: bash
       run: |
-        bun install buffer
         bun install --frozen-lockfile

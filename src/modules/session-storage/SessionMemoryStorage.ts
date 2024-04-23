@@ -46,12 +46,12 @@ export class SessionMemoryStorage implements ISessionStorage {
     )
   }
 
-  private getSessionStore(): any {
+  private getSessionStore() {
     const data = memoryStorage.getItem(this.getStorageKey("sessions"))
     return data ? JSON.parse(data) : { merkleRoot: "", leafNodes: [] }
   }
 
-  private getSignerStore(): any {
+  private getSignerStore() {
     const data = memoryStorage.getItem(this.getStorageKey("signers"))
     return data ? JSON.parse(data) : {}
   }

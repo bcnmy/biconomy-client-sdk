@@ -20,7 +20,7 @@ import {
 } from "../../src/modules"
 import { getConfig } from "../utils"
 
-describe("Modules: Read", () => {
+describe("Modules:Read", () => {
   const {
     chain,
     chainId,

@@ -3,6 +3,7 @@ import {
   type GetContractReturnType,
   type Hex,
   type PublicClient,
+  concat,
   concatHex,
   createPublicClient,
   decodeFunctionData,
@@ -62,6 +63,7 @@ import {
   DEFAULT_FALLBACK_HANDLER_ADDRESS,
   ERC20_ABI,
   ERROR_MESSAGES,
+  MAGIC_BYTES,
   NATIVE_TOKEN_ALIAS,
   PROXY_CREATION_CODE
 } from "./utils/Constants.js"
@@ -714,7 +716,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         (smartAccountInfo: {
           factoryVersion: string
           currentVersion: string
-          deploymentIndex: { toString: () => any }
+          deploymentIndex: { toString: () => string }
         }) =>
           smartAccountInfo.factoryVersion === "v1" &&
           smartAccountInfo.currentVersion === "2.0.0" &&
@@ -737,17 +739,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   async getAccountInitCode(): Promise<Hex> {
     this.isDefaultValidationModuleDefined()
 
+    if (await this.isAccountDeployed()) return "0x"
+
     return concatHex([
       this.factoryAddress as Hex,
-      encodeFunctionData({
-        abi: BiconomyFactoryAbi,
-        functionName: "deployCounterFactualAccount",
-        args: [
-          this.defaultValidationModule.getAddress() as Hex,
-          (await this.defaultValidationModule.getInitData()) as Hex,
-          BigInt(this.index)
-        ]
-      })
+      (await this.getFactoryData()) ?? "0x"
     ])
   }
 
@@ -887,7 +883,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     if (paymasterServiceData.mode === PaymasterMode.ERC20) {
       if (paymasterServiceData?.feeQuote) {
         const { feeQuote, spender, maxApproval = false } = paymasterServiceData
-        Logger.log("there is a feeQuote: ", feeQuote)
+        Logger.log("there is a feeQuote: ", JSON.stringify(feeQuote, null, 2))
         if (!spender) throw new Error(ERROR_MESSAGES.SPENDER_REQUIRED)
         if (!feeQuote) throw new Error(ERROR_MESSAGES.FAILED_FEE_QUOTE_FETCH)
         if (
@@ -1166,7 +1162,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     ]
     this.validateUserOp(userOp, requiredFields)
     if (!this.bundler) throw new Error("Bundler is not provided")
-    Logger.warn("userOp being sent to the bundler", userOp)
+    Logger.warn(
+      "userOp being sent to the bundler",
+      JSON.stringify(userOp, null, 2)
+    )
     const bundlerResponse = await this.bundler.sendUserOp(
       userOp,
       simulationType
@@ -1540,7 +1539,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       let newCallData = userOp.callData
       Logger.warn(
         "Received information about fee token address and quote ",
-        tokenPaymasterRequest
+        tokenPaymasterRequest.toString()
       )
 
       if (this.paymaster && this.paymaster instanceof Paymaster) {
@@ -1631,7 +1630,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       }
     } catch (error) {
       Logger.log("Failed to update userOp. Sending back original op")
-      Logger.error("Failed to update callData with error", error)
+      Logger.error(
+        "Failed to update callData with error",
+        JSON.stringify(error)
+      )
       return userOp
     }
     return userOp
@@ -1731,10 +1733,27 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     )
   }
 
+  async getFactoryData() {
+    if (await this.isAccountDeployed()) return undefined
+
+    this.isDefaultValidationModuleDefined()
+
+    return encodeFunctionData({
+      abi: BiconomyFactoryAbi,
+      functionName: "deployCounterFactualAccount",
+      args: [
+        this.defaultValidationModule.getAddress() as Hex,
+        (await this.defaultValidationModule.getInitData()) as Hex,
+        BigInt(this.index)
+      ]
+    })
+  }
+
   async signMessage(message: string | Uint8Array): Promise<Hex> {
+    let signature: any
     this.isActiveValidationModuleDefined()
     const dataHash = typeof message === "string" ? toBytes(message) : message
-    let signature = await this.activeValidationModule.signMessage(dataHash)
+    signature = await this.activeValidationModule.signMessage(dataHash)
 
     const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
     if (![27, 28].includes(potentiallyIncorrectV)) {
@@ -1744,11 +1763,36 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     if (signature.slice(0, 2) !== "0x") {
       signature = `0x${signature}`
     }
-    signature = encodeAbiParameters(parseAbiParameters("bytes, address"), [
-      signature as Hex,
-      this.defaultValidationModule.getAddress()
-    ])
-    return signature as Hex
+    signature = encodeAbiParameters(
+      [{ type: "bytes" }, { type: "address" }],
+      [signature as Hex, this.defaultValidationModule.getAddress()]
+    )
+    if (await this.isAccountDeployed()) {
+      return signature as Hex
+    } else {
+      const abiEncodedMessage = encodeAbiParameters(
+        [
+          {
+            type: "address",
+            name: "create2Factory"
+          },
+          {
+            type: "bytes",
+            name: "factoryCalldata"
+          },
+          {
+            type: "bytes",
+            name: "originalERC1271Signature"
+          }
+        ],
+        [
+          this.getFactoryAddress() ?? "0x",
+          (await this.getFactoryData()) ?? "0x",
+          signature
+        ]
+      )
+      return concat([abiEncodedMessage, MAGIC_BYTES])
+    }
   }
 
   async getIsValidSignatureData(
