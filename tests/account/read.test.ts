@@ -1,3 +1,4 @@
+
 import { JsonRpcProvider } from "@ethersproject/providers"
 import { Wallet } from "@ethersproject/wallet"
 import {
@@ -29,7 +30,7 @@ import {
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   createECDSAOwnershipValidationModule
 } from "../../src/modules"
-import { Paymaster } from "../../src/paymaster"
+import { Paymaster, PaymasterMode } from "../../src/paymaster"
 import { checkBalance, getBundlerUrl, getConfig } from "../utils"
 
 describe("Account:Read", () => {
@@ -67,7 +68,7 @@ describe("Account:Read", () => {
   ]
 
   beforeAll(async () => {
-    ;[smartAccount, smartAccountTwo] = await Promise.all(
+    [smartAccount, smartAccountTwo] = await Promise.all(
       [walletClient, walletClientTwo].map((client) =>
         createSmartAccountClient({
           chainId,
@@ -76,8 +77,9 @@ describe("Account:Read", () => {
           paymasterUrl
         })
       )
-    )
-    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+    );
+    
+    [smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
       [smartAccount, smartAccountTwo].map((account) =>
         account.getAccountAddress()
       )
@@ -692,4 +694,55 @@ describe("Account:Read", () => {
 
     expect(isVerified).toBeTruthy()
   })
+
+  test.concurrent("should simulate a user operation execution", async () => {
+    const smartAccount = await createSmartAccountClient({
+      signer: walletClient,
+      bundlerUrl,
+    })
+
+    const tx = {
+      to: recipient,
+      data: "0x"
+    }
+    const userOp = await smartAccount.buildUserOp([tx])
+
+    const userOpSuccess = await smartAccount.simulateUserOp(userOp, recipient, tx.data as Hex, publicClient);
+    expect(userOpSuccess).toEqual(true);
+  })
+
+  test.concurrent("should simulate a user operation execution with paymaster included", async () => {
+    const smartAccount = await createSmartAccountClient({
+      signer: walletClient,
+      bundlerUrl,
+      paymasterUrl
+    })
+
+    const tx = {
+      to: recipient,
+      data: "0x"
+    }
+    const userOp = await smartAccount.buildUserOp([tx], {paymasterServiceData: {mode: PaymasterMode.SPONSORED}})
+
+    const userOpSuccess = await smartAccount.simulateUserOp(userOp, recipient, tx.data as Hex, publicClient);
+    expect(userOpSuccess).toEqual(true);
+  })
+
+  test.concurrent("should simulate a user operation execution, expecting to fail", async () => {
+    const smartAccount = await createSmartAccountClient({
+      signer: walletClient,
+      bundlerUrl,
+      index: 100
+    })
+
+    const tx = {
+      to: recipient,
+      data: "0x"
+    }
+    const userOp = await smartAccount.buildUserOp([tx])
+
+    const userOpSuccess = await smartAccount.simulateUserOp(userOp, recipient, tx.data as Hex, publicClient);
+    expect(userOpSuccess).toEqual(false);
+  })
 })
+

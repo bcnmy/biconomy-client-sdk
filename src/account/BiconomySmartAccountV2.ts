@@ -1,3 +1,4 @@
+
 import {
   http,
   type GetContractReturnType,
@@ -17,7 +18,8 @@ import {
   parseAbi,
   parseAbiParameters,
   toBytes,
-  toHex
+  toHex,
+  BaseError
 } from "viem"
 import type { IBundler } from "../bundler/IBundler.js"
 import {
@@ -90,6 +92,8 @@ import {
   isValidRpcUrl,
   packUserOp
 } from "./utils/Utils.js"
+import { EntryPointAbi } from "./abi/EntryPointAbi.js"
+import { ENTRYPOINT_ADDRESS } from "../paymaster/utils/Constants.js"
 
 type UserOperationKey = keyof UserOperationStruct
 
@@ -1173,6 +1177,58 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return bundlerResponse
   }
 
+  /**
+   * Simulates a user operation execution.
+   * 
+   * Checks if a user operation will be successful before sending it to the bundler.
+   * 
+   * @param userOp The user operation to simulate.
+   * @param targetContract The target contract to simulate the operation on.
+   * @param targetCalldata The calldata for the target contract.
+   * @param client The public client.
+   * @returns A Promise that resolves to a boolean indicating whether the operation was successful.
+  */
+  async simulateUserOp(userOp: UserOperationStruct | Partial<UserOperationStruct>, targetContract: Hex, targetCalldata: Hex, client: PublicClient): Promise<boolean> {
+    const entryPoint = getContract({address: ENTRYPOINT_ADDRESS as Hex, abi: EntryPointAbi, client});
+    // This will always end in catch, as simulateHandleOp() will always revert.
+    const requiredFields: UserOperationKey[] = [
+      "sender",
+      "nonce",
+      "initCode",
+      "callData",
+      "callGasLimit",
+      "verificationGasLimit",
+      "preVerificationGas",
+      "maxFeePerGas",
+      "maxPriorityFeePerGas",
+      "paymasterAndData"
+    ]
+    this.validateUserOp(userOp, requiredFields);
+    try {
+      await entryPoint.simulate.simulateHandleOp([{
+        sender: userOp.sender! as Hex,
+        nonce: BigInt(userOp.nonce!),
+        initCode: userOp.initCode! as Hex,
+        callData: userOp.callData! as Hex ,
+        signature: userOp.signature! as Hex,
+        maxFeePerGas: BigInt(userOp.maxFeePerGas!),
+        maxPriorityFeePerGas: BigInt(userOp.maxPriorityFeePerGas!),
+        paymasterAndData: userOp.paymasterAndData! as Hex,
+        preVerificationGas: BigInt(userOp.preVerificationGas!),
+        verificationGasLimit: BigInt(userOp.verificationGasLimit!),
+        callGasLimit: BigInt(userOp.callGasLimit!),
+      }, targetContract, targetCalldata])
+      return false;
+    } catch (error: any) {
+      const baseError = error as BaseError;
+      const metaMessagesArray = baseError.metaMessages![1].split(",");
+      // Remove white spaces and parentheses from each element
+      const cleanedArray = metaMessagesArray.map(element => element.replace(/\s/g, '').replace(/[()]/g, ''));
+      const isSuccessful = cleanedArray[4] === "true"
+      return isSuccessful;
+    }
+  }
+
   async getUserOpHash(userOp: Partial<UserOperationStruct>): Promise<Hex> {
     const userOpHash = keccak256(packUserOp(userOp, true) as Hex)
     const enc = encodeAbiParameters(
@@ -1847,3 +1903,4 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return modules
   }
 }
+
