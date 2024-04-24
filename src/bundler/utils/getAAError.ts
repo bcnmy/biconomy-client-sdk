@@ -1,6 +1,6 @@
 import { BaseError } from "viem"
 import type { Service } from "../../account"
-
+import { SDK_VERSION } from "./Constants"
 export type KnownError = {
   name: string
   regex: string
@@ -41,6 +41,7 @@ type AccountAbstractionErrorParams = {
 
 class AccountAbstractionError extends BaseError {
   override name = "AccountAbstractionError"
+  override version = `@biconomy/account@${SDK_VERSION}`
 
   constructor(title: string, params: AccountAbstractionErrorParams = {}) {
     super(title, params)
