@@ -35,7 +35,7 @@ export async function sendRequest<T>(
     Logger.log(`${service} RPC Response`, jsonResponse)
   } catch (error) {
     if (!response.ok) {
-      throw await getAAError(response.statusText, service)
+      throw await getAAError(response.statusText, service, response.status)
     }
   }
 
@@ -48,25 +48,29 @@ export async function sendRequest<T>(
     )
   }
   if (jsonResponse.message) {
-    throw await getAAError(jsonResponse.message)
+    throw await getAAError(jsonResponse.message, service, response.status)
   }
   if (jsonResponse.msg) {
-    throw await getAAError(jsonResponse.msg)
+    throw await getAAError(jsonResponse.msg, service, response.status)
   }
   if (jsonResponse.data) {
-    throw await getAAError(jsonResponse.data)
+    throw await getAAError(jsonResponse.data, service, response.status)
   }
   if (jsonResponse.detail) {
-    throw await getAAError(jsonResponse.detail)
+    throw await getAAError(jsonResponse.detail, service, response.status)
   }
   if (jsonResponse.message) {
-    throw await getAAError(jsonResponse.message)
+    throw await getAAError(jsonResponse.message, service, response.status)
   }
   if (jsonResponse.nonFieldErrors) {
-    throw await getAAError(jsonResponse.nonFieldErrors)
+    throw await getAAError(
+      jsonResponse.nonFieldErrors,
+      service,
+      response.status
+    )
   }
   if (jsonResponse.delegate) {
-    throw await getAAError(jsonResponse.delegate)
+    throw await getAAError(jsonResponse.delegate, service, response.status)
   }
-  throw await getAAError(response.statusText)
+  throw await getAAError(response.statusText, service, response.status)
 }

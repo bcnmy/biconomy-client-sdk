@@ -12,6 +12,7 @@ export type KnownError = {
 
 export const ERRORS_URL = "https://bcnmy.github.io/aa-errors/errors.json"
 export const DOCS_URL = "https://docs.biconomy.io/troubleshooting/commonerrors"
+const UNKOWN_ERROR_CODE = "520"
 
 const knownErrors: KnownError[] = []
 
@@ -37,17 +38,24 @@ type AccountAbstractionErrorParams = {
   docsSlug?: string
   metaMessages?: string[]
   details?: string
+  status: number
 }
 
 class AccountAbstractionError extends BaseError {
   override name = "AccountAbstractionError"
+  private code = Number.parseInt(UNKOWN_ERROR_CODE)
 
-  constructor(title: string, params: AccountAbstractionErrorParams = {}) {
+  constructor(title: string, params: AccountAbstractionErrorParams) {
     super(title, params)
+    this.code = params.status
   }
 }
 
-export const getAAError = async (message: string, service?: Service) => {
+export const getAAError = async (
+  message: string,
+  service?: Service,
+  _status = UNKOWN_ERROR_CODE
+) => {
   if (!knownErrors.length) {
     const errors = (await (await fetch(ERRORS_URL)).json()) as KnownError[]
     knownErrors.push(...errors)
@@ -63,6 +71,14 @@ export const getAAError = async (message: string, service?: Service) => {
     : []
   const title = matchedError ? matchedError.name : "Unknown Error"
   const docsSlug = matchedError?.docsUrl ?? DOCS_URL
+  const status = Number.parseInt(
+    (matchedError?.regex ?? _status).replace(/\D/g, "")
+  ) // trims the characters away
 
-  return new AccountAbstractionError(title, { docsSlug, metaMessages, details })
+  return new AccountAbstractionError(title, {
+    docsSlug,
+    metaMessages,
+    details,
+    status
+  })
 }
