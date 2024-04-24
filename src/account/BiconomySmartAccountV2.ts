@@ -228,7 +228,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const bundlerUrl = "" // Retrieve bundler url from dasboard
+   * const bundlerUrl = "" // Retrieve bundler url from dashboard
    *
    * const smartAccountFromStaticCreate = await BiconomySmartAccountV2.create({ signer, bundlerUrl });
    *
@@ -344,6 +344,81 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       this.accountAddress = await this.getCounterFactualAddress(params)
     }
     return this.accountAddress
+  }
+
+  /**
+   * Returns an upper estimate for the gas spent on a specific user operation
+   *
+   * This method will fetch an approximate gas estimate for the user operation, given the current state of the network.
+   * It is regularly an overestimate, and the actual gas spent will likely be lower.
+   * It is unlikely to be an underestimate unless the network conditions rapidly change.
+   *
+   * @param transactions Array of {@link Transaction} to be sent.
+   * @param buildUseropDto {@link BuildUserOpOptions}.
+   * @returns Promise<bigint> - The estimated gas cost in wei.
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartAccountClient } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonAmoy } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonAmoy,
+   *   transport: http(),
+   * });
+   *
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, paymasterUrl }); // Retrieve bundler/paymaster url from dashboard
+   * const encodedCall = encodeFunctionData({
+   *   abi: parseAbi(["function safeMint(address to) public"]),
+   *   functionName: "safeMint",
+   *   args: ["0x..."],
+   * });
+   *
+   * const tx = {
+   *   to: nftAddress,
+   *   data: encodedCall
+   * }
+   *
+   * const amountInWei = await smartAccount.getGasEstimates([tx, tx], {
+   *    paymasterServiceData: {
+   *      mode: PaymasterMode.SPONSORED,
+   *    },
+   * });
+   *
+   * console.log(amountInWei.toString());
+   *
+   */
+  public async getGasEstimate(
+    transactions: Transaction[],
+    buildUseropDto?: BuildUserOpOptions
+  ): Promise<bigint> {
+    const {
+      callGasLimit,
+      preVerificationGas,
+      verificationGasLimit,
+      maxFeePerGas
+    } = await this.buildUserOp(transactions, buildUseropDto)
+
+    const _callGasLimit = BigInt(callGasLimit || 0)
+    const _preVerificationGas = BigInt(preVerificationGas || 0)
+    const _verificationGasLimit = BigInt(verificationGasLimit || 0)
+    const _maxFeePerGas = BigInt(maxFeePerGas || 0)
+
+    if (buildUseropDto?.paymasterServiceData?.mode) {
+      return (
+        _callGasLimit +
+        _preVerificationGas +
+        _verificationGasLimit * _maxFeePerGas
+      )
+    }
+    return (
+      (_callGasLimit +
+        BigInt(3) * _verificationGasLimit +
+        _preVerificationGas) *
+      _maxFeePerGas
+    )
   }
 
   /**
@@ -982,7 +1057,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dashboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
@@ -1042,7 +1117,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, biconomyPaymasterApiKey }); // Retrieve bundler url from dasboard
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, biconomyPaymasterApiKey }); // Retrieve bundler url from dashboard
    * const tokens = await smartAccount.getSupportedTokens();
    *
    * // [
@@ -1104,7 +1179,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dashboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
@@ -1306,7 +1381,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dashboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
@@ -1359,7 +1434,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dashboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
