@@ -87,7 +87,7 @@ describe("Account:Read", () => {
     )
   })
 
-  test.skip.concurrent(
+  test.concurrent(
     "should accept PrivateKeyAccount as signer and sign a message",
     async () => {
       const account = privateKeyToAccount(`0x${privateKey}`)
@@ -153,7 +153,7 @@ describe("Account:Read", () => {
     60000
   )
 
-  test.skip.concurrent(
+  test.concurrent(
     "should throw if PrivateKeyAccount is used as signer and rpcUrl is not provided",
     async () => {
       const account = privateKeyToAccount(`0x${privateKey}`)
@@ -170,7 +170,7 @@ describe("Account:Read", () => {
     50000
   )
 
-  test.skip.concurrent(
+  test.concurrent(
     "should get all modules",
     async () => {
       const modules = await smartAccount.getAllModules()
@@ -180,7 +180,7 @@ describe("Account:Read", () => {
     30000
   )
 
-  test.skip.concurrent(
+  test.concurrent(
     "should check if module is enabled on the smart account",
     async () => {
       const isEnabled = await smartAccount.isModuleEnabled(
@@ -191,7 +191,7 @@ describe("Account:Read", () => {
     30000
   )
 
-  test.skip.concurrent(
+  test.concurrent(
     "should get disabled module data",
     async () => {
       const disableModuleData = await smartAccount.getDisableModuleData(
@@ -203,7 +203,7 @@ describe("Account:Read", () => {
     30000
   )
 
-  test.skip.concurrent(
+  test.concurrent(
     "should get setup and enable module data",
     async () => {
       const module = await createECDSAOwnershipValidationModule({
@@ -220,7 +220,7 @@ describe("Account:Read", () => {
     30000
   )
 
-  test.skip.concurrent(
+  test.concurrent(
     "should create a smartAccountClient from an ethers signer",
     async () => {
       const ethersProvider = new JsonRpcProvider(chain.rpcUrls.default.http[0])
@@ -236,7 +236,7 @@ describe("Account:Read", () => {
     }
   )
 
-  test.skip.concurrent(
+  test.concurrent(
     "should pickup the rpcUrl from viem wallet and ethers",
     async () => {
       const newRpcUrl = "http://localhost:8545"
@@ -324,7 +324,7 @@ describe("Account:Read", () => {
     }
   )
 
-  test.skip.concurrent(
+  test.concurrent(
     "should read estimated user op gas values",
     async () => {
       const tx = {
@@ -345,12 +345,12 @@ describe("Account:Read", () => {
     30000
   )
 
-  test.skip.concurrent("should have an active validation module", async () => {
+  test.concurrent("should have an active validation module", async () => {
     const module = smartAccount.activeValidationModule
     expect(module).toBeTruthy()
   })
 
-  test.skip.concurrent(
+  test.concurrent(
     "should create a smart account with paymaster by creating instance",
     async () => {
       const paymaster = new Paymaster({ paymasterUrl })
@@ -364,7 +364,7 @@ describe("Account:Read", () => {
       expect(smartAccount.paymaster).not.toBeUndefined()
     }
   )
-  test.skip.concurrent(
+  test.concurrent(
     "should fail to create a smartAccountClient from a walletClient without a chainId",
     async () => {
       const account = privateKeyToAccount(generatePrivateKey())
@@ -385,7 +385,7 @@ describe("Account:Read", () => {
     }
   )
 
-  test.skip.concurrent(
+  test.concurrent(
     "should fail to create a smartAccountClient from a walletClient without an account",
     async () => {
       const viemWalletNoAccount = createWalletClient({
@@ -402,7 +402,7 @@ describe("Account:Read", () => {
     }
   )
 
-  test.skip.concurrent("should have account addresses", async () => {
+  test.concurrent("should have account addresses", async () => {
     const addresses = await Promise.all([
       sender,
       smartAccount.getAddress(),
@@ -420,7 +420,7 @@ describe("Account:Read", () => {
     expect(addresses.every(Boolean)).toBeTruthy()
   })
 
-  test.skip.concurrent(
+  test.concurrent(
     "should create a smart account with paymaster with an api key",
     async () => {
       const paymaster = smartAccount.paymaster
@@ -429,27 +429,24 @@ describe("Account:Read", () => {
     }
   )
 
-  test.skip.concurrent(
-    "should not throw and error, chain ids match",
-    async () => {
-      const mockBundlerUrl =
-        "https://bundler.biconomy.io/api/v2/80002/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44"
-      const mockPaymasterUrl =
-        "https://paymaster.biconomy.io/api/v1/80002/-RObQRX9ei.fc6918eb-c582-4417-9d5a-0507b17cfe71"
+  test.concurrent("should not throw and error, chain ids match", async () => {
+    const mockBundlerUrl =
+      "https://bundler.biconomy.io/api/v2/80002/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44"
+    const mockPaymasterUrl =
+      "https://paymaster.biconomy.io/api/v1/80002/-RObQRX9ei.fc6918eb-c582-4417-9d5a-0507b17cfe71"
 
-      const config: BiconomySmartAccountV2Config = {
-        signer: walletClient,
-        bundlerUrl: mockBundlerUrl,
-        paymasterUrl: mockPaymasterUrl
-      }
-
-      await expect(
-        compareChainIds(walletClient, config, false)
-      ).resolves.not.toThrow()
+    const config: BiconomySmartAccountV2Config = {
+      signer: walletClient,
+      bundlerUrl: mockBundlerUrl,
+      paymasterUrl: mockPaymasterUrl
     }
-  )
 
-  test.skip.concurrent(
+    await expect(
+      compareChainIds(walletClient, config, false)
+    ).resolves.not.toThrow()
+  })
+
+  test.concurrent(
     "should throw and error, bundlerUrl chain id and paymaster url chain id does not match with validation module",
     async () => {
       const mockPaymasterUrl =
@@ -472,7 +469,7 @@ describe("Account:Read", () => {
     }
   )
 
-  test.skip.concurrent(
+  test.concurrent(
     "should throw and error, signer has chain id (56) and paymasterUrl has chain id (80002)",
     async () => {
       const mockPaymasterUrl =
@@ -496,16 +493,13 @@ describe("Account:Read", () => {
     }
   )
 
-  test.skip.concurrent(
-    "should return chain object for chain id 1",
-    async () => {
-      const chainId = 1
-      const chain = getChain(chainId)
-      expect(chain.id).toBe(chainId)
-    }
-  )
+  test.concurrent("should return chain object for chain id 1", async () => {
+    const chainId = 1
+    const chain = getChain(chainId)
+    expect(chain.id).toBe(chainId)
+  })
 
-  test.skip.concurrent("should have correct fields", async () => {
+  test.concurrent("should have correct fields", async () => {
     const chainId = 1
     const chain = getChain(chainId)
     ;[
@@ -523,15 +517,12 @@ describe("Account:Read", () => {
     })
   })
 
-  test.skip.concurrent(
-    "should throw an error, chain id not found",
-    async () => {
-      const chainId = 0
-      expect(() => getChain(chainId)).toThrow(ERROR_MESSAGES.CHAIN_NOT_FOUND)
-    }
-  )
+  test.concurrent("should throw an error, chain id not found", async () => {
+    const chainId = 0
+    expect(() => getChain(chainId)).toThrow(ERROR_MESSAGES.CHAIN_NOT_FOUND)
+  })
 
-  test.skip.concurrent(
+  test.concurrent(
     "should have matching #getUserOpHash and entryPoint.getUserOpHash",
     async () => {
       const userOp: UserOperationStruct = {
@@ -562,7 +553,7 @@ describe("Account:Read", () => {
     30000
   )
 
-  test.skip.concurrent(
+  test.concurrent(
     "should be deployed to counterfactual address",
     async () => {
       const accountAddress = await smartAccount.getAccountAddress()
@@ -575,7 +566,7 @@ describe("Account:Read", () => {
     10000
   )
 
-  test.skip.concurrent(
+  test.concurrent(
     "should check if ecdsaOwnershipModule is enabled",
     async () => {
       const ecdsaOwnershipModule = "0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e"
@@ -586,7 +577,7 @@ describe("Account:Read", () => {
     }
   )
 
-  test.skip.concurrent(
+  test.concurrent(
     "should fail to deploy a smart account if no native token balance or paymaster",
     async () => {
       const newPrivateKey = generatePrivateKey()
@@ -610,7 +601,7 @@ describe("Account:Read", () => {
     }
   )
 
-  test.skip.concurrent(
+  test.concurrent(
     "should fail to deploy a smart account if already deployed",
     async () => {
       expect(async () => smartAccount.deploy()).rejects.toThrow(
@@ -620,7 +611,7 @@ describe("Account:Read", () => {
     60000
   )
 
-  test.skip.concurrent("should fetch balances for smartAccount", async () => {
+  test.concurrent("should fetch balances for smartAccount", async () => {
     const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
     const tokenBalanceBefore = await checkBalance(smartAccountAddress, token)
     const [tokenBalanceFromSmartAccount] = await smartAccount.getBalances([
@@ -630,7 +621,7 @@ describe("Account:Read", () => {
     expect(tokenBalanceBefore).toBe(tokenBalanceFromSmartAccount.amount)
   })
 
-  test.skip.concurrent("should error if no recipient exists", async () => {
+  test.concurrent("should error if no recipient exists", async () => {
     const token: Hex = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
 
     const txs = [
@@ -643,7 +634,7 @@ describe("Account:Read", () => {
     )
   })
 
-  test.skip.concurrent(
+  test.concurrent(
     "should error when withdraw all of native token is attempted without an amount explicitly set",
     async () => {
       expect(async () => smartAccount.withdraw(null, sender)).rejects.toThrow(
@@ -653,7 +644,7 @@ describe("Account:Read", () => {
     6000
   )
 
-  test.skip.concurrent(
+  test.concurrent(
     "should check native token balance for smartAccount",
     async () => {
       const [ethBalanceFromSmartAccount] = await smartAccount.getBalances()
@@ -666,7 +657,7 @@ describe("Account:Read", () => {
     60000
   )
 
-  test.skip.concurrent(
+  test.concurrent(
     "should verify a correct signature through isValidSignature",
     async () => {
       const eip1271MagicValue = "0x1626ba7e"
@@ -685,38 +676,35 @@ describe("Account:Read", () => {
     }
   )
 
-  test.skip.concurrent(
-    "should confirm that signature is not valid",
-    async () => {
-      const randomPrivKey = generatePrivateKey()
-      const randomWallet = privateKeyToAccount(randomPrivKey)
+  test.concurrent("should confirm that signature is not valid", async () => {
+    const randomPrivKey = generatePrivateKey()
+    const randomWallet = privateKeyToAccount(randomPrivKey)
 
-      const smartAccount = await createSmartAccountClient({
-        signer: walletClient,
-        bundlerUrl
-      })
+    const smartAccount = await createSmartAccountClient({
+      signer: walletClient,
+      bundlerUrl
+    })
 
-      const eip1271MagicValue = "0xffffffff"
-      const message = "Some message from dApp"
-      const messageHash = hashMessage(message)
-      const signature = await randomWallet.signMessage({ message: messageHash })
-      const signatureWithModuleAddress = encodeAbiParameters(
-        parseAbiParameters("bytes, address"),
-        [signature, smartAccount.defaultValidationModule.getAddress()]
-      )
+    const eip1271MagicValue = "0xffffffff"
+    const message = "Some message from dApp"
+    const messageHash = hashMessage(message)
+    const signature = await randomWallet.signMessage({ message: messageHash })
+    const signatureWithModuleAddress = encodeAbiParameters(
+      parseAbiParameters("bytes, address"),
+      [signature, smartAccount.defaultValidationModule.getAddress()]
+    )
 
-      const response = await publicClient.readContract({
-        address: await smartAccount.getAccountAddress(),
-        abi: BiconomyAccountAbi,
-        functionName: "isValidSignature",
-        args: [messageHash, signatureWithModuleAddress]
-      })
+    const response = await publicClient.readContract({
+      address: await smartAccount.getAccountAddress(),
+      abi: BiconomyAccountAbi,
+      functionName: "isValidSignature",
+      args: [messageHash, signatureWithModuleAddress]
+    })
 
-      expect(response).toBe(eip1271MagicValue)
-    }
-  )
+    expect(response).toBe(eip1271MagicValue)
+  })
 
-  test.skip.concurrent("should verifySignature of deployed", async () => {
+  test.concurrent("should verifySignature of deployed", async () => {
     const smartAccount = await createSmartAccountClient({
       signer: walletClient,
       bundlerUrl,
@@ -736,7 +724,7 @@ describe("Account:Read", () => {
     expect(isVerified).toBeTruthy()
   })
 
-  test.skip.concurrent("should verifySignature of not deployed", async () => {
+  test.concurrent("should verifySignature of not deployed", async () => {
     const smartAccount = await createSmartAccountClient({
       signer: walletClient,
       bundlerUrl,
