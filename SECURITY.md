@@ -2,7 +2,7 @@
 
 ## Reporting a Vulnerability
 
-The safety and security of our smart contract platform is our top priority. If you have discovered a security vulnerability, we appreciate your help in disclosing it to us responsibly.
+The safety and security of our sdk is our top priority. If you have discovered a security vulnerability, we appreciate your help in disclosing it to us responsibly.
 
 ### Contact Us Directly for Critical or High-Risk Findings
 
