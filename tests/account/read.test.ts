@@ -118,6 +118,8 @@ describe("Account:Read", () => {
         data: encodedCall
       }
       const results = await Promise.all([
+        smartAccount.getGasEstimate([transaction]),
+        smartAccount.getGasEstimate([transaction, transaction]),
         smartAccount.getGasEstimate([transaction], {
           paymasterServiceData: {
             mode: PaymasterMode.SPONSORED
@@ -139,9 +141,7 @@ describe("Account:Read", () => {
             mode: PaymasterMode.ERC20,
             preferredToken: token
           }
-        }),
-        smartAccount.getGasEstimate([transaction]),
-        smartAccount.getGasEstimate([transaction, transaction])
+        })
       ])
 
       const increasingGasExpenditure = results.every(

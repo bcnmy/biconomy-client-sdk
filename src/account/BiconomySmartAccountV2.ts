@@ -406,11 +406,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const _verificationGasLimit = BigInt(verificationGasLimit || 0)
     const _maxFeePerGas = BigInt(maxFeePerGas || 0)
 
-    if (buildUseropDto?.paymasterServiceData?.mode) {
+    if (!buildUseropDto?.paymasterServiceData?.mode) {
       return (
-        _callGasLimit +
-        _preVerificationGas +
-        _verificationGasLimit * _maxFeePerGas
+        (_callGasLimit + _preVerificationGas + _verificationGasLimit) *
+        _maxFeePerGas
       )
     }
     return (
