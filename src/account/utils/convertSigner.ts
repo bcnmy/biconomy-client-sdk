@@ -21,7 +21,7 @@ function isPrivateKeyAccount(
 }
 
 function isWalletClient(signer: SupportedSigner): signer is WalletClient {
-  return (signer as WalletClient).type === "walletClient"
+  return (signer as WalletClient).transport !== undefined
 }
 
 function isEthersSigner(signer: SupportedSigner): signer is Signer {

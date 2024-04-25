@@ -331,7 +331,7 @@ export type Transaction = {
 export type SupportedToken = Omit<
   PaymasterFeeQuote,
   "maxGasFeeUSD" | "usdPayment" | "maxGasFee" | "validUntil"
->
+> & { balance: BalancePayload };
 
 export type Signer = LightSigner & {
   // biome-ignore lint/suspicious/noExplicitAny: any is used here to allow for the ethers provider

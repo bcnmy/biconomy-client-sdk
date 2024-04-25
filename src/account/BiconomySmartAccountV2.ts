@@ -421,9 +421,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   /**
-   * Returns token balances (and native token balance) of the smartAccount instance.
+   * Returns balances for the smartAccount instance.
    *
-   * This method will fetch the token balances of the smartAccount instance.
+   * This method will fetch tokens info given an array of token addresses for the smartAccount instance.
    * The balance of the native token will always be returned as the last element in the reponse array, with the address set to 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE.
    *
    * @param addresses - Optional. Array of asset addresses to fetch the balances of. If not provided, the method will return only the balance of the native token.
@@ -443,7 +443,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a";
    * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl });
-   * const [tokenBalanceFromSmartAccount, nativeTokenBalanceFromSmartAccount] = await smartAccount.getBalances([token]);
+   * const [tokenBalanceFromSmartAccount, nativeTokenBalanceFromSmartAccount] = await smartAccount.getBalance([token]);
    *
    * console.log(tokenBalanceFromSmartAccount);
    * // {
@@ -456,7 +456,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * // or to get the nativeToken balance
    *
-   * const [nativeTokenBalanceFromSmartAccount] = await smartAccount.getBalances();
+   * const [nativeTokenBalanceFromSmartAccount] = await smartAccount.getBalance();
    *
    * console.log(nativeTokenBalanceFromSmartAccount);
    * // {
@@ -468,7 +468,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * // }
    *
    */
-  public async getBalances(
+  public async getBalance(
     addresses?: Array<Hex>
   ): Promise<Array<BalancePayload>> {
     const accountAddress = await this.getAccountAddress()
@@ -586,7 +586,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     // Get the balances of the tokens if the amount is not present in the withdrawal requests
     if (shouldFetchMaxBalances) {
-      const balances = await this.getBalances(
+      const balances = await this.getBalance(
         tokenRequests.map(({ address }) => address)
       )
       tokenRequests = tokenRequests.map(({ amount, address }, i) => ({
@@ -1141,14 +1141,21 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         paymasterServiceData: { mode: PaymasterMode.ERC20 }
       }
     )
-    return (feeQuotesResponse?.feeQuotes ?? []).map(
-      ({
-        maxGasFee: _,
-        maxGasFeeUSD: __,
-        validUntil: ___,
-        usdPayment: ____,
-        ...rest
-      }) => rest
+
+    return await Promise.all(
+      (feeQuotesResponse?.feeQuotes ?? []).map(async (quote) => {
+        const [tokenBalance] = await this.getBalance([
+          quote.tokenAddress as Hex
+        ])
+        return {
+          symbol: quote.symbol,
+          tokenAddress: quote.tokenAddress,
+          decimal: quote.decimal,
+          logoUrl: quote.logoUrl,
+          premiumPercentage: quote.premiumPercentage,
+          balance: tokenBalance
+        }
+      })
     )
   }
 
