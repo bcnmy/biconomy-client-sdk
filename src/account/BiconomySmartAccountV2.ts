@@ -1802,30 +1802,29 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     )
     if (await this.isAccountDeployed()) {
       return signature as Hex
-    } else {
-      const abiEncodedMessage = encodeAbiParameters(
-        [
-          {
-            type: "address",
-            name: "create2Factory"
-          },
-          {
-            type: "bytes",
-            name: "factoryCalldata"
-          },
-          {
-            type: "bytes",
-            name: "originalERC1271Signature"
-          }
-        ],
-        [
-          this.getFactoryAddress() ?? "0x",
-          (await this.getFactoryData()) ?? "0x",
-          signature
-        ]
-      )
-      return concat([abiEncodedMessage, MAGIC_BYTES])
     }
+    const abiEncodedMessage = encodeAbiParameters(
+      [
+        {
+          type: "address",
+          name: "create2Factory"
+        },
+        {
+          type: "bytes",
+          name: "factoryCalldata"
+        },
+        {
+          type: "bytes",
+          name: "originalERC1271Signature"
+        }
+      ],
+      [
+        this.getFactoryAddress() ?? "0x",
+        (await this.getFactoryData()) ?? "0x",
+        signature
+      ]
+    )
+    return concat([abiEncodedMessage, MAGIC_BYTES])
   }
 
   async getIsValidSignatureData(

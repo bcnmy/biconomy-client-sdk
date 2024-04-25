@@ -22,9 +22,13 @@ const matchError = (message: string): null | KnownError =>
       message.toLowerCase().indexOf(knownError.regex) > -1
   ) ?? null
 
-const buildErrorStrings = (error: KnownError, service?: Service): string[] =>
+const buildErrorStrings = (
+  error: KnownError,
+  status: string,
+  service?: Service
+): string[] =>
   [
-    `${error.description}\n`,
+    `${status}: ${error.description}\n`,
     error.causes?.length
       ? ["Potential cause(s): \n", ...error.causes, ""].join("\n")
       : "",
@@ -38,23 +42,20 @@ type AccountAbstractionErrorParams = {
   docsSlug?: string
   metaMessages?: string[]
   details?: string
-  status: number
 }
 
 class AccountAbstractionError extends BaseError {
   override name = "AccountAbstractionError"
-  private code = Number.parseInt(UNKOWN_ERROR_CODE)
 
-  constructor(title: string, params: AccountAbstractionErrorParams) {
+  constructor(title: string, params: AccountAbstractionErrorParams = {}) {
     super(title, params)
-    this.code = params.status
   }
 }
 
 export const getAAError = async (
   message: string,
-  service?: Service,
-  _status = UNKOWN_ERROR_CODE
+  httpStatus?: number,
+  service?: Service
 ) => {
   if (!knownErrors.length) {
     const errors = (await (await fetch(ERRORS_URL)).json()) as KnownError[]
@@ -66,19 +67,18 @@ export const getAAError = async (
       ? message
       : JSON.stringify(message)
   const matchedError = matchError(details)
+  const status =
+    matchedError?.regex ?? (httpStatus ?? UNKOWN_ERROR_CODE).toString()
+
   const metaMessages = matchedError
-    ? buildErrorStrings(matchedError, service)
+    ? buildErrorStrings(matchedError, status, service)
     : []
   const title = matchedError ? matchedError.name : "Unknown Error"
   const docsSlug = matchedError?.docsUrl ?? DOCS_URL
-  const status = Number.parseInt(
-    (matchedError?.regex ?? _status).replace(/\D/g, "")
-  ) // trims the characters away
 
   return new AccountAbstractionError(title, {
     docsSlug,
     metaMessages,
-    details,
-    status
+    details
   })
 }

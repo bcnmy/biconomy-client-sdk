@@ -6,10 +6,10 @@ import {
   createPublicClient,
   createWalletClient,
   encodeAbiParameters,
-  hashMessage,
-  parseAbiParameters,
   encodeFunctionData,
-  parseAbi
+  hashMessage,
+  parseAbi,
+  parseAbiParameters
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { bsc } from "viem/chains"
