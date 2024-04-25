@@ -69,7 +69,7 @@ For a comprehensive understanding of our project and to contribute effectively, 
 - [**Contributing Guidelines**](./CONTRIBUTING.md): Learn how to contribute to our project, from code contributions to documentation improvements.
 - [**Code of Conduct**](./CODE_OF_CONDUCT.md): Our commitment to fostering an open and welcoming environment.
 - [**Security Policy**](./SECURITY.md): Guidelines for reporting security vulnerabilities.
-- [**Changelog**](./CHANGELOG.md): Stay updated with the changes and versions.
+- [**Changelog**](./CHANGELOG.md): Stay updated with the changes and versions
 
 ## 💼 Examples
 
@@ -159,7 +159,7 @@ const {
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details
 
 ## Connect with Biconomy 🍊
 
