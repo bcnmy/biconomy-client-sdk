@@ -193,6 +193,8 @@ export type BuildUserOpOptions = {
   paymasterServiceData?: PaymasterUserOperationDto
   /**  simulationType: Determine which parts of the tx a bundler will simulate: "validation" | "validation_and_execution".  */
   simulationType?: SimulationType
+  /** dummy pnd override */
+  dummyPndOverride?: BytesLike
   /**  stateOverrideSet: For overriding the state */
   stateOverrideSet?: StateOverrideSet
   /** set to true if the tx is being used *only* to deploy the smartContract, so "0x" is set as the userOp.callData  */
@@ -331,7 +333,7 @@ export type Transaction = {
 export type SupportedToken = Omit<
   PaymasterFeeQuote,
   "maxGasFeeUSD" | "usdPayment" | "maxGasFee" | "validUntil"
-> & { balance: BalancePayload };
+> & { balance: BalancePayload }
 
 export type Signer = LightSigner & {
   // biome-ignore lint/suspicious/noExplicitAny: any is used here to allow for the ethers provider

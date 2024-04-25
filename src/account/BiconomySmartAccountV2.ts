@@ -1500,6 +1500,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     // for this Smart Account current validation module dummy signature will be used to estimate gas
     userOp.signature = signature
+    userOp.paymasterAndData = buildUseropDto?.dummyPndOverride ?? "0x"
 
     if (
       buildUseropDto?.paymasterServiceData &&
