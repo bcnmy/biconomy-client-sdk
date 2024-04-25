@@ -6,7 +6,9 @@ import {
   createPublicClient,
   createWalletClient,
   encodeAbiParameters,
+  encodeFunctionData,
   hashMessage,
+  parseAbi,
   parseAbiParameters
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
@@ -30,11 +32,12 @@ import {
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   createECDSAOwnershipValidationModule
 } from "../../src/modules"
-import { Paymaster } from "../../src/paymaster"
+import { Paymaster, PaymasterMode } from "../../src/paymaster"
 import { checkBalance, getBundlerUrl, getConfig } from "../utils"
 
 describe("Account:Read", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
+  const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
   const {
     chain,
     chainId,
@@ -101,6 +104,54 @@ describe("Account:Read", () => {
       expect(signature).toBeTruthy()
     },
     50000
+  )
+
+  test.concurrent(
+    "should estimate gas for minting an NFT",
+    async () => {
+      const encodedCall = encodeFunctionData({
+        abi: parseAbi(["function safeMint(address _to)"]),
+        functionName: "safeMint",
+        args: [recipient]
+      })
+      const transaction = {
+        to: nftAddress, // NFT address
+        data: encodedCall
+      }
+      const results = await Promise.all([
+        smartAccount.getGasEstimate([transaction]),
+        smartAccount.getGasEstimate([transaction, transaction]),
+        smartAccount.getGasEstimate([transaction], {
+          paymasterServiceData: {
+            mode: PaymasterMode.SPONSORED
+          }
+        }),
+        smartAccount.getGasEstimate([transaction, transaction], {
+          paymasterServiceData: {
+            mode: PaymasterMode.SPONSORED
+          }
+        }),
+        smartAccount.getGasEstimate([transaction], {
+          paymasterServiceData: {
+            mode: PaymasterMode.ERC20,
+            preferredToken: token
+          }
+        }),
+        await smartAccount.getGasEstimate([transaction, transaction], {
+          paymasterServiceData: {
+            mode: PaymasterMode.ERC20,
+            preferredToken: token
+          }
+        })
+      ])
+
+      const increasingGasExpenditure = results.every(
+        (result, i) => result > (results[i - 1] ?? 0)
+      )
+
+      expect(increasingGasExpenditure).toBeTruthy()
+    },
+    60000
   )
 
   test.concurrent(
