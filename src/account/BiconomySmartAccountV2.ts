@@ -546,7 +546,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *    { address: token }, // omit the amount to withdraw the full balance
    *    { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) }
    *  ],
-   *  account.pubKey, // Default recipient used if no recipient is present in the withdrawal request
+   *  account.address, // Default recipient used if no recipient is present in the withdrawal request
    *  {
    *    paymasterServiceData: { mode: PaymasterMode.SPONSORED },
    *  }
@@ -554,7 +554,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * // OR to withdraw all of the native token, leaving no dust in the smart account
    *
-   * const { wait } = await smartAccount.withdraw([], account.pubKey, {
+   * const { wait } = await smartAccount.withdraw([], account.address, {
    *  paymasterServiceData: { mode: PaymasterMode.SPONSORED },
    * });
    *

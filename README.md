@@ -108,7 +108,9 @@ const smartAccount = await createSmartAccountClient({
 const oneOrManyTx = { to: "0x...", value: 1 };
 
 const { wait } = await smartAccount.sendTransaction(oneOrManyTx, {
-  mode: PaymasterMode.SPONSORED,
+  paymasterServiceData: {
+    mode: PaymasterMode.SPONSORED,
+  },
 });
 
 const {
