@@ -1,5 +1,45 @@
 # @biconomy/account
 
+## 4.2.0
+
+### Minor Changes
+
+- Features:
+
+  - Improved getBalances utility helper ([da340f](https://github.com/bcnmy/biconomy-client-sdk/pull/479/commits/da340fbcc20778c9810dd8980061a6bb7b4cf097))
+  - Added 1271 Signature support ([fd832fe](https://github.com/bcnmy/biconomy-client-sdk/pull/479/commits/fd832fe2e286a5d3e57d3292cfa395e388b07b96))
+  - Added withdrawal utility helper ([7a93d87](https://github.com/bcnmy/biconomy-client-sdk/pull/479/commits/7a93d871ecefbce8ed5ef63349c055072877189e))
+  - Reduce bundle size ([7c594fa](https://github.com/bcnmy/biconomy-client-sdk/pull/479/commits/7c594fa74e81650b4cb5043afb4cd1153e638a19))
+  - Integrate [AAErrors](https://github.com/bcnmy/aa-errors) ([7c594fa](https://github.com/bcnmy/biconomy-client-sdk/pull/479/commits/7c594fa74e81650b4cb5043afb4cd1153e638a19))
+  - Added 6492 Signature support ([fd832fe](https://github.com/bcnmy/biconomy-client-sdk/pull/479/commits/fd832fe2e286a5d3e57d3292cfa395e388b07b96))
+  - Added Token Balances to getSupportedTokens payload ([869436](https://github.com/bcnmy/biconomy-client-sdk/pull/479/commits/8694366165208cac6bbf7e560fe2abefce0eaa3a))
+  - Added gas estimates utility helper ([950a521](https://github.com/bcnmy/biconomy-client-sdk/pull/479/commits/950a521af63d7a719edcbae4df57259d3fe110e7))
+  - Added dummy pnd override ([8d34d14](https://github.com/bcnmy/biconomy-client-sdk/pull/479/commits/8d34d148862510fdb76c58852c55a48bc7c20b4c))
+
+  Chores:
+
+  - Modernise tooling ([7c594fa](https://github.com/bcnmy/biconomy-client-sdk/pull/479/commits/7c594fa74e81650b4cb5043afb4cd1153e638a19))
+    - Add changesets
+    - Migrate tests to Amoy
+    - Add pr lint
+    - Add size report
+    - Add tree shaking
+    - Add code of conduct
+    - Update README (table of contents)
+    - Add SECURITY.md
+    - Replace prettier with biome
+    - Replace yarn with bun
+    - Remove deprecated Base class
+    - Added "NEXT_PUBLIC_BICONOMY_SDK_DEBUG" to support NextJS debugging information
+    - Replace jest with vitest
+    - Added size threshold checks to PRs
+    - Added test coverage checks to PRs
+    - Added tsdoc auto-deploy
+
+  Fixes:
+
+  - Fix wrong falsy check for user op nonce ([f2567](https://github.com/bcnmy/biconomy-client-sdk/pull/479/commits/f256712bbf7dc0de40b82c70ad183c59bf5f39f9))
+
 ## 4.1.1 (2023-07-03)
 
 - Added missing extensions ([fdbec6](https://github.com/bcnmy/biconomy-client-sdk/pull/451/commits/fdbec68625f4d7f436dc39d4c1779cdbb7c53e6d))

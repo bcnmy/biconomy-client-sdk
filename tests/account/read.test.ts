@@ -630,9 +630,7 @@ describe("Account:Read", () => {
       const tokenBalanceFromSmartAccount = await smartAccount.getBalance([
         token
       ])
-      console.log(tokenBalanceFromSmartAccount)
-
-      // expect(tokenBalanceBefore).toBe(tokenBalanceFromSmartAccount)
+      expect(tokenBalanceBefore).toBe(tokenBalanceFromSmartAccount)
     }
   )
 
