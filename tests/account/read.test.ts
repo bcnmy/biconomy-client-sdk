@@ -615,26 +615,12 @@ describe("Account:Read", () => {
   test.concurrent("should fetch balances for smartAccount", async () => {
     const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
     const tokenBalanceBefore = await checkBalance(smartAccountAddress, token)
-    const [tokenBalanceFromSmartAccount] = await smartAccount.getBalance([
+    const [tokenBalanceFromSmartAccount] = await smartAccount.getBalances([
       token
     ])
 
     expect(tokenBalanceBefore).toBe(tokenBalanceFromSmartAccount.amount)
   })
-
-  test.concurrent(
-    "should fetch only token balance for a smartAccount",
-    async () => {
-      const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
-      const tokenBalanceBefore = await checkBalance(smartAccountAddress, token)
-      const tokenBalanceFromSmartAccount = await smartAccount.getBalance([
-        token
-      ])
-      console.log(tokenBalanceFromSmartAccount)
-
-      // expect(tokenBalanceBefore).toBe(tokenBalanceFromSmartAccount)
-    }
-  )
 
   test.concurrent("should error if no recipient exists", async () => {
     const token: Hex = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
@@ -662,7 +648,7 @@ describe("Account:Read", () => {
   test.concurrent(
     "should check native token balance and more token info for smartAccount",
     async () => {
-      const [ethBalanceFromSmartAccount] = await smartAccount.getBalance()
+      const [ethBalanceFromSmartAccount] = await smartAccount.getBalances()
 
       expect(ethBalanceFromSmartAccount.amount).toBeGreaterThan(0n)
       expect(ethBalanceFromSmartAccount.address).toBe(NATIVE_TOKEN_ALIAS)

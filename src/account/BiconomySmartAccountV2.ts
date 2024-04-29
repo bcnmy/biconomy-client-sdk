@@ -443,7 +443,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a";
    * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl });
-   * const [tokenBalanceFromSmartAccount, nativeTokenBalanceFromSmartAccount] = await smartAccount.getBalance([token]);
+   * const [tokenBalanceFromSmartAccount, nativeTokenBalanceFromSmartAccount] = await smartAccount.getBalances([token]);
    *
    * console.log(tokenBalanceFromSmartAccount);
    * // {
@@ -456,7 +456,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * // or to get the nativeToken balance
    *
-   * const [nativeTokenBalanceFromSmartAccount] = await smartAccount.getBalance();
+   * const [nativeTokenBalanceFromSmartAccount] = await smartAccount.getBalances();
    *
    * console.log(nativeTokenBalanceFromSmartAccount);
    * // {
@@ -468,7 +468,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * // }
    *
    */
-  public async getBalance(
+  public async getBalances(
     addresses?: Array<Hex>
   ): Promise<Array<BalancePayload>> {
     const accountAddress = await this.getAccountAddress()
@@ -586,7 +586,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     // Get the balances of the tokens if the amount is not present in the withdrawal requests
     if (shouldFetchMaxBalances) {
-      const balances = await this.getBalance(
+      const balances = await this.getBalances(
         tokenRequests.map(({ address }) => address)
       )
       tokenRequests = tokenRequests.map(({ amount, address }, i) => ({
@@ -1144,7 +1144,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     return await Promise.all(
       (feeQuotesResponse?.feeQuotes ?? []).map(async (quote) => {
-        const [tokenBalance] = await this.getBalance([
+        const [tokenBalance] = await this.getBalances([
           quote.tokenAddress as Hex
         ])
         return {
