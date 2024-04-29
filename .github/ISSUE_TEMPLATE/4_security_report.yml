@@ -1,0 +1,31 @@
+name: 🔒 Security Pre-Screening
+description: Pre-screening for security-related reports
+title: "[SECURITY PRE-SCREEN] "
+labels: ["security", "triage needed"]
+body:
+  - type: markdown
+    attributes:
+      value: "Security is our top priority. If you've discovered a potential security issue please proceed."
+  - type: checkboxes
+    attributes:
+      label: Security Level Acknowledgement
+      options:
+        - label: "I understand this issue will be public. It is NOT critical or high risk and does not endanger deployed contracts. If it is please email: security@biconomy.io"
+          required: true
+  - type: input
+    attributes:
+      label: Overview
+      description: Provide a summary of the non-critical security concern or question.
+      placeholder: "e.g., Questions about the audit process."
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Additional Details
+      description: Offer more detail on your concern or question.
+      placeholder: "Provide any additional context..."
+  - type: input
+    attributes:
+      label: Suggestions for Mitigation
+      description: (Optional) Suggest ways to address the concern.
+      placeholder: "Potential mitigation steps include..."

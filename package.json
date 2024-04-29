@@ -1,86 +1,119 @@
 {
-  "name": "biconomy-sdk",
-  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/_cjs/index.js",
+  "module": "./dist/_esm/index.js",
+  "types": "./dist/_types/index.d.ts",
+  "typings": "./dist/_types/index.d.ts",
+  "homepage": "https://biconomy.io",
+  "sideEffects": false,
+  "name": "@biconomy/account",
+  "author": "Biconomy",
+  "version": "4.2.0",
   "description": "SDK for Biconomy integration with support for account abstraction, smart accounts, ERC-4337.",
   "keywords": [
-    "biconomy",
-    "sdk",
-    "blockchain",
-    "integration",
+    "erc-7579",
+    "modular smart account",
     "account abstraction",
-    "smart accounts",
-    "erc-4337",
-    "crosschain",
-    "cross-chain",
-    "metatransactions"
+    "biconomy",
+    "sdk"
   ],
   "license": "MIT",
-  "homepage": "https://biconomy.io/docs",
-  "bugs": {
-    "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/bcnmy/biconomy-client-sdk"
-  },
-  "author": "Biconomy (https://biconomy.io)",
-  "private": true,
-  "scripts": {
-    "dev": "yarn rebuild && yarn install && lerna run build && yarn link:all",
-    "rebuild": "./rebuild.sh",
-    "link:all": "./linkAll.sh",
-    "build": "yarn rebuild && yarn install && lerna run build",
-    "clean": "lerna clean && lerna run unbuild",
-    "format": "lerna run format --npm-client=yarn",
-    "prettier": "npx prettier --write .",
-    "lint": "eslint -c .eslintrc.js 'packages/*/src/**/*.{ts,tsx}'",
-    "lint:fix": "eslint -c .eslintrc.js 'packages/*/src/**/*.{ts,tsx}' --fix",
-    "test:run": "yarn jest --runInBand",
-    "test": "concurrently -k --success first 'yarn start:ganache' 'yarn test:run' && exit 0",
-    "start:ganache": "ganache -m 'direct buyer cliff train rice spirit census refuse glare expire innocent quote'",
-    "test:ci": "FORCE_COLOR=1 lerna run test:ci --stream --npm-client=yarn",
-    "test:coverage": "concurrently -k --success first 'yarn start:ganache' 'yarn jest --runInBand --coverage'",
-    "test:e2e": "yarn test:run --config=jest.config.e2e.ts",
-    "diff": "lerna diff",
-    "release": "lerna version patch --no-git-tag-version --no-push --conventional-commits --yes"
-  },
-  "changelog": {
-    "labels": {
-      "feature": "New Feature",
-      "bug": "Bug Fix"
+  "repository": "github:bcnmy/biconomy-client-sdk",
+  "exports": {
+    ".": {
+      "types": "./dist/_types/index.d.ts",
+      "import": "./dist/_esm/index.js",
+      "default": "./dist/_cjs/index.js"
+    },
+    "./account": {
+      "types": "./_types/account/index.d.ts",
+      "import": "./_esm/account/index.js",
+      "default": "./_cjs/account/index.js"
+    },
+    "./bundler": {
+      "types": "./_types/bundler/index.d.ts",
+      "import": "./_esm/bundler/index.js",
+      "default": "./_cjs/bundler/index.js"
+    },
+    "./paymaster": {
+      "types": "./_types/paymaster/index.d.ts",
+      "import": "./_esm/paymaster/index.js",
+      "default": "./_cjs/paymaster/index.js"
+    },
+    "./modules": {
+      "types": "./_types/modules/index.d.ts",
+      "import": "./_esm/modules/index.js",
+      "default": "./_cjs/modules/index.js"
     }
   },
-  "workspaces": {
-    "packages": [
-      "packages/*"
-    ]
-  },
-  "dependencies": {
-    "node-gyp": "^9.4.0",
-    "typescript": "^5.3.3"
+  "files": [
+    "dist/*",
+    "README.md"
+  ],
+  "scripts": {
+    "format": "biome format . --write",
+    "lint": "biome check .",
+    "lint:fix": "bun run lint --apply",
+    "dev": "concurrently \"bun run esm:watch\" \"bun run cjs:watch\" \"bun run esm:watch:aliases\" \"bun run cjs:watch:aliases\"",
+    "build": "bun run clean && bun run build:cjs && bun run build:esm && bun run build:types",
+    "clean": "rimraf ./dist/_esm ./dist/_cjs ./dist/_types ./dist/tsconfig",
+    "test": "vitest dev -c ./tests/vitest.config.ts",
+    "test:readOnly": "bun run test read",
+    "test:watch": "bun run test --watch",
+    "test:watch:readOnly": "bun run test:readOnly --watch",
+    "test:coverage": "CI=true vitest -c ./tests/vitest.config.ts --coverage",
+    "test:ci": "CI=true vitest -c ./tests/vitest.config.ts",
+    "size": "size-limit",
+    "docs": "typedoc --tsconfig ./tsconfig/tsconfig.esm.json",
+    "docs:deploy": "bun run docs && gh-pages -d docs",
+    "changeset": "changeset",
+    "changeset:release": "bun run build && changeset publish",
+    "changeset:version": "changeset version && bun install --lockfile-only",
+    "esm:watch": "tsc --project ./tsconfig/tsconfig.esm.json --watch",
+    "cjs:watch": "tsc --project ./tsconfig/tsconfig.cjs.json --watch",
+    "esm:watch:aliases": "tsc-alias -p ./tsconfig/tsconfig.esm.json --watch",
+    "cjs:watch:aliases": "tsc-alias -p ./tsconfig/tsconfig.cjs.json --watch",
+    "build:cjs": "tsc --project ./tsconfig/tsconfig.cjs.json && tsc-alias -p ./tsconfig/tsconfig.cjs.json && echo > ./dist/_cjs/package.json '{\"type\":\"commonjs\"}'",
+    "build:esm": "tsc --project ./tsconfig/tsconfig.esm.json && tsc-alias -p ./tsconfig/tsconfig.esm.json && echo > ./dist/_esm/package.json '{\"type\": \"module\",\"sideEffects\":false}'",
+    "build:types": "tsc --project ./tsconfig/tsconfig.types.json && tsc-alias -p ./tsconfig/tsconfig.types.json"
   },
   "devDependencies": {
-    "@types/debug": "^4.1.9",
-    "@types/jest": "^29.5.4",
-    "@typescript-eslint/eslint-plugin": "^6.7.0",
-    "@typescript-eslint/parser": "^6.6.0",
+    "@biomejs/biome": "1.6.0",
+    "@changesets/cli": "^2.27.1",
+    "@commitlint/cli": "^19.0.3",
+    "@commitlint/config-conventional": "^19.0.3",
+    "@ethersproject/abi": "^5.7.0",
+    "@ethersproject/providers": "^5.7.2",
+    "@ethersproject/wallet": "^5.7.0",
+    "@size-limit/esbuild-why": "^11",
+    "@size-limit/preset-small-lib": "^11",
+    "@types/bun": "latest",
+    "@vitest/coverage-v8": "^1.3.1",
     "concurrently": "^8.2.2",
-    "eslint": "^8.48.0",
-    "eslint-config-airbnb-base": "15.0.0",
-    "eslint-config-airbnb-typescript": "17.1.0",
-    "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-import": "^2.28.1",
-    "eslint-plugin-prettier": "^5.0.0",
-    "eslint-plugin-security": "^1.7.1",
-    "ganache": "^7.9.2",
-    "hardhat": "^2.17.3",
-    "jest": "^29.7.0",
-    "lerna": "^7.2.0",
-    "lerna-changelog": "^2.2.0",
-    "nx": "^16.8.1",
-    "prettier": "^3.0.3",
-    "rimraf": "^5.0.1",
-    "ts-jest": "^29.1.1",
-    "ts-node": "^10.9.1"
+    "gh-pages": "^6.1.1",
+    "rimraf": "^5.0.5",
+    "simple-git-hooks": "^2.9.0",
+    "size-limit": "^11",
+    "tsc-alias": "^1.8.8",
+    "tslib": "^2.6.2",
+    "typedoc": "^0.25.9",
+    "vitest": "^1.3.1",
+    "buffer": "^6.0.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5",
+    "viem": "^2"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "simple-git-hooks": {
+    "pre-commit": "bun run format && bun run lint:fix",
+    "commit-msg": "npx --no -- commitlint --edit ${1}"
+  },
+  "dependencies": {
+    "merkletreejs": "^0.3.11"
   }
 }
