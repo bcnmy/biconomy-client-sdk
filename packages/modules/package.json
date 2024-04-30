@@ -45,15 +45,12 @@
   },
   "author": "Biconomy",
   "license": "MIT",
-  "files": [
-    "dist/*",
-    "README.md"
-  ],
+  "files": ["dist/*", "README.md"],
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@alchemy/aa-core": "^3.1.1",
+    "@alchemy/aa-core": "3.1.1",
     "@biconomy/common": "^4.1.0",
     "@ethersproject/abi": "^5.7.0",
     "merkletreejs": "^0.3.11",

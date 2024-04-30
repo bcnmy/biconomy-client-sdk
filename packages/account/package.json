@@ -32,10 +32,11 @@
     "build:esbuild": "yarn build:esbuild:cjs && yarn build:esbuild:esm && yarn build:typ",
     "build:tsc:cjs": "tsc --project tsconfig.build.json --module commonjs --outDir ./dist/cjs --removeComments --verbatimModuleSyntax false && echo > ./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
     "build:tsc:esm": "tsc --project tsconfig.build.json --module esnext --outDir ./dist/esm --removeComments && echo > ./dist/esm/package.json '{\"type\":\"module\"}'",
+    "build:tsc:umd": "tsc --project tsconfig.umd.json --module esnext --outDir ./dist/umd --removeComments",
     "build:esbuild:cjs": "node .esbuild.js CJS && echo > ./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
     "build:esbuild:esm": "node .esbuild.js ESM && echo > ./dist/esm/package.json '{\"type\":\"module\"}'",
     "build:typ": "tsc --project tsconfig.build.json --module esnext --declarationDir ./dist/types --emitDeclarationOnly --declaration --declarationMap",
-    "build:tsc": "yarn build:tsc:cjs && yarn build:tsc:esm && yarn build:typ && yarn dist:minify",
+    "build:tsc": "yarn build:tsc:cjs && yarn build:tsc:esm && yarn build:tsc:umd && yarn build:typ && yarn dist:minify",
     "test:concurrently": "concurrently -k --success first 'yarn start:ganache' 'yarn test'",
     "test:cov": "jest --coverage",
     "test": "jest tests/**/*.spec.ts --runInBand",
@@ -47,10 +48,7 @@
   },
   "author": "Biconomy",
   "license": "MIT",
-  "files": [
-    "dist/*",
-    "README.md"
-  ],
+  "files": ["dist/*", "README.md"],
   "publishConfig": {
     "access": "public"
   },
@@ -67,7 +65,7 @@
     "typedoc": "^0.25.7"
   },
   "dependencies": {
-    "@alchemy/aa-core": "^3.1.1",
+    "@alchemy/aa-core": "3.1.1",
     "@biconomy/bundler": "^4.1.0",
     "@biconomy/common": "^4.1.0",
     "@biconomy/modules": "^4.1.0",

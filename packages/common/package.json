@@ -2,9 +2,7 @@
   "name": "@biconomy/common",
   "version": "4.1.0",
   "description": "common utils to be used for aa transactions",
-  "keywords": [
-    "utils"
-  ],
+  "keywords": ["utils"],
   "author": "livingrockrises <chirag@biconomy.io>",
   "homepage": "https://github.com/bcnmy/biconomy-client-sdk#readme",
   "license": "MIT",
@@ -20,10 +18,7 @@
     },
     "./package.json": "./package.json"
   },
-  "files": [
-    "dist/*",
-    "README.md"
-  ],
+  "files": ["dist/*", "README.md"],
   "publishConfig": {
     "access": "public"
   },
@@ -41,7 +36,7 @@
     "build:tsc:esm": "tsc --project tsconfig.build.json --module esnext --outDir ./dist/esm --removeComments && echo > ./dist/esm/package.json '{\"type\":\"module\"}'",
     "build:esbuild:cjs": "node .esbuild.js CJS && echo > ./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
     "build:esbuild:esm": "node .esbuild.js ESM && echo > ./dist/esm/package.json '{\"type\":\"module\"}'",
-    "build:typ": "tsc --project tsconfig.build.json --module esnext --declarationDir ./dist/types --emitDeclarationOnly --declaration --declarationMap", 
+    "build:typ": "tsc --project tsconfig.build.json --module esnext --declarationDir ./dist/types --emitDeclarationOnly --declaration --declarationMap",
     "build:tsc": "yarn build:tsc:cjs && yarn build:tsc:esm && yarn build:typ && yarn dist:minify",
     "test:file": "jest --config=../../jest.config.js --runInBand",
     "test:concurrently": "concurrently -k --success first 'yarn start:ganache > /dev/null'",
@@ -54,7 +49,7 @@
     "url": "https://github.com/bcnmy/biconomy-client-sdk/issues"
   },
   "dependencies": {
-    "@alchemy/aa-core": "^3.1.1",
+    "@alchemy/aa-core": "3.1.1",
     "@ethersproject/abstract-signer": "^5.7.0",
     "viem": "^2.7.12"
   },

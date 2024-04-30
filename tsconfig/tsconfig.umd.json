@@ -1,0 +1,12 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "module": "UMD",
+        "outDir": "../dist/_umd",
+        "removeComments": true,
+        "declaration": true,
+        "verbatimModuleSyntax": false,
+        "moduleResolution": "node",
+        "noEmit": false
+    }
+}
