@@ -93,7 +93,6 @@ import {
   isValidRpcUrl,
   packUserOp 
 } from "./utils/Utils.js"
-import { type UserOpReceipt } from "@biconomy/account"
 
 type UserOperationKey = keyof UserOperationStruct
 
