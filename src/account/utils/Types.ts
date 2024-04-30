@@ -598,3 +598,11 @@ export interface ISmartContractAccount<
     upgradeToInitData: Hex
   ) => Promise<Hex>
 }
+
+export type TransferOwnershipResponse = {
+  transactionHash: string,
+  userOpHash: string,
+  status: string,
+  cumulativeGasUsed: number,
+  gasUsed: number,
+}

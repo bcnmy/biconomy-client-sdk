@@ -17,7 +17,8 @@ import {
   parseAbi,
   parseAbiParameters,
   toBytes,
-  toHex
+  toHex,
+  type Address,
 } from "viem"
 import type { IBundler } from "../bundler/IBundler.js"
 import {
@@ -29,7 +30,8 @@ import {
   BaseValidationModule,
   type ModuleInfo,
   type SendUserOpParams,
-  createECDSAOwnershipValidationModule
+  createECDSAOwnershipValidationModule,
+  ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION
 } from "../modules"
 import {
   BiconomyPaymaster,
@@ -81,6 +83,7 @@ import type {
   SimulationType,
   SupportedToken,
   Transaction,
+  TransferOwnershipResponse,
   WithdrawalRequest
 } from "./utils/Types.js"
 import {
@@ -88,8 +91,9 @@ import {
   compareChainIds,
   isNullOrUndefined,
   isValidRpcUrl,
-  packUserOp
+  packUserOp 
 } from "./utils/Utils.js"
+import { type UserOpReceipt } from "@biconomy/account"
 
 type UserOperationKey = keyof UserOperationStruct
 
@@ -1284,6 +1288,56 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
     return nonce
   }
+
+   /**
+     * Transfers ownership of the smart account to a new owner.
+     * @param newOwner The address of the new owner.
+     * @param buildUseropDto {@link BuildUserOpOptions}. Optional parameter
+     * @returns A Promise that resolves to a TransferOwnershipResponse or rejects with an Error.
+     * @example
+     * ```typescript
+     * const walletClient = createWalletClient({
+     *   account,
+     *   chain: baseSepolia,
+     *   transport: http()
+     * });
+     * const smartAccount = await createSmartAccountClient({
+     *   signer: walletClient,
+     *   paymasterUrl: "https://paymaster.biconomy.io/api/v1/...",
+     *   bundlerUrl: `https://bundler.biconomy.io/api/v2/84532/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44`,
+     *   chainId: 84532
+     * });
+     * const response = await smartAccount.transferOwnership(newOwner, {paymasterServiceData: {mode: PaymasterMode.SPONSORED}});
+     * ```
+   */
+    async transferOwnership(
+      newOwner: Address,
+      buildUseropDto?: BuildUserOpOptions
+    ): Promise<TransferOwnershipResponse> {
+      try {
+        const encodedCall = encodeFunctionData({
+          abi: parseAbi(["function transferOwnership(address newOwner) public"]),
+          functionName: "transferOwnership",
+          args: [newOwner],
+        });
+        const transaction = {
+          to: ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION.V1_0_0,
+          data: encodedCall,
+        };
+        const { wait } = await this.sendTransaction(transaction, buildUseropDto);
+        const response = await wait();
+        const receipt = response.receipt;
+        return {
+          transactionHash: receipt.transactionHash,
+          userOpHash: response.userOpHash,
+          status: response.success === "true" ? "success" : "failed",
+          cumulativeGasUsed: Number(receipt.cumulativeGasUsed),
+          gasUsed: Number(receipt.gasUsed),
+        };
+      } catch (error) {
+        throw new Error(`Error while transferring ownership: ${error}`);
+      }
+    }
 
   /**
    * Sends a transaction (builds and sends a user op in sequence)

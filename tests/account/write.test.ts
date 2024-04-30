@@ -14,12 +14,16 @@ import {
   type BiconomySmartAccountV2,
   DEFAULT_ENTRYPOINT_ADDRESS,
   ERC20_ABI,
-  createSmartAccountClient
+  createSmartAccountClient,
+  WalletClientSigner
 } from "../../src/account"
 import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"
 import { PaymasterMode } from "../../src/paymaster"
 import { testOnlyOnOptimism } from "../setupFiles"
-import { checkBalance, getConfig, nonZeroBalance, topUp } from "../utils"
+import { checkBalance, getConfig, getEnvVars, nonZeroBalance, topUp } from "../utils"
+import { baseSepolia, sepolia } from "viem/chains"
+import { createECDSAOwnershipValidationModule } from "../../src/modules"
+import { getAAError } from "../../src/bundler/utils/getAAError"
 
 describe("Account:Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
@@ -84,6 +88,10 @@ describe("Account:Write", () => {
         value: 1n
       }
     ])
+
+    console.log(await smartAccount.getAccountAddress())
+    console.log(await smartAccount.getSigner().getAddress(), "signer address");
+    
 
     userOp.signature = undefined
 
@@ -315,4 +323,74 @@ describe("Account:Write", () => {
     const newBalance = await checkBalance(recipient, nftAddress)
     expect(newBalance - balance).toBe(1n)
   }, 60000)
+
+  describe("Transfer ownership", () => {
+    test("should transfer ownership of smart account to accountTwo", async () => {
+      const newOwner = accountTwo.address;
+      const _smartAccount = await createSmartAccountClient({
+        signer: walletClient,
+        paymasterUrl: "https://paymaster.biconomy.io/api/v1/80002/_sTfkyAEp.552504b5-9093-4d4b-94dd-701f85a267ea",
+        bundlerUrl: "https://bundler.biconomy.io/api/v2/80002/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44",
+        accountAddress: "0x5F141ee1390D4c9d033a00CB940E509A4811a5E0",
+      })
+      const response = await _smartAccount.transferOwnership(newOwner, {paymasterServiceData: {mode: PaymasterMode.SPONSORED}})
+      const signerAddress = await _smartAccount.getSigner().getAddress();
+      console.log("New owner address: ", newOwner);
+      console.log("Signer address: ", signerAddress);
+      expect(response.status).toBe("success")
+    }, 35000);
+
+    test("send an user op with the new owner", async () => {
+      const _smartAccount = await createSmartAccountClient({
+        signer: walletClientTwo,
+        paymasterUrl: "https://paymaster.biconomy.io/api/v1/80002/_sTfkyAEp.552504b5-9093-4d4b-94dd-701f85a267ea",
+        bundlerUrl: "https://bundler.biconomy.io/api/v2/80002/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44",
+        accountAddress: "0x5F141ee1390D4c9d033a00CB940E509A4811a5E0",
+      })
+      const newOwner = accountTwo.address;
+      const currentSmartAccountInstanceSigner = await _smartAccount.getSigner().getAddress();
+      expect(currentSmartAccountInstanceSigner).toBe(newOwner)
+      const tx = {
+        to: nftAddress,
+        data: encodeFunctionData({
+          abi: parseAbi(["function safeMint(address _to)"]),
+          functionName: "safeMint",
+          args: [smartAccountAddressTwo]
+        })
+      }
+      const {wait} = await _smartAccount.sendTransaction(tx, {paymasterServiceData: {mode: PaymasterMode.SPONSORED}})
+      const response = await wait();
+      expect(response.success).toBe("true")
+    }, 35000);
+
+    test("should revert if sending an user op with the old owner", async () => {
+      const _smartAccount = await createSmartAccountClient({
+        signer: walletClient,
+        paymasterUrl: "https://paymaster.biconomy.io/api/v1/80002/_sTfkyAEp.552504b5-9093-4d4b-94dd-701f85a267ea",
+        bundlerUrl: "https://bundler.biconomy.io/api/v2/80002/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44",
+        accountAddress: "0x5F141ee1390D4c9d033a00CB940E509A4811a5E0",
+      })
+      const tx = {
+        to: nftAddress,
+        data: encodeFunctionData({
+          abi: parseAbi(["function safeMint(address _to)"]),
+          functionName: "safeMint",
+          args: [smartAccountAddressTwo]
+        })
+      }
+      await expect(_smartAccount.sendTransaction(tx, {paymasterServiceData: {mode: PaymasterMode.SPONSORED}})).rejects.toThrowError(await getAAError("Error coming from Bundler: AA24 signature error"))
+    }, 35000);
+
+    test("should transfer ownership of smart account back to account", async () => {
+      const newOwner = account.address;
+      const _smartAccount = await createSmartAccountClient({
+        signer: walletClientTwo,
+        paymasterUrl: "https://paymaster.biconomy.io/api/v1/80002/_sTfkyAEp.552504b5-9093-4d4b-94dd-701f85a267ea",
+        bundlerUrl: "https://bundler.biconomy.io/api/v2/80002/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44",
+        accountAddress: "0x5F141ee1390D4c9d033a00CB940E509A4811a5E0",
+      })
+      const response = await _smartAccount.transferOwnership(newOwner, {paymasterServiceData: {mode: PaymasterMode.SPONSORED}})
+      expect(response.status).toBe("success")
+    }, 35000);
+  })
 })
