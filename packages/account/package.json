@@ -32,7 +32,7 @@
     "build:esbuild": "yarn build:esbuild:cjs && yarn build:esbuild:esm && yarn build:typ",
     "build:tsc:cjs": "tsc --project tsconfig.build.json --module commonjs --outDir ./dist/cjs --removeComments --verbatimModuleSyntax false && echo > ./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
     "build:tsc:esm": "tsc --project tsconfig.build.json --module esnext --outDir ./dist/esm --removeComments && echo > ./dist/esm/package.json '{\"type\":\"module\"}'",
-    "build:tsc:umd": "tsc --project tsconfig.umd.json --module esnext --outDir ./dist/umd --removeComments",
+    "build:tsc:umd": "tsc --project tsconfig.umd.json --outDir ./dist/umd --removeComments",
     "build:esbuild:cjs": "node .esbuild.js CJS && echo > ./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
     "build:esbuild:esm": "node .esbuild.js ESM && echo > ./dist/esm/package.json '{\"type\":\"module\"}'",
     "build:typ": "tsc --project tsconfig.build.json --module esnext --declarationDir ./dist/types --emitDeclarationOnly --declaration --declarationMap",
