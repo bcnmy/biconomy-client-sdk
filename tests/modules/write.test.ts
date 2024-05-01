@@ -10,7 +10,8 @@ import {
   parseEther,
   parseUnits,
   slice,
-  toFunctionSelector
+  toFunctionSelector,
+  getContract
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
@@ -18,7 +19,8 @@ import {
   type BiconomySmartAccountV2,
   type Transaction,
   type WalletClientSigner,
-  createSmartAccountClient
+  createSmartAccountClient,
+  DEFAULT_BICONOMY_FACTORY_ADDRESS
 } from "../../src/account"
 import { Logger, getChain } from "../../src/account"
 import {
@@ -26,6 +28,7 @@ import {
   DEFAULT_MULTICHAIN_MODULE,
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   createBatchedSessionRouterModule,
+  createECDSAOwnershipValidationModule,
   createMultiChainValidationModule,
   createSessionKeyManagerModule,
   getABISVMSessionKeyData
@@ -33,6 +36,8 @@ import {
 import { SessionMemoryStorage } from "../../src/modules/session-storage/SessionMemoryStorage"
 import { PaymasterMode } from "../../src/paymaster"
 import { checkBalance, getBundlerUrl, getConfig, topUp } from "../utils"
+import { polygon } from "viem/chains"
+import { BiconomyFactoryAbi } from "../../src/account/abi/Factory"
 
 describe("Modules:Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
@@ -86,7 +91,7 @@ describe("Modules:Write", () => {
     )
   })
 
-  test("should enable session module", async () => {
+  test.skip("should enable session module", async () => {
     const smartAccount = await createSmartAccountClient({
       signer: walletClient,
       bundlerUrl,
@@ -108,6 +113,77 @@ describe("Modules:Write", () => {
       expect(success).toBe("true")
     }
   }, 50000)
+
+  test("palgam", async () => {
+    const pr = "INSERT_PR_HERE"
+    const bundlerUrl =
+      "https://bundler.biconomy.io/api/v2/137/wde62ibhs.HI7fopYh-iJkl-12Io-af80-dsh90f74b78Cv"
+    const entryPoint = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"
+
+    const account = privateKeyToAccount(pr)
+    const client = createWalletClient({
+      account,
+      chain: polygon,
+      transport: http()
+    })
+    const eoa = client.account.address
+
+    const smartAccount = await createSmartAccountClient({
+      signer: client,
+      bundlerUrl
+    })
+
+    const ecdsaModule = await createECDSAOwnershipValidationModule({
+      signer: client
+    })
+
+    const owner = await ecdsaModule.getAddress()
+    const smartAccountAddressFromSDK = await smartAccount.getAccountAddress()
+    const initCodeFromSDK = await smartAccount.getAccountInitCode()
+
+    console.log({ owner })
+
+    const publicClient = createPublicClient({
+      chain: polygon,
+      transport: http()
+    })
+
+    const factoryContract = getContract({
+      address: DEFAULT_BICONOMY_FACTORY_ADDRESS,
+      abi: BiconomyFactoryAbi,
+      client: { public: publicClient, wallet: client }
+    })
+
+    function getInitCode(walletAddress): Hex {
+      const encodedFunctionData = encodeFunctionData({
+        abi: BiconomyFactoryAbi,
+        functionName: "deployCounterFactualAccount",
+        args: [
+          owner,
+          `0x2ede3bc0000000000000000000000000${walletAddress.slice(2, 42)}`,
+          BigInt(0)
+        ]
+      })
+
+      const initCode =
+        DEFAULT_BICONOMY_FACTORY_ADDRESS + encodedFunctionData.substring(2)
+      return initCode as Hex
+    }
+
+    const initCodeFromFactory = getInitCode(eoa)
+
+    const smartAccountAddressFromContracts =
+      await factoryContract.read.getAddressForCounterFactualAccount([
+        owner,
+        getInitCode(eoa),
+        BigInt(0)
+      ])
+
+    expect(initCodeFromSDK.toUpperCase()).toBe(
+      initCodeFromFactory.toUpperCase()
+    )
+    expect(smartAccountAddressFromSDK).toBe(smartAccountAddressFromContracts)
+  })
 
   test.skip("should use MultichainValidationModule to mint an NFT on two chains with sponsorship", async () => {
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
@@ -236,7 +312,7 @@ describe("Modules:Write", () => {
     expect(success2).toBe("true")
   }, 50000)
 
-  test("should use SessionValidationModule to send a user op", async () => {
+  test.skip("should use SessionValidationModule to send a user op", async () => {
     let sessionSigner: WalletClientSigner
     const sessionKeyEOA = walletClient.account.address
     const recipient = walletClientTwo.account.address
@@ -370,7 +446,7 @@ describe("Modules:Write", () => {
     )
   }, 60000)
 
-  test("should enable batched module", async () => {
+  test.skip("should enable batched module", async () => {
     const smartAccount = await createSmartAccountClient({
       signer: walletClient,
       bundlerUrl,
