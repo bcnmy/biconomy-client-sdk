@@ -9,6 +9,7 @@ export * from "./MultichainValidationModule.js"
 export * from "./SessionKeyManagerModule.js"
 export * from "./BatchedSessionRouterModule.js"
 export * from "./session-validation-modules/ERC20SessionValidationModule.js"
+export * from "./session-validation-modules/ABISessionValidationModule.js"
 
 import {
   BatchedSessionRouterModule,

@@ -33,6 +33,8 @@ import {
   StorageType
 } from "./utils/Types.js"
 import { generateRandomHex } from "./utils/Uid.js"
+import { SessionFileStorage } from "./session-storage/SessionFileStorage.js"
+import { SessionMemoryStorage } from "./session-storage/SessionMemoryStorage.js"
 
 export class SessionKeyManagerModule extends BaseValidationModule {
   version: ModuleVersion = "V1_0_0"
@@ -86,6 +88,16 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       instance.sessionStorageClient = moduleConfig.sessionStorageClient
     } else {
       switch (moduleConfig.storageType) {
+        case StorageType.MEMORY_STORAGE:
+          instance.sessionStorageClient = new SessionMemoryStorage(
+            moduleConfig.smartAccountAddress
+          )
+          break
+        case StorageType.FILE_STORAGE:
+          instance.sessionStorageClient = new SessionFileStorage(
+            moduleConfig.smartAccountAddress
+          )
+          break
         case StorageType.LOCAL_STORAGE:
           instance.sessionStorageClient = new SessionLocalStorage(
             moduleConfig.smartAccountAddress
@@ -188,6 +200,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @returns The signature of the user operation
    */
   async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<Hex> {
+    console.log({ params })
     if (!params?.sessionSigner) {
       throw new Error("Session signer is not provided.")
     }

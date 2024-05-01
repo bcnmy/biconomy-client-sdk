@@ -1,6 +1,6 @@
 import { http, type Hex, createWalletClient } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { polygonMumbai } from "viem/chains"
+import { mainnet, polygonMumbai } from "viem/chains"
 import {
   Logger,
   type SmartAccountSigner,
@@ -189,24 +189,28 @@ export class SessionFileStorage implements ISessionStorage {
     await this.writeDataToFile(data, "sessions") // Use 'sessions' as the type
   }
 
-  async addSigner(signerData: SignerData): Promise<WalletClientSigner> {
+  async addSigner(
+    signerData: SignerData,
+    chainId?: number
+  ): Promise<WalletClientSigner> {
     const signers = await this.getSignerStore()
+    const chain = getChain(chainId ?? signerData.chainId)
     let signer: SignerData
     if (!signerData) {
       const pkey = generatePrivateKey()
       signer = {
         pvKey: pkey,
-        pbKey: privateKeyToAccount(pkey).publicKey
+        chainId: chainId ?? mainnet.id,
+        address: privateKeyToAccount(pkey).address
       }
     } else {
       signer = signerData
     }
     const accountSigner = privateKeyToAccount(signer.pvKey)
-    const viemChain = getChain(signerData?.chainId?.id || 1)
     const client = createWalletClient({
       account: accountSigner,
-      chain: signerData.chainId,
-      transport: http(viemChain.rpcUrls.default.http[0])
+      chain,
+      transport: http()
     })
     const walletClientSigner: SmartAccountSigner = new WalletClientSigner(
       client,
@@ -214,7 +218,7 @@ export class SessionFileStorage implements ISessionStorage {
     )
     signers[this.toLowercaseAddress(accountSigner.address)] = {
       pvKey: signer.pvKey,
-      pbKey: signer.pbKey
+      address: signer.address
     }
     await this.writeDataToFile(signers, "signers") // Use 'signers' as the type
     return walletClientSigner
@@ -235,7 +239,8 @@ export class SessionFileStorage implements ISessionStorage {
     const signer = privateKeyToAccount(signerData.pvKey)
     const walletClient = createWalletClient({
       account: signer,
-      transport: http(polygonMumbai.rpcUrls.default.http[0])
+      chain: getChain(signerData.chainId),
+      transport: http()
     })
     return new WalletClientSigner(walletClient, "json-rpc")
   }

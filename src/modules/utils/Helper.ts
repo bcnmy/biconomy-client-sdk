@@ -80,26 +80,3 @@ export const getUserOpHash = (
   )
   return keccak256(enc)
 }
-
-export async function getABISVMSessionKeyData(
-  sessionKey: `0x${string}` | Uint8Array,
-  permission: Permission
-): Promise<`0x${string}` | Uint8Array> {
-  let sessionKeyData = concat([
-    sessionKey,
-    permission.destContract,
-    permission.functionSelector,
-    pad(toHex(permission.valueLimit), { size: 16 }),
-    pad(toHex(permission.rules.length), { size: 2 }) // this can't be more 2**11 (see below), so uint16 (2 bytes) is enough
-  ]) as `0x${string}`
-
-  for (let i = 0; i < permission.rules.length; i++) {
-    sessionKeyData = concat([
-      sessionKeyData,
-      pad(toHex(permission.rules[i].offset), { size: 2 }), // offset is uint16, so there can't be more than 2**16/32 args = 2**11
-      pad(toHex(permission.rules[i].condition), { size: 1 }), // uint8
-      permission.rules[i].referenceValue
-    ])
-  }
-  return sessionKeyData
-}

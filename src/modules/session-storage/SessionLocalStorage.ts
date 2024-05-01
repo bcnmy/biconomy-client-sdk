@@ -1,7 +1,11 @@
 import { http, type Hex, createWalletClient, toHex } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { mainnet } from "viem/chains"
-import { type SmartAccountSigner, WalletClientSigner } from "../../account"
+import {
+  type SmartAccountSigner,
+  WalletClientSigner,
+  getChain
+} from "../../account"
 import type {
   ISessionStorage,
   SessionLeafNode,
@@ -36,7 +40,7 @@ export class SessionLocalStorage implements ISessionStorage {
     return data ? JSON.parse(data) : { merkleRoot: "", leafNodes: [] }
   }
 
-  private getSignerStore() {
+  private getSignerStore(): Record<string, SignerData> {
     // @ts-ignore: LocalStorage is not available in node
     const data = localStorage.getItem(this.getStorageKey("signers"))
     return data ? JSON.parse(data) : {}
@@ -132,14 +136,19 @@ export class SessionLocalStorage implements ISessionStorage {
     localStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data))
   }
 
-  async addSigner(signerData: SignerData): Promise<SmartAccountSigner> {
+  async addSigner(
+    signerData: SignerData,
+    chainId?: number
+  ): Promise<SmartAccountSigner> {
     const signers = this.getSignerStore()
+    const chain = getChain(chainId ?? signerData.chainId)
     let signer: SignerData
     if (!signerData) {
       const pkey = generatePrivateKey()
       signer = {
         pvKey: pkey,
-        pbKey: privateKeyToAccount(pkey).publicKey
+        chainId: chainId ?? mainnet.id,
+        address: privateKeyToAccount(pkey).address
       }
     } else {
       signer = signerData
@@ -147,7 +156,7 @@ export class SessionLocalStorage implements ISessionStorage {
     const accountSigner = privateKeyToAccount(toHex(signer.pvKey))
     const client = createWalletClient({
       account: accountSigner,
-      chain: signerData.chainId,
+      chain,
       transport: http()
     })
     const walletClientSigner = new WalletClientSigner(
@@ -166,10 +175,10 @@ export class SessionLocalStorage implements ISessionStorage {
     if (!signerData) {
       throw new Error("Signer not found.")
     }
-    const account = privateKeyToAccount(signerData.privateKey)
+    const account = privateKeyToAccount(signerData.pvKey)
     const client = createWalletClient({
       account,
-      chain: mainnet,
+      chain: getChain(signerData.chainId),
       transport: http()
     })
     const signer = new WalletClientSigner(client, "viem")

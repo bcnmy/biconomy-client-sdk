@@ -21,7 +21,9 @@ class Logger {
    * warn -  Magenta[time] Yellow[WARN]: Cyan[message]:  [value]
    * error - Magenta[time] Red[ERROR]:   Cyan[message]:  [value]
    */
-  static log(message: string, value = ""): void {
+
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  static log(message: string, value: any = ""): void {
     const timestamp = new Date().toISOString()
     const logMessage = `\x1b[35m[${timestamp}]\x1b[0m \x1b[36m${message}\x1b[0m:`
 
@@ -29,8 +31,8 @@ class Logger {
       console.log(logMessage, value === undefined ? "" : value)
     }
   }
-
-  static warn(message: string, value = ""): void {
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  static warn(message: string, value: any = ""): void {
     const timestamp = new Date().toISOString()
     const warnMessage = `\x1b[35m[${timestamp}]\x1b[0m \x1b[33mWARN\x1b[0m: \x1b[36m${message}\x1b[0m`
 
@@ -38,8 +40,8 @@ class Logger {
       console.warn(warnMessage, value === undefined ? "" : value)
     }
   }
-
-  static error(message: string, value = ""): void {
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  static error(message: string, value: any = ""): void {
     const timestamp = new Date().toISOString()
     const errorMessage = `\x1b[35m[${timestamp}]\x1b[0m \x1b[31mERROR\x1b[0m: \x1b[36m${message}\x1b[0m`
 

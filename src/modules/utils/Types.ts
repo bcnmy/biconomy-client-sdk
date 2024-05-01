@@ -63,7 +63,9 @@ export interface BatchedSessionRouterModuleConfig
 }
 
 export enum StorageType {
-  LOCAL_STORAGE = 0
+  LOCAL_STORAGE = 0,
+  MEMORY_STORAGE = 1,
+  FILE_STORAGE = 2
 }
 
 export type SessionDataTuple = [
@@ -105,12 +107,10 @@ export interface SendUserOpParams extends ModuleInfo {
 }
 
 export type SignerData = {
-  /** Public key */
-  pbKey: string
+  address: Hex
   /** Private key */
-  pvKey: `0x${string}`
-  /** Network Id */
-  chainId?: Chain
+  pvKey: Hex
+  chainId: number
 }
 
 export type CreateSessionDataResponse = {

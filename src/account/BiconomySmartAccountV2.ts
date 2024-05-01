@@ -94,6 +94,8 @@ import {
 type UserOperationKey = keyof UserOperationStruct
 
 export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
+  private moduleInfo?: ModuleInfo
+
   private SENTINEL_MODULE = "0x0000000000000000000000000000000000000001"
 
   private index: number
@@ -145,6 +147,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         biconomySmartAccountConfig.factoryAddress ??
         DEFAULT_BICONOMY_FACTORY_ADDRESS
     })
+
+    this.moduleInfo = biconomySmartAccountConfig.moduleInfo
 
     this.defaultValidationModule =
       biconomySmartAccountConfig.defaultValidationModule
@@ -874,7 +878,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   // dummy signature depends on the validation module supplied.
-  async getDummySignatures(params?: ModuleInfo): Promise<Hex> {
+  async getDummySignatures(_params?: ModuleInfo): Promise<Hex> {
+    const params = { ..._params, ...(this.moduleInfo ? this.moduleInfo : {}) }
     this.isActiveValidationModuleDefined()
     return (await this.activeValidationModule.getDummySignature(params)) as Hex
   }
@@ -903,8 +908,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   async signUserOp(
     userOp: Partial<UserOperationStruct>,
-    params?: SendUserOpParams
+    _params?: SendUserOpParams
   ): Promise<UserOperationStruct> {
+    const params = { ..._params, ...(this.moduleInfo ? this.moduleInfo : {}) }
     this.isActiveValidationModuleDefined()
     const requiredFields: UserOperationKey[] = [
       "sender",

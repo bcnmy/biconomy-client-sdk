@@ -21,6 +21,10 @@ import type {
   SmartAccountData,
   SponsorUserOperationDto
 } from "../../paymaster"
+import {
+  ISessionStorage,
+  SessionLeafNode
+} from "../../modules/interfaces/ISessionStorage"
 
 export type EntryPointAddresses = Record<string, string>
 export type BiconomyFactories = Record<string, string>
@@ -165,6 +169,8 @@ export type BiconomySmartAccountV2ConfigBaseProps = {
   viemChain?: Chain
   /** The initial code to be used for the smart account */
   initCode?: Hex
+  /** Used for session key manager module */
+  moduleInfo?: ModuleInfo
 }
 export type BiconomySmartAccountV2Config =
   BiconomySmartAccountV2ConfigBaseProps &
@@ -199,6 +205,11 @@ export type BuildUserOpOptions = {
   stateOverrideSet?: StateOverrideSet
   /** set to true if the tx is being used *only* to deploy the smartContract, so "0x" is set as the userOp.callData  */
   useEmptyDeployCallData?: boolean
+}
+
+export type SessionDataForAccount = {
+  sessionStorageClient: ISessionStorage
+  session: SessionLeafNode
 }
 
 export type NonceOptions = {

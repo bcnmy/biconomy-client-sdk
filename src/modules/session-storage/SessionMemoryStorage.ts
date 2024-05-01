@@ -1,7 +1,11 @@
-import { http, type Hex, createWalletClient } from "viem"
+import { http, type Hex, createWalletClient, Chain } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { mainnet } from "viem/chains"
-import { type SmartAccountSigner, WalletClientSigner } from "../../account"
+import {
+  type SmartAccountSigner,
+  WalletClientSigner,
+  getChain
+} from "../../account"
 import type {
   ISessionStorage,
   SessionLeafNode,
@@ -51,7 +55,7 @@ export class SessionMemoryStorage implements ISessionStorage {
     return data ? JSON.parse(data) : { merkleRoot: "", leafNodes: [] }
   }
 
-  private getSignerStore() {
+  private getSignerStore(): Record<string, SignerData> {
     const data = memoryStorage.getItem(this.getStorageKey("signers"))
     return data ? JSON.parse(data) : {}
   }
@@ -143,14 +147,21 @@ export class SessionMemoryStorage implements ISessionStorage {
     memoryStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data))
   }
 
-  async addSigner(signerData: SignerData): Promise<SmartAccountSigner> {
+  async addSigner(
+    signerData: SignerData,
+    chainId?: number
+  ): Promise<SmartAccountSigner> {
     const signers = this.getSignerStore()
     let signer: SignerData
+
+    const chain = getChain(chainId ?? signerData.chainId)
+
     if (!signerData) {
       const pkey = generatePrivateKey()
       signer = {
         pvKey: pkey,
-        pbKey: privateKeyToAccount(pkey).publicKey
+        chainId: chainId ?? mainnet.id,
+        address: privateKeyToAccount(pkey).address
       }
     } else {
       signer = signerData
@@ -158,7 +169,7 @@ export class SessionMemoryStorage implements ISessionStorage {
     const accountSigner = privateKeyToAccount(signer.pvKey)
     const client = createWalletClient({
       account: accountSigner,
-      chain: signerData.chainId,
+      chain,
       transport: http()
     })
     const walletClientSigner = new WalletClientSigner(
@@ -175,14 +186,17 @@ export class SessionMemoryStorage implements ISessionStorage {
 
   async getSignerByKey(sessionPublicKey: string): Promise<SmartAccountSigner> {
     const signers = this.getSignerStore()
+
+    console.log({ signers, sessionPublicKey })
+
     const signerData = signers[this.toLowercaseAddress(sessionPublicKey)]
     if (!signerData) {
       throw new Error("Signer not found.")
     }
-    const account = privateKeyToAccount(signerData.privateKey)
+    const account = privateKeyToAccount(signerData.pvKey)
     const client = createWalletClient({
       account,
-      chain: mainnet,
+      chain: getChain(signerData.chainId),
       transport: http()
     })
     const signer = new WalletClientSigner(client, "viem")
