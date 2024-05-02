@@ -228,7 +228,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const bundlerUrl = "" // Retrieve bundler url from dasboard
+   * const bundlerUrl = "" // Retrieve bundler url from dashboard
    *
    * const smartAccountFromStaticCreate = await BiconomySmartAccountV2.create({ signer, bundlerUrl });
    *
@@ -347,9 +347,83 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   /**
-   * Returns token balances (and native token balance) of the smartAccount instance.
+   * Returns an upper estimate for the gas spent on a specific user operation
    *
-   * This method will fetch the token balances of the smartAccount instance.
+   * This method will fetch an approximate gas estimate for the user operation, given the current state of the network.
+   * It is regularly an overestimate, and the actual gas spent will likely be lower.
+   * It is unlikely to be an underestimate unless the network conditions rapidly change.
+   *
+   * @param transactions Array of {@link Transaction} to be sent.
+   * @param buildUseropDto {@link BuildUserOpOptions}.
+   * @returns Promise<bigint> - The estimated gas cost in wei.
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartAccountClient } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonAmoy } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonAmoy,
+   *   transport: http(),
+   * });
+   *
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, paymasterUrl }); // Retrieve bundler/paymaster url from dashboard
+   * const encodedCall = encodeFunctionData({
+   *   abi: parseAbi(["function safeMint(address to) public"]),
+   *   functionName: "safeMint",
+   *   args: ["0x..."],
+   * });
+   *
+   * const tx = {
+   *   to: nftAddress,
+   *   data: encodedCall
+   * }
+   *
+   * const amountInWei = await smartAccount.getGasEstimates([tx, tx], {
+   *    paymasterServiceData: {
+   *      mode: PaymasterMode.SPONSORED,
+   *    },
+   * });
+   *
+   * console.log(amountInWei.toString());
+   *
+   */
+  public async getGasEstimate(
+    transactions: Transaction[],
+    buildUseropDto?: BuildUserOpOptions
+  ): Promise<bigint> {
+    const {
+      callGasLimit,
+      preVerificationGas,
+      verificationGasLimit,
+      maxFeePerGas
+    } = await this.buildUserOp(transactions, buildUseropDto)
+
+    const _callGasLimit = BigInt(callGasLimit || 0)
+    const _preVerificationGas = BigInt(preVerificationGas || 0)
+    const _verificationGasLimit = BigInt(verificationGasLimit || 0)
+    const _maxFeePerGas = BigInt(maxFeePerGas || 0)
+
+    if (!buildUseropDto?.paymasterServiceData?.mode) {
+      return (
+        (_callGasLimit + _preVerificationGas + _verificationGasLimit) *
+        _maxFeePerGas
+      )
+    }
+    return (
+      (_callGasLimit +
+        BigInt(3) * _verificationGasLimit +
+        _preVerificationGas) *
+      _maxFeePerGas
+    )
+  }
+
+  /**
+   * Returns balances for the smartAccount instance.
+   *
+   * This method will fetch tokens info given an array of token addresses for the smartAccount instance.
    * The balance of the native token will always be returned as the last element in the reponse array, with the address set to 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE.
    *
    * @param addresses - Optional. Array of asset addresses to fetch the balances of. If not provided, the method will return only the balance of the native token.
@@ -472,7 +546,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *    { address: token }, // omit the amount to withdraw the full balance
    *    { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) }
    *  ],
-   *  account.pubKey, // Default recipient used if no recipient is present in the withdrawal request
+   *  account.address, // Default recipient used if no recipient is present in the withdrawal request
    *  {
    *    paymasterServiceData: { mode: PaymasterMode.SPONSORED },
    *  }
@@ -480,7 +554,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * // OR to withdraw all of the native token, leaving no dust in the smart account
    *
-   * const { wait } = await smartAccount.withdraw([], account.pubKey, {
+   * const { wait } = await smartAccount.withdraw([], account.address, {
    *  paymasterServiceData: { mode: PaymasterMode.SPONSORED },
    * });
    *
@@ -982,7 +1056,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dashboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
@@ -1042,7 +1116,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, biconomyPaymasterApiKey }); // Retrieve bundler url from dasboard
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, biconomyPaymasterApiKey }); // Retrieve bundler url from dashboard
    * const tokens = await smartAccount.getSupportedTokens();
    *
    * // [
@@ -1067,14 +1141,21 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         paymasterServiceData: { mode: PaymasterMode.ERC20 }
       }
     )
-    return (feeQuotesResponse?.feeQuotes ?? []).map(
-      ({
-        maxGasFee: _,
-        maxGasFeeUSD: __,
-        validUntil: ___,
-        usdPayment: ____,
-        ...rest
-      }) => rest
+
+    return await Promise.all(
+      (feeQuotesResponse?.feeQuotes ?? []).map(async (quote) => {
+        const [tokenBalance] = await this.getBalances([
+          quote.tokenAddress as Hex
+        ])
+        return {
+          symbol: quote.symbol,
+          tokenAddress: quote.tokenAddress,
+          decimal: quote.decimal,
+          logoUrl: quote.logoUrl,
+          premiumPercentage: quote.premiumPercentage,
+          balance: tokenBalance
+        }
+      })
     )
   }
 
@@ -1104,7 +1185,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dashboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
@@ -1306,7 +1387,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dashboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
@@ -1359,7 +1440,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   transport: http(),
    * });
    *
-   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dasboard
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dashboard
    * const encodedCall = encodeFunctionData({
    *   abi: parseAbi(["function safeMint(address to) public"]),
    *   functionName: "safeMint",
@@ -1419,6 +1500,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     // for this Smart Account current validation module dummy signature will be used to estimate gas
     userOp.signature = signature
+    userOp.paymasterAndData = buildUseropDto?.dummyPndOverride ?? "0x"
 
     if (
       buildUseropDto?.paymasterServiceData &&
@@ -1768,30 +1850,29 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     )
     if (await this.isAccountDeployed()) {
       return signature as Hex
-    } else {
-      const abiEncodedMessage = encodeAbiParameters(
-        [
-          {
-            type: "address",
-            name: "create2Factory"
-          },
-          {
-            type: "bytes",
-            name: "factoryCalldata"
-          },
-          {
-            type: "bytes",
-            name: "originalERC1271Signature"
-          }
-        ],
-        [
-          this.getFactoryAddress() ?? "0x",
-          (await this.getFactoryData()) ?? "0x",
-          signature
-        ]
-      )
-      return concat([abiEncodedMessage, MAGIC_BYTES])
     }
+    const abiEncodedMessage = encodeAbiParameters(
+      [
+        {
+          type: "address",
+          name: "create2Factory"
+        },
+        {
+          type: "bytes",
+          name: "factoryCalldata"
+        },
+        {
+          type: "bytes",
+          name: "originalERC1271Signature"
+        }
+      ],
+      [
+        this.getFactoryAddress() ?? "0x",
+        (await this.getFactoryData()) ?? "0x",
+        signature
+      ]
+    )
+    return concat([abiEncodedMessage, MAGIC_BYTES])
   }
 
   async getIsValidSignatureData(
