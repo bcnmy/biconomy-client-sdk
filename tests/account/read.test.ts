@@ -9,7 +9,8 @@ import {
   encodeFunctionData,
   hashMessage,
   parseAbi,
-  parseAbiParameters
+  parseAbiParameters,
+  getContract
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { bsc } from "viem/chains"
@@ -22,7 +23,8 @@ import {
   NATIVE_TOKEN_ALIAS,
   compareChainIds,
   createSmartAccountClient,
-  isNullOrUndefined
+  isNullOrUndefined,
+  DEFAULT_BICONOMY_FACTORY_ADDRESS
 } from "../../src/account"
 import { type UserOperationStruct, getChain } from "../../src/account"
 import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"
@@ -34,6 +36,7 @@ import {
 } from "../../src/modules"
 import { Paymaster, PaymasterMode } from "../../src/paymaster"
 import { checkBalance, getBundlerUrl, getConfig } from "../utils"
+import { BiconomyFactoryAbi } from "../../src/account/abi/Factory"
 
 describe("Account:Read", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
@@ -522,6 +525,53 @@ describe("Account:Read", () => {
     const chainId = 0
     expect(() => getChain(chainId)).toThrow(ERROR_MESSAGES.CHAIN_NOT_FOUND)
   })
+
+  test.concurrent(
+    "should having matching counterFactual address from the contracts with smartAccount.getAddress()",
+    async () => {
+      const client = createWalletClient({
+        account,
+        chain,
+        transport: http()
+      })
+
+      const ecdsaModule = await createECDSAOwnershipValidationModule({
+        signer: client
+      })
+
+      const smartAccount = await createSmartAccountClient({
+        signer: client,
+        bundlerUrl,
+        paymasterUrl,
+        activeValidationModule: ecdsaModule
+      })
+
+      const owner = await ecdsaModule.getAddress()
+      const smartAccountAddressFromSDK = await smartAccount.getAccountAddress()
+
+      const moduleSetupData = (await ecdsaModule.getInitData()) as Hex
+
+      const publicClient = createPublicClient({
+        chain,
+        transport: http()
+      })
+
+      const factoryContract = getContract({
+        address: DEFAULT_BICONOMY_FACTORY_ADDRESS,
+        abi: BiconomyFactoryAbi,
+        client: { public: publicClient, wallet: client }
+      })
+
+      const smartAccountAddressFromContracts =
+        await factoryContract.read.getAddressForCounterFactualAccount([
+          owner,
+          moduleSetupData,
+          BigInt(0)
+        ])
+
+      expect(smartAccountAddressFromSDK).toBe(smartAccountAddressFromContracts)
+    }
+  )
 
   test.concurrent(
     "should have matching #getUserOpHash and entryPoint.getUserOpHash",
