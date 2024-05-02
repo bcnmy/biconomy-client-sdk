@@ -198,6 +198,7 @@ export type BuildUserOpOptions = {
   paymasterServiceData?: PaymasterUserOperationDto;
   simulationType?: SimulationType;
   stateOverrideSet?: StateOverrideSet;
+  dummyPndOverride?: BytesLike
   useEmptyDeployCallData?: boolean;
 };
 
