@@ -695,11 +695,14 @@ describe("Account:Read", () => {
     expect(isVerified).toBeTruthy()
   })
 
-  test.concurrent("should simulate a user operation execution", async () => {
+  test.concurrent("should simulate a user operation execution, no paymaster, expecting to not fail", async () => {
     const smartAccount = await createSmartAccountClient({
       signer: walletClient,
-      bundlerUrl,
+      bundlerUrl
     })
+
+    const balances = await smartAccount.getBalances();
+    expect(balances[0].amount).toBeGreaterThan(0n);
 
     const tx = {
       to: recipient,
@@ -711,12 +714,16 @@ describe("Account:Read", () => {
     expect(userOpSuccess).toEqual(true);
   })
 
-  test.concurrent("should simulate a user operation execution with paymaster included", async () => {
+  test.concurrent("should simulate a user operation execution with paymaster included, expecting to not fail", async () => {
     const smartAccount = await createSmartAccountClient({
       signer: walletClient,
       bundlerUrl,
-      paymasterUrl
+      paymasterUrl,
+      index: 100
     })
+
+    const balances = await smartAccount.getBalances();
+    expect(balances[0].amount).toEqual(0n);
 
     const tx = {
       to: recipient,
@@ -728,12 +735,15 @@ describe("Account:Read", () => {
     expect(userOpSuccess).toEqual(true);
   })
 
-  test.concurrent("should simulate a user operation execution, expecting to fail", async () => {
+  test.concurrent("should simulate a user operation execution, expecting to fail due to insufficient account funds", async () => {
     const smartAccount = await createSmartAccountClient({
       signer: walletClient,
       bundlerUrl,
       index: 100
     })
+
+    const balances = await smartAccount.getBalances();
+    expect(balances[0].amount).toEqual(0n);
 
     const tx = {
       to: recipient,
