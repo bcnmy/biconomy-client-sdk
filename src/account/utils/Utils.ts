@@ -159,3 +159,7 @@ export const wrapSignatureWith6492 = ({
     "0x6492649264926492649264926492649264926492649264926492649264926492"
   ])
 }
+
+export function percentage(partialValue: number, totalValue: number) {
+  return (100 * partialValue) / totalValue;
+} 

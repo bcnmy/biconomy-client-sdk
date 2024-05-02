@@ -17,7 +17,7 @@ import {
   parseAbi,
   parseAbiParameters,
   toBytes,
-  toHex
+  toHex,
 } from "viem"
 import type { IBundler } from "../bundler/IBundler.js"
 import {
@@ -1435,17 +1435,16 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         userOp = await this.estimateUserOpGas(userOp)
 
         const {verificationGasLimitIncrement, preVerificationGasIncrement, callGasLimitIncrement, maxFeePerGasIncrement, maxPriorityFeePerGasIncrement} = buildUseropDto.gasOffset;
-        userOp.verificationGasLimit = toHex(Number(userOp.verificationGasLimit ?? 0) + Number(verificationGasLimitIncrement ?? 0));
-        userOp.preVerificationGas = toHex(Number(userOp.preVerificationGas ?? 0) + Number(preVerificationGasIncrement ?? 0));
-        userOp.callGasLimit = toHex(Number(userOp.callGasLimit ?? 0) + Number(callGasLimitIncrement ?? 0));
-        userOp.maxFeePerGas = toHex(Number(userOp.maxFeePerGas ?? 0) + Number(maxFeePerGasIncrement ?? 0));
-        userOp.maxPriorityFeePerGas = toHex(Number(userOp.maxPriorityFeePerGas ?? 0) + Number(maxPriorityFeePerGasIncrement ?? 0));
-
+        userOp.verificationGasLimit = toHex(parseInt((Number(userOp.verificationGasLimit ?? 0) * (verificationGasLimitIncrement ?? 1)).toString()));
+        userOp.preVerificationGas = toHex(parseInt((Number(userOp.preVerificationGas ?? 0) * (preVerificationGasIncrement ?? 1)).toString()));
+        userOp.callGasLimit = toHex(parseInt((Number(userOp.callGasLimit ?? 0) * (callGasLimitIncrement ?? 1)).toString()));
+        userOp.maxFeePerGas = toHex(parseInt((Number(userOp.maxFeePerGas ?? 0) * (maxFeePerGasIncrement ?? 1)).toString()));
+        userOp.maxPriorityFeePerGas = toHex(parseInt((Number(userOp.maxPriorityFeePerGas ?? 0) * (maxPriorityFeePerGasIncrement ?? 1)).toString()));
+        
         userOp = await this.getPaymasterUserOp(
           userOp,
           {...buildUseropDto.paymasterServiceData, calculateGasLimits: false},
         )
-  
         return userOp
       } else {
         if(buildUseropDto.paymasterServiceData.calculateGasLimits === false) {
@@ -1464,19 +1463,19 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     userOp = await this.estimateUserOpGas(userOp)
 
     if(buildUseropDto?.gasOffset){
-      const {verificationGasLimitIncrement, preVerificationGasIncrement, callGasLimitIncrement, maxFeePerGasIncrement, maxPriorityFeePerGasIncrement} = buildUseropDto.gasOffset;
-      userOp.verificationGasLimit = toHex(Number(userOp.verificationGasLimit ?? 0) + Number(verificationGasLimitIncrement ?? 0));
-      userOp.preVerificationGas = toHex(Number(userOp.preVerificationGas ?? 0) + Number(preVerificationGasIncrement ?? 0));
-      userOp.callGasLimit = toHex(Number(userOp.callGasLimit ?? 0) + Number(callGasLimitIncrement ?? 0));
-      userOp.maxFeePerGas = toHex(Number(userOp.maxFeePerGas ?? 0) + Number(maxFeePerGasIncrement ?? 0));
-      userOp.maxPriorityFeePerGas = toHex(Number(userOp.maxPriorityFeePerGas ?? 0) + Number(maxPriorityFeePerGasIncrement ?? 0));
-
       if (buildUseropDto?.paymasterServiceData) {
         userOp = await this.getPaymasterUserOp(
           userOp,
           {...buildUseropDto.paymasterServiceData, calculateGasLimits: false}
         )
       }
+
+      const {verificationGasLimitIncrement, preVerificationGasIncrement, callGasLimitIncrement, maxFeePerGasIncrement, maxPriorityFeePerGasIncrement} = buildUseropDto.gasOffset;
+      userOp.verificationGasLimit = parseInt((Number(userOp.verificationGasLimit ?? 0) * (verificationGasLimitIncrement ?? 1)).toString());
+      userOp.preVerificationGas = parseInt((Number(userOp.preVerificationGas ?? 0) * (preVerificationGasIncrement ?? 1)).toString());
+      userOp.callGasLimit = parseInt((Number(userOp.callGasLimit ?? 0) * (callGasLimitIncrement ?? 1)).toString());
+      userOp.maxFeePerGas = toHex(parseInt((Number(userOp.maxFeePerGas ?? 0) * (maxFeePerGasIncrement ?? 1)).toString()));
+      userOp.maxPriorityFeePerGas = parseInt((Number(userOp.maxPriorityFeePerGas ?? 0) * (maxPriorityFeePerGasIncrement ?? 1)).toString());
 
       return userOp
     } else {

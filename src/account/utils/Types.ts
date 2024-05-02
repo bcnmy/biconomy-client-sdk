@@ -211,20 +211,31 @@ export type NonceOptions = {
 export type SimulationType = "validation" | "validation_and_execution"
 
 /**
+ * Represents offset values.
+ * @remarks
+ * An offset value determines the degree of adjustment or displacement.
+ * - `1` represents no offset (0% adjustment).
+ * - `2` represents full offset (100% adjustment).
+ * - Values between `1` and `2` indicate partial adjustments.
+ * @public
+ */
+export type OffsetValue = 1 | 1.1 | 1.2 | 1.3 | 1.4 | 1.5 | 1.6 | 1.7 | 1.8 | 1.9 | 2
+
+/**
  * Increment gas values by giving an offset, the given value will be an increment to the current estimated gas values, not an override.
  * @typedef GasOffset
- * @property {BigNumberish} [callGasLimitIncrement] - Value used by inner account execution.
- * @property {BigNumberish} [verificationGasLimitIncrement] - Actual gas used by the validation of this UserOperation.
- * @property {BigNumberish} [preVerificationGasIncrement] - Gas overhead of this UserOperation.
- * @property {BigNumberish} [maxFeePerGasIncrement] - Maximum fee per gas (similar to EIP-1559 max_fee_per_gas).
- * @property {BigNumberish} [maxPriorityFeePerGasIncrement] - Maximum priority fee per gas (similar to EIP-1559 max_priority_fee_per_gas).
+ * @property {OffsetValue} [callGasLimitIncrement] - Value used by inner account execution.
+ * @property {OffsetValue} [verificationGasLimitIncrement] - Actual gas used by the validation of this UserOperation.
+ * @property {OffsetValue} [preVerificationGasIncrement] - Gas overhead of this UserOperation.
+ * @property {OffsetValue} [maxFeePerGasIncrement] - Maximum fee per gas (similar to EIP-1559 max_fee_per_gas).
+ * @property {OffsetValue} [maxPriorityFeePerGasIncrement] - Maximum priority fee per gas (similar to EIP-1559 max_priority_fee_per_gas).
  */
 export type GasOffset = {
-  callGasLimitIncrement?: BigNumberish
-  verificationGasLimitIncrement?: BigNumberish
-  preVerificationGasIncrement?: BigNumberish
-  maxFeePerGasIncrement?: BigNumberish
-  maxPriorityFeePerGasIncrement?: BigNumberish
+  callGasLimitIncrement?: OffsetValue
+  verificationGasLimitIncrement?: OffsetValue
+  preVerificationGasIncrement?: OffsetValue
+  maxFeePerGasIncrement?: OffsetValue
+  maxPriorityFeePerGasIncrement?: OffsetValue
 }
 
 export type InitilizationData = {
