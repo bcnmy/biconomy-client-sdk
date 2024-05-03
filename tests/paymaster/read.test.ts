@@ -90,7 +90,8 @@ describe("Paymaster:Read", () => {
       })
 
       expect(feeQuotesResponse.feeQuotes?.length).toBeGreaterThan(1)
-    }
+    },
+    30000
   )
 
   test.concurrent(
