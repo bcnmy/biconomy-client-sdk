@@ -97,7 +97,7 @@ export type SessionGrantedPayload = UserOpResponse & { sessionID: string }
  * const sessionKeyAddress = (await sessionStorage.addSigner(polygonAmoy)).getAddress();
  *
  * const { wait, sessionID } = await createSession(
- *    smartAccountThree,
+ *    smartAccount,
  *    sessionKeyAddress,
  *    [
  *      {
