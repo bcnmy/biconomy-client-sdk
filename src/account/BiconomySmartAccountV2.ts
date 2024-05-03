@@ -86,6 +86,7 @@ import type {
 import {
   addressEquals,
   compareChainIds,
+  convertToFactor,
   isNullOrUndefined,
   isValidRpcUrl,
   packUserOp
@@ -1517,11 +1518,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         userOp = await this.estimateUserOpGas(userOp)
 
         const {verificationGasLimitIncrement, preVerificationGasIncrement, callGasLimitIncrement, maxFeePerGasIncrement, maxPriorityFeePerGasIncrement} = buildUseropDto.gasOffset;
-        userOp.verificationGasLimit = toHex(parseInt((Number(userOp.verificationGasLimit ?? 0) * (verificationGasLimitIncrement ?? 1)).toString()));
-        userOp.preVerificationGas = toHex(parseInt((Number(userOp.preVerificationGas ?? 0) * (preVerificationGasIncrement ?? 1)).toString()));
-        userOp.callGasLimit = toHex(parseInt((Number(userOp.callGasLimit ?? 0) * (callGasLimitIncrement ?? 1)).toString()));
-        userOp.maxFeePerGas = toHex(parseInt((Number(userOp.maxFeePerGas ?? 0) * (maxFeePerGasIncrement ?? 1)).toString()));
-        userOp.maxPriorityFeePerGas = toHex(parseInt((Number(userOp.maxPriorityFeePerGas ?? 0) * (maxPriorityFeePerGasIncrement ?? 1)).toString()));
+        userOp.verificationGasLimit = toHex(parseInt((Number(userOp.verificationGasLimit ?? 0) * convertToFactor(verificationGasLimitIncrement)).toString()));
+        userOp.preVerificationGas = toHex(parseInt((Number(userOp.preVerificationGas ?? 0) * convertToFactor(preVerificationGasIncrement)).toString()));
+        userOp.callGasLimit = toHex(parseInt((Number(userOp.callGasLimit ?? 0) * convertToFactor(callGasLimitIncrement)).toString()));
+        userOp.maxFeePerGas = toHex(parseInt((Number(userOp.maxFeePerGas ?? 0) * convertToFactor(maxFeePerGasIncrement)).toString()));
+        userOp.maxPriorityFeePerGas = toHex(parseInt((Number(userOp.maxPriorityFeePerGas ?? 0) * convertToFactor(maxPriorityFeePerGasIncrement)).toString()));
         
         userOp = await this.getPaymasterUserOp(
           userOp,
@@ -1553,11 +1554,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       }
 
       const {verificationGasLimitIncrement, preVerificationGasIncrement, callGasLimitIncrement, maxFeePerGasIncrement, maxPriorityFeePerGasIncrement} = buildUseropDto.gasOffset;
-      userOp.verificationGasLimit = parseInt((Number(userOp.verificationGasLimit ?? 0) * (verificationGasLimitIncrement ?? 1)).toString());
-      userOp.preVerificationGas = parseInt((Number(userOp.preVerificationGas ?? 0) * (preVerificationGasIncrement ?? 1)).toString());
-      userOp.callGasLimit = parseInt((Number(userOp.callGasLimit ?? 0) * (callGasLimitIncrement ?? 1)).toString());
-      userOp.maxFeePerGas = toHex(parseInt((Number(userOp.maxFeePerGas ?? 0) * (maxFeePerGasIncrement ?? 1)).toString()));
-      userOp.maxPriorityFeePerGas = parseInt((Number(userOp.maxPriorityFeePerGas ?? 0) * (maxPriorityFeePerGasIncrement ?? 1)).toString());
+      userOp.verificationGasLimit = toHex(parseInt((Number(userOp.verificationGasLimit ?? 0) * convertToFactor(verificationGasLimitIncrement)).toString()));
+      userOp.preVerificationGas = toHex(parseInt((Number(userOp.preVerificationGas ?? 0) * convertToFactor(preVerificationGasIncrement)).toString()));
+      userOp.callGasLimit = toHex(parseInt((Number(userOp.callGasLimit ?? 0) * convertToFactor(callGasLimitIncrement)).toString()));
+      userOp.maxFeePerGas = toHex(parseInt((Number(userOp.maxFeePerGas ?? 0) * convertToFactor(maxFeePerGasIncrement)).toString()));
+      userOp.maxPriorityFeePerGas = toHex(parseInt((Number(userOp.maxPriorityFeePerGas ?? 0) * convertToFactor(maxPriorityFeePerGasIncrement)).toString()));
 
       return userOp
     } else {

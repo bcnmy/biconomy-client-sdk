@@ -220,23 +220,22 @@ export type SimulationType = "validation" | "validation_and_execution"
  * - Values between `1` and `2` indicate partial adjustments.
  * @public
  */
-export type OffsetValue = 1 | 1.1 | 1.2 | 1.3 | 1.4 | 1.5 | 1.6 | 1.7 | 1.8 | 1.9 | 2
 
 /**
  * Increment gas values by giving an offset, the given value will be an increment to the current estimated gas values, not an override.
  * @typedef GasOffset
- * @property {OffsetValue} [callGasLimitIncrement] - Value used by inner account execution.
- * @property {OffsetValue} [verificationGasLimitIncrement] - Actual gas used by the validation of this UserOperation.
- * @property {OffsetValue} [preVerificationGasIncrement] - Gas overhead of this UserOperation.
- * @property {OffsetValue} [maxFeePerGasIncrement] - Maximum fee per gas (similar to EIP-1559 max_fee_per_gas).
- * @property {OffsetValue} [maxPriorityFeePerGasIncrement] - Maximum priority fee per gas (similar to EIP-1559 max_priority_fee_per_gas).
+ * @property {number} [callGasLimitIncrement] - Value used by inner account execution.
+ * @property {number} [verificationGasLimitIncrement] - Actual gas used by the validation of this UserOperation.
+ * @property {number} [preVerificationGasIncrement] - Gas overhead of this UserOperation.
+ * @property {number} [maxFeePerGasIncrement] - Maximum fee per gas (similar to EIP-1559 max_fee_per_gas).
+ * @property {number} [maxPriorityFeePerGasIncrement] - Maximum priority fee per gas (similar to EIP-1559 max_priority_fee_per_gas).
  */
 export type GasOffset = {
-  callGasLimitIncrement?: OffsetValue
-  verificationGasLimitIncrement?: OffsetValue
-  preVerificationGasIncrement?: OffsetValue
-  maxFeePerGasIncrement?: OffsetValue
-  maxPriorityFeePerGasIncrement?: OffsetValue
+  callGasLimitIncrement?: number
+  verificationGasLimitIncrement?: number
+  preVerificationGasIncrement?: number
+  maxFeePerGasIncrement?: number
+  maxPriorityFeePerGasIncrement?: number
 }
 
 export type InitilizationData = {

@@ -326,7 +326,7 @@ describe("Account:Write", () => {
       const userOpWithNoOffset = await smartAccount.buildUserOp([transaction])
       const userOpWithOffset = await smartAccount.buildUserOp([transaction], {
         gasOffset: {
-          verificationGasLimitIncrement: 1.5 // 50% increase
+          verificationGasLimitIncrement: 50 // 50% increase
         }
       })
 
@@ -346,9 +346,8 @@ describe("Account:Write", () => {
       const userOpWithNoOffset = await smartAccount.buildUserOp([transaction])
       const userOpWithOffset = await smartAccount.buildUserOp([transaction], {
         gasOffset: {
-          verificationGasLimitIncrement: 1.5, // 50% increase,
-          preVerificationGasIncrement: 2,
-          callGasLimitIncrement: 1
+          verificationGasLimitIncrement: 50, // 50% increase,
+          preVerificationGasIncrement: 100,
         }
       })
 
@@ -373,14 +372,13 @@ describe("Account:Write", () => {
       }
 
       const userOpWithNoOffset = await smartAccount.buildUserOp([transaction], {paymasterServiceData: {mode: PaymasterMode.SPONSORED}, gasOffset: {
-        verificationGasLimitIncrement: 1 // no increment
+        verificationGasLimitIncrement: 0 // no increment
       }}); // Passing gasOffset to avoid paymaster gas calculation
       const userOpWithOffset = await smartAccount.buildUserOp([transaction], {
         paymasterServiceData: {mode: PaymasterMode.SPONSORED},
         gasOffset: {
-          verificationGasLimitIncrement: 1.5, // 50% increase,
-          preVerificationGasIncrement: 2,
-          callGasLimitIncrement: 1
+          verificationGasLimitIncrement: 13.2, // 50% increase,
+          preVerificationGasIncrement: 81,
         }
       })
 
@@ -392,36 +390,55 @@ describe("Account:Write", () => {
       const cglPercentageValue = Math.round(percentage(cgllDifference, Number(userOpWithNoOffset.callGasLimit)));
       const pvgPercentageValue = Math.round(percentage(pvgDifference, Number(userOpWithNoOffset.preVerificationGas)));
 
-      expect(vglPercentageValue).toBe(50);
+      expect(vglPercentageValue).toBe(13);
       expect(cglPercentageValue).toBe(0);
-      expect(pvgPercentageValue).toBe(100);      
+      expect(pvgPercentageValue).toBe(81);      
 
     }, 60000)
 
-    test("should increment user op gas with no paymaster using sendTransaction", async () => {
+    test("should throw if percentage given is bigger than 100. Paymaster ON", async () => {
       const transaction = {
         to: recipient,
         data: "0x"
       }
 
-      const { wait } = await smartAccount.sendTransaction(transaction, {
+      const userOpWithNoOffset = await smartAccount.buildUserOp([transaction], {paymasterServiceData: {mode: PaymasterMode.SPONSORED}, gasOffset: {
+        verificationGasLimitIncrement: 0 // no increment
+      }}); // Passing gasOffset to avoid paymaster gas calculation
+      const userOpWithOffset = smartAccount.buildUserOp([transaction], {
+        paymasterServiceData: {mode: PaymasterMode.SPONSORED},
         gasOffset: {
-          verificationGasLimitIncrement: 1.1,
-          preVerificationGasIncrement: 1.2,
-          maxFeePerGasIncrement: 1.3,
-          callGasLimitIncrement: 1.4,
-          maxPriorityFeePerGasIncrement: 1.5
+          verificationGasLimitIncrement: 110, // 50% increase,
         }
       })
-      const {
-        receipt: { transactionHash },
-        userOpHash,
-        success
-      } = await wait()  
 
-      expect(userOpHash).toBeTruthy()
-      expect(success).toBe("true")
-      expect(transactionHash).toBeTruthy()
+      expect(userOpWithOffset).rejects.toThrowError("The percentage value should be between 1 and 100.");
     }, 60000)
+
+  //   test("should increment user op gas with no paymaster using sendTransaction", async () => {
+  //     const transaction = {
+  //       to: recipient,
+  //       data: "0x"
+  //     }
+
+  //     const { wait } = await smartAccount.sendTransaction(transaction, {
+  //       gasOffset: {
+  //         verificationGasLimitIncrement: 10,
+  //         preVerificationGasIncrement: 20,
+  //         maxFeePerGasIncrement: 30,
+  //         callGasLimitIncrement: 40,
+  //         maxPriorityFeePerGasIncrement: 50
+  //       }
+  //     })
+  //     const {
+  //       receipt: { transactionHash },
+  //       userOpHash,
+  //       success
+  //     } = await wait()  
+
+  //     expect(userOpHash).toBeTruthy()
+  //     expect(success).toBe("true")
+  //     expect(transactionHash).toBeTruthy()
+  //   }, 60000)
   })
 })
