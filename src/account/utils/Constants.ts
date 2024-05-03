@@ -69,6 +69,7 @@ export const DefaultGasLimit = {
 }
 
 export const ERROR_MESSAGES = {
+  ACCOUNT_NOT_DEPLOYED: "Account has not yet been deployed",
   ACCOUNT_ALREADY_DEPLOYED: "Account already deployed",
   NO_NATIVE_TOKEN_BALANCE_DURING_DEPLOY:
     "Native token balance is not available during deploy",

@@ -7,12 +7,12 @@ import {
   parseAbi
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import type { SignerData } from "../src"
 import { Logger, getChain } from "../src/account"
 import {
   extractChainIdFromBundlerUrl,
   extractChainIdFromPaymasterUrl
 } from "../src/bundler"
-import type { SignerData } from "../src"
 
 export const getEnvVars = () => {
   const fields = [
@@ -125,13 +125,12 @@ export const nonZeroBalance = async (address: Hex, tokenAddress?: Hex) => {
   )
 }
 
-export const getRandomSignerForChain = (chainId: number): SignerData => {
+export const getRandomSigner = (): SignerData => {
   const pkey = generatePrivateKey()
   const account = privateKeyToAccount(pkey)
   return {
     pvKey: pkey,
-    address: account.address,
-    chainId
+    address: account.address
   }
 }
 

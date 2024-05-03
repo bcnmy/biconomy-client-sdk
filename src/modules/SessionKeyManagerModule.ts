@@ -19,7 +19,9 @@ import type {
   SessionSearchParam,
   SessionStatus
 } from "./interfaces/ISessionStorage.js"
+import { SessionFileStorage } from "./session-storage/SessionFileStorage.js"
 import { SessionLocalStorage } from "./session-storage/SessionLocalStorage.js"
+import { SessionMemoryStorage } from "./session-storage/SessionMemoryStorage.js"
 import {
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION
@@ -33,8 +35,6 @@ import {
   StorageType
 } from "./utils/Types.js"
 import { generateRandomHex } from "./utils/Uid.js"
-import { SessionFileStorage } from "./session-storage/SessionFileStorage.js"
-import { SessionMemoryStorage } from "./session-storage/SessionMemoryStorage.js"
 
 export class SessionKeyManagerModule extends BaseValidationModule {
   version: ModuleVersion = "V1_0_0"
@@ -200,7 +200,6 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    * @returns The signature of the user operation
    */
   async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<Hex> {
-    console.log({ params })
     if (!params?.sessionSigner) {
       throw new Error("Session signer is not provided.")
     }

@@ -110,7 +110,6 @@ export type SignerData = {
   address: Hex
   /** Private key */
   pvKey: Hex
-  chainId: number
 }
 
 export type CreateSessionDataResponse = {

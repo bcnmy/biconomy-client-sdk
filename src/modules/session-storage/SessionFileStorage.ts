@@ -1,11 +1,10 @@
-import { http, type Hex, createWalletClient } from "viem"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { mainnet, polygonMumbai } from "viem/chains"
+import { http, type Chain, type Hex, createWalletClient } from "viem"
+import { privateKeyToAccount } from "viem/accounts"
+import { getRandomSigner } from "../../../tests/utils"
 import {
   Logger,
   type SmartAccountSigner,
-  WalletClientSigner,
-  getChain
+  WalletClientSigner
 } from "../../account"
 import type {
   ISessionStorage,
@@ -190,22 +189,11 @@ export class SessionFileStorage implements ISessionStorage {
   }
 
   async addSigner(
-    signerData: SignerData,
-    chainId?: number
-  ): Promise<WalletClientSigner> {
+    chain: Chain,
+    signerData: SignerData
+  ): Promise<SmartAccountSigner> {
     const signers = await this.getSignerStore()
-    const chain = getChain(chainId ?? signerData.chainId)
-    let signer: SignerData
-    if (!signerData) {
-      const pkey = generatePrivateKey()
-      signer = {
-        pvKey: pkey,
-        chainId: chainId ?? mainnet.id,
-        address: privateKeyToAccount(pkey).address
-      }
-    } else {
-      signer = signerData
-    }
+    const signer: SignerData = signerData ?? getRandomSigner()
     const accountSigner = privateKeyToAccount(signer.pvKey)
     const client = createWalletClient({
       account: accountSigner,
@@ -216,15 +204,15 @@ export class SessionFileStorage implements ISessionStorage {
       client,
       "json-rpc" // signerType
     )
-    signers[this.toLowercaseAddress(accountSigner.address)] = {
-      pvKey: signer.pvKey,
-      address: signer.address
-    }
+    signers[this.toLowercaseAddress(accountSigner.address)] = signer
     await this.writeDataToFile(signers, "signers") // Use 'signers' as the type
     return walletClientSigner
   }
 
-  async getSignerByKey(sessionPublicKey: string): Promise<WalletClientSigner> {
+  async getSignerByKey(
+    chain: Chain,
+    sessionPublicKey: string
+  ): Promise<WalletClientSigner> {
     const signers = await this.getSignerStore()
     Logger.log("Got signers", signers)
 
@@ -239,21 +227,20 @@ export class SessionFileStorage implements ISessionStorage {
     const signer = privateKeyToAccount(signerData.pvKey)
     const walletClient = createWalletClient({
       account: signer,
-      chain: getChain(signerData.chainId),
+      chain,
       transport: http()
     })
     return new WalletClientSigner(walletClient, "json-rpc")
   }
 
   async getSignerBySession(
+    chain: Chain,
     param: SessionSearchParam
   ): Promise<WalletClientSigner> {
     const session = await this.getSessionData(param)
     Logger.log("got session")
-    const walletClientSinger = await this.getSignerByKey(
-      session.sessionPublicKey
-    )
-    return walletClientSinger
+    const signer = await this.getSignerByKey(chain, session.sessionPublicKey)
+    return signer
   }
 
   async getAllSessionData(

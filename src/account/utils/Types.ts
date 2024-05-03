@@ -14,6 +14,10 @@ import type {
 import type { IBundler } from "../../bundler"
 import type { BaseValidationModule, ModuleInfo } from "../../modules"
 import type {
+  ISessionStorage,
+  SessionLeafNode
+} from "../../modules/interfaces/ISessionStorage"
+import type {
   FeeQuotesOrDataDto,
   IPaymaster,
   PaymasterFeeQuote,
@@ -21,10 +25,6 @@ import type {
   SmartAccountData,
   SponsorUserOperationDto
 } from "../../paymaster"
-import {
-  ISessionStorage,
-  SessionLeafNode
-} from "../../modules/interfaces/ISessionStorage"
 
 export type EntryPointAddresses = Record<string, string>
 export type BiconomyFactories = Record<string, string>
@@ -170,7 +170,7 @@ export type BiconomySmartAccountV2ConfigBaseProps = {
   /** The initial code to be used for the smart account */
   initCode?: Hex
   /** Used for session key manager module */
-  moduleInfo?: ModuleInfo
+  sessionData?: ModuleInfo
 }
 export type BiconomySmartAccountV2Config =
   BiconomySmartAccountV2ConfigBaseProps &
@@ -340,6 +340,10 @@ export type ValueOrData = RequireAtLeastOne<
 export type Transaction = {
   to: string
 } & ValueOrData
+
+export type TransactionWithBatchInfo = Transaction & {
+  module: "ERC20" | "ABI"
+}
 
 export type SupportedToken = Omit<
   PaymasterFeeQuote,
