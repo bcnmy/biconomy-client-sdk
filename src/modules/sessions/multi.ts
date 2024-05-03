@@ -14,7 +14,6 @@ import {
   ERROR_MESSAGES,
   type Transaction
 } from "../../account"
-import type { UserOpResponse } from "../../bundler"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 
 export type CreateMultiSessionConfig = {
