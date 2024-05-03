@@ -159,6 +159,90 @@ const {
 } = await wait();
 ```
 
+### Create and Use a Session
+| Key                                                                                                      | Description                                |
+| -------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| [sessionConfigs](https://bcnmy.github.io/biconomy-client-sdk/types/BuildUserOpOptions.html)              | CreateSessionConfig[]              |
+
+```typescript
+
+const smartAccount;
+const smartAccountAddress;
+
+const sessionStore = new SessionMemoryStorage(smartAccountAddress)
+const { sessionKeyAddress } = await createAndStoreNewSessionKey(
+  smartAccount,
+  sessionStore
+)
+
+const { wait, sessionID } = await createSession(
+  smartAccount,
+  sessionKeyAddress,
+  [
+    {
+      sessionKeyAddress,
+      contractAddress: nftAddress,
+      functionSelector: "safeMint(address)",
+      rules: [
+        {
+          offset: 0,
+          condition: 0,
+          referenceValue: pad(smartAccountAddress, { size: 32 })
+        }
+      ],
+      interval: {
+        validUntil: 0,
+        validAfter: 0
+      },
+      valueLimit: 0n
+    }
+  ],
+  sessionStore,
+  {
+    paymasterServiceData: { mode: PaymasterMode.SPONSORED }
+  }
+)
+
+const {
+  receipt: { transactionHash },
+} = await wait()
+
+const smartAccountWithSession = await createSessionSmartAccountClient(
+  {
+    accountAddress: smartAccountAddress, // Set the account address on behalf of the user
+    bundlerUrl,
+    paymasterUrl,
+    chainId
+  },
+  {
+    sessionStorageClient: sessionStore,
+    sessionID
+  }
+)
+
+const { wait: mintWait } = await smartAccountWithSession.sendTransaction(
+  {
+    to: nftAddress,
+    data: encodeFunctionData({
+      abi: parseAbi(["function safeMint(address _to)"]),
+      functionName: "safeMint",
+      args: [smartAccountAddress]
+    })
+  },
+  {
+    paymasterServiceData: { mode: PaymasterMode.SPONSORED }
+  }
+)
+
+const { success } = await mintWait()
+
+```
+
+
+
+
+
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details
