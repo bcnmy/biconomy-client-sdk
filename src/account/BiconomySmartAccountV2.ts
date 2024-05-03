@@ -1403,6 +1403,40 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * const { waitForTxHash } = await smartAccount.sendTransaction(transaction);
    * const { transactionHash, userOperationReceipt } = await wait();
    *
+   *  @remarks
+   * This example shows how to increase the estimated gas values for a transaction using `gasOffset` parameter.
+   *  @example
+   * import { createClient } from "viem"
+   * import { createSmartAccountClient } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonAmoy } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonAmoy,
+   *   transport: http(),
+   * });
+   *
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dashboard
+   * const encodedCall = encodeFunctionData({
+   *   abi: parseAbi(["function safeMint(address to) public"]),
+   *   functionName: "safeMint",
+   *   args: ["0x..."],
+   * });
+   *
+   * const transaction = {
+   *   to: nftAddress,
+   *   data: encodedCall
+   * }
+   *
+   * const { waitForTxHash } = await smartAccount.sendTransaction(transaction, {
+   *  gasOffset: {
+   *      verificationGasLimitOffsetPct: 25, // 25% increase
+   *      preVerificationGasOffsetPct: 10 // 10% increase
+   *     }
+   * });
+   * const { transactionHash, userOperationReceipt } = await wait();
+   *
    */
   async sendTransaction(
     manyOrOneTransactions: Transaction | Transaction[],

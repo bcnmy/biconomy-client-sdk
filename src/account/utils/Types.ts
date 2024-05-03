@@ -212,23 +212,22 @@ export type NonceOptions = {
 export type SimulationType = "validation" | "validation_and_execution"
 
 /**
- * Represents offset values.
+ * Represents an offset percentage value used for gas-related calculations.
  * @remarks
- * An offset value determines the degree of adjustment or displacement.
- * - `1` represents no offset (0% adjustment).
- * - `2` represents full offset (100% adjustment).
- * - Values between `1` and `2` indicate partial adjustments.
+ * This type defines offset percentages for various gas-related parameters. Each percentage represents a proportion of the current estimated gas values.
+ * For example:
+ * - A value of `1` represents a 1% offset.
+ * - A value of `100` represents a 100% offset.
  * @public
  */
-
 /**
- * Increment gas values by giving an offset percentage, the given value will be an increment to the current estimated gas values, not an override.
+ * Represents an object containing offset percentages for gas-related parameters.
  * @typedef GasOffsetPct
- * @property {number} [callGasLimitOffsetPct] - Value used by inner account execution.
- * @property {number} [verificationGasLimitOffsetPct] - Actual gas used by the validation of this UserOperation.
- * @property {number} [preVerificationGasOffsetPct] - Gas overhead of this UserOperation.
- * @property {number} [maxFeePerGasOffsetPct] - Maximum fee per gas (similar to EIP-1559 max_fee_per_gas).
- * @property {number} [maxPriorityFeePerGasOffsetPct] - Maximum priority fee per gas (similar to EIP-1559 max_priority_fee_per_gas).
+ * @property {number} [callGasLimitOffsetPct] - Percentage offset for the gas limit used by inner account execution.
+ * @property {number} [verificationGasLimitOffsetPct] - Percentage offset for the actual gas used by the validation of a UserOperation.
+ * @property {number} [preVerificationGasOffsetPct] - Percentage offset representing the gas overhead of a UserOperation.
+ * @property {number} [maxFeePerGasOffsetPct] - Percentage offset for the maximum fee per gas (similar to EIP-1559 max_fee_per_gas).
+ * @property {number} [maxPriorityFeePerGasOffsetPct] - Percentage offset for the maximum priority fee per gas (similar to EIP-1559 max_priority_fee_per_gas).
  */
 export type GasOffsetPct = {
   callGasLimitOffsetPct?: number

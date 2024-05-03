@@ -350,8 +350,8 @@ describe("Account:Write", () => {
       const userOpWithNoOffset = await smartAccount.buildUserOp([transaction])
       const userOpWithOffset = await smartAccount.buildUserOp([transaction], {
         gasOffset: {
-          verificationGasLimitOffsetPct: 50, // 50% increase,
-          preVerificationGasOffsetPct: 100
+          verificationGasLimitOffsetPct: 50, // 50% increase
+          preVerificationGasOffsetPct: 100 // 100% increase
         }
       })
 
@@ -395,14 +395,14 @@ describe("Account:Write", () => {
       const userOpWithNoOffset = await smartAccount.buildUserOp([transaction], {
         paymasterServiceData: { mode: PaymasterMode.SPONSORED },
         gasOffset: {
-          verificationGasLimitOffsetPct: 0 // no increment
+          verificationGasLimitOffsetPct: 0 // no increment but provided to avoid paymaster gas calculation (just for testing purposes)
         }
       }) // Passing gasOffset to avoid paymaster gas calculation
       const userOpWithOffset = await smartAccount.buildUserOp([transaction], {
         paymasterServiceData: { mode: PaymasterMode.SPONSORED },
         gasOffset: {
-          verificationGasLimitOffsetPct: 13.2, // 50% increase,
-          preVerificationGasOffsetPct: 81
+          verificationGasLimitOffsetPct: 13.2, // 13.2% increase
+          preVerificationGasOffsetPct: 81 // 81% increase
         }
       })
 
@@ -446,13 +446,13 @@ describe("Account:Write", () => {
       const userOpWithNoOffset = await smartAccount.buildUserOp([transaction], {
         paymasterServiceData: { mode: PaymasterMode.SPONSORED },
         gasOffset: {
-          verificationGasLimitOffsetPct: 0 // no increment
+          verificationGasLimitOffsetPct: 0 // no increment, just for testing purposes
         }
       }) // Passing gasOffset to avoid paymaster gas calculation
       const userOpWithOffset = smartAccount.buildUserOp([transaction], {
         paymasterServiceData: { mode: PaymasterMode.SPONSORED },
         gasOffset: {
-          verificationGasLimitOffsetPct: 110 // 50% increase,
+          verificationGasLimitOffsetPct: 110 // 110% increase (not allowed)
         }
       })
 
@@ -469,11 +469,11 @@ describe("Account:Write", () => {
 
       const { wait } = await smartAccount.sendTransaction(transaction, {
         gasOffset: {
-          verificationGasLimitOffsetPct: 10,
-          preVerificationGasOffsetPct: 20,
-          maxFeePerGasOffsetPct: 30,
-          callGasLimitOffsetPct: 40,
-          maxPriorityFeePerGasOffsetPct: 50
+          verificationGasLimitOffsetPct: 10, // 10% increase
+          preVerificationGasOffsetPct: 20, // 20% increase
+          maxFeePerGasOffsetPct: 30, // 30% increase
+          callGasLimitOffsetPct: 40, // 40% increase
+          maxPriorityFeePerGasOffsetPct: 50 // 50% increase
         }
       })
       const {
