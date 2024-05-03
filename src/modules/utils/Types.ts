@@ -98,6 +98,7 @@ export type ModuleInfo = {
   sessionValidationModule?: Hex
   /** Additional info if needed to be appended in signature */
   additionalSessionData?: string
+  /** Batch session params */
   batchSessionParams?: SessionParams[]
 }
 
@@ -122,8 +123,11 @@ export interface CreateSessionDataParams {
   validUntil: number
   /** window start for the session key */
   validAfter: number
+  /** Address of the session validation module */
   sessionValidationModule: Hex
+  /** Public key of the session */
   sessionPublicKey: Hex
+  /** The hex of the rules {@link Rule} that make up the policy */
   sessionKeyData: Hex
   /** we generate uuid based sessionId. but if you prefer to track it on your side and attach custom session identifier this can be passed */
   preferredSessionId?: string

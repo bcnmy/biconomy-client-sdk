@@ -341,10 +341,6 @@ export type Transaction = {
   to: string
 } & ValueOrData
 
-export type TransactionWithBatchInfo = Transaction & {
-  module: "ERC20" | "ABI"
-}
-
 export type SupportedToken = Omit<
   PaymasterFeeQuote,
   "maxGasFeeUSD" | "usdPayment" | "maxGasFee" | "validUntil"

@@ -37,33 +37,108 @@ export type SessionConfig = {
 }
 
 export type SessionEpoch = {
+  /** The time at which the session is no longer valid */
   validUntil?: number
+  /** The time at which the session becomes valid */
   validAfter?: number
 }
 
 export type CreateSessionConfig = {
+  /** The address of the contract to be included in the policy */
   contractAddress: Hex
+  /** The address of the sessionKey upon which the policy is to be imparted */
   sessionKeyAddress: Hex
+  /** The specific function selector from the contract to be included in the policy */
   functionSelector: string | AbiFunction
+  /** The rules  to be included in the policy */
   rules: Rule[]
+  /** The time interval within which the session is valid */
   interval?: SessionEpoch
+  /** The maximum value that can be transferred in a single transaction */
   valueLimit: bigint
 }
 
+export type SessionGrantedPayload = UserOpResponse & { sessionID: string }
+
 /**
- * Creates a "ABI" session for a user's smart account.
- * Permission can be specified by the dapp in the form of rules.
- * The rules are requested by the dapp and granted when the smartAccount signer signs the transaction.
- * The session keys are stored in a storageClient.
  *
- * */
+ * createSession
+ *
+ * Creates an session for a user's smart account.
+ * This grants a dapp permission to execute a specific function on a specific contract on behalf of a user.
+ * Permissions can be specified by the dapp in the form of rules{@link Rule}, and the submitted to the user for approval via signing.
+ * The session keys granted with the imparted policy are stored in a StorageClient {@link ISessionStorage}. They can later be retrieved and used to validate userops.
+ *
+ * @param smartAccount - The user's {@link BiconomySmartAccountV2} smartAccount instance.
+ * @param sessionKeyAddress - The address of the sessionKey upon which the policy is to be imparted.
+ * @param sessionConfigs - An array of session configurations {@link CreateSessionConfig}.
+ * @param sessionStorageClient - The storage client to store the session keys. {@link ISessionStorage}
+ * @param buildUseropDto - Optional. {@link BuildUserOpOptions}
+ * @returns Promise<{@link SessionGrantedPayload}> - An object containing the status of the transaction and the sessionID.
+ *
+ * @example
+ *
+ * ```typescript
+ * import { createClient } from "viem"
+ * import { createSmartAccountClient } from "@biconomy/account"
+ * import { createWalletClient, http } from "viem";
+ * import { polygonAmoy } from "viem/chains";
+ *
+ * const signer = createWalletClient({
+ *   account,
+ *   chain: polygonAmoy,
+ *   transport: http(),
+ * });
+ *
+ * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, paymasterUrl }); // Retrieve bundler/paymaster url from dashboard
+ * const smartAccountAddress = await smartAccount.getAccountAddress();
+ * const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
+ * const sessionStorage = new SessionFileStorage(smartAccountAddress)
+ * const sessionKeyAddress = (await sessionStorage.addSigner(polygonAmoy)).getAddress();
+ *
+ * const { wait, sessionID } = await createSession(
+ *    smartAccountThree,
+ *    sessionKeyAddress,
+ *    [
+ *      {
+ *        sessionKeyAddress,
+ *        contractAddress: nftAddress,
+ *        functionSelector: "safeMint(address)",
+ *        rules: [
+ *          {
+ *            offset: 0,
+ *            condition: 0,
+ *            referenceValue: pad(smartAccountAddress, { size: 32 })
+ *          }
+ *        ],
+ *        interval: {
+ *          validUntil: 0,
+ *          validAfter: 0
+ *         },
+ *         valueLimit: 0n
+ *      }
+ *    ],
+ *    sessionStorage,
+ *    {
+ *      paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+ *    }
+ *  )
+ *
+ *  const {
+ *    receipt: { transactionHash },
+ *    success
+ *  } = await wait();
+ *
+ * console.log({ sessionID, success }); // Use the sessionID later to retrieve the sessionKey from the storage client
+ * ```
+ */
 export const createSession = async (
   smartAccount: BiconomySmartAccountV2,
   sessionKeyAddress: Hex,
   sessionConfigs: CreateSessionConfig[],
   sessionStorageClient: ISessionStorage,
   buildUseropDto?: BuildUserOpOptions
-): Promise<UserOpResponse & { sessionID: string }> => {
+): Promise<SessionGrantedPayload> => {
   const userAccountAddress = await smartAccount.getAddress()
 
   const sessionsModule = await createSessionKeyManagerModule({

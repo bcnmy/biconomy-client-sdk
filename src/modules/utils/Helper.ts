@@ -9,15 +9,31 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import type { SignerData } from "../.."
 
 export interface Rule {
+  /** The index of the param from the selected contract function upon which the condition will be applied */
   offset: number
+  /**
+   * Conditions:
+   *
+   * 0 - Equal
+   * 1 - Less than or equal
+   * 2 - Less than
+   * 3 - Greater than or equal
+   * 4 - Greater than
+   * 5 - Not equal
+   */
   condition: number
+  /** The value to compare against */
   referenceValue: `0x${string}`
 }
 
 export interface Permission {
+  /** The address of the contract to which the permission applies */
   destContract: `0x${string}`
+  /** The function selector of the contract to which the permission applies */
   functionSelector: `0x${string}`
+  /** The maximum value that can be transferred in a single transaction */
   valueLimit: bigint
+  /** The rules that define the conditions under which the permission is granted */
   rules: Rule[]
 }
 

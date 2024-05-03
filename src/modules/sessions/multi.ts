@@ -5,7 +5,8 @@ import {
   DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   createBatchedSessionRouterModule,
-  createSessionKeyManagerModule
+  createSessionKeyManagerModule,
+  type SessionGrantedPayload
 } from ".."
 import {
   type BiconomySmartAccountV2,
@@ -16,17 +17,110 @@ import {
 import type { UserOpResponse } from "../../bundler"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 
-export type createMultiSessionConfig = {
+export type CreateMultiSessionConfig = {
+  /** The storage client to be used for storing the session data */
   sessionStorageClient: ISessionStorage
+  /** An array of session configurations */
   leaves: CreateSessionDataParams[]
 }
+
+/**
+ *
+ * createMultiSession
+ *
+ * Creates a session manager that handles multipliple sessions at once for a given user's smart account.
+ * Useful for handling multiple granted sessions at once.
+ *
+ * @param smartAccount - The user's {@link BiconomySmartAccountV2} smartAccount instance.
+ * @param sessionKeyAddress - The address of the sessionKey upon which the policy is to be imparted.
+ * @param multiSessionConfig - An array of session configurations {@link CreateMultiSessionConfig}.
+ * @param buildUseropDto - Optional. {@link BuildUserOpOptions}
+ * @returns Promise<{@link SessionGrantedPayload}> - An object containing the status of the transaction and the sessionID.
+ *
+ * @example
+ *
+ * ```typescript
+ * import { createClient } from "viem"
+ * import { createSmartAccountClient } from "@biconomy/account"
+ * import { createWalletClient, http } from "viem";
+ * import { polygonAmoy } from "viem/chains";
+ *
+ * const signer = createWalletClient({
+ *   account,
+ *   chain: polygonAmoy,
+ *   transport: http(),
+ * });
+ *
+ * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, paymasterUrl }); // Retrieve bundler/paymaster url from dashboard
+ * const smartAccountAddress = await smartAccount.getAccountAddress();
+ * const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
+ * const sessionStorage = new SessionFileStorage(smartAccountAddress);
+ * const sessionKeyAddress = (await sessionStorage.addSigner(polygonAmoy)).getAddress();
+ *
+ *  const leaves: CreateSessionDataParams[] = [
+ *    createERC20SessionDatum({
+ *      interval: {
+ *        validUntil: 0,
+ *        validAfter: 0
+ *      },
+ *      sessionKeyAddress,
+ *      sessionKeyData: encodeAbiParameters(
+ *        [
+ *          { type: "address" },
+ *          { type: "address" },
+ *          { type: "address" },
+ *          { type: "uint256" }
+ *        ],
+ *        [sessionKeyAddress, token, recipient, amount]
+ *      )
+ *    }),
+ *    createABISessionDatum({
+ *      interval: {
+ *        validUntil: 0,
+ *        validAfter: 0
+ *      },
+ *      sessionKeyAddress,
+ *      contractAddress: nftAddress,
+ *      functionSelector: "safeMint(address)",
+ *      rules: [
+ *        {
+ *          offset: 0,
+ *          condition: 0,
+ *          referenceValue: pad(smartAccountAddress, { size: 32 })
+ *        }
+ *      ],
+ *      valueLimit: 0n
+ *    })
+ *  ]
+ *
+ *  const { wait, sessionID } = await createMultiSession(
+ *    smartAccount,
+ *    sessionKeyAddress,
+ *    {
+ *      sessionStorageClient: sessionStorage,
+ *      leaves
+ *    },
+ *    {
+ *      paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+ *    }
+ *  )
+ *
+ *  const {
+ *    receipt: { transactionHash },
+ *    success
+ *  } = await wait();
+ *
+ *  console.log({ sessionID, success }); // Use the sessionID later to retrieve the sessionKey from the storage client
+ *
+ * ```
+ */
 
 export const createMultiSession = async (
   smartAccount: BiconomySmartAccountV2,
   sessionKeyAddress: Hex,
-  { sessionStorageClient, leaves }: createMultiSessionConfig,
+  { sessionStorageClient, leaves }: CreateMultiSessionConfig,
   buildUseropDto?: BuildUserOpOptions
-): Promise<UserOpResponse & { sessionID: string }> => {
+): Promise<SessionGrantedPayload> => {
   const userAccountAddress = await smartAccount.getAddress()
 
   const sessionsModule = await createSessionKeyManagerModule({

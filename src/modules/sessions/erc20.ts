@@ -8,7 +8,6 @@ export type CreateERC20SessionConfig = {
   sessionKeyAddress: Hex
   sessionKeyData: EncodeAbiParametersReturnType
 }
-
 export const createERC20SessionDatum = ({
   interval,
   sessionKeyAddress,

@@ -216,7 +216,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * - Docs: https://docs.biconomy.io/Account/integration#integration-1
    *
-   * @param biconomySmartAccountConfig - Configuration for initializing the BiconomySmartAccountV2 instance.
+   * @param biconomySmartAccountConfig - Configuration for initializing the BiconomySmartAccountV2 instance {@link BiconomySmartAccountV2Config}.
    * @returns A promise that resolves to a new instance of BiconomySmartAccountV2.
    * @throws An error if something is wrong with the smart account instance creation.
    *

@@ -10,6 +10,9 @@ export * from "./SessionKeyManagerModule.js"
 export * from "./BatchedSessionRouterModule.js"
 export * from "./session-validation-modules/ERC20SessionValidationModule.js"
 export * from "./sessions/abi.js"
+export * from "./sessions/erc20.js"
+export * from "./sessions/multi.js"
+export * from "./sessions/sessionSmartAccountClient.js"
 
 import {
   BatchedSessionRouterModule,
@@ -28,5 +31,4 @@ export const createECDSAOwnershipValidationModule =
 export const createSessionKeyManagerModule = SessionKeyManagerModule.create
 export const createERC20SessionValidationModule =
   ERC20SessionValidationModule.create
-
 // export * from './PasskeyValidationModule'

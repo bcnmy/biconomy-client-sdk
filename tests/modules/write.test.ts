@@ -255,7 +255,7 @@ describe("Modules:Write", () => {
           validUntil: 0,
           validAfter: 0
         },
-        sessionKeyAddress: sessionKeyAddress,
+        sessionKeyAddress,
         contractAddress: nftAddress,
         functionSelector: "safeMint(address)",
         rules: [
