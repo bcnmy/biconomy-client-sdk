@@ -1,14 +1,14 @@
-import { type Hex, createWalletClient, http } from "viem"
-import { privateKeyToAccount, generatePrivateKey } from "viem/accounts"
+import { http, type Hex, createWalletClient } from "viem"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import {
   createBatchedSessionRouterModule,
   createSessionKeyManagerModule
 } from ".."
 import {
-  type BiconomySmartAccountV2Config,
   type BiconomySmartAccountV2,
-  getChain,
-  createSmartAccountClient
+  type BiconomySmartAccountV2Config,
+  createSmartAccountClient,
+  getChain
 } from "../../account"
 import type { ModuleInfo } from "../utils/Types"
 import type { SessionData } from "./abi"

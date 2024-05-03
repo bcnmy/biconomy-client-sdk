@@ -12,13 +12,13 @@ import type {
   Permission,
   UserOpResponse
 } from "../../"
-import { createSessionKeyManagerModule } from "../index"
 import {
   type BiconomySmartAccountV2,
-  type Transaction,
   type BuildUserOpOptions,
-  ERROR_MESSAGES
+  ERROR_MESSAGES,
+  type Transaction
 } from "../../account"
+import { createSessionKeyManagerModule } from "../index"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import {
   DEFAULT_ABI_SVM_MODULE,

@@ -1,6 +1,5 @@
 import { http, type Chain, type Hex, createWalletClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { getRandomSigner } from "../../../tests/utils"
 import {
   Logger,
   type SmartAccountSigner,
@@ -13,6 +12,7 @@ import type {
   SessionStatus
 } from "../interfaces/ISessionStorage"
 import type { SignerData } from "../utils/Types"
+import { getRandomSigner } from "../.."
 
 export class SessionFileStorage implements ISessionStorage {
   private smartAccountAddress: string

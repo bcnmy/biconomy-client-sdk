@@ -17,27 +17,24 @@ import {
 } from "../../src/account"
 import { Logger, getChain } from "../../src/account"
 import {
+  type CreateSessionDataParams,
   DEFAULT_ABI_SVM_MODULE,
-  DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
   DEFAULT_ERC20_MODULE,
   DEFAULT_MULTICHAIN_MODULE,
-  DEFAULT_SESSION_KEY_MANAGER_MODULE,
-  createBatchedSessionRouterModule,
-  createMultiChainValidationModule,
-  createSessionKeyManagerModule
+  createMultiChainValidationModule
 } from "../../src/modules"
 
 import { SessionMemoryStorage } from "../../src/modules/session-storage/SessionMemoryStorage"
-import { PaymasterMode } from "../../src/paymaster"
-import { checkBalance, getBundlerUrl, getConfig, topUp } from "../utils"
+import { createAndStoreNewSessionKey } from "../../src/modules/session-storage/utils"
 import {
   createABISessionDatum,
   createSession
 } from "../../src/modules/sessions/abi"
-import { createSessionSmartAccountClient } from "../../src/modules/sessions/sessionSmartAccountClient"
-import { createMultSession } from "../../src/modules/sessions/multi"
-import { createAndStoreNewSessionKey } from "../../src/modules/session-storage/utils"
 import { createERC20SessionDatum } from "../../src/modules/sessions/erc20"
+import { createMultiSession } from "../../src/modules/sessions/multi"
+import { createSessionSmartAccountClient } from "../../src/modules/sessions/sessionSmartAccountClient"
+import { PaymasterMode } from "../../src/paymaster"
+import { checkBalance, getBundlerUrl, getConfig, topUp } from "../utils"
 
 describe("Modules:Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
@@ -236,7 +233,7 @@ describe("Modules:Write", () => {
       storeForMultiSession
     )
 
-    const leaves = [
+    const leaves: CreateSessionDataParams[] = [
       createERC20SessionDatum({
         interval: {
           validUntil: 0,
@@ -272,7 +269,7 @@ describe("Modules:Write", () => {
       })
     ]
 
-    const { wait, sessionID } = await createMultSession(
+    const { wait, sessionID } = await createMultiSession(
       smartAccountFour,
       sessionKeyAddress,
       {

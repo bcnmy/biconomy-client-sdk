@@ -1,13 +1,12 @@
 import {
   type Hex,
-  concat,
   encodeAbiParameters,
   keccak256,
-  pad,
-  parseAbiParameters,
-  toHex
+  parseAbiParameters
 } from "viem"
 import type { UserOperationStruct } from "../../account"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import type { SignerData } from "../.."
 
 export interface Rule {
   offset: number
@@ -79,4 +78,13 @@ export const getUserOpHash = (
     [userOpHash, entryPointAddress, BigInt(chainId)]
   )
   return keccak256(enc)
+}
+
+export const getRandomSigner = (): SignerData => {
+  const pkey = generatePrivateKey()
+  const account = privateKeyToAccount(pkey)
+  return {
+    pvKey: pkey,
+    address: account.address
+  }
 }

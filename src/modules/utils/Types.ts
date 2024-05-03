@@ -1,4 +1,4 @@
-import type { Chain, Hex } from "viem"
+import type { Hex } from "viem"
 import type {
   SimulationType,
   SmartAccountSigner,

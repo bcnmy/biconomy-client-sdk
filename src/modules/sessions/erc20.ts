@@ -1,8 +1,4 @@
-import {
-  type EncodeAbiParametersReturnType,
-  encodeAbiParameters,
-  type Hex
-} from "viem"
+import type { EncodeAbiParametersReturnType, Hex } from "viem"
 import type { SessionEpoch } from ".."
 import { DEFAULT_ERC20_MODULE } from "../utils/Constants"
 import type { CreateSessionDataParams } from "../utils/Types"

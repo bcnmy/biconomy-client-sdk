@@ -1,7 +1,7 @@
 import type { Hex } from "viem"
 import {
-  type SmartAccountSigner,
   type BiconomySmartAccountV2,
+  type SmartAccountSigner,
   getChain
 } from "../../account"
 import { extractChainIdFromBundlerUrl } from "../../bundler"

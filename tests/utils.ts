@@ -6,8 +6,7 @@ import {
   createWalletClient,
   parseAbi
 } from "viem"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import type { SignerData } from "../src"
+import { privateKeyToAccount } from "viem/accounts"
 import { Logger, getChain } from "../src/account"
 import {
   extractChainIdFromBundlerUrl,
@@ -124,16 +123,6 @@ export const nonZeroBalance = async (address: Hex, tokenAddress?: Hex) => {
     } during test setup of owner: ${address}`
   )
 }
-
-export const getRandomSigner = (): SignerData => {
-  const pkey = generatePrivateKey()
-  const account = privateKeyToAccount(pkey)
-  return {
-    pvKey: pkey,
-    address: account.address
-  }
-}
-
 export const topUp = async (
   recipient: Hex,
   amount = BigInt(1000000),

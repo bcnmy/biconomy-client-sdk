@@ -1,30 +1,30 @@
 import type { Hex } from "viem"
 import {
   type CreateSessionDataParams,
-  createBatchedSessionRouterModule,
-  createSessionKeyManagerModule,
-  DEFAULT_SESSION_KEY_MANAGER_MODULE,
+  DEFAULT_ABI_SVM_MODULE,
   DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
-  DEFAULT_ABI_SVM_MODULE
+  DEFAULT_SESSION_KEY_MANAGER_MODULE,
+  createBatchedSessionRouterModule,
+  createSessionKeyManagerModule
 } from ".."
 import {
-  type Transaction,
   type BiconomySmartAccountV2,
   type BuildUserOpOptions,
-  ERROR_MESSAGES
+  ERROR_MESSAGES,
+  type Transaction
 } from "../../account"
 import type { UserOpResponse } from "../../bundler"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 
-export type CreateMultSessionConfig = {
+export type createMultiSessionConfig = {
   sessionStorageClient: ISessionStorage
   leaves: CreateSessionDataParams[]
 }
 
-export const createMultSession = async (
+export const createMultiSession = async (
   smartAccount: BiconomySmartAccountV2,
   sessionKeyAddress: Hex,
-  { sessionStorageClient, leaves }: CreateMultSessionConfig,
+  { sessionStorageClient, leaves }: createMultiSessionConfig,
   buildUseropDto?: BuildUserOpOptions
 ): Promise<UserOpResponse & { sessionID: string }> => {
   const userAccountAddress = await smartAccount.getAddress()
