@@ -191,16 +191,16 @@ export type BiconomySmartAccountV2ConfigConstructorProps =
  * @property {boolean} [useEmptyDeployCallData] - Set to true if the transaction is being used only to deploy the smart contract, so "0x" is set as the user operation call data.
  */
 export type BuildUserOpOptions = {
-  gasOffset?: GasOffset;
-  params?: ModuleInfo;
-  nonceOptions?: NonceOptions;
-  forceEncodeForBatch?: boolean;
-  paymasterServiceData?: PaymasterUserOperationDto;
-  simulationType?: SimulationType;
-  stateOverrideSet?: StateOverrideSet;
+  gasOffset?: GasOffsetPct
+  params?: ModuleInfo
+  nonceOptions?: NonceOptions
+  forceEncodeForBatch?: boolean
+  paymasterServiceData?: PaymasterUserOperationDto
+  simulationType?: SimulationType
+  stateOverrideSet?: StateOverrideSet
   dummyPndOverride?: BytesLike
-  useEmptyDeployCallData?: boolean;
-};
+  useEmptyDeployCallData?: boolean
+}
 
 export type NonceOptions = {
   /** nonceKey: The key to use for nonce */
@@ -222,20 +222,20 @@ export type SimulationType = "validation" | "validation_and_execution"
  */
 
 /**
- * Increment gas values by giving an offset, the given value will be an increment to the current estimated gas values, not an override.
- * @typedef GasOffset
- * @property {number} [callGasLimitIncrement] - Value used by inner account execution.
- * @property {number} [verificationGasLimitIncrement] - Actual gas used by the validation of this UserOperation.
- * @property {number} [preVerificationGasIncrement] - Gas overhead of this UserOperation.
- * @property {number} [maxFeePerGasIncrement] - Maximum fee per gas (similar to EIP-1559 max_fee_per_gas).
- * @property {number} [maxPriorityFeePerGasIncrement] - Maximum priority fee per gas (similar to EIP-1559 max_priority_fee_per_gas).
+ * Increment gas values by giving an offset percentage, the given value will be an increment to the current estimated gas values, not an override.
+ * @typedef GasOffsetPct
+ * @property {number} [callGasLimitOffsetPct] - Value used by inner account execution.
+ * @property {number} [verificationGasLimitOffsetPct] - Actual gas used by the validation of this UserOperation.
+ * @property {number} [preVerificationGasOffsetPct] - Gas overhead of this UserOperation.
+ * @property {number} [maxFeePerGasOffsetPct] - Maximum fee per gas (similar to EIP-1559 max_fee_per_gas).
+ * @property {number} [maxPriorityFeePerGasOffsetPct] - Maximum priority fee per gas (similar to EIP-1559 max_priority_fee_per_gas).
  */
-export type GasOffset = {
-  callGasLimitIncrement?: number
-  verificationGasLimitIncrement?: number
-  preVerificationGasIncrement?: number
-  maxFeePerGasIncrement?: number
-  maxPriorityFeePerGasIncrement?: number
+export type GasOffsetPct = {
+  callGasLimitOffsetPct?: number
+  verificationGasLimitOffsetPct?: number
+  preVerificationGasOffsetPct?: number
+  maxFeePerGasOffsetPct?: number
+  maxPriorityFeePerGasOffsetPct?: number
 }
 
 export type InitilizationData = {
