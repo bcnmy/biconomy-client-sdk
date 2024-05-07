@@ -1431,8 +1431,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * const { waitForTxHash } = await smartAccount.sendTransaction(transaction, {
    *  gasOffset: {
-   *      verificationGasLimitOffsetPct: 25, // 25% increase
-   *      preVerificationGasOffsetPct: 10 // 10% increase
+   *      verificationGasLimitOffsetPct: 25, // 25% increase for the already estimated gas limit
+   *      preVerificationGasOffsetPct: 10 // 10% increase for the already estimated gas limit
    *     }
    * });
    * const { transactionHash, userOperationReceipt } = await wait();
