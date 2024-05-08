@@ -23,7 +23,7 @@ export const getEnvVars = () => {
     "E2E_BICO_PAYMASTER_KEY_BASE",
     "CHAIN_ID"
   ]
-  const errorFields = fields.filter((field) => !process.env[field])
+  const errorFields = fields.filter((field) => !process?.env?.[field])
   if (errorFields.length) {
     throw new Error(
       `Missing environment variable${

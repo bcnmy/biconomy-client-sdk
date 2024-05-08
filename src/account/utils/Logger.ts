@@ -12,7 +12,7 @@ class Logger {
     "BICONOMY_SDK_DEBUG",
     "REACT_APP_BICONOMY_SDK_DEBUG",
     "NEXT_PUBLIC_BICONOMY_SDK_DEBUG"
-  ].some((key) => process.env[key]?.toString() === "true")
+  ].some((key) => process?.env?.[key]?.toString() === "true")
 
   /**
    * \x1b[0m is an escape sequence to reset the color of the text
