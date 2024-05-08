@@ -33,9 +33,9 @@ export type SessionConfig = {
 
 export type SessionData = {
   /** The storage client specific to the smartAccountAddress which stores the session keys */
-  sessionStorageClient: ISessionStorage;
+  sessionStorageClient: ISessionStorage
   /** The relevant sessionID for the current session */
-  sessionID: string;
+  sessionID: string
 }
 
 export type SessionEpoch = {

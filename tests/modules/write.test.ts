@@ -289,7 +289,7 @@ describe("Modules:Write", () => {
     expect(success).toBe("true")
     expect(session.sessionID).toBeTruthy()
     Logger.log("Tx Hash: ", transactionHash)
-    Logger.log("session: ", {session})
+    Logger.log("session: ", { session })
   }, 50000)
 
   // User no longer has to be connected,
