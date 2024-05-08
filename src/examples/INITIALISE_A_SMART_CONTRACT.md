@@ -7,7 +7,7 @@
 | [bundlerUrl](https://dashboard.biconomy.io)                                                                    | You can pass in a bundlerUrl (retrieved from the biconomy dashboard) for sending transactions                                         |
 
 ```typescript
-import { createSmartAccountClient } from "@biconomy-devx/account";
+import { createSmartAccountClient } from "@biconomy/account";
 import { createWalletClient, http, createPublicClient } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { mainnet as chain } from "viem/chains";

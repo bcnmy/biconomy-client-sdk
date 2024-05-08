@@ -9,7 +9,7 @@ import {
   createSmartAccountClient,
   createSession,
   createSessionSmartAccountClient,
-} from "@biconomy-devx/account";
+} from "@biconomy/account";
 import { createWalletClient, http, createPublicClient } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { mainnet as chain } from "viem/chains";

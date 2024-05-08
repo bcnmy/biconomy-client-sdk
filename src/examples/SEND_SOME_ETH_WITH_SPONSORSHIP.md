@@ -6,7 +6,7 @@
 | [userOpReceipt](https://bcnmy.github.io/biconomy-client-sdk/types/UserOpReceipt)  | Returned information about your tx, receipts, userOpHashes etc |
 
 ```typescript
-import { createSmartAccountClient } from "@biconomy-devx/account";
+import { createSmartAccountClient } from "@biconomy/account";
 import { createWalletClient, http, createPublicClient } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { mainnet as chain } from "viem/chains";

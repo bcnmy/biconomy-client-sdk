@@ -35,7 +35,7 @@ export type ImpersonatedSmartAccountConfig = Omit<
  *
  * @example
  * import { createClient } from "viem"
- * import { createSmartAccountClient, BiconomySmartAccountV2 } from "@biconomy-devx/account"
+ * import { createSmartAccountClient, BiconomySmartAccountV2 } from "@biconomy/account"
  * import { createWalletClient, http } from "viem";
  * import { polygonAmoy } from "viem/chains";
  *

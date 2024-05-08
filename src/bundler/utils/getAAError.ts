@@ -46,7 +46,7 @@ type AccountAbstractionErrorParams = {
 
 class AccountAbstractionError extends BaseError {
   override name = "AccountAbstractionError"
-  override version = `@biconomy-devx/account@${SDK_VERSION}`
+  override version = `@biconomy/account@${SDK_VERSION}`
 
   constructor(title: string, params: AccountAbstractionErrorParams = {}) {
     super(title, params)
