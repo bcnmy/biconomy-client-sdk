@@ -26,14 +26,16 @@ import {
 } from "../utils/Constants"
 import type { Rule } from "../utils/Helper"
 
-export type SessionData = {
-  sessionStorageClient: ISessionStorage
-  sessionID: string
-}
-
 export type SessionConfig = {
   usersAccountAddress: Hex
   smartAccount: BiconomySmartAccountV2
+}
+
+export type SessionData = {
+  /** The storage client specific to the smartAccountAddress which stores the session keys */
+  sessionStorageClient: ISessionStorage;
+  /** The relevant sessionID for the current session */
+  sessionID: string;
 }
 
 export type SessionEpoch = {
@@ -58,7 +60,7 @@ export type CreateSessionConfig = {
   valueLimit: bigint
 }
 
-export type SessionGrantedPayload = UserOpResponse & { sessionID: string }
+export type SessionGrantedPayload = UserOpResponse & { session: SessionData }
 
 /**
  *
@@ -80,7 +82,7 @@ export type SessionGrantedPayload = UserOpResponse & { sessionID: string }
  *
  * ```typescript
  * import { createClient } from "viem"
- * import { createSmartAccountClient } from "@biconomy/account"
+ * import { createSmartAccountClient } from "@biconomy-devx/account"
  * import { createWalletClient, http } from "viem";
  * import { polygonAmoy } from "viem/chains";
  *
@@ -140,7 +142,6 @@ export const createSession = async (
   buildUseropDto?: BuildUserOpOptions
 ): Promise<SessionGrantedPayload> => {
   const userAccountAddress = await smartAccount.getAddress()
-
   const sessionsModule = await createSessionKeyManagerModule({
     smartAccountAddress: userAccountAddress,
     sessionStorageClient
@@ -182,7 +183,10 @@ export const createSession = async (
     ).sessionID ?? ""
 
   return {
-    sessionID,
+    session: {
+      sessionStorageClient,
+      sessionID
+    },
     ...userOpResponse
   }
 }

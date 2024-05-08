@@ -6,14 +6,24 @@
 | [paymasterServiceData](https://bcnmy.github.io/biconomy-client-sdk/types/PaymasterUserOperationDto.html) | PaymasterOptions set in the buildUseropDto |
 
 ```typescript
-import { encodeFunctionData, parseAbi, createWalletClient, http, createPublicClient } from "viem";
-import { createSmartAccountClient } from "@biconomy/account";
+import {
+  encodeFunctionData,
+  parseAbi,
+  createWalletClient,
+  http,
+  createPublicClient,
+} from "viem";
+import { createSmartAccountClient } from "@biconomy-devx/account";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { mainnet as chain } from "viem/chains";
 
 const account = privateKeyToAccount(generatePrivateKey());
 const signer = createWalletClient({ account, chain, transport: http() });
-const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, paymasterUrl }); // Retrieve bundler and pymaster urls from dashboard
+const smartAccount = await createSmartAccountClient({
+  signer,
+  bundlerUrl,
+  paymasterUrl,
+}); // Retrieve bundler and pymaster urls from dashboard
 
 const preferredToken = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"; // USDC
 

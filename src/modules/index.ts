@@ -13,7 +13,7 @@ export * from "./sessions/abi.js"
 export * from "./sessions/erc20.js"
 export * from "./sessions/multi.js"
 export * from "./sessions/sessionSmartAccountClient.js"
-
+export * from "./session-storage/index.js"
 import {
   BatchedSessionRouterModule,
   ECDSAOwnershipValidationModule,

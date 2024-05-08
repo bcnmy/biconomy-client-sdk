@@ -19,7 +19,7 @@ const knownErrors: KnownError[] = []
 const matchError = (message: string): null | KnownError =>
   knownErrors.find(
     (knownError: KnownError) =>
-      message.toLowerCase().indexOf(knownError.regex) > -1
+      message.toLowerCase().indexOf(knownError.regex.toLowerCase()) > -1
   ) ?? null
 
 const buildErrorStrings = (
@@ -46,7 +46,7 @@ type AccountAbstractionErrorParams = {
 
 class AccountAbstractionError extends BaseError {
   override name = "AccountAbstractionError"
-  override version = `@biconomy/account@${SDK_VERSION}`
+  override version = `@biconomy-devx/account@${SDK_VERSION}`
 
   constructor(title: string, params: AccountAbstractionErrorParams = {}) {
     super(title, params)

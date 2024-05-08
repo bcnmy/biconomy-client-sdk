@@ -28,7 +28,7 @@ The Biconomy SDK is your all-in-one toolkit for building decentralized applicati
 1. **Add the package and install dependencies:**
 
 ```bash
-bun add @biconomy/account viem
+bun add @biconomy-devx/account viem
 ```
 
 2. **Install dependencies:**
@@ -38,7 +38,7 @@ bun i
 ```
 
 ```typescript
-import { createSmartAccountClient } from "@biconomy/account";
+import { createSmartAccountClient } from "@biconomy-devx/account";
 
 const smartAccount = await createSmartAccountClient({
   signer: viemWalletOrEthersSigner,
@@ -66,13 +66,12 @@ For a comprehensive understanding of our project and to contribute effectively, 
 - [**Security Policy**](./SECURITY.md): Guidelines for reporting security vulnerabilities.
 - [**Changelog**](./CHANGELOG.md): Stay updated with the changes and versions
 
-
 ## 💼 Examples
 
-* [Initialise a smartAccount](examples/INITIALISE_A_SMART_CONTRACT.md)
-* [send some eth with sponsorship](examples/SEND_SOME_ETH_WITH_SPONSORSHIP.md)
-* [send a multi tx and pay gas with an erc20 token](examples/SEND_A_MULTI_TX_AND_PAY_GAS_WITH_TOKEN.md)
-* [create and use a session](examples/CREATE_AND_USE_A_SESSION.md)
+- [Initialise a smartAccount](examples/INITIALISE_A_SMART_CONTRACT.md)
+- [send some eth with sponsorship](examples/SEND_SOME_ETH_WITH_SPONSORSHIP.md)
+- [send a multi tx and pay gas with an erc20 token](examples/SEND_A_MULTI_TX_AND_PAY_GAS_WITH_TOKEN.md)
+- [create and use a session](examples/CREATE_AND_USE_A_SESSION.md)
 
 ## License
 

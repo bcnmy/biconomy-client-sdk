@@ -134,7 +134,7 @@ export class SessionLocalStorage implements ISessionStorage {
 
   async addSigner(
     chain: Chain,
-    signerData: SignerData
+    signerData?: SignerData
   ): Promise<SmartAccountSigner> {
     const signers = this.getSignerStore()
     const signer: SignerData = signerData ?? getRandomSigner()

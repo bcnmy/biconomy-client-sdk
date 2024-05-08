@@ -6,15 +6,18 @@
 | [userOpReceipt](https://bcnmy.github.io/biconomy-client-sdk/types/UserOpReceipt)  | Returned information about your tx, receipts, userOpHashes etc |
 
 ```typescript
-
-import { createSmartAccountClient } from "@biconomy/account";
+import { createSmartAccountClient } from "@biconomy-devx/account";
 import { createWalletClient, http, createPublicClient } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { mainnet as chain } from "viem/chains";
 
 const account = privateKeyToAccount(generatePrivateKey());
 const signer = createWalletClient({ account, chain, transport: http() });
-const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, paymasterUrl }); // Retrieve bundler and pymaster urls from dashboard
+const smartAccount = await createSmartAccountClient({
+  signer,
+  bundlerUrl,
+  paymasterUrl,
+}); // Retrieve bundler and pymaster urls from dashboard
 
 const oneOrManyTx = { to: "0x...", value: 1 };
 

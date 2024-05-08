@@ -190,7 +190,7 @@ export class SessionFileStorage implements ISessionStorage {
 
   async addSigner(
     chain: Chain,
-    signerData: SignerData
+    signerData?: SignerData
   ): Promise<SmartAccountSigner> {
     const signers = await this.getSignerStore()
     const signer: SignerData = signerData ?? getRandomSigner()

@@ -129,10 +129,11 @@ describe("Modules:Write", () => {
   test("should create a single session on behalf of a user", async () => {
     const { sessionKeyAddress } = await createAndStoreNewSessionKey(
       smartAccountThree,
+      chain,
       storeForSingleSession
     )
 
-    const { wait, sessionID } = await createSession(
+    const { wait, session } = await createSession(
       smartAccountThree,
       sessionKeyAddress,
       [
@@ -164,7 +165,7 @@ describe("Modules:Write", () => {
     } = await wait()
 
     expect(success).toBe("true")
-    expect(sessionID).toBeTruthy()
+    expect(session.sessionID).toBeTruthy()
     Logger.log("Tx Hash: ", transactionHash)
   }, 50000)
 
@@ -230,6 +231,7 @@ describe("Modules:Write", () => {
   test("should create a multi session on behalf of a user", async () => {
     const { sessionKeyAddress } = await createAndStoreNewSessionKey(
       smartAccountFour,
+      chain,
       storeForMultiSession
     )
 
@@ -269,7 +271,7 @@ describe("Modules:Write", () => {
       })
     ]
 
-    const { wait, sessionID } = await createMultiSession(
+    const { wait, session } = await createMultiSession(
       smartAccountFour,
       sessionKeyAddress,
       {
@@ -285,8 +287,9 @@ describe("Modules:Write", () => {
     } = await wait()
 
     expect(success).toBe("true")
-    expect(sessionID).toBeTruthy()
+    expect(session.sessionID).toBeTruthy()
     Logger.log("Tx Hash: ", transactionHash)
+    Logger.log("session: ", {session})
   }, 50000)
 
   // User no longer has to be connected,

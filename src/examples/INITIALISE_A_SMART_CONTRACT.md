@@ -7,7 +7,7 @@
 | [bundlerUrl](https://dashboard.biconomy.io)                                                                    | You can pass in a bundlerUrl (retrieved from the biconomy dashboard) for sending transactions                                         |
 
 ```typescript
-import { createSmartAccountClient } from "@biconomy/account";
+import { createSmartAccountClient } from "@biconomy-devx/account";
 import { createWalletClient, http, createPublicClient } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { mainnet as chain } from "viem/chains";
@@ -15,5 +15,9 @@ import { mainnet as chain } from "viem/chains";
 const account = privateKeyToAccount(generatePrivateKey());
 const signer = createWalletClient({ account, chain, transport: http() });
 
-const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, paymasterUrl }); // Retrieve bundler and pymaster urls from dashboard
+const smartAccount = await createSmartAccountClient({
+  signer,
+  bundlerUrl,
+  paymasterUrl,
+}); // Retrieve bundler and pymaster urls from dashboard
 ```

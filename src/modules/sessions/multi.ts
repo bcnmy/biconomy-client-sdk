@@ -40,7 +40,7 @@ export type CreateMultiSessionConfig = {
  *
  * ```typescript
  * import { createClient } from "viem"
- * import { createSmartAccountClient } from "@biconomy/account"
+ * import { createSmartAccountClient } from "@biconomy-devx/account"
  * import { createWalletClient, http } from "viem";
  * import { polygonAmoy } from "viem/chains";
  *
@@ -175,7 +175,10 @@ export const createMultiSession = async (
     ).sessionID ?? ""
 
   return {
-    sessionID,
+    session: {
+      sessionStorageClient,
+      sessionID
+    },
     ...userOpResponse
   }
 }
