@@ -1,8 +1,5 @@
 import type { Chain, Hex } from "viem"
-import {
-  SessionFileStorage,
-  SessionLocalStorage
-} from "../.."
+import { SessionFileStorage, SessionLocalStorage } from "../.."
 import type { BiconomySmartAccountV2, SmartAccountSigner } from "../../account"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import { supportsLocalStorage } from "./SessionLocalStorage"
