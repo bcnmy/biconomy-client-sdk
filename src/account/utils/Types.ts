@@ -600,9 +600,9 @@ export interface ISmartContractAccount<
 }
 
 export type TransferOwnershipResponse = {
-  transactionHash: string,
-  userOpHash: string,
-  status: string,
-  cumulativeGasUsed: number,
-  gasUsed: number,
+  transactionHash: string
+  userOpHash: string
+  status: string
+  cumulativeGasUsed: number
+  gasUsed: number
 }

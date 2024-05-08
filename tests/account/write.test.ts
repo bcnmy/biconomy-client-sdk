@@ -5,7 +5,7 @@ import {
   createWalletClient,
   encodeFunctionData,
   getContract,
-  parseAbi,
+  parseAbi
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
@@ -13,13 +13,13 @@ import {
   type BiconomySmartAccountV2,
   DEFAULT_ENTRYPOINT_ADDRESS,
   ERC20_ABI,
-  createSmartAccountClient,
+  createSmartAccountClient
 } from "../../src/account"
 import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"
+import { getAAError } from "../../src/bundler/utils/getAAError"
 import { PaymasterMode } from "../../src/paymaster"
 import { testOnlyOnOptimism } from "../setupFiles"
 import { checkBalance, getConfig, nonZeroBalance, topUp } from "../utils"
-import { getAAError } from "../../src/bundler/utils/getAAError"
 
 describe("Account:Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
@@ -86,8 +86,7 @@ describe("Account:Write", () => {
     ])
 
     console.log(await smartAccount.getAccountAddress())
-    console.log(await smartAccount.getSigner().getAddress(), "signer address");
-    
+    console.log(await smartAccount.getSigner().getAddress(), "signer address")
 
     userOp.signature = undefined
 
@@ -322,29 +321,33 @@ describe("Account:Write", () => {
 
   describe("Transfer ownership", () => {
     test("should transfer ownership of smart account to accountTwo", async () => {
-      const newOwner = accountTwo.address;
+      const newOwner = accountTwo.address
       const _smartAccount = await createSmartAccountClient({
         signer: walletClient,
         paymasterUrl,
         bundlerUrl,
-        accountAddress: "0x5F141ee1390D4c9d033a00CB940E509A4811a5E0",
+        accountAddress: "0x5F141ee1390D4c9d033a00CB940E509A4811a5E0"
       })
-      const response = await _smartAccount.transferOwnership(newOwner, {paymasterServiceData: {mode: PaymasterMode.SPONSORED}})
-      const signerAddress = await _smartAccount.getSigner().getAddress();
-      console.log("New owner address: ", newOwner);
-      console.log("Signer address: ", signerAddress);
+      const response = await _smartAccount.transferOwnership(newOwner, {
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
+      })
+      const signerAddress = await _smartAccount.getSigner().getAddress()
+      console.log("New owner address: ", newOwner)
+      console.log("Signer address: ", signerAddress)
       expect(response.status).toBe("success")
-    }, 35000);
+    }, 35000)
 
     test("send an user op with the new owner", async () => {
       const _smartAccount = await createSmartAccountClient({
         signer: walletClientTwo,
         paymasterUrl,
         bundlerUrl,
-        accountAddress: "0x5F141ee1390D4c9d033a00CB940E509A4811a5E0",
+        accountAddress: "0x5F141ee1390D4c9d033a00CB940E509A4811a5E0"
       })
-      const newOwner = accountTwo.address;
-      const currentSmartAccountInstanceSigner = await _smartAccount.getSigner().getAddress();
+      const newOwner = accountTwo.address
+      const currentSmartAccountInstanceSigner = await _smartAccount
+        .getSigner()
+        .getAddress()
       expect(currentSmartAccountInstanceSigner).toBe(newOwner)
       const tx = {
         to: nftAddress,
@@ -354,17 +357,19 @@ describe("Account:Write", () => {
           args: [smartAccountAddressTwo]
         })
       }
-      const {wait} = await _smartAccount.sendTransaction(tx, {paymasterServiceData: {mode: PaymasterMode.SPONSORED}})
-      const response = await wait();
+      const { wait } = await _smartAccount.sendTransaction(tx, {
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
+      })
+      const response = await wait()
       expect(response.success).toBe("true")
-    }, 35000);
+    }, 35000)
 
     test("should revert if sending an user op with the old owner", async () => {
       const _smartAccount = await createSmartAccountClient({
         signer: walletClient,
         paymasterUrl,
         bundlerUrl,
-        accountAddress: "0x5F141ee1390D4c9d033a00CB940E509A4811a5E0",
+        accountAddress: "0x5F141ee1390D4c9d033a00CB940E509A4811a5E0"
       })
       const tx = {
         to: nftAddress,
@@ -374,19 +379,27 @@ describe("Account:Write", () => {
           args: [smartAccountAddressTwo]
         })
       }
-      await expect(_smartAccount.sendTransaction(tx, {paymasterServiceData: {mode: PaymasterMode.SPONSORED}})).rejects.toThrowError(await getAAError("Error coming from Bundler: AA24 signature error"))
-    }, 35000);
+      await expect(
+        _smartAccount.sendTransaction(tx, {
+          paymasterServiceData: { mode: PaymasterMode.SPONSORED }
+        })
+      ).rejects.toThrowError(
+        await getAAError("Error coming from Bundler: AA24 signature error")
+      )
+    }, 35000)
 
     test("should transfer ownership of smart account back to account", async () => {
-      const newOwner = account.address;
+      const newOwner = account.address
       const _smartAccount = await createSmartAccountClient({
         signer: walletClientTwo,
         paymasterUrl,
         bundlerUrl,
-        accountAddress: "0x5F141ee1390D4c9d033a00CB940E509A4811a5E0",
+        accountAddress: "0x5F141ee1390D4c9d033a00CB940E509A4811a5E0"
       })
-      const response = await _smartAccount.transferOwnership(newOwner, {paymasterServiceData: {mode: PaymasterMode.SPONSORED}})
+      const response = await _smartAccount.transferOwnership(newOwner, {
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
+      })
       expect(response.status).toBe("success")
-    }, 35000);
+    }, 35000)
   })
 })
