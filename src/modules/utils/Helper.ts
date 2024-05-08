@@ -4,9 +4,9 @@ import {
   keccak256,
   parseAbiParameters
 } from "viem"
-import type { UserOperationStruct } from "../../account"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import type { SignerData } from "../.."
+import type { UserOperationStruct } from "../../account"
 
 export interface Rule {
   /** The index of the param from the selected contract function upon which the condition will be applied */

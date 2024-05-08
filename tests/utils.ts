@@ -7,12 +7,12 @@ import {
   parseAbi
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
+import { Logger } from "../src/account/utils/Logger"
+import { getChain } from "../src/account/utils/getChain"
 import {
   extractChainIdFromBundlerUrl,
   extractChainIdFromPaymasterUrl
 } from "../src/bundler"
-import { getChain } from "../src/account/utils/getChain"
-import { Logger } from "../src/account/utils/Logger"
 
 export const getEnvVars = () => {
   const fields = [

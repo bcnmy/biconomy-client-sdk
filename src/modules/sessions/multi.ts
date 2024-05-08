@@ -4,9 +4,9 @@ import {
   DEFAULT_ABI_SVM_MODULE,
   DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
+  type SessionGrantedPayload,
   createBatchedSessionRouterModule,
-  createSessionKeyManagerModule,
-  type SessionGrantedPayload
+  createSessionKeyManagerModule
 } from ".."
 import {
   type BiconomySmartAccountV2,
