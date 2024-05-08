@@ -147,8 +147,8 @@ export const createMultiSession = async (
   const txs: Transaction[] = []
   const [isSessionModuleEnabled, isBatchedSessionModuleEnabled] =
     await Promise.all([
-      smartAccount.getEnableModuleData(DEFAULT_SESSION_KEY_MANAGER_MODULE),
-      smartAccount.getEnableModuleData(DEFAULT_BATCHED_SESSION_ROUTER_MODULE)
+      smartAccount.isModuleEnabled(DEFAULT_SESSION_KEY_MANAGER_MODULE),
+      smartAccount.isModuleEnabled(DEFAULT_BATCHED_SESSION_ROUTER_MODULE)
     ])
 
   if (!isSessionModuleEnabled) {
@@ -164,6 +164,7 @@ export const createMultiSession = async (
     )
   }
   txs.push(permitTx)
+
   const userOpResponse = await smartAccount.sendTransaction(txs, buildUseropDto)
 
   const sessionID =

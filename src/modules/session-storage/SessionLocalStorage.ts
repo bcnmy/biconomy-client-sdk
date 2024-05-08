@@ -10,8 +10,8 @@ import type {
 } from "../interfaces/ISessionStorage.js"
 import type { SignerData } from "../utils/Types.js"
 
-// @ts-ignore: LocalStorage is not available in node
 export const supportsLocalStorage =
+  // @ts-ignore: LocalStorage is not available in node
   typeof window !== "undefined" && typeof window.localStorage !== "undefined"
 
 export class SessionLocalStorage implements ISessionStorage {
