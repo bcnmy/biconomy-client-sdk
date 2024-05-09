@@ -110,7 +110,7 @@ export type SessionGrantedPayload = UserOpResponse & { session: SessionData }
  *          {
  *            offset: 0,
  *            condition: 0,
- *            referenceValue: smartAccountAddress
+ *            referenceValue: pad(smartAccountAddress, { size: 32 })
  *          }
  *        ],
  *        interval: {
@@ -240,7 +240,7 @@ export function getABISVMSessionKeyData(
       sessionKeyData,
       pad(toHex(permission.rules[i].offset), { size: 2 }), // offset is uint16, so there can't be more than 2**16/32 args = 2**11
       pad(toHex(permission.rules[i].condition), { size: 1 }), // uint8
-      pad(toHex(permission.rules[i].referenceValue), { size: 32 })
+      permission.rules[i].referenceValue
     ]) as Hex
   }
   return sessionKeyData

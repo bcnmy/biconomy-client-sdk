@@ -24,7 +24,7 @@ export interface Rule {
    */
   condition: number
   /** The value to compare against */
-  referenceValue: string | number | bigint | boolean | ByteArray
+  referenceValue: `0x${string}`
 }
 
 export interface Permission {

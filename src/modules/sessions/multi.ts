@@ -85,7 +85,7 @@ export type CreateMultiSessionConfig = {
  *        {
  *          offset: 0,
  *          condition: 0,
- *          referenceValue: smartAccountAddress
+ *          referenceValue: pad(smartAccountAddress, { size: 32 })
  *        }
  *      ],
  *      valueLimit: 0n
