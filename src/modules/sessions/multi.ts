@@ -27,7 +27,7 @@ export type CreateMultiSessionConfig = {
  *
  * createMultiSession
  *
- * Creates a session manager that handles multipliple sessions at once for a given user's smart account.
+ * Creates a session manager that handles multiple sessions at once for a given user's smart account.
  * Useful for handling multiple granted sessions at once.
  *
  * @param smartAccount - The user's {@link BiconomySmartAccountV2} smartAccount instance.
