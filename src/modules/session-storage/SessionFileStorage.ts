@@ -15,10 +15,10 @@ import type {
 import type { SignerData } from "../utils/Types"
 
 export class SessionFileStorage implements ISessionStorage {
-  private smartAccountAddress: string
+  public smartAccountAddress: Hex
 
-  constructor(smartAccountAddress: string) {
-    this.smartAccountAddress = smartAccountAddress.toLowerCase()
+  constructor(smartAccountAddress: Hex) {
+    this.smartAccountAddress = smartAccountAddress.toLowerCase() as Hex
   }
 
   // This method reads data from the file and returns it in the JSON format

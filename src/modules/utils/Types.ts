@@ -41,7 +41,7 @@ export interface SessionKeyManagerModuleConfig
   /** Version of the module */
   version?: ModuleVersion
   /** SmartAccount address */
-  smartAccountAddress: string
+  smartAccountAddress: Hex
   storageType?: StorageType
   sessionStorageClient?: ISessionStorage
 }
@@ -57,7 +57,7 @@ export interface BatchedSessionRouterModuleConfig
   /** Session Key Manager module address */
   sessionManagerModuleAddress?: Hex
   /** Address of the associated smart account */
-  smartAccountAddress: string
+  smartAccountAddress: Hex
   /** Storage type, e.g. local storage */
   storageType?: StorageType
 }

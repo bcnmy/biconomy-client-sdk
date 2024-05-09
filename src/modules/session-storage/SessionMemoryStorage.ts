@@ -26,10 +26,10 @@ const memoryStorage: MemoryStore = {
 }
 
 export class SessionMemoryStorage implements ISessionStorage {
-  public smartAccountAddress: string
+  public smartAccountAddress: Hex
 
-  constructor(smartAccountAddress: string) {
-    this.smartAccountAddress = smartAccountAddress.toLowerCase()
+  constructor(smartAccountAddress: Hex) {
+    this.smartAccountAddress = smartAccountAddress.toLowerCase() as Hex
   }
 
   private validateSearchParam(param: SessionSearchParam): void {

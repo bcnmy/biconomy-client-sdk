@@ -15,10 +15,10 @@ export const supportsLocalStorage =
   typeof window !== "undefined" && typeof window.localStorage !== "undefined"
 
 export class SessionLocalStorage implements ISessionStorage {
-  private smartAccountAddress: string
+  public smartAccountAddress: Hex
 
-  constructor(smartAccountAddress: string) {
-    this.smartAccountAddress = smartAccountAddress.toLowerCase()
+  constructor(smartAccountAddress: Hex) {
+    this.smartAccountAddress = smartAccountAddress.toLowerCase() as Hex
   }
 
   private validateSearchParam(param: SessionSearchParam): void {

@@ -23,6 +23,11 @@ export type SessionSearchParam = {
 
 export interface ISessionStorage {
   /**
+   * The address of the smartAccount
+   */
+  smartAccountAddress: Hex
+
+  /**
    * Adds a session leaf node to the session storage
    * @param leaf SessionLeafNode to be added to the session storage
    */
