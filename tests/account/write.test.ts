@@ -462,9 +462,14 @@ describe("Account:Write", () => {
     }, 60000)
 
     test("should increment user op gas with no paymaster using sendTransaction", async () => {
+      const encodedCall = encodeFunctionData({
+        abi: parseAbi(["function safeMint(address _to)"]),
+        functionName: "safeMint",
+        args: [recipient]
+      })
       const transaction = {
-        to: recipient,
-        data: "0x"
+        to: nftAddress, // NFT address
+        data: encodedCall
       }
 
       const { wait } = await smartAccount.sendTransaction(transaction, {
