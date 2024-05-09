@@ -45,7 +45,7 @@ export type SessionEpoch = {
   validAfter?: number
 }
 
-export type CreateSessionConfig = {
+export type ABISessionConfig = {
   /** The address of the contract to be included in the policy */
   contractAddress: Hex
   /** The address of the sessionKey upon which the policy is to be imparted */
@@ -54,7 +54,7 @@ export type CreateSessionConfig = {
   functionSelector: string | AbiFunction
   /** The rules  to be included in the policy */
   rules: Rule[]
-  /** The time interval within which the session is valid */
+  /** The time interval within which the session is valid. If left unset the session will remain invalid indefinitely */
   interval?: SessionEpoch
   /** The maximum value that can be transferred in a single transaction */
   valueLimit: bigint
@@ -73,7 +73,7 @@ export type SessionGrantedPayload = UserOpResponse & { session: SessionData }
  *
  * @param smartAccount - The user's {@link BiconomySmartAccountV2} smartAccount instance.
  * @param sessionKeyAddress - The address of the sessionKey upon which the policy is to be imparted.
- * @param sessionConfigs - An array of session configurations {@link CreateSessionConfig}.
+ * @param sessionConfigs - An array of session configurations {@link ABISessionConfig}.
  * @param sessionStorageClient - The storage client to store the session keys. {@link ISessionStorage}
  * @param buildUseropDto - Optional. {@link BuildUserOpOptions}
  * @returns Promise<{@link SessionGrantedPayload}> - An object containing the status of the transaction and the sessionID.
@@ -137,7 +137,7 @@ export type SessionGrantedPayload = UserOpResponse & { session: SessionData }
 export const createSession = async (
   smartAccount: BiconomySmartAccountV2,
   sessionKeyAddress: Hex,
-  sessionConfigs: CreateSessionConfig[],
+  sessionConfigs: ABISessionConfig[],
   sessionStorageClient: ISessionStorage,
   buildUseropDto?: BuildUserOpOptions
 ): Promise<SessionGrantedPayload> => {

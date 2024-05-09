@@ -1,14 +1,17 @@
 ### Create and Use a Session
 
-| Key                                                                                         | Description           |
-| ------------------------------------------------------------------------------------------- | --------------------- |
-| [sessionConfigs](https://bcnmy.github.io/biconomy-client-sdk/types/BuildUserOpOptions.html) | CreateSessionConfig[] |
+| Key                                                                                       | Description        |
+| ----------------------------------------------------------------------------------------- | ------------------ |
+| [sessionConfigs](https://bcnmy.github.io/biconomy-client-sdk/types/ABISessionConfig.html) | ABISessionConfig[] |
+| [rules](https://bcnmy.github.io/biconomy-client-sdk/types/ABISessionConfig.html)          | Rule[]             |
 
 ```typescript
 import {
   createSmartAccountClient,
   createSession,
   createSessionSmartAccountClient,
+  Rule,
+  ABISessionConfig,
 } from "@biconomy/account";
 import { createWalletClient, http, createPublicClient } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
@@ -23,31 +26,55 @@ const smartAccount = await createSmartAccountClient({
 }); // Retrieve bundler and pymaster urls from dashboard
 const smartAccountAddress = await smartAccount.getAccountAddress();
 
+// creates a store for the session, and saves the keys to it to be later retrieved
 const { sessionKeyAddress, sessionStorageClient } =
   await createAndStoreNewSessionKey(smartAccount, chain);
+
+// The rules that govern the method from the whitelisted contract
+const rules: Rule = [
+  {
+    /** The index of the param from the selected contract function upon which the condition will be applied */
+    offset: 0,
+    /**
+     * Conditions:
+     *
+     * 0 - Equal
+     * 1 - Less than or equal
+     * 2 - Less than
+     * 3 - Greater than or equal
+     * 4 - Greater than
+     * 5 - Not equal
+     */
+    condition: 0,
+    /** The value to compare against */
+    referenceValue: pad(smartAccountAddress, { size: 32 }),
+  },
+];
+
+const sessionConfigs: ABISessionConfig[] = [
+  {
+    /** The address of the sessionKey upon which the policy is to be imparted */
+    sessionKeyAddress,
+    /** The address of the contract to be included in the policy */
+    contractAddress: nftAddress,
+    /** The specific function selector from the contract to be included in the policy */
+    functionSelector: "safeMint(address)",
+    /** The list of rules which make up the policy */
+    rules,
+    /** The time interval within which the session is valid */
+    interval: {
+      validUntil: 0,
+      validAfter: 0,
+    },
+    /** The maximum value that can be transferred in a single transaction */
+    valueLimit: 0n,
+  },
+];
 
 const { wait, session } = await createSession(
   smartAccount,
   sessionKeyAddress,
-  [
-    {
-      sessionKeyAddress,
-      contractAddress: nftAddress,
-      functionSelector: "safeMint(address)",
-      rules: [
-        {
-          offset: 0,
-          condition: 0,
-          referenceValue: pad(smartAccountAddress, { size: 32 }),
-        },
-      ],
-      interval: {
-        validUntil: 0,
-        validAfter: 0,
-      },
-      valueLimit: 0n,
-    },
-  ],
+  sessionConfigs,
   sessionStorageClient,
   {
     paymasterServiceData: { mode: PaymasterMode.SPONSORED },
