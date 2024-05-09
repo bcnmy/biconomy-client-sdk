@@ -1,12 +1,7 @@
 import { defaultAbiCoder } from "@ethersproject/abi"
 import { JsonRpcProvider } from "@ethersproject/providers"
 import { Wallet } from "@ethersproject/wallet"
-import {
-  http,
-  createWalletClient,
-  encodeAbiParameters,
-  parseAbiParameters
-} from "viem"
+import { http, type Hex, createWalletClient, encodeAbiParameters } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {

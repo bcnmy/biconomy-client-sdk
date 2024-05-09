@@ -178,26 +178,27 @@ export type BiconomySmartAccountV2ConfigConstructorProps =
     ResolvedBundlerProps &
     ResolvedValidationProps
 
+/**
+ * Represents options for building a user operation.
+ * @typedef BuildUserOpOptions
+ * @property {GasOffset} [gasOffset] - Increment gas values by giving an offset, the given value will be an increment to the current estimated gas values, not an override.
+ * @property {ModuleInfo} [params] - Parameters relevant to the module, mostly relevant to sessions.
+ * @property {NonceOptions} [nonceOptions] - Options for overriding the nonce.
+ * @property {boolean} [forceEncodeForBatch] - Whether to encode the user operation for batch.
+ * @property {PaymasterUserOperationDto} [paymasterServiceData] - Options specific to transactions that involve a paymaster.
+ * @property {SimulationType} [simulationType] - Determine which parts of the transaction a bundler will simulate: "validation" | "validation_and_execution".
+ * @property {StateOverrideSet} [stateOverrideSet] - For overriding the state.
+ * @property {boolean} [useEmptyDeployCallData] - Set to true if the transaction is being used only to deploy the smart contract, so "0x" is set as the user operation call data.
+ */
 export type BuildUserOpOptions = {
-  /** overrides: Explicitly set gas values */
-  // overrides?: Overrides;
-  /** Not currently in use  */
-  // skipBundlerGasEstimation?: boolean;
-  /**  params relevant to the module, mostly relevant to sessions */
+  gasOffset?: GasOffsetPct
   params?: ModuleInfo
-  /**  nonceOptions: For overriding the nonce */
   nonceOptions?: NonceOptions
-  /**  forceEncodeForBatch: For encoding the user operation for batch */
   forceEncodeForBatch?: boolean
-  /**  paymasterServiceData: Options specific to transactions that involve a paymaster */
   paymasterServiceData?: PaymasterUserOperationDto
-  /**  simulationType: Determine which parts of the tx a bundler will simulate: "validation" | "validation_and_execution".  */
   simulationType?: SimulationType
-  /** dummy pnd override */
-  dummyPndOverride?: BytesLike
-  /**  stateOverrideSet: For overriding the state */
   stateOverrideSet?: StateOverrideSet
-  /** set to true if the tx is being used *only* to deploy the smartContract, so "0x" is set as the userOp.callData  */
+  dummyPndOverride?: BytesLike
   useEmptyDeployCallData?: boolean
 }
 
@@ -210,21 +211,30 @@ export type NonceOptions = {
 
 export type SimulationType = "validation" | "validation_and_execution"
 
-export type Overrides = {
-  /* Value used by inner account execution */
-  callGasLimit?: Hex
-  /* Actual gas used by the validation of this UserOperation */
-  verificationGasLimit?: Hex
-  /* Gas overhead of this UserOperation */
-  preVerificationGas?: Hex
-  /* Maximum fee per gas (similar to EIP-1559 max_fee_per_gas) */
-  maxFeePerGas?: Hex
-  /* Maximum priority fee per gas (similar to EIP-1559 max_priority_fee_per_gas) */
-  maxPriorityFeePerGas?: Hex
-  /* Address of paymaster sponsoring the transaction, followed by extra data to send to the paymaster ("0x" for self-sponsored transaction) */
-  paymasterData?: Hex
-  /* Data passed into the account along with the nonce during the verification step */
-  signature?: Hex
+/**
+ * Represents an offset percentage value used for gas-related calculations.
+ * @remarks
+ * This type defines offset percentages for various gas-related parameters. Each percentage represents a proportion of the current estimated gas values.
+ * For example:
+ * - A value of `1` represents a 1% offset.
+ * - A value of `100` represents a 100% offset.
+ * @public
+ */
+/**
+ * Represents an object containing offset percentages for gas-related parameters.
+ * @typedef GasOffsetPct
+ * @property {number} [callGasLimitOffsetPct] - Percentage offset for the gas limit used by inner account execution.
+ * @property {number} [verificationGasLimitOffsetPct] - Percentage offset for the actual gas used by the validation of a UserOperation.
+ * @property {number} [preVerificationGasOffsetPct] - Percentage offset representing the gas overhead of a UserOperation.
+ * @property {number} [maxFeePerGasOffsetPct] - Percentage offset for the maximum fee per gas (similar to EIP-1559 max_fee_per_gas).
+ * @property {number} [maxPriorityFeePerGasOffsetPct] - Percentage offset for the maximum priority fee per gas (similar to EIP-1559 max_priority_fee_per_gas).
+ */
+export type GasOffsetPct = {
+  callGasLimitOffsetPct?: number
+  verificationGasLimitOffsetPct?: number
+  preVerificationGasOffsetPct?: number
+  maxFeePerGasOffsetPct?: number
+  maxPriorityFeePerGasOffsetPct?: number
 }
 
 export type InitilizationData = {
@@ -263,7 +273,6 @@ export type InitializeV2Data = {
 
 export type EstimateUserOpGasParams = {
   userOp: Partial<UserOperationStruct>
-  // overrides?: Overrides;
   /** Currrently has no effect */
   // skipBundlerGasEstimation?: boolean;
   /**  paymasterServiceData: Options specific to transactions that involve a paymaster */

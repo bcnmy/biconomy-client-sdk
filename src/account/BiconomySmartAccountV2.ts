@@ -86,6 +86,7 @@ import type {
 import {
   addressEquals,
   compareChainIds,
+  convertToFactor,
   isNullOrUndefined,
   isValidRpcUrl,
   packUserOp
@@ -978,7 +979,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         return this.getPaymasterAndData(partialUserOp, {
           ...paymasterServiceData,
           feeTokenAddress: feeQuote.tokenAddress,
-          calculateGasLimits: true // Always recommended and especially when using token paymaster
+          calculateGasLimits: paymasterServiceData.calculateGasLimits ?? true // Always recommended and especially when using token paymaster
         })
       }
       if (paymasterServiceData?.preferredToken) {
@@ -1402,6 +1403,40 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * const { waitForTxHash } = await smartAccount.sendTransaction(transaction);
    * const { transactionHash, userOperationReceipt } = await wait();
    *
+   *  @remarks
+   * This example shows how to increase the estimated gas values for a transaction using `gasOffset` parameter.
+   *  @example
+   * import { createClient } from "viem"
+   * import { createSmartAccountClient } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonAmoy } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonAmoy,
+   *   transport: http(),
+   * });
+   *
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dashboard
+   * const encodedCall = encodeFunctionData({
+   *   abi: parseAbi(["function safeMint(address to) public"]),
+   *   functionName: "safeMint",
+   *   args: ["0x..."],
+   * });
+   *
+   * const transaction = {
+   *   to: nftAddress,
+   *   data: encodedCall
+   * }
+   *
+   * const { waitForTxHash } = await smartAccount.sendTransaction(transaction, {
+   *  gasOffset: {
+   *      verificationGasLimitOffsetPct: 25, // 25% increase for the already estimated gas limit
+   *      preVerificationGasOffsetPct: 10 // 10% increase for the already estimated gas limit
+   *     }
+   * });
+   * const { transactionHash, userOperationReceipt } = await wait();
+   *
    */
   async sendTransaction(
     manyOrOneTransactions: Transaction | Transaction[],
@@ -1513,14 +1548,135 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       userOp.maxFeePerGas = gasFeeValues?.maxFeePerGas as Hex
       userOp.maxPriorityFeePerGas = gasFeeValues?.maxPriorityFeePerGas as Hex
 
+      if (buildUseropDto.gasOffset) {
+        userOp = await this.estimateUserOpGas(userOp)
+
+        const {
+          verificationGasLimitOffsetPct,
+          preVerificationGasOffsetPct,
+          callGasLimitOffsetPct,
+          maxFeePerGasOffsetPct,
+          maxPriorityFeePerGasOffsetPct
+        } = buildUseropDto.gasOffset
+        userOp.verificationGasLimit = toHex(
+          Number.parseInt(
+            (
+              Number(userOp.verificationGasLimit ?? 0) *
+              convertToFactor(verificationGasLimitOffsetPct)
+            ).toString()
+          )
+        )
+        userOp.preVerificationGas = toHex(
+          Number.parseInt(
+            (
+              Number(userOp.preVerificationGas ?? 0) *
+              convertToFactor(preVerificationGasOffsetPct)
+            ).toString()
+          )
+        )
+        userOp.callGasLimit = toHex(
+          Number.parseInt(
+            (
+              Number(userOp.callGasLimit ?? 0) *
+              convertToFactor(callGasLimitOffsetPct)
+            ).toString()
+          )
+        )
+        userOp.maxFeePerGas = toHex(
+          Number.parseInt(
+            (
+              Number(userOp.maxFeePerGas ?? 0) *
+              convertToFactor(maxFeePerGasOffsetPct)
+            ).toString()
+          )
+        )
+        userOp.maxPriorityFeePerGas = toHex(
+          Number.parseInt(
+            (
+              Number(userOp.maxPriorityFeePerGas ?? 0) *
+              convertToFactor(maxPriorityFeePerGasOffsetPct)
+            ).toString()
+          )
+        )
+
+        userOp = await this.getPaymasterUserOp(userOp, {
+          ...buildUseropDto.paymasterServiceData,
+          calculateGasLimits: false
+        })
+        return userOp
+      }
+      if (buildUseropDto.paymasterServiceData.calculateGasLimits === false) {
+        userOp = await this.estimateUserOpGas(userOp)
+      }
+
       userOp = await this.getPaymasterUserOp(
         userOp,
         buildUseropDto.paymasterServiceData
       )
+
       return userOp
     }
+
     userOp = await this.estimateUserOpGas(userOp)
 
+    if (buildUseropDto?.gasOffset) {
+      if (buildUseropDto?.paymasterServiceData) {
+        userOp = await this.getPaymasterUserOp(userOp, {
+          ...buildUseropDto.paymasterServiceData,
+          calculateGasLimits: false
+        })
+      }
+
+      const {
+        verificationGasLimitOffsetPct,
+        preVerificationGasOffsetPct,
+        callGasLimitOffsetPct,
+        maxFeePerGasOffsetPct,
+        maxPriorityFeePerGasOffsetPct
+      } = buildUseropDto.gasOffset
+      userOp.verificationGasLimit = toHex(
+        Number.parseInt(
+          (
+            Number(userOp.verificationGasLimit ?? 0) *
+            convertToFactor(verificationGasLimitOffsetPct)
+          ).toString()
+        )
+      )
+      userOp.preVerificationGas = toHex(
+        Number.parseInt(
+          (
+            Number(userOp.preVerificationGas ?? 0) *
+            convertToFactor(preVerificationGasOffsetPct)
+          ).toString()
+        )
+      )
+      userOp.callGasLimit = toHex(
+        Number.parseInt(
+          (
+            Number(userOp.callGasLimit ?? 0) *
+            convertToFactor(callGasLimitOffsetPct)
+          ).toString()
+        )
+      )
+      userOp.maxFeePerGas = toHex(
+        Number.parseInt(
+          (
+            Number(userOp.maxFeePerGas ?? 0) *
+            convertToFactor(maxFeePerGasOffsetPct)
+          ).toString()
+        )
+      )
+      userOp.maxPriorityFeePerGas = toHex(
+        Number.parseInt(
+          (
+            Number(userOp.maxPriorityFeePerGas ?? 0) *
+            convertToFactor(maxPriorityFeePerGasOffsetPct)
+          ).toString()
+        )
+      )
+
+      return userOp
+    }
     if (buildUseropDto?.paymasterServiceData) {
       userOp = await this.getPaymasterUserOp(
         userOp,
