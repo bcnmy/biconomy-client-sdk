@@ -66,7 +66,7 @@ export type SessionGrantedPayload = UserOpResponse & { session: SessionData }
  *
  * createSession
  *
- * Creates an session for a user's smart account.
+ * Creates a session for a user's smart account.
  * This grants a dapp permission to execute a specific function on a specific contract on behalf of a user.
  * Permissions can be specified by the dapp in the form of rules{@link Rule}, and the submitted to the user for approval via signing.
  * The session keys granted with the imparted policy are stored in a StorageClient {@link ISessionStorage}. They can later be retrieved and used to validate userops.
