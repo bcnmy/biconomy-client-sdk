@@ -33,7 +33,7 @@ import {
 import { createERC20SessionDatum } from "../../src/modules/sessions/erc20"
 import {
   createMultiSession,
-  getBatchSessionTxParams
+  getMultiSessionTxParams
 } from "../../src/modules/sessions/multi"
 import { createSessionSmartAccountClient } from "../../src/modules/sessions/sessionSmartAccountClient"
 import { PaymasterMode } from "../../src/paymaster"
@@ -351,7 +351,7 @@ describe("Modules:Write", () => {
     )
     const tokenBalanceBefore = await checkBalance(recipient, token)
 
-    const batchSessionParams = await getBatchSessionTxParams(
+    const batchSessionParams = await getMultiSessionTxParams(
       ["ERC20", "ABI"],
       storeForMultiSession,
       sessionID,

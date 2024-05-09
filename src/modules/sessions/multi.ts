@@ -193,7 +193,7 @@ export type BatchSessionParamsPayload = {
 }
 export type SessionValidationType = (typeof types)[number]
 /**
- * getBatchSessionTxParams
+ * getMultiSessionTxParams
  *
  * Retrieves the transaction parameters for a batched session.
  *
@@ -204,7 +204,7 @@ export type SessionValidationType = (typeof types)[number]
  * @returns Promise<{@link BatchSessionParamsPayload}> - session parameters.
  *
  */
-export const getBatchSessionTxParams = async (
+export const getMultiSessionTxParams = async (
   sessionValidationTypes: SessionValidationType[],
   sessionStorageClient: ISessionStorage,
   sessionID: string,
