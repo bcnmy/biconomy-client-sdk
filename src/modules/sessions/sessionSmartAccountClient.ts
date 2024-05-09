@@ -26,7 +26,7 @@ export type ImpersonatedSmartAccountConfig = Omit<
  * createSessionSmartAccountClient
  *
  * Creates a new instance of BiconomySmartAccountV2 class. This is used to impersonate a users smart account by a dapp, for use
- * with a valid session that has previously been granted byt the user. A dummy signer is passed into the smart account instance, which cannot be used.
+ * with a valid session that has previously been granted by the user. A dummy signer is passed into the smart account instance, which cannot be used.
  * The sessionSigner is used instead for signing transactions, which is fetched from the session storage using the sessionID. {@link ISessionStorage}
  *
  * @param biconomySmartAccountConfig - Configuration for initializing the BiconomySmartAccountV2 instance {@link ImpersonatedSmartAccountConfig}.
