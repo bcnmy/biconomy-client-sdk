@@ -31,7 +31,10 @@ import {
   createSession
 } from "../../src/modules/sessions/abi"
 import { createERC20SessionDatum } from "../../src/modules/sessions/erc20"
-import { createMultiSession } from "../../src/modules/sessions/multi"
+import {
+  createMultiSession,
+  getBatchSessionTxParams
+} from "../../src/modules/sessions/multi"
 import { createSessionSmartAccountClient } from "../../src/modules/sessions/sessionSmartAccountClient"
 import { PaymasterMode } from "../../src/paymaster"
 import { checkBalance, getBundlerUrl, getConfig, topUp } from "../utils"
@@ -348,25 +351,20 @@ describe("Modules:Write", () => {
     )
     const tokenBalanceBefore = await checkBalance(recipient, token)
 
+    const batchSessionParams = await getBatchSessionTxParams(
+      ["ERC20", "ABI"],
+      storeForMultiSession,
+      sessionID,
+      chain
+    )
+
     const { wait } = await smartAccountFourWithSession.sendTransaction(
       [transferTx, nftMintTx],
       {
-        params: {
-          batchSessionParams: [
-            {
-              sessionSigner,
-              sessionValidationModule: DEFAULT_ERC20_MODULE
-            },
-            {
-              sessionSigner,
-              sessionValidationModule: DEFAULT_ABI_SVM_MODULE
-            }
-          ]
-        },
+        ...batchSessionParams,
         ...withSponsorship
       }
     )
-
     const { success } = await wait()
     expect(success).toBe("true")
 

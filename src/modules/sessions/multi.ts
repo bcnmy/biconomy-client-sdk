@@ -1,4 +1,4 @@
-import type { Hex } from "viem"
+import type { Chain, Hex } from "viem"
 import {
   type CreateSessionDataParams,
   DEFAULT_ABI_SVM_MODULE,
@@ -6,7 +6,9 @@ import {
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   type SessionGrantedPayload,
   createBatchedSessionRouterModule,
-  createSessionKeyManagerModule
+  createSessionKeyManagerModule,
+  type SessionParams,
+  MODULE_ADDRESSES
 } from ".."
 import {
   type BiconomySmartAccountV2,
@@ -182,5 +184,42 @@ export const createMultiSession = async (
       sessionID
     },
     ...userOpResponse
+  }
+}
+
+const types = ["ERC20", "ABI"] as const
+export type BatchSessionParamsPayload = {
+  params: { batchSessionParams: SessionParams[] }
+}
+export type SessionValidationType = (typeof types)[number]
+/**
+ * getBatchSessionTxParams
+ *
+ * Retrieves the transaction parameters for a batched session.
+ *
+ * @param sessionTypes - An array of session types.
+ * @param sessionStorageClient - The storage client to be used for storing the session data.
+ * @param sessionID - The session ID.
+ * @param chain - The chain.
+ * @returns Promise<{@link BatchSessionParamsPayload}> - session parameters.
+ *
+ */
+export const getBatchSessionTxParams = async (
+  sessionValidationTypes: SessionValidationType[],
+  sessionStorageClient: ISessionStorage,
+  sessionID: string,
+  chain: Chain
+): Promise<BatchSessionParamsPayload> => {
+  const sessionSigner = await sessionStorageClient.getSignerBySession(chain, {
+    sessionID
+  })
+
+  return {
+    params: {
+      batchSessionParams: sessionValidationTypes.map((sessionType) => ({
+        sessionSigner,
+        sessionValidationModule: MODULE_ADDRESSES[sessionType]
+      }))
+    }
   }
 }

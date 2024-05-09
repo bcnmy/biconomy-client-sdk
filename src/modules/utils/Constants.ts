@@ -1,5 +1,6 @@
 import type { Hex } from "viem"
 import type { ModuleVersion } from "./Types.js"
+import type { SessionValidationType } from "../../index.js"
 
 export const DEFAULT_MODULE_VERSION: ModuleVersion = "V1_0_0"
 
@@ -38,3 +39,8 @@ export const MULTICHAIN_VALIDATION_MODULE_ADDRESSES_BY_VERSION = {
 
 export const DEFAULT_ABI_SVM_MODULE: Hex =
   "0x000006bC2eCdAe38113929293d241Cf252D91861"
+
+export const MODULE_ADDRESSES: Record<SessionValidationType, Hex> = {
+  ERC20: DEFAULT_ERC20_MODULE,
+  ABI: DEFAULT_ABI_SVM_MODULE
+}
