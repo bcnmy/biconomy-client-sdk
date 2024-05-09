@@ -95,10 +95,8 @@ export type CreateMultiSessionConfig = {
  *  const { wait, sessionID } = await createMultiSession(
  *    smartAccount,
  *    sessionKeyAddress,
- *    {
- *      sessionStorageClient: sessionStorage,
- *      leaves
- *    },
+ *    sessionStorageClient: sessionStorage,
+ *    leaves,
  *    {
  *      paymasterServiceData: { mode: PaymasterMode.SPONSORED },
  *    }
@@ -117,7 +115,10 @@ export type CreateMultiSessionConfig = {
 export const createMultiSession = async (
   smartAccount: BiconomySmartAccountV2,
   sessionKeyAddress: Hex,
-  { sessionStorageClient, leaves }: CreateMultiSessionConfig,
+  /** The storage client to be used for storing the session data */
+  sessionStorageClient: ISessionStorage,
+  /** An array of session configurations */
+  leaves: CreateSessionDataParams[],
   buildUseropDto?: BuildUserOpOptions
 ): Promise<SessionGrantedPayload> => {
   const userAccountAddress = await smartAccount.getAddress()

@@ -1,9 +1,9 @@
 ### Create and Use a Session
 
-| Key                                                                                       | Description        |
-| ----------------------------------------------------------------------------------------- | ------------------ |
-| [sessionConfigs](https://bcnmy.github.io/biconomy-client-sdk/types/ABISessionConfig.html) | ABISessionConfig[] |
-| [rules](https://bcnmy.github.io/biconomy-client-sdk/types/ABISessionConfig.html)          | Rule[]             |
+| Key                                                                             | Description |
+| ------------------------------------------------------------------------------- | ----------- |
+| [sessionConfigs](https://bcnmy.github.io/biconomy-client-sdk/types/Policy.html) | Policy[]    |
+| [rules](https://bcnmy.github.io/biconomy-client-sdk/types/Policy.html)          | Rule[]      |
 
 ```typescript
 import {
@@ -11,7 +11,7 @@ import {
   createSession,
   createSessionSmartAccountClient,
   Rule,
-  ABISessionConfig,
+  Policy,
 } from "@biconomy/account";
 import { createWalletClient, http, createPublicClient } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
@@ -52,7 +52,7 @@ const rules: Rule = [
 ];
 
 /** The policy is made up of a list of rules applied to the contract method with and interval */
-const policy: ABISessionConfig[] = [
+const policy: Policy[] = [
   {
     /** The address of the sessionKey upon which the policy is to be imparted */
     sessionKeyAddress,
@@ -74,8 +74,8 @@ const policy: ABISessionConfig[] = [
 
 const { wait, session } = await createSession(
   smartAccount,
-  sessionKeyAddress,
   policy,
+  sessionKeyAddress,
   sessionStorageClient,
   {
     paymasterServiceData: { mode: PaymasterMode.SPONSORED },

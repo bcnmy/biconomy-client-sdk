@@ -135,7 +135,6 @@ describe("Modules:Write", () => {
 
     const { wait, session } = await createSession(
       smartAccountThree,
-      sessionKeyAddress,
       [
         {
           sessionKeyAddress,
@@ -155,6 +154,7 @@ describe("Modules:Write", () => {
           valueLimit: 0n
         }
       ],
+      sessionKeyAddress,
       storeForSingleSession,
       withSponsorship
     )
@@ -274,10 +274,8 @@ describe("Modules:Write", () => {
     const { wait, session } = await createMultiSession(
       smartAccountFour,
       sessionKeyAddress,
-      {
-        sessionStorageClient: storeForMultiSession,
-        leaves
-      },
+      storeForMultiSession,
+      leaves,
       withSponsorship
     )
 

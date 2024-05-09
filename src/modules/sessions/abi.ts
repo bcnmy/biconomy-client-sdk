@@ -45,7 +45,7 @@ export type SessionEpoch = {
   validAfter?: number
 }
 
-export type ABISessionConfig = {
+export type Policy = {
   /** The address of the contract to be included in the policy */
   contractAddress: Hex
   /** The address of the sessionKey upon which the policy is to be imparted */
@@ -73,7 +73,7 @@ export type SessionGrantedPayload = UserOpResponse & { session: SessionData }
  *
  * @param smartAccount - The user's {@link BiconomySmartAccountV2} smartAccount instance.
  * @param sessionKeyAddress - The address of the sessionKey upon which the policy is to be imparted.
- * @param sessionConfigs - An array of session configurations {@link ABISessionConfig}.
+ * @param policy - An array of session configurations {@link Policy}.
  * @param sessionStorageClient - The storage client to store the session keys. {@link ISessionStorage}
  * @param buildUseropDto - Optional. {@link BuildUserOpOptions}
  * @returns Promise<{@link SessionGrantedPayload}> - An object containing the status of the transaction and the sessionID.
@@ -100,7 +100,6 @@ export type SessionGrantedPayload = UserOpResponse & { session: SessionData }
  *
  * const { wait, sessionID } = await createSession(
  *    smartAccount,
- *    sessionKeyAddress,
  *    [
  *      {
  *        sessionKeyAddress,
@@ -120,6 +119,7 @@ export type SessionGrantedPayload = UserOpResponse & { session: SessionData }
  *         valueLimit: 0n
  *      }
  *    ],
+ *    sessionKeyAddress,
  *    sessionStorage,
  *    {
  *      paymasterServiceData: { mode: PaymasterMode.SPONSORED },
@@ -136,8 +136,8 @@ export type SessionGrantedPayload = UserOpResponse & { session: SessionData }
  */
 export const createSession = async (
   smartAccount: BiconomySmartAccountV2,
+  policy: Policy[],
   sessionKeyAddress: Hex,
-  sessionConfigs: ABISessionConfig[],
   sessionStorageClient: ISessionStorage,
   buildUseropDto?: BuildUserOpOptions
 ): Promise<SessionGrantedPayload> => {
@@ -148,7 +148,7 @@ export const createSession = async (
   })
 
   const { data: policyData } = await sessionsModule.createSessionData(
-    sessionConfigs.map(createABISessionDatum)
+    policy.map(createABISessionDatum)
   )
 
   const permitTx = {
