@@ -17,7 +17,7 @@ const smartAccount = await createSmartAccountClient({
   signer,
   bundlerUrl,
   paymasterUrl,
-}); // Retrieve bundler and pymaster urls from dashboard
+}); // Retrieve bundler and paymaster urls from dashboard
 
 const oneOrManyTx = { to: "0x...", value: 1 };
 
