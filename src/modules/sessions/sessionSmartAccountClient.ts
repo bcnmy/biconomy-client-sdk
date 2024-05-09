@@ -72,7 +72,7 @@ export type ImpersonatedSmartAccountConfig = Omit<
 export const createSessionSmartAccountClient = async (
   biconomySmartAccountConfig: ImpersonatedSmartAccountConfig,
   { sessionStorageClient, sessionID }: SessionData,
-  forBatch = false
+  multiMode = false
 ): Promise<BiconomySmartAccountV2> => {
   const account = privateKeyToAccount(generatePrivateKey())
 
@@ -90,7 +90,7 @@ export const createSessionSmartAccountClient = async (
     sessionID
   })
 
-  const sessionData: ModuleInfo | undefined = forBatch
+  const sessionData: ModuleInfo | undefined = multiMode
     ? undefined
     : {
         sessionID,
@@ -110,7 +110,7 @@ export const createSessionSmartAccountClient = async (
   return await createSmartAccountClient({
     ...biconomySmartAccountConfig,
     signer: incompatibleSigner, // This is a dummy signer, it will remain unused
-    activeValidationModule: forBatch ? batchedSessionModule : sessionModule,
+    activeValidationModule: multiMode ? batchedSessionModule : sessionModule,
     sessionData // contains the sessionSigner that will be used for txs
   })
 }
