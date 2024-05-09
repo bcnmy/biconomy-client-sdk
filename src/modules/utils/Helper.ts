@@ -2,7 +2,8 @@ import {
   type Hex,
   encodeAbiParameters,
   keccak256,
-  parseAbiParameters
+  parseAbiParameters,
+  type ByteArray
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import type { SignerData } from "../.."
@@ -23,7 +24,7 @@ export interface Rule {
    */
   condition: number
   /** The value to compare against */
-  referenceValue: `0x${string}`
+  referenceValue: string | number | bigint | boolean | ByteArray
 }
 
 export interface Permission {

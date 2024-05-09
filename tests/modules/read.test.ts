@@ -107,12 +107,12 @@ describe("Modules:Read", () => {
         {
           offset: 0,
           condition: 0,
-          referenceValue: pad(recipient, { size: 32 })
+          referenceValue: recipient
         },
         {
           offset: 1,
           condition: 1,
-          referenceValue: toHex(amount)
+          referenceValue: amount
         }
       ]
     })

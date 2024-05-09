@@ -145,7 +145,7 @@ describe("Modules:Write", () => {
             {
               offset: 0,
               condition: 0,
-              referenceValue: pad(smartAccountAddressThree, { size: 32 })
+              referenceValue: smartAccountAddressThree
             }
           ],
           interval: {
@@ -264,7 +264,7 @@ describe("Modules:Write", () => {
           {
             offset: 0,
             condition: 0,
-            referenceValue: pad(smartAccountAddressFour, { size: 32 })
+            referenceValue: smartAccountAddressFour
           }
         ],
         valueLimit: 0n
