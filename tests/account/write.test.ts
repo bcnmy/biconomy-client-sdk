@@ -8,6 +8,7 @@ import {
   parseAbi
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import { readContract } from "viem/actions"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
@@ -15,8 +16,13 @@ import {
   ERC20_ABI,
   createSmartAccountClient
 } from "../../src/account"
+import { ECDSAModuleAbi } from "../../src/account/abi/ECDSAModule"
 import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"
 import { getAAError } from "../../src/bundler/utils/getAAError"
+import {
+  DEFAULT_ECDSA_OWNERSHIP_MODULE,
+  DEFAULT_SESSION_KEY_MANAGER_MODULE
+} from "../../src/modules"
 import { PaymasterMode } from "../../src/paymaster"
 import { testOnlyOnOptimism } from "../setupFiles"
 import { checkBalance, getConfig, nonZeroBalance, topUp } from "../utils"
@@ -231,7 +237,7 @@ describe("Account:Write", () => {
     expect(tokenBalanceOfRecipientAfter - tokenBalanceOfRecipientBefore).toBe(
       1n
     )
-  }, 25000)
+  }, 40000)
 
   test("should mint an NFT and pay with ERC20 - with token", async () => {
     const encodedCall = encodeFunctionData({
@@ -326,8 +332,20 @@ describe("Account:Write", () => {
         signer: walletClient,
         paymasterUrl,
         bundlerUrl,
-        accountAddress: "0x5F141ee1390D4c9d033a00CB940E509A4811a5E0"
+        accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC" 
       })
+      const _smartAccountAddress = await _smartAccount.getAccountAddress()
+      console.log("Smart account address: ", _smartAccountAddress)
+
+      const signerOfAccount = walletClient.account.address
+      const ownerOfAccount = await publicClient.readContract({
+        address: "0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e",
+        abi: ECDSAModuleAbi,
+        functionName: "getOwner",
+        args: [await _smartAccount.getAccountAddress()]
+      })
+
+      expect(ownerOfAccount).toBe(signerOfAccount)
       const response = await _smartAccount.transferOwnership(newOwner, {
         paymasterServiceData: { mode: PaymasterMode.SPONSORED }
       })
@@ -342,7 +360,7 @@ describe("Account:Write", () => {
         signer: walletClientTwo,
         paymasterUrl,
         bundlerUrl,
-        accountAddress: "0x5F141ee1390D4c9d033a00CB940E509A4811a5E0"
+        accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC" 
       })
       const newOwner = accountTwo.address
       const currentSmartAccountInstanceSigner = await _smartAccount
@@ -369,7 +387,7 @@ describe("Account:Write", () => {
         signer: walletClient,
         paymasterUrl,
         bundlerUrl,
-        accountAddress: "0x5F141ee1390D4c9d033a00CB940E509A4811a5E0"
+        accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC" 
       })
       const tx = {
         to: nftAddress,
@@ -388,18 +406,29 @@ describe("Account:Write", () => {
       )
     }, 35000)
 
-    test("should transfer ownership of smart account back to account", async () => {
+    test("should transfer ownership of smart account back to EOA 1", async () => {
       const newOwner = account.address
       const _smartAccount = await createSmartAccountClient({
         signer: walletClientTwo,
         paymasterUrl,
         bundlerUrl,
-        accountAddress: "0x5F141ee1390D4c9d033a00CB940E509A4811a5E0"
+        accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC" // account address at index 0 of EOA 1
       })
+
+      const signerOfAccount = walletClientTwo.account.address
+      const ownerOfAccount = await publicClient.readContract({
+        address: "0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e",
+        abi: ECDSAModuleAbi,
+        functionName: "getOwner",
+        args: [await _smartAccount.getAccountAddress()]
+      })
+
+      expect(ownerOfAccount).toBe(signerOfAccount)
+
       const response = await _smartAccount.transferOwnership(newOwner, {
         paymasterServiceData: { mode: PaymasterMode.SPONSORED }
       })
       expect(response.status).toBe("success")
-    }, 35000)
+    }, 45000)
   })
 })
