@@ -1,9 +1,9 @@
 import {
+  type ByteArray,
   type Hex,
   encodeAbiParameters,
   keccak256,
-  parseAbiParameters,
-  type ByteArray
+  parseAbiParameters
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import type { SignerData } from "../.."
