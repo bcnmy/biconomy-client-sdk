@@ -1,6 +1,6 @@
 import type { Hex } from "viem"
-import type { ModuleVersion } from "./Types.js"
 import type { SessionValidationType } from "../../index.js"
+import type { ModuleVersion } from "./Types.js"
 
 export const DEFAULT_MODULE_VERSION: ModuleVersion = "V1_0_0"
 
