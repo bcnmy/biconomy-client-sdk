@@ -51,7 +51,8 @@ const rules: Rule = [
   },
 ];
 
-const sessionConfigs: ABISessionConfig[] = [
+/** The policy is made up of a list of rules applied to the contract method with and interval */
+const policy: ABISessionConfig[] = [
   {
     /** The address of the sessionKey upon which the policy is to be imparted */
     sessionKeyAddress,
@@ -74,7 +75,7 @@ const sessionConfigs: ABISessionConfig[] = [
 const { wait, session } = await createSession(
   smartAccount,
   sessionKeyAddress,
-  sessionConfigs,
+  policy,
   sessionStorageClient,
   {
     paymasterServiceData: { mode: PaymasterMode.SPONSORED },
