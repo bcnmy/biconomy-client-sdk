@@ -200,12 +200,28 @@ export type CreateSessionDatumParams = {
   valueLimit: bigint
 }
 
+/**
+ *
+ * createABISessionDatum
+ *
+ * Used to create a session datum for the ABI Session Validation Module.
+ * It can also be used to create a session datum for multiSession mode.
+ *
+ * @param createSessionDataParams - {@link CreateSessionDatumParams}
+ * @returns {@link CreateSessionDataParams}
+ */
 export const createABISessionDatum = ({
+  /** The time interval within which the session is valid. If left unset the session will remain invalid indefinitely {@link SessionEpoch} */
   interval,
+  /** The sessionKeyAddress upon which the policy is to be imparted. Used as a reference to the stored session keys */
   sessionKeyAddress,
+  /** The address of the contract to be included in the policy */
   contractAddress,
+  /** The specific function selector from the contract to be included in the policy */
   functionSelector,
+  /** The rules to be included in the policy */
   rules,
+  /** The maximum value that can be transferred in a single transaction */
   valueLimit
 }: CreateSessionDatumParams): CreateSessionDataParams => {
   const { validUntil = 0, validAfter = 0 } = interval ?? {}
