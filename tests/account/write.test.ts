@@ -510,7 +510,7 @@ describe("Account:Write", () => {
         signer: walletClient,
         paymasterUrl,
         bundlerUrl,
-        accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC" 
+        accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC"
       })
       const _smartAccountAddress = await _smartAccount.getAccountAddress()
       console.log("Smart account address: ", _smartAccountAddress)
@@ -538,7 +538,7 @@ describe("Account:Write", () => {
         signer: walletClientTwo,
         paymasterUrl,
         bundlerUrl,
-        accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC" 
+        accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC"
       })
       const newOwner = accountTwo.address
       const currentSmartAccountInstanceSigner = await _smartAccount
@@ -565,7 +565,7 @@ describe("Account:Write", () => {
         signer: walletClient,
         paymasterUrl,
         bundlerUrl,
-        accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC" 
+        accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC"
       })
       const tx = {
         to: nftAddress,
@@ -608,5 +608,5 @@ describe("Account:Write", () => {
       })
       expect(response.status).toBe("success")
     }, 45000)
-  });
+  })
 })
