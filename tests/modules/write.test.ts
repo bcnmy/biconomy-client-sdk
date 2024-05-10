@@ -260,7 +260,6 @@ describe("Modules:Write", () => {
     // First we need to check if smart account is deployed
     // if not deployed, send an empty transaction to deploy it
     const isDeployed = await smartAccount.isAccountDeployed()
-    Logger.log("session", { isDeployed })
     if (!isDeployed) {
       const { wait } = await smartAccount.deploy({
         paymasterServiceData: { mode: PaymasterMode.SPONSORED }
@@ -636,7 +635,6 @@ describe("Modules:Write", () => {
       // First we need to check if smart account is deployed
       // if not deployed, send an empty transaction to deploy it
       const isDeployed = await smartAccount.isAccountDeployed()
-      Logger.log("session", { isDeployed })
       if (!isDeployed) {
         const { wait } = await smartAccount.deploy({
           paymasterServiceData: { mode: PaymasterMode.SPONSORED }
@@ -724,7 +722,6 @@ describe("Modules:Write", () => {
       expect(transactionDetails.success).toBe("true")
       Logger.log("Tx Hash: ", transactionDetails.receipt.transactionHash)
 
-      console.log("Transferring ownership back to previous owner ...")
       // Transfer ownership back to walletClient
       const resp = await smartAccount.transferOwnership(newOwner, {
         paymasterServiceData: { mode: PaymasterMode.SPONSORED },
@@ -733,7 +730,6 @@ describe("Modules:Write", () => {
           sessionValidationModule: abiSvmAddress
         }
       })
-      console.log(resp, "Ownership restored.")
     }, 60000)
   })
 })

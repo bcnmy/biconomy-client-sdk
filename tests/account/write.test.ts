@@ -512,8 +512,6 @@ describe("Account:Write", () => {
         bundlerUrl,
         accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC"
       })
-      const _smartAccountAddress = await _smartAccount.getAccountAddress()
-      console.log("Smart account address: ", _smartAccountAddress)
 
       const signerOfAccount = walletClient.account.address
       const ownerOfAccount = await publicClient.readContract({
@@ -527,10 +525,33 @@ describe("Account:Write", () => {
       const response = await _smartAccount.transferOwnership(newOwner, {
         paymasterServiceData: { mode: PaymasterMode.SPONSORED }
       })
-      const signerAddress = await _smartAccount.getSigner().getAddress()
-      console.log("New owner address: ", newOwner)
-      console.log("Signer address: ", signerAddress)
-      expect(response.status).toBe("success")
+      const receipt = await response.wait()
+      expect(receipt.success).toBe("true")
+    }, 35000)
+
+    test("should revert transfer ownership with signer that is not the owner", async () => {
+      const newOwner = accountTwo.address
+      const _smartAccount = await createSmartAccountClient({
+        signer: walletClient,
+        paymasterUrl,
+        bundlerUrl,
+        accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC"
+      })
+
+      const signerOfAccount = walletClient.account.address
+      const ownerOfAccount = await publicClient.readContract({
+        address: "0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e",
+        abi: ECDSAModuleAbi,
+        functionName: "getOwner",
+        args: [await _smartAccount.getAccountAddress()]
+      })
+
+      expect(ownerOfAccount).not.toBe(signerOfAccount)
+      expect(
+        _smartAccount.transferOwnership(newOwner, {
+          paymasterServiceData: { mode: PaymasterMode.SPONSORED }
+        })
+      ).rejects.toThrowError()
     }, 35000)
 
     test("send an user op with the new owner", async () => {
@@ -606,7 +627,8 @@ describe("Account:Write", () => {
       const response = await _smartAccount.transferOwnership(newOwner, {
         paymasterServiceData: { mode: PaymasterMode.SPONSORED }
       })
-      expect(response.status).toBe("success")
+      const receipt = await response.wait()
+      expect(receipt.success).toBe("true")
     }, 45000)
   })
 })

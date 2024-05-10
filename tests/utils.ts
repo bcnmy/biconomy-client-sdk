@@ -32,7 +32,7 @@ export const getEnvVars = () => {
   }
   return {
     bundlerUrl: process.env.BUNDLER_URL || "",
-    bundlerUrlTwo: process.env.BUNDLER_URL_TWO || "",
+    bundlerUrlTwo: getBundlerUrl(84532) || "",
     privateKey: process.env.E2E_PRIVATE_KEY_ONE || "",
     privateKeyTwo: process.env.E2E_PRIVATE_KEY_TWO || "",
     paymasterUrl: `https://paymaster.biconomy.io/api/v1/80002/${

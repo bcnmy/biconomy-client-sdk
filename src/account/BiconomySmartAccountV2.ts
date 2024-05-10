@@ -83,7 +83,6 @@ import type {
   SimulationType,
   SupportedToken,
   Transaction,
-  TransferOwnershipResponse,
   WithdrawalRequest
 } from "./utils/Types.js"
 import {
@@ -1394,30 +1393,21 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   async transferOwnership(
     newOwner: Address,
     buildUseropDto?: BuildUserOpOptions
-  ): Promise<TransferOwnershipResponse> {
-    try {
-      const encodedCall = encodeFunctionData({
-        abi: parseAbi(["function transferOwnership(address newOwner) public"]),
-        functionName: "transferOwnership",
-        args: [newOwner]
-      })
-      const transaction = {
-        to: ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION.V1_0_0,
-        data: encodedCall
-      }
-      const { wait } = await this.sendTransaction(transaction, buildUseropDto)
-      const response = await wait()
-      const receipt = response.receipt
-      return {
-        transactionHash: receipt.transactionHash,
-        userOpHash: response.userOpHash,
-        status: response.success === "true" ? "success" : "failed",
-        cumulativeGasUsed: Number(receipt.cumulativeGasUsed),
-        gasUsed: Number(receipt.gasUsed)
-      }
-    } catch (error) {
-      throw new Error(`Error while transferring ownership: ${error}`)
+  ): Promise<UserOpResponse> {
+    const encodedCall = encodeFunctionData({
+      abi: parseAbi(["function transferOwnership(address newOwner) public"]),
+      functionName: "transferOwnership",
+      args: [newOwner]
+    })
+    const transaction = {
+      to: ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION.V1_0_0,
+      data: encodedCall
     }
+    const userOpResponse: UserOpResponse = await this.sendTransaction(
+      transaction,
+      buildUseropDto
+    )
+    return userOpResponse
   }
 
   /**
