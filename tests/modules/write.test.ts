@@ -31,10 +31,10 @@ import {
   createBatchedSessionRouterModule,
   createECDSAOwnershipValidationModule,
   createMultiChainValidationModule,
-  createSessionKeyManagerModule
+  createSessionKeyManagerModule,
+  getABISVMSessionKeyData
 } from "../../src/modules"
 import { SessionMemoryStorage } from "../../src/modules/session-storage/SessionMemoryStorage"
-import { getABISVMSessionKeyData } from "../../src/modules/utils/Helper"
 import { PaymasterMode } from "../../src/paymaster"
 import { checkBalance, getBundlerUrl, getConfig, topUp } from "../utils"
 

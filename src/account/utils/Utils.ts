@@ -159,3 +159,22 @@ export const wrapSignatureWith6492 = ({
     "0x6492649264926492649264926492649264926492649264926492649264926492"
   ])
 }
+
+export function percentage(partialValue: number, totalValue: number) {
+  return (100 * partialValue) / totalValue
+}
+
+export function convertToFactor(percentage: number | undefined): number {
+  // Check if the input is within the valid range
+  if (percentage) {
+    if (percentage < 1 || percentage > 100) {
+      throw new Error("The percentage value should be between 1 and 100.")
+    }
+
+    // Calculate the factor
+    const factor = percentage / 100 + 1
+
+    return factor
+  }
+  return 1
+}

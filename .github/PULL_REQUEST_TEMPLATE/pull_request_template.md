@@ -1,4 +1,4 @@
-## Pull Request for Smart Contract Improvement
+## Pull Request for SDK Improvement
 
 **Describe your changes:**
 
