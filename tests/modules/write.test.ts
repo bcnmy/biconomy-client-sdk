@@ -126,6 +126,17 @@ describe("Modules:Write", () => {
     smartAccountAddressFour = await smartAccountFour.getAccountAddress()
     storeForSingleSession = new SessionMemoryStorage(smartAccountAddressThree) // Set the session storage client with the smart account address
     storeForMultiSession = new SessionMemoryStorage(smartAccountAddressFour) // Set the session storage client with the smart account address
+
+    await Promise.all([
+      topUp(smartAccountAddress, undefined, token),
+      topUp(smartAccountAddress, undefined),
+      topUp(smartAccountAddressTwo, undefined, token),
+      topUp(smartAccountAddressTwo, undefined),
+      topUp(smartAccountAddressThree, undefined, token),
+      topUp(smartAccountAddressThree, undefined),
+      topUp(smartAccountAddressFour, undefined, token),
+      topUp(smartAccountAddressFour, undefined)
+    ])
   })
 
   // User must be connected with a wallet to grant permissions
@@ -302,9 +313,6 @@ describe("Modules:Write", () => {
     const sessionSigner = await storeForMultiSession.getSignerBySession(chain, {
       sessionID
     })
-
-    await topUp(smartAccountAddressFour, undefined, token)
-    await topUp(smartAccountAddressFour, undefined)
 
     expect(sessionID).toBeTruthy() // Should have been set in the previous test
 
