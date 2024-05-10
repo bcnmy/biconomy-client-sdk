@@ -1,5 +1,6 @@
 import {
   http,
+  type Address,
   type GetContractReturnType,
   type Hex,
   type PublicClient,
@@ -27,6 +28,7 @@ import {
 } from "../bundler/index.js"
 import {
   BaseValidationModule,
+  ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION,
   type ModuleInfo,
   type SendUserOpParams,
   createECDSAOwnershipValidationModule
@@ -1365,6 +1367,47 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       )
     }
     return nonce
+  }
+
+  /**
+   * Transfers ownership of the smart account to a new owner.
+   * @param newOwner The address of the new owner.
+   * @param buildUseropDto {@link BuildUserOpOptions}. Optional parameter
+   * @returns A Promise that resolves to a TransferOwnershipResponse or rejects with an Error.
+   * @example
+   * ```typescript
+   * const walletClient = createWalletClient({
+   *   account,
+   *   chain: baseSepolia,
+   *   transport: http()
+   * });
+   * const smartAccount = await createSmartAccountClient({
+   *   signer: walletClient,
+   *   paymasterUrl: "https://paymaster.biconomy.io/api/v1/...",
+   *   bundlerUrl: `https://bundler.biconomy.io/api/v2/84532/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44`,
+   *   chainId: 84532
+   * });
+   * const response = await smartAccount.transferOwnership(newOwner, {paymasterServiceData: {mode: PaymasterMode.SPONSORED}});
+   * ```
+   */
+  async transferOwnership(
+    newOwner: Address,
+    buildUseropDto?: BuildUserOpOptions
+  ): Promise<UserOpResponse> {
+    const encodedCall = encodeFunctionData({
+      abi: parseAbi(["function transferOwnership(address newOwner) public"]),
+      functionName: "transferOwnership",
+      args: [newOwner]
+    })
+    const transaction = {
+      to: ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION.V1_0_0,
+      data: encodedCall
+    }
+    const userOpResponse: UserOpResponse = await this.sendTransaction(
+      transaction,
+      buildUseropDto
+    )
+    return userOpResponse
   }
 
   /**
