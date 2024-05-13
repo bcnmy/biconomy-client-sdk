@@ -609,3 +609,7 @@ export interface ISmartContractAccount<
     upgradeToInitData: Hex
   ) => Promise<Hex>
 }
+
+export type TransferOwnershipCompatibleModule =
+  | "0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e"
+  | "0x000000824dc138db84FD9109fc154bdad332Aa8E"

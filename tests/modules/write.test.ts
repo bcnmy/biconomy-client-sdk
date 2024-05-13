@@ -621,6 +621,7 @@ describe("Modules:Write", () => {
         // Transfer ownership back to walletClient 1
         await smartAccountWithOtherOwner.transferOwnership(
           walletClient.account.address,
+          DEFAULT_ECDSA_OWNERSHIP_MODULE,
           { paymasterServiceData: { mode: PaymasterMode.SPONSORED } }
         )
       }
@@ -723,13 +724,17 @@ describe("Modules:Write", () => {
       Logger.log("Tx Hash: ", transactionDetails.receipt.transactionHash)
 
       // Transfer ownership back to walletClient
-      const resp = await smartAccount.transferOwnership(newOwner, {
-        paymasterServiceData: { mode: PaymasterMode.SPONSORED },
-        params: {
-          sessionSigner: sessionSigner,
-          sessionValidationModule: abiSvmAddress
+      const resp = await smartAccount.transferOwnership(
+        newOwner,
+        DEFAULT_ECDSA_OWNERSHIP_MODULE,
+        {
+          paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+          params: {
+            sessionSigner: sessionSigner,
+            sessionValidationModule: abiSvmAddress
+          }
         }
-      })
+      )
     }, 60000)
   })
 })
