@@ -366,9 +366,12 @@ export class BiconomyPaymaster
 
       if (response?.result) {
         const paymasterAndData = response.result.paymasterAndData
-        const preVerificationGas = response.result.preVerificationGas
-        const verificationGasLimit = response.result.verificationGasLimit
-        const callGasLimit = response.result.callGasLimit
+        const preVerificationGas =
+          response.result.preVerificationGas ?? _userOp.preVerificationGas
+        const verificationGasLimit =
+          response.result.verificationGasLimit ?? _userOp.verificationGasLimit
+        const callGasLimit =
+          response.result.callGasLimit ?? _userOp.callGasLimit
         return {
           paymasterAndData: paymasterAndData,
           preVerificationGas: preVerificationGas,
