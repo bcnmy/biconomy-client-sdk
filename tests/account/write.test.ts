@@ -8,7 +8,6 @@ import {
   parseAbi
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { readContract } from "viem/actions"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
@@ -20,10 +19,6 @@ import {
 import { ECDSAModuleAbi } from "../../src/account/abi/ECDSAModule"
 import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"
 import { getAAError } from "../../src/bundler/utils/getAAError"
-import {
-  DEFAULT_ECDSA_OWNERSHIP_MODULE,
-  DEFAULT_SESSION_KEY_MANAGER_MODULE
-} from "../../src/modules"
 import { PaymasterMode } from "../../src/paymaster"
 import { testOnlyOnOptimism } from "../setupFiles"
 import { checkBalance, getConfig, nonZeroBalance, topUp } from "../utils"
@@ -503,16 +498,19 @@ describe("Account:Write", () => {
     }, 60000)
   })
 
-  describe("Transfer ownership", () => {
-    test("should transfer ownership of smart account to accountTwo", async () => {
+  describe("Transfer ownership", async () => {
+
       const newOwner = accountTwo.address
-      const _smartAccount = await createSmartAccountClient({
+      let _smartAccount = await createSmartAccountClient({
         signer: walletClient,
         paymasterUrl,
         bundlerUrl,
-        accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC"
+        // accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC"
       })
 
+      const smartAccountAddress = await _smartAccount.getAccountAddress();
+
+    test("should transfer ownership of smart account to accountTwo", async () => {
       const signerOfAccount = walletClient.account.address
       const ownerOfAccount = await publicClient.readContract({
         address: "0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e",
@@ -530,12 +528,11 @@ describe("Account:Write", () => {
     }, 35000)
 
     test("should revert transfer ownership with signer that is not the owner", async () => {
-      const newOwner = accountTwo.address
-      const _smartAccount = await createSmartAccountClient({
+      _smartAccount = await createSmartAccountClient({
         signer: walletClient,
         paymasterUrl,
         bundlerUrl,
-        accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC"
+        accountAddress: smartAccountAddress
       })
 
       const signerOfAccount = walletClient.account.address
@@ -555,11 +552,11 @@ describe("Account:Write", () => {
     }, 35000)
 
     test("send an user op with the new owner", async () => {
-      const _smartAccount = await createSmartAccountClient({
+      _smartAccount = await createSmartAccountClient({
         signer: walletClientTwo,
         paymasterUrl,
         bundlerUrl,
-        accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC"
+        accountAddress: smartAccountAddress
       })
       const newOwner = accountTwo.address
       const currentSmartAccountInstanceSigner = await _smartAccount
@@ -582,11 +579,11 @@ describe("Account:Write", () => {
     }, 35000)
 
     test("should revert if sending an user op with the old owner", async () => {
-      const _smartAccount = await createSmartAccountClient({
+      _smartAccount = await createSmartAccountClient({
         signer: walletClient,
         paymasterUrl,
         bundlerUrl,
-        accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC"
+        accountAddress: smartAccountAddress
       })
       const tx = {
         to: nftAddress,
@@ -606,12 +603,11 @@ describe("Account:Write", () => {
     }, 35000)
 
     test("should transfer ownership of smart account back to EOA 1", async () => {
-      const newOwner = account.address
-      const _smartAccount = await createSmartAccountClient({
+      _smartAccount = await createSmartAccountClient({
         signer: walletClientTwo,
         paymasterUrl,
         bundlerUrl,
-        accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC" // account address at index 0 of EOA 1
+        accountAddress: smartAccountAddress 
       })
 
       const signerOfAccount = walletClientTwo.account.address
