@@ -1372,12 +1372,14 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   /**
    * Transfers ownership of the smart account to a new owner.
    * @param newOwner The address of the new owner.
+   * @param moduleAddress The address of the validation module (ECDSA Ownership Module or Multichain Validation Module).
    * @param buildUseropDto {@link BuildUserOpOptions}. Optional parameter
    * @returns A Promise that resolves to a UserOpResponse or rejects with an Error.
    * @description This function will transfer ownership of the smart account to a new owner. If you use session key manager module, after transferring the ownership
    * you will need to re-create a session for the smart account with the new owner (signer) and specify "accountAddress" in "createSmartAccountClient" function.
    * @example
    * ```typescript
+   * 
    * let walletClient = createWalletClient({
         account,
         chain: baseSepolia,
@@ -1390,7 +1392,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         bundlerUrl: `https://bundler.biconomy.io/api/v2/84532/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44`,
         chainId: 84532
       });
-      const response = await smartAccount.transferOwnership(newOwner, {paymasterServiceData: {mode: PaymasterMode.SPONSORED}});
+      const response = await smartAccount.transferOwnership(newOwner, DEFAULT_ECDSA_OWNERSHIP_MODULE, {paymasterServiceData: {mode: PaymasterMode.SPONSORED}});
       
       walletClient = createWalletClient({
         newOwnerAccount,
@@ -1409,6 +1411,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    */
   async transferOwnership(
     newOwner: Address,
+    moduleAddress: Address,
     buildUseropDto?: BuildUserOpOptions
   ): Promise<UserOpResponse> {
     const encodedCall = encodeFunctionData({
@@ -1417,7 +1420,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       args: [newOwner]
     })
     const transaction = {
-      to: ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION.V1_0_0,
+      to: moduleAddress,
       data: encodedCall
     }
     const userOpResponse: UserOpResponse = await this.sendTransaction(
