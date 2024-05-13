@@ -82,6 +82,7 @@ import type {
   SimulationType,
   SupportedToken,
   Transaction,
+  TransferOwnershipCompatibleModule,
   WithdrawalRequest
 } from "./utils/Types.js"
 import {
@@ -1371,7 +1372,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   /**
    * Transfers ownership of the smart account to a new owner.
    * @param newOwner The address of the new owner.
-   * @param moduleAddress The address of the validation module (ECDSA Ownership Module or Multichain Validation Module).
+   * @param moduleAddress {@link TransferOwnershipCompatibleModule} The address of the validation module (ECDSA Ownership Module or Multichain Validation Module).
    * @param buildUseropDto {@link BuildUserOpOptions}. Optional parameter
    * @returns A Promise that resolves to a UserOpResponse or rejects with an Error.
    * @description This function will transfer ownership of the smart account to a new owner. If you use session key manager module, after transferring the ownership
@@ -1410,7 +1411,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    */
   async transferOwnership(
     newOwner: Address,
-    moduleAddress: Address,
+    moduleAddress: TransferOwnershipCompatibleModule,
     buildUseropDto?: BuildUserOpOptions
   ): Promise<UserOpResponse> {
     const encodedCall = encodeFunctionData({
