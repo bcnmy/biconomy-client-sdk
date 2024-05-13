@@ -11,7 +11,7 @@ import {
   getChain
 } from "../../account"
 import type { ModuleInfo } from "../utils/Types"
-import type { SessionData } from "./abi"
+import type { Session } from "./abi"
 
 export type ImpersonatedSmartAccountConfig = Omit<
   BiconomySmartAccountV2Config,
@@ -71,7 +71,7 @@ export type ImpersonatedSmartAccountConfig = Omit<
  */
 export const createSessionSmartAccountClient = async (
   biconomySmartAccountConfig: ImpersonatedSmartAccountConfig,
-  { sessionStorageClient, sessionID }: SessionData,
+  { sessionStorageClient, sessionID }: Session,
   multiMode = false
 ): Promise<BiconomySmartAccountV2> => {
   const account = privateKeyToAccount(generatePrivateKey())

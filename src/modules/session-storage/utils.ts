@@ -11,7 +11,7 @@ export type SessionStoragePayload = {
 }
 
 /**
- * createAndStoreNewSessionKey
+ * createSessionKeyEOA
  *
  * This function is used to store a new session key in the session storage.
  * If the session storage client is not provided as the third argument, it will create a new session storage client based on the environment.
@@ -22,7 +22,7 @@ export type SessionStoragePayload = {
  * @param _sessionStorageClient: ISessionStorage
  * @returns
  */
-export const createAndStoreNewSessionKey = async (
+export const createSessionKeyEOA = async (
   smartAccount: BiconomySmartAccountV2,
   chain: Chain,
   _sessionStorageClient?: ISessionStorage

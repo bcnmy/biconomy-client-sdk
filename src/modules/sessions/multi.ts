@@ -8,7 +8,8 @@ import {
   type SessionGrantedPayload,
   type SessionParams,
   createBatchedSessionRouterModule,
-  createSessionKeyManagerModule
+  createSessionKeyManagerModule,
+  Session
 } from ".."
 import {
   type BiconomySmartAccountV2,
@@ -198,18 +199,21 @@ export type SessionValidationType = (typeof types)[number]
  * Retrieves the transaction parameters for a batched session.
  *
  * @param sessionTypes - An array of session types.
- * @param sessionStorageClient - The storage client to be used for storing the session data.
- * @param sessionID - The session ID.
+ * @param transactions - An array of {@link Transaction}s.
+ * @param session - {@link Session}.
  * @param chain - The chain.
  * @returns Promise<{@link BatchSessionParamsPayload}> - session parameters.
  *
  */
 export const getMultiSessionTxParams = async (
   sessionValidationTypes: SessionValidationType[],
-  sessionStorageClient: ISessionStorage,
-  sessionID: string,
+  transactions: Transaction[],
+  { sessionID, sessionStorageClient }: Session,
   chain: Chain
 ): Promise<BatchSessionParamsPayload> => {
+  if (sessionValidationTypes.length !== transactions.length) {
+    throw new Error(ERROR_MESSAGES.INVALID_SESSION_TYPES)
+  }
   const sessionSigner = await sessionStorageClient.getSignerBySession(chain, {
     sessionID
   })

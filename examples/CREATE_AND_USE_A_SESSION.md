@@ -27,8 +27,10 @@ const smartAccount = await createSmartAccountClient({
 const smartAccountAddress = await smartAccount.getAccountAddress();
 
 // creates a store for the session, and saves the keys to it to be later retrieved
-const { sessionKeyAddress, sessionStorageClient } =
-  await createAndStoreNewSessionKey(smartAccount, chain);
+const { sessionKeyAddress, sessionStorageClient } = await createSessionKeyEOA(
+  smartAccount,
+  chain
+);
 
 // The rules that govern the method from the whitelisted contract
 const rules: Rule = [

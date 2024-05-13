@@ -22,8 +22,9 @@ import {
 } from "../../src/modules"
 
 import { SessionMemoryStorage } from "../../src/modules/session-storage/SessionMemoryStorage"
-import { createAndStoreNewSessionKey } from "../../src/modules/session-storage/utils"
+import { createSessionKeyEOA } from "../../src/modules/session-storage/utils"
 import {
+  type Session,
   createABISessionDatum,
   createSession
 } from "../../src/modules/sessions/abi"
@@ -44,8 +45,20 @@ describe("Modules:Write", () => {
   const withSponsorship = {
     paymasterServiceData: { mode: PaymasterMode.SPONSORED }
   }
-  let storeForSingleSession: SessionMemoryStorage
-  let storeForMultiSession: SessionMemoryStorage
+
+  const stores: {
+    single: Session
+    multi: Session
+  } = {
+    single: {
+      sessionStorageClient: new SessionMemoryStorage("0x"),
+      sessionID: "0x"
+    },
+    multi: {
+      sessionStorageClient: new SessionMemoryStorage("0x"),
+      sessionID: "0x"
+    }
+  }
 
   const {
     chain,
@@ -121,8 +134,13 @@ describe("Modules:Write", () => {
 
     smartAccountAddressThree = await smartAccountThree.getAccountAddress()
     smartAccountAddressFour = await smartAccountFour.getAccountAddress()
-    storeForSingleSession = new SessionMemoryStorage(smartAccountAddressThree) // Set the session storage client with the smart account address
-    storeForMultiSession = new SessionMemoryStorage(smartAccountAddressFour) // Set the session storage client with the smart account address
+
+    stores.single.sessionStorageClient = new SessionMemoryStorage(
+      smartAccountAddressThree
+    )
+    stores.multi.sessionStorageClient = new SessionMemoryStorage(
+      smartAccountAddressFour
+    )
 
     await Promise.all([
       topUp(smartAccountAddress, undefined, token),
@@ -138,11 +156,12 @@ describe("Modules:Write", () => {
 
   // User must be connected with a wallet to grant permissions
   test("should create a single session on behalf of a user", async () => {
-    const { sessionKeyAddress } = await createAndStoreNewSessionKey(
-      smartAccountThree,
-      chain,
-      storeForSingleSession
-    )
+    const { sessionKeyAddress, sessionStorageClient } =
+      await createSessionKeyEOA(
+        smartAccountThree,
+        chain,
+        stores.single.sessionStorageClient
+      )
 
     const { wait, session } = await createSession(
       smartAccountThree,
@@ -166,7 +185,7 @@ describe("Modules:Write", () => {
         }
       ],
       sessionKeyAddress,
-      storeForSingleSession,
+      sessionStorageClient,
       withSponsorship
     )
 
@@ -175,8 +194,10 @@ describe("Modules:Write", () => {
       success
     } = await wait()
 
+    // Save the sessionID for the next test
+    stores.single.sessionID = session.sessionID
+
     expect(success).toBe("true")
-    expect(session.sessionID).toBeTruthy()
     Logger.log("Tx Hash: ", transactionHash)
   }, 50000)
 
@@ -184,9 +205,8 @@ describe("Modules:Write", () => {
   // Only the reference to the relevant sessionID and the store from the previous step is needed to execute txs on the user's behalf
   test("should use the session to mint an NFT for the user", async () => {
     // Setup
-    const sessions = await storeForSingleSession.getAllSessionData()
-    const sessionID = sessions?.[0]?.sessionID as string // Same sessionID as returned from the previous test
-    expect(sessionID).toBeTruthy() // Should have been set in the previous test
+    const session = stores.single
+    expect(stores.single.sessionID).toBeTruthy() // Should have been set in the previous test
 
     // Assume the real signer for userSmartAccountThree is no longer available (ie. user has logged out)
     const smartAccountThreeWithSession = await createSessionSmartAccountClient(
@@ -196,10 +216,7 @@ describe("Modules:Write", () => {
         paymasterUrl,
         chainId
       },
-      {
-        sessionStorageClient: storeForSingleSession,
-        sessionID
-      }
+      session
     )
 
     const sessionSmartAccountThreeAddress =
@@ -240,11 +257,12 @@ describe("Modules:Write", () => {
 
   // User must be connected with a wallet to grant permissions
   test("should create a multi session on behalf of a user", async () => {
-    const { sessionKeyAddress } = await createAndStoreNewSessionKey(
-      smartAccountFour,
-      chain,
-      storeForMultiSession
-    )
+    const { sessionKeyAddress, sessionStorageClient } =
+      await createSessionKeyEOA(
+        smartAccountFour,
+        chain,
+        stores.multi.sessionStorageClient
+      )
 
     const leaves: CreateSessionDataParams[] = [
       createERC20SessionDatum({
@@ -285,7 +303,7 @@ describe("Modules:Write", () => {
     const { wait, session } = await createMultiSession(
       smartAccountFour,
       sessionKeyAddress,
-      storeForMultiSession,
+      sessionStorageClient,
       leaves,
       withSponsorship
     )
@@ -296,7 +314,11 @@ describe("Modules:Write", () => {
     } = await wait()
 
     expect(success).toBe("true")
+    stores.multi.sessionID = session.sessionID // Save the sessionID for the next test
+
     expect(session.sessionID).toBeTruthy()
+    // Save the sessionID for the next test
+
     Logger.log("Tx Hash: ", transactionHash)
     Logger.log("session: ", { session })
   }, 50000)
@@ -305,13 +327,9 @@ describe("Modules:Write", () => {
   // Only the reference to the relevant sessionID and the store from the previous step is needed to execute txs on the user's behalf
   test("should use the multi session to mint an NFT, and pay some token for the user", async () => {
     // Setup
-    const sessions = await storeForMultiSession.getAllSessionData()
-    const sessionID = sessions?.[0]?.sessionID as string // Same sessionID as returned from the previous test
-    const sessionSigner = await storeForMultiSession.getSignerBySession(chain, {
-      sessionID
-    })
-
-    expect(sessionID).toBeTruthy() // Should have been set in the previous test
+    // Setup
+    const session = stores.multi
+    expect(session.sessionID).toBeTruthy() // Should have been set in the previous test
 
     // Assume the real signer for userSmartAccountFour is no longer available (ie. user has logged out);
     const smartAccountFourWithSession = await createSessionSmartAccountClient(
@@ -321,10 +339,7 @@ describe("Modules:Write", () => {
         paymasterUrl,
         chainId
       },
-      {
-        sessionStorageClient: storeForMultiSession,
-        sessionID
-      },
+      session,
       true // if batching
     )
 
@@ -356,20 +371,19 @@ describe("Modules:Write", () => {
     )
     const tokenBalanceBefore = await checkBalance(recipient, token)
 
+    const txs = [transferTx, nftMintTx]
+
     const batchSessionParams = await getMultiSessionTxParams(
       ["ERC20", "ABI"],
-      storeForMultiSession,
-      sessionID,
+      txs,
+      session,
       chain
     )
 
-    const { wait } = await smartAccountFourWithSession.sendTransaction(
-      [transferTx, nftMintTx],
-      {
-        ...batchSessionParams,
-        ...withSponsorship
-      }
-    )
+    const { wait } = await smartAccountFourWithSession.sendTransaction(txs, {
+      ...batchSessionParams,
+      ...withSponsorship
+    })
     const { success } = await wait()
     expect(success).toBe("true")
 

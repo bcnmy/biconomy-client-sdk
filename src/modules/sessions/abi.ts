@@ -33,7 +33,7 @@ export type SessionConfig = {
   smartAccount: BiconomySmartAccountV2
 }
 
-export type SessionData = {
+export type Session = {
   /** The storage client specific to the smartAccountAddress which stores the session keys */
   sessionStorageClient: ISessionStorage
   /** The relevant sessionID for the current session */
