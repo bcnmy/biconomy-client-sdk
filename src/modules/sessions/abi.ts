@@ -270,12 +270,27 @@ type HardcodedReference = {
 type BaseReferenceValue = string | number | bigint | boolean | ByteArray
 type AnyReferenceValue = BaseReferenceValue | HardcodedReference
 
+/**
+ *
+ * parseReferenceValue
+ *
+ * Parses the reference value to a hex string.
+ * The reference value can be hardcoded using the {@link HardcodedReference} type.
+ * Otherwise, it can be a string, number, bigint, boolean, or ByteArray.
+ *
+ * @param referenceValue {@link AnyReferenceValue}
+ * @returns Hex
+ */
 export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
-  if ((referenceValue as HardcodedReference).raw) {
-    return (referenceValue as HardcodedReference).raw
+  try {
+    if ((referenceValue as HardcodedReference)?.raw) {
+      return (referenceValue as HardcodedReference)?.raw
+    }
+    if (isAddress(referenceValue as string)) {
+      return pad(referenceValue as Hex, { size: 32 })
+    }
+    return toHex(referenceValue as BaseReferenceValue)
+  } catch (e) {
+    return toHex(referenceValue as BaseReferenceValue)
   }
-  if (isAddress(referenceValue as string)) {
-    return pad(referenceValue as Hex, { size: 32 })
-  }
-  return toHex(referenceValue as BaseReferenceValue)
 }

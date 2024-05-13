@@ -3,13 +3,11 @@ import { JsonRpcProvider } from "@ethersproject/providers"
 import { Wallet } from "@ethersproject/wallet"
 import {
   http,
+  type Hex,
   createWalletClient,
   encodeAbiParameters,
-  pad,
-  parseAbiParameters,
   slice,
-  toFunctionSelector,
-  toHex
+  toFunctionSelector
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
