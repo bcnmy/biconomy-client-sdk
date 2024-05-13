@@ -124,6 +124,7 @@ export const nonZeroBalance = async (address: Hex, tokenAddress?: Hex) => {
     } during test setup of owner: ${address}`
   )
 }
+
 export const topUp = async (
   recipient: Hex,
   amount = BigInt(1000000),

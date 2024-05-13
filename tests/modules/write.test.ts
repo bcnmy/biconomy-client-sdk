@@ -4,7 +4,6 @@ import {
   createWalletClient,
   encodeAbiParameters,
   encodeFunctionData,
-  pad,
   parseAbi,
   parseUnits
 } from "viem"
@@ -18,8 +17,6 @@ import {
 import { Logger, getChain } from "../../src/account"
 import {
   type CreateSessionDataParams,
-  DEFAULT_ABI_SVM_MODULE,
-  DEFAULT_ERC20_MODULE,
   DEFAULT_MULTICHAIN_MODULE,
   createMultiChainValidationModule
 } from "../../src/modules"
@@ -158,7 +155,7 @@ describe("Modules:Write", () => {
             {
               offset: 0,
               condition: 0,
-              referenceValue: pad(smartAccountAddressThree, { size: 32 })
+              referenceValue: smartAccountAddressThree
             }
           ],
           interval: {
@@ -278,7 +275,7 @@ describe("Modules:Write", () => {
           {
             offset: 0,
             condition: 0,
-            referenceValue: pad(smartAccountAddressFour, { size: 32 })
+            referenceValue: smartAccountAddressFour
           }
         ],
         valueLimit: 0n

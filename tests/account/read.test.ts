@@ -8,8 +8,10 @@ import {
   encodeAbiParameters,
   encodeFunctionData,
   hashMessage,
+  pad,
   parseAbi,
-  parseAbiParameters
+  parseAbiParameters,
+  toHex
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { bsc } from "viem/chains"

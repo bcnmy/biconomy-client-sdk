@@ -47,7 +47,7 @@ const rules: Rule = [
      */
     condition: 0,
     /** The value to compare against */
-    referenceValue: pad(smartAccountAddress, { size: 32 }),
+    referenceValue: smartAccountAddress,
   },
 ];
 

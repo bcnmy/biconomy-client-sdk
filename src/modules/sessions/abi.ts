@@ -1,7 +1,9 @@
 import {
   type AbiFunction,
+  type ByteArray,
   type Hex,
   concat,
+  isAddress,
   pad,
   slice,
   toFunctionSelector,
@@ -109,7 +111,7 @@ export type SessionGrantedPayload = UserOpResponse & { session: SessionData }
  *          {
  *            offset: 0,
  *            condition: 0,
- *            referenceValue: pad(smartAccountAddress, { size: 32 })
+ *            referenceValue: smartAccountAddress
  *          }
  *        ],
  *        interval: {
@@ -256,8 +258,24 @@ export function getABISVMSessionKeyData(
       sessionKeyData,
       pad(toHex(permission.rules[i].offset), { size: 2 }), // offset is uint16, so there can't be more than 2**16/32 args = 2**11
       pad(toHex(permission.rules[i].condition), { size: 1 }), // uint8
-      permission.rules[i].referenceValue
+      parseReferenceValue(permission.rules[i].referenceValue)
     ]) as Hex
   }
   return sessionKeyData
+}
+
+type HardcodedReference = {
+  raw: Hex
+}
+type BaseReferenceValue = string | number | bigint | boolean | ByteArray
+type AnyReferenceValue = BaseReferenceValue | HardcodedReference
+
+export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
+  if ((referenceValue as HardcodedReference).raw) {
+    return (referenceValue as HardcodedReference).raw
+  }
+  if (isAddress(referenceValue as string)) {
+    return pad(referenceValue as Hex, { size: 32 })
+  }
+  return toHex(referenceValue as BaseReferenceValue)
 }

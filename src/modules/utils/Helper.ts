@@ -1,4 +1,5 @@
 import {
+  type ByteArray,
   type Hex,
   encodeAbiParameters,
   keccak256,
@@ -23,7 +24,7 @@ export interface Rule {
    */
   condition: number
   /** The value to compare against */
-  referenceValue: `0x${string}`
+  referenceValue: string | number | bigint | boolean | ByteArray
 }
 
 export interface Permission {
