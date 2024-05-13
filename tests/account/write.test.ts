@@ -8,6 +8,7 @@ import {
   parseAbi
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import { readContract } from "viem/actions"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
@@ -91,6 +92,9 @@ describe("Account:Write", () => {
         value: 1n
       }
     ])
+
+    console.log(await smartAccount.getAccountAddress())
+    console.log(await smartAccount.getSigner().getAddress(), "signer address")
 
     userOp.signature = undefined
 

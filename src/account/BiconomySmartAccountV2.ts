@@ -28,6 +28,7 @@ import {
 } from "../bundler/index.js"
 import {
   BaseValidationModule,
+  ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION,
   type ModuleInfo,
   type SendUserOpParams,
   createECDSAOwnershipValidationModule
