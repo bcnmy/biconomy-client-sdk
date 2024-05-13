@@ -5,8 +5,6 @@ import type {
   SupportedSigner,
   UserOperationStruct
 } from "../../account"
-import type { SessionKeyManagerModule } from "../SessionKeyManagerModule.js"
-import type { ISessionStorage } from "../interfaces/ISessionStorage.js"
 export type ModuleVersion = "V1_0_0" // | 'V1_0_1'
 
 export interface BaseValidationModuleConfig {
@@ -33,49 +31,6 @@ export interface ECDSAOwnershipValidationModuleConfigConstructorProps
   /** Signer: Converted from viemWallet or ethers signer to SmartAccountSigner */
   signer: SmartAccountSigner
 }
-
-export interface SessionKeyManagerModuleConfig
-  extends BaseValidationModuleConfig {
-  /** Address of the module */
-  moduleAddress?: Hex
-  /** Version of the module */
-  version?: ModuleVersion
-  /** SmartAccount address */
-  smartAccountAddress: Hex
-  storageType?: StorageType
-  sessionStorageClient?: ISessionStorage
-}
-
-export interface BatchedSessionRouterModuleConfig
-  extends BaseValidationModuleConfig {
-  /** Address of the module */
-  moduleAddress?: Hex
-  /** Version of the module */
-  version?: ModuleVersion
-  /** Session Key Manager module: Could be BaseValidationModule */
-  sessionKeyManagerModule?: SessionKeyManagerModule
-  /** Session Key Manager module address */
-  sessionManagerModuleAddress?: Hex
-  /** Address of the associated smart account */
-  smartAccountAddress: Hex
-  /** Storage type, e.g. local storage */
-  storageType?: StorageType
-}
-
-export enum StorageType {
-  LOCAL_STORAGE = 0,
-  MEMORY_STORAGE = 1,
-  FILE_STORAGE = 2
-}
-
-export type SessionDataTuple = [
-  bigint | number,
-  bigint | number,
-  Hex,
-  Hex,
-  string[],
-  string
-]
 
 export type SessionParams = {
   /** Redundant now as we've favoured uuid() */
@@ -111,26 +66,6 @@ export type SignerData = {
   address: Hex
   /** Private key */
   pvKey: Hex
-}
-
-export type CreateSessionDataResponse = {
-  data: string
-  sessionIDInfo: Array<string>
-}
-
-export interface CreateSessionDataParams {
-  /** window end for the session key */
-  validUntil: number
-  /** window start for the session key */
-  validAfter: number
-  /** Address of the session validation module */
-  sessionValidationModule: Hex
-  /** Public key of the session */
-  sessionPublicKey: Hex
-  /** The hex of the rules {@link Rule} that make up the policy */
-  sessionKeyData: Hex
-  /** we generate uuid based sessionId. but if you prefer to track it on your side and attach custom session identifier this can be passed */
-  preferredSessionId?: string
 }
 
 export interface MultiChainValidationModuleConfig

@@ -1,14 +1,5 @@
 import { defaultAbiCoder } from "@ethersproject/abi"
-import { JsonRpcProvider } from "@ethersproject/providers"
-import { Wallet } from "@ethersproject/wallet"
-import {
-  http,
-  type Hex,
-  createWalletClient,
-  encodeAbiParameters,
-  slice,
-  toFunctionSelector
-} from "viem"
+import { http, type Hex, createWalletClient, encodeAbiParameters } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
@@ -17,9 +8,7 @@ import {
 } from "../../src/account"
 import {
   DEFAULT_ERC20_MODULE,
-  createECDSAOwnershipValidationModule,
-  createMultiChainValidationModule,
-  getABISVMSessionKeyData
+  createECDSAOwnershipValidationModule
 } from "../../src/modules"
 import { getConfig } from "../utils"
 
@@ -66,57 +55,6 @@ describe("Modules:Read", () => {
         account.getAccountAddress()
       )
     )
-  })
-
-  test.concurrent("should check session key helpers", async () => {
-    const EXPECTED_SESSION_KEY_DATA =
-      "0x000000000000000000000000fa66e705cf2582cf56528386bb9dfca119767262000000000000000000000000747a4168db14f57871fa8cda8b5455d8c2a8e90a0000000000000000000000003079b249dfde4692d7844aa261f8cf7d927a0da50000000000000000000000000000000000000000000000000000000000989680"
-    const EXPECTED_ABI_SESSION_DATA =
-      "0xFA66E705cf2582cF56528386Bb9dFCA119767262747A4168DB14F57871fa8cda8B5455D8C2a8e90aa9059cbb0000000000000000000000000098968000020000000000000000000000000000003079B249DFDE4692D7844aA261f8cf7D927A0DA5000101989680"
-    const sessionKeyEOA = "0xFA66E705cf2582cF56528386Bb9dFCA119767262"
-    const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
-    const recipient = "0x3079B249DFDE4692D7844aA261f8cf7D927A0DA5"
-    const amount = 10000000n
-
-    const sessionKeyData = encodeAbiParameters(
-      [
-        { type: "address" },
-        { type: "address" },
-        { type: "address" },
-        { type: "uint256" }
-      ],
-      [
-        sessionKeyEOA,
-        token, // erc20 token address
-        recipient, // receiver address
-        amount
-      ]
-    )
-
-    const abiSessionData = await getABISVMSessionKeyData(sessionKeyEOA, {
-      destContract: token,
-      functionSelector: slice(
-        toFunctionSelector("transfer(address,uint256)"),
-        0,
-        4
-      ),
-      valueLimit: amount,
-      rules: [
-        {
-          offset: 0,
-          condition: 0,
-          referenceValue: recipient
-        },
-        {
-          offset: 1,
-          condition: 1,
-          referenceValue: amount
-        }
-      ]
-    })
-
-    expect(EXPECTED_ABI_SESSION_DATA).toEqual(abiSessionData)
-    expect(EXPECTED_SESSION_KEY_DATA).toEqual(sessionKeyData)
   })
 
   test.concurrent("should encode params successfully", async () => {
@@ -248,32 +186,6 @@ describe("Modules:Read", () => {
         defaultValidationModule.moduleAddress
       )
     }
-  )
-
-  test.concurrent(
-    "should create a MultiChainValidationModule from an ethers signer using convertSigner",
-    async () => {
-      const ethersProvider = new JsonRpcProvider(chain.rpcUrls.default.http[0])
-      const ethersSigner = new Wallet(privateKey, ethersProvider)
-
-      const defaultValidationModule = await createMultiChainValidationModule({
-        signer: ethersSigner
-      })
-      // Should not require a signer or chainId
-      const newSmartAccount = await createSmartAccountClient({
-        bundlerUrl,
-        defaultValidationModule,
-        rpcUrl: chain.rpcUrls.default.http[0]
-      })
-
-      const address = await newSmartAccount.getAccountAddress()
-      expect(address).toBeTruthy()
-      // expect the relevant module to be set
-      expect(newSmartAccount.activeValidationModule).toEqual(
-        defaultValidationModule
-      )
-    },
-    50000
   )
 
   test.concurrent(

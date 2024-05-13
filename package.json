@@ -108,8 +108,5 @@
   "simple-git-hooks": {
     "pre-commit": "bun run format && bun run lint:fix",
     "commit-msg": "npx --no -- commitlint --edit ${1}"
-  },
-  "dependencies": {
-    "merkletreejs": "^0.3.11"
   }
 }

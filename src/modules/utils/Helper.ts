@@ -1,42 +1,10 @@
 import {
-  type ByteArray,
   type Hex,
   encodeAbiParameters,
   keccak256,
   parseAbiParameters
 } from "viem"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import type { SignerData } from "../.."
 import type { UserOperationStruct } from "../../account"
-
-export interface Rule {
-  /** The index of the param from the selected contract function upon which the condition will be applied */
-  offset: number
-  /**
-   * Conditions:
-   *
-   * 0 - Equal
-   * 1 - Less than or equal
-   * 2 - Less than
-   * 3 - Greater than or equal
-   * 4 - Greater than
-   * 5 - Not equal
-   */
-  condition: number
-  /** The value to compare against */
-  referenceValue: string | number | bigint | boolean | ByteArray
-}
-
-export interface Permission {
-  /** The address of the contract to which the permission applies */
-  destContract: `0x${string}`
-  /** The function selector of the contract to which the permission applies */
-  functionSelector: `0x${string}`
-  /** The maximum value that can be transferred in a single transaction */
-  valueLimit: bigint
-  /** The rules that define the conditions under which the permission is granted */
-  rules: Rule[]
-}
 
 function packUserOp(
   op: Partial<UserOperationStruct>,
@@ -95,13 +63,4 @@ export const getUserOpHash = (
     [userOpHash, entryPointAddress, BigInt(chainId)]
   )
   return keccak256(enc)
-}
-
-export const getRandomSigner = (): SignerData => {
-  const pkey = generatePrivateKey()
-  const account = privateKeyToAccount(pkey)
-  return {
-    pvKey: pkey,
-    address: account.address
-  }
 }
