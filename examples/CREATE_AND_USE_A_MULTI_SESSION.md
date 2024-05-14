@@ -7,13 +7,14 @@
 | [createABISessionDatum](https://bcnmy.github.io/biconomy-client-sdk/types/createABISessionDatum.html)         | helper that returns abi svm data (recommended) |
 
 ```typescript
-import { createSmartAccountClient, PaymasterMode } from "@biconomy/account";
 import {
-  Policy,
+  createSmartAccountClient,
   createSession,
   createSessionSmartAccountClient,
   Rule,
-} from "@biconomy/sessions";
+  PaymasterMode,
+  Policy,
+} from "@biconomy/account";
 import { createWalletClient, http, createPublicClient } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { mainnet as chain } from "viem/chains";

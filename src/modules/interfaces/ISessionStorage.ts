@@ -1,5 +1,5 @@
 import type { Chain, Hex } from "viem"
-import type { SmartAccountSigner } from "../../account/index.js"
+import type { SmartAccountSigner } from "../../account"
 import type { SignerData } from "../utils/Types.js"
 
 export type SessionStatus = "PENDING" | "ACTIVE" | "INACTIVE" | "EXPIRED"
