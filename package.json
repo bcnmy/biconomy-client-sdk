@@ -51,7 +51,7 @@
     "format": "biome format . --write",
     "lint": "biome check .",
     "lint:fix": "bun run lint --apply",
-    "dev": "concurrently \"bun run esm:watch\" \"bun run cjs:watch\" \"bun run esm:watch:aliases\" \"bun run cjs:watch:aliases\"",
+    "dev": "bun link && concurrently \"bun run esm:watch\" \"bun run cjs:watch\" \"bun run esm:watch:aliases\" \"bun run cjs:watch:aliases\"",
     "build": "bun run clean && bun run build:cjs && bun run build:esm && bun run build:types",
     "clean": "rimraf ./dist/_esm ./dist/_cjs ./dist/_types ./dist/tsconfig",
     "test": "vitest dev -c ./tests/vitest.config.ts",
