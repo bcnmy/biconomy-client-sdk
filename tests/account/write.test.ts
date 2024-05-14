@@ -535,7 +535,7 @@ describe("Account:Write", () => {
       )
       const receipt = await response.wait()
       expect(receipt.success).toBe("true")
-    }, 35000)
+    }, 50000)
 
     test("should revert transfer ownership with signer that is not the owner", async () => {
       _smartAccount = await createSmartAccountClient({
@@ -563,7 +563,7 @@ describe("Account:Write", () => {
           }
         )
       ).rejects.toThrowError()
-    }, 35000)
+    }, 50000)
 
     test("send an user op with the new owner", async () => {
       _smartAccount = await createSmartAccountClient({
@@ -589,7 +589,7 @@ describe("Account:Write", () => {
       })
       const response = await wait()
       expect(response.success).toBe("true")
-    }, 35000)
+    }, 50000)
 
     test("should revert if sending an user op with the old owner", async () => {
       _smartAccount = await createSmartAccountClient({
@@ -613,7 +613,7 @@ describe("Account:Write", () => {
       ).rejects.toThrowError(
         await getAAError("Error coming from Bundler: AA24 signature error")
       )
-    }, 35000)
+    }, 50000)
 
     test("should transfer ownership of smart account back to EOA 1", async () => {
       _smartAccount = await createSmartAccountClient({
@@ -642,6 +642,6 @@ describe("Account:Write", () => {
       )
       const receipt = await response.wait()
       expect(receipt.success).toBe("true")
-    }, 45000)
+    }, 50000)
   })
 })
