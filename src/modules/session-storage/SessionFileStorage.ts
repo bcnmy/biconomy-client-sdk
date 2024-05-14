@@ -188,7 +188,10 @@ export class SessionFileStorage implements ISessionStorage {
     await this.writeDataToFile(data, "sessions") // Use 'sessions' as the type
   }
 
-  async addSigner(signerData, chain): Promise<SmartAccountSigner> {
+  async addSigner(
+    signerData: SignerData,
+    chain: Chain
+  ): Promise<SmartAccountSigner> {
     const signers = await this.getSignerStore()
     const signer: SignerData = signerData ?? getRandomSigner()
     const accountSigner = privateKeyToAccount(signer.pvKey)
