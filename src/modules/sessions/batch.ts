@@ -5,11 +5,11 @@ import {
   DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   MODULE_ADDRESSES,
+  type Session,
   type SessionGrantedPayload,
   type SessionParams,
   createBatchedSessionRouterModule,
-  createSessionKeyManagerModule,
-  type Session
+  createSessionKeyManagerModule
 } from ".."
 import {
   type BiconomySmartAccountV2,

@@ -1,14 +1,14 @@
 import {
   type ByteArray,
+  type Chain,
   type Hex,
   encodeAbiParameters,
   keccak256,
-  parseAbiParameters,
-  type Chain
+  parseAbiParameters
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import type { ChainInfo, SignerData } from "../.."
-import { getChain, type UserOperationStruct } from "../../account"
+import { type UserOperationStruct, getChain } from "../../account"
 
 export interface Rule {
   /** The index of the param from the selected contract function upon which the condition will be applied */
