@@ -1,10 +1,10 @@
 ### Create and Use a Batch Session
 
-| Key                                                                                                           | Description                                    |
-| ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| [sessionConfigs](https://bcnmy.github.io/biconomy-client-sdk/interfaces/CreateSessionDataParams.html)         | svm criteria                                   |
-| [createERC20SessionDatum](https://bcnmy.github.io/biconomy-client-sdk/functions/createERC20SessionDatum.html) | helper that returns erc20 svm data             |
-| [createABISessionDatum](https://bcnmy.github.io/biconomy-client-sdk/types/createABISessionDatum.html)         | helper that returns abi svm data (recommended) |
+| Key                                                                                                           | Description                                          |
+| ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| [sessionConfigs](https://bcnmy.github.io/biconomy-client-sdk/interfaces/CreateSessionDataParams.html)         | svm criteria                                         |
+| [createERC20SessionDatum](https://bcnmy.github.io/biconomy-client-sdk/functions/createERC20SessionDatum.html) | helper that returns erc20 svm data (not recommended) |
+| [createABISessionDatum](https://bcnmy.github.io/biconomy-client-sdk/types/createABISessionDatum.html)         | helper that returns abi svm data (recommended)       |
 
 ```typescript
 import {
