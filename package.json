@@ -8,7 +8,7 @@
   "sideEffects": false,
   "name": "@biconomy/account",
   "author": "Biconomy",
-  "version": "4.2.0",
+  "version": "4.4.0",
   "description": "SDK for Biconomy integration with support for account abstraction, smart accounts, ERC-4337.",
   "keywords": [
     "erc-7579",
@@ -51,7 +51,7 @@
     "format": "biome format . --write",
     "lint": "biome check .",
     "lint:fix": "bun run lint --apply",
-    "dev": "concurrently \"bun run esm:watch\" \"bun run cjs:watch\" \"bun run esm:watch:aliases\" \"bun run cjs:watch:aliases\"",
+    "dev": "bun link && concurrently \"bun run esm:watch\" \"bun run cjs:watch\" \"bun run esm:watch:aliases\" \"bun run cjs:watch:aliases\"",
     "build": "bun run clean && bun run build:cjs && bun run build:esm && bun run build:types",
     "clean": "rimraf ./dist/_esm ./dist/_cjs ./dist/_types ./dist/tsconfig",
     "test": "vitest dev -c ./tests/vitest.config.ts",
@@ -86,7 +86,9 @@
     "@size-limit/preset-small-lib": "^11",
     "@types/bun": "latest",
     "@vitest/coverage-v8": "^1.3.1",
+    "buffer": "^6.0.3",
     "concurrently": "^8.2.2",
+    "ethers": "^6.12.0",
     "gh-pages": "^6.1.1",
     "rimraf": "^5.0.5",
     "simple-git-hooks": "^2.9.0",
@@ -94,8 +96,7 @@
     "tsc-alias": "^1.8.8",
     "tslib": "^2.6.2",
     "typedoc": "^0.25.9",
-    "vitest": "^1.3.1",
-    "buffer": "^6.0.3"
+    "vitest": "^1.3.1"
   },
   "peerDependencies": {
     "typescript": "^5",
