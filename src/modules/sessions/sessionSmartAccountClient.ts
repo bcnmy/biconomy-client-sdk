@@ -86,9 +86,12 @@ export const createSessionSmartAccountClient = async (
     transport: http()
   })
 
-  const sessionSigner = await sessionStorageClient.getSignerBySession(chain, {
-    sessionID
-  })
+  const sessionSigner = await sessionStorageClient.getSignerBySession(
+    {
+      sessionID
+    },
+    chain
+  )
 
   const sessionData: ModuleInfo | undefined = multiMode
     ? undefined

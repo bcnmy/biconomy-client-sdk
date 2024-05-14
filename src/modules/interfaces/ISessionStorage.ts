@@ -59,15 +59,15 @@ export interface ISessionStorage {
    * If no signer object is passed, it'll create a random signer and add it to the session storage
    * @param signer Optional signer to be added to the session storage
    */
-  addSigner(chain: Chain, _signer?: SignerData): Promise<SmartAccountSigner>
+  addSigner(_signer?: SignerData, chain?: Chain): Promise<SmartAccountSigner>
 
   /**
    * Fetch a signer from the session storage
    * @param signerPublicKey Public key of the signer to be fetched
    */
   getSignerByKey(
-    chain: Chain,
-    _signerPublicKey: string
+    _signerPublicKey: string,
+    chain: Chain
   ): Promise<SmartAccountSigner>
 
   /**
@@ -75,8 +75,8 @@ export interface ISessionStorage {
    * @param param SessionSearchParam to be used to fetch the signer
    */
   getSignerBySession(
-    chain: Chain,
-    _param: SessionSearchParam
+    _param: SessionSearchParam,
+    chain: Chain
   ): Promise<SmartAccountSigner>
 
   /**

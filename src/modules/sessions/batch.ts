@@ -9,7 +9,7 @@ import {
   type SessionParams,
   createBatchedSessionRouterModule,
   createSessionKeyManagerModule,
-  Session
+  type Session
 } from ".."
 import {
   type BiconomySmartAccountV2,
@@ -19,7 +19,7 @@ import {
 } from "../../account"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 
-export type CreateMultiSessionConfig = {
+export type CreateBatchSessionConfig = {
   /** The storage client to be used for storing the session data */
   sessionStorageClient: ISessionStorage
   /** An array of session configurations */
@@ -28,14 +28,14 @@ export type CreateMultiSessionConfig = {
 
 /**
  *
- * createMultiSession
+ * createBatchSession
  *
  * Creates a session manager that handles multiple sessions at once for a given user's smart account.
  * Useful for handling multiple granted sessions at once.
  *
  * @param smartAccount - The user's {@link BiconomySmartAccountV2} smartAccount instance.
  * @param sessionKeyAddress - The address of the sessionKey upon which the policy is to be imparted.
- * @param multiSessionConfig - An array of session configurations {@link CreateMultiSessionConfig}.
+ * @param batchSessionConfig - An array of session configurations {@link CreateBatchSessionConfig}.
  * @param buildUseropDto - Optional. {@link BuildUserOpOptions}
  * @returns Promise<{@link SessionGrantedPayload}> - An object containing the status of the transaction and the sessionID.
  *
@@ -57,7 +57,7 @@ export type CreateMultiSessionConfig = {
  * const smartAccountAddress = await smartAccount.getAccountAddress();
  * const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
  * const sessionStorage = new SessionFileStorage(smartAccountAddress);
- * const sessionKeyAddress = (await sessionStorage.addSigner(polygonAmoy)).getAddress();
+ * const sessionKeyAddress = (await sessionStorage.addSigner(undefined, polygonAmoy)).getAddress();
  *
  *  const leaves: CreateSessionDataParams[] = [
  *    createERC20SessionDatum({
@@ -95,7 +95,7 @@ export type CreateMultiSessionConfig = {
  *    })
  *  ]
  *
- *  const { wait, sessionID } = await createMultiSession(
+ *  const { wait, sessionID } = await createBatchSession(
  *    smartAccount,
  *    sessionKeyAddress,
  *    sessionStorageClient: sessionStorage,
@@ -115,7 +115,7 @@ export type CreateMultiSessionConfig = {
  * ```
  */
 
-export const createMultiSession = async (
+export const createBatchSession = async (
   smartAccount: BiconomySmartAccountV2,
   sessionKeyAddress: Hex,
   /** The storage client to be used for storing the session data */
@@ -194,7 +194,7 @@ export type BatchSessionParamsPayload = {
 }
 export type SessionValidationType = (typeof types)[number]
 /**
- * getMultiSessionTxParams
+ * getBatchSessionTxParams
  *
  * Retrieves the transaction parameters for a batched session.
  *
@@ -205,7 +205,7 @@ export type SessionValidationType = (typeof types)[number]
  * @returns Promise<{@link BatchSessionParamsPayload}> - session parameters.
  *
  */
-export const getMultiSessionTxParams = async (
+export const getBatchSessionTxParams = async (
   sessionValidationTypes: SessionValidationType[],
   transactions: Transaction[],
   { sessionID, sessionStorageClient }: Session,
@@ -214,9 +214,12 @@ export const getMultiSessionTxParams = async (
   if (sessionValidationTypes.length !== transactions.length) {
     throw new Error(ERROR_MESSAGES.INVALID_SESSION_TYPES)
   }
-  const sessionSigner = await sessionStorageClient.getSignerBySession(chain, {
-    sessionID
-  })
+  const sessionSigner = await sessionStorageClient.getSignerBySession(
+    {
+      sessionID
+    },
+    chain
+  )
 
   return {
     params: {

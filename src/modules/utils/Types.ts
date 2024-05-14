@@ -1,4 +1,4 @@
-import type { Hex } from "viem"
+import type { Chain, Hex } from "viem"
 import type {
   SimulationType,
   SmartAccountSigner,
@@ -108,10 +108,13 @@ export interface SendUserOpParams extends ModuleInfo {
 }
 
 export type SignerData = {
-  address: Hex
+  /** This is not the public as provided by viem, key but address for the given pvKey */
+  pbKey: Hex
   /** Private key */
   pvKey: Hex
 }
+
+export type ChainInfo = number | Chain
 
 export type CreateSessionDataResponse = {
   data: string

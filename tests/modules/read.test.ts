@@ -19,7 +19,7 @@ import {
   DEFAULT_ERC20_MODULE,
   createECDSAOwnershipValidationModule,
   createMultiChainValidationModule,
-  getABISVMSessionKeyData
+  getSessionDatum
 } from "../../src/modules"
 import { getConfig } from "../utils"
 
@@ -93,7 +93,7 @@ describe("Modules:Read", () => {
       ]
     )
 
-    const abiSessionData = await getABISVMSessionKeyData(sessionKeyEOA, {
+    const abiSessionData = await getSessionDatum(sessionKeyEOA, {
       destContract: token,
       functionSelector: slice(
         toFunctionSelector("transfer(address,uint256)"),

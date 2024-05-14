@@ -137,8 +137,8 @@ export class SessionLocalStorage implements ISessionStorage {
   }
 
   async addSigner(
-    chain: Chain,
-    signerData?: SignerData
+    signerData: SignerData,
+    chain: Chain
   ): Promise<SmartAccountSigner> {
     const signers = this.getSignerStore()
     const signer: SignerData = signerData ?? getRandomSigner()
@@ -159,8 +159,8 @@ export class SessionLocalStorage implements ISessionStorage {
   }
 
   async getSignerByKey(
-    chain: Chain,
-    sessionPublicKey: string
+    sessionPublicKey: string,
+    chain: Chain
   ): Promise<SmartAccountSigner> {
     const signers = this.getSignerStore()
     const signerData = signers[this.toLowercaseAddress(sessionPublicKey)]
@@ -178,11 +178,11 @@ export class SessionLocalStorage implements ISessionStorage {
   }
 
   async getSignerBySession(
-    chain: Chain,
-    param: SessionSearchParam
+    param: SessionSearchParam,
+    chain: Chain
   ): Promise<SmartAccountSigner> {
     const session = await this.getSessionData(param)
-    return this.getSignerByKey(chain, session.sessionPublicKey)
+    return this.getSignerByKey(session.sessionPublicKey, chain)
   }
 
   async getAllSessionData(

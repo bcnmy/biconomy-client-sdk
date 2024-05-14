@@ -4,7 +4,6 @@ import type { ModuleVersion } from "./Types.js"
 
 export const DEFAULT_MODULE_VERSION: ModuleVersion = "V1_0_0"
 
-// Note: we could append these defaults with ADDRESS suffix
 export const DEFAULT_ECDSA_OWNERSHIP_MODULE: Hex =
   "0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e"
 

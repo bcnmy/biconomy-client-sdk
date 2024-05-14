@@ -3,11 +3,12 @@ import {
   type Hex,
   encodeAbiParameters,
   keccak256,
-  parseAbiParameters
+  parseAbiParameters,
+  type Chain
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import type { SignerData } from "../.."
-import type { UserOperationStruct } from "../../account"
+import type { ChainInfo, SignerData } from "../.."
+import { getChain, type UserOperationStruct } from "../../account"
 
 export interface Rule {
   /** The index of the param from the selected contract function upon which the condition will be applied */
@@ -25,6 +26,24 @@ export interface Rule {
   condition: number
   /** The value to compare against */
   referenceValue: string | number | bigint | boolean | ByteArray
+}
+
+/**
+ * @deprecated
+ */
+export interface DeprecatedRule {
+  offset: number
+  condition: number
+  referenceValue: Hex
+}
+/**
+ * @deprecated
+ */
+export interface DeprecatedPermission {
+  destContract: `0x${string}`
+  functionSelector: `0x${string}`
+  valueLimit: bigint
+  rules: DeprecatedRule[]
 }
 
 export interface Permission {
@@ -102,6 +121,11 @@ export const getRandomSigner = (): SignerData => {
   const account = privateKeyToAccount(pkey)
   return {
     pvKey: pkey,
-    address: account.address
+    pbKey: account.address
   }
+}
+
+export const parseChain = (chainInfo: ChainInfo): Chain => {
+  if (typeof chainInfo === "number") return getChain(chainInfo)
+  return chainInfo
 }

@@ -188,10 +188,7 @@ export class SessionFileStorage implements ISessionStorage {
     await this.writeDataToFile(data, "sessions") // Use 'sessions' as the type
   }
 
-  async addSigner(
-    chain: Chain,
-    signerData?: SignerData
-  ): Promise<SmartAccountSigner> {
+  async addSigner(signerData, chain): Promise<SmartAccountSigner> {
     const signers = await this.getSignerStore()
     const signer: SignerData = signerData ?? getRandomSigner()
     const accountSigner = privateKeyToAccount(signer.pvKey)
@@ -210,8 +207,8 @@ export class SessionFileStorage implements ISessionStorage {
   }
 
   async getSignerByKey(
-    chain: Chain,
-    sessionPublicKey: string
+    sessionPublicKey: string,
+    chain: Chain
   ): Promise<WalletClientSigner> {
     const signers = await this.getSignerStore()
     Logger.log("Got signers", signers)
@@ -234,12 +231,12 @@ export class SessionFileStorage implements ISessionStorage {
   }
 
   async getSignerBySession(
-    chain: Chain,
-    param: SessionSearchParam
+    param: SessionSearchParam,
+    chain: Chain
   ): Promise<WalletClientSigner> {
     const session = await this.getSessionData(param)
     Logger.log("got session")
-    const signer = await this.getSignerByKey(chain, session.sessionPublicKey)
+    const signer = await this.getSignerByKey(session.sessionPublicKey, chain)
     return signer
   }
 

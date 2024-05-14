@@ -11,7 +11,7 @@ export * from "./BatchedSessionRouterModule.js"
 export * from "./session-validation-modules/ERC20SessionValidationModule.js"
 export * from "./sessions/abi.js"
 export * from "./sessions/erc20.js"
-export * from "./sessions/multi.js"
+export * from "./sessions/batch.js"
 export * from "./sessions/sessionSmartAccountClient.js"
 export * from "./session-storage/index.js"
 import {

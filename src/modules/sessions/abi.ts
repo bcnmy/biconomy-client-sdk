@@ -26,7 +26,7 @@ import {
   DEFAULT_ABI_SVM_MODULE,
   DEFAULT_SESSION_KEY_MANAGER_MODULE
 } from "../utils/Constants"
-import type { Rule } from "../utils/Helper"
+import type { DeprecatedPermission, Rule } from "../utils/Helper"
 
 export type SessionConfig = {
   usersAccountAddress: Hex
@@ -36,7 +36,7 @@ export type SessionConfig = {
 export type Session = {
   /** The storage client specific to the smartAccountAddress which stores the session keys */
   sessionStorageClient: ISessionStorage
-  /** The relevant sessionID for the current session */
+  /** The relevant sessionID for the chosen session */
   sessionID: string
 }
 
@@ -62,7 +62,7 @@ export type Policy = {
   valueLimit: bigint
 }
 
-export type SessionGrantedPayload = UserOpResponse & { session: SessionData }
+export type SessionGrantedPayload = UserOpResponse & { session: Session }
 
 /**
  *
@@ -98,7 +98,7 @@ export type SessionGrantedPayload = UserOpResponse & { session: SessionData }
  * const smartAccountAddress = await smartAccount.getAccountAddress();
  * const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
  * const sessionStorage = new SessionFileStorage(smartAccountAddress)
- * const sessionKeyAddress = (await sessionStorage.addSigner(polygonAmoy)).getAddress();
+ * const sessionKeyAddress = (await sessionStorage.addSigner(undefined, polygonAmoy)).getAddress();
  *
  * const { wait, sessionID } = await createSession(
  *    smartAccount,
@@ -207,7 +207,7 @@ export type CreateSessionDatumParams = {
  * createABISessionDatum
  *
  * Used to create a session datum for the ABI Session Validation Module.
- * It can also be used to create a session datum for multiSession mode.
+ * It can also be used to create a session datum for batchSession mode.
  *
  * @param createSessionDataParams - {@link CreateSessionDatumParams}
  * @returns {@link CreateSessionDataParams}
@@ -232,7 +232,7 @@ export const createABISessionDatum = ({
     validAfter,
     sessionValidationModule: DEFAULT_ABI_SVM_MODULE,
     sessionPublicKey: sessionKeyAddress,
-    sessionKeyData: getABISVMSessionKeyData(sessionKeyAddress, {
+    sessionKeyData: getSessionDatum(sessionKeyAddress, {
       destContract: contractAddress,
       functionSelector: slice(toFunctionSelector(functionSelector), 0, 4),
       valueLimit,
@@ -241,7 +241,33 @@ export const createABISessionDatum = ({
   }
 }
 
-export function getABISVMSessionKeyData(
+/**
+ * @deprecated
+ */
+export async function getABISVMSessionKeyData(
+  sessionKey: `0x${string}` | Uint8Array,
+  permission: DeprecatedPermission
+): Promise<`0x${string}` | Uint8Array> {
+  let sessionKeyData = concat([
+    sessionKey,
+    permission.destContract,
+    permission.functionSelector,
+    pad(toHex(permission.valueLimit), { size: 16 }),
+    pad(toHex(permission.rules.length), { size: 2 }) // this can't be more 2**11 (see below), so uint16 (2 bytes) is enough
+  ]) as `0x${string}`
+
+  for (let i = 0; i < permission.rules.length; i++) {
+    sessionKeyData = concat([
+      sessionKeyData,
+      pad(toHex(permission.rules[i].offset), { size: 2 }), // offset is uint16, so there can't be more than 2**16/32 args = 2**11
+      pad(toHex(permission.rules[i].condition), { size: 1 }), // uint8
+      permission.rules[i].referenceValue
+    ])
+  }
+  return sessionKeyData
+}
+
+export function getSessionDatum(
   sessionKeyAddress: Hex,
   permission: Permission
 ): Hex {

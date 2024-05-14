@@ -33,7 +33,7 @@ export const createSessionKeyEOA = async (
     new (supportsLocalStorage ? SessionLocalStorage : SessionFileStorage)(
       userAccountAddress
     )
-  const newSigner = await sessionStorageClient.addSigner(chain)
+  const newSigner = await sessionStorageClient.addSigner(undefined, chain)
   const sessionKeyAddress = await newSigner.getAddress()
   return { sessionKeyAddress, signer: newSigner, sessionStorageClient }
 }

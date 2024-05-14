@@ -1,4 +1,4 @@
-### Create and Use a Multi Session
+### Create and Use a Batch Session
 
 | Key                                                                                                           | Description                                    |
 | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
@@ -76,7 +76,7 @@ const leaves: CreateSessionParams[] = [
   }),
 ];
 
-const { wait, session } = await createMultiSession(
+const { wait, session } = await createBatchSession(
   smartAccount,
   sessionKeyAddress,
   sessionStorageClient,
@@ -119,7 +119,7 @@ const nftMintTx: Transaction = {
 
 const txs = [transferTx, nftMintTx];
 
-const batchSessionParams = await getMultiSessionTxParams(
+const batchSessionParams = await getBatchSessionTxParams(
   ["ERC20", "ABI"],
   txs,
   session,

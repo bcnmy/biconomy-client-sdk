@@ -5,20 +5,34 @@ import {
   encodeAbiParameters,
   encodeFunctionData,
   parseAbi,
-  parseUnits
+  parseUnits,
+  createPublicClient,
+  slice,
+  pad,
+  parseEther,
+  toFunctionSelector
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
   type Transaction,
-  createSmartAccountClient
+  createSmartAccountClient,
+  type WalletClientSigner,
+  type TransferOwnershipCompatibleModule
 } from "../../src/account"
 import { Logger, getChain } from "../../src/account"
 import {
   type CreateSessionDataParams,
   DEFAULT_MULTICHAIN_MODULE,
-  createMultiChainValidationModule
+  createMultiChainValidationModule,
+  DEFAULT_SESSION_KEY_MANAGER_MODULE,
+  DEFAULT_ECDSA_OWNERSHIP_MODULE,
+  createSessionKeyManagerModule,
+  DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
+  ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION,
+  createBatchedSessionRouterModule,
+  getABISVMSessionKeyData
 } from "../../src/modules"
 
 import { SessionMemoryStorage } from "../../src/modules/session-storage/SessionMemoryStorage"
@@ -30,12 +44,13 @@ import {
 } from "../../src/modules/sessions/abi"
 import { createERC20SessionDatum } from "../../src/modules/sessions/erc20"
 import {
-  createMultiSession,
-  getMultiSessionTxParams
-} from "../../src/modules/sessions/multi"
+  createBatchSession,
+  getBatchSessionTxParams
+} from "../../src/modules/sessions/batch"
 import { createSessionSmartAccountClient } from "../../src/modules/sessions/sessionSmartAccountClient"
 import { PaymasterMode } from "../../src/paymaster"
 import { checkBalance, getBundlerUrl, getConfig, topUp } from "../utils"
+import { ECDSAModuleAbi } from "../../src/account/abi/ECDSAModule"
 
 describe("Modules:Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
@@ -48,13 +63,13 @@ describe("Modules:Write", () => {
 
   const stores: {
     single: Session
-    multi: Session
+    batch: Session
   } = {
     single: {
       sessionStorageClient: new SessionMemoryStorage("0x"),
       sessionID: "0x"
     },
-    multi: {
+    batch: {
       sessionStorageClient: new SessionMemoryStorage("0x"),
       sessionID: "0x"
     }
@@ -71,6 +86,10 @@ describe("Modules:Write", () => {
   } = getConfig()
   const account = privateKeyToAccount(`0x${privateKey}`)
   const accountTwo = privateKeyToAccount(`0x${privateKeyTwo}`)
+  const publicClient = createPublicClient({
+    chain,
+    transport: http()
+  })
 
   let [
     smartAccount,
@@ -138,7 +157,7 @@ describe("Modules:Write", () => {
     stores.single.sessionStorageClient = new SessionMemoryStorage(
       smartAccountAddressThree
     )
-    stores.multi.sessionStorageClient = new SessionMemoryStorage(
+    stores.batch.sessionStorageClient = new SessionMemoryStorage(
       smartAccountAddressFour
     )
 
@@ -256,12 +275,12 @@ describe("Modules:Write", () => {
   })
 
   // User must be connected with a wallet to grant permissions
-  test("should create a multi session on behalf of a user", async () => {
+  test("should create a batch session on behalf of a user", async () => {
     const { sessionKeyAddress, sessionStorageClient } =
       await createSessionKeyEOA(
         smartAccountFour,
         chain,
-        stores.multi.sessionStorageClient
+        stores.batch.sessionStorageClient
       )
 
     const leaves: CreateSessionDataParams[] = [
@@ -300,7 +319,7 @@ describe("Modules:Write", () => {
       })
     ]
 
-    const { wait, session } = await createMultiSession(
+    const { wait, session } = await createBatchSession(
       smartAccountFour,
       sessionKeyAddress,
       sessionStorageClient,
@@ -314,7 +333,7 @@ describe("Modules:Write", () => {
     } = await wait()
 
     expect(success).toBe("true")
-    stores.multi.sessionID = session.sessionID // Save the sessionID for the next test
+    stores.batch.sessionID = session.sessionID // Save the sessionID for the next test
 
     expect(session.sessionID).toBeTruthy()
     // Save the sessionID for the next test
@@ -325,10 +344,10 @@ describe("Modules:Write", () => {
 
   // User no longer has to be connected,
   // Only the reference to the relevant sessionID and the store from the previous step is needed to execute txs on the user's behalf
-  test("should use the multi session to mint an NFT, and pay some token for the user", async () => {
+  test("should use the batch session to mint an NFT, and pay some token for the user", async () => {
     // Setup
     // Setup
-    const session = stores.multi
+    const session = stores.batch
     expect(session.sessionID).toBeTruthy() // Should have been set in the previous test
 
     // Assume the real signer for userSmartAccountFour is no longer available (ie. user has logged out);
@@ -373,7 +392,7 @@ describe("Modules:Write", () => {
 
     const txs = [transferTx, nftMintTx]
 
-    const batchSessionParams = await getMultiSessionTxParams(
+    const batchSessionParams = await getBatchSessionTxParams(
       ["ERC20", "ABI"],
       txs,
       session,
@@ -394,7 +413,7 @@ describe("Modules:Write", () => {
     )
     expect(tokenBalanceAfter - tokenBalanceBefore).toBe(amount)
     expect(nftBalanceAfter - nftBalanceBefore).toBe(1n)
-  })
+  }, 50000)
 
   test("should use MultichainValidationModule to mint an NFT on two chains with sponsorship", async () => {
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
@@ -513,4 +532,316 @@ describe("Modules:Write", () => {
     expect(success1).toBe("true")
     expect(success2).toBe("true")
   }, 50000)
+
+  test("should use SessionValidationModule to send a user op", async () => {
+    let sessionSigner: WalletClientSigner
+    const sessionKeyEOA = walletClient.account.address
+    const recipient = walletClientTwo.account.address
+
+    // Create smart account
+    let smartAccount = await createSmartAccountClient({
+      chainId,
+      signer: walletClient,
+      bundlerUrl,
+      paymasterUrl,
+      index: 11 // Increasing index to not conflict with other test cases and use a new smart account
+    })
+    const accountAddress = await smartAccount.getAccountAddress()
+    const sessionMemoryStorage: SessionMemoryStorage = new SessionMemoryStorage(
+      accountAddress
+    )
+    // First we need to check if smart account is deployed
+    // if not deployed, send an empty transaction to deploy it
+    const isDeployed = await smartAccount.isAccountDeployed()
+    if (!isDeployed) {
+      const { wait } = await smartAccount.deploy({
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
+      })
+      const { success } = await wait()
+      expect(success).toBe("true")
+    }
+
+    try {
+      sessionSigner = await sessionMemoryStorage.getSignerByKey(
+        sessionKeyEOA,
+        chain
+      )
+    } catch (error) {
+      sessionSigner = await sessionMemoryStorage.addSigner(
+        {
+          pbKey: sessionKeyEOA,
+          pvKey: `0x${privateKey}`
+        },
+        chain
+      )
+    }
+
+    expect(sessionSigner).toBeTruthy()
+    // Create session module
+    const sessionModule = await createSessionKeyManagerModule({
+      moduleAddress: DEFAULT_SESSION_KEY_MANAGER_MODULE,
+      smartAccountAddress: await smartAccount.getAddress(),
+      sessionStorageClient: sessionMemoryStorage
+    })
+    const functionSelector = slice(
+      toFunctionSelector("safeMint(address)"),
+      0,
+      4
+    )
+    // Set enabled call on session
+    const sessionKeyData = await getABISVMSessionKeyData(sessionKeyEOA as Hex, {
+      destContract: "0xdd526eba63ef200ed95f0f0fb8993fe3e20a23d0" as Hex, // nft address
+      functionSelector: functionSelector,
+      valueLimit: parseEther("0"),
+      rules: [
+        {
+          offset: 0, // offset 0 means we are checking first parameter of safeMint (recipient address)
+          condition: 0, // 0 = Condition.EQUAL
+          referenceValue: pad("0xd3C85Fdd3695Aee3f0A12B3376aCD8DC54020549", {
+            size: 32
+          }) // recipient address
+        }
+      ]
+    })
+    const abiSvmAddress = "0x000006bC2eCdAe38113929293d241Cf252D91861"
+    const sessionTxData = await sessionModule.createSessionData([
+      {
+        validUntil: 0,
+        validAfter: 0,
+        sessionValidationModule: abiSvmAddress,
+        sessionPublicKey: sessionKeyEOA as Hex,
+        sessionKeyData: sessionKeyData as Hex
+      }
+    ])
+    const setSessionAllowedTrx = {
+      to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
+      data: sessionTxData.data
+    }
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    const txArray: any = []
+    // Check if module is enabled
+    const isEnabled = await smartAccount.isModuleEnabled(
+      DEFAULT_SESSION_KEY_MANAGER_MODULE
+    )
+    if (!isEnabled) {
+      const enableModuleTrx = await smartAccount.getEnableModuleData(
+        DEFAULT_SESSION_KEY_MANAGER_MODULE
+      )
+      txArray.push(enableModuleTrx)
+      txArray.push(setSessionAllowedTrx)
+    } else {
+      Logger.log("MODULE ALREADY ENABLED")
+      txArray.push(setSessionAllowedTrx)
+    }
+    const userOp = await smartAccount.buildUserOp(txArray, {
+      paymasterServiceData: {
+        mode: PaymasterMode.SPONSORED
+      }
+    })
+    const userOpResponse1 = await smartAccount.sendUserOp(userOp)
+    const transactionDetails = await userOpResponse1.wait()
+    expect(transactionDetails.success).toBe("true")
+    Logger.log("Tx Hash: ", transactionDetails.receipt.transactionHash)
+    const encodedCall = encodeFunctionData({
+      abi: parseAbi(["function safeMint(address _to)"]),
+      functionName: "safeMint",
+      args: ["0xd3C85Fdd3695Aee3f0A12B3376aCD8DC54020549"]
+    })
+    const nftMintTx = {
+      to: "0xdd526eba63ef200ed95f0f0fb8993fe3e20a23d0",
+      data: encodedCall
+    }
+    smartAccount = smartAccount.setActiveValidationModule(sessionModule)
+    const maticBalanceBefore = await checkBalance(smartAccountAddress)
+    const userOpResponse2 = await smartAccount.sendTransaction(nftMintTx, {
+      params: {
+        sessionSigner: sessionSigner,
+        sessionValidationModule: abiSvmAddress
+      },
+      paymasterServiceData: {
+        mode: PaymasterMode.SPONSORED
+      }
+    })
+    expect(userOpResponse2.userOpHash).toBeTruthy()
+    expect(userOpResponse2.userOpHash).not.toBeNull()
+    const maticBalanceAfter = await checkBalance(smartAccountAddress)
+    expect(maticBalanceAfter).toEqual(maticBalanceBefore)
+  }, 60000)
+
+  test("should enable batched module", async () => {
+    const smartAccount = await createSmartAccountClient({
+      signer: walletClient,
+      bundlerUrl,
+      paymasterUrl
+    })
+
+    const isBRMenabled = await smartAccount.isModuleEnabled(
+      DEFAULT_BATCHED_SESSION_ROUTER_MODULE
+    )
+
+    if (!isBRMenabled) {
+      const tx = await smartAccount.getEnableModuleData(
+        DEFAULT_BATCHED_SESSION_ROUTER_MODULE
+      )
+      const { wait } = await smartAccount.sendTransaction(tx, {
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
+      })
+      const { success } = await wait()
+      expect(success).toBe("true")
+    }
+  }, 50000)
+
+  test("should use ABI SVM to allow transfer ownership of smart account", async () => {
+    const smartAccount = await createSmartAccountClient({
+      chainId,
+      signer: walletClient,
+      bundlerUrl,
+      paymasterUrl,
+      index: 10 // Increasing index to not conflict with other test cases and use a new smart account
+    })
+
+    const smartAccountAddressForPreviousOwner =
+      await smartAccount.getAccountAddress()
+
+    const signerOfAccount = walletClient.account.address
+    const ownerOfAccount = await publicClient.readContract({
+      address: DEFAULT_ECDSA_OWNERSHIP_MODULE,
+      abi: ECDSAModuleAbi,
+      functionName: "getOwner",
+      args: [await smartAccount.getAccountAddress()]
+    })
+
+    if (ownerOfAccount !== signerOfAccount) {
+      // Re-create the smart account instance with the new owner
+      const smartAccountWithOtherOwner = await createSmartAccountClient({
+        chainId,
+        signer: walletClientTwo,
+        bundlerUrl,
+        paymasterUrl,
+        accountAddress: smartAccountAddressForPreviousOwner
+      })
+
+      // Transfer ownership back to walletClient 1
+      await smartAccountWithOtherOwner.transferOwnership(
+        walletClient.account.address,
+        DEFAULT_ECDSA_OWNERSHIP_MODULE as TransferOwnershipCompatibleModule,
+        { paymasterServiceData: { mode: PaymasterMode.SPONSORED } }
+      )
+    }
+
+    let sessionSigner: WalletClientSigner
+    const sessionKeyEOA = walletClient.account.address
+    const newOwner = walletClientTwo.account.address
+
+    const accountAddress = await smartAccount.getAccountAddress()
+    const sessionMemoryStorage: SessionMemoryStorage = new SessionMemoryStorage(
+      accountAddress
+    )
+    // First we need to check if smart account is deployed
+    // if not deployed, send an empty transaction to deploy it
+    const isDeployed = await smartAccount.isAccountDeployed()
+    if (!isDeployed) {
+      const { wait } = await smartAccount.deploy({
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
+      })
+      const { success } = await wait()
+      expect(success).toBe("true")
+    }
+
+    try {
+      sessionSigner = await sessionMemoryStorage.getSignerByKey(
+        sessionKeyEOA,
+        chain
+      )
+    } catch (error) {
+      sessionSigner = await sessionMemoryStorage.addSigner(
+        {
+          pbKey: sessionKeyEOA,
+          pvKey: `0x${privateKeyTwo}`
+        },
+        chain
+      )
+    }
+
+    expect(sessionSigner).toBeTruthy()
+    // Create session module
+    const sessionModule = await createSessionKeyManagerModule({
+      moduleAddress: DEFAULT_SESSION_KEY_MANAGER_MODULE,
+      smartAccountAddress: await smartAccount.getAddress(),
+      sessionStorageClient: sessionMemoryStorage
+    })
+    const functionSelectorTransferOwnership = slice(
+      toFunctionSelector("transferOwnership(address) public"),
+      0,
+      4
+    )
+    const sessionKeyDataTransferOwnership = await getABISVMSessionKeyData(
+      sessionKeyEOA as Hex,
+      {
+        destContract: ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION.V1_0_0 as Hex, // ECDSA module address
+        functionSelector: functionSelectorTransferOwnership,
+        valueLimit: parseEther("0"),
+        rules: [
+          {
+            offset: 0, // offset 0 means we are checking first parameter of transferOwnership (recipient address)
+            condition: 0, // 0 = Condition.EQUAL
+            referenceValue: pad(walletClient.account.address, {
+              size: 32
+            }) // new owner address
+          }
+        ]
+      }
+    )
+    const abiSvmAddress = "0x000006bC2eCdAe38113929293d241Cf252D91861"
+    const sessionTxDataTransferOwnership =
+      await sessionModule.createSessionData([
+        {
+          validUntil: 0,
+          validAfter: 0,
+          sessionValidationModule: abiSvmAddress,
+          sessionPublicKey: sessionKeyEOA as Hex,
+          sessionKeyData: sessionKeyDataTransferOwnership as Hex
+        }
+      ])
+    const setSessionAllowedTransferOwnerhsipTrx = {
+      to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
+      data: sessionTxDataTransferOwnership.data
+    }
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    const txArray: any = []
+    // Check if module is enabled
+    const isEnabled = await smartAccount.isModuleEnabled(
+      DEFAULT_SESSION_KEY_MANAGER_MODULE
+    )
+
+    if (!isEnabled) {
+      const enableModuleTrx = await smartAccount.getEnableModuleData(
+        DEFAULT_SESSION_KEY_MANAGER_MODULE
+      )
+      txArray.push(enableModuleTrx)
+      txArray.push(setSessionAllowedTransferOwnerhsipTrx)
+    } else {
+      Logger.log("MODULE ALREADY ENABLED")
+      txArray.push(setSessionAllowedTransferOwnerhsipTrx)
+    }
+    const userOpResponse1 = await smartAccount.sendTransaction(txArray, {
+      paymasterServiceData: { mode: PaymasterMode.SPONSORED }
+    })
+    const transactionDetails = await userOpResponse1.wait()
+    expect(transactionDetails.success).toBe("true")
+    Logger.log("Tx Hash: ", transactionDetails.receipt.transactionHash)
+
+    // Transfer ownership back to walletClient
+    await smartAccount.transferOwnership(
+      newOwner,
+      DEFAULT_ECDSA_OWNERSHIP_MODULE as TransferOwnershipCompatibleModule,
+      {
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+        params: {
+          sessionSigner: sessionSigner,
+          sessionValidationModule: abiSvmAddress
+        }
+      }
+    )
+  }, 60000)
 })
