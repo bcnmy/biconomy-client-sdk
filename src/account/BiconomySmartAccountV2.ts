@@ -97,6 +97,8 @@ import {
 type UserOperationKey = keyof UserOperationStruct
 
 export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
+  private sessionData?: ModuleInfo
+
   private SENTINEL_MODULE = "0x0000000000000000000000000000000000000001"
 
   private index: number
@@ -148,6 +150,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         biconomySmartAccountConfig.factoryAddress ??
         DEFAULT_BICONOMY_FACTORY_ADDRESS
     })
+
+    this.sessionData = biconomySmartAccountConfig.sessionData
 
     this.defaultValidationModule =
       biconomySmartAccountConfig.defaultValidationModule
@@ -215,7 +219,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * - Docs: https://docs.biconomy.io/Account/integration#integration-1
    *
-   * @param biconomySmartAccountConfig - Configuration for initializing the BiconomySmartAccountV2 instance.
+   * @param biconomySmartAccountConfig - Configuration for initializing the BiconomySmartAccountV2 instance {@link BiconomySmartAccountV2Config}.
    * @returns A promise that resolves to a new instance of BiconomySmartAccountV2.
    * @throws An error if something is wrong with the smart account instance creation.
    *
@@ -877,7 +881,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   // dummy signature depends on the validation module supplied.
-  async getDummySignatures(params?: ModuleInfo): Promise<Hex> {
+  async getDummySignatures(_params?: ModuleInfo): Promise<Hex> {
+    const params = { ..._params, ...(this.sessionData ? this.sessionData : {}) }
     this.isActiveValidationModuleDefined()
     return (await this.activeValidationModule.getDummySignature(params)) as Hex
   }
@@ -906,8 +911,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   async signUserOp(
     userOp: Partial<UserOperationStruct>,
-    params?: SendUserOpParams
+    _params?: SendUserOpParams
   ): Promise<UserOperationStruct> {
+    const params = { ..._params, ...(this.sessionData ? this.sessionData : {}) }
     this.isActiveValidationModuleDefined()
     const requiredFields: UserOperationKey[] = [
       "sender",

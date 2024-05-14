@@ -1,7 +1,7 @@
-import { http, type Hex, createWalletClient, toHex } from "viem"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { mainnet } from "viem/chains"
+import { http, type Chain, type Hex, createWalletClient } from "viem"
+import { privateKeyToAccount } from "viem/accounts"
 import { type SmartAccountSigner, WalletClientSigner } from "../../account"
+import { getRandomSigner } from "../../index.js"
 import type {
   ISessionStorage,
   SessionLeafNode,
@@ -10,11 +10,15 @@ import type {
 } from "../interfaces/ISessionStorage.js"
 import type { SignerData } from "../utils/Types.js"
 
-export class SessionLocalStorage implements ISessionStorage {
-  private smartAccountAddress: string
+export const supportsLocalStorage =
+  // @ts-ignore: LocalStorage is not available in node
+  typeof window !== "undefined" && typeof window.localStorage !== "undefined"
 
-  constructor(smartAccountAddress: string) {
-    this.smartAccountAddress = smartAccountAddress.toLowerCase()
+export class SessionLocalStorage implements ISessionStorage {
+  public smartAccountAddress: Hex
+
+  constructor(smartAccountAddress: Hex) {
+    this.smartAccountAddress = smartAccountAddress.toLowerCase() as Hex
   }
 
   private validateSearchParam(param: SessionSearchParam): void {
@@ -36,7 +40,7 @@ export class SessionLocalStorage implements ISessionStorage {
     return data ? JSON.parse(data) : { merkleRoot: "", leafNodes: [] }
   }
 
-  private getSignerStore() {
+  private getSignerStore(): Record<string, SignerData> {
     // @ts-ignore: LocalStorage is not available in node
     const data = localStorage.getItem(this.getStorageKey("signers"))
     return data ? JSON.parse(data) : {}
@@ -132,44 +136,41 @@ export class SessionLocalStorage implements ISessionStorage {
     localStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data))
   }
 
-  async addSigner(signerData: SignerData): Promise<SmartAccountSigner> {
+  async addSigner(
+    signerData: SignerData,
+    chain: Chain
+  ): Promise<SmartAccountSigner> {
     const signers = this.getSignerStore()
-    let signer: SignerData
-    if (!signerData) {
-      const pkey = generatePrivateKey()
-      signer = {
-        pvKey: pkey,
-        pbKey: privateKeyToAccount(pkey).publicKey
-      }
-    } else {
-      signer = signerData
-    }
-    const accountSigner = privateKeyToAccount(toHex(signer.pvKey))
+    const signer: SignerData = signerData ?? getRandomSigner()
+    const accountSigner = privateKeyToAccount(signer.pvKey)
     const client = createWalletClient({
       account: accountSigner,
-      chain: signerData.chainId,
+      chain,
       transport: http()
     })
     const walletClientSigner = new WalletClientSigner(
       client,
       "json-rpc" // signerType
     )
-    signers[this.toLowercaseAddress(accountSigner.address)] = signerData
+    signers[this.toLowercaseAddress(accountSigner.address)] = signer
     // @ts-ignore: LocalStorage is not available in node
     localStorage.setItem(this.getStorageKey("signers"), JSON.stringify(signers))
     return walletClientSigner
   }
 
-  async getSignerByKey(sessionPublicKey: string): Promise<SmartAccountSigner> {
+  async getSignerByKey(
+    sessionPublicKey: string,
+    chain: Chain
+  ): Promise<SmartAccountSigner> {
     const signers = this.getSignerStore()
     const signerData = signers[this.toLowercaseAddress(sessionPublicKey)]
     if (!signerData) {
       throw new Error("Signer not found.")
     }
-    const account = privateKeyToAccount(signerData.privateKey)
+    const account = privateKeyToAccount(signerData.pvKey)
     const client = createWalletClient({
       account,
-      chain: mainnet,
+      chain,
       transport: http()
     })
     const signer = new WalletClientSigner(client, "viem")
@@ -177,10 +178,11 @@ export class SessionLocalStorage implements ISessionStorage {
   }
 
   async getSignerBySession(
-    param: SessionSearchParam
+    param: SessionSearchParam,
+    chain: Chain
   ): Promise<SmartAccountSigner> {
     const session = await this.getSessionData(param)
-    return this.getSignerByKey(session.sessionPublicKey)
+    return this.getSignerByKey(session.sessionPublicKey, chain)
   }
 
   async getAllSessionData(

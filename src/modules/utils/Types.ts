@@ -41,7 +41,7 @@ export interface SessionKeyManagerModuleConfig
   /** Version of the module */
   version?: ModuleVersion
   /** SmartAccount address */
-  smartAccountAddress: string
+  smartAccountAddress: Hex
   storageType?: StorageType
   sessionStorageClient?: ISessionStorage
 }
@@ -57,13 +57,15 @@ export interface BatchedSessionRouterModuleConfig
   /** Session Key Manager module address */
   sessionManagerModuleAddress?: Hex
   /** Address of the associated smart account */
-  smartAccountAddress: string
+  smartAccountAddress: Hex
   /** Storage type, e.g. local storage */
   storageType?: StorageType
 }
 
 export enum StorageType {
-  LOCAL_STORAGE = 0
+  LOCAL_STORAGE = 0,
+  MEMORY_STORAGE = 1,
+  FILE_STORAGE = 2
 }
 
 export type SessionDataTuple = [
@@ -96,6 +98,7 @@ export type ModuleInfo = {
   sessionValidationModule?: Hex
   /** Additional info if needed to be appended in signature */
   additionalSessionData?: string
+  /** Batch session params */
   batchSessionParams?: SessionParams[]
 }
 
@@ -105,13 +108,13 @@ export interface SendUserOpParams extends ModuleInfo {
 }
 
 export type SignerData = {
-  /** Public key */
-  pbKey: string
+  /** This is not the public as provided by viem, key but address for the given pvKey */
+  pbKey: Hex
   /** Private key */
-  pvKey: `0x${string}`
-  /** Network Id */
-  chainId?: Chain
+  pvKey: Hex
 }
+
+export type ChainInfo = number | Chain
 
 export type CreateSessionDataResponse = {
   data: string
@@ -123,8 +126,11 @@ export interface CreateSessionDataParams {
   validUntil: number
   /** window start for the session key */
   validAfter: number
+  /** Address of the session validation module */
   sessionValidationModule: Hex
+  /** Public key of the session */
   sessionPublicKey: Hex
+  /** The hex of the rules {@link Rule} that make up the policy */
   sessionKeyData: Hex
   /** we generate uuid based sessionId. but if you prefer to track it on your side and attach custom session identifier this can be passed */
   preferredSessionId?: string

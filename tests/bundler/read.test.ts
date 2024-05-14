@@ -58,7 +58,7 @@ describe("Bundler:Read", () => {
   })
 
   test.concurrent(
-    "Should throw and give advice",
+    "should throw and give advice",
     async () => {
       const randomPrivateKey = generatePrivateKey()
       const unfundedAccount = privateKeyToAccount(randomPrivateKey)

@@ -14,6 +14,10 @@ import type {
 import type { IBundler } from "../../bundler"
 import type { BaseValidationModule, ModuleInfo } from "../../modules"
 import type {
+  ISessionStorage,
+  SessionLeafNode
+} from "../../modules/interfaces/ISessionStorage"
+import type {
   FeeQuotesOrDataDto,
   IPaymaster,
   PaymasterFeeQuote,
@@ -165,6 +169,8 @@ export type BiconomySmartAccountV2ConfigBaseProps = {
   viemChain?: Chain
   /** The initial code to be used for the smart account */
   initCode?: Hex
+  /** Used for session key manager module */
+  sessionData?: ModuleInfo
 }
 export type BiconomySmartAccountV2Config =
   BiconomySmartAccountV2ConfigBaseProps &
@@ -200,6 +206,11 @@ export type BuildUserOpOptions = {
   stateOverrideSet?: StateOverrideSet
   dummyPndOverride?: BytesLike
   useEmptyDeployCallData?: boolean
+}
+
+export type SessionDataForAccount = {
+  sessionStorageClient: ISessionStorage
+  session: SessionLeafNode
 }
 
 export type NonceOptions = {

@@ -1,4 +1,4 @@
-import type { Hex } from "viem"
+import type { Chain, Hex } from "viem"
 import type { SmartAccountSigner } from "../../account"
 import type { SignerData } from "../utils/Types.js"
 
@@ -22,6 +22,11 @@ export type SessionSearchParam = {
 }
 
 export interface ISessionStorage {
+  /**
+   * The address of the smartAccount
+   */
+  smartAccountAddress: Hex
+
   /**
    * Adds a session leaf node to the session storage
    * @param leaf SessionLeafNode to be added to the session storage
@@ -54,19 +59,25 @@ export interface ISessionStorage {
    * If no signer object is passed, it'll create a random signer and add it to the session storage
    * @param signer Optional signer to be added to the session storage
    */
-  addSigner(_signer?: SignerData): Promise<SmartAccountSigner>
+  addSigner(_signer?: SignerData, chain?: Chain): Promise<SmartAccountSigner>
 
   /**
    * Fetch a signer from the session storage
    * @param signerPublicKey Public key of the signer to be fetched
    */
-  getSignerByKey(_signerPublicKey: string): Promise<SmartAccountSigner>
+  getSignerByKey(
+    _signerPublicKey: string,
+    chain: Chain
+  ): Promise<SmartAccountSigner>
 
   /**
    * Fetch a signer from the session storage based on the session search param
    * @param param SessionSearchParam to be used to fetch the signer
    */
-  getSignerBySession(_param: SessionSearchParam): Promise<SmartAccountSigner>
+  getSignerBySession(
+    _param: SessionSearchParam,
+    chain: Chain
+  ): Promise<SmartAccountSigner>
 
   /**
    * Fetch all the session leaf nodes from the session storage based on the session search param.
