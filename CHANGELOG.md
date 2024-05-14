@@ -1,5 +1,14 @@
 # @biconomy/account
 
+## 4.3.0
+
+### Minor Changes
+
+- Added transferOwnership and gasOffsets
+
+  - added transferOwnerhsip() method on the Smart Account
+  - added gasOffsets parameter to increase gas values
+
 ## 4.2.0
 
 ### Minor Changes
