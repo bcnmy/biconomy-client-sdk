@@ -136,8 +136,8 @@ describe("Modules:Write", () => {
     )
   })
 
-  test.skip("should enable session module", async () => {
-    const smartAccount = await createSmartAccountClient({
+  test("should enable session module", async () => {
+    smartAccountThree = await createSmartAccountClient({
       signer: walletClient,
       bundlerUrl,
       paymasterUrl,
@@ -533,7 +533,7 @@ describe("Modules:Write", () => {
     expect(success2).toBe("true")
   }, 50000)
 
-  test.skip("should use SessionValidationModule to send a user op", async () => {
+  test("should use SessionValidationModule to send a user op", async () => {
     let sessionSigner: WalletClientSigner
     const sessionKeyEOA = walletClient.account.address
     const recipient = walletClientTwo.account.address
@@ -668,7 +668,7 @@ describe("Modules:Write", () => {
     expect(maticBalanceAfter).toEqual(maticBalanceBefore)
   }, 60000)
 
-  test.skip("should enable batched module", async () => {
+  test("should enable batched module", async () => {
     const smartAccount = await createSmartAccountClient({
       signer: walletClient,
       bundlerUrl,
