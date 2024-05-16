@@ -7,10 +7,10 @@ import {
   createWalletClient,
   encodeAbiParameters,
   encodeFunctionData,
+  getContract,
   hashMessage,
   parseAbi,
-  parseAbiParameters,
-  getContract
+  parseAbiParameters
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { bsc } from "viem/chains"
