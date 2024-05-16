@@ -9,7 +9,8 @@ import {
   encodeFunctionData,
   hashMessage,
   parseAbi,
-  parseAbiParameters
+  parseAbiParameters,
+  getContract
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { bsc } from "viem/chains"
