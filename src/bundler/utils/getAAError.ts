@@ -10,7 +10,8 @@ export type KnownError = {
   docsUrl?: string
 }
 
-export const ERRORS_URL = "https://bcnmy.github.io/aa-errors/errors.json"
+export const ERRORS_URL =
+  "https://raw.githubusercontent.com/bcnmy/aa-errors/main/docs/errors.json"
 export const DOCS_URL = "https://docs.biconomy.io/troubleshooting/commonerrors"
 const UNKOWN_ERROR_CODE = "520"
 
@@ -19,7 +20,7 @@ const knownErrors: KnownError[] = []
 const matchError = (message: string): null | KnownError =>
   knownErrors.find(
     (knownError: KnownError) =>
-      message.toLowerCase().indexOf(knownError.regex) > -1
+      message.toLowerCase().indexOf(knownError.regex.toLowerCase()) > -1
   ) ?? null
 
 const buildErrorStrings = (

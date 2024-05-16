@@ -1,5 +1,22 @@
 # @biconomy/account
 
+## 4.4.0
+
+### Minor Changes
+
+- Sessions DevEx
+
+  - Improved DevEx related to the creating and using of sessions
+
+## 4.3.0
+
+### Minor Changes
+
+- Added transferOwnership and gasOffsets
+
+  - added transferOwnerhsip() method on the Smart Account
+  - added gasOffsets parameter to increase gas values
+
 ## 4.2.0
 
 ### Minor Changes

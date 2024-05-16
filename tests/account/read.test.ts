@@ -9,8 +9,7 @@ import {
   encodeFunctionData,
   hashMessage,
   parseAbi,
-  parseAbiParameters,
-  getContract
+  parseAbiParameters
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { bsc } from "viem/chains"
@@ -18,16 +17,17 @@ import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
   type BiconomySmartAccountV2Config,
+  DEFAULT_BICONOMY_FACTORY_ADDRESS,
   DEFAULT_ENTRYPOINT_ADDRESS,
   ERROR_MESSAGES,
   NATIVE_TOKEN_ALIAS,
   compareChainIds,
   createSmartAccountClient,
-  isNullOrUndefined,
-  DEFAULT_BICONOMY_FACTORY_ADDRESS
+  isNullOrUndefined
 } from "../../src/account"
 import { type UserOperationStruct, getChain } from "../../src/account"
 import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"
+import { BiconomyFactoryAbi } from "../../src/account/abi/Factory"
 import { BiconomyAccountAbi } from "../../src/account/abi/SmartAccount"
 import {
   DEFAULT_ECDSA_OWNERSHIP_MODULE,
@@ -36,7 +36,6 @@ import {
 } from "../../src/modules"
 import { Paymaster, PaymasterMode } from "../../src/paymaster"
 import { checkBalance, getBundlerUrl, getConfig } from "../utils"
-import { BiconomyFactoryAbi } from "../../src/account/abi/Factory"
 
 describe("Account:Read", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
