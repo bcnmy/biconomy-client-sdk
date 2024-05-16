@@ -1,12 +1,18 @@
 # @biconomy/account
 
+## 4.4.1
+
+### Patch Changes
+
+- fix process.env bug
+
 ## 4.4.0
 
 ### Minor Changes
 
-- Sessions DevEx
+- b9b2077: Sessions DevEx
 
-  - Improved DevEx related to the creating and using of sessions
+  - Improved DevEx related to the creating and using of sessions [chore: sessions dx](https://github.com/bcnmy/biconomy-client-sdk/pull/486)
 
 ## 4.3.0
 
