@@ -19,13 +19,16 @@ export async function sendRequest<T>(
   { url, method, body }: HttpRequest,
   service: Service
 ): Promise<T> {
+  const stringifiedBody = JSON.stringify(body)
+  Logger.log(`${service} RPC Request`, { url, body: stringifiedBody })
+
   const response = await fetch(url, {
     method,
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json"
     },
-    body: JSON.stringify(body)
+    body: stringifiedBody
   })
 
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
