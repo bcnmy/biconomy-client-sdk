@@ -134,9 +134,7 @@ describe("Modules:Write", () => {
         account.getAccountAddress()
       )
     )
-  })
 
-  test("should enable session module", async () => {
     smartAccountThree = await createSmartAccountClient({
       signer: walletClient,
       bundlerUrl,
