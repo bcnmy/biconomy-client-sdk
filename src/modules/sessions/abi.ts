@@ -18,6 +18,7 @@ import {
   type BiconomySmartAccountV2,
   type BuildUserOpOptions,
   ERROR_MESSAGES,
+  Logger,
   type Transaction
 } from "../../account"
 import { createSessionKeyManagerModule } from "../index"
@@ -161,7 +162,7 @@ export const createSession = async (
   const txs: Transaction[] = []
 
   const isDeployed = await smartAccount.isAccountDeployed()
-  if (!isDeployed) throw new Error(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED)
+  if (!isDeployed) Logger.log(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED)
 
   const enabled = await smartAccount.isModuleEnabled(
     DEFAULT_SESSION_KEY_MANAGER_MODULE
@@ -290,7 +291,7 @@ export function getSessionDatum(
   return sessionKeyData
 }
 
-type HardcodedReference = {
+export type HardcodedReference = {
   raw: Hex
 }
 type BaseReferenceValue = string | number | bigint | boolean | ByteArray
@@ -312,10 +313,7 @@ export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
     if ((referenceValue as HardcodedReference)?.raw) {
       return (referenceValue as HardcodedReference)?.raw
     }
-    if (isAddress(referenceValue as string)) {
-      return pad(referenceValue as Hex, { size: 32 })
-    }
-    return toHex(referenceValue as BaseReferenceValue)
+    return pad(referenceValue as Hex, { size: 32 })
   } catch (e) {
     return toHex(referenceValue as BaseReferenceValue)
   }
