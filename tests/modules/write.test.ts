@@ -29,7 +29,6 @@ import {
   DEFAULT_MULTICHAIN_MODULE,
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION,
-  createBatchedSessionRouterModule,
   createMultiChainValidationModule,
   createSessionKeyManagerModule,
   getABISVMSessionKeyData
@@ -135,8 +134,9 @@ describe("Modules:Write", () => {
         account.getAccountAddress()
       )
     )
+  })
 
-    // Same user as smartAccount, but different smart account
+  test("should enable session module", async () => {
     smartAccountThree = await createSmartAccountClient({
       signer: walletClient,
       bundlerUrl,
