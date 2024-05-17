@@ -71,9 +71,10 @@ export type ImpersonatedSmartAccountConfig = Omit<
  */
 export const createSessionSmartAccountClient = async (
   biconomySmartAccountConfig: ImpersonatedSmartAccountConfig,
-  { sessionStorageClient, sessionID }: Session,
+  { sessionStorageClient, sessionIDInfo }: Session,
   multiMode = false
 ): Promise<BiconomySmartAccountV2> => {
+  const sessionID = sessionIDInfo[0] // For a single session default to the first element
   const account = privateKeyToAccount(generatePrivateKey())
 
   const chain =

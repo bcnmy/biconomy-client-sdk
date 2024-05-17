@@ -51,14 +51,12 @@ export class SessionFileStorage implements ISessionStorage {
     data: any,
     type: "sessions" | "signers"
   ): Promise<void> {
-    console.log("")
     return new Promise((resolve, reject) => {
       const filePath = this.getStorageFilePath(type)
       // @ts-ignore
       fs.writeFile(filePath, JSON.stringify(data), "utf8", (err) => {
         if (err) {
           // Handle errors appropriately
-          console.log({ err }, JSON.stringify(data))
           reject(err)
         } else {
           resolve()
@@ -90,7 +88,6 @@ export class SessionFileStorage implements ISessionStorage {
       return data || { merkleRoot: "", leafNodes: [] }
     } catch (error) {
       // Handle errors appropriately
-      console.log({ error })
     }
   }
 

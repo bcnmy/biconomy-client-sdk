@@ -7,7 +7,7 @@ import {
   parseAbiParameters
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import type { ChainInfo, SignerData } from "../.."
+import type { ChainInfo, HardcodedReference, SignerData } from "../.."
 import { type UserOperationStruct, getChain } from "../../account"
 
 export interface Rule {
@@ -25,7 +25,13 @@ export interface Rule {
    */
   condition: number
   /** The value to compare against */
-  referenceValue: string | number | bigint | boolean | ByteArray
+  referenceValue:
+    | string
+    | number
+    | bigint
+    | boolean
+    | ByteArray
+    | HardcodedReference
 }
 
 /**
