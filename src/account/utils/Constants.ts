@@ -83,8 +83,9 @@ export const ERROR_MESSAGES = {
     "'Amount' is required for withdrawal of native token without using a paymaster",
   MISSING_RPC_URL:
     "rpcUrl is required for PrivateKeyAccount signer type, please provide it in the config",
-  INVALID_SESSION_TYPES:
-    "Session types and transactions must be of the same length"
+  INVALID_SESSION_INDEXES:
+    "Session indexes and transactions must be of the same length and correspond to each other",
+  SIGNER_REQUIRED: "Signer is required for creating a smart account"
 }
 
 export const NATIVE_TOKEN_ALIAS: Hex =

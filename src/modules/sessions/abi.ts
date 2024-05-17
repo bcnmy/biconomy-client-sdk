@@ -3,7 +3,6 @@ import {
   type ByteArray,
   type Hex,
   concat,
-  isAddress,
   pad,
   slice,
   toFunctionSelector,
@@ -18,6 +17,7 @@ import {
   type BiconomySmartAccountV2,
   type BuildUserOpOptions,
   ERROR_MESSAGES,
+  Logger,
   type Transaction
 } from "../../account"
 import { createSessionKeyManagerModule } from "../index"
@@ -37,7 +37,7 @@ export type Session = {
   /** The storage client specific to the smartAccountAddress which stores the session keys */
   sessionStorageClient: ISessionStorage
   /** The relevant sessionID for the chosen session */
-  sessionID: string
+  sessionIDInfo: string[]
 }
 
 export type SessionEpoch = {
@@ -121,7 +121,6 @@ export type SessionGrantedPayload = UserOpResponse & { session: Session }
  *         valueLimit: 0n
  *      }
  *    ],
- *    sessionKeyAddress,
  *    sessionStorage,
  *    {
  *      paymasterServiceData: { mode: PaymasterMode.SPONSORED },
@@ -139,19 +138,17 @@ export type SessionGrantedPayload = UserOpResponse & { session: Session }
 export const createSession = async (
   smartAccount: BiconomySmartAccountV2,
   policy: Policy[],
-  sessionKeyAddress: Hex,
   sessionStorageClient: ISessionStorage,
   buildUseropDto?: BuildUserOpOptions
 ): Promise<SessionGrantedPayload> => {
-  const userAccountAddress = await smartAccount.getAddress()
+  const smartAccountAddress = await smartAccount.getAddress()
   const sessionsModule = await createSessionKeyManagerModule({
-    smartAccountAddress: userAccountAddress,
+    smartAccountAddress,
     sessionStorageClient
   })
 
-  const { data: policyData } = await sessionsModule.createSessionData(
-    policy.map(createABISessionDatum)
-  )
+  const { data: policyData, sessionIDInfo } =
+    await sessionsModule.createSessionData(policy.map(createABISessionDatum))
 
   const permitTx = {
     to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
@@ -161,33 +158,30 @@ export const createSession = async (
   const txs: Transaction[] = []
 
   const isDeployed = await smartAccount.isAccountDeployed()
-  if (!isDeployed) throw new Error(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED)
-
-  const enabled = await smartAccount.isModuleEnabled(
+  const enableSessionTx = await smartAccount.getEnableModuleData(
     DEFAULT_SESSION_KEY_MANAGER_MODULE
   )
 
-  if (!enabled) {
-    txs.push(
-      await smartAccount.getEnableModuleData(DEFAULT_SESSION_KEY_MANAGER_MODULE)
+  if (isDeployed) {
+    const enabled = await smartAccount.isModuleEnabled(
+      DEFAULT_SESSION_KEY_MANAGER_MODULE
     )
+    if (!enabled) {
+      txs.push(enableSessionTx)
+    }
+  } else {
+    Logger.log(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED)
+    txs.push(enableSessionTx)
   }
+
   txs.push(permitTx)
 
   const userOpResponse = await smartAccount.sendTransaction(txs, buildUseropDto)
 
-  const sessionID =
-    (
-      await sessionStorageClient.getSessionData({
-        sessionPublicKey: sessionKeyAddress,
-        sessionValidationModule: DEFAULT_ABI_SVM_MODULE
-      })
-    ).sessionID ?? ""
-
   return {
     session: {
       sessionStorageClient,
-      sessionID
+      sessionIDInfo
     },
     ...userOpResponse
   }
@@ -290,7 +284,7 @@ export function getSessionDatum(
   return sessionKeyData
 }
 
-type HardcodedReference = {
+export type HardcodedReference = {
   raw: Hex
 }
 type BaseReferenceValue = string | number | bigint | boolean | ByteArray
@@ -312,11 +306,11 @@ export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
     if ((referenceValue as HardcodedReference)?.raw) {
       return (referenceValue as HardcodedReference)?.raw
     }
-    if (isAddress(referenceValue as string)) {
-      return pad(referenceValue as Hex, { size: 32 })
+    if (typeof referenceValue === "bigint") {
+      return pad(toHex(referenceValue), { size: 32 }) as Hex
     }
-    return toHex(referenceValue as BaseReferenceValue)
+    return pad(referenceValue as Hex, { size: 32 })
   } catch (e) {
-    return toHex(referenceValue as BaseReferenceValue)
+    return pad(referenceValue as Hex, { size: 32 })
   }
 }

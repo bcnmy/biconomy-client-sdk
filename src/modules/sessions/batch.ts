@@ -1,10 +1,8 @@
-import type { Chain, Hex } from "viem"
+import type { Chain } from "viem"
 import {
   type CreateSessionDataParams,
-  DEFAULT_ABI_SVM_MODULE,
   DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
-  MODULE_ADDRESSES,
   type Session,
   type SessionGrantedPayload,
   type SessionParams,
@@ -15,6 +13,7 @@ import {
   type BiconomySmartAccountV2,
   type BuildUserOpOptions,
   ERROR_MESSAGES,
+  Logger,
   type Transaction
 } from "../../account"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
@@ -97,7 +96,6 @@ export type CreateBatchSessionConfig = {
  *
  *  const { wait, sessionID } = await createBatchSession(
  *    smartAccount,
- *    sessionKeyAddress,
  *    sessionStorageClient: sessionStorage,
  *    leaves,
  *    {
@@ -117,27 +115,26 @@ export type CreateBatchSessionConfig = {
 
 export const createBatchSession = async (
   smartAccount: BiconomySmartAccountV2,
-  sessionKeyAddress: Hex,
   /** The storage client to be used for storing the session data */
   sessionStorageClient: ISessionStorage,
   /** An array of session configurations */
   leaves: CreateSessionDataParams[],
   buildUseropDto?: BuildUserOpOptions
 ): Promise<SessionGrantedPayload> => {
-  const userAccountAddress = await smartAccount.getAddress()
+  const smartAccountAddress = await smartAccount.getAddress()
 
   const sessionsModule = await createSessionKeyManagerModule({
-    smartAccountAddress: userAccountAddress,
+    smartAccountAddress,
     sessionStorageClient
   })
 
   // Create batched session module
   const batchedSessionModule = await createBatchedSessionRouterModule({
-    smartAccountAddress: userAccountAddress,
+    smartAccountAddress,
     sessionKeyManagerModule: sessionsModule
   })
 
-  const { data: policyData } =
+  const { data: policyData, sessionIDInfo } =
     await batchedSessionModule.createSessionData(leaves)
 
   const permitTx = {
@@ -146,87 +143,85 @@ export const createBatchSession = async (
   }
 
   const isDeployed = await smartAccount.isAccountDeployed()
-  if (!isDeployed) throw new Error(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED)
 
   const txs: Transaction[] = []
-  const [isSessionModuleEnabled, isBatchedSessionModuleEnabled] =
-    await Promise.all([
-      smartAccount.isModuleEnabled(DEFAULT_SESSION_KEY_MANAGER_MODULE),
-      smartAccount.isModuleEnabled(DEFAULT_BATCHED_SESSION_ROUTER_MODULE)
-    ])
+  const enableSessionKeyTx = await smartAccount.getEnableModuleData(
+    DEFAULT_SESSION_KEY_MANAGER_MODULE
+  )
+  const enableBatchedSessionTx = await smartAccount.getEnableModuleData(
+    DEFAULT_BATCHED_SESSION_ROUTER_MODULE
+  )
+  if (isDeployed) {
+    const [isSessionModuleEnabled, isBatchedSessionModuleEnabled] =
+      await Promise.all([
+        smartAccount.isModuleEnabled(DEFAULT_SESSION_KEY_MANAGER_MODULE),
+        smartAccount.isModuleEnabled(DEFAULT_BATCHED_SESSION_ROUTER_MODULE)
+      ])
 
-  if (!isSessionModuleEnabled) {
-    txs.push(
-      await smartAccount.getEnableModuleData(DEFAULT_SESSION_KEY_MANAGER_MODULE)
-    )
+    if (!isSessionModuleEnabled) {
+      txs.push(enableSessionKeyTx)
+    }
+    if (!isBatchedSessionModuleEnabled) {
+      txs.push(enableBatchedSessionTx)
+    }
+  } else {
+    Logger.log(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED)
+    txs.push(enableSessionKeyTx, enableBatchedSessionTx)
   }
-  if (!isBatchedSessionModuleEnabled) {
-    txs.push(
-      await smartAccount.getEnableModuleData(
-        DEFAULT_BATCHED_SESSION_ROUTER_MODULE
-      )
-    )
-  }
+
   txs.push(permitTx)
 
   const userOpResponse = await smartAccount.sendTransaction(txs, buildUseropDto)
 
-  const sessionID =
-    (
-      await sessionStorageClient.getSessionData({
-        sessionPublicKey: sessionKeyAddress,
-        sessionValidationModule: DEFAULT_ABI_SVM_MODULE
-      })
-    ).sessionID ?? ""
-
   return {
     session: {
       sessionStorageClient,
-      sessionID
+      sessionIDInfo
     },
     ...userOpResponse
   }
 }
 
-const types = ["ERC20", "ABI"] as const
 export type BatchSessionParamsPayload = {
   params: { batchSessionParams: SessionParams[] }
 }
-export type SessionValidationType = (typeof types)[number]
 /**
  * getBatchSessionTxParams
  *
  * Retrieves the transaction parameters for a batched session.
  *
- * @param sessionTypes - An array of session types.
  * @param transactions - An array of {@link Transaction}s.
+ * @param correspondingIndexes - An array of indexes for the transactions corresponding to the relevant session
  * @param session - {@link Session}.
  * @param chain - The chain.
  * @returns Promise<{@link BatchSessionParamsPayload}> - session parameters.
  *
  */
 export const getBatchSessionTxParams = async (
-  sessionValidationTypes: SessionValidationType[],
   transactions: Transaction[],
-  { sessionID, sessionStorageClient }: Session,
+  correspondingIndexes: number[],
+  { sessionIDInfo, sessionStorageClient }: Session,
   chain: Chain
 ): Promise<BatchSessionParamsPayload> => {
-  if (sessionValidationTypes.length !== transactions.length) {
-    throw new Error(ERROR_MESSAGES.INVALID_SESSION_TYPES)
+  if (correspondingIndexes.length !== transactions.length) {
+    throw new Error(ERROR_MESSAGES.INVALID_SESSION_INDEXES)
   }
+
   const sessionSigner = await sessionStorageClient.getSignerBySession(
     {
-      sessionID
+      sessionID: sessionIDInfo[0]
     },
     chain
   )
 
   return {
     params: {
-      batchSessionParams: sessionValidationTypes.map((sessionType) => ({
-        sessionSigner,
-        sessionValidationModule: MODULE_ADDRESSES[sessionType]
-      }))
+      batchSessionParams: correspondingIndexes.map(
+        (i): SessionParams => ({
+          sessionSigner,
+          sessionID: sessionIDInfo[i]
+        })
+      )
     }
   }
 }

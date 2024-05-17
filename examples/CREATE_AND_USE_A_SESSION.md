@@ -77,7 +77,6 @@ const policy: Policy[] = [
 const { wait, session } = await createSession(
   smartAccount,
   policy,
-  sessionKeyAddress,
   sessionStorageClient,
   {
     paymasterServiceData: { mode: PaymasterMode.SPONSORED },

@@ -914,6 +914,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     _params?: SendUserOpParams
   ): Promise<UserOperationStruct> {
     const params = { ..._params, ...(this.sessionData ? this.sessionData : {}) }
+
     this.isActiveValidationModuleDefined()
     const requiredFields: UserOperationKey[] = [
       "sender",

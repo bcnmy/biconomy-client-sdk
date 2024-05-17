@@ -93,9 +93,6 @@ describe("Account:Write", () => {
       }
     ])
 
-    console.log(await smartAccount.getAccountAddress())
-    console.log(await smartAccount.getSigner().getAddress(), "signer address")
-
     userOp.signature = undefined
 
     const signedUserOp = await smartAccount.signUserOp(userOp)
