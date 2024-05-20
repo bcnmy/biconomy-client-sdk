@@ -1,5 +1,11 @@
 # @biconomy/account
 
+## 4.4.2
+
+### Patch Changes
+
+- fix referenceValue padding
+
 ## 4.4.1
 
 ### Patch Changes
