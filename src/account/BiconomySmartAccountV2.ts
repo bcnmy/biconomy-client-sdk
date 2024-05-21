@@ -1188,44 +1188,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @param client The public client.
    * @returns A Promise that resolves to a boolean indicating whether the operation was successful.
   */
-  async simulateUserOp(userOp: UserOperationStruct | Partial<UserOperationStruct>, targetContract: Hex, targetCalldata: Hex, client: PublicClient): Promise<boolean> {
-    const entryPoint = getContract({address: ENTRYPOINT_ADDRESS as Hex, abi: EntryPointAbi, client});
-    // This will always end in catch, as simulateHandleOp() will always revert.
-    const requiredFields: UserOperationKey[] = [
-      "sender",
-      "nonce",
-      "initCode",
-      "callData",
-      "callGasLimit",
-      "verificationGasLimit",
-      "preVerificationGas",
-      "maxFeePerGas",
-      "maxPriorityFeePerGas",
-      "paymasterAndData"
-    ]
-    this.validateUserOp(userOp, requiredFields);
+  async simulateUserOp(txs: Transaction[]): Promise<{success: boolean, message: string}> {
     try {
-      await entryPoint.simulate.simulateHandleOp([{
-        sender: userOp.sender! as Hex,
-        nonce: BigInt(userOp.nonce!),
-        initCode: userOp.initCode! as Hex,
-        callData: userOp.callData! as Hex ,
-        signature: userOp.signature! as Hex,
-        maxFeePerGas: BigInt(userOp.maxFeePerGas!),
-        maxPriorityFeePerGas: BigInt(userOp.maxPriorityFeePerGas!),
-        paymasterAndData: userOp.paymasterAndData! as Hex,
-        preVerificationGas: BigInt(userOp.preVerificationGas!),
-        verificationGasLimit: BigInt(userOp.verificationGasLimit!),
-        callGasLimit: BigInt(userOp.callGasLimit!),
-      }, targetContract, targetCalldata])
-      return false;
-    } catch (error: any) {
-      const baseError = error as BaseError;
-      const metaMessagesArray = baseError.metaMessages![1].split(",");
-      // Remove white spaces and parentheses from each element
-      const cleanedArray = metaMessagesArray.map(element => element.replace(/\s/g, '').replace(/[()]/g, ''));
-      const isSuccessful = cleanedArray[4] === "true"
-      return isSuccessful;
+      await this.buildUserOp(txs)
+      return {success: true, message: "User operation execution passed"}
+    } catch (error) {
+      return {success: false, message: `User operation execution failed: ${error}`}
     }
   }
 

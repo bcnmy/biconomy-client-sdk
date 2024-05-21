@@ -8,7 +8,9 @@ import {
   createWalletClient,
   encodeAbiParameters,
   hashMessage,
-  parseAbiParameters
+  parseAbiParameters,
+  encodeFunctionData,
+  parseAbi,
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { bsc } from "viem/chains"
@@ -30,11 +32,10 @@ import {
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   createECDSAOwnershipValidationModule
 } from "../../src/modules"
-import { Paymaster, PaymasterMode } from "../../src/paymaster"
+import { Paymaster } from "../../src/paymaster"
 import { checkBalance, getBundlerUrl, getConfig } from "../utils"
 
 describe("Account:Read", () => {
-  const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const {
     chain,
     chainId,
@@ -695,7 +696,37 @@ describe("Account:Read", () => {
     expect(isVerified).toBeTruthy()
   })
 
-  test.concurrent("should simulate a user operation execution, no paymaster, expecting to not fail", async () => {
+  test.concurrent("should simulate a user operation execution, expecting to fail", async () => {
+    const smartAccount = await createSmartAccountClient({
+      signer: walletClient,
+      bundlerUrl
+    })
+
+    console.log(smartAccountAddress, "smartAccountAdderss");
+
+    const balances = await smartAccount.getBalances();
+    expect(balances[0].amount).toBeGreaterThan(0n);
+
+    const encodedCall = encodeFunctionData({
+      abi: parseAbi(["function deposit()"]),
+      functionName: "deposit",
+    })
+
+    const amoyTestContract = "0x59Dbe91FBa486CA10E4ad589688Fe547a48bd62A";
+
+    // fail if value is not bigger than 1
+    const tx = {
+      to: amoyTestContract as Hex,
+      data: encodedCall,
+      value: 0
+    }
+
+    const {success} = await smartAccount.simulateUserOp([tx]);
+
+    expect(success).toBe(false);
+  })
+
+  test.concurrent("should simulate a user operation execution, expecting to pass execution", async () => {
     const smartAccount = await createSmartAccountClient({
       signer: walletClient,
       bundlerUrl
@@ -704,55 +735,23 @@ describe("Account:Read", () => {
     const balances = await smartAccount.getBalances();
     expect(balances[0].amount).toBeGreaterThan(0n);
 
-    const tx = {
-      to: recipient,
-      data: "0x"
-    }
-    const userOp = await smartAccount.buildUserOp([tx])
-
-    const userOpSuccess = await smartAccount.simulateUserOp(userOp, recipient, tx.data as Hex, publicClient);
-    expect(userOpSuccess).toEqual(true);
-  })
-
-  test.concurrent("should simulate a user operation execution with paymaster included, expecting to not fail", async () => {
-    const smartAccount = await createSmartAccountClient({
-      signer: walletClient,
-      bundlerUrl,
-      paymasterUrl,
-      index: 100
+    const encodedCall = encodeFunctionData({
+      abi: parseAbi(["function deposit()"]),
+      functionName: "deposit",
     })
 
-    const balances = await smartAccount.getBalances();
-    expect(balances[0].amount).toEqual(0n);
+    const amoyTestContract = "0x59Dbe91FBa486CA10E4ad589688Fe547a48bd62A";
 
+    // fail if value is not bigger than 1
     const tx = {
-      to: recipient,
-      data: "0x"
+      to: amoyTestContract as Hex,
+      data: encodedCall,
+      value: 2
     }
-    const userOp = await smartAccount.buildUserOp([tx], {paymasterServiceData: {mode: PaymasterMode.SPONSORED}})
 
-    const userOpSuccess = await smartAccount.simulateUserOp(userOp, recipient, tx.data as Hex, publicClient);
-    expect(userOpSuccess).toEqual(true);
-  })
+    const {success} = await smartAccount.simulateUserOp([tx]);
 
-  test.concurrent("should simulate a user operation execution, expecting to fail due to insufficient account funds", async () => {
-    const smartAccount = await createSmartAccountClient({
-      signer: walletClient,
-      bundlerUrl,
-      index: 100
-    })
-
-    const balances = await smartAccount.getBalances();
-    expect(balances[0].amount).toEqual(0n);
-
-    const tx = {
-      to: recipient,
-      data: "0x"
-    }
-    const userOp = await smartAccount.buildUserOp([tx])
-
-    const userOpSuccess = await smartAccount.simulateUserOp(userOp, recipient, tx.data as Hex, publicClient);
-    expect(userOpSuccess).toEqual(false);
+    expect(success).toBe(true);
   })
 })
 
