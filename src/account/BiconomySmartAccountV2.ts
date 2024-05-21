@@ -961,6 +961,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     userOp: Partial<UserOperationStruct>,
     paymasterServiceData: PaymasterUserOperationDto
   ): Promise<Partial<UserOperationStruct>> {
+    console.log(3, paymasterServiceData)
     if (paymasterServiceData.mode === PaymasterMode.SPONSORED) {
       return this.getPaymasterAndData(userOp, paymasterServiceData)
     }
@@ -1022,6 +1023,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   ): Promise<Partial<UserOperationStruct>> {
     const paymaster = this
       .paymaster as IHybridPaymaster<PaymasterUserOperationDto>
+
+    console.log(4, paymasterServiceData)
+
     const paymasterData = await paymaster.getPaymasterAndData(
       userOp,
       paymasterServiceData
@@ -1512,12 +1516,15 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     manyOrOneTransactions: Transaction | Transaction[],
     buildUseropDto?: BuildUserOpOptions
   ): Promise<UserOpResponse> {
+    console.log("building 1", { buildUseropDto })
     const userOp = await this.buildUserOp(
       Array.isArray(manyOrOneTransactions)
         ? manyOrOneTransactions
         : [manyOrOneTransactions],
       buildUseropDto
     )
+    console.log("sending 1")
+    console.log("userOp.paymasterAndData", userOp.paymasterAndData)
     return this.sendUserOp(userOp, {
       simulationType: buildUseropDto?.simulationType,
       ...buildUseropDto?.params
@@ -1564,6 +1571,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     transactions: Transaction[],
     buildUseropDto?: BuildUserOpOptions
   ): Promise<Partial<UserOperationStruct>> {
+    console.log("async buildUserOp", buildUseropDto)
     const to = transactions.map((element: Transaction) => element.to as Hex)
     const data = transactions.map(
       (element: Transaction) => (element.data as Hex) ?? "0x"
@@ -1602,6 +1610,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       initCode,
       callData
     }
+
+    console.log(2)
 
     // for this Smart Account current validation module dummy signature will be used to estimate gas
     userOp.signature = signature

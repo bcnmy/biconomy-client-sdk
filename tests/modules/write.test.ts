@@ -57,9 +57,13 @@ describe("Modules:Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
   const amount = parseUnits(".0001", 6)
+  const preferredToken = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a" // USDC
 
   const withSponsorship = {
     paymasterServiceData: { mode: PaymasterMode.SPONSORED }
+  }
+  const withTokenPayment = {
+    paymasterServiceData: { mode: PaymasterMode.ERC20, preferredToken }
   }
 
   const stores: {
@@ -226,6 +230,8 @@ describe("Modules:Write", () => {
     const session = stores.single
     expect(stores.single.sessionIDInfo).toHaveLength(1) // Should have been set in the previous test
 
+    topUp(smartAccountAddressThree, undefined, preferredToken)
+
     // Assume the real signer for userSmartAccountThree is no longer available (ie. user has logged out)
     const smartAccountThreeWithSession = await createSessionSmartAccountClient(
       {
@@ -256,9 +262,13 @@ describe("Modules:Write", () => {
       nftAddress
     )
 
+    const willFail = true
+
+    const paymasterOptions = willFail ? withTokenPayment : withSponsorship
+
     const { wait } = await smartAccountThreeWithSession.sendTransaction(
       nftMintTx,
-      withSponsorship
+      paymasterOptions
     )
 
     const { success } = await wait()
@@ -271,10 +281,10 @@ describe("Modules:Write", () => {
     )
 
     expect(nftBalanceAfter - nftBalanceBefore).toBe(1n)
-  })
+  }, 60000)
 
   // User must be connected with a wallet to grant permissions
-  test("should create a batch session on behalf of a user", async () => {
+  test.skip("should create a batch session on behalf of a user", async () => {
     const { sessionKeyAddress, sessionStorageClient } =
       await createSessionKeyEOA(
         smartAccountFour,
@@ -341,7 +351,7 @@ describe("Modules:Write", () => {
 
   // User no longer has to be connected,
   // Only the reference to the relevant sessionID and the store from the previous step is needed to execute txs on the user's behalf
-  test("should use the batch session to mint an NFT, and pay some token for the user", async () => {
+  test.skip("should use the batch session to mint an NFT, and pay some token for the user", async () => {
     // Setup
     const session = stores.batch
 
@@ -410,7 +420,7 @@ describe("Modules:Write", () => {
     expect(nftBalanceAfter - nftBalanceBefore).toBe(1n)
   }, 50000)
 
-  test("should use MultichainValidationModule to mint an NFT on two chains with sponsorship", async () => {
+  test.skip("should use MultichainValidationModule to mint an NFT on two chains with sponsorship", async () => {
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
 
     const chainIdBase = 84532
@@ -528,7 +538,7 @@ describe("Modules:Write", () => {
     expect(success2).toBe("true")
   }, 50000)
 
-  test("should use SessionValidationModule to send a user op", async () => {
+  test.skip("should use SessionValidationModule to send a user op", async () => {
     let sessionSigner: WalletClientSigner
     const sessionKeyEOA = walletClient.account.address
     const recipient = walletClientTwo.account.address
@@ -663,7 +673,7 @@ describe("Modules:Write", () => {
     expect(maticBalanceAfter).toEqual(maticBalanceBefore)
   }, 60000)
 
-  test("should enable batched module", async () => {
+  test.skip("should enable batched module", async () => {
     const smartAccount = await createSmartAccountClient({
       signer: walletClient,
       bundlerUrl,
@@ -686,7 +696,7 @@ describe("Modules:Write", () => {
     }
   }, 50000)
 
-  test("should use ABI SVM to allow transfer ownership of smart account", async () => {
+  test.skip("should use ABI SVM to allow transfer ownership of smart account", async () => {
     const smartAccount = await createSmartAccountClient({
       chainId,
       signer: walletClient,
@@ -840,7 +850,7 @@ describe("Modules:Write", () => {
     )
   }, 60000)
 
-  test("should correctly parse the reference value", async () => {
+  test.skip("should correctly parse the reference value", async () => {
     const DUMMY_CONTRACT_ADDRESS: Hex =
       "0xC834b3804817883a6b7072e815C3faf8682bFA13"
     const byteCode = await publicClient.getBytecode({

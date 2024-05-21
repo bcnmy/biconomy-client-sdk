@@ -299,6 +299,8 @@ export class BiconomyPaymaster
     _userOp: Partial<UserOperationStruct>,
     paymasterServiceData?: SponsorUserOperationDto // mode is necessary. partial context of token paymaster or verifying
   ): Promise<PaymasterAndDataResponse> {
+    console.log(5, paymasterServiceData)
+
     const userOp = await this.prepareUserOperation(_userOp)
 
     if (paymasterServiceData?.mode === undefined) {
@@ -338,6 +340,7 @@ export class BiconomyPaymaster
     // Note: The idea is before calling this below rpc, userOp values presense and types should be in accordance with how we call eth_estimateUseropGas on the bundler
 
     try {
+      console.log("pm_sponsorUserOperation 1", { userOp })
       const response: JsonRpcResponse = await sendRequest(
         {
           url: `${this.paymasterConfig.paymasterUrl}`,
@@ -363,6 +366,8 @@ export class BiconomyPaymaster
         },
         "Paymaster"
       )
+
+      console.log("pm_sponsorUserOperation 2", { response })
 
       if (response?.result) {
         const paymasterAndData = response.result.paymasterAndData
