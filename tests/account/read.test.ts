@@ -7,10 +7,11 @@ import {
   createPublicClient,
   createWalletClient,
   encodeAbiParameters,
-  hashMessage,
-  parseAbiParameters,
   encodeFunctionData,
+  getContract,
+  hashMessage,
   parseAbi,
+  parseAbiParameters
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { bsc } from "viem/chains"
@@ -18,24 +19,29 @@ import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
   type BiconomySmartAccountV2Config,
+  DEFAULT_BICONOMY_FACTORY_ADDRESS,
   DEFAULT_ENTRYPOINT_ADDRESS,
   ERROR_MESSAGES,
   NATIVE_TOKEN_ALIAS,
   compareChainIds,
-  createSmartAccountClient
+  createSmartAccountClient,
+  isNullOrUndefined
 } from "../../src/account"
 import { type UserOperationStruct, getChain } from "../../src/account"
 import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"
+import { BiconomyFactoryAbi } from "../../src/account/abi/Factory"
 import { BiconomyAccountAbi } from "../../src/account/abi/SmartAccount"
 import {
   DEFAULT_ECDSA_OWNERSHIP_MODULE,
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   createECDSAOwnershipValidationModule
 } from "../../src/modules"
-import { Paymaster } from "../../src/paymaster"
+import { Paymaster, PaymasterMode } from "../../src/paymaster"
 import { checkBalance, getBundlerUrl, getConfig } from "../utils"
 
 describe("Account:Read", () => {
+  const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
+  const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
   const {
     chain,
     chainId,
@@ -103,6 +109,54 @@ describe("Account:Read", () => {
       expect(signature).toBeTruthy()
     },
     50000
+  )
+
+  test.concurrent(
+    "should estimate gas for minting an NFT",
+    async () => {
+      const encodedCall = encodeFunctionData({
+        abi: parseAbi(["function safeMint(address _to)"]),
+        functionName: "safeMint",
+        args: [recipient]
+      })
+      const transaction = {
+        to: nftAddress, // NFT address
+        data: encodedCall
+      }
+      const results = await Promise.all([
+        smartAccount.getGasEstimate([transaction]),
+        smartAccount.getGasEstimate([transaction, transaction]),
+        smartAccount.getGasEstimate([transaction], {
+          paymasterServiceData: {
+            mode: PaymasterMode.SPONSORED
+          }
+        }),
+        smartAccount.getGasEstimate([transaction, transaction], {
+          paymasterServiceData: {
+            mode: PaymasterMode.SPONSORED
+          }
+        }),
+        smartAccount.getGasEstimate([transaction], {
+          paymasterServiceData: {
+            mode: PaymasterMode.ERC20,
+            preferredToken: token
+          }
+        }),
+        await smartAccount.getGasEstimate([transaction, transaction], {
+          paymasterServiceData: {
+            mode: PaymasterMode.ERC20,
+            preferredToken: token
+          }
+        })
+      ])
+
+      const increasingGasExpenditure = results.every(
+        (result, i) => result > (results[i - 1] ?? 0)
+      )
+
+      expect(increasingGasExpenditure).toBeTruthy()
+    },
+    60000
   )
 
   test.concurrent(
@@ -475,6 +529,53 @@ describe("Account:Read", () => {
   })
 
   test.concurrent(
+    "should having matching counterFactual address from the contracts with smartAccount.getAddress()",
+    async () => {
+      const client = createWalletClient({
+        account,
+        chain,
+        transport: http()
+      })
+
+      const ecdsaModule = await createECDSAOwnershipValidationModule({
+        signer: client
+      })
+
+      const smartAccount = await createSmartAccountClient({
+        signer: client,
+        bundlerUrl,
+        paymasterUrl,
+        activeValidationModule: ecdsaModule
+      })
+
+      const owner = await ecdsaModule.getAddress()
+      const smartAccountAddressFromSDK = await smartAccount.getAccountAddress()
+
+      const moduleSetupData = (await ecdsaModule.getInitData()) as Hex
+
+      const publicClient = createPublicClient({
+        chain,
+        transport: http()
+      })
+
+      const factoryContract = getContract({
+        address: DEFAULT_BICONOMY_FACTORY_ADDRESS,
+        abi: BiconomyFactoryAbi,
+        client: { public: publicClient, wallet: client }
+      })
+
+      const smartAccountAddressFromContracts =
+        await factoryContract.read.getAddressForCounterFactualAccount([
+          owner,
+          moduleSetupData,
+          BigInt(0)
+        ])
+
+      expect(smartAccountAddressFromSDK).toBe(smartAccountAddressFromContracts)
+    }
+  )
+
+  test.concurrent(
     "should have matching #getUserOpHash and entryPoint.getUserOpHash",
     async () => {
       const userOp: UserOperationStruct = {
@@ -597,7 +698,7 @@ describe("Account:Read", () => {
   )
 
   test.concurrent(
-    "should check native token balance for smartAccount",
+    "should check native token balance and more token info for smartAccount",
     async () => {
       const [ethBalanceFromSmartAccount] = await smartAccount.getBalances()
 
@@ -605,6 +706,19 @@ describe("Account:Read", () => {
       expect(ethBalanceFromSmartAccount.address).toBe(NATIVE_TOKEN_ALIAS)
       expect(ethBalanceFromSmartAccount.chainId).toBe(chainId)
       expect(ethBalanceFromSmartAccount.decimals).toBe(18)
+    },
+    60000
+  )
+
+  test.concurrent(
+    "should check balance of supported token",
+    async () => {
+      const tokens = await smartAccount.getSupportedTokens()
+      const [firstToken] = tokens
+
+      expect(tokens.length).toBeGreaterThan(0)
+      expect(tokens[0]).toHaveProperty("balance")
+      expect(firstToken.balance.amount).toBeGreaterThanOrEqual(0n)
     },
     60000
   )

@@ -5,14 +5,12 @@
  * @param {any} message Message to be logged
  */
 
+import { isDebugging } from "./Helpers"
+
 // biome-ignore lint/complexity/noStaticOnlyClass: <explanation>
 class Logger {
   // By default, the logger is not in debug mode.
-  static isDebug: boolean = [
-    "BICONOMY_SDK_DEBUG",
-    "REACT_APP_BICONOMY_SDK_DEBUG",
-    "NEXT_PUBLIC_BICONOMY_SDK_DEBUG"
-  ].some((key) => process.env[key]?.toString() === "true")
+  static isDebug: boolean = isDebugging()
 
   /**
    * \x1b[0m is an escape sequence to reset the color of the text
@@ -21,7 +19,9 @@ class Logger {
    * warn -  Magenta[time] Yellow[WARN]: Cyan[message]:  [value]
    * error - Magenta[time] Red[ERROR]:   Cyan[message]:  [value]
    */
-  static log(message: string, value = ""): void {
+
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  static log(message: string, value: any = ""): void {
     const timestamp = new Date().toISOString()
     const logMessage = `\x1b[35m[${timestamp}]\x1b[0m \x1b[36m${message}\x1b[0m:`
 
@@ -29,8 +29,8 @@ class Logger {
       console.log(logMessage, value === undefined ? "" : value)
     }
   }
-
-  static warn(message: string, value = ""): void {
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  static warn(message: string, value: any = ""): void {
     const timestamp = new Date().toISOString()
     const warnMessage = `\x1b[35m[${timestamp}]\x1b[0m \x1b[33mWARN\x1b[0m: \x1b[36m${message}\x1b[0m`
 
@@ -38,8 +38,8 @@ class Logger {
       console.warn(warnMessage, value === undefined ? "" : value)
     }
   }
-
-  static error(message: string, value = ""): void {
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  static error(message: string, value: any = ""): void {
     const timestamp = new Date().toISOString()
     const errorMessage = `\x1b[35m[${timestamp}]\x1b[0m \x1b[31mERROR\x1b[0m: \x1b[36m${message}\x1b[0m`
 

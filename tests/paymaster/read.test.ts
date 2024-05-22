@@ -90,7 +90,8 @@ describe("Paymaster:Read", () => {
       })
 
       expect(feeQuotesResponse.feeQuotes?.length).toBeGreaterThan(1)
-    }
+    },
+    30000
   )
 
   test.concurrent(
@@ -104,6 +105,7 @@ describe("Paymaster:Read", () => {
       expect(tokens[0]).toHaveProperty("decimal")
       expect(tokens[0]).toHaveProperty("premiumPercentage")
       expect(tokens[0]).toHaveProperty("logoUrl")
+      expect(tokens[0]).toHaveProperty("balance")
     },
     60000
   )

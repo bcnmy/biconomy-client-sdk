@@ -69,6 +69,7 @@ export const DefaultGasLimit = {
 }
 
 export const ERROR_MESSAGES = {
+  ACCOUNT_NOT_DEPLOYED: "Account has not yet been deployed",
   ACCOUNT_ALREADY_DEPLOYED: "Account already deployed",
   NO_NATIVE_TOKEN_BALANCE_DURING_DEPLOY:
     "Native token balance is not available during deploy",
@@ -81,7 +82,10 @@ export const ERROR_MESSAGES = {
   NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT:
     "'Amount' is required for withdrawal of native token without using a paymaster",
   MISSING_RPC_URL:
-    "rpcUrl is required for PrivateKeyAccount signer type, please provide it in the config"
+    "rpcUrl is required for PrivateKeyAccount signer type, please provide it in the config",
+  INVALID_SESSION_INDEXES:
+    "Session indexes and transactions must be of the same length and correspond to each other",
+  SIGNER_REQUIRED: "Signer is required for creating a smart account"
 }
 
 export const NATIVE_TOKEN_ALIAS: Hex =

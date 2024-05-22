@@ -7,7 +7,8 @@ import {
   parseAbi
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { Logger, getChain } from "../src/account"
+import { Logger } from "../src/account/utils/Logger"
+import { getChain } from "../src/account/utils/getChain"
 import {
   extractChainIdFromBundlerUrl,
   extractChainIdFromPaymasterUrl
@@ -22,7 +23,7 @@ export const getEnvVars = () => {
     "E2E_BICO_PAYMASTER_KEY_BASE",
     "CHAIN_ID"
   ]
-  const errorFields = fields.filter((field) => !process.env[field])
+  const errorFields = fields.filter((field) => !process?.env?.[field])
   if (errorFields.length) {
     throw new Error(
       `Missing environment variable${
@@ -32,6 +33,7 @@ export const getEnvVars = () => {
   }
   return {
     bundlerUrl: process.env.BUNDLER_URL || "",
+    bundlerUrlTwo: getBundlerUrl(84532) || "",
     privateKey: process.env.E2E_PRIVATE_KEY_ONE || "",
     privateKeyTwo: process.env.E2E_PRIVATE_KEY_TWO || "",
     paymasterUrl: `https://paymaster.biconomy.io/api/v1/80002/${

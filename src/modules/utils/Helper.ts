@@ -1,24 +1,65 @@
 import {
+  type ByteArray,
+  type Chain,
   type Hex,
-  concat,
   encodeAbiParameters,
   keccak256,
-  pad,
-  parseAbiParameters,
-  toHex
+  parseAbiParameters
 } from "viem"
-import type { UserOperationStruct } from "../../account"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import type { ChainInfo, HardcodedReference, SignerData } from "../.."
+import { type UserOperationStruct, getChain } from "../../account"
 
 export interface Rule {
+  /** The index of the param from the selected contract function upon which the condition will be applied */
   offset: number
+  /**
+   * Conditions:
+   *
+   * 0 - Equal
+   * 1 - Less than or equal
+   * 2 - Less than
+   * 3 - Greater than or equal
+   * 4 - Greater than
+   * 5 - Not equal
+   */
   condition: number
-  referenceValue: `0x${string}`
+  /** The value to compare against */
+  referenceValue:
+    | string
+    | number
+    | bigint
+    | boolean
+    | ByteArray
+    | HardcodedReference
 }
 
-export interface Permission {
+/**
+ * @deprecated
+ */
+export interface DeprecatedRule {
+  offset: number
+  condition: number
+  referenceValue: Hex
+}
+/**
+ * @deprecated
+ */
+export interface DeprecatedPermission {
   destContract: `0x${string}`
   functionSelector: `0x${string}`
   valueLimit: bigint
+  rules: DeprecatedRule[]
+}
+
+export interface Permission {
+  /** The address of the contract to which the permission applies */
+  destContract: `0x${string}`
+  /** The function selector of the contract to which the permission applies */
+  functionSelector: `0x${string}`
+  /** The maximum value that can be transferred in a single transaction */
+  valueLimit: bigint
+  /** The rules that define the conditions under which the permission is granted */
   rules: Rule[]
 }
 
@@ -81,25 +122,16 @@ export const getUserOpHash = (
   return keccak256(enc)
 }
 
-export async function getABISVMSessionKeyData(
-  sessionKey: `0x${string}` | Uint8Array,
-  permission: Permission
-): Promise<`0x${string}` | Uint8Array> {
-  let sessionKeyData = concat([
-    sessionKey,
-    permission.destContract,
-    permission.functionSelector,
-    pad(toHex(permission.valueLimit), { size: 16 }),
-    pad(toHex(permission.rules.length), { size: 2 }) // this can't be more 2**11 (see below), so uint16 (2 bytes) is enough
-  ]) as `0x${string}`
-
-  for (let i = 0; i < permission.rules.length; i++) {
-    sessionKeyData = concat([
-      sessionKeyData,
-      pad(toHex(permission.rules[i].offset), { size: 2 }), // offset is uint16, so there can't be more than 2**16/32 args = 2**11
-      pad(toHex(permission.rules[i].condition), { size: 1 }), // uint8
-      permission.rules[i].referenceValue
-    ])
+export const getRandomSigner = (): SignerData => {
+  const pkey = generatePrivateKey()
+  const account = privateKeyToAccount(pkey)
+  return {
+    pvKey: pkey,
+    pbKey: account.address
   }
-  return sessionKeyData
+}
+
+export const parseChain = (chainInfo: ChainInfo): Chain => {
+  if (typeof chainInfo === "number") return getChain(chainInfo)
+  return chainInfo
 }

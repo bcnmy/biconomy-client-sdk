@@ -19,7 +19,9 @@ import type {
   SessionSearchParam,
   SessionStatus
 } from "./interfaces/ISessionStorage.js"
+import { SessionFileStorage } from "./session-storage/SessionFileStorage.js"
 import { SessionLocalStorage } from "./session-storage/SessionLocalStorage.js"
+import { SessionMemoryStorage } from "./session-storage/SessionMemoryStorage.js"
 import {
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION
@@ -86,6 +88,16 @@ export class SessionKeyManagerModule extends BaseValidationModule {
       instance.sessionStorageClient = moduleConfig.sessionStorageClient
     } else {
       switch (moduleConfig.storageType) {
+        case StorageType.MEMORY_STORAGE:
+          instance.sessionStorageClient = new SessionMemoryStorage(
+            moduleConfig.smartAccountAddress
+          )
+          break
+        case StorageType.FILE_STORAGE:
+          instance.sessionStorageClient = new SessionFileStorage(
+            moduleConfig.smartAccountAddress
+          )
+          break
         case StorageType.LOCAL_STORAGE:
           instance.sessionStorageClient = new SessionLocalStorage(
             moduleConfig.smartAccountAddress
