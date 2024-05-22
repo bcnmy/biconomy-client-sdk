@@ -1,7 +1,7 @@
-
 import {
   http,
   type Address,
+  BaseError,
   type GetContractReturnType,
   type Hex,
   type PublicClient,
@@ -19,8 +19,7 @@ import {
   parseAbi,
   parseAbiParameters,
   toBytes,
-  toHex,
-  BaseError
+  toHex
 } from "viem"
 import type { IBundler } from "../bundler/IBundler.js"
 import {
@@ -44,6 +43,7 @@ import {
   PaymasterMode,
   type SponsorUserOperationDto
 } from "../paymaster"
+import { ENTRYPOINT_ADDRESS } from "../paymaster/utils/Constants.js"
 import {
   type BigNumberish,
   Logger,
@@ -55,6 +55,7 @@ import {
 } from "./"
 import { BaseSmartContractAccount } from "./BaseSmartContractAccount.js"
 import { AccountResolverAbi } from "./abi/AccountResolver.js"
+import { EntryPointAbi } from "./abi/EntryPointAbi.js"
 import { BiconomyFactoryAbi } from "./abi/Factory.js"
 import { BiconomyAccountAbi } from "./abi/SmartAccount.js"
 import {
@@ -95,8 +96,6 @@ import {
   isValidRpcUrl,
   packUserOp
 } from "./utils/Utils.js"
-import { EntryPointAbi } from "./abi/EntryPointAbi.js"
-import { ENTRYPOINT_ADDRESS } from "../paymaster/utils/Constants.js"
 
 type UserOperationKey = keyof UserOperationStruct
 
@@ -1530,7 +1529,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   /**
    * Builds a user operation
-   * 
+   *
    * This method will also simulate the validation and execution of the user operation, telling the user if the user operation will be successful or not.
    *
    * - Docs: https://docs.biconomy.io/Account/transactions/userpaid#build-useroperation
@@ -2160,4 +2159,3 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return modules
   }
 }
-

@@ -1,4 +1,3 @@
-
 import { JsonRpcProvider } from "@ethersproject/providers"
 import { Wallet } from "@ethersproject/wallet"
 import {
@@ -75,7 +74,7 @@ describe("Account:Read", () => {
   ]
 
   beforeAll(async () => {
-    [smartAccount, smartAccountTwo] = await Promise.all(
+    ;[smartAccount, smartAccountTwo] = await Promise.all(
       [walletClient, walletClientTwo].map((client) =>
         createSmartAccountClient({
           chainId,
@@ -84,9 +83,9 @@ describe("Account:Read", () => {
           paymasterUrl
         })
       )
-    );
-    
-    [smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+    )
+
+    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
       [smartAccount, smartAccountTwo].map((account) =>
         account.getAccountAddress()
       )
@@ -810,70 +809,75 @@ describe("Account:Read", () => {
     expect(isVerified).toBeTruthy()
   })
 
-  test.concurrent("should simulate a user operation execution, expecting to fail", async () => {
-    const smartAccount = await createSmartAccountClient({
-      signer: walletClient,
-      bundlerUrl
-    })
+  test.concurrent(
+    "should simulate a user operation execution, expecting to fail",
+    async () => {
+      const smartAccount = await createSmartAccountClient({
+        signer: walletClient,
+        bundlerUrl
+      })
 
-    console.log(smartAccountAddress, "smartAccountAdderss");
+      console.log(smartAccountAddress, "smartAccountAdderss")
 
-    const balances = await smartAccount.getBalances();
-    expect(balances[0].amount).toBeGreaterThan(0n);
+      const balances = await smartAccount.getBalances()
+      expect(balances[0].amount).toBeGreaterThan(0n)
 
-    const encodedCall = encodeFunctionData({
-      abi: parseAbi(["function deposit()"]),
-      functionName: "deposit",
-    })
+      const encodedCall = encodeFunctionData({
+        abi: parseAbi(["function deposit()"]),
+        functionName: "deposit"
+      })
 
-    const amoyTestContract = "0x59Dbe91FBa486CA10E4ad589688Fe547a48bd62A";
+      const amoyTestContract = "0x59Dbe91FBa486CA10E4ad589688Fe547a48bd62A"
 
-    // fail if value is not bigger than 1
-    // the contract call requires a deposit of at least 1 wei
-    const tx1 = {
-      to: amoyTestContract as Hex,
-      data: encodedCall,
-      value: 0
+      // fail if value is not bigger than 1
+      // the contract call requires a deposit of at least 1 wei
+      const tx1 = {
+        to: amoyTestContract as Hex,
+        data: encodedCall,
+        value: 0
+      }
+      const tx2 = {
+        to: amoyTestContract as Hex,
+        data: encodedCall,
+        value: 2
+      }
+
+      await expect(smartAccount.buildUserOp([tx1, tx2])).rejects.toThrow()
     }
-    const tx2 = {
-      to: amoyTestContract as Hex,
-      data: encodedCall,
-      value: 2
+  )
+
+  test.concurrent(
+    "should simulate a user operation execution, expecting to pass execution",
+    async () => {
+      const smartAccount = await createSmartAccountClient({
+        signer: walletClient,
+        bundlerUrl
+      })
+
+      const balances = await smartAccount.getBalances()
+      expect(balances[0].amount).toBeGreaterThan(0n)
+
+      const encodedCall = encodeFunctionData({
+        abi: parseAbi(["function deposit()"]),
+        functionName: "deposit"
+      })
+
+      const amoyTestContract = "0x59Dbe91FBa486CA10E4ad589688Fe547a48bd62A"
+
+      // fail if value is not bigger than 1
+      // the contract call requires a deposit of at least 1 wei
+      const tx1 = {
+        to: amoyTestContract as Hex,
+        data: encodedCall,
+        value: 2
+      }
+      const tx2 = {
+        to: amoyTestContract as Hex,
+        data: encodedCall,
+        value: 2
+      }
+
+      await expect(smartAccount.buildUserOp([tx1, tx2])).resolves.toBeTruthy()
     }
-
-    await expect (smartAccount.buildUserOp([tx1, tx2])).rejects.toThrow()
-  })
-
-  test.concurrent("should simulate a user operation execution, expecting to pass execution", async () => {
-    const smartAccount = await createSmartAccountClient({
-      signer: walletClient,
-      bundlerUrl
-    })
-
-    const balances = await smartAccount.getBalances();
-    expect(balances[0].amount).toBeGreaterThan(0n);
-
-    const encodedCall = encodeFunctionData({
-      abi: parseAbi(["function deposit()"]),
-      functionName: "deposit",
-    })
-
-    const amoyTestContract = "0x59Dbe91FBa486CA10E4ad589688Fe547a48bd62A";
-
-    // fail if value is not bigger than 1
-    // the contract call requires a deposit of at least 1 wei
-    const tx1 = {
-      to: amoyTestContract as Hex,
-      data: encodedCall,
-      value: 2
-    }
-    const tx2 = {
-      to: amoyTestContract as Hex,
-      data: encodedCall,
-      value: 2
-    }
-
-    await expect(smartAccount.buildUserOp([tx1, tx2])).resolves.toBeTruthy()
-  })
+  )
 })
-
