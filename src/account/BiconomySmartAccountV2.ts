@@ -1177,26 +1177,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return bundlerResponse
   }
 
-  /**
-   * Simulates a user operation execution.
-   * 
-   * Checks if a user operation will be successful before sending it to the bundler.
-   * 
-   * @param userOp The user operation to simulate.
-   * @param targetContract The target contract to simulate the operation on.
-   * @param targetCalldata The calldata for the target contract.
-   * @param client The public client.
-   * @returns A Promise that resolves to a boolean indicating whether the operation was successful.
-  */
-  async simulateUserOp(txs: Transaction[]): Promise<{success: boolean, message: string}> {
-    try {
-      await this.buildUserOp(txs)
-      return {success: true, message: "User operation execution passed"}
-    } catch (error) {
-      return {success: false, message: `User operation execution failed: ${error}`}
-    }
-  }
-
   async getUserOpHash(userOp: Partial<UserOperationStruct>): Promise<Hex> {
     const userOpHash = keccak256(packUserOp(userOp, true) as Hex)
     const enc = encodeAbiParameters(
@@ -1364,6 +1344,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   /**
    * Builds a user operation
+   * 
+   * This method will also simulate the validation and execution of the user operation, telling the user if the user operation will be successful or not.
    *
    * - Docs: https://docs.biconomy.io/Account/transactions/userpaid#build-useroperation
    *
