@@ -1,17 +1,19 @@
 import { http, type Hex, createWalletClient } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import {
-  createBatchedSessionRouterModule,
-  createSessionKeyManagerModule
-} from ".."
-import {
   type BiconomySmartAccountV2,
   type BiconomySmartAccountV2Config,
   createSmartAccountClient,
   getChain
 } from "../../account"
+import {
+  type SessionSearchParam,
+  createBatchedSessionRouterModule,
+  createSessionKeyManagerModule,
+  resumeSession
+} from "../index.js"
+import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import type { ModuleInfo } from "../utils/Types"
-import type { Session } from "./abi"
 
 export type ImpersonatedSmartAccountConfig = Omit<
   BiconomySmartAccountV2Config,
@@ -30,6 +32,8 @@ export type ImpersonatedSmartAccountConfig = Omit<
  * The sessionSigner is used instead for signing transactions, which is fetched from the session storage using the sessionID. {@link ISessionStorage}
  *
  * @param biconomySmartAccountConfig - Configuration for initializing the BiconomySmartAccountV2 instance {@link ImpersonatedSmartAccountConfig}.
+ * @param conditionalSession - {@link SessionSearchParam} The session data that contains the sessionID and sessionSigner. If not provided, The default session storage (localStorage in browser, fileStorage in node backend) is used to fetch the sessionIDInfo
+ * @param multiMode - If true, the smart account instance will use the batchedSessionModule for validation, otherwise a single session is assumed.
  * @returns A promise that resolves to a new instance of {@link BiconomySmartAccountV2}.
  * @throws An error if something is wrong with the smart account instance creation.
  *
@@ -59,10 +63,7 @@ export type ImpersonatedSmartAccountConfig = Omit<
  *     paymasterUrl,
  *     chainId
  *   },
- *   {
- *     sessionStorageClient: storeForSingleSession,
- *     sessionID
- *   }
+ *   storeForSingleSession // Can be ommitted if using default session storage (localStorage in browser, fileStorage in node backend)
  * )
  *
  * // The smartAccountWithSession instance can now be used to interact with the blockchain on behalf of the user in the same manner as a regular smart account instance.
@@ -71,10 +72,14 @@ export type ImpersonatedSmartAccountConfig = Omit<
  */
 export const createSessionSmartAccountClient = async (
   biconomySmartAccountConfig: ImpersonatedSmartAccountConfig,
-  { sessionStorageClient, sessionIDInfo }: Session,
+  conditionalSession: SessionSearchParam,
   multiMode = false
 ): Promise<BiconomySmartAccountV2> => {
-  const sessionID = sessionIDInfo[0] // For a single session default to the first element
+  const { sessionStorageClient, sessionIDInfo } = await resumeSession(
+    conditionalSession ?? biconomySmartAccountConfig.accountAddress
+  )
+  const sessionID = sessionIDInfo[0] // Default to the first element to find the signer
+
   const account = privateKeyToAccount(generatePrivateKey())
 
   const chain =

@@ -882,7 +882,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   // dummy signature depends on the validation module supplied.
   async getDummySignatures(_params?: ModuleInfo): Promise<Hex> {
-    const params = { ..._params, ...(this.sessionData ? this.sessionData : {}) }
+    const params = { ...(this.sessionData ? this.sessionData : {}), ..._params }
     this.isActiveValidationModuleDefined()
     return (await this.activeValidationModule.getDummySignature(params)) as Hex
   }
@@ -913,7 +913,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     userOp: Partial<UserOperationStruct>,
     _params?: SendUserOpParams
   ): Promise<UserOperationStruct> {
-    const params = { ..._params, ...(this.sessionData ? this.sessionData : {}) }
+    const params = { ...(this.sessionData ? this.sessionData : {}), ..._params }
 
     this.isActiveValidationModuleDefined()
     const requiredFields: UserOperationKey[] = [
