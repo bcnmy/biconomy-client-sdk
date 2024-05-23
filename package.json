@@ -8,7 +8,7 @@
   "sideEffects": false,
   "name": "@biconomy/account",
   "author": "Biconomy",
-  "version": "4.4.2",
+  "version": "4.4.3",
   "description": "SDK for Biconomy integration with support for account abstraction, smart accounts, ERC-4337.",
   "keywords": [
     "erc-7579",
@@ -46,7 +46,10 @@
       "default": "./_cjs/modules/index.js"
     }
   },
-  "files": ["dist/*", "README.md"],
+  "files": [
+    "dist/*",
+    "README.md"
+  ],
   "scripts": {
     "format": "biome format . --write",
     "lint": "biome check .",
@@ -103,7 +106,9 @@
     "viem": "^2"
   },
   "commitlint": {
-    "extends": ["@commitlint/config-conventional"]
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
   },
   "simple-git-hooks": {
     "pre-commit": "bun run format && bun run lint:fix",

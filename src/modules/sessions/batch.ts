@@ -1,21 +1,22 @@
 import type { Chain } from "viem"
 import {
-  type CreateSessionDataParams,
-  DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
-  DEFAULT_SESSION_KEY_MANAGER_MODULE,
-  type Session,
-  type SessionGrantedPayload,
-  type SessionParams,
-  createBatchedSessionRouterModule,
-  createSessionKeyManagerModule
-} from ".."
-import {
   type BiconomySmartAccountV2,
   type BuildUserOpOptions,
   ERROR_MESSAGES,
   Logger,
   type Transaction
 } from "../../account"
+import {
+  type CreateSessionDataParams,
+  DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
+  DEFAULT_SESSION_KEY_MANAGER_MODULE,
+  type SessionGrantedPayload,
+  type SessionParams,
+  type SessionSearchParam,
+  createBatchedSessionRouterModule,
+  createSessionKeyManagerModule,
+  resumeSession
+} from "../index.js"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 
 export type CreateBatchSessionConfig = {
@@ -192,7 +193,7 @@ export type BatchSessionParamsPayload = {
  *
  * @param transactions - An array of {@link Transaction}s.
  * @param correspondingIndexes - An array of indexes for the transactions corresponding to the relevant session
- * @param session - {@link Session}.
+ * @param conditionalSession - {@link SessionSearchParam} The session data that contains the sessionID and sessionSigner. If not provided, The default session storage (localStorage in browser, fileStorage in node backend) is used to fetch the sessionIDInfo
  * @param chain - The chain.
  * @returns Promise<{@link BatchSessionParamsPayload}> - session parameters.
  *
@@ -200,12 +201,15 @@ export type BatchSessionParamsPayload = {
 export const getBatchSessionTxParams = async (
   transactions: Transaction[],
   correspondingIndexes: number[],
-  { sessionIDInfo, sessionStorageClient }: Session,
+  conditionalSession: SessionSearchParam,
   chain: Chain
 ): Promise<BatchSessionParamsPayload> => {
   if (correspondingIndexes.length !== transactions.length) {
     throw new Error(ERROR_MESSAGES.INVALID_SESSION_INDEXES)
   }
+
+  const { sessionStorageClient, sessionIDInfo } =
+    await resumeSession(conditionalSession)
 
   const sessionSigner = await sessionStorageClient.getSignerBySession(
     {

@@ -1,13 +1,13 @@
 import { http, type Chain, type Hex, createWalletClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { type SmartAccountSigner, WalletClientSigner } from "../../account"
-import { getRandomSigner } from "../../index.js"
 import type {
   ISessionStorage,
   SessionLeafNode,
   SessionSearchParam,
   SessionStatus
 } from "../interfaces/ISessionStorage.js"
+import { getRandomSigner } from "../utils/Helper.js"
 import type { SignerData } from "../utils/Types.js"
 
 type MemoryStore = {
