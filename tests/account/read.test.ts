@@ -84,7 +84,6 @@ describe("Account:Read", () => {
         })
       )
     )
-
     ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
       [smartAccount, smartAccountTwo].map((account) =>
         account.getAccountAddress()

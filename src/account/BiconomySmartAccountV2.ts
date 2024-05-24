@@ -1,7 +1,6 @@
 import {
   http,
   type Address,
-  BaseError,
   type GetContractReturnType,
   type Hex,
   type PublicClient,
@@ -43,7 +42,6 @@ import {
   PaymasterMode,
   type SponsorUserOperationDto
 } from "../paymaster"
-import { ENTRYPOINT_ADDRESS } from "../paymaster/utils/Constants.js"
 import {
   type BigNumberish,
   Logger,
@@ -55,7 +53,6 @@ import {
 } from "./"
 import { BaseSmartContractAccount } from "./BaseSmartContractAccount.js"
 import { AccountResolverAbi } from "./abi/AccountResolver.js"
-import { EntryPointAbi } from "./abi/EntryPointAbi.js"
 import { BiconomyFactoryAbi } from "./abi/Factory.js"
 import { BiconomyAccountAbi } from "./abi/SmartAccount.js"
 import {
