@@ -1527,6 +1527,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   /**
    * Builds a user operation
    *
+   * This method will also simulate the validation and execution of the user operation, telling the user if the user operation will be successful or not.
+   *
    * - Docs: https://docs.biconomy.io/Account/transactions/userpaid#build-useroperation
    *
    * @param transactions Array of {@link Transaction} to be sent.
