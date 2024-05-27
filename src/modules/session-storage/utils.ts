@@ -1,8 +1,12 @@
-import type { Chain, Hex } from "viem"
-import { SessionFileStorage, SessionLocalStorage } from "../.."
+import type { Address, Chain, Hex } from "viem"
 import type { BiconomySmartAccountV2, SmartAccountSigner } from "../../account"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import { supportsLocalStorage } from "./SessionLocalStorage"
+import {
+  SessionFileStorage,
+  SessionLocalStorage,
+  SessionMemoryStorage
+} from "./index.js"
 
 export type SessionStoragePayload = {
   sessionKeyAddress: Hex
@@ -29,11 +33,37 @@ export const createSessionKeyEOA = async (
 ): Promise<SessionStoragePayload> => {
   const userAccountAddress = await smartAccount.getAddress()
   const sessionStorageClient =
-    _sessionStorageClient ??
-    new (supportsLocalStorage ? SessionLocalStorage : SessionFileStorage)(
-      userAccountAddress
-    )
+    _sessionStorageClient ?? getDefaultStorageClient(userAccountAddress)
   const newSigner = await sessionStorageClient.addSigner(undefined, chain)
   const sessionKeyAddress = await newSigner.getAddress()
   return { sessionKeyAddress, signer: newSigner, sessionStorageClient }
+}
+
+export const inTesting = (): boolean => {
+  try {
+    return process?.env?.TESTING?.toString() === "true"
+  } catch (e) {
+    return false
+  }
+}
+
+export const inNodeBackend = (): boolean => {
+  try {
+    return typeof process === "object" && process?.release?.name === "node"
+  } catch (e) {
+    return false
+  }
+}
+
+export const getDefaultStorageClient = (address: Address): ISessionStorage => {
+  if (inTesting()) {
+    return new SessionMemoryStorage(address)
+  }
+  if (supportsLocalStorage) {
+    return new SessionLocalStorage(address)
+  }
+  if (inNodeBackend()) {
+    return new SessionFileStorage(address)
+  }
+  throw new Error("No session storage client available")
 }

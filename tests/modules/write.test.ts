@@ -5,14 +5,12 @@ import {
   createWalletClient,
   encodeAbiParameters,
   encodeFunctionData,
-  getContract,
   pad,
   parseAbi,
   parseEther,
   parseUnits,
   slice,
-  toFunctionSelector,
-  toHex
+  toFunctionSelector
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
@@ -21,6 +19,7 @@ import {
   type Transaction,
   type TransferOwnershipCompatibleModule,
   type WalletClientSigner,
+  addressEquals,
   createSmartAccountClient
 } from "../../src/account"
 import { Logger, getChain } from "../../src/account"
@@ -33,16 +32,19 @@ import {
   ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION,
   createMultiChainValidationModule,
   createSessionKeyManagerModule,
-  getABISVMSessionKeyData
+  getABISVMSessionKeyData,
+  resumeSession
 } from "../../src/modules"
 
 import { ECDSAModuleAbi } from "../../src/account/abi/ECDSAModule"
 import { SessionMemoryStorage } from "../../src/modules/session-storage/SessionMemoryStorage"
 import { createSessionKeyEOA } from "../../src/modules/session-storage/utils"
 import {
+  type Policy,
   type Session,
   createABISessionDatum,
-  createSession
+  createSession,
+  getSingleSessionTxParams
 } from "../../src/modules/sessions/abi"
 import {
   createBatchSession,
@@ -60,20 +62,6 @@ describe("Modules:Write", () => {
 
   const withSponsorship = {
     paymasterServiceData: { mode: PaymasterMode.SPONSORED }
-  }
-
-  const stores: {
-    single: Session
-    batch: Session
-  } = {
-    single: {
-      sessionStorageClient: new SessionMemoryStorage("0x"),
-      sessionIDInfo: ["0x"]
-    },
-    batch: {
-      sessionStorageClient: new SessionMemoryStorage("0x"),
-      sessionIDInfo: ["0x"]
-    }
   }
 
   const {
@@ -154,13 +142,6 @@ describe("Modules:Write", () => {
     smartAccountAddressThree = await smartAccountThree.getAccountAddress()
     smartAccountAddressFour = await smartAccountFour.getAccountAddress()
 
-    stores.single.sessionStorageClient = new SessionMemoryStorage(
-      smartAccountAddressThree
-    )
-    stores.batch.sessionStorageClient = new SessionMemoryStorage(
-      smartAccountAddressFour
-    )
-
     await Promise.all([
       topUp(smartAccountAddress, undefined, token),
       topUp(smartAccountAddress, undefined),
@@ -176,11 +157,7 @@ describe("Modules:Write", () => {
   // User must be connected with a wallet to grant permissions
   test("should create a single session on behalf of a user", async () => {
     const { sessionKeyAddress, sessionStorageClient } =
-      await createSessionKeyEOA(
-        smartAccountThree,
-        chain,
-        stores.single.sessionStorageClient
-      )
+      await createSessionKeyEOA(smartAccountThree, chain)
 
     const { wait, session } = await createSession(
       smartAccountThree,
@@ -212,9 +189,6 @@ describe("Modules:Write", () => {
       success
     } = await wait()
 
-    // Save the sessionID for the next test
-    stores.single = session
-
     expect(success).toBe("true")
     Logger.log("Tx Hash: ", transactionHash)
   }, 50000)
@@ -222,10 +196,6 @@ describe("Modules:Write", () => {
   // User no longer has to be connected,
   // Only the reference to the relevant sessionID and the store from the previous step is needed to execute txs on the user's behalf
   test("should use the session to mint an NFT for the user", async () => {
-    // Setup
-    const session = stores.single
-    expect(stores.single.sessionIDInfo).toHaveLength(1) // Should have been set in the previous test
-
     // Assume the real signer for userSmartAccountThree is no longer available (ie. user has logged out)
     const smartAccountThreeWithSession = await createSessionSmartAccountClient(
       {
@@ -234,7 +204,7 @@ describe("Modules:Write", () => {
         paymasterUrl,
         chainId
       },
-      session
+      smartAccountAddressThree // Storage client, full Session or smartAccount address if using default storage
     )
 
     const sessionSmartAccountThreeAddress =
@@ -276,11 +246,7 @@ describe("Modules:Write", () => {
   // User must be connected with a wallet to grant permissions
   test("should create a batch session on behalf of a user", async () => {
     const { sessionKeyAddress, sessionStorageClient } =
-      await createSessionKeyEOA(
-        smartAccountFour,
-        chain,
-        stores.batch.sessionStorageClient
-      )
+      await createSessionKeyEOA(smartAccountFour, chain)
 
     const leaves: CreateSessionDataParams[] = [
       createERC20SessionDatum({
@@ -331,9 +297,6 @@ describe("Modules:Write", () => {
     } = await wait()
 
     expect(success).toBe("true")
-    stores.batch = session // Save the sessionID for the next test
-
-    expect(session.sessionIDInfo).toHaveLength(2) // Save the sessionID for the next test
 
     Logger.log("Tx Hash: ", transactionHash)
     Logger.log("session: ", { session })
@@ -342,25 +305,28 @@ describe("Modules:Write", () => {
   // User no longer has to be connected,
   // Only the reference to the relevant sessionID and the store from the previous step is needed to execute txs on the user's behalf
   test("should use the batch session to mint an NFT, and pay some token for the user", async () => {
-    // Setup
-    const session = stores.batch
+    const { sessionStorageClient } = await resumeSession(
+      smartAccountAddressFour // Use the store from the previous test, you could pass in the smartAccount address, the full session or your custom sessionStorageClient
+    )
 
     // Assume the real signer for userSmartAccountFour is no longer available (ie. user has logged out);
     const smartAccountFourWithSession = await createSessionSmartAccountClient(
       {
-        accountAddress: smartAccountAddressFour, // Set the account address on behalf of the user
+        accountAddress: sessionStorageClient.smartAccountAddress, // Set the account address on behalf of the user
         bundlerUrl,
         paymasterUrl,
         chainId
       },
-      session,
+      smartAccountAddressFour, // Storage client, full Session or smartAccount address if using default storage
       true // if batching
     )
 
     const sessionSmartAccountFourAddress =
       await smartAccountFourWithSession.getAccountAddress()
 
-    expect(sessionSmartAccountFourAddress).toEqual(smartAccountAddressFour)
+    expect(
+      addressEquals(sessionSmartAccountFourAddress, smartAccountAddressFour)
+    ).toBe(true)
 
     const transferTx: Transaction = {
       to: token,
@@ -390,7 +356,7 @@ describe("Modules:Write", () => {
     const batchSessionParams = await getBatchSessionTxParams(
       txs,
       [0, 1],
-      session,
+      smartAccountAddressFour,
       chain
     )
 
@@ -840,7 +806,7 @@ describe("Modules:Write", () => {
     )
   }, 60000)
 
-  test("should correctly parse the reference value", async () => {
+  test("should correctly parse the reference value and explicitly pass the storage client while resuming the session", async () => {
     const DUMMY_CONTRACT_ADDRESS: Hex =
       "0xC834b3804817883a6b7072e815C3faf8682bFA13"
     const byteCode = await publicClient.getBytecode({
@@ -918,7 +884,7 @@ describe("Modules:Write", () => {
         paymasterUrl,
         chainId: chain.id
       },
-      session,
+      sessionStorageClient, // Storage client, full Session or smartAccount address if using default storage
       true
     )
 
@@ -946,7 +912,7 @@ describe("Modules:Write", () => {
     const batchSessionParams = await getBatchSessionTxParams(
       txs,
       correspondingIndexes,
-      session,
+      sessionStorageClient,
       chain
     )
 
@@ -960,5 +926,129 @@ describe("Modules:Write", () => {
 
     const { success: txSuccess } = await waitForTx()
     expect(txSuccess).toBe("true")
+  }, 60000)
+
+  test("should use single session for submitting orders", async () => {
+    const DUMMY_CONTRACT_ADDRESS: Hex =
+      "0xC834b3804817883a6b7072e815C3faf8682bFA13"
+    const byteCode = await publicClient.getBytecode({
+      address: DUMMY_CONTRACT_ADDRESS as Hex
+    })
+
+    expect(byteCode).toBeTruthy()
+
+    const { sessionKeyAddress, sessionStorageClient } =
+      await createSessionKeyEOA(smartAccount, chain)
+
+    const order = parseAbi(["function submitOrder(uint256 _orderNum)"])
+    const cancel = parseAbi(["function submitCancel(uint256 _orderNum)"])
+
+    const policy: Policy[] = [
+      {
+        interval: {
+          validUntil: 0,
+          validAfter: 0
+        },
+        sessionKeyAddress,
+        contractAddress: DUMMY_CONTRACT_ADDRESS,
+        functionSelector: cancel[0],
+        rules: [
+          {
+            offset: 0,
+            condition: 0,
+            referenceValue: BigInt(1)
+          }
+        ],
+        valueLimit: 0n
+      },
+      {
+        interval: {
+          validUntil: 0,
+          validAfter: 0
+        },
+        sessionKeyAddress,
+        contractAddress: DUMMY_CONTRACT_ADDRESS,
+        functionSelector: order[0],
+        rules: [
+          {
+            offset: 0,
+            condition: 0,
+            referenceValue: BigInt(1)
+          }
+        ],
+        valueLimit: 0n
+      }
+    ]
+
+    const { wait, session } = await createSession(
+      smartAccount,
+      policy,
+      sessionStorageClient,
+      withSponsorship
+    )
+
+    const {
+      receipt: { transactionHash },
+      success
+    } = await wait()
+
+    expect(success).toBe("true")
+    expect(transactionHash).toBeTruthy()
+
+    const smartAccountWithSession = await createSessionSmartAccountClient(
+      {
+        accountAddress: smartAccountAddress, // Set the account address on behalf of the user
+        bundlerUrl,
+        paymasterUrl,
+        chainId: chain.id
+      },
+      smartAccountAddress
+    )
+
+    const submitCancelTx: Transaction = {
+      to: DUMMY_CONTRACT_ADDRESS,
+      data: encodeFunctionData({
+        abi: cancel,
+        functionName: "submitCancel",
+        args: [BigInt(1)]
+      })
+    }
+
+    const submitOrderTx: Transaction = {
+      to: DUMMY_CONTRACT_ADDRESS,
+      data: encodeFunctionData({
+        abi: order,
+        functionName: "submitOrder",
+        args: [BigInt(1)]
+      })
+    }
+
+    const singleSessionParamsForCancel = await getSingleSessionTxParams(
+      session,
+      chain,
+      0
+    )
+
+    const singleSessionParamsForOrder = await getSingleSessionTxParams(
+      session,
+      chain,
+      1
+    )
+
+    const { wait: waitForCancelTx } =
+      await smartAccountWithSession.sendTransaction(submitCancelTx, {
+        ...singleSessionParamsForCancel,
+        ...withSponsorship
+      })
+    const { wait: waitForOrderTx } =
+      await smartAccountWithSession.sendTransaction(submitOrderTx, {
+        ...singleSessionParamsForOrder,
+        ...withSponsorship
+      })
+
+    const { success: txCancelSuccess } = await waitForCancelTx()
+    const { success: txOrderSuccess } = await waitForOrderTx()
+    expect(txCancelSuccess).toBe("true")
+    expect(txOrderSuccess).toBe("true")
   }, 60000)
 })

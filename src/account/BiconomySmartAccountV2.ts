@@ -889,7 +889,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   // dummy signature depends on the validation module supplied.
   async getDummySignatures(_params?: ModuleInfo): Promise<Hex> {
-    const params = { ..._params, ...(this.sessionData ? this.sessionData : {}) }
+    const params = { ...(this.sessionData ? this.sessionData : {}), ..._params }
     this.isActiveValidationModuleDefined()
     return (await this.activeValidationModule.getDummySignature(params)) as Hex
   }
@@ -920,7 +920,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     userOp: Partial<UserOperationStruct>,
     _params?: SendUserOpParams
   ): Promise<UserOperationStruct> {
-    const params = { ..._params, ...(this.sessionData ? this.sessionData : {}) }
+    const params = { ...(this.sessionData ? this.sessionData : {}), ..._params }
 
     this.isActiveValidationModuleDefined()
     const requiredFields: UserOperationKey[] = [
@@ -1533,6 +1533,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   /**
    * Builds a user operation
+   *
+   * This method will also simulate the validation and execution of the user operation, telling the user if the user operation will be successful or not.
    *
    * - Docs: https://docs.biconomy.io/Account/transactions/userpaid#build-useroperation
    *

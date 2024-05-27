@@ -1,6 +1,7 @@
 import {
   type AbiFunction,
   type ByteArray,
+  type Chain,
   type Hex,
   concat,
   pad,
@@ -11,6 +12,7 @@ import {
 import type {
   CreateSessionDataParams,
   Permission,
+  SessionParams,
   UserOpResponse
 } from "../../"
 import {
@@ -20,12 +22,13 @@ import {
   Logger,
   type Transaction
 } from "../../account"
-import { createSessionKeyManagerModule } from "../index"
+import { createSessionKeyManagerModule, resumeSession } from "../index"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import {
   DEFAULT_ABI_SVM_MODULE,
   DEFAULT_SESSION_KEY_MANAGER_MODULE
 } from "../utils/Constants"
+import type { SessionSearchParam } from "../utils/Helper"
 import type { DeprecatedPermission, Rule } from "../utils/Helper"
 
 export type SessionConfig = {
@@ -312,5 +315,42 @@ export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
     return pad(referenceValue as Hex, { size: 32 })
   } catch (e) {
     return pad(referenceValue as Hex, { size: 32 })
+  }
+}
+
+export type SingleSessionParamsPayload = {
+  params: SessionParams
+}
+/**
+ * getSingleSessionTxParams
+ *
+ * Retrieves the transaction parameters for a batched session.
+ *
+ * @param correspondingIndex - An index for the transaction corresponding to the relevant session
+ * @param conditionalSession - {@link SessionSearchParam} The session data that contains the sessionID and sessionSigner. If not provided, The default session storage (localStorage in browser, fileStorage in node backend) is used to fetch the sessionIDInfo
+ * @param chain - The chain.
+ * @returns Promise<{@link BatchSessionParamsPayload}> - session parameters.
+ *
+ */
+export const getSingleSessionTxParams = async (
+  conditionalSession: SessionSearchParam,
+  chain: Chain,
+  correspondingIndex = 0
+): Promise<SingleSessionParamsPayload> => {
+  const { sessionStorageClient, sessionIDInfo } =
+    await resumeSession(conditionalSession)
+
+  const sessionSigner = await sessionStorageClient.getSignerBySession(
+    {
+      sessionID: sessionIDInfo[0]
+    },
+    chain
+  )
+
+  return {
+    params: {
+      sessionSigner,
+      sessionID: sessionIDInfo[correspondingIndex]
+    }
   }
 }
