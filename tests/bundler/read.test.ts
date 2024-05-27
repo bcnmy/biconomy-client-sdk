@@ -5,7 +5,8 @@ import {
   type BiconomySmartAccountV2,
   type BiconomySmartAccountV2Config,
   compareChainIds,
-  createSmartAccountClient
+  createSmartAccountClient,
+  getCustomChain
 } from "../../src/account"
 import { createBundler } from "../../src/bundler"
 import { getBundlerUrl, getConfig } from "../utils"

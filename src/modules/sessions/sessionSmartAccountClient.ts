@@ -84,6 +84,7 @@ export const createSessionSmartAccountClient = async (
 
   const chain =
     biconomySmartAccountConfig.viemChain ??
+    biconomySmartAccountConfig.customChain ??
     getChain(biconomySmartAccountConfig.chainId)
 
   const incompatibleSigner = createWalletClient({

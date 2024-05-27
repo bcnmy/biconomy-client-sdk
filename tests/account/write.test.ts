@@ -9,12 +9,14 @@ import {
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { readContract } from "viem/actions"
+import { polygonAmoy } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
   DEFAULT_ENTRYPOINT_ADDRESS,
   ERC20_ABI,
   createSmartAccountClient,
+  getCustomChain,
   percentage
 } from "../../src/account"
 import { ECDSAModuleAbi } from "../../src/account/abi/ECDSAModule"
@@ -27,7 +29,13 @@ import {
 } from "../../src/modules"
 import { PaymasterMode } from "../../src/paymaster"
 import { testOnlyOnOptimism } from "../setupFiles"
-import { checkBalance, getConfig, nonZeroBalance, topUp } from "../utils"
+import {
+  checkBalance,
+  getBundlerUrl,
+  getConfig,
+  nonZeroBalance,
+  topUp
+} from "../utils"
 
 describe("Account:Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
@@ -166,6 +174,47 @@ describe("Account:Write", () => {
     expect(success).toBe("true")
     expect(byteCode).toBeTruthy()
   }, 60000)
+
+  test.concurrent(
+    "should add a custom chain",
+    async () => {
+      const customChain = getCustomChain(
+        "Amoy",
+        polygonAmoy.id,
+        polygonAmoy.rpcUrls.default.http[0],
+        polygonAmoy.blockExplorers.default.url
+      )
+
+      const accountOne = privateKeyToAccount(`0x${privateKey}`)
+      const walletClientWithCustomChain = createWalletClient({
+        account: accountOne,
+        chain: customChain,
+        transport: http()
+      })
+
+      const smartAccountCustomChain = await createSmartAccountClient({
+        signer: walletClientWithCustomChain,
+        bundlerUrl,
+        customChain
+      })
+
+      expect(smartAccountCustomChain.rpcProvider.transport.url).toBe(
+        "https://rpc-amoy.polygon.technology"
+      )
+      expect(walletClientWithCustomChain.chain).toEqual(customChain)
+
+      const { wait } = await smartAccountCustomChain.sendTransaction({
+        to: recipient,
+        value: BigInt(1)
+      })
+
+      const { success, receipt } = await wait()
+
+      expect(receipt).toBeTruthy()
+      expect(success).toBe("true")
+    },
+    80000
+  )
 
   testOnlyOnOptimism(
     "should send some native token to a recipient on optimism",
