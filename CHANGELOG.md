@@ -1,5 +1,17 @@
 # @biconomy/account
 
+## 4.4.4
+
+### Patch Changes
+
+- Add Support for Custom Chains
+
+## 4.4.3
+
+### Patch Changes
+
+- Abstract away SessionStorageClient and SessionIDInfo
+
 ## 4.4.2
 
 ### Patch Changes

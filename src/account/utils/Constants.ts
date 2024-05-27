@@ -85,7 +85,9 @@ export const ERROR_MESSAGES = {
     "rpcUrl is required for PrivateKeyAccount signer type, please provide it in the config",
   INVALID_SESSION_INDEXES:
     "Session indexes and transactions must be of the same length and correspond to each other",
-  SIGNER_REQUIRED: "Signer is required for creating a smart account"
+  SIGNER_REQUIRED: "Signer is required for creating a smart account",
+  UNKNOW_SESSION_ARGUMENTS:
+    "You have not provided the necessary information to find and use a session"
 }
 
 export const NATIVE_TOKEN_ALIAS: Hex =

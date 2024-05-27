@@ -1,15 +1,27 @@
 import {
+  type Address,
   type ByteArray,
   type Chain,
   type Hex,
   encodeAbiParameters,
+  isAddress,
   keccak256,
   parseAbiParameters
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import type { ChainInfo, HardcodedReference, SignerData } from "../.."
-import { type UserOperationStruct, getChain } from "../../account"
-
+import {
+  ERROR_MESSAGES,
+  type UserOperationStruct,
+  getChain
+} from "../../account"
+import type {
+  ChainInfo,
+  HardcodedReference,
+  Session,
+  SignerData
+} from "../../index.js"
+import type { ISessionStorage } from "../interfaces/ISessionStorage"
+import { getDefaultStorageClient } from "../session-storage/utils"
 export interface Rule {
   /** The index of the param from the selected contract function upon which the condition will be applied */
   offset: number
@@ -134,4 +146,67 @@ export const getRandomSigner = (): SignerData => {
 export const parseChain = (chainInfo: ChainInfo): Chain => {
   if (typeof chainInfo === "number") return getChain(chainInfo)
   return chainInfo
+}
+/**
+ *
+ * SessionSearchParam - The arguments that can be used to reconstruct a session object
+ *
+ * It can be one of the following:
+ * A session object {@link Session}
+ * A session storage client {@link ISessionStorage}
+ * A smart account address {@link Address}
+ *
+ * When a session object is provided, it is returned as is
+ * When a session storage client is provided, the session object is reconstructed from the session storage client using **all** of the sessionIds found in the storage client
+ * When a smart account address is provided, the default session storage client is used to reconstruct the session object using **all** of the sessionIds found in the storage client
+ *
+ */
+export type SessionSearchParam = Session | ISessionStorage | Address
+/**
+ *
+ * reconstructSession - Reconstructs a session object from the provided arguments
+ *
+ * If a session object is provided, it is returned as is
+ * If a session storage client is provided, the session object is reconstructed from the session storage client using **all** of the sessionIds found in the storage client
+ * If a smart account address is provided, the default session storage client is used to reconstruct the session object using **all** of the sessionIds found in the storage client
+ *
+ * @param searchParam - This can be a session object {@link Session}, a session storage client {@link ISessionStorage} or a smart account address {@link Address}
+ * @returns A session object
+ * @error If the provided arguments do not match any of the above cases
+ */
+export const resumeSession = async (
+  searchParam: SessionSearchParam
+): Promise<Session> => {
+  const providedFullSession = !!(searchParam as Session)?.sessionIDInfo?.length
+  const providedStorageClient = !!(searchParam as ISessionStorage)
+    .smartAccountAddress?.length
+  const providedSmartAccountAddress = isAddress(searchParam as Address)
+
+  if (providedFullSession) {
+    const session = searchParam as Session
+    return session
+  }
+  if (providedStorageClient) {
+    const sessionStorageClient = searchParam as ISessionStorage
+    const leafArray = await sessionStorageClient.getAllSessionData()
+    const sessionIDInfo = leafArray.map(({ sessionID }) => sessionID as string)
+    const session: Session = {
+      sessionIDInfo,
+      sessionStorageClient
+    }
+    return session
+  }
+  if (providedSmartAccountAddress) {
+    const smartAccountAddress = searchParam as Address
+    // Use the default session storage client
+    const sessionStorageClient = getDefaultStorageClient(smartAccountAddress)
+    const leafArray = await sessionStorageClient.getAllSessionData()
+    const sessionIDInfo = leafArray.map(({ sessionID }) => sessionID as string)
+    const session: Session = {
+      sessionIDInfo,
+      sessionStorageClient
+    }
+    return session
+  }
+  throw new Error(ERROR_MESSAGES.UNKNOW_SESSION_ARGUMENTS)
 }

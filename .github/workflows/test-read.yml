@@ -26,3 +26,4 @@ jobs:
           E2E_BICO_PAYMASTER_KEY_BASE: ${{ secrets.E2E_BICO_PAYMASTER_KEY_BASE }}
           E2E_BICO_PAYMASTER_KEY_AMOY: ${{ secrets.E2E_BICO_PAYMASTER_KEY_AMOY }}
           CHAIN_ID: 80002
+          TESTING: true
