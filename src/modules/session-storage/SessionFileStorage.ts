@@ -1,7 +1,6 @@
-import * as nodeFs from "node:fs"
 import { http, type Chain, type Hex, createWalletClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { getRandomSigner } from "../.."
+import { getRandomSigner } from "../utils/Helper"
 import {
   Logger,
   type SmartAccountSigner,
@@ -15,17 +14,46 @@ import type {
 } from "../interfaces/ISessionStorage"
 import type { SignerData } from "../utils/Types"
 
+const getNodeFs = () => {
+  // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
+  let nodeFs
+  try {
+    //@ts-ignore
+    nodeFs = require("node:fs")
+  } catch (error) {
+    //@ts-ignore
+    // biome-ignore lint/style/useNodejsImportProtocol: <explanation>
+    nodeFs = require("fs")
+  }
+  return nodeFs
+}
+
+const DIRECTORY_NAME = "sessionStorageData"
+
 export class SessionFileStorage implements ISessionStorage {
   public smartAccountAddress: Hex
+  private storeUrl: string
 
-  constructor(smartAccountAddress: Hex) {
+  constructor(smartAccountAddress: Hex, url?: string) {
     this.smartAccountAddress = smartAccountAddress.toLowerCase() as Hex
+
+    const defaultedDirectory = url ?? __dirname
+    this.storeUrl = [defaultedDirectory, DIRECTORY_NAME].join("/")
+    this.createDirectory()
+  }
+
+  private createDirectory(): void {
+    const nodeFs = getNodeFs()
+    if (!nodeFs.existsSync(this.storeUrl)) {
+      nodeFs.mkdirSync(this.storeUrl)
+    }
   }
 
   // This method reads data from the file and returns it in the JSON format
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   private async readDataFromFile(type: "sessions" | "signers"): Promise<any> {
     return new Promise((resolve) => {
+      const nodeFs = getNodeFs()
       nodeFs.readFile(
         this.getStorageFilePath(type),
         "utf8",
@@ -48,7 +76,7 @@ export class SessionFileStorage implements ISessionStorage {
   }
 
   private getStorageFilePath(type: "sessions" | "signers"): string {
-    return `${__dirname}/sessionStorageData/${this.smartAccountAddress}_${type}.json`
+    return `${this.storeUrl}/${this.smartAccountAddress}_${type}.json`
   }
 
   private async writeDataToFile(
@@ -58,6 +86,7 @@ export class SessionFileStorage implements ISessionStorage {
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       const filePath = this.getStorageFilePath(type)
+      const nodeFs = getNodeFs()
       nodeFs.writeFile(
         filePath,
         JSON.stringify(data),
