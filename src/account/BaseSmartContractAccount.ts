@@ -54,7 +54,7 @@ export abstract class BaseSmartContractAccount<
       params.entryPointAddress ?? DEFAULT_ENTRYPOINT_ADDRESS
 
     this.rpcProvider = createPublicClient({
-      chain: params.viemChain ?? getChain(params.chainId),
+      chain: params.viemChain ?? params.customChain ?? getChain(params.chainId),
       transport: http(
         params.rpcUrl || getChain(params.chainId).rpcUrls.default.http[0]
       )

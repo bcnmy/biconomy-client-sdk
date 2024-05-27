@@ -137,6 +137,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       ...biconomySmartAccountConfig,
       chain:
         biconomySmartAccountConfig.viemChain ??
+        biconomySmartAccountConfig.customChain ??
         getChain(biconomySmartAccountConfig.chainId),
       rpcClient:
         biconomySmartAccountConfig.rpcUrl ||
@@ -199,6 +200,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     this.provider = createPublicClient({
       chain:
         biconomySmartAccountConfig.viemChain ??
+        biconomySmartAccountConfig.customChain ??
         getChain(biconomySmartAccountConfig.chainId),
       transport: http(
         biconomySmartAccountConfig.rpcUrl ||
@@ -283,12 +285,17 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     if (!chainId) {
       throw new Error("chainId required")
     }
+
     const bundler: IBundler =
       biconomySmartAccountConfig.bundler ??
       new Bundler({
-        // biome-ignore lint/style/noNonNullAssertion: <explanation>
+        // biome-ignore lint/style/noNonNullAssertion: always required
         bundlerUrl: biconomySmartAccountConfig.bundlerUrl!,
-        chainId
+        chainId,
+        customChain:
+          biconomySmartAccountConfig.viemChain ??
+          biconomySmartAccountConfig.customChain ??
+          getChain(chainId)
       })
     let defaultValidationModule =
       biconomySmartAccountConfig.defaultValidationModule

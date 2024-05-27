@@ -10,8 +10,10 @@ export type Bundlerconfig = {
   userOpWaitForTxHashIntervals?: { [key in number]?: number }
   userOpReceiptMaxDurationIntervals?: { [key in number]?: number }
   userOpWaitForTxHashMaxDurationIntervals?: { [key in number]?: number }
-  /** Can be used to optionally override the chain with a custom chain if it doesn't already exist in viems list of supported chains */
+  /** Can be used to optionally override the chain with a custom chain if it doesn't already exist in viems list of supported chains. Alias of customChain */
   viemChain?: Chain
+  /** Can be used to optionally override the chain with a custom chain if it doesn't already exist in viems list of supported chains. Alias of viemChain */
+  customChain?: Chain
 }
 export type BundlerConfigWithChainId = Bundlerconfig & { chainId: number }
 

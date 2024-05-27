@@ -1,5 +1,11 @@
 # @biconomy/account
 
+## 4.4.4
+
+### Patch Changes
+
+- Add Support for Custom Chains
+
 ## 4.4.3
 
 ### Patch Changes
