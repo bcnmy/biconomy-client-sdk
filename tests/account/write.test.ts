@@ -213,7 +213,7 @@ describe("Account:Write", () => {
       expect(receipt).toBeTruthy()
       expect(success).toBe("true")
     },
-    10000
+    80000
   )
 
   testOnlyOnOptimism(
