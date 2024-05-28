@@ -78,7 +78,7 @@ export type SessionDataTuple = [
 ]
 
 export type SessionParams = {
-  /** Redundant now as we've favoured uuid() */
+  /** ID of the session */
   sessionID?: string
   /** Session Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
   sessionSigner: SupportedSigner

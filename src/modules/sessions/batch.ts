@@ -205,7 +205,7 @@ export const getBatchSessionTxParams = async (
   chain: Chain
 ): Promise<BatchSessionParamsPayload> => {
   if (correspondingIndexes.length !== transactions.length) {
-    throw new Error(ERROR_MESSAGES.INVALID_SESSION_INDEXES)
+    Logger.log(ERROR_MESSAGES.INVALID_SESSION_INDEXES)
   }
 
   const { sessionStorageClient, sessionIDInfo } =
