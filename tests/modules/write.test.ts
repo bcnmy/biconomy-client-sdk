@@ -1307,13 +1307,13 @@ describe("Modules:Write", () => {
       })
     }
 
-    const singleSessionParamsForCancel = await getSingleSessionTxParams(
+    const singleSessionParamsForApproval = await getSingleSessionTxParams(
       session,
       chain,
       0
     )
 
-    const singleSessionParamsForOrder = await getSingleSessionTxParams(
+    const singleSessionParamsForMint = await getSingleSessionTxParams(
       session,
       chain,
       1
@@ -1321,7 +1321,7 @@ describe("Modules:Write", () => {
 
     const { wait: waitForApprovalTx } =
       await smartAccountWithSession.sendTransaction(approvalTx, {
-        ...singleSessionParamsForCancel,
+        ...singleSessionParamsForApproval,
         paymasterServiceData: {
           mode: PaymasterMode.ERC20,
           preferredToken,
@@ -1330,7 +1330,7 @@ describe("Modules:Write", () => {
       })
     const { wait: waitForMintTx } =
       await smartAccountWithSession.sendTransaction(nftMintTx, {
-        ...singleSessionParamsForOrder,
+        ...singleSessionParamsForMint,
         paymasterServiceData: {
           mode: PaymasterMode.ERC20,
           preferredToken,
