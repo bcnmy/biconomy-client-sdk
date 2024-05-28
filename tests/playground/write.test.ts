@@ -3,8 +3,8 @@ import {
   type Hex,
   createPublicClient,
   createWalletClient,
-  parseAbi,
-  encodeFunctionData
+  encodeFunctionData,
+  parseAbi
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
@@ -12,16 +12,16 @@ import {
   type BiconomySmartAccountV2,
   createSmartAccountClient
 } from "../../src/account"
-import { getConfig } from "../utils"
-import { createSessionSmartAccountClient } from "../../src/modules/sessions/sessionSmartAccountClient"
-import { PaymasterMode } from "../../src/paymaster/utils/Types"
 import { createSessionKeyEOA } from "../../src/modules/session-storage/utils"
 import { createABISessionDatum } from "../../src/modules/sessions/abi"
 import {
   createBatchSession,
   getBatchSessionTxParams
 } from "../../src/modules/sessions/batch"
+import { createSessionSmartAccountClient } from "../../src/modules/sessions/sessionSmartAccountClient"
 import type { CreateSessionDataParams } from "../../src/modules/utils/Types"
+import { PaymasterMode } from "../../src/paymaster/utils/Types"
+import { getConfig } from "../utils"
 
 describe("Playground:Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
