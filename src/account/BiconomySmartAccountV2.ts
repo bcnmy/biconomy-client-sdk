@@ -1227,10 +1227,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     // biome-ignore lint/performance/noDelete: <explanation>
     delete userOp.signature
     const userOperation = await this.signUserOp(userOp, params)
+
     const bundlerResponse = await this.sendSignedUserOp(
       userOperation,
       params?.simulationType
     )
+
     return bundlerResponse
   }
 
