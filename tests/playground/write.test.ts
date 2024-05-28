@@ -4,7 +4,9 @@ import {
   createPublicClient,
   createWalletClient,
   encodeFunctionData,
-  parseAbi
+  parseAbi,
+  slice,
+  toFunctionSelector
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
@@ -13,7 +15,10 @@ import {
   createSmartAccountClient
 } from "../../src/account"
 import { createSessionKeyEOA } from "../../src/modules/session-storage/utils"
-import { createABISessionDatum } from "../../src/modules/sessions/abi"
+import {
+  HardcodedReference,
+  createABISessionDatum
+} from "../../src/modules/sessions/abi"
 import {
   createBatchSession,
   getBatchSessionTxParams
@@ -85,15 +90,16 @@ describe("Playground:Write", () => {
     const { sessionKeyAddress, sessionStorageClient } =
       await createSessionKeyEOA(smartAccount, chain)
 
-    const maxUnit256Value = BigInt(
-      "115792089237316195423570985008687907853269984665640564039457584007913129639935"
-    )
+    const maxUnit256Value =
+      115792089237316195423570985008687907853269984665640564039457584007913129639935n
     const approval = parseAbi([
       "function approve(address spender, uint256 value) external returns (bool)"
     ])
     const safeMint = parseAbi([
       "function safeMint(address owner) view returns (uint balance)"
     ])
+
+    console.log("approve", slice(toFunctionSelector(approval[0]), 0, 4))
 
     const leaves: CreateSessionDataParams[] = [
       createABISessionDatum({
@@ -111,9 +117,11 @@ describe("Playground:Write", () => {
             referenceValue: smartAccountAddress
           },
           {
-            offset: 0,
+            offset: 64,
             condition: 1, // less than or equal
-            referenceValue: maxUnit256Value
+            referenceValue: {
+              raw: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            }
           }
         ],
         valueLimit: 0n
@@ -167,7 +175,7 @@ describe("Playground:Write", () => {
       data: encodeFunctionData({
         abi: approval,
         functionName: "approve",
-        args: [smartAccountAddress, maxUnit256Value - 1n]
+        args: [smartAccountAddress, maxUnit256Value]
       })
     }
 
@@ -181,6 +189,8 @@ describe("Playground:Write", () => {
     }
 
     const txs = [approvalTx, nftMintTx]
+
+    console.log("approvalTx.data", approvalTx.data)
 
     const batchSessionParams = await getBatchSessionTxParams(
       [approvalTx, nftMintTx],

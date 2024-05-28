@@ -283,6 +283,8 @@ export function getSessionDatum(
       pad(toHex(permission.rules[i].condition), { size: 1 }), // uint8
       parseReferenceValue(permission.rules[i].referenceValue)
     ]) as Hex
+
+    console.log("sessionKeyData", permission.rules[i])
   }
   return sessionKeyData
 }
