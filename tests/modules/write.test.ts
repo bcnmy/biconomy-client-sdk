@@ -1203,7 +1203,7 @@ describe("Modules:Write", () => {
     ).toBeGreaterThan(0)
   }, 60000)
 
-  test("should use separate single sessions for approving token gas payments and approvals", async () => {
+  test("should use different policy leaves for approving token gas payment approvals and the main tx", async () => {
     await nonZeroBalance(smartAccountAddress, preferredToken)
 
     const balanceOfPreferredTokenBefore = await checkBalance(
