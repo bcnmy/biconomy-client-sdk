@@ -212,7 +212,7 @@ export const getBatchSessionTxParams = async (
 
   const allSessions = await sessionStorageClient.getAllSessionData()
   const sessionIDInfo = correspondingIndexes.map(
-    (i) => allSessions[i].sessionID
+    (index) => allSessions[index].sessionID
   )
 
   const sessionSigner = await sessionStorageClient.getSignerBySession(
@@ -224,10 +224,10 @@ export const getBatchSessionTxParams = async (
 
   return {
     params: {
-      batchSessionParams: correspondingIndexes.map(
-        (i): SessionParams => ({
+      batchSessionParams: sessionIDInfo.map(
+        (sessionID): SessionParams => ({
           sessionSigner,
-          sessionID: sessionIDInfo[i]
+          sessionID
         })
       )
     }
