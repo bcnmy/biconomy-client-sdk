@@ -208,8 +208,12 @@ export const getBatchSessionTxParams = async (
     throw new Error(ERROR_MESSAGES.INVALID_SESSION_INDEXES)
   }
 
-  const { sessionStorageClient, sessionIDInfo } =
-    await resumeSession(conditionalSession)
+  const { sessionStorageClient } = await resumeSession(conditionalSession)
+
+  const allSessions = await sessionStorageClient.getAllSessionData()
+  const sessionIDInfo = correspondingIndexes.map(
+    (i) => allSessions[i].sessionID
+  )
 
   const sessionSigner = await sessionStorageClient.getSignerBySession(
     {

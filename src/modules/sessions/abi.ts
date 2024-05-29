@@ -338,12 +338,14 @@ export const getSingleSessionTxParams = async (
   chain: Chain,
   correspondingIndex = 0
 ): Promise<SingleSessionParamsPayload> => {
-  const { sessionStorageClient, sessionIDInfo } =
-    await resumeSession(conditionalSession)
+  const { sessionStorageClient } = await resumeSession(conditionalSession)
+
+  const allSessions = await sessionStorageClient.getAllSessionData()
+  const sessionID = allSessions[correspondingIndex].sessionID
 
   const sessionSigner = await sessionStorageClient.getSignerBySession(
     {
-      sessionID: sessionIDInfo[0]
+      sessionID
     },
     chain
   )
@@ -351,7 +353,7 @@ export const getSingleSessionTxParams = async (
   return {
     params: {
       sessionSigner,
-      sessionID: sessionIDInfo[correspondingIndex]
+      sessionID
     }
   }
 }
