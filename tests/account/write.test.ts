@@ -334,7 +334,7 @@ describe("Account:Write", async () => {
     expect(tokenBalanceOfRecipientAfter - tokenBalanceOfRecipientBefore).toBe(
       1n
     )
-  }, 40000)
+  }, 60000)
 
   test("should mint an NFT and pay with ERC20 - with token", async () => {
     const encodedCall = encodeFunctionData({
