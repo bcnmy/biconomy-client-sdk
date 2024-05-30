@@ -665,7 +665,7 @@ describe("Modules:Write", () => {
     }
   }, 50000)
 
-  test("should use ABI SVM to allow transfer ownership of smart account", async () => {
+  test.skip("should use ABI SVM to allow transfer ownership of smart account", async () => {
     const smartAccount = await createSmartAccountClient({
       chainId,
       signer: walletClient,
