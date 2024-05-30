@@ -11,14 +11,14 @@ import {
   type CreateSessionDataParams,
   DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
+  type Session,
   type SessionGrantedPayload,
   type SessionParams,
   type SessionSearchParam,
   createBatchedSessionRouterModule,
   createSessionKeyManagerModule,
-  resumeSession,
   didProvideFullSession,
-  Session
+  resumeSession
 } from "../index.js"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 
