@@ -597,6 +597,7 @@ describe("Modules:Write", () => {
       txArray.push(setSessionAllowedTrx)
     }
     const userOp = await smartAccount.buildUserOp(txArray, {
+      nonceOptions,
       paymasterServiceData: {
         mode: PaymasterMode.SPONSORED
       }

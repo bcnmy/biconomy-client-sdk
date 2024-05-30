@@ -82,7 +82,7 @@ describe("Bundler:Write", () => {
     const {
       receipt: { transactionHash },
       success
-    } = await wait(3)
+    } = await wait()
 
     expect(success).toBe("true")
 

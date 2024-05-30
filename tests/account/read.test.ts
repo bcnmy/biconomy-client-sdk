@@ -816,8 +816,6 @@ describe("Account:Read", () => {
         bundlerUrl
       })
 
-      console.log(smartAccountAddress, "smartAccountAdderss")
-
       const balances = await smartAccount.getBalances()
       expect(balances[0].amount).toBeGreaterThan(0n)
 
