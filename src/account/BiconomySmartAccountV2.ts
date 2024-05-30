@@ -211,6 +211,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     this.scanForUpgradedAccountsFromV1 =
       biconomySmartAccountConfig.scanForUpgradedAccountsFromV1 ?? false
     this.maxIndexForScan = biconomySmartAccountConfig.maxIndexForScan ?? 10
+    this.getAccountAddress()
   }
 
   /**

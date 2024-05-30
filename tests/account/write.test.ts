@@ -8,7 +8,7 @@ import {
   parseAbi
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { polygonAmoy } from "viem/chains"
+import { arbitrumSepolia, polygonAmoy } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
@@ -24,7 +24,13 @@ import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"
 import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "../../src/modules"
 import { PaymasterMode } from "../../src/paymaster"
 import { testOnlyOnOptimism } from "../setupFiles"
-import { checkBalance, getConfig, nonZeroBalance, topUp } from "../utils"
+import {
+  checkBalance,
+  getBundlerUrl,
+  getConfig,
+  nonZeroBalance,
+  topUp
+} from "../utils"
 
 describe("Account:Write", async () => {
   const nonceOptions = { nonceKey: Date.now() + 10 }
@@ -89,6 +95,47 @@ describe("Account:Write", async () => {
       )
     )
   })
+
+  test("should test the nonce on arbSepolia", async () => {
+    const chain = arbitrumSepolia
+    const account = privateKeyToAccount(`0x${privateKey}`)
+    const signer = createWalletClient({ account, chain, transport: http() })
+    const smartAccount = await createSmartAccountClient({
+      signer,
+      bundlerUrl: getBundlerUrl(chain.id)
+    })
+
+    const address = await smartAccount.getAccountAddress()
+
+    await nonZeroBalance(address)
+
+    const nonceBefore = await smartAccount.getNonce()
+    const balanceOfRecipient = await checkBalance(recipient, undefined, chain)
+
+    const { wait } = await smartAccount.sendTransaction(
+      {
+        to: recipient,
+        value: BigInt(1)
+      },
+      {
+        nonceOptions
+      }
+    )
+
+    const result = await wait()
+    const newBalanceOfRecipient = await checkBalance(
+      recipient,
+      undefined,
+      chain
+    )
+    const nonceAfter = await smartAccount.getNonce()
+
+    expect(result?.receipt?.transactionHash).toBeTruthy()
+    expect(result.success).toBe("true")
+    expect(newBalanceOfRecipient).toBeGreaterThan(balanceOfRecipient)
+
+    expect(nonceAfter - nonceBefore).toBe(1n)
+  }, 10000)
 
   test("should send some native token to recipient via the entrypoint", async () => {
     const balanceOfRecipient = await checkBalance(recipient)
@@ -287,7 +334,7 @@ describe("Account:Write", async () => {
     expect(tokenBalanceOfRecipientAfter - tokenBalanceOfRecipientBefore).toBe(
       1n
     )
-  }, 40000)
+  }, 60000)
 
   test("should mint an NFT and pay with ERC20 - with token", async () => {
     const encodedCall = encodeFunctionData({
@@ -546,7 +593,7 @@ describe("Account:Write", async () => {
     expect(success).toBe("true")
   }, 60000)
 
-  test.skip("should transfer ownership of smart account to accountTwo", async () => {
+  test("should transfer ownership of smart account to accountTwo", async () => {
     const signerOfAccount = walletClient.account.address
     const ownerOfAccount = await publicClient.readContract({
       address: DEFAULT_ECDSA_OWNERSHIP_MODULE,
@@ -567,7 +614,7 @@ describe("Account:Write", async () => {
     expect(receipt.success).toBe("true")
   }, 50000)
 
-  test.skip("should revert transfer ownership with signer that is not the owner", async () => {
+  test("should revert transfer ownership with signer that is not the owner", async () => {
     _smartAccount = await createSmartAccountClient({
       signer: walletClient,
       paymasterUrl,
@@ -595,7 +642,7 @@ describe("Account:Write", async () => {
     ).rejects.toThrowError()
   }, 50000)
 
-  test.skip("send an user op with the new owner", async () => {
+  test("send an user op with the new owner", async () => {
     _smartAccount = await createSmartAccountClient({
       signer: walletClientTwo,
       paymasterUrl,
