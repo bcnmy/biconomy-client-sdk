@@ -233,8 +233,6 @@ export const getBatchSessionTxParams = async (
     chain
   )
 
-  console.log("joe", sessionSigner.inner.account.address, sessionIDInfo)
-
   return {
     params: {
       batchSessionParams: sessionIDInfo.map(

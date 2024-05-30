@@ -88,6 +88,11 @@ export type SessionParams = {
   additionalSessionData?: string
 }
 
+export type StrictSessionParams = {
+  sessionID: string
+  sessionSigner: SupportedSigner
+}
+
 export type ModuleInfo = {
   // Could be a full object of below params and that way it can be an array too!
   // sessionParams?: SessionParams[] // where SessionParams is below four
