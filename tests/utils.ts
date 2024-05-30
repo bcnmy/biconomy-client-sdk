@@ -96,8 +96,13 @@ export const getConfig = (): TestConfig => {
   }
 }
 
-export const checkBalance = (owner: Hex, tokenAddress?: Hex) => {
-  const { chain } = getConfig()
+export const checkBalance = (
+  owner: Hex,
+  tokenAddress?: Hex,
+  _chain?: Chain
+) => {
+  const { chain: chainFromConfig } = getConfig()
+  const chain = _chain || chainFromConfig
 
   const publicClient = createPublicClient({
     chain,
