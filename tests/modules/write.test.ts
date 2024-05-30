@@ -56,6 +56,7 @@ import { PaymasterMode } from "../../src/paymaster"
 import { checkBalance, getBundlerUrl, getConfig, topUp } from "../utils"
 
 describe("Modules:Write", () => {
+  const nonceOptions = { nonceKey: 3 }
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
   const amount = parseUnits(".0001", 6)
@@ -228,7 +229,7 @@ describe("Modules:Write", () => {
 
     const { wait } = await smartAccountThreeWithSession.sendTransaction(
       nftMintTx,
-      withSponsorship
+      { ...withSponsorship, nonceOptions }
     )
 
     const { success } = await wait()
@@ -362,7 +363,8 @@ describe("Modules:Write", () => {
 
     const { wait } = await smartAccountFourWithSession.sendTransaction(txs, {
       ...batchSessionParams,
-      ...withSponsorship
+      ...withSponsorship,
+      nonceOptions
     })
     const { success } = await wait()
     expect(success).toBe("true")
@@ -615,6 +617,7 @@ describe("Modules:Write", () => {
     smartAccount = smartAccount.setActiveValidationModule(sessionModule)
     const maticBalanceBefore = await checkBalance(smartAccountAddress)
     const userOpResponse2 = await smartAccount.sendTransaction(nftMintTx, {
+      nonceOptions,
       params: {
         sessionSigner: sessionSigner,
         sessionValidationModule: abiSvmAddress
@@ -645,6 +648,7 @@ describe("Modules:Write", () => {
         DEFAULT_BATCHED_SESSION_ROUTER_MODULE
       )
       const { wait } = await smartAccount.sendTransaction(tx, {
+        nonceOptions,
         paymasterServiceData: { mode: PaymasterMode.SPONSORED }
       })
       const { success } = await wait()
@@ -786,6 +790,7 @@ describe("Modules:Write", () => {
       txArray.push(setSessionAllowedTransferOwnerhsipTrx)
     }
     const userOpResponse1 = await smartAccount.sendTransaction(txArray, {
+      nonceOptions,
       paymasterServiceData: { mode: PaymasterMode.SPONSORED }
     })
     const transactionDetails = await userOpResponse1.wait()
@@ -920,7 +925,8 @@ describe("Modules:Write", () => {
       txs,
       {
         ...batchSessionParams,
-        ...withSponsorship
+        ...withSponsorship,
+        nonceOptions
       }
     )
 
@@ -1037,11 +1043,13 @@ describe("Modules:Write", () => {
 
     const { wait: waitForCancelTx } =
       await smartAccountWithSession.sendTransaction(submitCancelTx, {
+        nonceOptions,
         ...singleSessionParamsForCancel,
         ...withSponsorship
       })
     const { wait: waitForOrderTx } =
       await smartAccountWithSession.sendTransaction(submitOrderTx, {
+        nonceOptions,
         ...singleSessionParamsForOrder,
         ...withSponsorship
       })

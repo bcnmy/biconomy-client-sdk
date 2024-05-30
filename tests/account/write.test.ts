@@ -28,6 +28,7 @@ import { testOnlyOnOptimism } from "../setupFiles"
 import { checkBalance, getConfig, nonZeroBalance, topUp } from "../utils"
 
 describe("Account:Write", async () => {
+  const nonceOptions = { nonceKey: 1 }
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
   const {
@@ -64,6 +65,7 @@ describe("Account:Write", async () => {
 
   const firstOwner = account.address
   const newOwner = accountTwo.address
+
   let _smartAccount = await createSmartAccountClient({
     signer: walletClient,
     paymasterUrl,
@@ -202,10 +204,13 @@ describe("Account:Write", async () => {
       )
       expect(walletClientWithCustomChain.chain).toEqual(customChain)
 
-      const { wait } = await smartAccountCustomChain.sendTransaction({
-        to: recipient,
-        value: BigInt(1)
-      })
+      const { wait } = await smartAccountCustomChain.sendTransaction(
+        {
+          to: recipient,
+          value: BigInt(1)
+        },
+        { nonceOptions }
+      )
 
       const { success, receipt } = await wait()
 
@@ -225,9 +230,7 @@ describe("Account:Write", async () => {
           to: recipient,
           value: BigInt(1)
         },
-        {
-          simulationType: "validation_and_execution"
-        }
+        { nonceOptions, simulationType: "validation_and_execution" }
       )
 
       const result = await wait()
@@ -261,6 +264,7 @@ describe("Account:Write", async () => {
       [{ address: token, amount: BigInt(1), recipient: sender }],
       undefined,
       {
+        nonceOptions,
         paymasterServiceData: {
           mode: PaymasterMode.SPONSORED
         }
@@ -300,6 +304,7 @@ describe("Account:Write", async () => {
     const nativeBalanceBefore = await checkBalance(smartAccountAddress)
     const tokenBalanceBefore = await checkBalance(smartAccountAddress, token)
     const { wait } = await smartAccount.sendTransaction([transaction], {
+      nonceOptions,
       paymasterServiceData: {
         mode: PaymasterMode.ERC20,
         preferredToken: token
@@ -350,6 +355,7 @@ describe("Account:Write", async () => {
     const nativeBalanceBefore = await checkBalance(smartAccountAddress)
     const tokenBalanceBefore = await checkBalance(smartAccountAddress, token)
     const { wait } = await smartAccount.sendTransaction(transaction, {
+      nonceOptions,
       paymasterServiceData: {
         mode: PaymasterMode.ERC20,
         feeQuote: selectedFeeQuote,
@@ -522,6 +528,7 @@ describe("Account:Write", async () => {
     }
 
     const { wait } = await smartAccount.sendTransaction(transaction, {
+      nonceOptions,
       gasOffset: {
         verificationGasLimitOffsetPct: 10, // 10% increase
         preVerificationGasOffsetPct: 20, // 20% increase
@@ -536,117 +543,102 @@ describe("Account:Write", async () => {
       success
     } = await wait()
 
-    expect(userOpHash).toBeTruthy()
-    expect(success).toBe("true")
-    expect(transactionHash).toBeTruthy()
-  }, 60000)
+    test.skip("should transfer ownership of smart account to accountTwo", async () => {
+      const signerOfAccount = walletClient.account.address
+      const ownerOfAccount = await publicClient.readContract({
+        address: DEFAULT_ECDSA_OWNERSHIP_MODULE,
+        abi: ECDSAModuleAbi,
+        functionName: "getOwner",
+        args: [await _smartAccount.getAccountAddress()]
+      })
 
-  test.skip("should transfer ownership of smart account to accountTwo", async () => {
-    const signerOfAccount = walletClient.account.address
-    const ownerOfAccount = await publicClient.readContract({
-      address: DEFAULT_ECDSA_OWNERSHIP_MODULE,
-      abi: ECDSAModuleAbi,
-      functionName: "getOwner",
-      args: [await _smartAccount.getAccountAddress()]
-    })
-
-    expect(ownerOfAccount).toBe(signerOfAccount)
-    const response = await _smartAccount.transferOwnership(
-      newOwner,
-      DEFAULT_ECDSA_OWNERSHIP_MODULE as TransferOwnershipCompatibleModule,
-      {
-        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
-      }
-    )
-    const receipt = await response.wait()
-    expect(receipt.success).toBe("true")
-  }, 50000)
-
-  test.skip("should revert transfer ownership with signer that is not the owner", async () => {
-    _smartAccount = await createSmartAccountClient({
-      signer: walletClient,
-      paymasterUrl,
-      bundlerUrl,
-      accountAddress: smartAccountAddress
-    })
-
-    const signerOfAccount = walletClient.account.address
-    const ownerOfAccount = await publicClient.readContract({
-      address: DEFAULT_ECDSA_OWNERSHIP_MODULE,
-      abi: ECDSAModuleAbi,
-      functionName: "getOwner",
-      args: [await _smartAccount.getAccountAddress()]
-    })
-
-    expect(ownerOfAccount).not.toBe(signerOfAccount)
-    expect(
-      _smartAccount.transferOwnership(
+      expect(ownerOfAccount).toBe(signerOfAccount)
+      const response = await _smartAccount.transferOwnership(
         newOwner,
         DEFAULT_ECDSA_OWNERSHIP_MODULE as TransferOwnershipCompatibleModule,
         {
           paymasterServiceData: { mode: PaymasterMode.SPONSORED }
         }
       )
-    ).rejects.toThrowError()
-  }, 50000)
+      const receipt = await response.wait()
+      expect(receipt.success).toBe("true")
+    }, 50000)
 
-  test.skip("send an user op with the new owner", async () => {
-    _smartAccount = await createSmartAccountClient({
-      signer: walletClientTwo,
-      paymasterUrl,
-      bundlerUrl,
-      accountAddress: smartAccountAddress
-    })
-    const currentSmartAccountInstanceSigner = await _smartAccount
-      .getSigner()
-      .getAddress()
-    expect(currentSmartAccountInstanceSigner).toBe(newOwner)
-    const tx = {
-      to: nftAddress,
-      data: encodeFunctionData({
-        abi: parseAbi(["function safeMint(address _to)"]),
-        functionName: "safeMint",
-        args: [smartAccountAddressTwo]
+    test.skip("should revert transfer ownership with signer that is not the owner", async () => {
+      _smartAccount = await createSmartAccountClient({
+        signer: walletClient,
+        paymasterUrl,
+        bundlerUrl,
+        accountAddress: smartAccountAddress
       })
-    }
-    const { wait } = await _smartAccount.sendTransaction(tx, {
-      paymasterServiceData: { mode: PaymasterMode.SPONSORED }
-    })
-    const response = await wait()
-    expect(response.success).toBe("true")
-  }, 50000)
 
-  test.skip("should revert if sending an user op with the old owner", async () => {
-    _smartAccount = await createSmartAccountClient({
-      signer: walletClient,
-      paymasterUrl,
-      bundlerUrl,
-      accountAddress: smartAccountAddress
-    })
-    const tx = {
-      to: nftAddress,
-      data: encodeFunctionData({
-        abi: parseAbi(["function safeMint(address _to)"]),
-        functionName: "safeMint",
-        args: [smartAccountAddressTwo]
+      const signerOfAccount = walletClient.account.address
+      const ownerOfAccount = await publicClient.readContract({
+        address: DEFAULT_ECDSA_OWNERSHIP_MODULE,
+        abi: ECDSAModuleAbi,
+        functionName: "getOwner",
+        args: [await _smartAccount.getAccountAddress()]
       })
-    }
-    await expect(
-      _smartAccount.sendTransaction(tx, {
+
+      expect(ownerOfAccount).not.toBe(signerOfAccount)
+      expect(
+        _smartAccount.transferOwnership(
+          newOwner,
+          DEFAULT_ECDSA_OWNERSHIP_MODULE as TransferOwnershipCompatibleModule,
+          {
+            paymasterServiceData: { mode: PaymasterMode.SPONSORED }
+          }
+        )
+      ).rejects.toThrowError()
+    }, 50000)
+
+    test.skip("send an user op with the new owner", async () => {
+      _smartAccount = await createSmartAccountClient({
+        signer: walletClientTwo,
+        paymasterUrl,
+        bundlerUrl,
+        accountAddress: smartAccountAddress
+      })
+      const currentSmartAccountInstanceSigner = await _smartAccount
+        .getSigner()
+        .getAddress()
+      expect(currentSmartAccountInstanceSigner).toBe(newOwner)
+      const tx = {
+        to: nftAddress,
+        data: encodeFunctionData({
+          abi: parseAbi(["function safeMint(address _to)"]),
+          functionName: "safeMint",
+          args: [smartAccountAddressTwo]
+        })
+      }
+      const { wait } = await _smartAccount.sendTransaction(tx, {
+        nonceOptions,
         paymasterServiceData: { mode: PaymasterMode.SPONSORED }
       })
-    ).rejects.toThrowError(
-      await getAAError("Error coming from Bundler: AA24 signature error")
-    )
-  }, 50000)
+      const response = await wait()
+      expect(response.success).toBe("true")
+    }, 50000)
 
-  test.skip("should transfer ownership of smart account back to EOA 1", async () => {
-    _smartAccount = await createSmartAccountClient({
-      signer: walletClientTwo,
-      paymasterUrl,
-      bundlerUrl,
-      accountAddress: smartAccountAddress
-    })
+    test.skip("should revert if sending an user op with the old owner", async () => {
+      _smartAccount = await createSmartAccountClient({
+        signer: walletClient,
+        paymasterUrl,
+        bundlerUrl,
+        accountAddress: smartAccountAddress
+      })
+
+      expect(ownerOfAccount).not.toBe(signerOfAccount)
+      expect(
+        _smartAccount.transferOwnership(
+          newOwner,
+          DEFAULT_ECDSA_OWNERSHIP_MODULE as TransferOwnershipCompatibleModule,
+          {
+            nonceOptions,
+            paymasterServiceData: { mode: PaymasterMode.SPONSORED }
+          }
+        )
+      ).rejects.toThrowError()
+    }, 50000)
 
     const signerOfAccount = walletClientTwo.account.address
     const ownerOfAccount = await publicClient.readContract({

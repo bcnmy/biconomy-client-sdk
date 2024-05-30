@@ -18,6 +18,7 @@ import { testOnlyOnOptimism } from "../setupFiles"
 import { checkBalance, getConfig, nonZeroBalance, topUp } from "../utils"
 
 describe("Paymaster:Write", () => {
+  const nonceOptions = { nonceKey: 4 }
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const {
     chain,
@@ -87,6 +88,7 @@ describe("Paymaster:Write", () => {
     const maticBalanceBefore = await checkBalance(smartAccountAddress)
 
     const response = await smartAccount.sendTransaction(transaction, {
+      nonceOptions,
       paymasterServiceData: { mode: PaymasterMode.SPONSORED },
       simulationType: "validation"
     })
@@ -194,6 +196,7 @@ describe("Paymaster:Write", () => {
       const maticBalanceBefore = await checkBalance(smartAccountAddress)
 
       const response = await smartAccount.sendTransaction(transaction, {
+        nonceOptions,
         paymasterServiceData: { mode: PaymasterMode.SPONSORED },
         simulationType: "validation_and_execution"
       })

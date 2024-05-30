@@ -16,6 +16,7 @@ import {
 } from "../utils"
 
 describe("Bundler:Write", () => {
+  const nonceOptions = { nonceKey: 2 }
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const {
     chain,
@@ -70,10 +71,13 @@ describe("Bundler:Write", () => {
     await topUp(smartAccountAddress, BigInt(1000000000000000000))
     const balanceOfRecipient = await checkBalance(recipient)
 
-    const { wait } = await smartAccount.sendTransaction({
-      to: recipient,
-      value: 1n
-    })
+    const { wait } = await smartAccount.sendTransaction(
+      {
+        to: recipient,
+        value: 1n
+      },
+      { nonceOptions }
+    )
 
     const {
       receipt: { transactionHash },
@@ -106,10 +110,13 @@ describe("Bundler:Write", () => {
       })
 
     const { wait } =
-      await smartAccountClientWithBundlerInstance.sendTransaction({
-        to: recipient,
-        value: 1
-      })
+      await smartAccountClientWithBundlerInstance.sendTransaction(
+        {
+          to: recipient,
+          value: 1
+        },
+        { nonceOptions }
+      )
 
     const {
       receipt: { transactionHash },
@@ -147,10 +154,13 @@ describe("Bundler:Write", () => {
 
     expect(chain.id).toBe(NETWORK_ID)
 
-    const { wait } = await newSmartAccount.sendTransaction({
-      to: recipient,
-      value: 1n
-    })
+    const { wait } = await newSmartAccount.sendTransaction(
+      {
+        to: recipient,
+        value: 1n
+      },
+      { nonceOptions }
+    )
 
     const { success } = await wait()
 
