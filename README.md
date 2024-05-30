@@ -72,6 +72,7 @@ For a comprehensive understanding of our project and to contribute effectively, 
 - [send some eth with sponsorship](examples/SEND_SOME_ETH_WITH_SPONSORSHIP.md)
 - [send a multi tx and pay gas with an erc20 token](examples/SEND_A_MULTI_TX_AND_PAY_GAS_WITH_TOKEN.md)
 - [create and use a session](examples/CREATE_AND_USE_A_SESSION.md)
+- [create and use a batch session](examples/CREATE_AND_USE_A_BATCH_SESSION.md)
 
 ## License
 

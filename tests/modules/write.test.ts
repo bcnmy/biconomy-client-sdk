@@ -53,12 +53,20 @@ import {
 import { createERC20SessionDatum } from "../../src/modules/sessions/erc20"
 import { createSessionSmartAccountClient } from "../../src/modules/sessions/sessionSmartAccountClient"
 import { PaymasterMode } from "../../src/paymaster"
-import { checkBalance, getBundlerUrl, getConfig, topUp } from "../utils"
+import {
+  checkBalance,
+  getBundlerUrl,
+  getConfig,
+  nonZeroBalance,
+  topUp
+} from "../utils"
 
 describe("Modules:Write", () => {
   const nonceOptions = { nonceKey: Date.now() + 30 }
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
+  const preferredToken = token
+  const BICONOMY_TOKEN_PAYMASTER = "0x00000f7365cA6C59A2C93719ad53d567ed49c14C"
   const amount = parseUnits(".0001", 6)
 
   const withSponsorship = {
@@ -987,6 +995,290 @@ describe("Modules:Write", () => {
       }
     ]
 
+    const { wait } = await createSession(
+      smartAccount,
+      policy,
+      sessionStorageClient,
+      withSponsorship
+    )
+
+    const {
+      receipt: { transactionHash },
+      success
+    } = await wait()
+
+    expect(success).toBe("true")
+    expect(transactionHash).toBeTruthy()
+
+    const smartAccountWithSession = await createSessionSmartAccountClient(
+      {
+        accountAddress: smartAccountAddress, // Set the account address on behalf of the user
+        bundlerUrl,
+        paymasterUrl,
+        chainId: chain.id
+      },
+      sessionStorageClient
+    )
+
+    const submitCancelTx: Transaction = {
+      to: DUMMY_CONTRACT_ADDRESS,
+      data: encodeFunctionData({
+        abi: cancel,
+        functionName: "submitCancel",
+        args: [BigInt(1)]
+      })
+    }
+
+    const submitOrderTx: Transaction = {
+      to: DUMMY_CONTRACT_ADDRESS,
+      data: encodeFunctionData({
+        abi: order,
+        functionName: "submitOrder",
+        args: [BigInt(1)]
+      })
+    }
+
+    const allSessionIds = (await sessionStorageClient.getAllSessionData()).map(
+      ({ sessionID }) => sessionID
+    )
+
+    const singleSessionParamsForCancel = await getSingleSessionTxParams(
+      sessionStorageClient,
+      chain,
+      0
+    )
+
+    const singleSessionParamsForOrder = await getSingleSessionTxParams(
+      sessionStorageClient,
+      chain,
+      1
+    )
+
+    const { wait: waitForCancelTx } =
+      await smartAccountWithSession.sendTransaction(submitCancelTx, {
+        nonceOptions,
+        ...singleSessionParamsForCancel,
+        ...withSponsorship
+      })
+
+    const { success: txCancelSuccess } = await waitForCancelTx()
+    expect(txCancelSuccess).toBe("true")
+
+    const { wait: waitForOrderTx } =
+      await smartAccountWithSession.sendTransaction(submitOrderTx, {
+        nonceOptions,
+        ...singleSessionParamsForOrder,
+        ...withSponsorship
+      })
+
+    const { success: txOrderSuccess } = await waitForOrderTx()
+    expect(txOrderSuccess).toBe("true")
+  }, 60000)
+
+  test("should combine erc20 token gas payments with a batch session", async () => {
+    await nonZeroBalance(smartAccountAddress, preferredToken)
+
+    const balanceOfPreferredTokenBefore = await checkBalance(
+      smartAccountAddress,
+      preferredToken
+    )
+
+    const { sessionKeyAddress, sessionStorageClient } =
+      await createSessionKeyEOA(smartAccount, chain)
+
+    const maxUnit256Value =
+      115792089237316195423570985008687907853269984665640564039457584007913129639935n
+    const approval = parseAbi([
+      "function approve(address spender, uint256 value) external returns (bool)"
+    ])
+    const safeMint = parseAbi([
+      "function safeMint(address owner) view returns (uint balance)"
+    ])
+
+    const leaves: CreateSessionDataParams[] = [
+      createABISessionDatum({
+        interval: {
+          validUntil: 0,
+          validAfter: 0
+        },
+        sessionKeyAddress,
+        contractAddress: preferredToken,
+        functionSelector: approval[0],
+        rules: [
+          {
+            offset: 0,
+            condition: 0, // equal
+            referenceValue: BICONOMY_TOKEN_PAYMASTER
+          },
+          {
+            offset: 32,
+            condition: 1, // less than or equal
+            referenceValue: maxUnit256Value // max amount
+          }
+        ],
+        valueLimit: 0n
+      }),
+      createABISessionDatum({
+        interval: {
+          validUntil: 0,
+          validAfter: 0
+        },
+        sessionKeyAddress,
+        contractAddress: nftAddress,
+        functionSelector: safeMint[0],
+        rules: [
+          {
+            offset: 0,
+            condition: 0,
+            referenceValue: smartAccountAddress
+          }
+        ],
+        valueLimit: 0n
+      })
+    ]
+
+    const { wait, session } = await createBatchSession(
+      smartAccount,
+      sessionStorageClient,
+      leaves,
+      withSponsorship
+    )
+
+    const {
+      receipt: { transactionHash },
+      success
+    } = await wait()
+
+    expect(success).toBe("true")
+    expect(transactionHash).toBeTruthy()
+
+    const smartAccountWithSession = await createSessionSmartAccountClient(
+      {
+        accountAddress: smartAccountAddress, // Set the account address on behalf of the user
+        bundlerUrl,
+        paymasterUrl,
+        chainId: chain.id
+      },
+      session,
+      true // for batching
+    )
+
+    const approvalTx = {
+      to: preferredToken,
+      data: encodeFunctionData({
+        abi: approval,
+        functionName: "approve",
+        args: [BICONOMY_TOKEN_PAYMASTER, 1000000n] // Must be more than the expected value, could be retrieved from the getTokenFees() method
+      })
+    }
+
+    const nftMintTx = {
+      to: nftAddress,
+      data: encodeFunctionData({
+        abi: safeMint,
+        functionName: "safeMint",
+        args: [smartAccountAddress]
+      })
+    }
+
+    const txs = [approvalTx, nftMintTx]
+
+    const batchSessionParams = await getBatchSessionTxParams(
+      txs,
+      [0, 1],
+      session,
+      chain
+    )
+
+    const { wait: waitForMint } = await smartAccountWithSession.sendTransaction(
+      txs,
+      {
+        paymasterServiceData: {
+          mode: PaymasterMode.ERC20,
+          preferredToken,
+          skipPatchCallData: true // This omits the automatic patching of the call data with approvals
+        },
+        ...batchSessionParams
+      }
+    )
+    const {
+      receipt: { transactionHash: mintTxHash },
+      userOpHash,
+      success: mintSuccess
+    } = await waitForMint()
+
+    const balanceOfPreferredTokenAfter = await checkBalance(
+      smartAccountAddress,
+      preferredToken
+    )
+
+    expect(mintSuccess).toBe("true")
+    expect(
+      balanceOfPreferredTokenBefore - balanceOfPreferredTokenAfter
+    ).toBeGreaterThan(0)
+  }, 60000)
+
+  test("should use different policy leaves from a single session for a) approving token gas payment approvals and b) the main tx", async () => {
+    await nonZeroBalance(smartAccountAddress, preferredToken)
+
+    const balanceOfPreferredTokenBefore = await checkBalance(
+      smartAccountAddress,
+      preferredToken
+    )
+
+    const { sessionKeyAddress, sessionStorageClient } =
+      await createSessionKeyEOA(smartAccount, chain)
+
+    const maxUnit256Value =
+      115792089237316195423570985008687907853269984665640564039457584007913129639935n
+    const approval = parseAbi([
+      "function approve(address spender, uint256 value) external returns (bool)"
+    ])
+    const safeMint = parseAbi([
+      "function safeMint(address owner) view returns (uint balance)"
+    ])
+    const policy: Policy[] = [
+      {
+        interval: {
+          validUntil: 0,
+          validAfter: 0
+        },
+        sessionKeyAddress,
+        contractAddress: preferredToken,
+        functionSelector: approval[0],
+        rules: [
+          {
+            offset: 0,
+            condition: 0, // equal
+            referenceValue: BICONOMY_TOKEN_PAYMASTER
+          },
+          {
+            offset: 32,
+            condition: 1, // less than or equal
+            referenceValue: maxUnit256Value // max amount
+          }
+        ],
+        valueLimit: 0n
+      },
+      {
+        interval: {
+          validUntil: 0,
+          validAfter: 0
+        },
+        sessionKeyAddress,
+        contractAddress: nftAddress,
+        functionSelector: safeMint[0],
+        rules: [
+          {
+            offset: 0,
+            condition: 0,
+            referenceValue: smartAccountAddress
+          }
+        ],
+        valueLimit: 0n
+      }
+    ]
+
     const { wait, session } = await createSession(
       smartAccount,
       policy,
@@ -1012,52 +1304,68 @@ describe("Modules:Write", () => {
       smartAccountAddress
     )
 
-    const submitCancelTx: Transaction = {
-      to: DUMMY_CONTRACT_ADDRESS,
+    const approvalTx = {
+      to: preferredToken,
       data: encodeFunctionData({
-        abi: cancel,
-        functionName: "submitCancel",
-        args: [BigInt(1)]
+        abi: approval,
+        functionName: "approve",
+        args: [BICONOMY_TOKEN_PAYMASTER, 1000000n] // Must be more than the expected value, could be retrieved from the getTokenFees() method
       })
     }
 
-    const submitOrderTx: Transaction = {
-      to: DUMMY_CONTRACT_ADDRESS,
+    const nftMintTx = {
+      to: nftAddress,
       data: encodeFunctionData({
-        abi: order,
-        functionName: "submitOrder",
-        args: [BigInt(1)]
+        abi: safeMint,
+        functionName: "safeMint",
+        args: [smartAccountAddress]
       })
     }
 
-    const singleSessionParamsForCancel = await getSingleSessionTxParams(
+    const singleSessionParamsForApproval = await getSingleSessionTxParams(
       session,
       chain,
       0
     )
 
-    const singleSessionParamsForOrder = await getSingleSessionTxParams(
+    const singleSessionParamsForMint = await getSingleSessionTxParams(
       session,
       chain,
       1
     )
 
-    const { wait: waitForCancelTx } =
-      await smartAccountWithSession.sendTransaction(submitCancelTx, {
-        nonceOptions,
-        ...singleSessionParamsForCancel,
-        ...withSponsorship
+    const { wait: waitForApprovalTx } =
+      await smartAccountWithSession.sendTransaction(approvalTx, {
+        ...singleSessionParamsForApproval,
+        paymasterServiceData: {
+          mode: PaymasterMode.ERC20,
+          preferredToken,
+          skipPatchCallData: true // This omits the automatic patching of the call data with approvals
+        }
       })
-    const { wait: waitForOrderTx } =
-      await smartAccountWithSession.sendTransaction(submitOrderTx, {
-        nonceOptions,
-        ...singleSessionParamsForOrder,
-        ...withSponsorship
+    const { success: txApprovalSuccess } = await waitForApprovalTx()
+    expect(txApprovalSuccess).toBe("true")
+
+    const { wait: waitForMintTx } =
+      await smartAccountWithSession.sendTransaction(nftMintTx, {
+        ...singleSessionParamsForMint,
+        paymasterServiceData: {
+          mode: PaymasterMode.ERC20,
+          preferredToken,
+          skipPatchCallData: true // This omits the automatic patching of the call data with approvals
+        }
       })
 
-    const { success: txCancelSuccess } = await waitForCancelTx()
-    const { success: txOrderSuccess } = await waitForOrderTx()
-    expect(txCancelSuccess).toBe("true")
-    expect(txOrderSuccess).toBe("true")
+    const { success: txMintSuccess } = await waitForMintTx()
+    expect(txMintSuccess).toBe("true")
+
+    const balanceOfPreferredTokenAfter = await checkBalance(
+      smartAccountAddress,
+      preferredToken
+    )
+
+    expect(
+      balanceOfPreferredTokenBefore - balanceOfPreferredTokenAfter
+    ).toBeGreaterThan(0)
   }, 60000)
 })
