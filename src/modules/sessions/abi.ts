@@ -22,7 +22,11 @@ import {
   Logger,
   type Transaction
 } from "../../account"
-import { createSessionKeyManagerModule, resumeSession } from "../index"
+import {
+  createSessionKeyManagerModule,
+  didProvideFullSession,
+  resumeSession
+} from "../index"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import {
   DEFAULT_ABI_SVM_MODULE,
@@ -364,8 +368,9 @@ export const getSingleSessionTxParams = async (
 
   // if correspondingIndex is null then use the last session.
   const allSessions = await sessionStorageClient.getAllSessionData()
-  const sessionID =
-    allSessions[correspondingIndex ?? allSessions.length - 1].sessionID
+  const sessionID = didProvideFullSession(conditionalSession)
+    ? (conditionalSession as Session).sessionIDInfo[correspondingIndex ?? 0]
+    : allSessions[correspondingIndex ?? allSessions.length - 1].sessionID
 
   const sessionSigner = await sessionStorageClient.getSignerBySession(
     {

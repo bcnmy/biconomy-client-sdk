@@ -186,6 +186,9 @@ export const parseChain = (chainInfo: ChainInfo): Chain => {
  *
  */
 export type SessionSearchParam = Session | ISessionStorage | Address
+export const didProvideFullSession = (
+  searchParam: SessionSearchParam
+): boolean => !!(searchParam as Session)?.sessionIDInfo?.length
 /**
  *
  * reconstructSession - Reconstructs a session object from the provided arguments
@@ -201,7 +204,7 @@ export type SessionSearchParam = Session | ISessionStorage | Address
 export const resumeSession = async (
   searchParam: SessionSearchParam
 ): Promise<Session> => {
-  const providedFullSession = !!(searchParam as Session)?.sessionIDInfo?.length
+  const providedFullSession = didProvideFullSession(searchParam)
   const providedStorageClient = !!(searchParam as ISessionStorage)
     .smartAccountAddress?.length
   const providedSmartAccountAddress = isAddress(searchParam as Address)

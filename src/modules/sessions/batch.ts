@@ -16,7 +16,9 @@ import {
   type SessionSearchParam,
   createBatchedSessionRouterModule,
   createSessionKeyManagerModule,
-  resumeSession
+  resumeSession,
+  didProvideFullSession,
+  Session
 } from "../index.js"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 
@@ -216,7 +218,9 @@ export const getBatchSessionTxParams = async (
   let sessionIDInfo: string[] = []
 
   const allSessions = await sessionStorageClient.getAllSessionData()
-  if (isNullOrUndefined(correspondingIndexes)) {
+  if (didProvideFullSession(conditionalSession)) {
+    sessionIDInfo = (conditionalSession as Session).sessionIDInfo
+  } else if (isNullOrUndefined(correspondingIndexes)) {
     sessionIDInfo = allSessions
       .slice(-transactions.length)
       .map(({ sessionID }) => sessionID as string)

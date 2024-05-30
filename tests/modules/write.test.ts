@@ -665,7 +665,7 @@ describe("Modules:Write", () => {
     }
   }, 50000)
 
-  test.skip("should use ABI SVM to allow transfer ownership of smart account", async () => {
+  test("should use ABI SVM to allow transfer ownership of smart account", async () => {
     const smartAccount = await createSmartAccountClient({
       chainId,
       signer: walletClient,
@@ -995,7 +995,7 @@ describe("Modules:Write", () => {
       }
     ]
 
-    const { wait, session } = await createSession(
+    const { wait } = await createSession(
       smartAccount,
       policy,
       sessionStorageClient,
@@ -1017,7 +1017,7 @@ describe("Modules:Write", () => {
         paymasterUrl,
         chainId: chain.id
       },
-      smartAccountAddress
+      sessionStorageClient
     )
 
     const submitCancelTx: Transaction = {
@@ -1038,14 +1038,18 @@ describe("Modules:Write", () => {
       })
     }
 
+    const allSessionIds = (await sessionStorageClient.getAllSessionData()).map(
+      ({ sessionID }) => sessionID
+    )
+
     const singleSessionParamsForCancel = await getSingleSessionTxParams(
-      session,
+      sessionStorageClient,
       chain,
       0
     )
 
     const singleSessionParamsForOrder = await getSingleSessionTxParams(
-      session,
+      sessionStorageClient,
       chain,
       1
     )
@@ -1056,6 +1060,10 @@ describe("Modules:Write", () => {
         ...singleSessionParamsForCancel,
         ...withSponsorship
       })
+
+    const { success: txCancelSuccess } = await waitForCancelTx()
+    expect(txCancelSuccess).toBe("true")
+
     const { wait: waitForOrderTx } =
       await smartAccountWithSession.sendTransaction(submitOrderTx, {
         nonceOptions,
@@ -1063,9 +1071,7 @@ describe("Modules:Write", () => {
         ...withSponsorship
       })
 
-    const { success: txCancelSuccess } = await waitForCancelTx()
     const { success: txOrderSuccess } = await waitForOrderTx()
-    expect(txCancelSuccess).toBe("true")
     expect(txOrderSuccess).toBe("true")
   }, 60000)
 
@@ -1337,6 +1343,9 @@ describe("Modules:Write", () => {
           skipPatchCallData: true // This omits the automatic patching of the call data with approvals
         }
       })
+    const { success: txApprovalSuccess } = await waitForApprovalTx()
+    expect(txApprovalSuccess).toBe("true")
+
     const { wait: waitForMintTx } =
       await smartAccountWithSession.sendTransaction(nftMintTx, {
         ...singleSessionParamsForMint,
@@ -1347,9 +1356,7 @@ describe("Modules:Write", () => {
         }
       })
 
-    const { success: txApprovalSuccess } = await waitForApprovalTx()
     const { success: txMintSuccess } = await waitForMintTx()
-    expect(txApprovalSuccess).toBe("true")
     expect(txMintSuccess).toBe("true")
 
     const balanceOfPreferredTokenAfter = await checkBalance(
