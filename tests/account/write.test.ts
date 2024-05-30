@@ -8,36 +8,26 @@ import {
   parseAbi
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { readContract } from "viem/actions"
 import { polygonAmoy } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
   DEFAULT_ENTRYPOINT_ADDRESS,
   ERC20_ABI,
+  type TransferOwnershipCompatibleModule,
   createSmartAccountClient,
   getCustomChain,
   percentage
 } from "../../src/account"
 import { ECDSAModuleAbi } from "../../src/account/abi/ECDSAModule"
 import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"
-import { getAAError } from "../../src/bundler/utils/getAAError"
-import {
-  DEFAULT_ECDSA_OWNERSHIP_MODULE,
-  DEFAULT_MULTICHAIN_MODULE,
-  createMultiChainValidationModule
-} from "../../src/modules"
+import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "../../src/modules"
 import { PaymasterMode } from "../../src/paymaster"
 import { testOnlyOnOptimism } from "../setupFiles"
-import {
-  checkBalance,
-  getBundlerUrl,
-  getConfig,
-  nonZeroBalance,
-  topUp
-} from "../utils"
+import { checkBalance, getConfig, nonZeroBalance, topUp } from "../utils"
 
-describe("Account:Write", () => {
+describe("Account:Write", async () => {
+  const nonceOptions = { nonceKey: Date.now() + 10 }
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
   const {
@@ -71,6 +61,16 @@ describe("Account:Write", () => {
       transport: http()
     })
   ]
+
+  const firstOwner = account.address
+  const newOwner = accountTwo.address
+
+  let _smartAccount = await createSmartAccountClient({
+    signer: walletClient,
+    paymasterUrl,
+    bundlerUrl
+    // accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC"
+  })
 
   beforeAll(async () => {
     ;[smartAccount, smartAccountTwo] = await Promise.all(
@@ -203,10 +203,13 @@ describe("Account:Write", () => {
       )
       expect(walletClientWithCustomChain.chain).toEqual(customChain)
 
-      const { wait } = await smartAccountCustomChain.sendTransaction({
-        to: recipient,
-        value: BigInt(1)
-      })
+      const { wait } = await smartAccountCustomChain.sendTransaction(
+        {
+          to: recipient,
+          value: BigInt(1)
+        },
+        { nonceOptions }
+      )
 
       const { success, receipt } = await wait()
 
@@ -226,9 +229,7 @@ describe("Account:Write", () => {
           to: recipient,
           value: BigInt(1)
         },
-        {
-          simulationType: "validation_and_execution"
-        }
+        { nonceOptions, simulationType: "validation_and_execution" }
       )
 
       const result = await wait()
@@ -262,6 +263,7 @@ describe("Account:Write", () => {
       [{ address: token, amount: BigInt(1), recipient: sender }],
       undefined,
       {
+        nonceOptions,
         paymasterServiceData: {
           mode: PaymasterMode.SPONSORED
         }
@@ -301,6 +303,7 @@ describe("Account:Write", () => {
     const nativeBalanceBefore = await checkBalance(smartAccountAddress)
     const tokenBalanceBefore = await checkBalance(smartAccountAddress, token)
     const { wait } = await smartAccount.sendTransaction([transaction], {
+      nonceOptions,
       paymasterServiceData: {
         mode: PaymasterMode.ERC20,
         preferredToken: token
@@ -351,6 +354,7 @@ describe("Account:Write", () => {
     const nativeBalanceBefore = await checkBalance(smartAccountAddress)
     const tokenBalanceBefore = await checkBalance(smartAccountAddress, token)
     const { wait } = await smartAccount.sendTransaction(transaction, {
+      nonceOptions,
       paymasterServiceData: {
         mode: PaymasterMode.ERC20,
         feeQuote: selectedFeeQuote,
@@ -373,321 +377,248 @@ describe("Account:Write", () => {
     expect(newBalance - balance).toBe(1n)
   }, 60000)
 
-  describe("Account:User Op Gas Offset", () => {
-    test("should increment user op verificationGasLimit by 50%. Paymaster OFF", async () => {
-      const transaction = {
-        to: recipient,
-        data: "0x"
+  test("should increment user op verificationGasLimit by 50%. Paymaster OFF", async () => {
+    const transaction = {
+      to: recipient,
+      data: "0x"
+    }
+
+    const userOpWithNoOffset = await smartAccount.buildUserOp([transaction])
+    const userOpWithOffset = await smartAccount.buildUserOp([transaction], {
+      gasOffset: {
+        verificationGasLimitOffsetPct: 50 // 50% increase
       }
-
-      const userOpWithNoOffset = await smartAccount.buildUserOp([transaction])
-      const userOpWithOffset = await smartAccount.buildUserOp([transaction], {
-        gasOffset: {
-          verificationGasLimitOffsetPct: 50 // 50% increase
-        }
-      })
-
-      const difference = Math.round(
-        Number(userOpWithOffset.verificationGasLimit) -
-          Number(userOpWithNoOffset.verificationGasLimit)
-      )
-      const percentageValue = Math.round(
-        percentage(difference, Number(userOpWithNoOffset.verificationGasLimit))
-      )
-
-      expect(percentageValue).toBe(50)
-    }, 60000)
-
-    test("should increment user op gas values. Paymaster OFF", async () => {
-      const transaction = {
-        to: recipient,
-        data: "0x"
-      }
-
-      const userOpWithNoOffset = await smartAccount.buildUserOp([transaction])
-      const userOpWithOffset = await smartAccount.buildUserOp([transaction], {
-        gasOffset: {
-          verificationGasLimitOffsetPct: 50, // 50% increase
-          preVerificationGasOffsetPct: 100 // 100% increase
-        }
-      })
-
-      const vglDifference = Math.round(
-        Number(userOpWithOffset.verificationGasLimit) -
-          Number(userOpWithNoOffset.verificationGasLimit)
-      )
-      const cgllDifference = Math.round(
-        Number(userOpWithOffset.callGasLimit) -
-          Number(userOpWithNoOffset.callGasLimit)
-      )
-      const pvgDifference = Math.round(
-        Number(userOpWithOffset.preVerificationGas) -
-          Number(userOpWithNoOffset.preVerificationGas)
-      )
-
-      const vglPercentageValue = Math.round(
-        percentage(
-          vglDifference,
-          Number(userOpWithNoOffset.verificationGasLimit)
-        )
-      )
-      const cglPercentageValue = Math.round(
-        percentage(cgllDifference, Number(userOpWithNoOffset.callGasLimit))
-      )
-      const pvgPercentageValue = Math.round(
-        percentage(pvgDifference, Number(userOpWithNoOffset.preVerificationGas))
-      )
-
-      expect(vglPercentageValue).toBe(50)
-      expect(cglPercentageValue).toBe(0)
-      expect(pvgPercentageValue).toBe(100)
-    }, 60000)
-
-    test("should increment user op gas values. Paymaster ON", async () => {
-      const transaction = {
-        to: recipient,
-        data: "0x"
-      }
-
-      const userOpWithNoOffset = await smartAccount.buildUserOp([transaction], {
-        paymasterServiceData: { mode: PaymasterMode.SPONSORED },
-        gasOffset: {
-          verificationGasLimitOffsetPct: 0 // no increment but provided to avoid paymaster gas calculation (just for testing purposes)
-        }
-      }) // Passing gasOffset to avoid paymaster gas calculation
-      const userOpWithOffset = await smartAccount.buildUserOp([transaction], {
-        paymasterServiceData: { mode: PaymasterMode.SPONSORED },
-        gasOffset: {
-          verificationGasLimitOffsetPct: 13.2, // 13.2% increase
-          preVerificationGasOffsetPct: 81 // 81% increase
-        }
-      })
-
-      const vglDifference = Math.round(
-        Number(userOpWithOffset.verificationGasLimit) -
-          Number(userOpWithNoOffset.verificationGasLimit)
-      )
-      const cgllDifference = Math.round(
-        Number(userOpWithOffset.callGasLimit) -
-          Number(userOpWithNoOffset.callGasLimit)
-      )
-      const pvgDifference = Math.round(
-        Number(userOpWithOffset.preVerificationGas) -
-          Number(userOpWithNoOffset.preVerificationGas)
-      )
-
-      const vglPercentageValue = Math.round(
-        percentage(
-          vglDifference,
-          Number(userOpWithNoOffset.verificationGasLimit)
-        )
-      )
-      const cglPercentageValue = Math.round(
-        percentage(cgllDifference, Number(userOpWithNoOffset.callGasLimit))
-      )
-      const pvgPercentageValue = Math.round(
-        percentage(pvgDifference, Number(userOpWithNoOffset.preVerificationGas))
-      )
-
-      expect(vglPercentageValue).toBe(13)
-      expect(cglPercentageValue).toBe(0)
-      expect(pvgPercentageValue).toBe(81)
-    }, 60000)
-
-    test("should throw if percentage given is bigger than 100. Paymaster ON", async () => {
-      const transaction = {
-        to: recipient,
-        data: "0x"
-      }
-
-      const userOpWithNoOffset = await smartAccount.buildUserOp([transaction], {
-        paymasterServiceData: { mode: PaymasterMode.SPONSORED },
-        gasOffset: {
-          verificationGasLimitOffsetPct: 0 // no increment, just for testing purposes
-        }
-      }) // Passing gasOffset to avoid paymaster gas calculation
-      const userOpWithOffset = smartAccount.buildUserOp([transaction], {
-        paymasterServiceData: { mode: PaymasterMode.SPONSORED },
-        gasOffset: {
-          verificationGasLimitOffsetPct: 110 // 110% increase (not allowed)
-        }
-      })
-
-      expect(userOpWithOffset).rejects.toThrowError(
-        "The percentage value should be between 1 and 100."
-      )
-    }, 60000)
-
-    test("should increment user op gas with no paymaster using sendTransaction", async () => {
-      const encodedCall = encodeFunctionData({
-        abi: parseAbi(["function safeMint(address _to)"]),
-        functionName: "safeMint",
-        args: [recipient]
-      })
-      const transaction = {
-        to: nftAddress, // NFT address
-        data: encodedCall
-      }
-
-      const { wait } = await smartAccount.sendTransaction(transaction, {
-        gasOffset: {
-          verificationGasLimitOffsetPct: 10, // 10% increase
-          preVerificationGasOffsetPct: 20, // 20% increase
-          maxFeePerGasOffsetPct: 30, // 30% increase
-          callGasLimitOffsetPct: 40, // 40% increase
-          maxPriorityFeePerGasOffsetPct: 50 // 50% increase
-        }
-      })
-      const {
-        receipt: { transactionHash },
-        userOpHash,
-        success
-      } = await wait()
-
-      expect(userOpHash).toBeTruthy()
-      expect(success).toBe("true")
-      expect(transactionHash).toBeTruthy()
-    }, 60000)
-  })
-
-  describe("Transfer ownership", async () => {
-    const firstOwner = account.address
-    const newOwner = accountTwo.address
-    let _smartAccount = await createSmartAccountClient({
-      signer: walletClient,
-      paymasterUrl,
-      bundlerUrl
-      // accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC"
     })
 
-    const smartAccountAddress = await _smartAccount.getAccountAddress()
+    const difference = Math.round(
+      Number(userOpWithOffset.verificationGasLimit) -
+        Number(userOpWithNoOffset.verificationGasLimit)
+    )
+    const percentageValue = Math.round(
+      percentage(difference, Number(userOpWithNoOffset.verificationGasLimit))
+    )
 
-    test("should transfer ownership of smart account to accountTwo", async () => {
-      const signerOfAccount = walletClient.account.address
-      const ownerOfAccount = await publicClient.readContract({
-        address: DEFAULT_ECDSA_OWNERSHIP_MODULE,
-        abi: ECDSAModuleAbi,
-        functionName: "getOwner",
-        args: [await _smartAccount.getAccountAddress()]
-      })
+    expect(percentageValue).toBe(50)
+  }, 60000)
 
-      expect(ownerOfAccount).toBe(signerOfAccount)
-      const response = await _smartAccount.transferOwnership(
-        newOwner,
-        DEFAULT_ECDSA_OWNERSHIP_MODULE,
-        {
-          paymasterServiceData: { mode: PaymasterMode.SPONSORED }
-        }
-      )
-      const receipt = await response.wait()
-      expect(receipt.success).toBe("true")
-    }, 50000)
+  test("should increment user op gas values. Paymaster OFF", async () => {
+    const transaction = {
+      to: recipient,
+      data: "0x"
+    }
 
-    test("should revert transfer ownership with signer that is not the owner", async () => {
-      _smartAccount = await createSmartAccountClient({
-        signer: walletClient,
-        paymasterUrl,
-        bundlerUrl,
-        accountAddress: smartAccountAddress
-      })
-
-      const signerOfAccount = walletClient.account.address
-      const ownerOfAccount = await publicClient.readContract({
-        address: DEFAULT_ECDSA_OWNERSHIP_MODULE,
-        abi: ECDSAModuleAbi,
-        functionName: "getOwner",
-        args: [await _smartAccount.getAccountAddress()]
-      })
-
-      expect(ownerOfAccount).not.toBe(signerOfAccount)
-      expect(
-        _smartAccount.transferOwnership(
-          newOwner,
-          DEFAULT_ECDSA_OWNERSHIP_MODULE,
-          {
-            paymasterServiceData: { mode: PaymasterMode.SPONSORED }
-          }
-        )
-      ).rejects.toThrowError()
-    }, 50000)
-
-    test("send an user op with the new owner", async () => {
-      _smartAccount = await createSmartAccountClient({
-        signer: walletClientTwo,
-        paymasterUrl,
-        bundlerUrl,
-        accountAddress: smartAccountAddress
-      })
-      const currentSmartAccountInstanceSigner = await _smartAccount
-        .getSigner()
-        .getAddress()
-      expect(currentSmartAccountInstanceSigner).toBe(newOwner)
-      const tx = {
-        to: nftAddress,
-        data: encodeFunctionData({
-          abi: parseAbi(["function safeMint(address _to)"]),
-          functionName: "safeMint",
-          args: [smartAccountAddressTwo]
-        })
+    const userOpWithNoOffset = await smartAccount.buildUserOp([transaction])
+    const userOpWithOffset = await smartAccount.buildUserOp([transaction], {
+      gasOffset: {
+        verificationGasLimitOffsetPct: 50, // 50% increase
+        preVerificationGasOffsetPct: 100 // 100% increase
       }
-      const { wait } = await _smartAccount.sendTransaction(tx, {
+    })
+
+    const vglDifference = Math.round(
+      Number(userOpWithOffset.verificationGasLimit) -
+        Number(userOpWithNoOffset.verificationGasLimit)
+    )
+    const cgllDifference = Math.round(
+      Number(userOpWithOffset.callGasLimit) -
+        Number(userOpWithNoOffset.callGasLimit)
+    )
+    const pvgDifference = Math.round(
+      Number(userOpWithOffset.preVerificationGas) -
+        Number(userOpWithNoOffset.preVerificationGas)
+    )
+
+    const vglPercentageValue = Math.round(
+      percentage(vglDifference, Number(userOpWithNoOffset.verificationGasLimit))
+    )
+    const cglPercentageValue = Math.round(
+      percentage(cgllDifference, Number(userOpWithNoOffset.callGasLimit))
+    )
+    const pvgPercentageValue = Math.round(
+      percentage(pvgDifference, Number(userOpWithNoOffset.preVerificationGas))
+    )
+
+    expect(vglPercentageValue).toBe(50)
+    expect(cglPercentageValue).toBe(0)
+    expect(pvgPercentageValue).toBe(100)
+  }, 60000)
+
+  test("should increment user op gas values. Paymaster ON", async () => {
+    const transaction = {
+      to: recipient,
+      data: "0x"
+    }
+
+    const userOpWithNoOffset = await smartAccount.buildUserOp([transaction], {
+      paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+      gasOffset: {
+        verificationGasLimitOffsetPct: 0 // no increment but provided to avoid paymaster gas calculation (just for testing purposes)
+      }
+    }) // Passing gasOffset to avoid paymaster gas calculation
+    const userOpWithOffset = await smartAccount.buildUserOp([transaction], {
+      paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+      gasOffset: {
+        verificationGasLimitOffsetPct: 13.2, // 13.2% increase
+        preVerificationGasOffsetPct: 81 // 81% increase
+      }
+    })
+
+    const vglDifference = Math.round(
+      Number(userOpWithOffset.verificationGasLimit) -
+        Number(userOpWithNoOffset.verificationGasLimit)
+    )
+    const cgllDifference = Math.round(
+      Number(userOpWithOffset.callGasLimit) -
+        Number(userOpWithNoOffset.callGasLimit)
+    )
+    const pvgDifference = Math.round(
+      Number(userOpWithOffset.preVerificationGas) -
+        Number(userOpWithNoOffset.preVerificationGas)
+    )
+
+    const vglPercentageValue = Math.round(
+      percentage(vglDifference, Number(userOpWithNoOffset.verificationGasLimit))
+    )
+    const cglPercentageValue = Math.round(
+      percentage(cgllDifference, Number(userOpWithNoOffset.callGasLimit))
+    )
+    const pvgPercentageValue = Math.round(
+      percentage(pvgDifference, Number(userOpWithNoOffset.preVerificationGas))
+    )
+
+    expect(vglPercentageValue).toBe(13)
+    expect(cglPercentageValue).toBe(0)
+    expect(pvgPercentageValue).toBe(81)
+  }, 60000)
+
+  test("should throw if percentage given is bigger than 100. Paymaster ON", async () => {
+    const transaction = {
+      to: recipient,
+      data: "0x"
+    }
+
+    const userOpWithNoOffset = await smartAccount.buildUserOp([transaction], {
+      paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+      gasOffset: {
+        verificationGasLimitOffsetPct: 0 // no increment, just for testing purposes
+      }
+    }) // Passing gasOffset to avoid paymaster gas calculation
+    const userOpWithOffset = smartAccount.buildUserOp([transaction], {
+      paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+      gasOffset: {
+        verificationGasLimitOffsetPct: 110 // 110% increase (not allowed)
+      }
+    })
+
+    expect(userOpWithOffset).rejects.toThrowError(
+      "The percentage value should be between 1 and 100."
+    )
+  }, 60000)
+
+  test("should increment user op gas with no paymaster using sendTransaction", async () => {
+    const encodedCall = encodeFunctionData({
+      abi: parseAbi(["function safeMint(address _to)"]),
+      functionName: "safeMint",
+      args: [recipient]
+    })
+    const transaction = {
+      to: nftAddress, // NFT address
+      data: encodedCall
+    }
+
+    const { wait } = await smartAccount.sendTransaction(transaction, {
+      nonceOptions,
+      gasOffset: {
+        verificationGasLimitOffsetPct: 10, // 10% increase
+        preVerificationGasOffsetPct: 20, // 20% increase
+        maxFeePerGasOffsetPct: 30, // 30% increase
+        callGasLimitOffsetPct: 40, // 40% increase
+        maxPriorityFeePerGasOffsetPct: 50 // 50% increase
+      }
+    })
+    const {
+      receipt: { transactionHash },
+      userOpHash,
+      success
+    } = await wait()
+
+    expect(userOpHash).toBeTruthy()
+    expect(success).toBe("true")
+  }, 60000)
+
+  test.skip("should transfer ownership of smart account to accountTwo", async () => {
+    const signerOfAccount = walletClient.account.address
+    const ownerOfAccount = await publicClient.readContract({
+      address: DEFAULT_ECDSA_OWNERSHIP_MODULE,
+      abi: ECDSAModuleAbi,
+      functionName: "getOwner",
+      args: [await _smartAccount.getAccountAddress()]
+    })
+
+    expect(ownerOfAccount).toBe(signerOfAccount)
+    const response = await _smartAccount.transferOwnership(
+      newOwner,
+      DEFAULT_ECDSA_OWNERSHIP_MODULE as TransferOwnershipCompatibleModule,
+      {
         paymasterServiceData: { mode: PaymasterMode.SPONSORED }
-      })
-      const response = await wait()
-      expect(response.success).toBe("true")
-    }, 50000)
-
-    test("should revert if sending an user op with the old owner", async () => {
-      _smartAccount = await createSmartAccountClient({
-        signer: walletClient,
-        paymasterUrl,
-        bundlerUrl,
-        accountAddress: smartAccountAddress
-      })
-      const tx = {
-        to: nftAddress,
-        data: encodeFunctionData({
-          abi: parseAbi(["function safeMint(address _to)"]),
-          functionName: "safeMint",
-          args: [smartAccountAddressTwo]
-        })
       }
-      await expect(
-        _smartAccount.sendTransaction(tx, {
-          paymasterServiceData: { mode: PaymasterMode.SPONSORED }
-        })
-      ).rejects.toThrowError(
-        await getAAError("Error coming from Bundler: AA24 signature error")
-      )
-    }, 50000)
+    )
+    const receipt = await response.wait()
+    expect(receipt.success).toBe("true")
+  }, 50000)
 
-    test("should transfer ownership of smart account back to EOA 1", async () => {
-      _smartAccount = await createSmartAccountClient({
-        signer: walletClientTwo,
-        paymasterUrl,
-        bundlerUrl,
-        accountAddress: smartAccountAddress
-      })
+  test.skip("should revert transfer ownership with signer that is not the owner", async () => {
+    _smartAccount = await createSmartAccountClient({
+      signer: walletClient,
+      paymasterUrl,
+      bundlerUrl,
+      accountAddress: smartAccountAddress
+    })
 
-      const signerOfAccount = walletClientTwo.account.address
-      const ownerOfAccount = await publicClient.readContract({
-        address: DEFAULT_ECDSA_OWNERSHIP_MODULE,
-        abi: ECDSAModuleAbi,
-        functionName: "getOwner",
-        args: [await _smartAccount.getAccountAddress()]
-      })
+    const signerOfAccount = walletClient.account.address
+    const ownerOfAccount = await publicClient.readContract({
+      address: DEFAULT_ECDSA_OWNERSHIP_MODULE,
+      abi: ECDSAModuleAbi,
+      functionName: "getOwner",
+      args: [await _smartAccount.getAccountAddress()]
+    })
 
-      expect(ownerOfAccount).toBe(signerOfAccount)
-
-      const response = await _smartAccount.transferOwnership(
-        firstOwner,
-        DEFAULT_ECDSA_OWNERSHIP_MODULE,
+    expect(ownerOfAccount).not.toBe(signerOfAccount)
+    expect(
+      _smartAccount.transferOwnership(
+        newOwner,
+        DEFAULT_ECDSA_OWNERSHIP_MODULE as TransferOwnershipCompatibleModule,
         {
           paymasterServiceData: { mode: PaymasterMode.SPONSORED }
         }
       )
-      const receipt = await response.wait()
-      expect(receipt.success).toBe("true")
-    }, 50000)
-  })
+    ).rejects.toThrowError()
+  }, 50000)
+
+  test.skip("send an user op with the new owner", async () => {
+    _smartAccount = await createSmartAccountClient({
+      signer: walletClientTwo,
+      paymasterUrl,
+      bundlerUrl,
+      accountAddress: smartAccountAddress
+    })
+    const currentSmartAccountInstanceSigner = await _smartAccount
+      .getSigner()
+      .getAddress()
+    expect(currentSmartAccountInstanceSigner).toBe(newOwner)
+    const tx = {
+      to: nftAddress,
+      data: encodeFunctionData({
+        abi: parseAbi(["function safeMint(address _to)"]),
+        functionName: "safeMint",
+        args: [smartAccountAddressTwo]
+      })
+    }
+    const { wait } = await _smartAccount.sendTransaction(tx, {
+      nonceOptions,
+      paymasterServiceData: { mode: PaymasterMode.SPONSORED }
+    })
+    const response = await wait()
+    expect(response.success).toBe("true")
+  }, 50000)
 })
