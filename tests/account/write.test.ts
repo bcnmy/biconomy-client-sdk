@@ -14,10 +14,10 @@ import {
   type BiconomySmartAccountV2,
   DEFAULT_ENTRYPOINT_ADDRESS,
   ERC20_ABI,
+  type TransferOwnershipCompatibleModule,
   createSmartAccountClient,
   getCustomChain,
-  percentage,
-  TransferOwnershipCompatibleModule
+  percentage
 } from "../../src/account"
 import { ECDSAModuleAbi } from "../../src/account/abi/ECDSAModule"
 import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"
