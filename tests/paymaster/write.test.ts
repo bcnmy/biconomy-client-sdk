@@ -18,7 +18,7 @@ import { testOnlyOnOptimism } from "../setupFiles"
 import { checkBalance, getConfig, nonZeroBalance, topUp } from "../utils"
 
 describe("Paymaster:Write", () => {
-  const nonceOptions = { nonceKey: 4 }
+  const nonceOptions = { nonceKey: Date.now() + 40 }
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const {
     chain,
@@ -129,6 +129,7 @@ describe("Paymaster:Write", () => {
     expect(balance).toBe(0n)
 
     const { wait } = await smartAccount.deploy({
+      nonceOptions,
       paymasterServiceData: { mode: PaymasterMode.SPONSORED }
     })
     const { success } = await wait()

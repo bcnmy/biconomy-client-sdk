@@ -16,7 +16,7 @@ import {
 } from "../utils"
 
 describe("Bundler:Write", () => {
-  const nonceOptions = { nonceKey: 2 }
+  const nonceOptions = { nonceKey: Date.now() + 20 }
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const {
     chain,
