@@ -4,7 +4,8 @@ import {
   type BuildUserOpOptions,
   ERROR_MESSAGES,
   Logger,
-  type Transaction
+  type Transaction,
+  isNullOrUndefined
 } from "../../account"
 import {
   type CreateSessionDataParams,
@@ -192,7 +193,7 @@ export type BatchSessionParamsPayload = {
  * Retrieves the transaction parameters for a batched session.
  *
  * @param transactions - An array of {@link Transaction}s.
- * @param correspondingIndexes - An array of indexes for the transactions corresponding to the relevant session
+ * @param correspondingIndexes - An array of indexes for the transactions corresponding to the relevant session. If not provided, the last n sessions are used.
  * @param conditionalSession - {@link SessionSearchParam} The session data that contains the sessionID and sessionSigner. If not provided, The default session storage (localStorage in browser, fileStorage in node backend) is used to fetch the sessionIDInfo
  * @param chain - The chain.
  * @returns Promise<{@link BatchSessionParamsPayload}> - session parameters.
@@ -200,20 +201,30 @@ export type BatchSessionParamsPayload = {
  */
 export const getBatchSessionTxParams = async (
   transactions: Transaction[],
-  correspondingIndexes: number[],
+  correspondingIndexes: number[] | null,
   conditionalSession: SessionSearchParam,
   chain: Chain
 ): Promise<BatchSessionParamsPayload> => {
-  if (correspondingIndexes.length !== transactions.length) {
+  if (
+    correspondingIndexes &&
+    correspondingIndexes.length !== transactions.length
+  ) {
     throw new Error(ERROR_MESSAGES.INVALID_SESSION_INDEXES)
   }
 
   const { sessionStorageClient } = await resumeSession(conditionalSession)
+  let sessionIDInfo: string[] = []
 
   const allSessions = await sessionStorageClient.getAllSessionData()
-  const sessionIDInfo = correspondingIndexes.map(
-    (index) => allSessions[index].sessionID
-  )
+  if (isNullOrUndefined(correspondingIndexes)) {
+    sessionIDInfo = allSessions
+      .slice(-transactions.length)
+      .map(({ sessionID }) => sessionID as string)
+  } else {
+    sessionIDInfo = (correspondingIndexes ?? []).map(
+      (index) => allSessions[index].sessionID as string
+    )
+  }
 
   const sessionSigner = await sessionStorageClient.getSignerBySession(
     {
