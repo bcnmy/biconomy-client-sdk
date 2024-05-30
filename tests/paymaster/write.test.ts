@@ -89,8 +89,7 @@ describe("Paymaster:Write", () => {
 
     const response = await smartAccount.sendTransaction(transaction, {
       nonceOptions,
-      paymasterServiceData: { mode: PaymasterMode.SPONSORED },
-      simulationType: "validation"
+      paymasterServiceData: { mode: PaymasterMode.SPONSORED }
     })
 
     const userOpReceipt = await response.wait(3)
@@ -156,9 +155,7 @@ describe("Paymaster:Write", () => {
         }
       ],
       null,
-      {
-        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
-      }
+      { nonceOptions, paymasterServiceData: { mode: PaymasterMode.SPONSORED } }
     )
 
     const {
@@ -235,9 +232,7 @@ describe("Paymaster:Write", () => {
         { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) }
       ],
       sender,
-      {
-        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
-      }
+      { nonceOptions, paymasterServiceData: { mode: PaymasterMode.SPONSORED } }
     )
 
     const {
@@ -273,6 +268,7 @@ describe("Paymaster:Write", () => {
       [] /* null or undefined or [] */,
       sender,
       {
+        nonceOptions,
         paymasterServiceData: { mode: PaymasterMode.SPONSORED } // Will leave no dust
       }
     )
