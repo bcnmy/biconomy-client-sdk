@@ -193,7 +193,7 @@ export type BatchSessionParamsPayload = {
  * Retrieves the transaction parameters for a batched session.
  *
  * @param transactions - An array of {@link Transaction}s.
- * @param correspondingIndexes - An array of indexes for the transactions corresponding to the relevant session. If not provided, the last n sessions are used.
+ * @param correspondingIndexes - An array of indexes for the transactions corresponding to the relevant session. If not provided, the last {transaction.length} sessions are used.
  * @param conditionalSession - {@link SessionSearchParam} The session data that contains the sessionID and sessionSigner. If not provided, The default session storage (localStorage in browser, fileStorage in node backend) is used to fetch the sessionIDInfo
  * @param chain - The chain.
  * @returns Promise<{@link BatchSessionParamsPayload}> - session parameters.
@@ -232,6 +232,8 @@ export const getBatchSessionTxParams = async (
     },
     chain
   )
+
+  console.log("joe", sessionSigner.inner.account.address, sessionIDInfo)
 
   return {
     params: {

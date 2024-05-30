@@ -349,7 +349,7 @@ export type SingleSessionParamsPayload = {
  *
  * Retrieves the transaction parameters for a batched session.
  *
- * @param correspondingIndex - An index for the transaction corresponding to the relevant session. If not provided, the last session is used.
+ * @param correspondingIndex - An index for the transaction corresponding to the relevant session. If not provided, the last session index is used.
  * @param conditionalSession - {@link SessionSearchParam} The session data that contains the sessionID and sessionSigner. If not provided, The default session storage (localStorage in browser, fileStorage in node backend) is used to fetch the sessionIDInfo
  * @param chain - The chain.
  * @returns Promise<{@link BatchSessionParamsPayload}> - session parameters.
