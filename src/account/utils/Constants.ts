@@ -31,6 +31,9 @@ export const BICONOMY_FACTORY_ADDRESSES: BiconomyFactories = {
   "0x000000a56Aaca3e9a4C479ea6b6CD0DbcB6634F5": "V2_0_0"
 }
 
+export const BICONOMY_TOKEN_PAYMASTER =
+  "0x00000f7365cA6C59A2C93719ad53d567ed49c14C"
+
 // will always be latest implementation address
 export const DEFAULT_BICONOMY_IMPLEMENTATION_ADDRESS =
   "0x0000002512019Dafb59528B82CB92D3c5D2423aC"
@@ -85,7 +88,9 @@ export const ERROR_MESSAGES = {
     "rpcUrl is required for PrivateKeyAccount signer type, please provide it in the config",
   INVALID_SESSION_INDEXES:
     "Session indexes and transactions must be of the same length and correspond to each other",
-  SIGNER_REQUIRED: "Signer is required for creating a smart account"
+  SIGNER_REQUIRED: "Signer is required for creating a smart account",
+  UNKNOW_SESSION_ARGUMENTS:
+    "You have not provided the necessary information to find and use a session"
 }
 
 export const NATIVE_TOKEN_ALIAS: Hex =

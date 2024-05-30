@@ -58,10 +58,16 @@ export class Bundler implements IBundler {
     this.bundlerConfig = { ...bundlerConfig, chainId: parsedChainId }
 
     this.provider = createPublicClient({
-      chain: bundlerConfig.viemChain ?? getChain(parsedChainId),
+      chain:
+        bundlerConfig.viemChain ??
+        bundlerConfig.customChain ??
+        getChain(parsedChainId),
       transport: http(
-        (bundlerConfig.viemChain || getChain(parsedChainId)).rpcUrls.default
-          .http[0]
+        (
+          bundlerConfig.viemChain ||
+          bundlerConfig.customChain ||
+          getChain(parsedChainId)
+        ).rpcUrls.default.http[0]
       )
     })
 

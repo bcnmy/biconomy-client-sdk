@@ -1,6 +1,7 @@
 import {
   type AbiFunction,
   type ByteArray,
+  type Chain,
   type Hex,
   concat,
   pad,
@@ -11,6 +12,7 @@ import {
 import type {
   CreateSessionDataParams,
   Permission,
+  SessionParams,
   UserOpResponse
 } from "../../"
 import {
@@ -20,12 +22,17 @@ import {
   Logger,
   type Transaction
 } from "../../account"
-import { createSessionKeyManagerModule } from "../index"
+import {
+  createSessionKeyManagerModule,
+  didProvideFullSession,
+  resumeSession
+} from "../index"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import {
   DEFAULT_ABI_SVM_MODULE,
   DEFAULT_SESSION_KEY_MANAGER_MODULE
 } from "../utils/Constants"
+import type { SessionSearchParam } from "../utils/Helper"
 import type { DeprecatedPermission, Rule } from "../utils/Helper"
 
 export type SessionConfig = {
@@ -187,11 +194,15 @@ export const createSession = async (
   }
 }
 
+export type HardcodedFunctionSelector = {
+  raw: Hex
+}
+
 export type CreateSessionDatumParams = {
   interval?: SessionEpoch
   sessionKeyAddress: Hex
   contractAddress: Hex
-  functionSelector: string | AbiFunction
+  functionSelector: string | AbiFunction | HardcodedFunctionSelector
   rules: Rule[]
   valueLimit: bigint
 }
@@ -221,6 +232,24 @@ export const createABISessionDatum = ({
   valueLimit
 }: CreateSessionDatumParams): CreateSessionDataParams => {
   const { validUntil = 0, validAfter = 0 } = interval ?? {}
+
+  let parsedFunctionSelector: Hex = "0x"
+
+  const rawFunctionSelectorWasProvided = !!(
+    functionSelector as HardcodedFunctionSelector
+  )?.raw
+
+  if (rawFunctionSelectorWasProvided) {
+    parsedFunctionSelector = (functionSelector as HardcodedFunctionSelector).raw
+  } else {
+    const unparsedFunctionSelector = functionSelector as AbiFunction | string
+    parsedFunctionSelector = slice(
+      toFunctionSelector(unparsedFunctionSelector),
+      0,
+      4
+    )
+  }
+
   return {
     validUntil,
     validAfter,
@@ -228,7 +257,7 @@ export const createABISessionDatum = ({
     sessionPublicKey: sessionKeyAddress,
     sessionKeyData: getSessionDatum(sessionKeyAddress, {
       destContract: contractAddress,
-      functionSelector: slice(toFunctionSelector(functionSelector), 0, 4),
+      functionSelector: parsedFunctionSelector,
       valueLimit,
       rules
     })
@@ -281,6 +310,7 @@ export function getSessionDatum(
       parseReferenceValue(permission.rules[i].referenceValue)
     ]) as Hex
   }
+
   return sessionKeyData
 }
 
@@ -312,5 +342,47 @@ export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
     return pad(referenceValue as Hex, { size: 32 })
   } catch (e) {
     return pad(referenceValue as Hex, { size: 32 })
+  }
+}
+
+export type SingleSessionParamsPayload = {
+  params: SessionParams
+}
+/**
+ * getSingleSessionTxParams
+ *
+ * Retrieves the transaction parameters for a batched session.
+ *
+ * @param correspondingIndex - An index for the transaction corresponding to the relevant session. If not provided, the last session index is used.
+ * @param conditionalSession - {@link SessionSearchParam} The session data that contains the sessionID and sessionSigner. If not provided, The default session storage (localStorage in browser, fileStorage in node backend) is used to fetch the sessionIDInfo
+ * @param chain - The chain.
+ * @returns Promise<{@link BatchSessionParamsPayload}> - session parameters.
+ *
+ */
+export const getSingleSessionTxParams = async (
+  conditionalSession: SessionSearchParam,
+  chain: Chain,
+  correspondingIndex: number | null | undefined
+): Promise<SingleSessionParamsPayload> => {
+  const { sessionStorageClient } = await resumeSession(conditionalSession)
+
+  // if correspondingIndex is null then use the last session.
+  const allSessions = await sessionStorageClient.getAllSessionData()
+  const sessionID = didProvideFullSession(conditionalSession)
+    ? (conditionalSession as Session).sessionIDInfo[correspondingIndex ?? 0]
+    : allSessions[correspondingIndex ?? allSessions.length - 1].sessionID
+
+  const sessionSigner = await sessionStorageClient.getSignerBySession(
+    {
+      sessionID
+    },
+    chain
+  )
+
+  return {
+    params: {
+      sessionSigner,
+      sessionID
+    }
   }
 }

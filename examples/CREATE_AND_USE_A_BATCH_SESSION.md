@@ -95,7 +95,7 @@ const smartAccountWithSession = await createSessionSmartAccountClient(
     paymasterUrl,
     chainId,
   },
-  session,
+  smartAccountAddress // Storage client, full Session or smartAccount address if using default storage
   true // if batching
 );
 
@@ -122,7 +122,7 @@ const correspondingIndexes = [1, 0]; // The order of the txs from the sessionBat
 const batchSessionParams = await getBatchSessionTxParams(
   txs,
   correspondingIndexes,
-  session,
+  smartAccountAddress, // Storage client, full Session or smartAccount address if using default storage
   chain
 );
 

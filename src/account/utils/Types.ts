@@ -165,8 +165,10 @@ export type BiconomySmartAccountV2ConfigBaseProps = {
   scanForUpgradedAccountsFromV1?: boolean
   /** the index of SA the EOA have generated and till which indexes the upgraded SA should scan */
   maxIndexForScan?: number
-  /** Can be used to optionally override the chain with a custom chain if it doesn't already exist in viems list of supported chains */
+  /** Can be used to optionally override the chain with a custom chain if it doesn't already exist in viems list of supported chains. Alias of customChain */
   viemChain?: Chain
+  /** Can be used to optionally override the chain with a custom chain if it doesn't already exist in viems list of supported chain. Alias of viemChain */
+  customChain?: Chain
   /** The initial code to be used for the smart account */
   initCode?: Hex
   /** Used for session key manager module */

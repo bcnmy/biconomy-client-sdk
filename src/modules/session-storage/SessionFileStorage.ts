@@ -1,6 +1,5 @@
 import { http, type Chain, type Hex, createWalletClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { getRandomSigner } from "../.."
 import {
   Logger,
   type SmartAccountSigner,
@@ -12,38 +11,72 @@ import type {
   SessionSearchParam,
   SessionStatus
 } from "../interfaces/ISessionStorage"
+import { getRandomSigner } from "../utils/Helper"
 import type { SignerData } from "../utils/Types"
+
+const getNodeFs = () => {
+  // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
+  let nodeFs
+  try {
+    //@ts-ignore
+    nodeFs = require("node:fs")
+  } catch (error) {
+    //@ts-ignore
+    // biome-ignore lint/style/useNodejsImportProtocol: <explanation>
+    nodeFs = require("fs")
+  }
+  return nodeFs
+}
+
+const DIRECTORY_NAME = "sessionStorageData"
 
 export class SessionFileStorage implements ISessionStorage {
   public smartAccountAddress: Hex
+  private storeUrl: string
 
-  constructor(smartAccountAddress: Hex) {
+  constructor(smartAccountAddress: Hex, url?: string) {
     this.smartAccountAddress = smartAccountAddress.toLowerCase() as Hex
+
+    const defaultedDirectory = url ?? __dirname
+    this.storeUrl = [defaultedDirectory, DIRECTORY_NAME].join("/")
+    this.createDirectory()
+  }
+
+  private createDirectory(): void {
+    const nodeFs = getNodeFs()
+    if (!nodeFs.existsSync(this.storeUrl)) {
+      nodeFs.mkdirSync(this.storeUrl)
+    }
   }
 
   // This method reads data from the file and returns it in the JSON format
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   private async readDataFromFile(type: "sessions" | "signers"): Promise<any> {
     return new Promise((resolve) => {
-      // @ts-ignore
-      fs.readFile(this.getStorageFilePath(type), "utf8", (err, data) => {
-        if (err) {
-          // Handle errors appropriately
-          resolve(undefined)
-        } else {
-          if (!data) {
-            resolve(null)
+      const nodeFs = getNodeFs()
+      nodeFs.readFile(
+        this.getStorageFilePath(type),
+        "utf8",
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        (err: any, data: any) => {
+          if (err) {
+            // Handle errors appropriately
+            resolve(undefined)
           } else {
-            resolve(JSON.parse(data))
+            if (!data) {
+              resolve(null)
+            } else {
+              resolve(JSON.parse(data))
+            }
+            //   resolve(JSON.parse(data));
           }
-          //   resolve(JSON.parse(data));
         }
-      })
+      )
     })
   }
 
   private getStorageFilePath(type: "sessions" | "signers"): string {
-    return `${__dirname}/sessionStorageData/${this.smartAccountAddress}_${type}.json`
+    return `${this.storeUrl}/${this.smartAccountAddress}_${type}.json`
   }
 
   private async writeDataToFile(
@@ -53,15 +86,21 @@ export class SessionFileStorage implements ISessionStorage {
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       const filePath = this.getStorageFilePath(type)
-      // @ts-ignore
-      fs.writeFile(filePath, JSON.stringify(data), "utf8", (err) => {
-        if (err) {
-          // Handle errors appropriately
-          reject(err)
-        } else {
-          resolve()
+      const nodeFs = getNodeFs()
+      nodeFs.writeFile(
+        filePath,
+        JSON.stringify(data),
+        "utf8",
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        (err: any) => {
+          if (err) {
+            // Handle errors appropriately
+            reject(err)
+          } else {
+            resolve()
+          }
         }
-      })
+      )
     })
   }
 
