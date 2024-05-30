@@ -1,12 +1,12 @@
-import { http, type Hex, createWalletClient, type Chain } from "viem"
+import { http, type Chain, type Hex, createWalletClient } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import {
   type BiconomySmartAccountV2,
   type BiconomySmartAccountV2Config,
-  createSmartAccountClient,
-  getChain,
+  type BuildUserOpOptions,
   type SupportedSigner,
-  type BuildUserOpOptions
+  createSmartAccountClient,
+  getChain
 } from "../../account"
 import {
   type SessionSearchParam,
