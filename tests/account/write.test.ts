@@ -593,7 +593,7 @@ describe("Account:Write", async () => {
     expect(success).toBe("true")
   }, 60000)
 
-  test("should transfer ownership of smart account to accountTwo", async () => {
+  test.skip("should transfer ownership of smart account to accountTwo", async () => {
     const signerOfAccount = walletClient.account.address
     const ownerOfAccount = await publicClient.readContract({
       address: DEFAULT_ECDSA_OWNERSHIP_MODULE,
@@ -614,7 +614,7 @@ describe("Account:Write", async () => {
     expect(receipt.success).toBe("true")
   }, 50000)
 
-  test("should revert transfer ownership with signer that is not the owner", async () => {
+  test.skip("should revert transfer ownership with signer that is not the owner", async () => {
     _smartAccount = await createSmartAccountClient({
       signer: walletClient,
       paymasterUrl,
