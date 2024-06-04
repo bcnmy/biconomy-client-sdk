@@ -20,15 +20,10 @@ import type {
 // import { signTypedData } from "../../accounts/actions/sygnTypedData"
 import type { Prettify } from "viem/chains"
 
-import { prepareUserOperationRequest } from "../../accounts/actions/prepareUserOperationRequest"
+import { buildUserOpV07 } from "../../accounts/actions/buildUserOpV07"
 import {
-  type SendTransactionWithPaymasterParameters,
   sendTransaction
 } from "../../accounts/actions/sendTransaction"
-import {
-  type SendTransactionsWithPaymasterParameters,
-  sendTransactions
-} from "../../accounts/actions/sendTransactions"
 import {
   type SendUserOperationParameters,
   sendUserOperation
@@ -38,11 +33,12 @@ import { signTypedData } from "../../accounts/actions/signTypedData"
 import type {
   GetSenderAddressParams,
   Middleware,
+  SendTransactionWithPaymasterParameters,
+  SendTransactionsWithPaymasterParameters,
   SmartAccount,
   UserOperationStruct
 } from "../../accounts/utils/types"
-import type { StateOverrides } from "../../bundler/utils/types"
-import { type WriteContractWithPaymasterParameters, writeContract, getSenderAddress } from '../../accounts';
+import { type WriteContractWithPaymasterParameters, writeContract, getSenderAddress, sendTransactions } from '../../accounts';
 
 export type SmartAccountActions<
   TChain extends Chain | undefined = Chain | undefined,
@@ -364,17 +360,17 @@ export type SmartAccountActions<
           TChainOverride
       >
   >
-  prepareUserOperationRequest: <TTransport extends Transport>(
+  buildUserOpV07: <TTransport extends Transport>(
     args: Prettify<
       Parameters<
-        typeof prepareUserOperationRequest<TTransport, TChain, TSmartAccount>
+        typeof buildUserOpV07
       >[1]
     >,
-    stateOverrides?: StateOverrides
+    // stateOverrides?: StateOverrides
   ) => Promise<Prettify<UserOperationStruct>>
   sendUserOperation: <TTransport extends Transport>(
     args: Prettify<
-      Parameters<typeof sendUserOperation<TTransport, TChain, TSmartAccount>>[1]
+      Parameters<typeof sendUserOperation>[1]
     >
   ) => Promise<Hash>
   /**
@@ -427,8 +423,8 @@ export type SmartAccountActions<
    * }])
    */
   sendTransactions: (
-    args: Prettify<SendTransactionsWithPaymasterParameters<TSmartAccount>>
-  ) => ReturnType<typeof sendTransactions<TChain, TSmartAccount>>
+    args: Prettify<SendTransactionsWithPaymasterParameters>
+  ) => ReturnType<typeof sendTransactions>
 
   getSenderAddress: (args: Prettify<GetSenderAddressParams>) => ReturnType<typeof getSenderAddress>
 }
@@ -441,14 +437,14 @@ export function smartAccountActions({ middleware }: Middleware) {
   >(
     client: Client<TTransport, TChain, TSmartAccount>
   ): SmartAccountActions<TChain, TSmartAccount> => ({
-    prepareUserOperationRequest: (args, stateOverrides) =>
-      prepareUserOperationRequest(
+    buildUserOpV07: (args) =>
+      buildUserOpV07(
         client,
         {
           ...args,
           middleware
         },
-        stateOverrides
+        // stateOverrides
       ),
     // deployContract: (args) =>
     //     deployContract(client, {
@@ -459,14 +455,14 @@ export function smartAccountActions({ middleware }: Middleware) {
       sendTransaction<TChain, TSmartAccount>(client, {
         ...args,
         middleware
-      } as SendTransactionWithPaymasterParameters<TChain, TSmartAccount>),
+      } as SendTransactionWithPaymasterParameters),
     sendTransactions: (args) =>
-      sendTransactions<TChain, TSmartAccount>(client, {
+      sendTransactions(client, {
         ...args,
         middleware
       }),
     sendUserOperation: (args) =>
-      sendUserOperation<TTransport, TChain, TSmartAccount>(client, {
+      sendUserOperation(client, {
         ...args,
         middleware
       } as SendUserOperationParameters),

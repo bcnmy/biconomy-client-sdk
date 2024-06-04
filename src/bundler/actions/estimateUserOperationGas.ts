@@ -1,13 +1,13 @@
-import type { Account, Chain, Client, Transport } from "viem"
+import { EstimateUserOperationGasParameters } from './../../client/utils/types';
+import type { Account, Chain, Client, Hex, Transport } from "viem"
 import type { BaseError } from "viem"
 import type { Prettify } from "viem/chains"
 import { ENTRYPOINT_ADDRESS_V07 } from "../../accounts/utils/constants"
 import { getEstimateUserOperationGasError } from "../../errors/getters"
-import { deepHexlify } from "../../paymaster/utils/helpers"
-import type {
-  BundlerRpcSchema,
-  EstimateUserOperationGasParameters,
-  StateOverrides
+import {
+  deepHexlify,
+  type BundlerRpcSchema,
+  type StateOverrides
 } from "../utils/types"
 
 export const estimateUserOperationGas = async <
@@ -22,8 +22,8 @@ export const estimateUserOperationGas = async <
   preVerificationGas: string
   verificationGasLimit: string
   callGasLimit: string
-  maxPriorityFeePerGas: string
-  maxFeePerGas: string
+  paymasterVerificationGasLimit: bigint
+  paymasterPostOpGasLimit: bigint
 }> => {
   const { userOperation } = args
 
@@ -42,26 +42,32 @@ export const estimateUserOperationGas = async <
         : [userOperationWithBigIntAsHex, ENTRYPOINT_ADDRESS_V07]
     })
 
-    const responseV06 = response as {
-      preVerificationGas: string
-      verificationGasLimit: string
-      callGasLimit: string
-      maxPriorityFeePerGas: string
-      maxFeePerGas: string
+    const responseV07 = response as {
+      preVerificationGas: Hex
+      verificationGasLimit: Hex
+      callGasLimit: Hex
+      paymasterVerificationGasLimit?: Hex
+      paymasterPostOpGasLimit?: Hex
     }
 
     return {
-      preVerificationGas: responseV06.preVerificationGas.toString() || "0",
-      verificationGasLimit: responseV06.verificationGasLimit.toString() || "0",
-      callGasLimit: responseV06.callGasLimit.toString() || "0",
-      maxPriorityFeePerGas: responseV06.maxPriorityFeePerGas.toString() || "0",
-      maxFeePerGas: responseV06.maxFeePerGas.toString() || "0"
+      preVerificationGas: responseV07.preVerificationGas.toString() || "0",
+      verificationGasLimit: responseV07.verificationGasLimit.toString() || "0",
+      callGasLimit: responseV07.callGasLimit.toString() || "0",
+      paymasterVerificationGasLimit:
+        responseV07.paymasterVerificationGasLimit
+          ? BigInt(responseV07.paymasterVerificationGasLimit)
+          : undefined,
+      paymasterPostOpGasLimit: 
+        responseV07.paymasterPostOpGasLimit
+          ? BigInt(responseV07.paymasterPostOpGasLimit)
+          : undefined
     } as {
       preVerificationGas: string
       verificationGasLimit: string
       callGasLimit: string
-      maxPriorityFeePerGas: string
-      maxFeePerGas: string
+      paymasterVerificationGasLimit: bigint
+      paymasterPostOpGasLimit: bigint
     }
   } catch (err) {
     throw await getEstimateUserOperationGasError(err as BaseError, args)

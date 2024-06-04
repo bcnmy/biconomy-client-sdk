@@ -3,7 +3,6 @@ import type { Prettify } from "viem/chains"
 import type { SendUserOperationParameters } from "../../accounts/actions/sendUserOperation"
 import { ENTRYPOINT_ADDRESS_V07 } from "../../accounts/utils/constants"
 import type { ENTRYPOINT_ADDRESS_V07_TYPE } from "../../accounts/utils/types"
-import { estimateUserOperationGas } from "../../bundler"
 import { chainId } from "../../bundler/actions/chainId"
 import { getGasFeeValues } from "../../bundler/actions/getGasFeeValues"
 import {
@@ -23,12 +22,12 @@ import {
 } from "../../bundler/actions/waitForUserOperationReceipt"
 import type { BundlerClient } from "../../bundler/createBundlerClient"
 import type {
-  EstimateUserOperationGasParameters,
-  GetGasFeeValuesReturnType,
   StateOverrides,
   UserOpReceipt,
   UserOpStatus
 } from "../../bundler/utils/types"
+import { EstimateUserOperationGasParameters } from "../utils/types"
+import { estimateUserOperationGas } from "../../bundler/actions/estimateUserOperationGas"
 
 export type BundlerActions = {
   /**
@@ -84,7 +83,7 @@ export type BundlerActions = {
    * // Return {preVerificationGas: 43492n, verificationGasLimit: 59436n, callGasLimit: 9000n}
    */
   estimateUserOperationGas: (
-    args: Prettify<Omit<EstimateUserOperationGasParameters, "entryPoint">>,
+    args: Prettify<Omit<EstimateUserOperationGasParameters, "entrypoint">>,
     stateOverrides?: StateOverrides
   ) => Promise<
     Prettify<{
@@ -213,7 +212,7 @@ export type BundlerActions = {
     args: Prettify<WaitForUserOperationReceiptParameters>
   ) => Promise<Prettify<UserOpReceipt>>
 
-  getGasFeeValues: () => Promise<GetGasFeeValuesReturnType>
+  getGasFeeValues: () => Promise<any> // TODO
   getUserOpStatus: (userOpHash: Hash) => Promise<UserOpStatus>
 }
 

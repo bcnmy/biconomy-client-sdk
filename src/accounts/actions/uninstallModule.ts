@@ -8,7 +8,9 @@ import {
     type RpcRequestErrorType,
     decodeErrorResult,
     encodeFunctionData,
-    toHex
+    toHex,
+    encodePacked,
+    stringToBytes
 } from "viem"
 
 import { sendTransaction } from "viem/actions"
@@ -18,15 +20,15 @@ import { getAction, isNullOrUndefined } from "../utils/helpers";
 import { ModuleType } from "../../modules/types";
 import NexusABI from "../utils/abis/smartAccount.json";
 
-export type InstallModuleParams = {
+export type UninstallModuleParams = {
     moduleType: ModuleType,
     moduleAddress: Address,
     account: SmartAccount
 }
 
-export const installModule = async (
+export const uninstallModule = async (
     client: Client,
-    args: Prettify<InstallModuleParams>
+    args: Prettify<UninstallModuleParams>
 ): Promise<Hex> => {
     const { moduleType, moduleAddress, account } = args
     
@@ -36,14 +38,14 @@ export const installModule = async (
         )
     }
 
-    const accountOwner = await account.getAccountOwner();
-    const installModuleData = encodeFunctionData({abi: NexusABI, functionName: "installModule", args: [moduleType, moduleAddress, toHex(accountOwner.address)]});
+    let prevAddress: Hex = "0x0000000000000000000000000000000000000001";
+    const uninstallModuleData = encodeFunctionData({abi: NexusABI, functionName: "uninstallModule", args: [moduleType, moduleAddress, encodePacked(["address", "bytes"], [prevAddress, toHex(stringToBytes(""))])]});
 
     try {
         return await getAction(
             client,
             sendTransaction
-        )({account: account, to: account.address, data: installModuleData, value: 0n, chain: client.chain})
+        )({account: account, to: account.address, data: uninstallModuleData, value: 0n, chain: client.chain})
     } catch (e) {
         const err = e as ContractFunctionExecutionErrorType
 

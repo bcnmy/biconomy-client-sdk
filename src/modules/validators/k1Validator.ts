@@ -1,10 +1,9 @@
-import { encodeFunctionData, encodePacked, publicActions, type Hex } from "viem"
+import { encodeFunctionData, encodePacked, publicActions, stringToBytes, toHex, type Hex } from "viem"
 import type { Prettify } from "viem/chains"
-import { BaseValidationModule, K1ValidatorModuleConfig } from "../types"
+import { BaseValidationModule, K1ValidatorModuleConfig, ModuleType } from "../types"
 import { ENTRYPOINT_ADDRESS_V07, K1_VALIDATOR_ADDRESS } from "../../accounts/utils/constants"
 import { SmartAccountSigner, UserOperationStruct } from "../../accounts/utils/types"
-import { createAccountAbi } from "../../accounts/utils/abis"
-
+import NexusAbi from "../../accounts/utils/abis/smartAccount.json";
 /**
  * Creates an K1 Validator Module Instance.
  * @param moduleConfig - The configuration for the module.
@@ -59,31 +58,23 @@ export const createK1ValidatorModule = async (
      * @returns {Promise<Hex>} A promise that resolves to the initialization data for the k1 Validator ownership module.
      */
     async getModuleInstallData(): Promise<Hex> {
-      return encodePacked(["address", "uint256"], [moduleConfig.signer.address, moduleConfig.index ?? 0n])
-    },
-
-     /**
-     * Installs k1ValidatorModule
-     * @returns {Promise<Hex>} A promise that resolves to the transaction hash.
-     */
-    async installModule(): Promise<Hex> {
       const functionData = encodeFunctionData({
-        abi: createAccountAbi,
-        functionName: "createAccount",
-        args: [moduleConfig.signer.address, moduleConfig.index ?? 0n]
+        abi: NexusAbi,
+        functionName: "installModule",
+        args: [ModuleType.Validation, moduleConfig.moduleAddress, moduleConfig.signer.address]
       })
 
-      return functionData; // TODO 
+      return functionData;
     },
 
-    async uninstallModule(): Promise<Hex> {
+    async getModuleUninstallData(): Promise<Hex> {
         const functionData = encodeFunctionData({
-          abi: createAccountAbi,
-          functionName: "createAccount",
-          args: [moduleConfig.signer.address, moduleConfig.index ?? 0n]
+          abi: NexusAbi,
+          functionName: "uninstallModule",
+          args: [ModuleType.Validation, moduleConfig.moduleAddress, encodePacked(["address", "bytes"], [moduleConfig.signer.address, toHex(stringToBytes(""))])]
         })
-  
-        return functionData; // TODO 
+
+        return functionData; 
     },
 
     /**

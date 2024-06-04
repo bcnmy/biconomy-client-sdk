@@ -20,12 +20,18 @@ export type BaseValidationModule = {
         hash: Hex,
         data: Hex
     ): Promise<Hex>
-    installModule(): Promise<Hex>
-    uninstallModule(): Promise<Hex>
+    getModuleInstallData(): Promise<Hex>
+    getModuleUninstallData(): Promise<Hex>
     signUserOpHash(userOpHash: Hex): Promise<Hex>
     signMessage(message: Hex): Promise<Hex>
     getModuleAddress(): Address
     getSigner(): Promise<SmartAccountSigner>
     getDummySignature(): Promise<Hex>
-    getModuleInstallData(): Promise<Hex>
 }
+
+export enum ModuleType {
+    Validation = 1,
+    Execution = 2,
+    Fallback = 3,
+    Hooks = 4,
+  }

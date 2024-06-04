@@ -47,7 +47,7 @@ import { createK1ValidatorModule } from "../../modules/validators/k1Validator.js
 export type BiconomySmartAccount<
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined
-> = SmartAccount<"biconomySmartAccountV3", transport, chain> & {
+> = SmartAccount & {
   activeValidationModule: BaseValidationModule
   setActiveValidationModule: (
     moduleAddress: BaseValidationModule
@@ -190,7 +190,6 @@ export type SignerToBiconomySmartAccountParameters<
 }>
 
 export async function signerToNexus<
-  TTransport extends Transport = Transport,
   TChain extends Chain | undefined = Chain | undefined,
   TSource extends string = string,
   TAddress extends Address = Address
@@ -406,11 +405,11 @@ export async function signerToNexus<
         }[]
 
         const mode = concatHex([
-            EXECTYPE_DEFAULT,
-            CALLTYPE_BATCH,
-            UNUSED,
-            MODE_DEFAULT,
-            MODE_PAYLOAD
+          CALLTYPE_BATCH,
+          EXECTYPE_DEFAULT,
+          MODE_DEFAULT,
+          UNUSED,
+          MODE_PAYLOAD,
         ])
 
         const executionCalldata = encodePacked(
@@ -454,10 +453,14 @@ export async function signerToNexus<
     },
 
     // Get simple dummy signature for k1 Validator module authorization
-    async getDummySignature(_userOperation) {
+    async getDummySignature() {
       const moduleAddress = _activeValidationModule.getModuleAddress()
       const dynamicPart = moduleAddress.substring(2).padEnd(40, "0")
       return `0x0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000${dynamicPart}000000000000000000000000000000000000000000000000000000000000004181d4b4981670cb18f99f0b4a66446df1bf5b204d24cfcb659bf38ba27a4359b5711649ec2423c5e1247245eba2964679b6a1dbb85c992ae40b9b00c6935b02ff1b00000000000000000000000000000000000000000000000000000000000000`
+    },
+
+    getAccountOwner(): LocalAccount {
+      return viemSigner;
     },
 
     setActiveValidationModule(

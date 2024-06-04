@@ -9,44 +9,51 @@ import type {
   GetChainParameter,
   Hex,
   LocalAccount,
-  Transport
+  Transport,
+  UnionOmit
 } from "viem"
 
 import type { PartialBy } from "viem/chains"
-import type { IsUndefined, UnionOmit } from "viem/types/utils.js"
-import type { BaseValidationModule } from "../../modules/index.js"
-import type {
-  PaymasterFeeQuote,
-  PaymasterMode,
-  SponsorUserOperationParameters
-} from "../../paymaster/utils/types.js"
+
 
 export type BigNumberish = number | string | bigint
 export type BytesLike = `0x${string}` | Uint8Array | string
 
 export type UserOperationStruct = {
   /* the origin of the request */
-  sender: string
+  sender: Address
   /* nonce of the transaction, returned from the entry point for this Address */
   nonce: BigNumberish
-  /* the initCode for creating the sender if it does not exist yet, otherwise "0x" */
-  initCode: BytesLike
+  /* Factory address for creating the sender if it does not exist yet */
+  factory?: Address
+  /* Data for the factory to create the sender if it does not exist yet */
+  factoryData?: Hex
   /* the callData passed to the target */
-  callData: BytesLike
+  callData: Hex
   /* Value used by inner account execution */
-  callGasLimit?: BigNumberish
+  callGasLimit: BigNumberish
   /* Actual gas used by the validation of this UserOperation */
-  verificationGasLimit?: BigNumberish
+  verificationGasLimit: BigNumberish
   /* Gas overhead of this UserOperation */
-  preVerificationGas?: BigNumberish
+  preVerificationGas: BigNumberish
   /* Maximum fee per gas (similar to EIP-1559 max_fee_per_gas) */
-  maxFeePerGas?: BigNumberish
+  maxFeePerGas: BigNumberish
   /* Maximum priority fee per gas (similar to EIP-1559 max_priority_fee_per_gas) */
-  maxPriorityFeePerGas?: BigNumberish
-  /* Address of paymaster sponsoring the transaction, followed by extra data to send to the paymaster ("0x" for self-sponsored transaction) */
-  paymasterAndData: BytesLike | "0x"
+  maxPriorityFeePerGas: BigNumberish
+  /* Address of paymaster sponsoring the transaction */
+  paymaster?: Address
+  /* Gas limit for paymaster verification */
+  paymasterVerificationGasLimit?: BigNumberish
+  /* Gas limit for paymaster post-operation */
+  paymasterPostOpGasLimit?: BigNumberish
+  /* Extra data to send to the paymaster */
+  paymasterData?: Hex
   /* Data passed into the account along with the nonce during the verification step */
-  signature: BytesLike
+  signature: Hex
+  /* Init code is not used in this structure */
+  initCode?: never
+  /* Paymaster and data is not used in this structure */
+  paymasterAndData?: never
 }
 
 export type SmartAccountSigner<
@@ -76,16 +83,11 @@ export type Transaction = {
  * @template chain - The type of the chain.
  * @template TAbi - The type of the ABI.
  */
-export type SmartAccount<
-  Name extends string = string,
-  transport extends Transport = Transport,
-  chain extends Chain | undefined = Chain | undefined,
-  TAbi extends Abi | readonly unknown[] = Abi
-> = LocalAccount<Name> & {
+export type SmartAccount = LocalAccount & {
   /**
    * The client associated with the smart account.
    */
-  client: Client<transport, chain>
+  client: Client
 
   /**
    * The entry point address of the smart account.
@@ -105,6 +107,8 @@ export type SmartAccount<
    * @returns A promise that resolves to the initialization code as a Hex string.
    */
   getInitCode: () => Promise<Hex>
+
+  getAccountOwner: () => Promise<LocalAccount>
 
   /**
    * Retrieves the factory address of the smart account.
@@ -134,7 +138,7 @@ export type SmartAccount<
    * @param userOperation - The user operation.
    * @returns A promise that resolves to the dummy signature as a Hex string.
    */
-  getDummySignature(userOperation: UserOperationStruct): Promise<Hex>
+  getDummySignature(): Promise<Hex>
 
   /**
    * Encodes the deploy call data for a smart contract.
@@ -183,15 +187,9 @@ export type Middleware = {
       }
 }
 
-export type GetAccountParameter<
-  TAccount extends SmartAccount | undefined = SmartAccount | undefined
-> = IsUndefined<TAccount> extends true
-  ? { account?: SmartAccount }
-  : { account?: SmartAccount }
+export type GetAccountParameter = { account: SmartAccount }
 
-export type PrepareUserOperationRequestParameters<
-  TAccount extends SmartAccount | undefined = SmartAccount | undefined
-> = {
+export type PrepareUserOperationRequestParameters = {
   userOperation: PartialBy<
     UserOperationStruct,
     | "sender"
@@ -205,8 +203,13 @@ export type PrepareUserOperationRequestParameters<
     | "paymasterAndData"
     | "signature"
   >
-} & GetAccountParameter<TAccount> &
+} & GetAccountParameter &
   Middleware
+
+  export type BuildUserOperationV07 = {
+    transaction: Transaction,
+  } & GetAccountParameter &
+    Middleware
 
 export type GetUserOperationHashParams = {
   userOperation: UserOperationStruct
@@ -220,7 +223,7 @@ export type SendTransactionParameters<
   ///
   derivedChain extends Chain | undefined = DeriveChain<TChain, TChainOverride>
 > = UnionOmit<FormattedTransactionRequest<derivedChain>, "from"> &
-  GetAccountParameter<TAccount> &
+  GetAccountParameter &
   GetChainParameter<TChain, TChainOverride>
 
 export type KnownError = {
@@ -258,3 +261,12 @@ export type NexusModules = {
   hook: Address,
   fallbacks: Address[]
 }
+
+export enum PaymasterMode {
+  ERC20 = "ERC20",
+  SPONSORED = "SPONSORED"
+}
+
+export type SendTransactionWithPaymasterParameters =  {transaction: Transaction, account: SmartAccount} & Middleware
+
+export type SendTransactionsWithPaymasterParameters = {transactions: Transaction[], account: SmartAccount} & Middleware

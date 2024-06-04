@@ -1,28 +1,26 @@
-import type { Address, Chain, Client, Hash, Hex, Transport } from "viem"
+import type {
+  Chain,
+  Client,
+  Hash,
+  SendTransactionParameters,
+  Transport
+} from "viem"
 import type { Prettify } from "viem/chains"
 import { waitForUserOperationReceipt } from "../../bundler/actions/waitForUserOperationReceipt"
+import type { UserOpReceipt } from "../../bundler/utils/types"
 import { getAction, parseAccount } from "../utils/helpers"
-import type {
-  GetAccountParameter,
-  Middleware,
-  SmartAccount
-} from "../utils/types"
+import type { Middleware, SendTransactionsWithPaymasterParameters, SmartAccount, Transaction } from "../utils/types"
 import { sendUserOperation } from "./sendUserOperation"
 
-export type SendTransactionsWithPaymasterParameters<
-  TAccount extends SmartAccount | undefined = SmartAccount | undefined
-> = {
-  transactions: { to: Address; value: bigint; data: Hex }[]
-} & GetAccountParameter<TAccount> &
-  Middleware & {
-    maxFeePerGas?: Hex
-    maxPriorityFeePerGas?: Hex
-    nonce?: Hex
-  }
-
 /**
- * Creates, signs, and sends a new transactions to the network.
+ * Creates, signs, and sends a new transaction to the network.
  * This function also allows you to sponsor this transaction if sender is a smartAccount
+ *
+ * - Docs: https://viem.sh/docs/actions/wallet/sendTransaction.html
+ * - Examples: https://stackblitz.com/github/wagmi-dev/viem/tree/main/examples/transactions/sending-transactions
+ * - JSON-RPC Methods:
+ *   - JSON-RPC Accounts: [`eth_sendTransaction`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_sendtransaction)
+ *   - Local Accounts: [`eth_sendRawTransaction`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_sendrawtransaction)
  *
  * @param client - Client to use
  * @returns The [Transaction](https://viem.sh/docs/glossary/terms.html#transaction) hash.
@@ -36,14 +34,11 @@ export type SendTransactionsWithPaymasterParameters<
  *   chain: mainnet,
  *   transport: custom(window.ethereum),
  * })
- * const hash = await sendTransaction(client, [{
+ * const hash = await sendTransaction(client, {
  *   account: '0xA0Cf798816D4b9b9866b5330EEa46a18382f251e',
  *   to: '0x70997970c51812dc3a010c7d01b50e0d17dc79c8',
  *   value: 1000000000000000000n,
- * }, {
- *   to: '0x61897970c51812dc3a010c7d01b50e0d17dc1234',
- *   value: 10000000000000000n,
- * }])
+ * })
  *
  * @example
  * // Account Hoisting
@@ -57,28 +52,21 @@ export type SendTransactionsWithPaymasterParameters<
  *   chain: mainnet,
  *   transport: http(),
  * })
- * const hash = await sendTransactions(client, [{
+ * const hash = await sendTransaction(client, {
  *   to: '0x70997970c51812dc3a010c7d01b50e0d17dc79c8',
  *   value: 1000000000000000000n,
- * }, {
- *   to: '0x61897970c51812dc3a010c7d01b50e0d17dc1234',
- *   value: 10000000000000000n,
- * }])
+ * })
  */
-export async function sendTransactions<
-  TChain extends Chain | undefined,
-  TAccount extends SmartAccount | undefined
->(
-  client: Client<Transport, TChain, TAccount>,
-  args: Prettify<SendTransactionsWithPaymasterParameters<TAccount>>
+export async function sendTransactions(
+  client: Client,
+  args: Prettify<
+    SendTransactionsWithPaymasterParameters
+  >
 ): Promise<Hash> {
   const {
     account: account_ = client.account,
-    transactions,
-    middleware,
-    maxFeePerGas,
-    maxPriorityFeePerGas,
-    nonce
+   transactions,
+    middleware
   } = args
 
   if (!account_) {
@@ -91,16 +79,7 @@ export async function sendTransactions<
     throw new Error("RPC account type not supported")
   }
 
-  const callData = await account.encodeCallData(
-    transactions.map(({ to, value, data }) => {
-      if (!to) throw new Error("Missing to address")
-      return {
-        to,
-        value: value || 0n,
-        data: data || "0x"
-      }
-    })
-  )
+  const callData = await account.encodeCallData(transactions)
 
   const userOpHash = await getAction(
     client,
@@ -108,16 +87,13 @@ export async function sendTransactions<
   )({
     userOperation: {
       sender: account.address,
-      maxFeePerGas: maxFeePerGas,
-      maxPriorityFeePerGas: maxPriorityFeePerGas,
       callData: callData,
-      nonce: nonce ? BigInt(nonce) : undefined
     },
     account: account,
     middleware
   })
 
-  const userOperationReceipt = await getAction(
+  const userOperationReceipt: UserOpReceipt = await getAction(
     client,
     waitForUserOperationReceipt
   )({

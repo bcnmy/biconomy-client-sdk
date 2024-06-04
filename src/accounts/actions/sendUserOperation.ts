@@ -1,18 +1,15 @@
 import type { Chain, Client, Hash, Transport } from "viem"
 import type { PartialBy, Prettify } from "viem/chains"
-import { sendUserOperationWithBundler } from "../../bundler"
-import { getAction, parseAccount } from "../utils/helpers"
+import { parseAccount } from "../utils/helpers"
 import type {
   GetAccountParameter,
   Middleware,
   SmartAccount,
   UserOperationStruct
 } from "../utils/types"
-import { prepareUserOperationRequest } from "./prepareUserOperationRequest"
+import {sendUserOperation as sendUserOperationWithBundler} from "../../bundler/actions/sendUserOperation"
 
-export type SendUserOperationParameters<
-  TAccount extends SmartAccount | undefined = SmartAccount | undefined
-> = {
+export type SendUserOperationParameters = {
   userOperation: PartialBy<
     UserOperationStruct,
     | "sender"
@@ -26,34 +23,24 @@ export type SendUserOperationParameters<
     | "paymasterAndData"
     | "signature"
   >
-} & GetAccountParameter<TAccount> &
+} & GetAccountParameter &
   Middleware
 
-export async function sendUserOperation<
-  TTransport extends Transport = Transport,
-  TChain extends Chain | undefined = Chain | undefined,
-  TAccount extends SmartAccount | undefined = SmartAccount | undefined
->(
-  client: Client<TTransport, TChain, TAccount>,
+export async function sendUserOperation(
+  client: Client,
   args: Prettify<SendUserOperationParameters>
 ): Promise<Hash> {
-  const { account: account_ = client.account } = args
+  const { account: account_ = client.account, userOperation } = args
   if (!account_) throw new Error("No account found.")
 
   const account = parseAccount(account_) as SmartAccount
-
-  const userOperation = await getAction(
-    client,
-    prepareUserOperationRequest<TTransport, TChain, TAccount>
-  )(args)
 
   userOperation.signature = await account.signUserOperation(
     userOperation as UserOperationStruct
   )
 
-  console.log(userOperation, "userOperation");
-
   return sendUserOperationWithBundler(client, {
+    account,
     userOperation: userOperation as UserOperationStruct
   })
 }

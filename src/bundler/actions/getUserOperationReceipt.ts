@@ -48,11 +48,11 @@ export const getUserOperationReceipt = async <
   const userOperationReceipt: UserOpReceipt = {
     userOpHash: response.userOpHash,
     entryPoint: response.entryPoint,
-    paymaster: response.paymaster,
+    paymaster: response.paymaster ?? "0x",
     actualGasCost: response.actualGasCost,
     actualGasUsed: response.actualGasUsed,
-    success: response.success,
-    reason: response.reason,
+    success: response.success ?? "false",
+    reason: response.reason ?? "",
     logs: response.logs,
     receipt: response.receipt
   }

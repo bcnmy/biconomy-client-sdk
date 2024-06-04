@@ -1,6 +1,5 @@
 import type { Account, Address, Chain, Client, Hash, Transport } from "viem"
 import type { Prettify } from "viem/chains"
-import type { UserOperationStruct } from "../../accounts"
 import type { BundlerRpcSchema } from "../utils/types"
 
 export type GetUserOperationByHashParameters = {
@@ -8,7 +7,7 @@ export type GetUserOperationByHashParameters = {
 }
 
 export type GetUserOperationByHashReturnType = {
-  userOperation: UserOperationStruct
+  // userOperation: UserOperationStruct
   entryPoint: Address
   transactionHash: Hash
   blockHash: Hash
@@ -54,22 +53,21 @@ export const getUserOperationByHash = async <
 
   if (!response) return null
 
-  const userOperation = {
-    sender: response.sender,
-    nonce: response.nonce,
-    initCode: response.initCode,
-    callData: response.callData,
-    callGasLimit: response.callGasLimit,
-    verificationGasLimit: response.verificationGasLimit,
-    preVerificationGas: response.preVerificationGas,
-    maxFeePerGas: response.maxFeePerGas,
-    maxPriorityFeePerGas: response.maxPriorityFeePerGas,
-    paymasterAndData: response.paymasterAndData,
-    signature: response.signature
-  }
+  // const userOperation = {
+  //   sender: response.sender,
+  //   nonce: response.nonce,
+  //   initCode: response.initCode,
+  //   callData: response.callData,
+  //   callGasLimit: response.callGasLimit,
+  //   verificationGasLimit: response.verificationGasLimit,
+  //   preVerificationGas: response.preVerificationGas,
+  //   maxFeePerGas: response.maxFeePerGas,
+  //   maxPriorityFeePerGas: response.maxPriorityFeePerGas,
+  //   paymasterAndData: response.paymasterAndData,
+  //   signature: response.signature
+  // }
 
   return {
-    userOperation: userOperation,
     entryPoint: response.entryPoint,
     transactionHash: response.transactionHash,
     blockHash: response.blockHash,

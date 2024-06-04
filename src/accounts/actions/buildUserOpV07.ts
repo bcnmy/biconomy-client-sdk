@@ -1,60 +1,54 @@
-import type { Chain, Client, Transport } from "viem"
+import type { Client } from "viem"
 import { estimateFeesPerGas } from "viem/actions"
 import type { Prettify } from "viem/chains"
 import { estimateUserOperationGas } from "../../bundler/actions/estimateUserOperationGas"
-import type { StateOverrides } from "../../bundler/utils/types"
-import { PaymasterMode } from "../../paymaster/utils/types"
 import { getAction, parseAccount } from "../utils/helpers"
-import type {
-  ENTRYPOINT_ADDRESS_V07_TYPE,
-  PrepareUserOperationRequestParameters,
-  SmartAccount,
-  UserOperationStruct
+import {
+  PaymasterMode,
+  type BuildUserOperationV07,
+  type SmartAccount,
+  type UserOperationStruct
 } from "../utils/types"
+import { ENTRYPOINT_ADDRESS_V07 } from "../utils/constants"
 
-async function prepareUserOperationRequestForEntryPointV06<
-  TTransport extends Transport = Transport,
-  TChain extends Chain | undefined = Chain | undefined,
-  TAccount extends SmartAccount | undefined = SmartAccount | undefined
->(
-  client: Client<TTransport, TChain, TAccount>,
-  args: Prettify<PrepareUserOperationRequestParameters>,
-  stateOverrides?: StateOverrides
+export async function buildUserOpV07(
+  client: Client,
+  args: Prettify<BuildUserOperationV07>,
+  // stateOverrides?: StateOverrides
 ): Promise<Prettify<UserOperationStruct>> {
   const {
     account: account_ = client.account,
-    userOperation: partialUserOperation,
+    transaction,
     middleware
   } = args
   if (!account_) throw new Error("No account found")
 
   const account = parseAccount(
     account_
-  ) as SmartAccount<ENTRYPOINT_ADDRESS_V07_TYPE>
+  ) as SmartAccount
 
-  const [sender, nonce, initCode, callData] = await Promise.all([
-    partialUserOperation.sender || account.address,
-    partialUserOperation.nonce || account.getNonce(),
-    partialUserOperation.initCode || account.getInitCode(),
-    partialUserOperation.callData
+  const [sender, nonce, initCode] = await Promise.all([
+    account.address,
+    account.getNonce(),
+    account.getInitCode(),
+    transaction.data
   ])
+
+  const callData = await account.encodeCallData(transaction);
+  const dummySignature = await account.getDummySignature();
 
   const userOperation: UserOperationStruct = {
     sender,
     nonce,
-    initCode,
+    factoryData: initCode,
     callData,
-    paymasterAndData: "0x",
-    signature: partialUserOperation.signature || "0x",
-    maxFeePerGas: partialUserOperation.maxFeePerGas,
-    maxPriorityFeePerGas: partialUserOperation.maxPriorityFeePerGas,
-    callGasLimit: partialUserOperation.callGasLimit,
-    verificationGasLimit: partialUserOperation.verificationGasLimit,
-    preVerificationGas: partialUserOperation.preVerificationGas
-  }
-
-  if (userOperation.signature === "0x") {
-    userOperation.signature = await account.getDummySignature(userOperation)
+    paymasterData: "0x",
+    callGasLimit: 0n,
+    verificationGasLimit: 0n,
+    preVerificationGas: 0n,
+    maxFeePerGas: 0n,
+    maxPriorityFeePerGas: 0n, 
+    signature: dummySignature || "0x",
   }
 
   if (typeof middleware === "function") {
@@ -63,12 +57,12 @@ async function prepareUserOperationRequestForEntryPointV06<
 
   if (middleware && typeof middleware !== "function" && middleware.gasPrice) {
     const gasPrice = await middleware.gasPrice()
-    userOperation.maxFeePerGas = gasPrice.maxFeePerGas?.toString()
+    userOperation.maxFeePerGas = gasPrice.maxFeePerGas?.toString() ?? 0n
     userOperation.maxPriorityFeePerGas =
-      gasPrice.maxPriorityFeePerGas?.toString()
+      gasPrice.maxPriorityFeePerGas?.toString() ?? 0n
   }
 
-  if (!userOperation.maxFeePerGas || !userOperation.maxPriorityFeePerGas) {
+  if (!userOperation.maxFeePerGas || !userOperation.maxPriorityFeePerGas) { // TODO
     const estimateGas = await estimateFeesPerGas(account.client)
     userOperation.maxFeePerGas =
       userOperation.maxFeePerGas || estimateGas.maxFeePerGas.toString()
@@ -146,11 +140,10 @@ async function prepareUserOperationRequestForEntryPointV06<
   ) {
     const gasParameters = await getAction(client, estimateUserOperationGas)(
       {
-        userOperation
-      } as {
-        userOperation: UserOperationStruct
-      },
-      stateOverrides
+        userOperation,
+        entryPoint: ENTRYPOINT_ADDRESS_V07
+      } 
+      // stateOverrides
     )
 
     userOperation.callGasLimit =
@@ -164,23 +157,4 @@ async function prepareUserOperationRequestForEntryPointV06<
   }
 
   return userOperation as UserOperationStruct
-}
-
-export async function prepareUserOperationRequest<
-  TTransport extends Transport = Transport,
-  TChain extends Chain | undefined = Chain | undefined,
-  TAccount extends SmartAccount | undefined = SmartAccount | undefined
->(
-  client: Client<TTransport, TChain, TAccount>,
-  args: Prettify<PrepareUserOperationRequestParameters>,
-  stateOverrides?: StateOverrides
-): Promise<UserOperationStruct> {
-  const { account: account_ = client.account } = args
-  if (!account_) throw new Error("No account found.")
-
-  return prepareUserOperationRequestForEntryPointV06(
-    client,
-    args,
-    stateOverrides
-  ) as Promise<UserOperationStruct>
 }

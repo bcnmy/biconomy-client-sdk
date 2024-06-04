@@ -1,7 +1,6 @@
 import type { Address, Chain, ClientConfig, Hash, Hex, Transport } from "viem"
-import type { Prettify } from "viem/chains"
-import type { Middleware, SmartAccount } from "../../accounts/utils/types"
-import type { TStatus } from "../../bundler"
+import type { PartialBy, Prettify } from "viem/chains"
+import type { ENTRYPOINT_ADDRESS_V07_TYPE, Middleware, SmartAccount, UserOperationStruct } from "../../accounts/utils/types"
 
 export type SmartAccountClientConfig<
   transport extends Transport = Transport,
@@ -56,3 +55,16 @@ export type GetUserOperationReceiptReturnType = {
     topics: Hex[]
   }[]
 }
+
+export type EstimateUserOperationGasParameters =
+    {
+        userOperation: PartialBy<
+                  UserOperationStruct,
+                  | "callGasLimit"
+                  | "preVerificationGas"
+                  | "verificationGasLimit"
+                  | "paymasterVerificationGasLimit"
+                  | "paymasterPostOpGasLimit"
+              >
+        entryPoint: ENTRYPOINT_ADDRESS_V07_TYPE
+    }
