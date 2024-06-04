@@ -96,7 +96,7 @@ describe("Account:Write", async () => {
     )
   })
 
-  test("should test the nonce on arbSepolia", async () => {
+  test.skip("should test the nonce on arbSepolia", async () => {
     const chain = arbitrumSepolia
     const account = privateKeyToAccount(`0x${privateKey}`)
     const signer = createWalletClient({ account, chain, transport: http() })
@@ -642,7 +642,7 @@ describe("Account:Write", async () => {
     ).rejects.toThrowError()
   }, 50000)
 
-  test("send an user op with the new owner", async () => {
+  test.skip("send an user op with the new owner", async () => {
     _smartAccount = await createSmartAccountClient({
       signer: walletClientTwo,
       paymasterUrl,

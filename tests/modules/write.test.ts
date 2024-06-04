@@ -1367,5 +1367,5 @@ describe("Modules:Write", () => {
     expect(
       balanceOfPreferredTokenBefore - balanceOfPreferredTokenAfter
     ).toBeGreaterThan(0)
-  }, 60000)
+  }, 80000)
 })

@@ -64,8 +64,7 @@ export interface BatchedSessionRouterModuleConfig
 
 export enum StorageType {
   LOCAL_STORAGE = 0,
-  MEMORY_STORAGE = 1,
-  FILE_STORAGE = 2
+  MEMORY_STORAGE = 1
 }
 
 export type SessionDataTuple = [

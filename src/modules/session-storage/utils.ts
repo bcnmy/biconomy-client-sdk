@@ -2,11 +2,7 @@ import type { Address, Chain, Hex } from "viem"
 import type { BiconomySmartAccountV2, SmartAccountSigner } from "../../account"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import { supportsLocalStorage } from "./SessionLocalStorage"
-import {
-  SessionFileStorage,
-  SessionLocalStorage,
-  SessionMemoryStorage
-} from "./index.js"
+import { SessionLocalStorage, SessionMemoryStorage } from "./index.js"
 
 export type SessionStoragePayload = {
   sessionKeyAddress: Hex
@@ -19,7 +15,7 @@ export type SessionStoragePayload = {
  *
  * This function is used to store a new session key in the session storage.
  * If the session storage client is not provided as the third argument, it will create a new session storage client based on the environment.
- * When localStorage is supported, it will return SessionLocalStorage, otherwise it will assume you are in a backend and use SessionFileStorage.
+ * When localStorage is supported, it will return SessionLocalStorage, otherwise it will assume you are in a backend and use SessionMemoryStorage.
  *
  * @param smartAccount: BiconomySmartAccountV2
  * @param chain: Chain
@@ -63,7 +59,7 @@ export const getDefaultStorageClient = (address: Address): ISessionStorage => {
     return new SessionLocalStorage(address)
   }
   if (inNodeBackend()) {
-    return new SessionFileStorage(address)
+    return new SessionMemoryStorage(address) // Fallback to memory storage
   }
   throw new Error("No session storage client available")
 }

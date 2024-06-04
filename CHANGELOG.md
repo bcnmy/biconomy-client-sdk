@@ -1,5 +1,11 @@
 # @biconomy/account
 
+## 4.4.6
+
+### Patch Changes
+
+- Move SessionStorageClient to its own package (https://www.npmjs.com/package/@biconomy/session-file-storage)
+
 ## 4.4.5
 
 ### Patch Changes
