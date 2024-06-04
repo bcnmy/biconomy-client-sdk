@@ -44,6 +44,7 @@ export type ImpersonatedSmartAccountConfig = Omit<
  * import { createSmartAccountClient, BiconomySmartAccountV2 } from "@biconomy/account"
  * import { createWalletClient, http } from "viem";
  * import { polygonAmoy } from "viem/chains";
+ * import { SessionFileStorage } from "@biconomy/session-file-storage";
  *
  * const signer = createWalletClient({
  *   account,

@@ -49,8 +49,9 @@ export type CreateBatchSessionConfig = {
  * import { createSmartAccountClient } from "@biconomy/account"
  * import { createWalletClient, http } from "viem";
  * import { polygonAmoy } from "viem/chains";
- *
- * const signer = createWalletClient({
+ * import { SessionFileStorage } from "@biconomy/session-file-storage";
+
+* const signer = createWalletClient({
  *   account,
  *   chain: polygonAmoy,
  *   transport: http(),
@@ -59,7 +60,7 @@ export type CreateBatchSessionConfig = {
  * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, paymasterUrl }); // Retrieve bundler/paymaster url from dashboard
  * const smartAccountAddress = await smartAccount.getAccountAddress();
  * const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
- * const sessionStorage = new SessionFileStorage(smartAccountAddress);
+ * const sessionStorage = new SessionFileStorage(smartAccountAddress); 
  * const sessionKeyAddress = (await sessionStorage.addSigner(undefined, polygonAmoy)).getAddress();
  *
  *  const leaves: CreateSessionDataParams[] = [
