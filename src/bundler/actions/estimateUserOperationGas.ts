@@ -1,14 +1,14 @@
-import { EstimateUserOperationGasParameters } from './../../client/utils/types';
 import type { Account, Chain, Client, Hex, Transport } from "viem"
 import type { BaseError } from "viem"
 import type { Prettify } from "viem/chains"
 import { ENTRYPOINT_ADDRESS_V07 } from "../../accounts/utils/constants"
 import { getEstimateUserOperationGasError } from "../../errors/getters"
 import {
-  deepHexlify,
   type BundlerRpcSchema,
-  type StateOverrides
+  type StateOverrides,
+  deepHexlify
 } from "../utils/types"
+import type { EstimateUserOperationGasParameters } from "./../../client/utils/types"
 
 export const estimateUserOperationGas = async <
   TTransport extends Transport = Transport,
@@ -54,14 +54,12 @@ export const estimateUserOperationGas = async <
       preVerificationGas: responseV07.preVerificationGas.toString() || "0",
       verificationGasLimit: responseV07.verificationGasLimit.toString() || "0",
       callGasLimit: responseV07.callGasLimit.toString() || "0",
-      paymasterVerificationGasLimit:
-        responseV07.paymasterVerificationGasLimit
-          ? BigInt(responseV07.paymasterVerificationGasLimit)
-          : undefined,
-      paymasterPostOpGasLimit: 
-        responseV07.paymasterPostOpGasLimit
-          ? BigInt(responseV07.paymasterPostOpGasLimit)
-          : undefined
+      paymasterVerificationGasLimit: responseV07.paymasterVerificationGasLimit
+        ? BigInt(responseV07.paymasterVerificationGasLimit)
+        : undefined,
+      paymasterPostOpGasLimit: responseV07.paymasterPostOpGasLimit
+        ? BigInt(responseV07.paymasterPostOpGasLimit)
+        : undefined
     } as {
       preVerificationGas: string
       verificationGasLimit: string

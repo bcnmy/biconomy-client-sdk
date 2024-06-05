@@ -1,20 +1,17 @@
-import type { PublicClient, TypedData } from "viem"
+import type { Account, Chain, PublicClient, TypedData } from "viem"
 import {
   type Address,
-  type Chain,
   type Client,
   type Hex,
-  type LocalAccount,
-  type Transport,
   type TypedDataDefinition,
   concatHex,
   encodeAbiParameters,
   encodeFunctionData,
   encodePacked,
-  parseAbiParameters,
   keccak256,
-  toHex,
-  parseAbi
+  parseAbi,
+  parseAbiParameters,
+  toHex
 } from "viem"
 import {
   getBytecode,
@@ -22,14 +19,16 @@ import {
   signMessage,
   signTypedData
 } from "viem/actions"
-import type { Prettify } from "viem/chains"
 
-import { ENTRYPOINT_ADDRESS_V07 } from "../utils/constants.js"
+import type { BaseValidationModule } from "../../modules/types/index.js"
+import { createK1ValidatorModule } from "../../modules/validators/k1Validator.js"
+import { getSenderAddress } from "../actions/getSenderAddress.js"
+import { createAccountAbi, metaFactorytAbi } from "../utils/abis.js"
+import SmartAccountAbi from "../utils/abis/smartAccount.json"
 import {
-  getUserOperationHash,
-  toSmartAccount,
-} from "../utils/helpers.js"
-import type { NexusModules, SmartAccount, SmartAccountSigner } from "../utils/types.js"
+  ENTRYPOINT_ADDRESS_V07,
+  K1_VALIDATOR_ADDRESS
+} from "../utils/constants.js"
 import {
   CALLTYPE_BATCH,
   CALLTYPE_SINGLE,
@@ -38,29 +37,21 @@ import {
   MODE_PAYLOAD,
   UNUSED
 } from "../utils/constants.js"
-import { getSenderAddress } from "../actions/getSenderAddress.js"
-import SmartAccountAbi from "../utils/abis/smartAccount.json";
-import { createAccountAbi, metaFactorytAbi } from "../utils/abis.js"
-import { BaseValidationModule } from "../../modules/types/index.js"
-import { createK1ValidatorModule } from "../../modules/validators/k1Validator.js"
-
-export type BiconomySmartAccount<
-  transport extends Transport = Transport,
-  chain extends Chain | undefined = Chain | undefined
-> = SmartAccount & {
-  activeValidationModule: BaseValidationModule
-  setActiveValidationModule: (
-    moduleAddress: BaseValidationModule
-  ) => BaseValidationModule
-}
+import { getUserOperationHash, toSmartAccount } from "../utils/helpers.js"
+import type {
+  GetAccountAddressParams,
+  GetFactoryDataParams,
+  SignerToBiconomySmartAccountParameters,
+  SmartAccount
+} from "../utils/types.js"
 
 /**
  * Default addresses for Biconomy Smart Account
  */
 const BICONOMY_ADDRESSES: {
   ACCOUNT_V3_0_LOGIC: Address
-  FACTORY_ADDRESS: Address,
-  K1_VALIDATOR_MODULE: Address,
+  FACTORY_ADDRESS: Address
+  K1_VALIDATOR_MODULE: Address
   BOOTSTRAP: Address
 } = {
   ACCOUNT_V3_0_LOGIC: "0x26A1fe54198494Ba1a1aaD2D5E8255E91674C539", // UPDATED
@@ -73,7 +64,7 @@ const getAccountInitCode = async ({
   factoryAddress,
   factoryData
 }: {
-  factoryAddress: Address,
+  factoryAddress: Address
   factoryData: Hex
 }): Promise<Hex> => {
   // if (!owner) throw new Error("Owner account not found")
@@ -85,35 +76,36 @@ const getAccountInitCode = async ({
   //   functionName: "getInitNexusCalldata",
   //   args: [validators, executors, hook, fallbacks]
   // })
-   
+
   return encodeFunctionData({
-      abi: metaFactorytAbi,
-      functionName: "deployWithFactory",
-      args: [factoryAddress, factoryData]
+    abi: metaFactorytAbi,
+    functionName: "deployWithFactory",
+    args: [factoryAddress, factoryData]
   })
 }
 
 const getFactoryData = async ({
   publicClient,
   owner,
-  modules,
   bootstrapAddress,
   index,
-}: {
-  publicClient: PublicClient,
-  owner: Address,
-  modules: NexusModules | {validators: [], executors: [], hook: {}, fallbacks: []},
-  bootstrapAddress: Address | "0x",
-  index: bigint | 0n
-}): Promise<Hex> => {
+  modules
+}: GetFactoryDataParams): Promise<Hex> => {
   if (!owner) throw new Error("Owner account not found")
-  
-  const salt = keccak256(toHex(index));
+
+  const salt = keccak256(toHex(index))
   const initData = await publicClient.readContract({
     address: bootstrapAddress,
-    abi: parseAbi(['function getInitNexusCalldata(BootstrapConfig[] $validators, BootstrapConfig[] $executors, BootstrapConfig hook, BootstrapConfig[] $fallbacks) external view returns (bytes init)']),
+    abi: parseAbi([
+      "function getInitNexusCalldata(BootstrapConfig[] $validators, BootstrapConfig[] $executors, BootstrapConfig hook, BootstrapConfig[] $fallbacks) external view returns (bytes init)"
+    ]),
     functionName: "getInitNexusCalldata",
-    args: [modules.validators, modules.executors, modules.hook, modules.fallbacks]
+    args: [
+      modules?.validators ?? [K1_VALIDATOR_ADDRESS],
+      modules?.executors ?? [],
+      modules?.hook ?? [],
+      modules?.fallbacks ?? []
+    ]
   })
 
   return encodeFunctionData({
@@ -125,14 +117,9 @@ const getFactoryData = async ({
 
 const getK1ValidatorFactoryData = async ({
   owner,
-  index,
-}: {
-  publicClient: PublicClient,
-  owner: Address,
-  modules: NexusModules | {validators: [], executors: [], hook: {}, fallbacks: []},
-  bootstrapAddress: Address | "0x",
-  isK1ValidatorFactory: boolean | false,
-  index: bigint | 0n
+  index
+}: GetFactoryDataParams & {
+  isK1ValidatorFactory: boolean | false
 }): Promise<Hex> => {
   if (!owner) throw new Error("Owner account not found")
 
@@ -161,57 +148,37 @@ const getAccountAddress = async ({
   client,
   factoryAddress,
   initCode
-}: {
-  client: Client,
-  factoryAddress: Address
-  owner: Address,
-  initCode: Hex,
-  index?: bigint
-}): Promise<Address> => {
+}: GetAccountAddressParams): Promise<Address> => {
   // Get the sender address based on the init code
   return getSenderAddress(client, {
-      factory: factoryAddress,
-      factoryData: initCode,
-      entryPoint: ENTRYPOINT_ADDRESS_V07
+    factory: factoryAddress,
+    factoryData: initCode,
+    entryPoint: ENTRYPOINT_ADDRESS_V07
   })
 }
 
-export type SignerToBiconomySmartAccountParameters<
-  TSource extends string = string,
-  TAddress extends Address = Address
-> = Prettify<{
-  signer: SmartAccountSigner<TSource, TAddress>
-  address?: Address
-  index?: bigint
-  factoryAddress?: Address
-  accountLogicAddress?: Address
-  fallbackHandlerAddress?: Address
-  modules: NexusModules
-}>
-
-export async function signerToNexus<
-  TChain extends Chain | undefined = Chain | undefined,
-  TSource extends string = string,
-  TAddress extends Address = Address
->(
+export async function signerToNexus(
   client: PublicClient,
   {
     signer,
-    address,
     index = 0n, // TODO: create test for index
     factoryAddress = BICONOMY_ADDRESSES.FACTORY_ADDRESS,
     modules
-  }: SignerToBiconomySmartAccountParameters<TSource, TAddress>
-): Promise<any> {
+  }: SignerToBiconomySmartAccountParameters
+): Promise<SmartAccount> {
   // Get the private key related account
-  const viemSigner: LocalAccount = {
+  const viemSigner: Account = {
     ...signer,
     signTransaction: (_, __) => {
       throw new Error("Sign transaction not supported by smart account.")
     }
-  } as LocalAccount
+  } as Account
 
-  let _activeValidationModule = await createK1ValidatorModule({moduleAddress: modules.validators[0], version: '1', signer: viemSigner});
+  let _activeValidationModule = await createK1ValidatorModule({
+    moduleAddress:
+      modules?.validators[0] ?? BICONOMY_ADDRESSES.K1_VALIDATOR_MODULE,
+    signer: viemSigner
+  })
 
   const factoryData = await getFactoryData({
     publicClient: client,
@@ -219,25 +186,24 @@ export async function signerToNexus<
     modules,
     bootstrapAddress: BICONOMY_ADDRESSES.BOOTSTRAP,
     index
-  });
+  })
 
   // Helper to generate the init code for the smart account
   const generateInitCode = async () =>
     getAccountInitCode({
-     factoryAddress,
-     factoryData
+      factoryAddress,
+      factoryData
     })
 
   // Fetch account address and chain id
   const [accountAddress, chainId] = await Promise.all([
-    address ??
-      getAccountAddress({
-        client,
-        owner: viemSigner.address,
-        initCode: await generateInitCode(),
-        factoryAddress,
-        index
-      }),
+    getAccountAddress({
+      client,
+      owner: viemSigner.address,
+      initCode: await generateInitCode(),
+      factoryAddress,
+      index
+    }),
     getChainId(client)
   ])
 
@@ -279,7 +245,7 @@ export async function signerToNexus<
       let signature: Hex = await signTypedData<
         TTypedData,
         TPrimaryType,
-        TChain,
+        Chain | undefined,
         undefined
       >(client, {
         account: viemSigner,
@@ -399,9 +365,9 @@ export async function signerToNexus<
       if (Array.isArray(args)) {
         // Encode a batched call
         const argsArray = args as {
-            to: Address
-            value: bigint
-            data: Hex
+          to: Address
+          value: bigint
+          data: Hex
         }[]
 
         const mode = concatHex([
@@ -409,46 +375,43 @@ export async function signerToNexus<
           EXECTYPE_DEFAULT,
           MODE_DEFAULT,
           UNUSED,
-          MODE_PAYLOAD,
+          MODE_PAYLOAD
         ])
 
         const executionCalldata = encodePacked(
           [["address", "uint256", "bytes"]],
           [argsArray.map(({ to, value, data }) => [to, value, data])]
         )
-      
+
         return encodeFunctionData({
-            abi: SmartAccountAbi,
-            functionName: "execute",
-            args: [
-                mode,
-                executionCalldata
-            ]
-        })
-      }
-      const { to, value, data } = args as {
-          to: Address
-          value: bigint
-          data: Hex
-      }
-
-      const mode = concatHex([
-          EXECTYPE_DEFAULT,
-          CALLTYPE_SINGLE,
-          UNUSED,
-          MODE_DEFAULT,
-          MODE_PAYLOAD
-      ])
-
-      const executionCalldata = encodePacked(
-          ["address", "uint256", "bytes"],
-          [to, value, data]
-      )
-      // Encode a simple call
-      return encodeFunctionData({
           abi: SmartAccountAbi,
           functionName: "execute",
           args: [mode, executionCalldata]
+        })
+      }
+      const { to, value, data } = args as {
+        to: Address
+        value: bigint
+        data: Hex
+      }
+
+      const mode = concatHex([
+        EXECTYPE_DEFAULT,
+        CALLTYPE_SINGLE,
+        UNUSED,
+        MODE_DEFAULT,
+        MODE_PAYLOAD
+      ])
+
+      const executionCalldata = encodePacked(
+        ["address", "uint256", "bytes"],
+        [to, value, data]
+      )
+      // Encode a simple call
+      return encodeFunctionData({
+        abi: SmartAccountAbi,
+        functionName: "execute",
+        args: [mode, executionCalldata]
       })
     },
 
@@ -459,8 +422,12 @@ export async function signerToNexus<
       return `0x0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000${dynamicPart}000000000000000000000000000000000000000000000000000000000000004181d4b4981670cb18f99f0b4a66446df1bf5b204d24cfcb659bf38ba27a4359b5711649ec2423c5e1247245eba2964679b6a1dbb85c992ae40b9b00c6935b02ff1b00000000000000000000000000000000000000000000000000000000000000`
     },
 
-    getAccountOwner(): LocalAccount {
-      return viemSigner;
+    getAccountOwner(): Account {
+      return viemSigner
+    },
+
+    getAccountAddress(): Address {
+      return accountAddress
     },
 
     setActiveValidationModule(

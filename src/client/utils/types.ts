@@ -1,11 +1,23 @@
-import type { Address, Chain, ClientConfig, Hash, Hex, Transport } from "viem"
+import type {
+  Account,
+  Address,
+  Chain,
+  ClientConfig,
+  Hash,
+  Hex,
+  Transport
+} from "viem"
 import type { PartialBy, Prettify } from "viem/chains"
-import type { ENTRYPOINT_ADDRESS_V07_TYPE, Middleware, SmartAccount, UserOperationStruct } from "../../accounts/utils/types"
+import type {
+  ENTRYPOINT_ADDRESS_V07_TYPE,
+  Middleware,
+  UserOperationStruct
+} from "../../accounts/utils/types"
 
 export type SmartAccountClientConfig<
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined,
-  account extends SmartAccount | undefined = SmartAccount | undefined
+  account extends Account | undefined = Account | undefined
 > = Prettify<
   Pick<
     ClientConfig<transport, chain, account>,
@@ -38,7 +50,7 @@ export type GetUserOperationReceiptReturnType = {
     from: Address
     to: Address | null
     cumulativeGasUsed: bigint
-    status: TStatus
+    status: "success" | "failure"
     gasUsed: bigint
     contractAddress: Address | null
     logsBloom: Hex
@@ -56,15 +68,14 @@ export type GetUserOperationReceiptReturnType = {
   }[]
 }
 
-export type EstimateUserOperationGasParameters =
-    {
-        userOperation: PartialBy<
-                  UserOperationStruct,
-                  | "callGasLimit"
-                  | "preVerificationGas"
-                  | "verificationGasLimit"
-                  | "paymasterVerificationGasLimit"
-                  | "paymasterPostOpGasLimit"
-              >
-        entryPoint: ENTRYPOINT_ADDRESS_V07_TYPE
-    }
+export type EstimateUserOperationGasParameters = {
+  userOperation: PartialBy<
+    UserOperationStruct,
+    | "callGasLimit"
+    | "preVerificationGas"
+    | "verificationGasLimit"
+    | "paymasterVerificationGasLimit"
+    | "paymasterPostOpGasLimit"
+  >
+  entryPoint: ENTRYPOINT_ADDRESS_V07_TYPE
+}

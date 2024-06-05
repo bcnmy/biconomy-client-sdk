@@ -1,5 +1,5 @@
-import { getConfig } from "./utils.js"
+// import { getConfig } from "./utils.js"
 
-export default function setup({ provide: _ }) {
-  getConfig()
-}
+// export default function setup({ provide: _ }) {
+//   getConfig()
+// }

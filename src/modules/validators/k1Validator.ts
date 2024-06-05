@@ -1,9 +1,26 @@
-import { encodeFunctionData, encodePacked, publicActions, stringToBytes, toHex, type Hex } from "viem"
+import {
+  type Hex,
+  type LocalAccount,
+  encodeFunctionData,
+  encodePacked,
+  stringToBytes,
+  toHex
+} from "viem"
 import type { Prettify } from "viem/chains"
-import { BaseValidationModule, K1ValidatorModuleConfig, ModuleType } from "../types"
-import { ENTRYPOINT_ADDRESS_V07, K1_VALIDATOR_ADDRESS } from "../../accounts/utils/constants"
-import { SmartAccountSigner, UserOperationStruct } from "../../accounts/utils/types"
-import NexusAbi from "../../accounts/utils/abis/smartAccount.json";
+import NexusAbi from "../../accounts/utils/abis/smartAccount.json"
+import {
+  ENTRYPOINT_ADDRESS_V07,
+  K1_VALIDATOR_ADDRESS
+} from "../../accounts/utils/constants"
+import type {
+  SmartAccountSigner,
+  UserOperationStruct
+} from "../../accounts/utils/types"
+import {
+  type BaseValidationModule,
+  type K1ValidatorModuleConfig,
+  ModuleType
+} from "../types"
 /**
  * Creates an K1 Validator Module Instance.
  * @param moduleConfig - The configuration for the module.
@@ -13,22 +30,17 @@ export const createK1ValidatorModule = async (
   moduleConfig: K1ValidatorModuleConfig
 ): Promise<Prettify<BaseValidationModule>> => {
   let moduleAddress!: Hex
+  const signer = moduleConfig.signer as LocalAccount
 
   if (moduleConfig.moduleAddress) {
     moduleAddress = moduleConfig.moduleAddress
-  } else if (moduleConfig.version) {
-    const moduleAddr = K1_VALIDATOR_ADDRESS;
-    if (!moduleAddr) {
-      throw new Error(`Invalid version ${moduleConfig.version}`)
-    }
-    moduleAddress = moduleAddr
   } else {
     moduleAddress = K1_VALIDATOR_ADDRESS
     // Note: in this case Version remains the default one
   }
 
   return {
-    entryPointAddress: moduleConfig.entryPointAddress ?? ENTRYPOINT_ADDRESS_V07,
+    entryPointAddress: ENTRYPOINT_ADDRESS_V07,
     /**
      * Returns the address of the module.
      * @returns {Hex} The address of the module.
@@ -61,20 +73,31 @@ export const createK1ValidatorModule = async (
       const functionData = encodeFunctionData({
         abi: NexusAbi,
         functionName: "installModule",
-        args: [ModuleType.Validation, moduleConfig.moduleAddress, moduleConfig.signer.address]
+        args: [
+          ModuleType.Validation,
+          moduleConfig.moduleAddress,
+          moduleConfig.signer.address
+        ]
       })
 
-      return functionData;
+      return functionData
     },
 
     async getModuleUninstallData(): Promise<Hex> {
-        const functionData = encodeFunctionData({
-          abi: NexusAbi,
-          functionName: "uninstallModule",
-          args: [ModuleType.Validation, moduleConfig.moduleAddress, encodePacked(["address", "bytes"], [moduleConfig.signer.address, toHex(stringToBytes(""))])]
-        })
+      const functionData = encodeFunctionData({
+        abi: NexusAbi,
+        functionName: "uninstallModule",
+        args: [
+          ModuleType.Validation,
+          moduleConfig.moduleAddress,
+          encodePacked(
+            ["address", "bytes"],
+            [moduleConfig.signer.address, toHex(stringToBytes(""))]
+          )
+        ]
+      })
 
-        return functionData; 
+      return functionData
     },
 
     /**
@@ -83,7 +106,7 @@ export const createK1ValidatorModule = async (
      * @returns {Promise<Hex>} A promise that resolves to the signature of the user operation hash.
      */
     async signUserOpHash(userOpHash: string): Promise<Hex> {
-      const sig = await moduleConfig.signer.signMessage({ message: userOpHash })
+      const sig = await signer.signMessage({ message: userOpHash })
       return sig
     },
 
@@ -95,7 +118,7 @@ export const createK1ValidatorModule = async (
     async signMessage(_message: Uint8Array | string): Promise<Hex> {
       const message =
         typeof _message === "string" ? _message : { raw: _message }
-      let signature = await moduleConfig.signer.signMessage({ message })
+      let signature = await signer.signMessage({ message })
 
       const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
       if (![27, 28].includes(potentiallyIncorrectV)) {
@@ -105,12 +128,19 @@ export const createK1ValidatorModule = async (
       return signature as Hex
     },
 
-    async validateUserOp(userOp: Partial<UserOperationStruct>, userOpHash: Hex): Promise<number> {
-        return 1
+    async validateUserOp(
+      userOp: Partial<UserOperationStruct>,
+      userOpHash: Hex
+    ): Promise<number> {
+      return 1
     },
 
-    async isValidSignatureWithSender(sender: Hex, hash: Hex, data: Hex): Promise<Hex> {
-        return "0x"
+    async isValidSignatureWithSender(
+      sender: Hex,
+      hash: Hex,
+      data: Hex
+    ): Promise<Hex> {
+      return "0x"
     }
 
     // async signMessageSmartAccountSigner(

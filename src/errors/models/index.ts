@@ -17,8 +17,3 @@ export {
   EstimateUserOperationGasError,
   type EstimateUserOperationGasErrorType
 } from "./EstimateUserOperationGasError"
-
-export {
-  SponsorUserOperationError,
-  type SponsorUserOperationErrorType
-} from "./SponsorUserOperationError"

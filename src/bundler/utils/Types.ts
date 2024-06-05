@@ -1,7 +1,9 @@
-import { toHex, type Address, type Chain, type Hash, type Hex } from "viem"
-import type { UserOperationStruct } from "../../account"
-import { ENTRYPOINT_ADDRESS_V07_TYPE } from "../../accounts"
-import { PartialBy } from "viem/chains"
+import { type Address, type Chain, type Hash, type Hex, toHex } from "viem"
+import type { PartialBy } from "viem/chains"
+import type {
+  ENTRYPOINT_ADDRESS_V07_TYPE,
+  UserOperationStruct
+} from "../../accounts"
 
 export type Bundlerconfig = {
   bundlerUrl: string
@@ -124,151 +126,151 @@ export type GasFeeValues = {
 }
 
 export type BundlerRpcSchema = [
-    {
-        Method: "eth_sendUserOperation"
-        Parameters: [
-            userOperation: UserOperationStruct,
-            entryPoint: ENTRYPOINT_ADDRESS_V07_TYPE
-        ]
-        ReturnType: Hash
-    },
-    {
-        Method: "eth_estimateUserOperationGas"
-        Parameters: [
-            userOperation: PartialBy<
-                    UserOperationStruct,
-                      | "callGasLimit"
-                      | "preVerificationGas"
-                      | "verificationGasLimit"
-                      | "paymasterVerificationGasLimit"
-                      | "paymasterPostOpGasLimit"
-                    >,
-            entryPoint: ENTRYPOINT_ADDRESS_V07_TYPE,
-            stateOverrides?: StateOverrides
-        ]
-        ReturnType: {
-                    preVerificationGas: Hex
-                    verificationGasLimit: Hex
-                    callGasLimit?: Hex | null
-                    paymasterVerificationGasLimit?: Hex | null
-                    paymasterPostOpGasLimit?: Hex | null
-                }
-    },
-    {
-        Method: "eth_supportedEntryPoints"
-        Parameters: []
-        ReturnType: Address[]
-    },
-    {
-        Method: "eth_chainId"
-        Parameters: []
-        ReturnType: Hex
-    },
-    {
-        Method: "eth_getUserOperationByHash"
-        Parameters: [userOpHash: Hash]
-        ReturnType: {
-            transactionHash: Hash
-            blockNumber: Hex
-            blockHash: Hash
-            entryPoint: ENTRYPOINT_ADDRESS_V07_TYPE
-        }
-    },
-    {
-        Method: "eth_getUserOperationReceipt"
-        Parameters: [hash: Hash]
-        ReturnType: UserOperationReceiptWithBigIntAsHex
-    },
-    {
-      Method: "biconomy_getGasFeeValues"
-      Parameters: []
-      ReturnType: {
-        maxPriorityFeePerGas: Hex
-        maxFeePerGas: Hex
-      }
-    },
-    {
-      Method: "biconomy_getUserOperationStatus"
-      Parameters: [hash: Hash]
-      ReturnType: UserOpStatus
-    },
+  {
+    Method: "eth_sendUserOperation"
+    Parameters: [
+      userOperation: UserOperationStruct,
+      entryPoint: ENTRYPOINT_ADDRESS_V07_TYPE
+    ]
+    ReturnType: Hash
+  },
+  {
+    Method: "eth_estimateUserOperationGas"
+    Parameters: [
+      userOperation: PartialBy<
+        UserOperationStruct,
+        | "callGasLimit"
+        | "preVerificationGas"
+        | "verificationGasLimit"
+        | "paymasterVerificationGasLimit"
+        | "paymasterPostOpGasLimit"
+      >,
+      entryPoint: ENTRYPOINT_ADDRESS_V07_TYPE,
+      stateOverrides?: StateOverrides
+    ]
+    ReturnType: {
+      preVerificationGas: Hex
+      verificationGasLimit: Hex
+      callGasLimit?: Hex | null
+      paymasterVerificationGasLimit?: Hex | null
+      paymasterPostOpGasLimit?: Hex | null
+    }
+  },
+  {
+    Method: "eth_supportedEntryPoints"
+    Parameters: []
+    ReturnType: Address[]
+  },
+  {
+    Method: "eth_chainId"
+    Parameters: []
+    ReturnType: Hex
+  },
+  {
+    Method: "eth_getUserOperationByHash"
+    Parameters: [userOpHash: Hash]
+    ReturnType: {
+      transactionHash: Hash
+      blockNumber: Hex
+      blockHash: Hash
+      entryPoint: ENTRYPOINT_ADDRESS_V07_TYPE
+    }
+  },
+  {
+    Method: "eth_getUserOperationReceipt"
+    Parameters: [hash: Hash]
+    ReturnType: UserOperationReceiptWithBigIntAsHex
+  },
+  {
+    Method: "biconomy_getGasFeeValues"
+    Parameters: []
+    ReturnType: {
+      maxPriorityFeePerGas: Hex
+      maxFeePerGas: Hex
+    }
+  },
+  {
+    Method: "biconomy_getUserOperationStatus"
+    Parameters: [hash: Hash]
+    ReturnType: UserOpStatus
+  }
 ]
 
 type UserOperationReceiptWithBigIntAsHex = {
-    userOpHash: Hash
-    entryPoint: Address
-    sender: Address
-    nonce: Hex
-    paymaster?: Address
-    actualGasUsed: Hex
-    actualGasCost: Hex
-    success: "true" | "false
-    reason?: string
-    receipt: {
-        transactionHash: Hex
-        transactionIndex: Hex
-        blockHash: Hash
-        blockNumber: Hex
-        from: Address
-        to: Address | null
-        cumulativeGasUsed: Hex
-        status: "0x0" | "0x1"
-        gasUsed: Hex
-        contractAddress: Address | null
-        logsBloom: Hex
-        effectiveGasPrice: Hex
-    }
-    logs: {
-        data: Hex
-        blockNumber: Hex
-        blockHash: Hash
-        transactionHash: Hash
-        logIndex: Hex
-        transactionIndex: Hex
-        address: Address
-        topics: [Hex, ...Hex[]] | []
-        removed: boolean
-    }[]
+  userOpHash: Hash
+  entryPoint: Address
+  sender: Address
+  nonce: Hex
+  paymaster?: Address
+  actualGasUsed: Hex
+  actualGasCost: Hex
+  success: "true" | "false"
+  reason?: string
+  receipt: {
+    transactionHash: Hex
+    transactionIndex: Hex
+    blockHash: Hash
+    blockNumber: Hex
+    from: Address
+    to: Address | null
+    cumulativeGasUsed: Hex
+    status: "0x0" | "0x1"
+    gasUsed: Hex
+    contractAddress: Address | null
+    logsBloom: Hex
+    effectiveGasPrice: Hex
+  }
+  logs: {
+    data: Hex
+    blockNumber: Hex
+    blockHash: Hash
+    transactionHash: Hash
+    logIndex: Hex
+    transactionIndex: Hex
+    address: Address
+    topics: [Hex, ...Hex[]] | []
+    removed: boolean
+  }[]
 }
 
 export type StateOverrides = {
-    [x: string]: {
-        balance?: bigint | undefined
-        nonce?: bigint | number | undefined
-        code?: Hex | undefined
-        state?: {
-            [x: Hex]: Hex
-        }
-        stateDiff?: {
-            [x: Hex]: Hex
-        }
+  [x: string]: {
+    balance?: bigint | undefined
+    nonce?: bigint | number | undefined
+    code?: Hex | undefined
+    state?: {
+      [x: Hex]: Hex
     }
+    stateDiff?: {
+      [x: Hex]: Hex
+    }
+  }
 }
 
 export function deepHexlify(obj: any): any {
   if (typeof obj === "function") {
-      return undefined
+    return undefined
   }
   if (obj == null || typeof obj === "string" || typeof obj === "boolean") {
-      return obj
+    return obj
   }
 
   if (typeof obj === "bigint") {
-      return toHex(obj)
+    return toHex(obj)
   }
 
   if (obj._isBigNumber != null || typeof obj !== "object") {
-      return toHex(obj).replace(/^0x0/, "0x")
+    return toHex(obj).replace(/^0x0/, "0x")
   }
   if (Array.isArray(obj)) {
-      return obj.map((member) => deepHexlify(member))
+    return obj.map((member) => deepHexlify(member))
   }
   return Object.keys(obj).reduce(
-      // biome-ignore lint/suspicious/noExplicitAny: it's a recursive function, so it's hard to type
-      (set: any, key: string) => {
-          set[key] = deepHexlify(obj[key])
-          return set
-      },
-      {}
+    // biome-ignore lint/suspicious/noExplicitAny: it's a recursive function, so it's hard to type
+    (set: any, key: string) => {
+      set[key] = deepHexlify(obj[key])
+      return set
+    },
+    {}
   )
 }

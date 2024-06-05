@@ -1,19 +1,14 @@
 import { beforeAll, describe, expect, test } from "vitest"
 
-import {
-  http,
-  createPublicClient,
-  createWalletClient,
-  zeroAddress,
-} from "viem"
+import { http, createPublicClient, createWalletClient, zeroAddress } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 
 import { waitForTransactionReceipt } from "viem/actions"
+import { walletClientToSmartAccountSigner } from "../../src/accounts/utils/helpers.js"
 import {
-  walletClientToSmartAccountSigner
-} from "../../src/accounts/utils/helpers.js"
-import {
-  createSmartAccountClient, getSenderAddress, signerToNexus,
+  createSmartAccountClient,
+  getSenderAddress,
+  signerToNexus
 } from "../../src/index.js"
 import { getChainConfig } from "../utils.js"
 
@@ -45,26 +40,27 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
     })
   })
 
-  test("Should throw on signTransaction", async() => {
+  test("Should throw on signTransaction", async () => {
     console.log("account address ", nexusAccount.address)
 
     expect(nexusAccount.address).toHaveLength(42)
     expect(nexusAccount.address).toMatch(/^0x[0-9a-fA-F]{40}$/)
 
-    await expect(nexusAccount.signTransaction({
-            to: zeroAddress,
-            value: 0n,
-            data: "0x"
-        })
-    ).rejects.toThrow("Sign transaction not supported by smart account");
+    await expect(
+      nexusAccount.signTransaction({
+        to: zeroAddress,
+        value: 0n,
+        data: "0x"
+      })
+    ).rejects.toThrow("Sign transaction not supported by smart account")
   })
 
-  test("Should sign a message with smartAccountClient", async() => {
-    const message = "hello world";
-    const response = await nexusAccount.signMessage({message});
-    console.log("response", response);
-    console.log(response.length, "response length");
-    
+  test("Should sign a message with smartAccountClient", async () => {
+    const message = "hello world"
+    const response = await nexusAccount.signMessage({ message })
+    console.log("response", response)
+    console.log(response.length, "response length")
+
     expect(response).toHaveLength(132)
     expect(response).toMatch(/^0x[0-9a-fA-F]{130}$/)
   })
@@ -174,7 +170,7 @@ describe("Biconomy Smart Account V2 EP v6 tests", () => {
   //   })
 
   //   console.log("isVerified", isVerified);
-    
+
   //   expect(isVerified).toBeTruthy()
   // }, 50000)
 })

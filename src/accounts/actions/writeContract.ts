@@ -1,21 +1,22 @@
 import {
-    type Abi,
-    type Chain,
-    type Client,
-    type ContractFunctionArgs,
-    type ContractFunctionName,
-    type EncodeFunctionDataParameters,
-    type Hash,
-    type Transport,
-    type WriteContractParameters,
-    encodeFunctionData
+  type Abi,
+  type Chain,
+  type Client,
+  type ContractFunctionArgs,
+  type ContractFunctionName,
+  type EncodeFunctionDataParameters,
+  type Hash,
+  type Transport,
+  type WriteContractParameters,
+  encodeFunctionData
 } from "viem"
-import {
-    type SendTransactionWithPaymasterParameters,
-    sendTransaction
-} from "./sendTransaction"
-import { type Middleware, type SmartAccount } from "../utils/types"
 import { getAction } from "../utils/helpers"
+import type {
+  Middleware,
+  SendTransactionWithPaymasterParameters,
+  SmartAccount
+} from "../utils/types"
+import { sendTransaction } from "./sendTransaction"
 
 /**
  * Executes a write function on a contract.
@@ -69,79 +70,73 @@ import { getAction } from "../utils/helpers"
  * const hash = await writeContract(client, request)
  */
 export type WriteContractWithPaymasterParameters<
-    TChain extends Chain | undefined = Chain | undefined,
-    TAccount extends SmartAccount| undefined =
-        | SmartAccount
-        | undefined,
-    TAbi extends Abi | readonly unknown[] = Abi | readonly unknown[],
-    TFunctionName extends ContractFunctionName<
-        TAbi,
-        "nonpayable" | "payable"
-    > = ContractFunctionName<TAbi, "nonpayable" | "payable">,
-    TArgs extends ContractFunctionArgs<
-        TAbi,
-        "nonpayable" | "payable",
-        TFunctionName
-    > = ContractFunctionArgs<TAbi, "nonpayable" | "payable", TFunctionName>,
-    TChainOverride extends Chain | undefined = undefined
+  TChain extends Chain | undefined = Chain | undefined,
+  TAccount extends SmartAccount | undefined = SmartAccount | undefined,
+  TAbi extends Abi | readonly unknown[] = Abi | readonly unknown[],
+  TFunctionName extends ContractFunctionName<
+    TAbi,
+    "nonpayable" | "payable"
+  > = ContractFunctionName<TAbi, "nonpayable" | "payable">,
+  TArgs extends ContractFunctionArgs<
+    TAbi,
+    "nonpayable" | "payable",
+    TFunctionName
+  > = ContractFunctionArgs<TAbi, "nonpayable" | "payable", TFunctionName>,
+  TChainOverride extends Chain | undefined = undefined
 > = WriteContractParameters<
+  TAbi,
+  TFunctionName,
+  TArgs,
+  TChain,
+  TAccount,
+  TChainOverride
+> &
+  Middleware
+
+export async function writeContract<
+  TChain extends Chain | undefined,
+  TAccount extends SmartAccount | undefined,
+  const TAbi extends Abi | readonly unknown[],
+  TFunctionName extends ContractFunctionName<
+    TAbi,
+    "nonpayable" | "payable"
+  > = ContractFunctionName<TAbi, "nonpayable" | "payable">,
+  TArgs extends ContractFunctionArgs<
+    TAbi,
+    "nonpayable" | "payable",
+    TFunctionName
+  > = ContractFunctionArgs<TAbi, "nonpayable" | "payable", TFunctionName>,
+  TChainOverride extends Chain | undefined = undefined
+>(
+  client: Client<Transport, TChain, TAccount>,
+  {
+    abi,
+    address,
+    args,
+    dataSuffix,
+    functionName,
+    ...request
+  }: WriteContractWithPaymasterParameters<
+    TChain,
+    TAccount,
     TAbi,
     TFunctionName,
     TArgs,
-    TChain,
-    TAccount,
     TChainOverride
-> &
-    Middleware
-
-export async function writeContract<
-    TChain extends Chain | undefined,
-    TAccount extends SmartAccount | undefined,
-    const TAbi extends Abi | readonly unknown[],
-    TFunctionName extends ContractFunctionName<
-        TAbi,
-        "nonpayable" | "payable"
-    > = ContractFunctionName<TAbi, "nonpayable" | "payable">,
-    TArgs extends ContractFunctionArgs<
-        TAbi,
-        "nonpayable" | "payable",
-        TFunctionName
-    > = ContractFunctionArgs<TAbi, "nonpayable" | "payable", TFunctionName>,
-    TChainOverride extends Chain | undefined = undefined
->(
-    client: Client<Transport, TChain, TAccount>,
-    {
-        abi,
-        address,
-        args,
-        dataSuffix,
-        functionName,
-        ...request
-    }: WriteContractWithPaymasterParameters<
-        TChain,
-        TAccount,
-        TAbi,
-        TFunctionName,
-        TArgs,
-        TChainOverride
-    >
+  >
 ): Promise<Hash> {
-    const data = encodeFunctionData<TAbi, TFunctionName>({
-        abi,
-        args,
-        functionName
-    } as EncodeFunctionDataParameters<TAbi, TFunctionName>)
-    const hash = await getAction(
-        client,
-        sendTransaction<TChain, TAccount, TChainOverride>
-    )({
-        data: `${data}${dataSuffix ? dataSuffix.replace("0x", "") : ""}`,
-        to: address,
-        ...request
-    } as unknown as SendTransactionWithPaymasterParameters<
-        TChain,
-        TAccount,
-        TChainOverride
-    >)
-    return hash
+  const data = encodeFunctionData<TAbi, TFunctionName>({
+    abi,
+    args,
+    functionName
+  } as EncodeFunctionDataParameters<TAbi, TFunctionName>)
+  const hash = await getAction(
+    client,
+    sendTransaction
+  )({
+    data: `${data}${dataSuffix ? dataSuffix.replace("0x", "") : ""}`,
+    to: address,
+    ...request
+  } as unknown as SendTransactionWithPaymasterParameters)
+  return hash
 }

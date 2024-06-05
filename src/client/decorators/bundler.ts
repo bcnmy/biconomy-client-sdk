@@ -4,6 +4,7 @@ import type { SendUserOperationParameters } from "../../accounts/actions/sendUse
 import { ENTRYPOINT_ADDRESS_V07 } from "../../accounts/utils/constants"
 import type { ENTRYPOINT_ADDRESS_V07_TYPE } from "../../accounts/utils/types"
 import { chainId } from "../../bundler/actions/chainId"
+import { estimateUserOperationGas } from "../../bundler/actions/estimateUserOperationGas"
 import { getGasFeeValues } from "../../bundler/actions/getGasFeeValues"
 import {
   type GetUserOperationByHashParameters,
@@ -26,8 +27,7 @@ import type {
   UserOpReceipt,
   UserOpStatus
 } from "../../bundler/utils/types"
-import { EstimateUserOperationGasParameters } from "../utils/types"
-import { estimateUserOperationGas } from "../../bundler/actions/estimateUserOperationGas"
+import type { EstimateUserOperationGasParameters } from "../utils/types"
 
 export type BundlerActions = {
   /**
@@ -225,10 +225,11 @@ const bundlerActions =
       sendUserOperation(client as BundlerClient, {
         ...args
       }),
-    estimateUserOperationGas: (
+    estimateUserOperationGas: async (
       args: EstimateUserOperationGasParameters,
       stateOverrides?: StateOverrides
-    ) =>
+    ): Promise<any> =>
+      // TODO
       estimateUserOperationGas(
         client as BundlerClient,
         { ...args },

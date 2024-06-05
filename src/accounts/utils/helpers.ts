@@ -8,35 +8,43 @@ import {
   type EncodeDeployDataParameters,
   type Hash,
   type Hex,
+  LocalAccount,
   type SignableMessage,
   type Transport,
   type TypedData,
   type TypedDataDefinition,
   type WalletClient,
   concat,
-  encodeAbiParameters,
-  keccak256,
-  parseAbiParameters,
-  encodeFunctionData,
   concatHex,
-  encodePacked
+  encodeAbiParameters,
+  encodeFunctionData,
+  encodePacked,
+  keccak256,
+  parseAbiParameters
 } from "viem"
-import * as chains from "viem/chains"
-import { signTypedData } from "viem/actions"
 import { toAccount } from "viem/accounts"
+import { signTypedData } from "viem/actions"
+import * as chains from "viem/chains"
 
-import { CALLTYPE_SINGLE, ENTRYPOINT_ADDRESS_V07, EXECTYPE_DEFAULT, MODE_DEFAULT, MODE_PAYLOAD, UNUSED } from "./constants.js"
+import type { BaseValidationModule } from "../../modules/types/index.js"
+import { isSmartAccountDeployed } from "../biconomyV3/signerToNexus.js"
+import SmartAccountAbi from "./abis/smartAccount.json"
 import {
-  ExecutionMethod,
+  CALLTYPE_SINGLE,
+  ENTRYPOINT_ADDRESS_V07,
+  EXECTYPE_DEFAULT,
+  MODE_DEFAULT,
+  MODE_PAYLOAD,
+  UNUSED
+} from "./constants.js"
+import {
   type ENTRYPOINT_ADDRESS_V07_TYPE,
+  ExecutionMethod,
   type GetUserOperationHashParams,
   type SmartAccount,
   type SmartAccountSigner,
   type UserOperationStruct
 } from "./types.js"
-import SmartAccountAbi from "./abis/smartAccount.json";
-import { isSmartAccountDeployed } from "../biconomyV3/signerToNexus.js"
-import { BaseValidationModule } from "../../modules/types/index.js"
 
 const MAGIC_BYTES =
   "0x6492649264926492649264926492649264926492649264926492649264926492"
@@ -58,6 +66,8 @@ export function toSmartAccount<
   getInitCode,
   getFactory,
   getFactoryData,
+  getAccountOwner,
+  getAccountAddress,
   encodeCallData,
   getDummySignature,
   encodeDeployCallData,
@@ -70,10 +80,12 @@ export function toSmartAccount<
   client: Client<transport, chain>
   entryPoint: TEntryPoint
   activeValidationModule: BaseValidationModule
-  getNonce: () => Promise<bigint|Hex>
+  getNonce: () => Promise<bigint | Hex>
   getInitCode: () => Promise<Hex>
   getFactory: () => Promise<Address | undefined>
   getFactoryData: () => Promise<Hex | undefined>
+  getAccountOwner: () => Account
+  getAccountAddress: () => Address
   encodeCallData: (
     args:
       | {
@@ -87,17 +99,17 @@ export function toSmartAccount<
           data: Hex
         }[]
   ) => Promise<Hex>
-  getDummySignature(userOperation: UserOperationStruct): Promise<Hex>
+  getDummySignature(): Promise<Hex>
   encodeDeployCallData: ({
     abi,
     args,
     bytecode
-  }: EncodeDeployDataParameters<TAbi>) => Promise<Hex>
+  }: EncodeDeployDataParameters) => Promise<Hex>
   signUserOperation: (userOperation: UserOperationStruct) => Promise<Hex>
   setActiveValidationModule: (
     validationModule: BaseValidationModule
   ) => BaseValidationModule
-}): SmartAccount<TSource, transport, chain, TAbi> & {
+}): SmartAccount & {
   activeValidationModule: BaseValidationModule
   setActiveValidationModule: (
     validationModule: BaseValidationModule
@@ -108,8 +120,8 @@ export function toSmartAccount<
     signMessage: async ({ message }: { message: SignableMessage }) => {
       const isDeployed = await isSmartAccountDeployed(client, address)
       const signature = await signMessage({ message })
-      console.log(isDeployed, "isDeployed");
-      
+      console.log(isDeployed, "isDeployed")
+
       if (isDeployed) return signature
       const abiEncodedMessage = encodeAbiParameters(
         [
@@ -181,12 +193,14 @@ export function toSmartAccount<
     getInitCode,
     getFactory,
     getFactoryData,
+    getAccountOwner,
+    getAccountAddress,
     encodeCallData,
     getDummySignature,
     encodeDeployCallData,
     signUserOperation,
     setActiveValidationModule
-  } as SmartAccount<TSource, transport, chain, TAbi> & {
+  } as SmartAccount & {
     activeValidationModule: BaseValidationModule
     setActiveValidationModule: (
       validationModule: BaseValidationModule
@@ -351,14 +365,13 @@ export function walletClientToSmartAccountSigner<
   }
 }
 
-
 export async function generateUseropCallData({
   executionMethod,
   targetContractAddress,
   targetContractAbi,
   functionName,
   args,
-  value = 0,
+  value = 0
 }): Promise<Hex> {
   const functionCallData = encodeFunctionData({
     abi: targetContractAbi,
@@ -372,39 +385,39 @@ export async function generateUseropCallData({
     UNUSED,
     MODE_DEFAULT,
     MODE_PAYLOAD
-])
+  ])
 
-  let executionCalldata: Hex;
+  let executionCalldata: Hex
   switch (executionMethod) {
     case ExecutionMethod.Execute:
       executionCalldata = encodePacked(
         ["address", "uint256", "bytes"],
-        [targetContractAddress, BigInt(value), functionCallData],
-      );
-      break;
+        [targetContractAddress, BigInt(value), functionCallData]
+      )
+      break
     case ExecutionMethod.ExecuteFromExecutor:
       executionCalldata = encodePacked(
         ["address", "uint256", "bytes"],
-        [targetContractAddress, BigInt(value), functionCallData],
-      );
-      break;
+        [targetContractAddress, BigInt(value), functionCallData]
+      )
+      break
     default:
-      throw new Error("Invalid execution method type");
+      throw new Error("Invalid execution method type")
   }
 
-  let executeCallData: Hex = "0x";
+  let executeCallData: Hex = "0x"
   if (executionMethod === ExecutionMethod.Execute) {
     executeCallData = encodeFunctionData({
       abi: SmartAccountAbi,
       functionName: "execute",
       args: [mode, executionCalldata]
-    });
+    })
   } else if (executionMethod === ExecutionMethod.ExecuteFromExecutor) {
     executeCallData = encodeFunctionData({
       abi: SmartAccountAbi,
       functionName: "executeFromExecutor",
       args: [mode, executionCalldata]
-    });  
+    })
   }
-  return executeCallData;
+  return executeCallData
 }

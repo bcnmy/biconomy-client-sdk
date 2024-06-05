@@ -11,7 +11,7 @@ import {
   type BundlerActions,
   bundlerActions
 } from "../client/decorators/bundler"
-import { BundlerRpcSchema } from "./utils/types"
+import type { BundlerRpcSchema } from "./utils/types"
 
 export type BundlerClient<
   TChain extends Chain | undefined = Chain | undefined

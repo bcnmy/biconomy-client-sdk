@@ -1,15 +1,12 @@
-import type {
-  Chain,
-  Client,
-  Hash,
-  SendTransactionParameters,
-  Transport
-} from "viem"
+import type { Client, Hash } from "viem"
 import type { Prettify } from "viem/chains"
 import { waitForUserOperationReceipt } from "../../bundler/actions/waitForUserOperationReceipt"
 import type { UserOpReceipt } from "../../bundler/utils/types"
 import { getAction, parseAccount } from "../utils/helpers"
-import type { Middleware, SendTransactionsWithPaymasterParameters, SmartAccount, Transaction } from "../utils/types"
+import type {
+  SendTransactionsWithPaymasterParameters,
+  SmartAccount
+} from "../utils/types"
 import { sendUserOperation } from "./sendUserOperation"
 
 /**
@@ -59,15 +56,9 @@ import { sendUserOperation } from "./sendUserOperation"
  */
 export async function sendTransactions(
   client: Client,
-  args: Prettify<
-    SendTransactionsWithPaymasterParameters
-  >
+  args: Prettify<SendTransactionsWithPaymasterParameters>
 ): Promise<Hash> {
-  const {
-    account: account_ = client.account,
-   transactions,
-    middleware
-  } = args
+  const { account: account_ = client.account, transactions, middleware } = args
 
   if (!account_) {
     throw new Error("No account found.")
@@ -87,7 +78,7 @@ export async function sendTransactions(
   )({
     userOperation: {
       sender: account.address,
-      callData: callData,
+      callData: callData
     },
     account: account,
     middleware

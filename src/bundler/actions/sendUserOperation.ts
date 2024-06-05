@@ -7,7 +7,7 @@ import type {
 } from "../../accounts"
 import { ENTRYPOINT_ADDRESS_V07 } from "../../accounts/utils/constants"
 import { getSendUserOperationError } from "../../errors/getters"
-import { BundlerRpcSchema } from "../utils/types"
+import type { BundlerRpcSchema } from "../utils/types"
 
 /**
  * Sends user operation to the bundler

@@ -1,5 +1,5 @@
 import type {
-  Abi,
+  Account,
   Address,
   Chain,
   Client,
@@ -9,12 +9,12 @@ import type {
   GetChainParameter,
   Hex,
   LocalAccount,
-  Transport,
+  PublicClient,
   UnionOmit
 } from "viem"
 
-import type { PartialBy } from "viem/chains"
-
+import type { PartialBy, Prettify } from "viem/chains"
+import type { BaseValidationModule } from "../../modules/types"
 
 export type BigNumberish = number | string | bigint
 export type BytesLike = `0x${string}` | Uint8Array | string
@@ -56,10 +56,10 @@ export type UserOperationStruct = {
   paymasterAndData?: never
 }
 
-export type SmartAccountSigner<
-  TSource extends string = "custom",
-  TAddress extends Address = Address
-> = Omit<LocalAccount<TSource, TAddress>, "signTransaction">
+export type SmartAccountSigner<TAddress extends Address = Address> = Omit<
+  Account<TAddress>,
+  "signTransaction"
+>
 
 export type TChain = Chain | undefined
 
@@ -108,7 +108,9 @@ export type SmartAccount = LocalAccount & {
    */
   getInitCode: () => Promise<Hex>
 
-  getAccountOwner: () => Promise<LocalAccount>
+  getAccountOwner: () => Account
+
+  getAccountAddress: () => Address
 
   /**
    * Retrieves the factory address of the smart account.
@@ -123,6 +125,12 @@ export type SmartAccount = LocalAccount & {
    * @returns A promise that resolves to the factory data as a Hex string, or undefined if not available.
    */
   getFactoryData: () => Promise<Hex | undefined>
+
+  activeValidationModule: BaseValidationModule
+
+  setActiveValidationModule: (
+    moduleAddress: BaseValidationModule
+  ) => BaseValidationModule
 
   /**
    * Encodes the call data for a transaction.
@@ -150,7 +158,7 @@ export type SmartAccount = LocalAccount & {
     abi,
     args,
     bytecode
-  }: EncodeDeployDataParameters<TAbi>) => Promise<Hex>
+  }: EncodeDeployDataParameters) => Promise<Hex>
 
   /**
    * Signs a user operation.
@@ -206,10 +214,10 @@ export type PrepareUserOperationRequestParameters = {
 } & GetAccountParameter &
   Middleware
 
-  export type BuildUserOperationV07 = {
-    transaction: Transaction,
-  } & GetAccountParameter &
-    Middleware
+export type BuildUserOperationV07 = {
+  transaction: Transaction
+} & GetAccountParameter &
+  Middleware
 
 export type GetUserOperationHashParams = {
   userOperation: UserOperationStruct
@@ -234,31 +242,30 @@ export type KnownError = {
   solutions: string[]
 }
 
-export type GetSenderAddressParams =
-  {
-    entryPoint: ENTRYPOINT_ADDRESS_V07_TYPE
-    factory: Address
-    factoryData: Hex
-    initCode?: never
-  }
+export type GetSenderAddressParams = {
+  entryPoint: ENTRYPOINT_ADDRESS_V07_TYPE
+  factory: Address
+  factoryData: Hex
+  initCode?: never
+}
 
 export type InstallModuleParams = {
-  smartAccountAddress: Address,
-  moduleType: any,
-  moduleAddress: Address,
+  smartAccountAddress: Address
+  moduleType: any
+  moduleAddress: Address
   initData: any
 }
 
 export enum ExecutionMethod {
-  Execute,
-  ExecuteFromExecutor,
-  ExecuteUserOp,
+  Execute = 0,
+  ExecuteFromExecutor = 1,
+  ExecuteUserOp = 2
 }
 
 export type NexusModules = {
-  validators: Address[],
-  executors: Address[],
-  hook: Address,
+  validators: Address[]
+  executors: Address[]
+  hook: Address
   fallbacks: Address[]
 }
 
@@ -267,6 +274,45 @@ export enum PaymasterMode {
   SPONSORED = "SPONSORED"
 }
 
-export type SendTransactionWithPaymasterParameters =  {transaction: Transaction, account: SmartAccount} & Middleware
+export type SendTransactionWithPaymasterParameters = {
+  transaction: Transaction
+  account: SmartAccount
+} & Middleware
 
-export type SendTransactionsWithPaymasterParameters = {transactions: Transaction[], account: SmartAccount} & Middleware
+export type SendTransactionsWithPaymasterParameters = {
+  transactions: Transaction[]
+  account: SmartAccount
+} & Middleware
+
+export type GetFactoryDataParams = {
+  publicClient: PublicClient
+  owner: Address
+  bootstrapAddress: Address | "0x"
+  index: bigint | 0n
+  modules?:
+    | NexusModules
+    | {
+        validators: []
+        executors: []
+        hook: BaseValidationModule
+        fallbacks: []
+      }
+}
+
+export type GetAccountAddressParams = {
+  client: Client
+  factoryAddress: Address
+  owner: Address
+  initCode: Hex
+  index?: bigint
+}
+
+export type SignerToBiconomySmartAccountParameters = Prettify<{
+  signer: SmartAccountSigner
+  address?: Address
+  index?: bigint
+  factoryAddress?: Address
+  accountLogicAddress?: Address
+  fallbackHandlerAddress?: Address
+  modules?: NexusModules
+}>

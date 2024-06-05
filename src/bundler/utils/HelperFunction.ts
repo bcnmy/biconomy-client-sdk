@@ -1,4 +1,4 @@
-import type { BigNumberish, UserOperationStruct } from "../../account"
+import type { BigNumberish, UserOperationStruct } from "../../accounts"
 
 // Will convert the userOp hex, bigInt and number values to hex strings
 export const transformUserOP = (
@@ -16,6 +16,7 @@ export const transformUserOP = (
     ]
     for (const key of keys) {
       if (userOperation[key] && userOperation[key] !== "0x") {
+        // @ts-ignore
         userOperation[key] = `0x${BigInt(userOp[key] as BigNumberish).toString(
           16
         )}` as `0x${string}`

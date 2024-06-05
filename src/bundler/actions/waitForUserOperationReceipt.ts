@@ -10,7 +10,6 @@ import {
 import type { Prettify } from "viem/chains"
 
 import { getAction } from "../../accounts/utils/helpers"
-import { observe } from "../utils/helpers"
 import type { UserOpReceipt } from "../utils/types"
 import { getUserOperationReceipt } from "./getUserOperationReceipt"
 

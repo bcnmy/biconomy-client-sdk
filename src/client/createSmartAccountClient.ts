@@ -1,12 +1,17 @@
 import {
+  http,
   type Chain,
   type Client,
   type Transport,
   type WalletClientConfig,
-  createClient
+  createClient,
+  createPublicClient,
+  createWalletClient
 } from "viem"
 import type { Prettify } from "viem/chains"
 
+import { signerToNexus } from "../accounts/index.js"
+import { walletClientToSmartAccountSigner } from "../accounts/utils/helpers.js"
 import type { SmartAccount } from "../accounts/utils/types.js"
 import type { BundlerRpcSchema } from "../bundler/utils/types.js"
 import {
@@ -49,20 +54,35 @@ export type SmartAccountClient<
  * })
  */
 
-export function createSmartAccountClient<
-  TSmartAccount extends SmartAccount,
-  TTransport extends Transport = Transport,
-  TChain extends Chain = Chain
->(
-  parameters: SmartAccountClientConfig<TTransport, TChain>
-): SmartAccountClient<TTransport, TChain, TSmartAccount> {
+export async function createSmartAccountClient(
+  parameters: SmartAccountClientConfig
+): Promise<SmartAccountClient> {
   const {
     key = "Account",
     name = "Smart Account Client",
-    bundlerTransport
+    bundlerTransport,
+    chain,
+    account
   } = parameters
+
+  const publicClient = createPublicClient({
+    chain,
+    transport: http()
+  })
+
+  const walletClient = createWalletClient({
+    account: account ?? "0x",
+    chain,
+    transport: bundlerTransport
+  })
+
+  const nexusAccount = await signerToNexus(publicClient, {
+    signer: walletClientToSmartAccountSigner(walletClient)
+  })
+
   const client = createClient({
     ...parameters,
+    account: nexusAccount,
     key,
     name,
     transport: bundlerTransport,
@@ -71,5 +91,5 @@ export function createSmartAccountClient<
 
   return client.extend(
     smartAccountActions({ middleware: parameters.middleware })
-  ) as SmartAccountClient<TTransport, TChain, TSmartAccount>
+  ) as SmartAccountClient
 }

@@ -13,17 +13,14 @@ import { privateKeyToAccount } from "viem/accounts"
 
 import { waitForTransactionReceipt } from "viem/actions"
 import type { UserOperationStruct } from "../../src/accounts/index.js"
+import { K1_VALIDATOR_ADDRESS } from "../../src/accounts/utils/constants.js"
 import {
   validateUserOp,
   walletClientToSmartAccountSigner
 } from "../../src/accounts/utils/helpers.js"
 import { bundlerActions } from "../../src/client/decorators/bundler.js"
-import {
-  createSmartAccountClient,
-  signerToNexus
-} from "../../src/index.js"
+import { createSmartAccountClient, signerToNexus } from "../../src/index.js"
 import { checkBalance, getChainConfig } from "../utils.js"
-import { K1_VALIDATOR_ADDRESS } from "../../src/accounts/utils/constants.js"
 
 describe("Biconomy Smart Account V2 EP v6 tests", () => {
   const { bundlerUrl, chain } = getChainConfig()

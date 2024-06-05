@@ -20,10 +20,14 @@ import type {
 // import { signTypedData } from "../../accounts/actions/sygnTypedData"
 import type { Prettify } from "viem/chains"
 
-import { buildUserOpV07 } from "../../accounts/actions/buildUserOpV07"
 import {
-  sendTransaction
-} from "../../accounts/actions/sendTransaction"
+  type WriteContractWithPaymasterParameters,
+  getSenderAddress,
+  sendTransactions,
+  writeContract
+} from "../../accounts"
+import { buildUserOpV07 } from "../../accounts/actions/buildUserOpV07"
+import { sendTransaction } from "../../accounts/actions/sendTransaction"
 import {
   type SendUserOperationParameters,
   sendUserOperation
@@ -38,7 +42,6 @@ import type {
   SmartAccount,
   UserOperationStruct
 } from "../../accounts/utils/types"
-import { type WriteContractWithPaymasterParameters, writeContract, getSenderAddress, sendTransactions } from '../../accounts';
 
 export type SmartAccountActions<
   TChain extends Chain | undefined = Chain | undefined,
@@ -330,48 +333,42 @@ export type SmartAccountActions<
    * const hash = await client.writeContract(request)
    */
   writeContract: <
-      const TAbi extends Abi | readonly unknown[],
-      TFunctionName extends ContractFunctionName<
-          TAbi,
-          "nonpayable" | "payable"
-      > = ContractFunctionName<TAbi, "nonpayable" | "payable">,
-      TArgs extends ContractFunctionArgs<
-          TAbi,
-          "nonpayable" | "payable",
-          TFunctionName
-      > = ContractFunctionArgs<TAbi, "nonpayable" | "payable", TFunctionName>,
-      TChainOverride extends Chain | undefined = undefined
+    const TAbi extends Abi | readonly unknown[],
+    TFunctionName extends ContractFunctionName<
+      TAbi,
+      "nonpayable" | "payable"
+    > = ContractFunctionName<TAbi, "nonpayable" | "payable">,
+    TArgs extends ContractFunctionArgs<
+      TAbi,
+      "nonpayable" | "payable",
+      TFunctionName
+    > = ContractFunctionArgs<TAbi, "nonpayable" | "payable", TFunctionName>,
+    TChainOverride extends Chain | undefined = undefined
   >(
-      args: WriteContractParameters<
-          TAbi,
-          TFunctionName,
-          TArgs,
-          TChain,
-          TSmartAccount,
-          TChainOverride
-      >
+    args: WriteContractParameters<
+      TAbi,
+      TFunctionName,
+      TArgs,
+      TChain,
+      TSmartAccount,
+      TChainOverride
+    >
   ) => ReturnType<
-      typeof writeContract<
-          TChain,
-          TSmartAccount,
-          TAbi,
-          TFunctionName,
-          TArgs,
-          TChainOverride
-      >
+    typeof writeContract<
+      TChain,
+      TSmartAccount,
+      TAbi,
+      TFunctionName,
+      TArgs,
+      TChainOverride
+    >
   >
-  buildUserOpV07: <TTransport extends Transport>(
-    args: Prettify<
-      Parameters<
-        typeof buildUserOpV07
-      >[1]
-    >,
+  buildUserOpV07: (
+    args: Prettify<Parameters<typeof buildUserOpV07>[1]>
     // stateOverrides?: StateOverrides
   ) => Promise<Prettify<UserOperationStruct>>
   sendUserOperation: <TTransport extends Transport>(
-    args: Prettify<
-      Parameters<typeof sendUserOperation>[1]
-    >
+    args: Prettify<Parameters<typeof sendUserOperation>[1]>
   ) => Promise<Hash>
   /**
    * Creates, signs, and sends a new transaction to the network.
@@ -426,7 +423,9 @@ export type SmartAccountActions<
     args: Prettify<SendTransactionsWithPaymasterParameters>
   ) => ReturnType<typeof sendTransactions>
 
-  getSenderAddress: (args: Prettify<GetSenderAddressParams>) => ReturnType<typeof getSenderAddress>
+  getSenderAddress: (
+    args: Prettify<GetSenderAddressParams>
+  ) => ReturnType<typeof getSenderAddress>
 }
 
 export function smartAccountActions({ middleware }: Middleware) {
@@ -443,7 +442,7 @@ export function smartAccountActions({ middleware }: Middleware) {
         {
           ...args,
           middleware
-        },
+        }
         // stateOverrides
       ),
     // deployContract: (args) =>
@@ -477,38 +476,30 @@ export function smartAccountActions({ middleware }: Middleware) {
     ) => signTypedData(client, args),
     getSenderAddress: (args) => getSenderAddress(client, args),
     writeContract: <
-    const TAbi extends Abi | readonly unknown[],
-    TFunctionName extends ContractFunctionName<
+      const TAbi extends Abi | readonly unknown[],
+      TFunctionName extends ContractFunctionName<
         TAbi,
         "nonpayable" | "payable"
-    > = ContractFunctionName<TAbi, "nonpayable" | "payable">,
-    TArgs extends ContractFunctionArgs<
+      > = ContractFunctionName<TAbi, "nonpayable" | "payable">,
+      TArgs extends ContractFunctionArgs<
         TAbi,
         "nonpayable" | "payable",
         TFunctionName
-    > = ContractFunctionArgs<
-        TAbi,
-        "nonpayable" | "payable",
-        TFunctionName
-    >,
-    TChainOverride extends Chain | undefined = undefined
->(
-    args: WriteContractParameters<
+      > = ContractFunctionArgs<TAbi, "nonpayable" | "payable", TFunctionName>,
+      TChainOverride extends Chain | undefined = undefined
+    >(
+      args: WriteContractParameters<
         TAbi,
         TFunctionName,
         TArgs,
         TChain,
         TSmartAccount,
         TChainOverride
-    >
-) =>
-    writeContract(client, {
+      >
+    ) =>
+      writeContract(client, {
         ...args,
         middleware
-    } as WriteContractWithPaymasterParameters<
-        TChain,
-        TSmartAccount,
-        TAbi
-    >)
+      } as WriteContractWithPaymasterParameters<TChain, TSmartAccount, TAbi>)
   })
 }
