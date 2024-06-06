@@ -1,8 +1,10 @@
-import { http, type Hex, createWalletClient } from "viem"
+import { http, type Chain, type Hex, createWalletClient } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import {
   type BiconomySmartAccountV2,
   type BiconomySmartAccountV2Config,
+  type BuildUserOpOptions,
+  type SupportedSigner,
   createSmartAccountClient,
   getChain
 } from "../../account"
@@ -13,7 +15,7 @@ import {
   resumeSession
 } from "../index.js"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
-import type { ModuleInfo } from "../utils/Types"
+import type { ModuleInfo, StrictSessionParams } from "../utils/Types"
 
 export type ImpersonatedSmartAccountConfig = Omit<
   BiconomySmartAccountV2Config,
@@ -42,6 +44,7 @@ export type ImpersonatedSmartAccountConfig = Omit<
  * import { createSmartAccountClient, BiconomySmartAccountV2 } from "@biconomy/account"
  * import { createWalletClient, http } from "viem";
  * import { polygonAmoy } from "viem/chains";
+ * import { SessionFileStorage } from "@biconomy/session-file-storage";
  *
  * const signer = createWalletClient({
  *   account,
@@ -124,3 +127,41 @@ export const createSessionSmartAccountClient = async (
     sessionData // contains the sessionSigner that will be used for txs
   })
 }
+
+/**
+ *
+ * @param privateKey - The private key of the user's account
+ * @param chain - The chain object
+ * @returns {@link SupportedSigner} - A signer object that can be used to sign transactions
+ */
+export const toSupportedSigner = (
+  privateKey: string,
+  chain: Chain
+): SupportedSigner => {
+  const parsedPrivateKey: Hex = privateKey.startsWith("0x")
+    ? (privateKey as Hex)
+    : `0x${privateKey}`
+  const account = privateKeyToAccount(parsedPrivateKey)
+  return createWalletClient({
+    account,
+    chain,
+    transport: http()
+  })
+}
+
+/**
+ *
+ * @param privateKey The private key of the user's account
+ * @param sessionIDs An array of sessionIDs
+ * @param chain The chain object
+ * @returns {@link StrictSessionParams[]} - An array of session parameters {@link StrictSessionParams} that can be used to sign transactions here {@link BuildUserOpOptions}
+ */
+export const toSessionParams = (
+  privateKey: Hex,
+  sessionIDs: string[],
+  chain: Chain
+): StrictSessionParams[] =>
+  sessionIDs.map((sessionID) => ({
+    sessionID,
+    sessionSigner: toSupportedSigner(privateKey, chain)
+  }))

@@ -4,17 +4,20 @@ import {
   type BuildUserOpOptions,
   ERROR_MESSAGES,
   Logger,
-  type Transaction
+  type Transaction,
+  isNullOrUndefined
 } from "../../account"
 import {
   type CreateSessionDataParams,
   DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
+  type Session,
   type SessionGrantedPayload,
   type SessionParams,
   type SessionSearchParam,
   createBatchedSessionRouterModule,
   createSessionKeyManagerModule,
+  didProvideFullSession,
   resumeSession
 } from "../index.js"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
@@ -46,8 +49,9 @@ export type CreateBatchSessionConfig = {
  * import { createSmartAccountClient } from "@biconomy/account"
  * import { createWalletClient, http } from "viem";
  * import { polygonAmoy } from "viem/chains";
- *
- * const signer = createWalletClient({
+ * import { SessionFileStorage } from "@biconomy/session-file-storage";
+
+* const signer = createWalletClient({
  *   account,
  *   chain: polygonAmoy,
  *   transport: http(),
@@ -56,7 +60,7 @@ export type CreateBatchSessionConfig = {
  * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, paymasterUrl }); // Retrieve bundler/paymaster url from dashboard
  * const smartAccountAddress = await smartAccount.getAccountAddress();
  * const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
- * const sessionStorage = new SessionFileStorage(smartAccountAddress);
+ * const sessionStorage = new SessionFileStorage(smartAccountAddress); 
  * const sessionKeyAddress = (await sessionStorage.addSigner(undefined, polygonAmoy)).getAddress();
  *
  *  const leaves: CreateSessionDataParams[] = [
@@ -192,7 +196,7 @@ export type BatchSessionParamsPayload = {
  * Retrieves the transaction parameters for a batched session.
  *
  * @param transactions - An array of {@link Transaction}s.
- * @param correspondingIndexes - An array of indexes for the transactions corresponding to the relevant session
+ * @param correspondingIndexes - An array of indexes for the transactions corresponding to the relevant session. If not provided, the last {transaction.length} sessions are used.
  * @param conditionalSession - {@link SessionSearchParam} The session data that contains the sessionID and sessionSigner. If not provided, The default session storage (localStorage in browser, fileStorage in node backend) is used to fetch the sessionIDInfo
  * @param chain - The chain.
  * @returns Promise<{@link BatchSessionParamsPayload}> - session parameters.
@@ -200,16 +204,32 @@ export type BatchSessionParamsPayload = {
  */
 export const getBatchSessionTxParams = async (
   transactions: Transaction[],
-  correspondingIndexes: number[],
+  correspondingIndexes: number[] | null,
   conditionalSession: SessionSearchParam,
   chain: Chain
 ): Promise<BatchSessionParamsPayload> => {
-  if (correspondingIndexes.length !== transactions.length) {
+  if (
+    correspondingIndexes &&
+    correspondingIndexes.length !== transactions.length
+  ) {
     throw new Error(ERROR_MESSAGES.INVALID_SESSION_INDEXES)
   }
 
-  const { sessionStorageClient, sessionIDInfo } =
-    await resumeSession(conditionalSession)
+  const { sessionStorageClient } = await resumeSession(conditionalSession)
+  let sessionIDInfo: string[] = []
+
+  const allSessions = await sessionStorageClient.getAllSessionData()
+  if (didProvideFullSession(conditionalSession)) {
+    sessionIDInfo = (conditionalSession as Session).sessionIDInfo
+  } else if (isNullOrUndefined(correspondingIndexes)) {
+    sessionIDInfo = allSessions
+      .slice(-transactions.length)
+      .map(({ sessionID }) => sessionID as string)
+  } else {
+    sessionIDInfo = (correspondingIndexes ?? []).map(
+      (index) => allSessions[index].sessionID as string
+    )
+  }
 
   const sessionSigner = await sessionStorageClient.getSignerBySession(
     {
@@ -220,10 +240,10 @@ export const getBatchSessionTxParams = async (
 
   return {
     params: {
-      batchSessionParams: correspondingIndexes.map(
-        (i): SessionParams => ({
+      batchSessionParams: sessionIDInfo.map(
+        (sessionID): SessionParams => ({
           sessionSigner,
-          sessionID: sessionIDInfo[i]
+          sessionID
         })
       )
     }

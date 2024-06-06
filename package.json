@@ -8,7 +8,7 @@
   "sideEffects": false,
   "name": "@biconomy/account",
   "author": "Biconomy",
-  "version": "4.4.4",
+  "version": "4.4.6",
   "description": "SDK for Biconomy integration with support for account abstraction, smart accounts, ERC-4337.",
   "keywords": [
     "erc-7579",
@@ -58,6 +58,7 @@
     "build": "bun run clean && bun run build:cjs && bun run build:esm && bun run build:types",
     "clean": "rimraf ./dist/_esm ./dist/_cjs ./dist/_types ./dist/tsconfig",
     "test": "vitest dev -c ./tests/vitest.config.ts",
+    "playground": "bun run test -t=Playground --watch",
     "test:readOnly": "bun run test read",
     "test:watch": "bun run test --watch",
     "test:watch:readOnly": "bun run test:readOnly --watch",

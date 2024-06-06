@@ -18,6 +18,7 @@ import { testOnlyOnOptimism } from "../setupFiles"
 import { checkBalance, getConfig, nonZeroBalance, topUp } from "../utils"
 
 describe("Paymaster:Write", () => {
+  const nonceOptions = { nonceKey: Date.now() + 40 }
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const {
     chain,
@@ -87,8 +88,8 @@ describe("Paymaster:Write", () => {
     const maticBalanceBefore = await checkBalance(smartAccountAddress)
 
     const response = await smartAccount.sendTransaction(transaction, {
-      paymasterServiceData: { mode: PaymasterMode.SPONSORED },
-      simulationType: "validation"
+      nonceOptions,
+      paymasterServiceData: { mode: PaymasterMode.SPONSORED }
     })
 
     const userOpReceipt = await response.wait(3)
@@ -127,6 +128,7 @@ describe("Paymaster:Write", () => {
     expect(balance).toBe(0n)
 
     const { wait } = await smartAccount.deploy({
+      nonceOptions,
       paymasterServiceData: { mode: PaymasterMode.SPONSORED }
     })
     const { success } = await wait()
@@ -153,9 +155,7 @@ describe("Paymaster:Write", () => {
         }
       ],
       null,
-      {
-        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
-      }
+      { nonceOptions, paymasterServiceData: { mode: PaymasterMode.SPONSORED } }
     )
 
     const {
@@ -194,6 +194,7 @@ describe("Paymaster:Write", () => {
       const maticBalanceBefore = await checkBalance(smartAccountAddress)
 
       const response = await smartAccount.sendTransaction(transaction, {
+        nonceOptions,
         paymasterServiceData: { mode: PaymasterMode.SPONSORED },
         simulationType: "validation_and_execution"
       })
@@ -231,9 +232,7 @@ describe("Paymaster:Write", () => {
         { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) }
       ],
       sender,
-      {
-        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
-      }
+      { nonceOptions, paymasterServiceData: { mode: PaymasterMode.SPONSORED } }
     )
 
     const {
@@ -269,6 +268,7 @@ describe("Paymaster:Write", () => {
       [] /* null or undefined or [] */,
       sender,
       {
+        nonceOptions,
         paymasterServiceData: { mode: PaymasterMode.SPONSORED } // Will leave no dust
       }
     )
