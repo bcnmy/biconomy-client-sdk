@@ -5,8 +5,8 @@ import {
   concat,
   encodeAbiParameters,
   keccak256,
-  parseAbiParameters,
   pad,
+  parseAbiParameters,
   toHex
 } from "viem"
 import type { UserOperationStruct } from "../../account"
@@ -27,65 +27,56 @@ export function packUserOp(
 ): string {
   const hashedInitCode = keccak256(
     userOperation.factory && userOperation.factoryData
-        ? concat([userOperation.factory, userOperation.factoryData])
-        : "0x"
+      ? concat([userOperation.factory, userOperation.factoryData])
+      : "0x"
   )
   const hashedCallData = keccak256(userOperation.callData ?? "0x")
   const hashedPaymasterAndData = keccak256(
-      userOperation.paymaster
-          ? concat([
-                userOperation.paymaster,
-                pad(
-                    toHex(
-                        userOperation.paymasterVerificationGasLimit ||
-                            BigInt(0)
-                    ),
-                    {
-                        size: 16
-                    }
-                ),
-                pad(
-                    toHex(userOperation.paymasterPostOpGasLimit || BigInt(0)),
-                    {
-                        size: 16
-                    }
-                ),
-                userOperation.paymasterData || "0x"
-            ])
-          : "0x"
+    userOperation.paymaster
+      ? concat([
+          userOperation.paymaster,
+          pad(toHex(userOperation.paymasterVerificationGasLimit || BigInt(0)), {
+            size: 16
+          }),
+          pad(toHex(userOperation.paymasterPostOpGasLimit || BigInt(0)), {
+            size: 16
+          }),
+          userOperation.paymasterData || "0x"
+        ])
+      : "0x"
   )
 
   return encodeAbiParameters(
-      [
-          { type: "address" },
-          { type: "uint256" },
-          { type: "bytes32" },
-          { type: "bytes32" },
-          { type: "bytes32" },
-          { type: "uint256" },
-          { type: "bytes32" },
-          { type: "bytes32" }
-      ],
-      [
-          userOperation.sender as Address,
-          userOperation.nonce ?? 0n,
-          hashedInitCode,
-          hashedCallData,
-          concat([
-              pad(toHex(userOperation.verificationGasLimit ?? 0n), {
-                  size: 16
-              }),
-              pad(toHex(userOperation.callGasLimit ?? 0n), { size: 16 })
-          ]),
-          userOperation.preVerificationGas ?? 0n,
-          concat([
-              pad(toHex(userOperation.maxPriorityFeePerGas ?? 0n), {
-                  size: 16
-              }),
-              pad(toHex(userOperation.maxFeePerGas ?? 0n), { size: 16 })
-          ]),
-          hashedPaymasterAndData
-      ]
+    [
+      { type: "address" },
+      { type: "uint256" },
+      { type: "bytes32" },
+      { type: "bytes32" },
+      { type: "bytes32" },
+      { type: "uint256" },
+      { type: "bytes32" },
+      { type: "bytes32" }
+    ],
+    [
+      userOperation.sender as Address,
+      userOperation.nonce ?? 0n,
+      hashedInitCode,
+      hashedCallData,
+      concat([
+        pad(toHex(userOperation.verificationGasLimit ?? 0n), {
+          size: 16
+        }),
+        pad(toHex(userOperation.callGasLimit ?? 0n), { size: 16 })
+      ]),
+      userOperation.preVerificationGas ?? 0n,
+      concat([
+        pad(toHex(userOperation.maxPriorityFeePerGas ?? 0n), {
+          size: 16
+        }),
+        pad(toHex(userOperation.maxFeePerGas ?? 0n), { size: 16 })
+      ]),
+      hashedPaymasterAndData
+    ]
   )
 }
 

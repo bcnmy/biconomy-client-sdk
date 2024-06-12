@@ -1,4 +1,4 @@
-import { http, type PublicClient, createPublicClient, Hash } from "viem"
+import { http, type Hash, type PublicClient, createPublicClient } from "viem"
 import type { StateOverrideSet, UserOperationStruct } from "../account"
 import type { SimulationType } from "../account"
 import { HttpMethod, getChain, sendRequest } from "../account"
@@ -10,9 +10,7 @@ import {
   UserOpWaitForTxHashIntervals,
   UserOpWaitForTxHashMaxDurationIntervals
 } from "./utils/Constants.js"
-import {
-  getTimestampInSeconds,
-} from "./utils/HelperFunction.js"
+import { getTimestampInSeconds } from "./utils/HelperFunction.js"
 import type {
   BundlerConfigWithChainId,
   BundlerEstimateUserOpGasResponse,
@@ -53,9 +51,8 @@ export class Bundler implements IBundler {
   private provider: PublicClient
 
   constructor(bundlerConfig: Bundlerconfig) {
-    const parsedChainId: number =
-      bundlerConfig?.chainId ?? 11155111 // TODO: remove hardcoded chainId
-      // || extractChainIdFromBundlerUrl(bundlerConfig.bundlerUrl)
+    const parsedChainId: number = bundlerConfig?.chainId ?? 11155111 // TODO: remove hardcoded chainId
+    // || extractChainIdFromBundlerUrl(bundlerConfig.bundlerUrl)
     this.bundlerConfig = { ...bundlerConfig, chainId: parsedChainId }
 
     this.provider = createPublicClient({
@@ -114,22 +111,26 @@ export class Bundler implements IBundler {
     // const userOp = transformUserOP(_userOp)
     const bundlerUrl = this.getBundlerUrl()
 
-    const response: {result: BundlerEstimateUserOpGasResponse} = await sendRequest(
-      {
-        url: bundlerUrl,
-        method: HttpMethod.Post,
-        body: {
-          method: "eth_estimateUserOperationGas",
-          params: [deepHexlify(_userOp), this.bundlerConfig.entryPointAddress],
-          id: getTimestampInSeconds(),
-          jsonrpc: "2.0"
-        }
-      },
-      "Bundler"
-    )
+    const response: { result: BundlerEstimateUserOpGasResponse } =
+      await sendRequest(
+        {
+          url: bundlerUrl,
+          method: HttpMethod.Post,
+          body: {
+            method: "eth_estimateUserOperationGas",
+            params: [
+              deepHexlify(_userOp),
+              this.bundlerConfig.entryPointAddress
+            ],
+            id: getTimestampInSeconds(),
+            jsonrpc: "2.0"
+          }
+        },
+        "Bundler"
+      )
 
-    console.log(response, "response");
-    
+    console.log(response, "response")
+
     const userOpGasResponse = response
     for (const key in userOpGasResponse) {
       if (
@@ -144,13 +145,13 @@ export class Bundler implements IBundler {
       preVerificationGas: BigInt(response.result.preVerificationGas || 0),
       verificationGasLimit: BigInt(response.result.verificationGasLimit || 0),
       callGasLimit: BigInt(response.result.callGasLimit || 0),
-      paymasterVerificationGasLimit:
-          response.result.paymasterVerificationGasLimit
-              ? BigInt(response.result.paymasterVerificationGasLimit)
-              : undefined,
+      paymasterVerificationGasLimit: response.result
+        .paymasterVerificationGasLimit
+        ? BigInt(response.result.paymasterVerificationGasLimit)
+        : undefined,
       paymasterPostOpGasLimit: response.result.paymasterPostOpGasLimit
-          ? BigInt(response.result.paymasterPostOpGasLimit)
-          : undefined
+        ? BigInt(response.result.paymasterPostOpGasLimit)
+        : undefined
     }
   }
 
@@ -166,7 +167,7 @@ export class Bundler implements IBundler {
   ): Promise<Hash> {
     const params = [deepHexlify(_userOp), this.bundlerConfig.entryPointAddress]
     const bundlerUrl = this.getBundlerUrl()
-    const sendUserOperationResponse: {result: Hash} = await sendRequest(
+    const sendUserOperationResponse: { result: Hash } = await sendRequest(
       {
         url: bundlerUrl,
         method: HttpMethod.Post,
@@ -180,7 +181,7 @@ export class Bundler implements IBundler {
       "Bundler"
     )
 
-    console.log(sendUserOperationResponse);
+    console.log(sendUserOperationResponse)
 
     return sendUserOperationResponse.result
   }
@@ -265,32 +266,35 @@ export class Bundler implements IBundler {
    */
   async getGasFeeValues(): Promise<GetUserOperationGasPriceReturnType> {
     const bundlerUrl = this.getBundlerUrl()
-    const response: {result: GetUserOperationGasPriceReturnType} = await sendRequest(
-      {
-        url: bundlerUrl,
-        method: HttpMethod.Post,
-        body: {
-          method: "pimlico_getUserOperationGasPrice",
-          params: [],
-          id: getTimestampInSeconds(),
-          jsonrpc: "2.0"
-        }
-      },
-      "Bundler"
-    )
+    const response: { result: GetUserOperationGasPriceReturnType } =
+      await sendRequest(
+        {
+          url: bundlerUrl,
+          method: HttpMethod.Post,
+          body: {
+            method: "pimlico_getUserOperationGasPrice",
+            params: [],
+            id: getTimestampInSeconds(),
+            jsonrpc: "2.0"
+          }
+        },
+        "Bundler"
+      )
 
     return {
       slow: {
-          maxFeePerGas: BigInt(response.result.slow.maxFeePerGas),
-          maxPriorityFeePerGas: BigInt(response.result.slow.maxPriorityFeePerGas)
+        maxFeePerGas: BigInt(response.result.slow.maxFeePerGas),
+        maxPriorityFeePerGas: BigInt(response.result.slow.maxPriorityFeePerGas)
       },
       standard: {
-          maxFeePerGas: BigInt(response.result.standard.maxFeePerGas),
-          maxPriorityFeePerGas: BigInt(response.result.standard.maxPriorityFeePerGas)
+        maxFeePerGas: BigInt(response.result.standard.maxFeePerGas),
+        maxPriorityFeePerGas: BigInt(
+          response.result.standard.maxPriorityFeePerGas
+        )
       },
       fast: {
-          maxFeePerGas: BigInt(response.result.fast.maxFeePerGas),
-          maxPriorityFeePerGas: BigInt(response.result.fast.maxPriorityFeePerGas)
+        maxFeePerGas: BigInt(response.result.fast.maxFeePerGas),
+        maxPriorityFeePerGas: BigInt(response.result.fast.maxPriorityFeePerGas)
       }
     }
   }

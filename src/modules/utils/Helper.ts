@@ -103,8 +103,7 @@ function packUserOp(
   op: Partial<UserOperationStruct>,
   forSignature = true
 ): Hex {
-  if (!op.callData)
-    throw new Error("Missing userOp properties")
+  if (!op.callData) throw new Error("Missing userOp properties")
   if (forSignature) {
     return encodeAbiParameters(
       parseAbiParameters(
@@ -114,7 +113,7 @@ function packUserOp(
         op.sender ?? "0x",
         BigInt(op.nonce ?? 0n),
         keccak256(op.initCode ?? "0x"),
-        keccak256(op.callData ),
+        keccak256(op.callData),
         BigInt(op.callGasLimit ?? 0n),
         BigInt(op.verificationGasLimit ?? 0n),
         BigInt(op.preVerificationGas ?? 0n),
@@ -133,7 +132,7 @@ function packUserOp(
       op.sender ?? "0x",
       BigInt(op.nonce ?? 0n),
       keccak256(op.initCode ?? "0x"),
-      keccak256(op.callData ),
+      keccak256(op.callData),
       BigInt(op.callGasLimit ?? 0n),
       BigInt(op.verificationGasLimit ?? 0n),
       BigInt(op.preVerificationGas ?? 0n),

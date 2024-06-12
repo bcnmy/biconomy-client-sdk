@@ -68,9 +68,10 @@ describe("Account:Write", async () => {
     })
   ]
 
-  let smartAccount = await createSmartAccountClient({
+  const smartAccount = await createSmartAccountClient({
     signer: walletClient,
-    bundlerUrl: "https://api.pimlico.io/v2/84532/rpc?apikey=22c48af7-4886-4c7d-8d4c-5d50262a23f3"
+    bundlerUrl:
+      "https://api.pimlico.io/v2/84532/rpc?apikey=22c48af7-4886-4c7d-8d4c-5d50262a23f3"
     // accountAddress: "0xe6dBb5C8696d2E0f90B875cbb6ef26E3bBa575AC"
   })
 
@@ -116,10 +117,10 @@ describe("Account:Write", async () => {
   // }, 60000)
 
   test("should mint an NFT and pay with ERC20 - with token", async () => {
-    console.log("CHAIN ID 2", baseSepolia.id);
-    
-    const smartAccountAddress = await smartAccount.getAccountAddress();
-    console.log(smartAccountAddress, "smartAccountAddress");
+    console.log("CHAIN ID 2", baseSepolia.id)
+
+    const smartAccountAddress = await smartAccount.getAccountAddress()
+    console.log(smartAccountAddress, "smartAccountAddress")
     const encodedCall = encodeFunctionData({
       abi: parseAbi(["function safeMint(address _to)"]),
       functionName: "safeMint",
@@ -130,10 +131,10 @@ describe("Account:Write", async () => {
       data: encodedCall
     }
     const gasCost = await smartAccount.getGasEstimate([transaction])
-    console.log(gasCost, "gasCost");
-    
+    console.log(gasCost, "gasCost")
+
     const userOpHash = await smartAccount.sendTransaction([transaction])
-    console.log(userOpHash, "userOpHash");
+    console.log(userOpHash, "userOpHash")
 
     expect(userOpHash).toBeTruthy()
   }, 60000)

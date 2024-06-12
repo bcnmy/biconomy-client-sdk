@@ -1,3 +1,4 @@
+import { UndefinedInitialDataOptions } from "@tanstack/react-query"
 import type {
   Address,
   Chain,
@@ -25,7 +26,6 @@ import type {
   SmartAccountData,
   SponsorUserOperationDto
 } from "../../paymaster"
-import { UndefinedInitialDataOptions } from "@tanstack/react-query"
 
 export type EntryPointAddresses = Record<string, string>
 export type BiconomyFactories = Record<string, string>
@@ -627,5 +627,5 @@ export enum ModuleType {
   Validation = 1,
   Execution = 2,
   Fallback = 3,
-  Hooks = 4,
+  Hooks = 4
 }

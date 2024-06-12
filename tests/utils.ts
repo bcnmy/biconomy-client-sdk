@@ -7,13 +7,13 @@ import {
   parseAbi
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
+import { baseSepolia } from "viem/chains"
 import { Logger } from "../src/account/utils/Logger"
 import { getChain } from "../src/account/utils/getChain"
 import {
   extractChainIdFromBundlerUrl,
   extractChainIdFromPaymasterUrl
 } from "../src/bundler"
-import { baseSepolia } from "viem/chains"
 
 export const getEnvVars = () => {
   const fields = [
@@ -105,8 +105,8 @@ export const checkBalance = (
 ) => {
   // const { chain: chainFromConfig } = getConfig()
   // const chain = _chain || chainFromConfig
-  console.log(tokenAddress, "tokenAddress");
-  
+  console.log(tokenAddress, "tokenAddress")
+
   const publicClient = createPublicClient({
     chain: baseSepolia,
     transport: http()

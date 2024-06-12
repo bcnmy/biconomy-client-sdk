@@ -125,16 +125,16 @@ export type GasFeeValues = {
 
 export type GetUserOperationGasPriceReturnType = {
   slow: {
-      maxFeePerGas: bigint
-      maxPriorityFeePerGas: bigint
+    maxFeePerGas: bigint
+    maxPriorityFeePerGas: bigint
   }
   standard: {
-      maxFeePerGas: bigint
-      maxPriorityFeePerGas: bigint
+    maxFeePerGas: bigint
+    maxPriorityFeePerGas: bigint
   }
   fast: {
-      maxFeePerGas: bigint
-      maxPriorityFeePerGas: bigint
+    maxFeePerGas: bigint
+    maxPriorityFeePerGas: bigint
   }
 }
 
