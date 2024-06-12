@@ -1,10 +1,8 @@
+import { Hash } from "viem"
+import type { SimulationType } from "../../account"
+import type { StateOverrideSet, UserOperationStruct } from "../../account"
 import type {
-  SimulationType,
-  StateOverrideSet,
-  UserOperationStruct
-} from "../../account"
-import type {
-  GasFeeValues,
+  GetUserOperationGasPriceReturnType,
   UserOpByHashResponse,
   UserOpGasResponse,
   UserOpReceipt,
@@ -20,10 +18,10 @@ export interface IBundler {
   sendUserOp(
     _userOp: UserOperationStruct,
     _simulationType?: SimulationType
-  ): Promise<UserOpResponse>
+  ): Promise<Hash>
   getUserOpReceipt(_userOpHash: string): Promise<UserOpReceipt>
   getUserOpByHash(_userOpHash: string): Promise<UserOpByHashResponse>
-  getGasFeeValues(): Promise<GasFeeValues>
+  getGasFeeValues(): Promise<GetUserOperationGasPriceReturnType>
   getUserOpStatus(_userOpHash: string): Promise<UserOpStatus>
   getBundlerUrl(): string
 }

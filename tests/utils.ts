@@ -13,6 +13,7 @@ import {
   extractChainIdFromBundlerUrl,
   extractChainIdFromPaymasterUrl
 } from "../src/bundler"
+import { baseSepolia } from "viem/chains"
 
 export const getEnvVars = () => {
   const fields = [
@@ -69,21 +70,22 @@ export const getConfig = (): TestConfig => {
   const chainId = chains[0]
   const chain = getChain(chainId)
 
-  try {
-    const chainIdFromBundlerUrl = extractChainIdFromBundlerUrl(bundlerUrl)
-    chains.push(chainIdFromBundlerUrl)
-  } catch (e) {}
+  // try {
+  //   const chainIdFromBundlerUrl = extractChainIdFromBundlerUrl(bundlerUrl)
+  //   chains.push(chainIdFromBundlerUrl)
+  // } catch (e) {}
 
-  try {
-    const chainIdFromPaymasterUrl = extractChainIdFromPaymasterUrl(paymasterUrl)
-    chains.push(chainIdFromPaymasterUrl)
-  } catch (e) {}
+  // try {
+  //   const chainIdFromPaymasterUrl = extractChainIdFromPaymasterUrl(paymasterUrl)
+  //   chains.push(chainIdFromPaymasterUrl)
+  // } catch (e) {}
 
-  const allChainsMatch = chains.every((chain) => chain === chains[0])
+  // COMMNETED in order to use pimlico bundler url
+  // const allChainsMatch = chains.every((chain) => chain === chains[0])
 
-  if (!allChainsMatch) {
-    throw new Error("Chain IDs do not match")
-  }
+  // if (!allChainsMatch) {
+  //   throw new Error("Chain IDs do not match")
+  // }
 
   return {
     chain,
@@ -101,11 +103,12 @@ export const checkBalance = (
   tokenAddress?: Hex,
   _chain?: Chain
 ) => {
-  const { chain: chainFromConfig } = getConfig()
-  const chain = _chain || chainFromConfig
-
+  // const { chain: chainFromConfig } = getConfig()
+  // const chain = _chain || chainFromConfig
+  console.log(tokenAddress, "tokenAddress");
+  
   const publicClient = createPublicClient({
-    chain,
+    chain: baseSepolia,
     transport: http()
   })
 
@@ -189,7 +192,7 @@ export const topUp = async (
       to: recipient,
       value: amount
     })
-    await publicClient.waitForTransactionReceipt({ hash })
+    // await publicClient.waitForTransactionReceipt({ hash })
   }
 }
 

@@ -1,4 +1,4 @@
-import { http, type PublicClient, createPublicClient } from "viem"
+import { http, type PublicClient, createPublicClient, Hash } from "viem"
 import type { StateOverrideSet, UserOperationStruct } from "../account"
 import type { SimulationType } from "../account"
 import { HttpMethod, getChain, sendRequest } from "../account"
@@ -12,15 +12,16 @@ import {
 } from "./utils/Constants.js"
 import {
   getTimestampInSeconds,
-  transformUserOP
 } from "./utils/HelperFunction.js"
 import type {
   BundlerConfigWithChainId,
+  BundlerEstimateUserOpGasResponse,
   Bundlerconfig,
   EstimateUserOpGasResponse,
   GasFeeValues,
   GetGasFeeValuesResponse,
   GetUserOpByHashResponse,
+  GetUserOperationGasPriceReturnType,
   GetUserOperationReceiptResponse,
   GetUserOperationStatusResponse,
   SendUserOpResponse,
@@ -30,7 +31,7 @@ import type {
   UserOpResponse,
   UserOpStatus
 } from "./utils/Types.js"
-import { extractChainIdFromBundlerUrl } from "./utils/Utils.js"
+import { deepHexlify, extractChainIdFromBundlerUrl } from "./utils/Utils.js"
 
 /**
  * This class implements IBundler interface.
@@ -53,8 +54,8 @@ export class Bundler implements IBundler {
 
   constructor(bundlerConfig: Bundlerconfig) {
     const parsedChainId: number =
-      bundlerConfig?.chainId ||
-      extractChainIdFromBundlerUrl(bundlerConfig.bundlerUrl)
+      bundlerConfig?.chainId ?? 11155111 // TODO: remove hardcoded chainId
+      // || extractChainIdFromBundlerUrl(bundlerConfig.bundlerUrl)
     this.bundlerConfig = { ...bundlerConfig, chainId: parsedChainId }
 
     this.provider = createPublicClient({
@@ -110,18 +111,16 @@ export class Bundler implements IBundler {
   ): Promise<UserOpGasResponse> {
     // expected dummySig and possibly dummmy paymasterAndData should be provided by the caller
     // bundler doesn't know account and paymaster implementation
-    const userOp = transformUserOP(_userOp)
+    // const userOp = transformUserOP(_userOp)
     const bundlerUrl = this.getBundlerUrl()
 
-    const response: EstimateUserOpGasResponse = await sendRequest(
+    const response: {result: BundlerEstimateUserOpGasResponse} = await sendRequest(
       {
         url: bundlerUrl,
         method: HttpMethod.Post,
         body: {
           method: "eth_estimateUserOperationGas",
-          params: stateOverrideSet
-            ? [userOp, this.bundlerConfig.entryPointAddress, stateOverrideSet]
-            : [userOp, this.bundlerConfig.entryPointAddress],
+          params: [deepHexlify(_userOp), this.bundlerConfig.entryPointAddress],
           id: getTimestampInSeconds(),
           jsonrpc: "2.0"
         }
@@ -129,9 +128,10 @@ export class Bundler implements IBundler {
       "Bundler"
     )
 
-    const userOpGasResponse = response.result
+    console.log(response, "response");
+    
+    const userOpGasResponse = response
     for (const key in userOpGasResponse) {
-      if (key === "maxFeePerGas" || key === "maxPriorityFeePerGas") continue
       if (
         userOpGasResponse[key as keyof UserOpGasResponse] === undefined ||
         userOpGasResponse[key as keyof UserOpGasResponse] === null
@@ -139,7 +139,19 @@ export class Bundler implements IBundler {
         throw new Error(`Got undefined ${key} from bundler`)
       }
     }
-    return userOpGasResponse
+
+    return {
+      preVerificationGas: BigInt(response.result.preVerificationGas || 0),
+      verificationGasLimit: BigInt(response.result.verificationGasLimit || 0),
+      callGasLimit: BigInt(response.result.callGasLimit || 0),
+      paymasterVerificationGasLimit:
+          response.result.paymasterVerificationGasLimit
+              ? BigInt(response.result.paymasterVerificationGasLimit)
+              : undefined,
+      paymasterPostOpGasLimit: response.result.paymasterPostOpGasLimit
+          ? BigInt(response.result.paymasterPostOpGasLimit)
+          : undefined
+    }
   }
 
   /**
@@ -151,16 +163,10 @@ export class Bundler implements IBundler {
   async sendUserOp(
     _userOp: UserOperationStruct,
     simulationParam?: SimulationType
-  ): Promise<UserOpResponse> {
-    const chainId = this.bundlerConfig.chainId
-    // transformUserOP will convert all bigNumber values to string
-    const userOp = transformUserOP(_userOp)
-    const simType = {
-      simulation_type: simulationParam || "validation"
-    }
-    const params = [userOp, this.bundlerConfig.entryPointAddress, simType]
+  ): Promise<Hash> {
+    const params = [deepHexlify(_userOp), this.bundlerConfig.entryPointAddress]
     const bundlerUrl = this.getBundlerUrl()
-    const sendUserOperationResponse: SendUserOpResponse = await sendRequest(
+    const sendUserOperationResponse: {result: Hash} = await sendRequest(
       {
         url: bundlerUrl,
         method: HttpMethod.Post,
@@ -173,101 +179,10 @@ export class Bundler implements IBundler {
       },
       "Bundler"
     )
-    const response: UserOpResponse = {
-      userOpHash: sendUserOperationResponse.result,
-      wait: (confirmations?: number): Promise<UserOpReceipt> => {
-        // Note: maxDuration can be defined per chainId
-        const maxDuration =
-          this.UserOpReceiptMaxDurationIntervals[chainId] || 30000 // default 30 seconds
-        let totalDuration = 0
 
-        return new Promise<UserOpReceipt>((resolve, reject) => {
-          const intervalValue = this.UserOpReceiptIntervals[chainId] || 5000 // default 5 seconds
-          const intervalId = setInterval(async () => {
-            try {
-              const userOpResponse = await this.getUserOpReceipt(
-                sendUserOperationResponse.result
-              )
-              if (userOpResponse?.receipt?.blockNumber) {
-                if (confirmations) {
-                  const latestBlock = await this.provider.getBlockNumber()
-                  const confirmedBlocks =
-                    Number(latestBlock) - userOpResponse.receipt.blockNumber
-                  if (confirmations >= confirmedBlocks) {
-                    clearInterval(intervalId)
-                    resolve(userOpResponse)
-                    return
-                  }
-                } else {
-                  clearInterval(intervalId)
-                  resolve(userOpResponse)
-                  return
-                }
-              }
-            } catch (error) {
-              clearInterval(intervalId)
-              reject(error)
-              return
-            }
+    console.log(sendUserOperationResponse);
 
-            totalDuration += intervalValue
-            if (totalDuration >= maxDuration) {
-              clearInterval(intervalId)
-              reject(
-                new Error(
-                  `Exceeded maximum duration (${
-                    maxDuration / 1000
-                  } sec) waiting to get receipt for userOpHash ${
-                    sendUserOperationResponse.result
-                  }. Try getting the receipt manually using eth_getUserOperationReceipt rpc method on bundler`
-                )
-              )
-            }
-          }, intervalValue)
-        })
-      },
-      waitForTxHash: (): Promise<UserOpStatus> => {
-        const maxDuration =
-          this.UserOpWaitForTxHashMaxDurationIntervals[chainId] || 20000 // default 20 seconds
-        let totalDuration = 0
-
-        return new Promise<UserOpStatus>((resolve, reject) => {
-          const intervalValue =
-            this.UserOpWaitForTxHashIntervals[chainId] || 500 // default 0.5 seconds
-          const intervalId = setInterval(async () => {
-            try {
-              const userOpStatus = await this.getUserOpStatus(
-                sendUserOperationResponse.result
-              )
-              if (userOpStatus?.state && userOpStatus.transactionHash) {
-                clearInterval(intervalId)
-                resolve(userOpStatus)
-                return
-              }
-            } catch (error) {
-              clearInterval(intervalId)
-              reject(error)
-              return
-            }
-
-            totalDuration += intervalValue
-            if (totalDuration >= maxDuration) {
-              clearInterval(intervalId)
-              reject(
-                new Error(
-                  `Exceeded maximum duration (${
-                    maxDuration / 1000
-                  } sec) waiting to get receipt for userOpHash ${
-                    sendUserOperationResponse.result
-                  }. Try getting the receipt manually using eth_getUserOperationReceipt rpc method on bundler`
-                )
-              )
-            }
-          }, intervalValue)
-        })
-      }
-    }
-    return response
+    return sendUserOperationResponse.result
   }
 
   /**
@@ -348,14 +263,14 @@ export class Bundler implements IBundler {
   /**
    * @description This function will return the gas fee values
    */
-  async getGasFeeValues(): Promise<GasFeeValues> {
+  async getGasFeeValues(): Promise<GetUserOperationGasPriceReturnType> {
     const bundlerUrl = this.getBundlerUrl()
-    const response: GetGasFeeValuesResponse = await sendRequest(
+    const response: {result: GetUserOperationGasPriceReturnType} = await sendRequest(
       {
         url: bundlerUrl,
         method: HttpMethod.Post,
         body: {
-          method: "biconomy_getGasFeeValues",
+          method: "pimlico_getUserOperationGasPrice",
           params: [],
           id: getTimestampInSeconds(),
           jsonrpc: "2.0"
@@ -363,7 +278,21 @@ export class Bundler implements IBundler {
       },
       "Bundler"
     )
-    return response.result
+
+    return {
+      slow: {
+          maxFeePerGas: BigInt(response.result.slow.maxFeePerGas),
+          maxPriorityFeePerGas: BigInt(response.result.slow.maxPriorityFeePerGas)
+      },
+      standard: {
+          maxFeePerGas: BigInt(response.result.standard.maxFeePerGas),
+          maxPriorityFeePerGas: BigInt(response.result.standard.maxPriorityFeePerGas)
+      },
+      fast: {
+          maxFeePerGas: BigInt(response.result.fast.maxFeePerGas),
+          maxPriorityFeePerGas: BigInt(response.result.fast.maxPriorityFeePerGas)
+      }
+    }
   }
 
   public static async create(config: Bundlerconfig): Promise<Bundler> {

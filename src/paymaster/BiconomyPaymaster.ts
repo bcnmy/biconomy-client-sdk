@@ -48,42 +48,42 @@ export class BiconomyPaymaster
    * @param userOp The partial user operation.
    * @returns A Promise that resolves to the prepared partial user operation.
    */
-  private async prepareUserOperation(
-    userOp: Partial<UserOperationStruct>
-  ): Promise<Partial<UserOperationStruct>> {
-    const userOperation = { ...userOp }
-    try {
-      const keys1: (keyof UserOperationStruct)[] = [
-        "nonce",
-        "maxFeePerGas",
-        "maxPriorityFeePerGas"
-      ]
-      for (const key of keys1) {
-        if (userOperation[key] && userOperation[key] !== "0x") {
-          userOperation[key] = `0x${BigInt(
-            userOp[key] as BigNumberish
-          ).toString(16)}` as `0x${string}`
-        }
-      }
-      const keys2: (keyof UserOperationStruct)[] = [
-        "callGasLimit",
-        "verificationGasLimit",
-        "preVerificationGas"
-      ]
-      for (const key of keys2) {
-        if (userOperation[key] && userOperation[key] !== "0x") {
-          userOperation[key] = BigInt(
-            userOp[key] as BigNumberish
-          ).toString() as `0x${string}`
-        }
-      }
-    } catch (error) {
-      throw `Failed to transform user operation: ${error}`
-    }
-    userOperation.signature = userOp.signature || "0x"
-    userOperation.paymasterAndData = userOp.paymasterAndData || "0x"
-    return userOperation
-  }
+  // private async prepareUserOperation(
+  //   userOp: Partial<UserOperationStruct>
+  // ): Promise<Partial<UserOperationStruct>> {
+  //   const userOperation = { ...userOp }
+  //   try {
+  //     const keys1: (keyof UserOperationStruct)[] = [
+  //       "nonce",
+  //       "maxFeePerGas",
+  //       "maxPriorityFeePerGas"
+  //     ]
+  //     for (const key of keys1) {
+  //       if (userOperation[key] && userOperation[key] !== "0x") {
+  //         userOperation[key] = `0x${BigInt(
+  //           userOp[key] as BigNumberish
+  //         ).toString(16)}` as `0x${string}`
+  //       }
+  //     }
+  //     const keys2: (keyof UserOperationStruct)[] = [
+  //       "callGasLimit",
+  //       "verificationGasLimit",
+  //       "preVerificationGas"
+  //     ]
+  //     for (const key of keys2) {
+  //       if (userOperation[key] && userOperation[key] !== "0x") {
+  //         userOperation[key] = BigInt(
+  //           userOp[key] as BigNumberish
+  //         ).toString() as `0x${string}`
+  //       }
+  //     }
+  //   } catch (error) {
+  //     throw `Failed to transform user operation: ${error}`
+  //   }
+  //   userOperation.signature = userOp.signature || "0x"
+  //   userOperation.paymasterAndData = userOp.paymasterAndData || "0x"
+  //   return userOperation
+  // }
 
   /**
    * @dev Builds a token approval transaction for the Biconomy token paymaster.
@@ -159,10 +159,10 @@ export class BiconomyPaymaster
    * @returns A Promise that resolves to the fee quotes or data response.
    */
   async getPaymasterFeeQuotesOrData(
-    _userOp: Partial<UserOperationStruct>,
+    userOp: Partial<UserOperationStruct>,
     paymasterServiceData: FeeQuotesOrDataDto
   ): Promise<FeeQuotesOrDataResponse> {
-    const userOp = await this.prepareUserOperation(_userOp)
+    // const userOp = await this.prepareUserOperation(_userOp)
 
     let mode: PaymasterMode | null = null
     let expiryDuration: number | null = null
@@ -296,10 +296,10 @@ export class BiconomyPaymaster
    * @returns A Promise that resolves to the paymaster and data string.
    */
   async getPaymasterAndData(
-    _userOp: Partial<UserOperationStruct>,
+    userOp: Partial<UserOperationStruct>,
     paymasterServiceData?: SponsorUserOperationDto // mode is necessary. partial context of token paymaster or verifying
   ): Promise<PaymasterAndDataResponse> {
-    const userOp = await this.prepareUserOperation(_userOp)
+    // const userOp = await this.prepareUserOperation(_userOp)
 
     if (paymasterServiceData?.mode === undefined) {
       throw new Error("mode is required in paymasterServiceData")
@@ -367,11 +367,11 @@ export class BiconomyPaymaster
       if (response?.result) {
         const paymasterAndData = response.result.paymasterAndData
         const preVerificationGas =
-          response.result.preVerificationGas ?? _userOp.preVerificationGas
+          response.result.preVerificationGas ?? userOp.preVerificationGas
         const verificationGasLimit =
-          response.result.verificationGasLimit ?? _userOp.verificationGasLimit
+          response.result.verificationGasLimit ?? userOp.verificationGasLimit
         const callGasLimit =
-          response.result.callGasLimit ?? _userOp.callGasLimit
+          response.result.callGasLimit ?? userOp.callGasLimit
         return {
           paymasterAndData: paymasterAndData,
           preVerificationGas: preVerificationGas,

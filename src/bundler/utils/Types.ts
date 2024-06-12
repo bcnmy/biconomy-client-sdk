@@ -84,11 +84,11 @@ export type EstimateUserOpGasResponse = {
 }
 
 export type UserOpGasResponse = {
-  preVerificationGas: string
-  verificationGasLimit: string
-  callGasLimit: string
-  maxPriorityFeePerGas: string
-  maxFeePerGas: string
+  preVerificationGas: bigint
+  verificationGasLimit: bigint
+  callGasLimit: bigint
+  paymasterVerificationGasLimit?: bigint
+  paymasterPostOpGasLimit?: bigint
 }
 
 // Converted to JsonRpcResponse with strict type
@@ -119,6 +119,29 @@ export type GetGasFeeValuesResponse = {
   error?: JsonRpcError
 }
 export type GasFeeValues = {
-  maxPriorityFeePerGas: string
-  maxFeePerGas: string
+  maxPriorityFeePerGas: bigint
+  maxFeePerGas: bigint
+}
+
+export type GetUserOperationGasPriceReturnType = {
+  slow: {
+      maxFeePerGas: bigint
+      maxPriorityFeePerGas: bigint
+  }
+  standard: {
+      maxFeePerGas: bigint
+      maxPriorityFeePerGas: bigint
+  }
+  fast: {
+      maxFeePerGas: bigint
+      maxPriorityFeePerGas: bigint
+  }
+}
+
+export type BundlerEstimateUserOpGasResponse = {
+  preVerificationGas: Hex
+  verificationGasLimit: Hex
+  callGasLimit?: Hex | null
+  paymasterVerificationGasLimit?: Hex | null
+  paymasterPostOpGasLimit?: Hex | null
 }

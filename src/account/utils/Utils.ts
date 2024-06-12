@@ -5,7 +5,9 @@ import {
   concat,
   encodeAbiParameters,
   keccak256,
-  parseAbiParameters
+  parseAbiParameters,
+  pad,
+  toHex
 } from "viem"
 import type { UserOperationStruct } from "../../account"
 import { type SupportedSigner, convertSigner } from "../../account"
@@ -20,48 +22,70 @@ import type { BiconomySmartAccountV2Config } from "./Types.js"
  *  "false" to pack entire UserOp, for calculating the calldata cost of putting it on-chain.
  */
 export function packUserOp(
-  op: Partial<UserOperationStruct>,
+  userOperation: Partial<UserOperationStruct>,
   forSignature = true
 ): string {
-  if (!op.initCode || !op.callData || !op.paymasterAndData)
-    throw new Error("Missing userOp properties")
-  if (forSignature) {
-    return encodeAbiParameters(
-      parseAbiParameters(
-        "address, uint256, bytes32, bytes32, uint256, uint256, uint256, uint256, uint256, bytes32"
-      ),
-      [
-        op.sender as Hex,
-        BigInt(op.nonce as Hex),
-        keccak256(op.initCode as Hex),
-        keccak256(op.callData as Hex),
-        BigInt(op.callGasLimit as Hex),
-        BigInt(op.verificationGasLimit as Hex),
-        BigInt(op.preVerificationGas as Hex),
-        BigInt(op.maxFeePerGas as Hex),
-        BigInt(op.maxPriorityFeePerGas as Hex),
-        keccak256(op.paymasterAndData as Hex)
-      ]
-    )
-  }
-  // for the purpose of calculating gas cost encode also signature (and no keccak of bytes)
+  const hashedInitCode = keccak256(
+    userOperation.factory && userOperation.factoryData
+        ? concat([userOperation.factory, userOperation.factoryData])
+        : "0x"
+  )
+  const hashedCallData = keccak256(userOperation.callData ?? "0x")
+  const hashedPaymasterAndData = keccak256(
+      userOperation.paymaster
+          ? concat([
+                userOperation.paymaster,
+                pad(
+                    toHex(
+                        userOperation.paymasterVerificationGasLimit ||
+                            BigInt(0)
+                    ),
+                    {
+                        size: 16
+                    }
+                ),
+                pad(
+                    toHex(userOperation.paymasterPostOpGasLimit || BigInt(0)),
+                    {
+                        size: 16
+                    }
+                ),
+                userOperation.paymasterData || "0x"
+            ])
+          : "0x"
+  )
+
   return encodeAbiParameters(
-    parseAbiParameters(
-      "address, uint256, bytes, bytes, uint256, uint256, uint256, uint256, uint256, bytes, bytes"
-    ),
-    [
-      op.sender as Hex,
-      BigInt(op.nonce as Hex),
-      op.initCode as Hex,
-      op.callData as Hex,
-      BigInt(op.callGasLimit as Hex),
-      BigInt(op.verificationGasLimit as Hex),
-      BigInt(op.preVerificationGas as Hex),
-      BigInt(op.maxFeePerGas as Hex),
-      BigInt(op.maxPriorityFeePerGas as Hex),
-      op.paymasterAndData as Hex,
-      op.signature as Hex
-    ]
+      [
+          { type: "address" },
+          { type: "uint256" },
+          { type: "bytes32" },
+          { type: "bytes32" },
+          { type: "bytes32" },
+          { type: "uint256" },
+          { type: "bytes32" },
+          { type: "bytes32" }
+      ],
+      [
+          userOperation.sender as Address,
+          userOperation.nonce ?? 0n,
+          hashedInitCode,
+          hashedCallData,
+          concat([
+              pad(toHex(userOperation.verificationGasLimit ?? 0n), {
+                  size: 16
+              }),
+              pad(toHex(userOperation.callGasLimit ?? 0n), { size: 16 })
+          ]),
+          userOperation.preVerificationGas ?? 0n,
+          concat([
+              pad(toHex(userOperation.maxPriorityFeePerGas ?? 0n), {
+                  size: 16
+              }),
+              pad(toHex(userOperation.maxFeePerGas ?? 0n), { size: 16 })
+          ]),
+          hashedPaymasterAndData
+      ]
   )
 }
 

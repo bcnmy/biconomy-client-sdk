@@ -10,6 +10,10 @@ export default defineConfig({
         ? ["json-summary", "json"]
         : ["text", "json", "html"],
       exclude: [
+        "**/tests/bundler",
+        "**/tests/modules",
+        "**/tests/paymaster",
+        "**/tests/playground",
         "**/errors/utils.ts",
         "**/_cjs/**",
         "**/_esm/**",

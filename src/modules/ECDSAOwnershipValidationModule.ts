@@ -89,7 +89,7 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
   }
 
   async signUserOpHash(userOpHash: string): Promise<Hex> {
-    const sig = await this.signer.signMessage({ raw: toBytes(userOpHash) })
+    const sig = await this.signer.signMessage({raw: userOpHash as Hex})
     return sig
   }
 

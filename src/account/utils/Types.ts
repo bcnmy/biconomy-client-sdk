@@ -25,6 +25,7 @@ import type {
   SmartAccountData,
   SponsorUserOperationDto
 } from "../../paymaster"
+import { UndefinedInitialDataOptions } from "@tanstack/react-query"
 
 export type EntryPointAddresses = Record<string, string>
 export type BiconomyFactories = Record<string, string>
@@ -81,7 +82,7 @@ export interface GasOverheads {
 
 export type BaseSmartAccountConfig = {
   /** index: helps to not conflict with other smart account instances */
-  index?: number
+  index?: bigint
   /** provider: WalletClientSigner from viem */
   provider?: WalletClient
   /** entryPointAddress: address of the smart account entry point */
@@ -164,7 +165,7 @@ export type BiconomySmartAccountV2ConfigBaseProps = {
   /** scanForUpgradedAccountsFromV1: set to true if you you want the userwho was using biconomy SA v1 to upgrade to biconomy SA v2 */
   scanForUpgradedAccountsFromV1?: boolean
   /** the index of SA the EOA have generated and till which indexes the upgraded SA should scan */
-  maxIndexForScan?: number
+  maxIndexForScan?: bigint
   /** Can be used to optionally override the chain with a custom chain if it doesn't already exist in viems list of supported chains. Alias of customChain */
   viemChain?: Chain
   /** Can be used to optionally override the chain with a custom chain if it doesn't already exist in viems list of supported chain. Alias of viemChain */
@@ -217,9 +218,9 @@ export type SessionDataForAccount = {
 
 export type NonceOptions = {
   /** nonceKey: The key to use for nonce */
-  nonceKey?: number
+  nonceKey?: bigint
   /** nonceOverride: The nonce to use for the transaction */
-  nonceOverride?: number
+  nonceOverride?: bigint
 }
 
 export type SimulationType = "validation" | "validation_and_execution"
@@ -310,20 +311,20 @@ export interface TransactionDetailsForUserOp {
 }
 
 export type CounterFactualAddressParam = {
-  index?: number
+  index?: bigint
   validationModule?: BaseValidationModule
   /** scanForUpgradedAccountsFromV1: set to true if you you want the userwho was using biconomy SA v1 to upgrade to biconomy SA v2 */
   scanForUpgradedAccountsFromV1?: boolean
   /** the index of SA the EOA have generated and till which indexes the upgraded SA should scan */
-  maxIndexForScan?: number
+  maxIndexForScan?: bigint
 }
 
 export type QueryParamsForAddressResolver = {
   eoaAddress: Hex
-  index: number
+  index: bigint
   moduleAddress: Hex
   moduleSetupData: Hex
-  maxIndexForScan?: number
+  maxIndexForScan?: bigint
 }
 
 export type SmartAccountInfo = {
@@ -391,29 +392,24 @@ export type BytesLike = Uint8Array | Hex
 //#region UserOperationStruct
 // based on @account-abstraction/common
 // this is used for building requests
-export interface UserOperationStruct {
-  /* the origin of the request */
-  sender: string
-  /* nonce of the transaction, returned from the entry point for this Address */
-  nonce: BigNumberish
-  /* the initCode for creating the sender if it does not exist yet, otherwise "0x" */
-  initCode: BytesLike | "0x"
-  /* the callData passed to the target */
-  callData: BytesLike
-  /* Value used by inner account execution */
-  callGasLimit?: BigNumberish
-  /* Actual gas used by the validation of this UserOperation */
-  verificationGasLimit?: BigNumberish
-  /* Gas overhead of this UserOperation */
-  preVerificationGas?: BigNumberish
-  /* Maximum fee per gas (similar to EIP-1559 max_fee_per_gas) */
-  maxFeePerGas?: BigNumberish
-  /* Maximum priority fee per gas (similar to EIP-1559 max_priority_fee_per_gas) */
-  maxPriorityFeePerGas?: BigNumberish
-  /* Address of paymaster sponsoring the transaction, followed by extra data to send to the paymaster ("0x" for self-sponsored transaction) */
-  paymasterAndData: BytesLike | "0x"
-  /* Data passed into the account along with the nonce during the verification step */
-  signature: BytesLike
+export type UserOperationStruct = {
+  sender: Address
+  nonce: bigint
+  factory?: Address
+  factoryData?: Hex
+  callData: Hex
+  callGasLimit: bigint
+  verificationGasLimit: bigint
+  preVerificationGas: bigint
+  maxFeePerGas: bigint
+  maxPriorityFeePerGas: bigint
+  paymaster?: Address
+  paymasterVerificationGasLimit?: bigint
+  paymasterPostOpGasLimit?: bigint
+  paymasterData?: Hex
+  signature: Hex
+  initCode?: never
+  paymasterAndData?: never
 }
 //#endregion UserOperationStruct
 
@@ -626,3 +622,10 @@ export interface ISmartContractAccount<
 export type TransferOwnershipCompatibleModule =
   | "0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e"
   | "0x000000824dc138db84FD9109fc154bdad332Aa8E"
+
+export enum ModuleType {
+  Validation = 1,
+  Execution = 2,
+  Fallback = 3,
+  Hooks = 4,
+}

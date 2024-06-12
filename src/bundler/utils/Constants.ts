@@ -27,6 +27,6 @@ export const UserOpWaitForTxHashMaxDurationIntervals: {
 }
 
 export const DEFAULT_ENTRYPOINT_ADDRESS =
-  "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789"
+  "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
 
 export const SDK_VERSION = "4.4.5"
