@@ -28,7 +28,8 @@ import {
 import {
   Bundler,
   type GetUserOperationGasPriceReturnType,
-  extractChainIdFromBundlerUrl
+  extractChainIdFromBundlerUrl,
+  Executions
 } from "../bundler/index.js"
 import type { IBundler } from "../bundler/interfaces/IBundler.js"
 import {
@@ -104,6 +105,7 @@ import {
   isValidRpcUrl,
   packUserOp
 } from "./utils/Utils.js"
+import { EXECUTE_BATCH, EXECUTE_SINGLE } from "../bundler/utils/Constants.js"
 
 type UserOperationKey = keyof UserOperationStruct
 
@@ -842,19 +844,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @param data represent data associated with transaction
    * @returns encoded data for execute function
    */
-  async encodeExecute(to: Hex, value: bigint, data: Hex): Promise<Hex> {
+  async encodeExecute(transaction: Transaction): Promise<Hex> {
     // return accountContract.interface.encodeFunctionData("execute_ncC", [to, value, data]) as Hex;
-    const mode = concatHex([
-      EXECTYPE_DEFAULT,
-      CALLTYPE_SINGLE,
-      UNUSED,
-      MODE_DEFAULT,
-      MODE_PAYLOAD
-    ])
+    const mode = EXECUTE_SINGLE
 
     const executionCalldata = encodePacked(
       ["address", "uint256", "bytes"],
-      [to, value, data]
+      [transaction.to, BigInt(transaction.value ?? 0n), transaction.data ?? "0x"]
     )
     // Encode a simple call
     return encodeFunctionData({
@@ -873,33 +869,22 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @param data represent array of data associated with each transaction
    * @returns encoded data for executeBatch function
    */
-  async encodeExecuteBatch(
-    to: Array<Hex>,
-    value: Array<bigint>,
-    data: Array<Hex>
-  ): Promise<Hex> {
-    return encodeFunctionData({
-      abi: BiconomyAccountAbi,
-      functionName: "executeBatch_y6U",
-      args: [to, value, data]
-    })
-  }
+  async encodeExecuteBatch(transactions: Transaction[]): Promise<Hex> {
+    // return accountContract.interface.encodeFunctionData("execute_ncC", [to, value, data]) as Hex;
+    const mode = EXECUTE_BATCH
 
-  override async encodeBatchExecute(
-    txs: BatchUserOperationCallData
-  ): Promise<Hex> {
-    const [targets, datas, value] = txs.reduce(
-      (accum, curr) => {
-        accum[0].push(curr.target)
-        accum[1].push(curr.data)
-        accum[2].push(curr.value || BigInt(0))
-
-        return accum
-      },
-      [[], [], []] as [Hex[], Hex[], bigint[]]
+    const executionCalldata = encodePacked(
+      [Executions],
+      [transactions]
     )
-
-    return this.encodeExecuteBatch(targets, value, datas)
+    // Encode a simple call
+    return encodeFunctionData({
+      abi: parseAbi([
+        "function execute(bytes32 mode, bytes calldata executionCalldata) external"
+      ]),
+      functionName: "execute",
+      args: [mode, executionCalldata]
+    })
   }
 
   // dummy signature depends on the validation module supplied.
@@ -1367,7 +1352,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       const address = await this.getAddress()
       return await this.entryPoint.read.getNonce([
         address,
-        BigInt(zeroPadBytes(this.activeValidationModule.getAddress(), 24))
+        BigInt(zeroPadBytes(this.activeValidationModule.getAddress(), 24)) // TODO: Use viem instead of ethers
       ])
     } catch (e) {
       return BigInt(0)
@@ -1584,21 +1569,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     transactions: Transaction[],
     buildUseropDto?: BuildUserOpOptions
   ): Promise<Partial<UserOperationStruct>> {
-    const to = transactions.map((element: Transaction) => element.to as Hex)
-    const data = transactions.map(
-      (element: Transaction) => (element.data as Hex) ?? "0x"
-    )
-    const value = transactions.map(
-      (element: Transaction) => (element.value as bigint) ?? BigInt(0)
-    )
-
-    const initCodeFetchPromise = this.getInitCode()
     const dummySignatureFetchPromise = this.getDummySignatures(
       buildUseropDto?.params
     )
-    const [nonceFromFetch, initCode, signature] = await Promise.all([
+    const [nonceFromFetch, signature] = await Promise.all([
       this.getBuildUserOpNonce(buildUseropDto?.nonceOptions),
-      initCodeFetchPromise,
       dummySignatureFetchPromise
     ])
 
@@ -1608,10 +1583,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     let callData: Hex = "0x"
     if (!buildUseropDto?.useEmptyDeployCallData) {
       if (transactions.length > 1 || buildUseropDto?.forceEncodeForBatch) {
-        callData = await this.encodeExecuteBatch(to, value, data)
+        callData = await this.encodeExecuteBatch(transactions)
       } else {
         // transactions.length must be 1
-        callData = await this.encodeExecute(to[0], value[0], data[0])
+        callData = await this.encodeExecute(transactions[0])
       }
     }
 
@@ -1625,7 +1600,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         : this.factoryAddress,
       callData
     }
-    console.log(userOp, "userOp")
 
     // for this Smart Account current validation module dummy signature will be used to estimate gas
     userOp.signature = signature
@@ -1828,11 +1802,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   ): Promise<Partial<UserOperationStruct>> {
     this.validateUserOpAndPaymasterRequest(userOp, tokenPaymasterRequest)
     try {
-      let batchTo: Array<Hex> = []
-      let batchValue: Array<bigint> = []
-      let batchData: Array<Hex> = []
-
-      let newCallData = userOp.callData
       Logger.warn(
         "Received information about fee token address and quote ",
         tokenPaymasterRequest.toString()
@@ -1860,7 +1829,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
         const decodedSmartAccountData = decodeFunctionData({
           abi: BiconomyAccountAbi,
-          data: userOp.callData as Hex
+          data: userOp.callData as Hex ?? "0x"
         })
 
         if (!decodedSmartAccountData) {
@@ -1869,58 +1838,34 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
           )
         }
 
-        const smartAccountExecFunctionName =
-          decodedSmartAccountData.functionName
+        const smartAccountExecFunctionName = decodedSmartAccountData.functionName
 
         Logger.warn(
           `Originally an ${smartAccountExecFunctionName} method call for Biconomy Account V2`
         )
+
+        let initialTransaction: Transaction = {to: "0x", data: "0x", value: 0n};
         if (
-          smartAccountExecFunctionName === "execute" ||
-          smartAccountExecFunctionName === "execute_ncC"
+          smartAccountExecFunctionName === "execute"
         ) {
-          const methodArgsSmartWalletExecuteCall = decodedSmartAccountData.args
-          const toOriginal = methodArgsSmartWalletExecuteCall[0]
-          const valueOriginal = methodArgsSmartWalletExecuteCall[1]
-          const dataOriginal = methodArgsSmartWalletExecuteCall[2]
+          const methodArgsSmartWalletExecuteCall = decodedSmartAccountData.args ?? []
+          const toOriginal = methodArgsSmartWalletExecuteCall[0] as Hex ?? "0x"
+          const valueOriginal = methodArgsSmartWalletExecuteCall[1] as bigint ?? 0n
+          const dataOriginal = methodArgsSmartWalletExecuteCall[2] as Hex ?? "0x"
 
-          batchTo.push(toOriginal)
-          batchValue.push(valueOriginal)
-          batchData.push(dataOriginal)
-        } else if (
-          smartAccountExecFunctionName === "executeBatch" ||
-          smartAccountExecFunctionName === "executeBatch_y6U"
-        ) {
-          const methodArgsSmartWalletExecuteCall = decodedSmartAccountData.args
-          batchTo = [...methodArgsSmartWalletExecuteCall[0]]
-          batchValue = [...methodArgsSmartWalletExecuteCall[1]]
-          batchData = [...methodArgsSmartWalletExecuteCall[2]]
-        }
-
-        if (
-          approvalRequest.to &&
-          approvalRequest.data &&
-          approvalRequest.value
-        ) {
-          batchTo = [approvalRequest.to as Hex, ...batchTo]
-          batchValue = [
-            BigInt(Number(approvalRequest.value.toString())),
-            ...batchValue
-          ]
-          batchData = [approvalRequest.data as Hex, ...batchData]
-
-          newCallData = await this.encodeExecuteBatch(
-            batchTo,
-            batchValue,
-            batchData
+          initialTransaction.to = toOriginal;
+          initialTransaction.value = valueOriginal;
+          initialTransaction.data = dataOriginal;
+        } else {
+          throw new Error(
+            `Unsupported method call: ${smartAccountExecFunctionName}`
           )
         }
+        
         const finalUserOp: Partial<UserOperationStruct> = {
           ...userOp,
-          callData: newCallData
+          callData: await this.encodeExecuteBatch([approvalRequest, initialTransaction]),
         }
-
-        // Optionally Requesting to update gas limits again (especially callGasLimit needs to be re-calculated)
 
         return finalUserOp
       }

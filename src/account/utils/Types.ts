@@ -345,12 +345,12 @@ export type SmartAccountInfo = {
 export type ValueOrData = RequireAtLeastOne<
   {
     value: BigNumberish | string
-    data: string
+    data: Hex
   },
   "value" | "data"
 >
 export type Transaction = {
-  to: string
+  to: Hex
 } & ValueOrData
 
 export type SupportedToken = Omit<

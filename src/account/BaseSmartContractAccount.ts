@@ -90,11 +90,7 @@ export abstract class BaseSmartContractAccount<
    * @param data -- equivalent to `data` in a normal transaction
    * @returns abi encoded function data for a call to your contract's `execute` method
    */
-  abstract encodeExecute(
-    target: string,
-    value: bigint,
-    data: string
-  ): Promise<Hash>
+  abstract encodeExecute(Transaction): Promise<Hash>
 
   /**
    * this should return an ERC-191 compliant message and is used to sign UO Hashes
