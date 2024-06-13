@@ -1,7 +1,5 @@
 import type { Hex } from "viem"
 import type {
-  BiconomyFactories,
-  BiconomyFactoriesByVersion,
   BiconomyImplementations,
   BiconomyImplementationsByVersion,
   EntryPointAddresses,
@@ -18,7 +16,8 @@ export const DEFAULT_ENTRYPOINT_ADDRESS =
   "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
 export const ENTRYPOINT_ADDRESSES: EntryPointAddresses = {
   "0x27a4db290b89ae3373ce4313cbeae72112ae7da9": "V0_0_5",
-  "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789": "V0_0_6"
+  "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789": "V0_0_6",
+  "0x0000000071727De22E5E9d8BAf0edAc6f37da032": "V0_0_7"
 }
 
 // will always be latest factory address
@@ -26,10 +25,6 @@ export const DEFAULT_BICONOMY_FACTORY_ADDRESS =
   "0xf7cF950DA05431eC1F48fD682fa993Bbaeed9a9d"
 export const DEFAULT_FALLBACK_HANDLER_ADDRESS =
   "0x0bBa6d96BD616BedC6BFaa341742FD43c60b83C1"
-export const BICONOMY_FACTORY_ADDRESSES: BiconomyFactories = {
-  "0x000000f9ee1842bb72f6bbdd75e6d3d4e3e9594c": "V1_0_0",
-  "0x000000a56Aaca3e9a4C479ea6b6CD0DbcB6634F5": "V2_0_0"
-}
 
 export const BICONOMY_TOKEN_PAYMASTER =
   "0x00000f7365cA6C59A2C93719ad53d567ed49c14C"
@@ -46,11 +41,6 @@ export const ENTRYPOINT_ADDRESSES_BY_VERSION: EntryPointAddressesByVersion = {
   V0_0_5: "0x27a4db290b89ae3373ce4313cbeae72112ae7da9",
   V0_0_6: "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789"
 }
-
-export const BICONOMY_FACTORY_ADDRESSES_BY_VERSION: BiconomyFactoriesByVersion =
-  Object.fromEntries(
-    Object.entries(BICONOMY_FACTORY_ADDRESSES).map(([k, v]) => [v, k])
-  )
 
 export const BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION: BiconomyImplementationsByVersion =
   Object.fromEntries(
@@ -113,9 +103,6 @@ export const K1_VALIDATOR_FACTORY = "0xf7cF950DA05431eC1F48fD682fa993Bbaeed9a9d"
 export const BICONOMY_META_FACTORY =
   "0x4F9218eD5329D586237B8cAFe3d8778b94874186"
 
-// export const ENTRYPOINT_ADDRESS_V07 =
-//   "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"
-
 export const ENTRYPOINT_ADDRESS_V07 =
   "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
 
@@ -130,14 +117,3 @@ export const UNUSED = "0x00000000" // 4 bytes
 export const MODE_PAYLOAD = "0x00000000000000000000000000000000000000000000" // 22 bytes
 
 export const GENERIC_FALLBACK_SELECTOR = "0xcb5baf0f"
-// address sender;
-// uint256 nonce;
-// bytes initCode;
-// bytes callData;
-// uint256 callGasLimit;
-// uint256 verificationGasLimit;
-// uint256 preVerificationGas;
-// uint256 maxFeePerGas;
-// uint256 maxPriorityFeePerGas;
-// bytes paymasterAndData;
-// bytes signature;

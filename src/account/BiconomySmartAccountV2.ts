@@ -1,5 +1,4 @@
 import { zeroPadBytes } from "ethers"
-import { getUserOperationHash } from "permissionless"
 import {
   http,
   type Address,
@@ -28,8 +27,7 @@ import {
 import {
   Bundler,
   Executions,
-  type GetUserOperationGasPriceReturnType,
-  extractChainIdFromBundlerUrl
+  type GetUserOperationGasPriceReturnType
 } from "../bundler/index.js"
 import type { IBundler } from "../bundler/interfaces/IBundler.js"
 import { EXECUTE_BATCH, EXECUTE_SINGLE } from "../bundler/utils/Constants.js"
@@ -40,7 +38,6 @@ import {
   createECDSAOwnershipValidationModule
 } from "../modules"
 import {
-  BiconomyPaymaster,
   type FeeQuotesOrDataDto,
   type FeeQuotesOrDataResponse,
   type IHybridPaymaster,
@@ -50,7 +47,6 @@ import {
   type SponsorUserOperationDto
 } from "../paymaster"
 import {
-  type BigNumberish,
   Logger,
   ModuleType,
   type SmartAccountSigner,
@@ -61,29 +57,20 @@ import {
 } from "./"
 import { BaseSmartContractAccount } from "./BaseSmartContractAccount.js"
 import { AccountResolverAbi } from "./abi/AccountResolver.js"
-import { BiconomyFactoryAbi } from "./abi/Factory.js"
 import { BiconomyAccountAbi } from "./abi/SmartAccount.js"
 import {
-  ADDRESS_RESOLVER_ADDRESS,
   ADDRESS_ZERO,
   BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION,
-  CALLTYPE_SINGLE,
   DEFAULT_BICONOMY_FACTORY_ADDRESS,
   DEFAULT_ENTRYPOINT_ADDRESS,
   DEFAULT_FALLBACK_HANDLER_ADDRESS,
   ERC20_ABI,
   ERROR_MESSAGES,
-  EXECTYPE_DEFAULT,
   MAGIC_BYTES,
-  MODE_DEFAULT,
-  MODE_PAYLOAD,
-  NATIVE_TOKEN_ALIAS,
-  PROXY_CREATION_CODE,
-  UNUSED
+  NATIVE_TOKEN_ALIAS
 } from "./utils/Constants.js"
 import type {
   BalancePayload,
-  BatchUserOperationCallData,
   BiconomySmartAccountV2Config,
   BiconomySmartAccountV2ConfigConstructorProps,
   BiconomyTokenPaymasterRequest,
@@ -91,7 +78,6 @@ import type {
   CounterFactualAddressParam,
   NonceOptions,
   PaymasterUserOperationDto,
-  QueryParamsForAddressResolver,
   SimulationType,
   SupportedToken,
   Transaction,
@@ -100,8 +86,6 @@ import type {
 } from "./utils/Types.js"
 import {
   addressEquals,
-  compareChainIds,
-  convertToFactor,
   isNullOrUndefined,
   isValidRpcUrl,
   packUserOp
@@ -284,18 +268,18 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       }
       resolvedSmartAccountSigner = signerResult.signer
     }
-    if (!chainId) {
-      // Get it from bundler
-      // if (biconomySmartAccountConfig.bundlerUrl) {
-      //   chainId = extractChainIdFromBundlerUrl(
-      //     biconomySmartAccountConfig.bundlerUrl
-      //   )
-      // } else if (biconomySmartAccountConfig.bundler) {
-      //   const bundlerUrlFromBundler =
-      //     biconomySmartAccountConfig.bundler.getBundlerUrl()
-      //   chainId = extractChainIdFromBundlerUrl(bundlerUrlFromBundler)
-      // }
-    }
+    // if (!chainId) {
+    // Get it from bundler
+    // if (biconomySmartAccountConfig.bundlerUrl) {
+    //   chainId = extractChainIdFromBundlerUrl(
+    //     biconomySmartAccountConfig.bundlerUrl
+    //   )
+    // } else if (biconomySmartAccountConfig.bundler) {
+    //   const bundlerUrlFromBundler =
+    //     biconomySmartAccountConfig.bundler.getBundlerUrl()
+    //   chainId = extractChainIdFromBundlerUrl(bundlerUrlFromBundler)
+    // }
+    // }
     if (!chainId) {
       throw new Error("chainId required")
     }
@@ -680,23 +664,23 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       this.scanForUpgradedAccountsFromV1
 
     // if it's intended to detect V1 upgraded accounts
-    if (scanForUpgradedAccountsFromV1) {
-      const eoaSigner = await validationModule.getSigner()
-      const eoaAddress = (await eoaSigner.getAddress()) as Hex
-      const moduleAddress = validationModule.getAddress() as Hex
-      const moduleSetupData = (await validationModule.getInitData()) as Hex
-      const queryParams = {
-        eoaAddress,
-        index,
-        moduleAddress,
-        moduleSetupData,
-        maxIndexForScan
-      }
-      const accountAddress = await this.getV1AccountsUpgradedToV2(queryParams)
-      if (accountAddress !== ADDRESS_ZERO) {
-        return accountAddress
-      }
-    }
+    // if (scanForUpgradedAccountsFromV1) {
+    //   const eoaSigner = await validationModule.getSigner()
+    //   const eoaAddress = (await eoaSigner.getAddress()) as Hex
+    //   const moduleAddress = validationModule.getAddress() as Hex
+    //   const moduleSetupData = (await validationModule.getInitData()) as Hex
+    //   const queryParams = {
+    //     eoaAddress,
+    //     index,
+    //     moduleAddress,
+    //     moduleSetupData,
+    //     maxIndexForScan
+    //   }
+    //   const accountAddress = await this.getV1AccountsUpgradedToV2(queryParams)
+    //   if (accountAddress !== ADDRESS_ZERO) {
+    //     return accountAddress
+    //   }
+    // }
 
     const counterFactualAddressV2 = await this.getCounterFactualAddressV2({
       validationModule,
@@ -775,47 +759,47 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return this
   }
 
-  async getV1AccountsUpgradedToV2(
-    params: QueryParamsForAddressResolver
-  ): Promise<Hex> {
-    const maxIndexForScan = params.maxIndexForScan ?? this.maxIndexForScan
+  // async getV1AccountsUpgradedToV2(
+  //   params: QueryParamsForAddressResolver
+  // ): Promise<Hex> {
+  //   const maxIndexForScan = params.maxIndexForScan ?? this.maxIndexForScan
 
-    const addressResolver = getContract({
-      address: ADDRESS_RESOLVER_ADDRESS,
-      abi: AccountResolverAbi,
-      client: {
-        public: this.provider as PublicClient
-      }
-    })
-    // Note: depending on moduleAddress and moduleSetupData passed call this. otherwise could call resolveAddresses()
+  //   const addressResolver = getContract({
+  //     address: ADDRESS_RESOLVER_ADDRESS,
+  //     abi: AccountResolverAbi,
+  //     client: {
+  //       public: this.provider as PublicClient
+  //     }
+  //   })
+  //   // Note: depending on moduleAddress and moduleSetupData passed call this. otherwise could call resolveAddresses()
 
-    if (params.moduleAddress && params.moduleSetupData) {
-      const result = await addressResolver.read.resolveAddressesFlexibleForV2([
-        params.eoaAddress,
-        Number.parseInt(maxIndexForScan.toString()), // TODO: SHOULD BE A BIGINT BUT REQUIRED TO BE A NUMBER FOR THE CONTRACT
-        params.moduleAddress,
-        params.moduleSetupData
-      ])
+  //   if (params.moduleAddress && params.moduleSetupData) {
+  //     const result = await addressResolver.read.resolveAddressesFlexibleForV2([
+  //       params.eoaAddress,
+  //       Number.parseInt(maxIndexForScan.toString()), // TODO: SHOULD BE A BIGINT BUT REQUIRED TO BE A NUMBER FOR THE CONTRACT
+  //       params.moduleAddress,
+  //       params.moduleSetupData
+  //     ])
 
-      const desiredV1Account = result.find(
-        (smartAccountInfo: {
-          factoryVersion: string
-          currentVersion: string
-          deploymentIndex: { toString: () => string }
-        }) =>
-          smartAccountInfo.factoryVersion === "v1" &&
-          smartAccountInfo.currentVersion === "2.0.0" &&
-          smartAccountInfo.deploymentIndex === params.index
-      )
+  //     const desiredV1Account = result.find(
+  //       (smartAccountInfo: {
+  //         factoryVersion: string
+  //         currentVersion: string
+  //         deploymentIndex: { toString: () => string }
+  //       }) =>
+  //         smartAccountInfo.factoryVersion === "v1" &&
+  //         smartAccountInfo.currentVersion === "2.0.0" &&
+  //         smartAccountInfo.deploymentIndex === params.index
+  //     )
 
-      if (desiredV1Account) {
-        const smartAccountAddress = desiredV1Account.accountAddress
-        return smartAccountAddress
-      }
-      return ADDRESS_ZERO
-    }
-    return ADDRESS_ZERO
-  }
+  //     if (desiredV1Account) {
+  //       const smartAccountAddress = desiredV1Account.accountAddress
+  //       return smartAccountAddress
+  //     }
+  //     return ADDRESS_ZERO
+  //   }
+  //   return ADDRESS_ZERO
+  // }
 
   /**
    * Return the value to put into the "initCode" field, if the account is not yet deployed.
@@ -851,9 +835,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const executionCalldata = encodePacked(
       ["address", "uint256", "bytes"],
       [
-        transaction.to,
+        transaction.to as Hex,
         BigInt(transaction.value ?? 0n),
-        transaction.data ?? "0x"
+        (transaction.data as Hex) ?? ("0x" as Hex)
       ]
     )
     // Encode a simple call
@@ -925,19 +909,19 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     this.isActiveValidationModuleDefined()
     // TODO REMOVE COMMENT AND CHECK FOR PIMLICO USER OP FIELDS
-    // const requiredFields: UserOperationKey[] = [
-    //   "sender",
-    //   "nonce",
-    //   "initCode",
-    //   "callData",
-    //   "callGasLimit",
-    //   "verificationGasLimit",
-    //   "preVerificationGas",
-    //   "maxFeePerGas",
-    //   "maxPriorityFeePerGas",
-    //   "paymasterAndData"
-    // ]
-    // this.validateUserOp(userOp, requiredFields)
+    const requiredFields: UserOperationKey[] = [
+      "sender",
+      "nonce",
+      "factory",
+      "factoryData",
+      "callGasLimit",
+      "verificationGasLimit",
+      "preVerificationGas",
+      "maxFeePerGas",
+      "maxPriorityFeePerGas",
+      "paymasterAndData"
+    ]
+    this.validateUserOp(userOp, requiredFields)
     const userOpHash = await this.getUserOpHash(userOp)
 
     const moduleSig = (await this.activeValidationModule.signUserOpHash(
@@ -2108,13 +2092,21 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return tx
   }
 
-  async isModuleEnabled(moduleAddress: Hex): Promise<any> {
+  async isModuleInstalled(moduleAddress: Hex): Promise<any> {
     const accountContract = await this._getAccountContract()
     return await accountContract.read.isModuleInstalled([
       ModuleType.Validation,
       moduleAddress,
       toHex("0x")
     ])
+  }
+
+  async installModule(moduleAddress: Hex): Promise<any> {
+    return true
+  }
+
+  async uninstallModule(moduleAddress: Hex): Promise<any> {
+    return true
   }
 
   // Review

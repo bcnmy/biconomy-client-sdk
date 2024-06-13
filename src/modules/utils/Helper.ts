@@ -1,27 +1,14 @@
 import {
   type Address,
-  type ByteArray,
   type Chain,
   type Hex,
   encodeAbiParameters,
-  isAddress,
   keccak256,
   parseAbiParameters
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import {
-  ERROR_MESSAGES,
-  type UserOperationStruct,
-  getChain
-} from "../../account"
-import type {
-  ChainInfo,
-  HardcodedReference,
-  Session,
-  SignerData
-} from "../../index.js"
-import type { ISessionStorage } from "../interfaces/ISessionStorage"
-import { getDefaultStorageClient } from "../session-storage/utils"
+import { type UserOperationStruct, getChain } from "../../account"
+import type { ChainInfo, SignerData } from "../../index.js"
 
 /**
  * Rule
@@ -33,42 +20,42 @@ import { getDefaultStorageClient } from "../session-storage/utils"
  * So, when dApp is creating a _sessionKeyData to enable a session, it should convert every shorter static arg to a 32bytes word to match how it will be actually ABI encoded in the userOp.callData.
  * For the dynamic args, like bytes, every 32-bytes word of the calldata such as offset of the bytes arg, length of the bytes arg, and n-th 32-bytes word of the bytes arg can be controlled by a dedicated Rule.
  */
-export interface Rule {
-  /**
-   *
-   * offset
-   *
-   * https://docs.biconomy.io/Modules/abiSessionValidationModule#rules
-   *
-   * The offset in the ABI SVM contract helps locate the relevant data within the function call data, it serves as a reference point from which to start reading or extracting specific information required for validation. When processing function call data, particularly in low-level languages like Solidity assembly, it's necessary to locate where specific parameters or arguments are stored. The offset is used to calculate the starting position within the calldata where the desired data resides. Suppose we have a function call with multiple arguments passed as calldata. Each argument occupies a certain number of bytes, and the offset helps determine where each argument begins within the calldata.
-   * Using the offset to Extract Data: In the contract, the offset is used to calculate the position within the calldata where specific parameters or arguments are located. Since every arg is a 32-bytes word, offsets are always multiplier of 32 (or of 0x20 in hex).
-   * Let's see how the offset is applied to extract the to and value arguments of a transfer(address to, uint256 value) method:
-   * - Extracting to Argument: The to argument is the first parameter of the transfer function, representing the recipient address. Every calldata starts with the 4-bytes method selector. However, the ABI SVM is adding the selector length itself, so for the first argument the offset will always be 0 (0x00);
-   * - Extracting value Argument: The value argument is the second parameter of the transfer function, representing the amount of tokens to be transferred. To extract this argument, the offset for the value parameter would be calculated based on its position in the function calldata. Despite to is a 20-bytes address, in the solidity abi encoding it is always appended with zeroes to a 32-bytes word. So the offset for the second 32-bytes argument (which isthe value in our case) will be 32 (or 0x20 in hex).
-   *
-   * If you need to deal with dynamic-length arguments, such as bytes, please refer to this document https://docs.soliditylang.org/en/v0.8.24/abi-spec.html#function-selector-and-argument-encoding to learn more about how dynamic arguments are represented in the calldata and which offsets should be used to access them.
-   */
-  offset: number
-  /**
-   * condition
-   *
-   * 0 - Equal
-   * 1 - Less than or equal
-   * 2 - Less than
-   * 3 - Greater than or equal
-   * 4 - Greater than
-   * 5 - Not equal
-   */
-  condition: number
-  /** The value to compare against */
-  referenceValue:
-    | string
-    | number
-    | bigint
-    | boolean
-    | ByteArray
-    | HardcodedReference
-}
+// export interface Rule {
+//   /**
+//    *
+//    * offset
+//    *
+//    * https://docs.biconomy.io/Modules/abiSessionValidationModule#rules
+//    *
+//    * The offset in the ABI SVM contract helps locate the relevant data within the function call data, it serves as a reference point from which to start reading or extracting specific information required for validation. When processing function call data, particularly in low-level languages like Solidity assembly, it's necessary to locate where specific parameters or arguments are stored. The offset is used to calculate the starting position within the calldata where the desired data resides. Suppose we have a function call with multiple arguments passed as calldata. Each argument occupies a certain number of bytes, and the offset helps determine where each argument begins within the calldata.
+//    * Using the offset to Extract Data: In the contract, the offset is used to calculate the position within the calldata where specific parameters or arguments are located. Since every arg is a 32-bytes word, offsets are always multiplier of 32 (or of 0x20 in hex).
+//    * Let's see how the offset is applied to extract the to and value arguments of a transfer(address to, uint256 value) method:
+//    * - Extracting to Argument: The to argument is the first parameter of the transfer function, representing the recipient address. Every calldata starts with the 4-bytes method selector. However, the ABI SVM is adding the selector length itself, so for the first argument the offset will always be 0 (0x00);
+//    * - Extracting value Argument: The value argument is the second parameter of the transfer function, representing the amount of tokens to be transferred. To extract this argument, the offset for the value parameter would be calculated based on its position in the function calldata. Despite to is a 20-bytes address, in the solidity abi encoding it is always appended with zeroes to a 32-bytes word. So the offset for the second 32-bytes argument (which isthe value in our case) will be 32 (or 0x20 in hex).
+//    *
+//    * If you need to deal with dynamic-length arguments, such as bytes, please refer to this document https://docs.soliditylang.org/en/v0.8.24/abi-spec.html#function-selector-and-argument-encoding to learn more about how dynamic arguments are represented in the calldata and which offsets should be used to access them.
+//    */
+//   offset: number
+//   /**
+//    * condition
+//    *
+//    * 0 - Equal
+//    * 1 - Less than or equal
+//    * 2 - Less than
+//    * 3 - Greater than or equal
+//    * 4 - Greater than
+//    * 5 - Not equal
+//    */
+//   condition: number
+//   /** The value to compare against */
+//   referenceValue:
+//     | string
+//     | number
+//     | bigint
+//     | boolean
+//     | ByteArray
+//     | HardcodedReference
+// }
 
 /**
  * @deprecated
@@ -183,10 +170,10 @@ export const parseChain = (chainInfo: ChainInfo): Chain => {
  * When a smart account address is provided, the default session storage client is used to reconstruct the session object using **all** of the sessionIds found in the storage client
  *
  */
-export type SessionSearchParam = Session | ISessionStorage | Address
-export const didProvideFullSession = (
-  searchParam: SessionSearchParam
-): boolean => !!(searchParam as Session)?.sessionIDInfo?.length
+// export type SessionSearchParam = Session | ISessionStorage | Address
+// export const didProvideFullSession = (
+//   searchParam: SessionSearchParam
+// ): boolean => !!(searchParam as Session)?.sessionIDInfo?.length
 /**
  *
  * reconstructSession - Reconstructs a session object from the provided arguments
@@ -199,39 +186,39 @@ export const didProvideFullSession = (
  * @returns A session object
  * @error If the provided arguments do not match any of the above cases
  */
-export const resumeSession = async (
-  searchParam: SessionSearchParam
-): Promise<Session> => {
-  const providedFullSession = didProvideFullSession(searchParam)
-  const providedStorageClient = !!(searchParam as ISessionStorage)
-    .smartAccountAddress?.length
-  const providedSmartAccountAddress = isAddress(searchParam as Address)
+// export const resumeSession = async (
+//   searchParam: SessionSearchParam
+// ): Promise<Session> => {
+//   const providedFullSession = didProvideFullSession(searchParam)
+//   const providedStorageClient = !!(searchParam as ISessionStorage)
+//     .smartAccountAddress?.length
+//   const providedSmartAccountAddress = isAddress(searchParam as Address)
 
-  if (providedFullSession) {
-    const session = searchParam as Session
-    return session
-  }
-  if (providedStorageClient) {
-    const sessionStorageClient = searchParam as ISessionStorage
-    const leafArray = await sessionStorageClient.getAllSessionData()
-    const sessionIDInfo = leafArray.map(({ sessionID }) => sessionID as string)
-    const session: Session = {
-      sessionIDInfo,
-      sessionStorageClient
-    }
-    return session
-  }
-  if (providedSmartAccountAddress) {
-    const smartAccountAddress = searchParam as Address
-    // Use the default session storage client
-    const sessionStorageClient = getDefaultStorageClient(smartAccountAddress)
-    const leafArray = await sessionStorageClient.getAllSessionData()
-    const sessionIDInfo = leafArray.map(({ sessionID }) => sessionID as string)
-    const session: Session = {
-      sessionIDInfo,
-      sessionStorageClient
-    }
-    return session
-  }
-  throw new Error(ERROR_MESSAGES.UNKNOW_SESSION_ARGUMENTS)
-}
+//   if (providedFullSession) {
+//     const session = searchParam as Session
+//     return session
+//   }
+//   if (providedStorageClient) {
+//     const sessionStorageClient = searchParam as ISessionStorage
+//     const leafArray = await sessionStorageClient.getAllSessionData()
+//     const sessionIDInfo = leafArray.map(({ sessionID }) => sessionID as string)
+//     const session: Session = {
+//       sessionIDInfo,
+//       sessionStorageClient
+//     }
+//     return session
+//   }
+//   if (providedSmartAccountAddress) {
+//     const smartAccountAddress = searchParam as Address
+//     // Use the default session storage client
+//     const sessionStorageClient = getDefaultStorageClient(smartAccountAddress)
+//     const leafArray = await sessionStorageClient.getAllSessionData()
+//     const sessionIDInfo = leafArray.map(({ sessionID }) => sessionID as string)
+//     const session: Session = {
+//       sessionIDInfo,
+//       sessionStorageClient
+//     }
+//     return session
+//   }
+//   throw new Error(ERROR_MESSAGES.UNKNOW_SESSION_ARGUMENTS)
+// }

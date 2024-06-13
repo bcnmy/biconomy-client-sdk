@@ -5,12 +5,13 @@ import {
   parseAbi,
   toBytes
 } from "viem"
-import { type SmartAccountSigner, convertSigner } from "../account"
-import { BaseValidationModule } from "./BaseValidationModule.js"
 import {
-  DEFAULT_ECDSA_OWNERSHIP_MODULE,
-  ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION
-} from "./utils/Constants.js"
+  K1_VALIDATOR,
+  type SmartAccountSigner,
+  convertSigner
+} from "../account/index.js"
+import { BaseValidationModule } from "./BaseValidationModule.js"
+import { ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION } from "./utils/Constants.js"
 import type {
   ECDSAOwnershipValidationModuleConfig,
   ECDSAOwnershipValidationModuleConfigConstructorProps,
@@ -18,7 +19,7 @@ import type {
 } from "./utils/Types.js"
 
 // Could be renamed with suffix API
-export class ECDSAOwnershipValidationModule extends BaseValidationModule {
+export class K1ValidatorModule extends BaseValidationModule {
   signer: SmartAccountSigner
 
   moduleAddress!: Hex
@@ -34,14 +35,14 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
 
   public static async create(
     moduleConfig: ECDSAOwnershipValidationModuleConfig
-  ): Promise<ECDSAOwnershipValidationModule> {
+  ): Promise<K1ValidatorModule> {
     // Signer needs to be initialised here before defaultValidationModule is set
     const { signer } = await convertSigner(moduleConfig.signer, false)
     const configForConstructor: ECDSAOwnershipValidationModuleConfigConstructorProps =
       { ...moduleConfig, signer }
 
     // TODO: (Joe) stop doing things in a 'create' call after the instance has been created
-    const instance = new ECDSAOwnershipValidationModule(configForConstructor)
+    const instance = new K1ValidatorModule(configForConstructor)
     if (moduleConfig.moduleAddress) {
       instance.moduleAddress = moduleConfig.moduleAddress
     } else if (moduleConfig.version) {
@@ -54,7 +55,7 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
       instance.moduleAddress = moduleAddr
       instance.version = moduleConfig.version as ModuleVersion
     } else {
-      instance.moduleAddress = DEFAULT_ECDSA_OWNERSHIP_MODULE
+      instance.moduleAddress = K1_VALIDATOR
       // Note: in this case Version remains the default one
     }
     return instance

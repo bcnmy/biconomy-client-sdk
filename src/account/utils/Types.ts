@@ -15,10 +15,6 @@ import type {
 import type { IBundler } from "../../bundler"
 import type { BaseValidationModule, ModuleInfo } from "../../modules"
 import type {
-  ISessionStorage,
-  SessionLeafNode
-} from "../../modules/interfaces/ISessionStorage"
-import type {
   FeeQuotesOrDataDto,
   IPaymaster,
   PaymasterFeeQuote,
@@ -211,11 +207,6 @@ export type BuildUserOpOptions = {
   useEmptyDeployCallData?: boolean
 }
 
-export type SessionDataForAccount = {
-  sessionStorageClient: ISessionStorage
-  session: SessionLeafNode
-}
-
 export type NonceOptions = {
   /** nonceKey: The key to use for nonce */
   nonceKey?: bigint
@@ -345,12 +336,12 @@ export type SmartAccountInfo = {
 export type ValueOrData = RequireAtLeastOne<
   {
     value: BigNumberish | string
-    data: Hex
+    data: string
   },
   "value" | "data"
 >
 export type Transaction = {
-  to: Hex
+  to: string
 } & ValueOrData
 
 export type SupportedToken = Omit<

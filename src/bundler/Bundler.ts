@@ -15,9 +15,6 @@ import type {
   BundlerConfigWithChainId,
   BundlerEstimateUserOpGasResponse,
   Bundlerconfig,
-  EstimateUserOpGasResponse,
-  GasFeeValues,
-  GetGasFeeValuesResponse,
   GetUserOpByHashResponse,
   GetUserOperationGasPriceReturnType,
   GetUserOperationReceiptResponse,
@@ -128,8 +125,6 @@ export class Bundler implements IBundler {
         },
         "Bundler"
       )
-
-    console.log(response, "response")
 
     const userOpGasResponse = response
     for (const key in userOpGasResponse) {

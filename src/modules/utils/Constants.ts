@@ -3,9 +3,6 @@ import type { ModuleVersion } from "./Types.js"
 
 export const DEFAULT_MODULE_VERSION: ModuleVersion = "V1_0_0"
 
-export const DEFAULT_ECDSA_OWNERSHIP_MODULE: Hex =
-  "0x9C08e1CE188C29bAaeBc64A08cF2Ec44207749B6"
-
 export const ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION = {
   V1_0_0: "0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e"
 }

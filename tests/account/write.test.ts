@@ -21,7 +21,6 @@ import {
 } from "../../src/account"
 import { ECDSAModuleAbi } from "../../src/account/abi/ECDSAModule"
 import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"
-import { DEFAULT_ECDSA_OWNERSHIP_MODULE } from "../../src/modules"
 import { PaymasterMode } from "../../src/paymaster"
 import { testOnlyOnOptimism } from "../setupFiles"
 import {
@@ -58,7 +57,7 @@ describe("Account:Write", async () => {
   const [walletClient, walletClientTwo] = [
     createWalletClient({
       account,
-      chain: baseSepolia,
+      chain,
       transport: http()
     }),
     createWalletClient({
@@ -117,10 +116,6 @@ describe("Account:Write", async () => {
   // }, 60000)
 
   test("should mint an NFT and pay with ERC20 - with token", async () => {
-    console.log("CHAIN ID 2", baseSepolia.id)
-
-    const smartAccountAddress = await smartAccount.getAccountAddress()
-    console.log(smartAccountAddress, "smartAccountAddress")
     const encodedCall = encodeFunctionData({
       abi: parseAbi(["function safeMint(address _to)"]),
       functionName: "safeMint",
