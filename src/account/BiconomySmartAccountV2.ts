@@ -27,11 +27,12 @@ import {
 } from "viem"
 import {
   Bundler,
+  Executions,
   type GetUserOperationGasPriceReturnType,
-  extractChainIdFromBundlerUrl,
-  Executions
+  extractChainIdFromBundlerUrl
 } from "../bundler/index.js"
 import type { IBundler } from "../bundler/interfaces/IBundler.js"
+import { EXECUTE_BATCH, EXECUTE_SINGLE } from "../bundler/utils/Constants.js"
 import {
   BaseValidationModule,
   type ModuleInfo,
@@ -105,7 +106,6 @@ import {
   isValidRpcUrl,
   packUserOp
 } from "./utils/Utils.js"
-import { EXECUTE_BATCH, EXECUTE_SINGLE } from "../bundler/utils/Constants.js"
 
 type UserOperationKey = keyof UserOperationStruct
 
@@ -850,7 +850,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     const executionCalldata = encodePacked(
       ["address", "uint256", "bytes"],
-      [transaction.to, BigInt(transaction.value ?? 0n), transaction.data ?? "0x"]
+      [
+        transaction.to,
+        BigInt(transaction.value ?? 0n),
+        transaction.data ?? "0x"
+      ]
     )
     // Encode a simple call
     return encodeFunctionData({
@@ -873,10 +877,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     // return accountContract.interface.encodeFunctionData("execute_ncC", [to, value, data]) as Hex;
     const mode = EXECUTE_BATCH
 
-    const executionCalldata = encodePacked(
-      [Executions],
-      [transactions]
-    )
+    const executionCalldata = encodePacked([Executions], [transactions])
     // Encode a simple call
     return encodeFunctionData({
       abi: parseAbi([
@@ -1829,7 +1830,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
         const decodedSmartAccountData = decodeFunctionData({
           abi: BiconomyAccountAbi,
-          data: userOp.callData as Hex ?? "0x"
+          data: (userOp.callData as Hex) ?? "0x"
         })
 
         if (!decodedSmartAccountData) {
@@ -1838,33 +1839,43 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
           )
         }
 
-        const smartAccountExecFunctionName = decodedSmartAccountData.functionName
+        const smartAccountExecFunctionName =
+          decodedSmartAccountData.functionName
 
         Logger.warn(
           `Originally an ${smartAccountExecFunctionName} method call for Biconomy Account V2`
         )
 
-        let initialTransaction: Transaction = {to: "0x", data: "0x", value: 0n};
-        if (
-          smartAccountExecFunctionName === "execute"
-        ) {
-          const methodArgsSmartWalletExecuteCall = decodedSmartAccountData.args ?? []
-          const toOriginal = methodArgsSmartWalletExecuteCall[0] as Hex ?? "0x"
-          const valueOriginal = methodArgsSmartWalletExecuteCall[1] as bigint ?? 0n
-          const dataOriginal = methodArgsSmartWalletExecuteCall[2] as Hex ?? "0x"
+        const initialTransaction: Transaction = {
+          to: "0x",
+          data: "0x",
+          value: 0n
+        }
+        if (smartAccountExecFunctionName === "execute") {
+          const methodArgsSmartWalletExecuteCall =
+            decodedSmartAccountData.args ?? []
+          const toOriginal =
+            (methodArgsSmartWalletExecuteCall[0] as Hex) ?? "0x"
+          const valueOriginal =
+            (methodArgsSmartWalletExecuteCall[1] as bigint) ?? 0n
+          const dataOriginal =
+            (methodArgsSmartWalletExecuteCall[2] as Hex) ?? "0x"
 
-          initialTransaction.to = toOriginal;
-          initialTransaction.value = valueOriginal;
-          initialTransaction.data = dataOriginal;
+          initialTransaction.to = toOriginal
+          initialTransaction.value = valueOriginal
+          initialTransaction.data = dataOriginal
         } else {
           throw new Error(
             `Unsupported method call: ${smartAccountExecFunctionName}`
           )
         }
-        
+
         const finalUserOp: Partial<UserOperationStruct> = {
           ...userOp,
-          callData: await this.encodeExecuteBatch([approvalRequest, initialTransaction]),
+          callData: await this.encodeExecuteBatch([
+            approvalRequest,
+            initialTransaction
+          ])
         }
 
         return finalUserOp

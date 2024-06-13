@@ -1,5 +1,12 @@
 import { concat } from "viem"
-import { CALLTYPE_BATCH, CALLTYPE_SINGLE, EXECTYPE_DEFAULT, MODE_DEFAULT, MODE_PAYLOAD, UNUSED } from "./Types"
+import {
+  CALLTYPE_BATCH,
+  CALLTYPE_SINGLE,
+  EXECTYPE_DEFAULT,
+  MODE_DEFAULT,
+  MODE_PAYLOAD,
+  UNUSED
+} from "./Types"
 
 export const UserOpReceiptIntervals: { [key in number]?: number } = {
   [1]: 10000
@@ -39,7 +46,7 @@ export const EXECUTE_SINGLE = concat([
   EXECTYPE_DEFAULT,
   MODE_DEFAULT,
   UNUSED,
-  MODE_PAYLOAD,
+  MODE_PAYLOAD
 ])
 
 export const EXECUTE_BATCH = concat([
@@ -47,5 +54,5 @@ export const EXECUTE_BATCH = concat([
   EXECTYPE_DEFAULT,
   MODE_DEFAULT,
   UNUSED,
-  MODE_PAYLOAD,
-]);
+  MODE_PAYLOAD
+])
