@@ -1,4 +1,4 @@
-export const BiconomyAccountAbi = [
+export const NexusAccountAbi = [
   {
     inputs: [
       {

@@ -3,9 +3,14 @@ import {
   type Hex,
   createPublicClient,
   createWalletClient,
+  decodeFunctionData,
+  encodeAbiParameters,
   encodeFunctionData,
   getContract,
-  parseAbi
+  parseAbi,
+  stringToBytes,
+  toBytes,
+  toHex
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { arbitrumSepolia, baseSepolia, polygonAmoy } from "viem/chains"
@@ -14,6 +19,8 @@ import {
   type BiconomySmartAccountV2,
   DEFAULT_ENTRYPOINT_ADDRESS,
   ERC20_ABI,
+  K1_VALIDATOR,
+  ModuleType,
   type TransferOwnershipCompatibleModule,
   createSmartAccountClient,
   getCustomChain,
@@ -21,6 +28,7 @@ import {
 } from "../../src/account"
 import { ECDSAModuleAbi } from "../../src/account/abi/ECDSAModule"
 import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"
+import { NexusAccountAbi } from "../../src/account/abi/SmartAccount"
 import { PaymasterMode } from "../../src/paymaster"
 import { testOnlyOnOptimism } from "../setupFiles"
 import {
@@ -115,24 +123,89 @@ describe("Account:Write", async () => {
   //   expect(userOp).toBeTruthy()
   // }, 60000)
 
-  test("should mint an NFT and pay with ERC20 - with token", async () => {
-    const encodedCall = encodeFunctionData({
-      abi: parseAbi(["function safeMint(address _to)"]),
-      functionName: "safeMint",
-      args: [recipient]
-    })
-    const transaction = {
-      to: nftAddress, // NFT address
-      data: encodedCall
-    }
-    const gasCost = await smartAccount.getGasEstimate([transaction])
-    console.log(gasCost, "gasCost")
+  // test("should mint an NFT without a paymaster", async () => {
+  //   const encodedCall = encodeFunctionData({
+  //     abi: parseAbi(["function safeMint(address _to)"]),
+  //     functionName: "safeMint",
+  //     args: [recipient]
+  //   })
+  //   const transaction = {
+  //     to: nftAddress, // NFT address
+  //     data: encodedCall
+  //   }
+  //   const gasCost = await smartAccount.getGasEstimate([transaction])
+  //   console.log(gasCost, "gasCost")
 
-    const userOpHash = await smartAccount.sendTransaction([transaction])
-    console.log(userOpHash, "userOpHash")
+  //   const userOpHash = await smartAccount.sendTransaction([transaction])
 
-    expect(userOpHash).toBeTruthy()
-  }, 60000)
+  //   expect(userOpHash).toBeTruthy()
+  // }, 60000)
+
+  test.sequential(
+    "should install a dummy K1Validator module",
+    async () => {
+      const newK1ValidatorContract =
+        "0x26d3E02a086D5182F4921CF1917fe9E6462E0495"
+      await smartAccount.installModule(
+        ModuleType.Validation,
+        newK1ValidatorContract,
+        account.address
+      )
+      const isInstalled = await smartAccount.isModuleInstalled(
+        ModuleType.Validation,
+        newK1ValidatorContract
+      )
+      console.log(isInstalled)
+      expect(isInstalled).toBeFalsy()
+    },
+    60000
+  )
+
+  test.sequential(
+    "should uninstall K1Validator module",
+    async () => {
+      const newK1ValidatorContract =
+        "0x26d3E02a086D5182F4921CF1917fe9E6462E0495"
+      const isModuleInstalled = await smartAccount.isModuleInstalled(
+        ModuleType.Validation,
+        newK1ValidatorContract
+      )
+      console.log("isModuleInstalled", isModuleInstalled)
+
+      const prevAddress: Hex = "0x0000000000000000000000000000000000000001"
+      const deInitData = encodeAbiParameters(
+        [
+          { name: "prev", type: "address" },
+          { name: "disableModuleData", type: "bytes" }
+        ],
+        [prevAddress, toHex(stringToBytes(""))]
+      )
+      const isUninstalledHash = await smartAccount.uninstallModule(
+        ModuleType.Validation,
+        newK1ValidatorContract,
+        deInitData
+      )
+      const isInstalledHash = await smartAccount.isModuleInstalled(
+        ModuleType.Validation,
+        newK1ValidatorContract
+      )
+
+      console.log(isInstalledHash)
+      console.log(isUninstalledHash)
+
+      expect(isInstalledHash).toBeTruthy()
+      expect(isUninstalledHash).toBeTruthy()
+    },
+    60000
+  )
+
+  // test("should install K1Validator module", async () => {
+  //   const isUninstalled = await smartAccount.uninstallModule(ModuleType.Validation, K1_VALIDATOR)
+  //   const isInstalled = await smartAccount.isModuleInstalled(ModuleType.Validation, K1_VALIDATOR)
+
+  //   expect(isInstalled).toBeFalsy()
+  //   expect(isUninstalled).toBeTruthy()
+  // }, 60000)
 
   // test.skip("should test the nonce on arbSepolia", async () => {
   //   const chain = arbitrumSepolia

@@ -6,9 +6,11 @@ import {
   type Hash,
   type Hex,
   type PublicClient,
+  type WalletClient,
   concat,
   concatHex,
   createPublicClient,
+  createWalletClient,
   decodeFunctionData,
   encodeAbiParameters,
   encodeFunctionData,
@@ -21,9 +23,9 @@ import {
   pad,
   parseAbi,
   parseAbiParameters,
-  toBytes,
-  toHex
+  toBytes
 } from "viem"
+import { toAccount } from "viem/accounts"
 import {
   Bundler,
   Executions,
@@ -48,7 +50,7 @@ import {
 } from "../paymaster"
 import {
   Logger,
-  ModuleType,
+  type ModuleType,
   type SmartAccountSigner,
   type StateOverrideSet,
   type UserOperationStruct,
@@ -56,8 +58,7 @@ import {
   getChain
 } from "./"
 import { BaseSmartContractAccount } from "./BaseSmartContractAccount.js"
-import { AccountResolverAbi } from "./abi/AccountResolver.js"
-import { BiconomyAccountAbi } from "./abi/SmartAccount.js"
+import { NexusAccountAbi } from "./abi/SmartAccount.js"
 import {
   ADDRESS_ZERO,
   BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION,
@@ -109,8 +110,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   bundler?: IBundler
 
   private accountContract?: GetContractReturnType<
-    typeof BiconomyAccountAbi,
-    PublicClient
+    typeof NexusAccountAbi,
+    PublicClient | WalletClient
   >
 
   private defaultFallbackHandlerAddress: Hex
@@ -717,12 +718,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   async _getAccountContract(): Promise<
-    GetContractReturnType<typeof BiconomyAccountAbi, PublicClient>
+    GetContractReturnType<typeof NexusAccountAbi, PublicClient>
   > {
     if (this.accountContract == null) {
       this.accountContract = getContract({
         address: await this.getAddress(),
-        abi: BiconomyAccountAbi,
+        abi: NexusAccountAbi,
         client: this.provider as PublicClient
       })
     }
@@ -944,7 +945,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   ): Hex {
     const moduleAddressToUse =
       moduleAddress ?? (this.activeValidationModule.getAddress() as Hex)
-    console.log("moduleAddressToUse: ", moduleAddressToUse)
     return encodeAbiParameters(parseAbiParameters("bytes, address"), [
       moduleSignature,
       moduleAddressToUse
@@ -1215,8 +1215,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     delete userOp.signature
     const userOperation = await this.signUserOp(userOp, params)
 
-    console.log(userOp, "userOp 213")
-
     const bundlerResponse = await this.sendSignedUserOp(
       userOperation,
       params?.simulationType
@@ -1265,11 +1263,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   async getUserOpHash(userOp: Partial<UserOperationStruct>): Promise<Hex> {
     const packedUserOp = packUserOp(userOp, true)
-    console.log(
-      this.entryPoint.address,
-      BigInt(this.chainId),
-      "ARGUMENTS FOR USER OP HASH"
-    )
     const userOpHash = keccak256(packedUserOp as Hex)
     const enc = encodeAbiParameters(
       parseAbiParameters("bytes32, address, uint256"),
@@ -1295,7 +1288,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     // if neither user sent gas fee nor the bundler, estimate gas from provider
     if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas) {
-      console.log("Using provider to estimate gas")
       const feeData = await this.provider.estimateFeesPerGas()
       if (feeData.maxFeePerGas?.toString()) {
         finalUserOp.maxFeePerGas = feeData.maxFeePerGas
@@ -1669,7 +1661,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     //   return userOp
     // }
-
     // get gas fee values from bundler
     const gasFeeValues: GetUserOperationGasPriceReturnType | undefined =
       await this.bundler?.getGasFeeValues()
@@ -1813,7 +1804,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         }
 
         const decodedSmartAccountData = decodeFunctionData({
-          abi: BiconomyAccountAbi,
+          abi: NexusAccountAbi,
           data: (userOp.callData as Hex) ?? "0x"
         })
 
@@ -2023,7 +2014,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     signature: Hex
   ): Promise<Hex> {
     return encodeFunctionData({
-      abi: BiconomyAccountAbi,
+      abi: NexusAccountAbi,
       functionName: "isValidSignature",
       args: [messageHash, signature]
     })
@@ -2037,7 +2028,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   async getEnableModuleData(moduleAddress: Hex): Promise<Transaction> {
     const callData = encodeFunctionData({
-      abi: BiconomyAccountAbi,
+      abi: NexusAccountAbi,
       functionName: "enableModule",
       args: [moduleAddress]
     })
@@ -2054,7 +2045,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     moduleSetupData: Hex
   ): Promise<Transaction> {
     const callData = encodeFunctionData({
-      abi: BiconomyAccountAbi,
+      abi: NexusAccountAbi,
       functionName: "setupAndEnableModule",
       args: [moduleAddress, moduleSetupData]
     })
@@ -2080,7 +2071,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     moduleAddress: Hex
   ): Promise<Transaction> {
     const callData = encodeFunctionData({
-      abi: BiconomyAccountAbi,
+      abi: NexusAccountAbi,
       functionName: "disableModule",
       args: [prevModule, moduleAddress]
     })
@@ -2092,21 +2083,49 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return tx
   }
 
-  async isModuleInstalled(moduleAddress: Hex): Promise<any> {
+  async isModuleInstalled(
+    moduleType: ModuleType,
+    moduleAddress: Hex,
+    data?: Hex
+  ): Promise<boolean> {
     const accountContract = await this._getAccountContract()
     return await accountContract.read.isModuleInstalled([
-      ModuleType.Validation,
+      moduleType,
       moduleAddress,
-      toHex("0x")
+      data ?? "0x"
     ])
   }
 
-  async installModule(moduleAddress: Hex): Promise<any> {
-    return true
+  async installModule(
+    moduleType: ModuleType,
+    moduleAddress: Hex,
+    data?: Hex
+  ): Promise<Hash> {
+    const installModuleData = encodeFunctionData({
+      abi: NexusAccountAbi,
+      functionName: "installModule",
+      args: [moduleType, moduleAddress, data ?? "0x"]
+    })
+    return await this.sendTransaction({
+      to: await this.getAddress(),
+      data: installModuleData
+    })
   }
 
-  async uninstallModule(moduleAddress: Hex): Promise<any> {
-    return true
+  async uninstallModule(
+    moduleType: ModuleType,
+    moduleAddress: Hex,
+    deInitData?: Hex
+  ): Promise<Hash> {
+    const uninstallModuleData = encodeFunctionData({
+      abi: NexusAccountAbi,
+      functionName: "uninstallModule",
+      args: [moduleType, moduleAddress, deInitData ?? "0x"]
+    })
+    return await this.sendTransaction({
+      to: await this.getAddress(),
+      data: uninstallModuleData
+    })
   }
 
   // Review

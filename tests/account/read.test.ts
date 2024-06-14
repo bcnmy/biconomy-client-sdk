@@ -30,7 +30,6 @@ import {
 import { type UserOperationStruct, getChain } from "../../src/account"
 import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"
 import { BiconomyFactoryAbi } from "../../src/account/abi/K1ValidatorFactory"
-import { BiconomyAccountAbi } from "../../src/account/abi/SmartAccount"
 import {
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   createECDSAOwnershipValidationModule
@@ -721,7 +720,7 @@ describe("Account:Read", () => {
 
   //     const response = await publicClient.readContract({
   //       address: await smartAccount.getAccountAddress(),
-  //       abi: BiconomyAccountAbi,
+  //       abi: NexusAccountAbi,
   //       functionName: "isValidSignature",
   //       args: [messageHash, signature]
   //     })
@@ -750,7 +749,7 @@ describe("Account:Read", () => {
 
   //   const response = await publicClient.readContract({
   //     address: await smartAccount.getAccountAddress(),
-  //     abi: BiconomyAccountAbi,
+  //     abi: NexusAccountAbi,
   //     functionName: "isValidSignature",
   //     args: [messageHash, signatureWithModuleAddress]
   //   })
