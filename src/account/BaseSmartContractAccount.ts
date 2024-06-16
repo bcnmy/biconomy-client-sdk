@@ -206,9 +206,10 @@ export abstract class BaseSmartContractAccount<
     if (this.deploymentState === DeploymentState.DEPLOYED) {
       return "0x"
     }
+    const address = await this.getAddress()
 
     const contractCode = await this.rpcProvider.getBytecode({
-      address: await this.getAddress()
+      address
     })
 
     if ((contractCode?.length ?? 0) > 2) {

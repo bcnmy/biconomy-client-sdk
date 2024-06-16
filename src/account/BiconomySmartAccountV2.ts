@@ -94,6 +94,7 @@ import {
   packUserOp
 } from "./utils/Utils.js"
 import { ERC20_ABI } from "./abi/ERC20.js"
+import { SMART_ACCOUNT_INFO } from "../paymaster/utils/Constants.js"
 
 type UserOperationKey = keyof UserOperationStruct
 
@@ -745,8 +746,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     GetContractReturnType<typeof BiconomyAccountAbi, PublicClient>
   > {
     if (this.accountContract == null) {
+      let address = await this.getAddress()
       this.accountContract = getContract({
-        address: await this.getAddress(),
+        address,
         abi: BiconomyAccountAbi,
         client: this.provider as PublicClient
       })
@@ -812,8 +814,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
           currentVersion: string
           deploymentIndex: { toString: () => string }
         }) =>
+          // FIXME: Remove the hardcoded version
           smartAccountInfo.factoryVersion === "v1" &&
-          smartAccountInfo.currentVersion === "2.0.0" &&
+          smartAccountInfo.currentVersion === SMART_ACCOUNT_INFO.version &&
           Number(smartAccountInfo.deploymentIndex.toString()) === params.index
       )
 
