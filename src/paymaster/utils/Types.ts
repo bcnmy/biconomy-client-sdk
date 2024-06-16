@@ -1,4 +1,4 @@
-export type Hex = `0x${string}`
+import type { Hex } from "viem"
 import type { BigNumberish } from "../../account"
 import type { JsonRpcError } from "../../bundler/utils/Types"
 

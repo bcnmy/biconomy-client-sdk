@@ -23,8 +23,7 @@ import {
   ERROR_MESSAGES,
   NATIVE_TOKEN_ALIAS,
   compareChainIds,
-  createSmartAccountClient,
-  isNullOrUndefined
+  createSmartAccountClient
 } from "../../src/account"
 import { type UserOperationStruct, getChain } from "../../src/account"
 import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"

@@ -82,6 +82,7 @@ export const ERROR_MESSAGES = {
   FAILED_FEE_QUOTE_FETCH: "Failed to fetch fee quote",
   CHAIN_NOT_FOUND: "Chain not found",
   NO_RECIPIENT: "Recipient is required",
+  AMOUNT_REQUIRED: "Amount is required",
   NATIVE_TOKEN_WITHDRAWAL_WITHOUT_AMOUNT:
     "'Amount' is required for withdrawal of native token without using a paymaster",
   MISSING_RPC_URL:
@@ -95,11 +96,7 @@ export const ERROR_MESSAGES = {
 
 export const NATIVE_TOKEN_ALIAS: Hex =
   "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
-export const ERC20_ABI = [
-  "function transfer(address to, uint256 value) external returns (bool)",
-  "function transferFrom(address from, address to, uint256 value) external returns (bool)",
-  "function approve(address spender, uint256 value) external returns (bool)",
-  "function allowance(address owner, address spender) external view returns (uint256)",
-  "function balanceOf(address owner) external view returns (uint256)",
-  "function decimals() external view returns (uint8)"
-]
+
+// This is the default slot for the implementation address for Proxies
+export const DEFAULT_SLOT =
+  "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc"

@@ -13,7 +13,6 @@ import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
   DEFAULT_ENTRYPOINT_ADDRESS,
-  ERC20_ABI,
   type TransferOwnershipCompatibleModule,
   createSmartAccountClient,
   getCustomChain,
@@ -31,6 +30,7 @@ import {
   nonZeroBalance,
   topUp
 } from "../utils"
+import { ERC20_ABI } from "../../src/account/abi/ERC20"
 
 describe("Account:Write", async () => {
   const nonceOptions = { nonceKey: Date.now() + 10 }

@@ -22,7 +22,7 @@ export class LocalAccountSigner<
     this.signerType = inner.type //  type: "local"
   }
 
-  readonly signMessage: (message: SignableMessage) => Promise<`0x${string}`> = (
+  readonly signMessage: (message: SignableMessage) => Promise<Hex> = (
     message
   ) => {
     return this.inner.signMessage({ message })
@@ -37,7 +37,7 @@ export class LocalAccountSigner<
     return this.inner.signTypedData(params)
   }
 
-  readonly getAddress: () => Promise<`0x${string}`> = async () => {
+  readonly getAddress: () => Promise<Hex> = async () => {
     return this.inner.address
   }
 

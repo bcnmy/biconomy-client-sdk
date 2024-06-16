@@ -12,7 +12,8 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import {
   ERROR_MESSAGES,
   type UserOperationStruct,
-  getChain
+  getChain,
+  packUserOp
 } from "../../account"
 import type {
   ChainInfo,
@@ -82,67 +83,21 @@ export interface DeprecatedRule {
  * @deprecated
  */
 export interface DeprecatedPermission {
-  destContract: `0x${string}`
-  functionSelector: `0x${string}`
+  destContract: Hex
+  functionSelector: Hex
   valueLimit: bigint
   rules: DeprecatedRule[]
 }
 
 export interface Permission {
   /** The address of the contract to which the permission applies */
-  destContract: `0x${string}`
+  destContract: Hex
   /** The function selector of the contract to which the permission applies */
-  functionSelector: `0x${string}`
+  functionSelector: Hex
   /** The maximum value that can be transferred in a single transaction */
   valueLimit: bigint
   /** The rules that define the conditions under which the permission is granted */
   rules: Rule[]
-}
-
-function packUserOp(
-  op: Partial<UserOperationStruct>,
-  forSignature = true
-): string {
-  if (!op.initCode || !op.callData || !op.paymasterAndData)
-    throw new Error("Missing userOp properties")
-  if (forSignature) {
-    return encodeAbiParameters(
-      parseAbiParameters(
-        "address, uint256, bytes32, bytes32, uint256, uint256, uint256, uint256, uint256, bytes32"
-      ),
-      [
-        op.sender as Hex,
-        BigInt(op.nonce as Hex),
-        keccak256(op.initCode as Hex),
-        keccak256(op.callData as Hex),
-        BigInt(op.callGasLimit as Hex),
-        BigInt(op.verificationGasLimit as Hex),
-        BigInt(op.preVerificationGas as Hex),
-        BigInt(op.maxFeePerGas as Hex),
-        BigInt(op.maxPriorityFeePerGas as Hex),
-        keccak256(op.paymasterAndData as Hex)
-      ]
-    )
-  }
-  // for the purpose of calculating gas cost encode also signature (and no keccak of bytes)
-  return encodeAbiParameters(
-    parseAbiParameters(
-      "address, uint256, bytes, bytes, uint256, uint256, uint256, uint256, uint256, bytes, bytes"
-    ),
-    [
-      op.sender as Hex,
-      BigInt(op.nonce as Hex),
-      op.initCode as Hex,
-      op.callData as Hex,
-      BigInt(op.callGasLimit as Hex),
-      BigInt(op.verificationGasLimit as Hex),
-      BigInt(op.preVerificationGas as Hex),
-      BigInt(op.maxFeePerGas as Hex),
-      BigInt(op.maxPriorityFeePerGas as Hex),
-      op.paymasterAndData as Hex,
-      op.signature as Hex
-    ]
-  )
 }
 
 export const getUserOpHash = (
@@ -201,6 +156,7 @@ export const didProvideFullSession = (
  * @returns A session object
  * @error If the provided arguments do not match any of the above cases
  */
+
 export const resumeSession = async (
   searchParam: SessionSearchParam
 ): Promise<Session> => {
@@ -213,27 +169,19 @@ export const resumeSession = async (
     const session = searchParam as Session
     return session
   }
-  if (providedStorageClient) {
-    const sessionStorageClient = searchParam as ISessionStorage
-    const leafArray = await sessionStorageClient.getAllSessionData()
-    const sessionIDInfo = leafArray.map(({ sessionID }) => sessionID as string)
-    const session: Session = {
-      sessionIDInfo,
-      sessionStorageClient
-    }
-    return session
+
+  const sessionStorageClient = providedStorageClient
+    ? (searchParam as ISessionStorage)
+    : providedSmartAccountAddress
+    ? getDefaultStorageClient(searchParam as Address)
+    : undefined
+  if (!sessionStorageClient)
+    throw new Error(ERROR_MESSAGES.UNKNOW_SESSION_ARGUMENTS)
+  const leafArray = await sessionStorageClient.getAllSessionData()
+  const sessionIDInfo = leafArray.map(({ sessionID }) => sessionID as string)
+  const session: Session = {
+    sessionIDInfo,
+    sessionStorageClient
   }
-  if (providedSmartAccountAddress) {
-    const smartAccountAddress = searchParam as Address
-    // Use the default session storage client
-    const sessionStorageClient = getDefaultStorageClient(smartAccountAddress)
-    const leafArray = await sessionStorageClient.getAllSessionData()
-    const sessionIDInfo = leafArray.map(({ sessionID }) => sessionID as string)
-    const session: Session = {
-      sessionIDInfo,
-      sessionStorageClient
-    }
-    return session
-  }
-  throw new Error(ERROR_MESSAGES.UNKNOW_SESSION_ARGUMENTS)
+  return session
 }

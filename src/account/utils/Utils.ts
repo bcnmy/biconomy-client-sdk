@@ -7,6 +7,7 @@ import {
   keccak256,
   parseAbiParameters
 } from "viem"
+
 import type { UserOperationStruct } from "../../account"
 import { type SupportedSigner, convertSigner } from "../../account"
 import { extractChainIdFromBundlerUrl } from "../../bundler"
@@ -85,10 +86,10 @@ export const compareChainIds = async (
   const chainIdFromBundler = biconomySmartAccountConfig.bundlerUrl
     ? extractChainIdFromBundlerUrl(biconomySmartAccountConfig.bundlerUrl)
     : biconomySmartAccountConfig.bundler
-      ? extractChainIdFromBundlerUrl(
-          biconomySmartAccountConfig.bundler.getBundlerUrl()
-        )
-      : undefined
+    ? extractChainIdFromBundlerUrl(
+        biconomySmartAccountConfig.bundler.getBundlerUrl()
+      )
+    : undefined
 
   const chainIdFromPaymasterUrl = biconomySmartAccountConfig.paymasterUrl
     ? extractChainIdFromPaymasterUrl(biconomySmartAccountConfig.paymasterUrl)
@@ -177,4 +178,14 @@ export function convertToFactor(percentage: number | undefined): number {
     return factor
   }
   return 1
+}
+
+export function fixPotentiallyIncorrectVForSignature(signature: Hex) {
+  Number.parseInt(signature.slice(-2), 16)
+  const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
+  if (![27, 28].includes(potentiallyIncorrectV)) {
+    const correctV = potentiallyIncorrectV + 27
+    signature = (signature.slice(0, -2) + correctV.toString(16)) as Hex
+  }
+  return signature
 }

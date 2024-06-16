@@ -16,7 +16,8 @@ import {
   Logger,
   type SmartAccountSigner,
   type UserOperationStruct,
-  convertSigner
+  convertSigner,
+  fixPotentiallyIncorrectVForSignature
 } from "../account"
 import { BaseValidationModule } from "./BaseValidationModule.js"
 import {
@@ -116,12 +117,7 @@ export class MultiChainValidationModule extends BaseValidationModule {
   async signMessage(_message: Uint8Array | string): Promise<string> {
     const message = typeof _message === "string" ? _message : { raw: _message }
     let signature = await this.signer.signMessage(message)
-
-    const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
-    if (![27, 28].includes(potentiallyIncorrectV)) {
-      const correctV = potentiallyIncorrectV + 27
-      signature = signature.slice(0, -2) + correctV.toString(16)
-    }
+    signature = fixPotentiallyIncorrectVForSignature(signature)
     return signature
   }
 
@@ -158,16 +154,8 @@ export class MultiChainValidationModule extends BaseValidationModule {
         raw: toBytes(merkleTree.getHexRoot())
       })
 
-      const potentiallyIncorrectV = Number.parseInt(
-        multichainSignature.slice(-2),
-        16
-      )
-      if (![27, 28].includes(potentiallyIncorrectV)) {
-        const correctV = potentiallyIncorrectV + 27
-        multichainSignature =
-          multichainSignature.slice(0, -2) + correctV.toString(16)
-      }
-
+      multichainSignature =
+        fixPotentiallyIncorrectVForSignature(multichainSignature)
       // Create an array to store updated userOps
       const updatedUserOps: UserOperationStruct[] = []
 
@@ -198,7 +186,7 @@ export class MultiChainValidationModule extends BaseValidationModule {
         // Update userOp with the final signature
         const updatedUserOp: UserOperationStruct = {
           ...(multiChainUserOps[i].userOp as UserOperationStruct),
-          signature: signatureWithModuleAddress as `0x${string}`
+          signature: signatureWithModuleAddress as Hex
         }
 
         updatedUserOps.push(updatedUserOp)

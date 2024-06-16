@@ -11,7 +11,7 @@ import {
 } from "viem"
 import { EntryPointAbi } from "./abi/EntryPointAbi.js"
 import { Logger, type SmartAccountSigner, getChain } from "./index.js"
-import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants.js"
+import { DEFAULT_ENTRYPOINT_ADDRESS, DEFAULT_SLOT } from "./utils/Constants.js"
 import type {
   BasSmartContractAccountProps,
   BatchUserOperationCallData,
@@ -131,7 +131,7 @@ export abstract class BaseSmartContractAccount<
    *
    * @param _params -- Typed Data params to sign
    */
-  async signTypedData(_params: SignTypedDataParams): Promise<`0x${string}`> {
+  async signTypedData(_params: SignTypedDataParams): Promise<Hex> {
     throw new Error("signTypedData not supported")
   }
 
@@ -141,7 +141,7 @@ export abstract class BaseSmartContractAccount<
    *
    * @param msg -- the message to sign
    */
-  async signMessageWith6492(msg: string | Uint8Array): Promise<`0x${string}`> {
+  async signMessageWith6492(msg: string | Uint8Array): Promise<Hex> {
     const [isDeployed, signature] = await Promise.all([
       this.isAccountDeployed(),
       this.signMessage(msg)
@@ -157,9 +157,7 @@ export abstract class BaseSmartContractAccount<
    *
    * @param params -- Typed Data params to sign
    */
-  async signTypedDataWith6492(
-    params: SignTypedDataParams
-  ): Promise<`0x${string}`> {
+  async signTypedDataWith6492(params: SignTypedDataParams): Promise<Hex> {
     const [isDeployed, signature] = await Promise.all([
       this.isAccountDeployed(),
       this.signTypedData(params)
@@ -176,9 +174,7 @@ export abstract class BaseSmartContractAccount<
    *
    * @param _txs -- the transactions to batch execute
    */
-  async encodeBatchExecute(
-    _txs: BatchUserOperationCallData
-  ): Promise<`0x${string}`> {
+  async encodeBatchExecute(_txs: BatchUserOperationCallData): Promise<Hex> {
     throw new Error("Batch execution not supported")
   }
 
@@ -312,14 +308,11 @@ export abstract class BaseSmartContractAccount<
 
     const storage = await this.rpcProvider.getStorageAt({
       address: accountAddress,
-      // This is the default slot for the implementation address for Proxies
-      slot: "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc"
+      slot: DEFAULT_SLOT
     })
 
     if (storage == null) {
-      throw new Error(
-        "Failed to get storage slot 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc"
-      )
+      throw new Error(`Failed to get storage slot ${DEFAULT_SLOT}`)
     }
 
     return trim(storage)

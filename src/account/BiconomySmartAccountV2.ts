@@ -62,7 +62,6 @@ import {
   DEFAULT_BICONOMY_FACTORY_ADDRESS,
   DEFAULT_ENTRYPOINT_ADDRESS,
   DEFAULT_FALLBACK_HANDLER_ADDRESS,
-  ERC20_ABI,
   ERROR_MESSAGES,
   MAGIC_BYTES,
   NATIVE_TOKEN_ALIAS,
@@ -89,10 +88,12 @@ import {
   addressEquals,
   compareChainIds,
   convertToFactor,
+  fixPotentiallyIncorrectVForSignature,
   isNullOrUndefined,
   isValidRpcUrl,
   packUserOp
 } from "./utils/Utils.js"
+import { ERC20_ABI } from "./abi/ERC20.js"
 
 type UserOperationKey = keyof UserOperationStruct
 
@@ -104,7 +105,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   private index: number
 
   private chainId: number
-
   private provider: PublicClient
 
   paymaster?: IPaymaster
@@ -203,7 +203,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         biconomySmartAccountConfig.customChain ??
         getChain(biconomySmartAccountConfig.chainId),
       transport: http(
-        biconomySmartAccountConfig.rpcUrl ||
+        biconomySmartAccountConfig.rpcUrl ??
           getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0]
       )
     })
@@ -290,7 +290,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const bundler: IBundler =
       biconomySmartAccountConfig.bundler ??
       new Bundler({
-        // biome-ignore lint/style/noNonNullAssertion: always required
         bundlerUrl: biconomySmartAccountConfig.bundlerUrl!,
         chainId,
         customChain:
@@ -351,9 +350,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   // Calls the getCounterFactualAddress
-  async getAccountAddress(
-    params?: CounterFactualAddressParam
-  ): Promise<`0x${string}`> {
+  async getAccountAddress(params?: CounterFactualAddressParam): Promise<Hex> {
     if (this.accountAddress == null || this.accountAddress === undefined) {
       // means it needs deployment
       this.accountAddress = await this.getCounterFactualAddress(params)
@@ -503,7 +500,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       ) as Promise<bigint>[]
       const decimalsPromises = tokenContracts.map((tokenContract) =>
         tokenContract.read.decimals()
-      ) as Promise<number>[]
+      ) as Promise<bigint>[]
       const [balances, decimalsPerToken] = await Promise.all([
         Promise.all(balancePromises),
         Promise.all(decimalsPromises)
@@ -512,9 +509,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       balances.forEach((amount, index) =>
         result.push({
           amount,
-          decimals: decimalsPerToken[index],
+          decimals: Number(decimalsPerToken[index]),
           address: addresses[index],
-          formattedAmount: formatUnits(amount, decimalsPerToken[index]),
+          formattedAmount: formatUnits(amount, Number(decimalsPerToken[index])),
           chainId: this.chainId
         })
       )
@@ -612,14 +609,22 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     // Create the transactions
     const txs: Transaction[] = tokenRequests.map(
-      ({ address, amount, recipient: recipientFromRequest }) => ({
-        to: address,
-        data: encodeFunctionData({
-          abi: parseAbi(ERC20_ABI),
-          functionName: "transfer",
-          args: [recipientFromRequest || defaultRecipient, amount]
-        })
-      })
+      ({ address, amount, recipient: recipientFromRequest }) => {
+        if (!amount) {
+          throw new Error(ERROR_MESSAGES.AMOUNT_REQUIRED)
+        }
+        if (!recipientFromRequest && !defaultRecipient) {
+          throw new Error(ERROR_MESSAGES.NO_RECIPIENT)
+        }
+        return {
+          to: address,
+          data: encodeFunctionData({
+            abi: parseAbi(ERC20_ABI),
+            functionName: "transfer",
+            args: [recipientFromRequest || defaultRecipient, amount]
+          })
+        }
+      }
     )
 
     // Check if eth alias is present in the original withdrawal requests
@@ -890,7 +895,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   // dummy signature depends on the validation module supplied.
   async getDummySignatures(_params?: ModuleInfo): Promise<Hex> {
-    const params = { ...(this.sessionData ? this.sessionData : {}), ..._params }
+    const params = {
+      ...(this.sessionData ? this.sessionData : {}),
+      ..._params
+    }
     this.isActiveValidationModuleDefined()
     return (await this.activeValidationModule.getDummySignature(params)) as Hex
   }
@@ -921,7 +929,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     userOp: Partial<UserOperationStruct>,
     _params?: SendUserOpParams
   ): Promise<UserOperationStruct> {
-    const params = { ...(this.sessionData ? this.sessionData : {}), ..._params }
+    const params = {
+      ...(this.sessionData ? this.sessionData : {}),
+      ..._params
+    }
 
     this.isActiveValidationModuleDefined()
     const requiredFields: UserOperationKey[] = [
@@ -1046,8 +1057,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const tokenList = feeQuotesOrData?.preferredToken
       ? [feeQuotesOrData?.preferredToken]
       : feeQuotesOrData?.tokenList?.length
-        ? feeQuotesOrData?.tokenList
-        : []
+      ? feeQuotesOrData?.tokenList
+      : []
     return paymaster.getPaymasterFeeQuotesOrData(userOp, {
       ...feeQuotesOrData,
       tokenList
@@ -1640,46 +1651,30 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
           maxFeePerGasOffsetPct,
           maxPriorityFeePerGasOffsetPct
         } = buildUseropDto.gasOffset
-        userOp.verificationGasLimit = toHex(
-          Number.parseInt(
-            (
-              Number(userOp.verificationGasLimit ?? 0) *
-              convertToFactor(verificationGasLimitOffsetPct)
-            ).toString()
-          )
-        )
-        userOp.preVerificationGas = toHex(
-          Number.parseInt(
-            (
-              Number(userOp.preVerificationGas ?? 0) *
-              convertToFactor(preVerificationGasOffsetPct)
-            ).toString()
-          )
-        )
-        userOp.callGasLimit = toHex(
-          Number.parseInt(
-            (
-              Number(userOp.callGasLimit ?? 0) *
-              convertToFactor(callGasLimitOffsetPct)
-            ).toString()
-          )
-        )
-        userOp.maxFeePerGas = toHex(
-          Number.parseInt(
-            (
-              Number(userOp.maxFeePerGas ?? 0) *
-              convertToFactor(maxFeePerGasOffsetPct)
-            ).toString()
-          )
-        )
-        userOp.maxPriorityFeePerGas = toHex(
-          Number.parseInt(
-            (
-              Number(userOp.maxPriorityFeePerGas ?? 0) *
-              convertToFactor(maxPriorityFeePerGasOffsetPct)
-            ).toString()
-          )
-        )
+        userOp.verificationGasLimit = this.toHexWithFactor({
+          value: Number(userOp.verificationGasLimit),
+          factor: verificationGasLimitOffsetPct
+        })
+
+        userOp.preVerificationGas = this.toHexWithFactor({
+          value: Number(userOp.preVerificationGas),
+          factor: preVerificationGasOffsetPct
+        })
+
+        userOp.callGasLimit = this.toHexWithFactor({
+          value: Number(userOp.callGasLimit),
+          factor: callGasLimitOffsetPct
+        })
+
+        userOp.maxFeePerGas = this.toHexWithFactor({
+          value: Number(userOp.maxFeePerGas),
+          factor: maxFeePerGasOffsetPct
+        })
+
+        userOp.maxPriorityFeePerGas = this.toHexWithFactor({
+          value: Number(userOp.maxPriorityFeePerGas),
+          factor: maxPriorityFeePerGasOffsetPct
+        })
 
         userOp = await this.getPaymasterUserOp(userOp, {
           ...buildUseropDto.paymasterServiceData,
@@ -1716,46 +1711,30 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         maxFeePerGasOffsetPct,
         maxPriorityFeePerGasOffsetPct
       } = buildUseropDto.gasOffset
-      userOp.verificationGasLimit = toHex(
-        Number.parseInt(
-          (
-            Number(userOp.verificationGasLimit ?? 0) *
-            convertToFactor(verificationGasLimitOffsetPct)
-          ).toString()
-        )
-      )
-      userOp.preVerificationGas = toHex(
-        Number.parseInt(
-          (
-            Number(userOp.preVerificationGas ?? 0) *
-            convertToFactor(preVerificationGasOffsetPct)
-          ).toString()
-        )
-      )
-      userOp.callGasLimit = toHex(
-        Number.parseInt(
-          (
-            Number(userOp.callGasLimit ?? 0) *
-            convertToFactor(callGasLimitOffsetPct)
-          ).toString()
-        )
-      )
-      userOp.maxFeePerGas = toHex(
-        Number.parseInt(
-          (
-            Number(userOp.maxFeePerGas ?? 0) *
-            convertToFactor(maxFeePerGasOffsetPct)
-          ).toString()
-        )
-      )
-      userOp.maxPriorityFeePerGas = toHex(
-        Number.parseInt(
-          (
-            Number(userOp.maxPriorityFeePerGas ?? 0) *
-            convertToFactor(maxPriorityFeePerGasOffsetPct)
-          ).toString()
-        )
-      )
+      userOp.verificationGasLimit = this.toHexWithFactor({
+        value: Number(userOp.verificationGasLimit),
+        factor: verificationGasLimitOffsetPct
+      })
+
+      userOp.preVerificationGas = this.toHexWithFactor({
+        value: Number(userOp.preVerificationGas),
+        factor: preVerificationGasOffsetPct
+      })
+
+      userOp.callGasLimit = this.toHexWithFactor({
+        value: Number(userOp.callGasLimit),
+        factor: callGasLimitOffsetPct
+      })
+
+      userOp.maxFeePerGas = this.toHexWithFactor({
+        value: Number(userOp.maxFeePerGas),
+        factor: maxFeePerGasOffsetPct
+      })
+
+      userOp.maxPriorityFeePerGas = this.toHexWithFactor({
+        value: Number(userOp.maxPriorityFeePerGas),
+        factor: maxPriorityFeePerGasOffsetPct
+      })
 
       return userOp
     }
@@ -1766,6 +1745,17 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       )
     }
     return userOp
+  }
+  private toHexWithFactor({
+    value,
+    factor
+  }: {
+    value?: number
+    factor?: number
+  }): Hex {
+    return toHex(
+      Number.parseInt((Number(value ?? 0) * convertToFactor(factor)).toString())
+    )
   }
 
   private validateUserOpAndPaymasterRequest(
@@ -2028,16 +2018,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   async signMessage(message: string | Uint8Array): Promise<Hex> {
-    let signature: any
+    let signature: Hex
     this.isActiveValidationModuleDefined()
     const dataHash = typeof message === "string" ? toBytes(message) : message
-    signature = await this.activeValidationModule.signMessage(dataHash)
-
-    const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
-    if (![27, 28].includes(potentiallyIncorrectV)) {
-      const correctV = potentiallyIncorrectV + 27
-      signature = signature.slice(0, -2) + correctV.toString(16)
-    }
+    signature = (await this.activeValidationModule.signMessage(dataHash)) as Hex
+    signature = fixPotentiallyIncorrectVForSignature(signature)
     if (signature.slice(0, 2) !== "0x") {
       signature = `0x${signature}`
     }
