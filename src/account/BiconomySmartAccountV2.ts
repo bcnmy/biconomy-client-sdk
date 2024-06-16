@@ -287,11 +287,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     if (!chainId) {
       throw new Error("chainId required");
     }
-
+    if (!biconomySmartAccountConfig.bundlerUrl) {
+      throw new Error("bundlerUrl required");
+    }
     const bundler: IBundler =
       biconomySmartAccountConfig.bundler ??
       new Bundler({
-        bundlerUrl: biconomySmartAccountConfig.bundlerUrl!,
+        bundlerUrl: biconomySmartAccountConfig.bundlerUrl,
         chainId,
         customChain:
           biconomySmartAccountConfig.viemChain ??
