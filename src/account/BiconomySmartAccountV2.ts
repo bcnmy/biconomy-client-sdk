@@ -36,6 +36,7 @@ import type { IBundler } from "../bundler/interfaces/IBundler.js"
 import { EXECUTE_BATCH, EXECUTE_SINGLE } from "../bundler/utils/Constants.js"
 import {
   BaseValidationModule,
+  MOCK_EXECUTOR,
   type ModuleInfo,
   type SendUserOpParams,
   createECDSAOwnershipValidationModule
@@ -830,19 +831,32 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @param data represent data associated with transaction
    * @returns encoded data for execute function
    */
-  async encodeExecute(transaction: Transaction): Promise<Hex> {
+  async encodeExecute(
+    transaction: Transaction,
+    useExecutor?: boolean
+  ): Promise<Hex> {
     // return accountContract.interface.encodeFunctionData("execute_ncC", [to, value, data]) as Hex;
     const mode = EXECUTE_SINGLE
 
     const executionCalldata = encodePacked(
-      ["address", "uint256", "bytes"],
+      ["address", "address", "uint256", "bytes"],
       [
+        MOCK_EXECUTOR,
         transaction.to as Hex,
         BigInt(transaction.value ?? 0n),
         (transaction.data as Hex) ?? ("0x" as Hex)
       ]
     )
-    // Encode a simple call
+    if (useExecutor) {
+      return encodeFunctionData({
+        abi: parseAbi([
+          "function executeFromExecutor(bytes32 mode, bytes calldata executionCalldata) external"
+        ]),
+        functionName: "executeFromExecutor",
+        args: [mode, executionCalldata]
+      })
+    }
+
     return encodeFunctionData({
       abi: parseAbi([
         "function execute(bytes32 mode, bytes calldata executionCalldata) external"
@@ -859,21 +873,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @param data represent array of data associated with each transaction
    * @returns encoded data for executeBatch function
    */
-  async encodeExecuteBatch(transactions: Transaction[]): Promise<Hex> {
+  async encodeExecuteBatch(
+    transactions: Transaction[],
+    useExecutor?: boolean
+  ): Promise<Hex> {
     // return accountContract.interface.encodeFunctionData("execute_ncC", [to, value, data]) as Hex;
     const mode = EXECUTE_BATCH
     // TODO: Use viem instead of ethers
-    const execution = ParamType.from({
-      type: "tuple(address,uint256,bytes)[]",
-      baseType: "tuple",
-      name: "executions",
-      arrayLength: null,
-      components: [
-        { name: "target", type: "address" },
-        { name: "value", type: "uint256" },
-        { name: "callData", type: "bytes" }
-      ]
-    })
     const execs: { target: Hex; value: bigint; callData: Hex }[] = []
     for (const tx of transactions) {
       execs.push({
@@ -886,6 +892,15 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       [Executions],
       [execs]
     ) as Hex
+    if (useExecutor) {
+      return encodeFunctionData({
+        abi: parseAbi([
+          "function executeFromExecutor(bytes32 mode, bytes calldata executionCalldata) external"
+        ]),
+        functionName: "executeFromExecutor",
+        args: [mode, executionCalldataPrep]
+      })
+    }
     return encodeFunctionData({
       abi: parseAbi([
         "function execute(bytes32 mode, bytes calldata executionCalldata) external"
@@ -1579,10 +1594,16 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     let callData: Hex = "0x"
     if (!buildUseropDto?.useEmptyDeployCallData) {
       if (transactions.length > 1 || buildUseropDto?.forceEncodeForBatch) {
-        callData = await this.encodeExecuteBatch(transactions)
+        callData = await this.encodeExecuteBatch(
+          transactions,
+          buildUseropDto?.useExecutor ?? false
+        )
       } else {
         // transactions.length must be 1
-        callData = await this.encodeExecute(transactions[0])
+        callData = await this.encodeExecute(
+          transactions[0],
+          buildUseropDto?.useExecutor ?? false
+        )
       }
     }
 
@@ -1845,7 +1866,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
           data: "0x",
           value: 0n
         }
-        if (smartAccountExecFunctionName === "execute") {
+        if (
+          smartAccountExecFunctionName === "execute" ||
+          smartAccountExecFunctionName === "executeFromExecutor"
+        ) {
           const methodArgsSmartWalletExecuteCall =
             decodedSmartAccountData.args ?? []
           const toOriginal =
@@ -1866,10 +1890,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
         const finalUserOp: Partial<UserOperationStruct> = {
           ...userOp,
-          callData: await this.encodeExecuteBatch([
-            approvalRequest,
-            initialTransaction
-          ])
+          callData: await this.encodeExecuteBatch(
+            [approvalRequest, initialTransaction],
+            smartAccountExecFunctionName === "executeFromExecutor"
+              ? true
+              : false
+          )
         }
 
         return finalUserOp
@@ -1936,7 +1962,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * const { success, receipt } = await wait();
    *
    */
-  public async deploy(buildUseropDto?: BuildUserOpOptions): Promise<Hash> {
+  public async deploy(
+    buildUseropDto?: BuildUserOpOptions
+  ): Promise<UserOpResponse> {
     const accountAddress =
       this.accountAddress ?? (await this.getAccountAddress())
 
@@ -2155,15 +2183,33 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return (await accountContract.read.supportsExecutionMode([mode])) as boolean
   }
 
-  // Review
-  // async getAllModules(pageSize?: number): Promise<Array<string>> {
-  //   const _pageSize = pageSize ?? 100
-  //   const accountContract = await this._getAccountContract()
-  //   const result = await accountContract.read.getModulesPaginated([
-  //     this.SENTINEL_MODULE as Hex,
-  //     BigInt(_pageSize)
-  //   ])
-  //   const modules: Array<string> = result[0] as Array<string>
-  //   return modules
-  // }
+  async getInstalledValidators(): Promise<Address[]> {
+    const accountContract = await this._getAccountContract()
+    return (
+      (await accountContract.read.getValidatorsPaginated([
+        "0x0000000000000000000000000000000000000001",
+        100
+      ])) as Address[][]
+    )[0] as Address[]
+  }
+
+  async getInstalledExecutors(): Promise<Address[]> {
+    const accountContract = await this._getAccountContract()
+    return (
+      (await accountContract.read.getExecutorsPaginated([
+        "0x0000000000000000000000000000000000000001",
+        100
+      ])) as Address[][]
+    )[0] as Address[]
+  }
+
+  async getActiveHook(): Promise<Address> {
+    const accountContract = await this._getAccountContract()
+    return (await accountContract.read.getActiveHook()) as Address
+  }
+
+  async supportsModule(moduleType: ModuleType): Promise<boolean> {
+    const accountContract = await this._getAccountContract()
+    return (await accountContract.read.supportsModule([moduleType])) as boolean
+  }
 }

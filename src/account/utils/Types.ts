@@ -205,6 +205,7 @@ export type BuildUserOpOptions = {
   stateOverrideSet?: StateOverrideSet
   dummyPndOverride?: BytesLike
   useEmptyDeployCallData?: boolean
+  useExecutor?: boolean
 }
 
 export type NonceOptions = {
@@ -497,7 +498,7 @@ export interface ISmartContractAccount<
    * @param value - optionally the amount of native token to send
    * @param data - the call data or "0x" if empty
    */
-  encodeExecute(target: string, value: bigint, data: string): Promise<Hex>
+  encodeExecute(transaction: Transaction, useExecutor: boolean): Promise<Hex>
 
   /**
    * Encodes a batch of transactions to the account's batch execute function.

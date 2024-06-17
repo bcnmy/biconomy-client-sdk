@@ -31,6 +31,7 @@ import {
 import { type UserOperationStruct, getChain } from "../../src/account"
 import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"
 import { BiconomyFactoryAbi } from "../../src/account/abi/K1ValidatorFactory"
+import { NexusAccountAbi } from "../../src/account/abi/SmartAccount"
 import { ACCOUNT_MODES } from "../../src/bundler/utils/Constants"
 import {
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
@@ -734,73 +735,44 @@ describe("Account:Read", () => {
   //   }
   // )
 
-  // test.concurrent("should confirm that signature is not valid", async () => {
-  //   const randomPrivKey = generatePrivateKey()
-  //   const randomWallet = privateKeyToAccount(randomPrivKey)
+  test.concurrent("should verifySignature of deployed", async () => {
+    const smartAccount = await createSmartAccountClient({
+      signer: walletClient,
+      bundlerUrl
+    })
 
-  //   const smartAccount = await createSmartAccountClient({
-  //     signer: walletClient,
-  //     bundlerUrl
-  //   })
+    const message = "hello world"
 
-  //   const eip1271MagicValue = "0xffffffff"
-  //   const message = "Some message from dApp"
-  //   const messageHash = hashMessage(message)
-  //   const signature = await randomWallet.signMessage({ message: messageHash })
-  //   const signatureWithModuleAddress = encodeAbiParameters(
-  //     parseAbiParameters("bytes, address"),
-  //     [signature, smartAccount.defaultValidationModule.getAddress()]
-  //   )
+    const signature = await smartAccount.signMessage(message)
 
-  //   const response = await publicClient.readContract({
-  //     address: await smartAccount.getAccountAddress(),
-  //     abi: NexusAccountAbi,
-  //     functionName: "isValidSignature",
-  //     args: [messageHash, signatureWithModuleAddress]
-  //   })
+    const isVerified = await publicClient.verifyMessage({
+      address: await smartAccount.getAddress(),
+      message,
+      signature
+    })
 
-  //   expect(response).toBe(eip1271MagicValue)
-  // })
+    expect(isVerified).toBeTruthy()
+  })
 
-  // test.concurrent("should verifySignature of deployed", async () => {
-  //   const smartAccount = await createSmartAccountClient({
-  //     signer: walletClient,
-  //     bundlerUrl,
-  //     index: 1n
-  //   })
+  test.concurrent("should verifySignature of not deployed", async () => {
+    const smartAccount = await createSmartAccountClient({
+      signer: walletClient,
+      bundlerUrl,
+      index: 100n
+    })
 
-  //   const message = "hello world"
+    const message = "hello world"
 
-  //   const signature = await smartAccount.signMessage(message)
+    const signature = await smartAccount.signMessage(message)
 
-  //   const isVerified = await publicClient.verifyMessage({
-  //     address: await smartAccount.getAddress(),
-  //     message,
-  //     signature
-  //   })
+    const isVerified = await publicClient.verifyMessage({
+      address: await smartAccount.getAccountAddress(),
+      message,
+      signature
+    })
 
-  //   expect(isVerified).toBeTruthy()
-  // })
-
-  // test.concurrent("should verifySignature of not deployed", async () => {
-  //   const smartAccount = await createSmartAccountClient({
-  //     signer: walletClient,
-  //     bundlerUrl,
-  //     index: 100n
-  //   })
-
-  //   const message = "hello world"
-
-  //   const signature = await smartAccount.signMessage(message)
-
-  //   const isVerified = await publicClient.verifyMessage({
-  //     address: await smartAccount.getAccountAddress(),
-  //     message,
-  //     signature
-  //   })
-
-  //   expect(isVerified).toBeTruthy()
-  // })
+    expect(isVerified).toBeTruthy()
+  })
 
   test.concurrent(
     "should simulate a user operation execution, expecting to fail",
