@@ -1,5 +1,6 @@
 import {
   http,
+  type Address,
   type Hex,
   createPublicClient,
   createWalletClient,
@@ -10,12 +11,12 @@ import {
   parseAbi,
   stringToBytes,
   toBytes,
-  toHex,
-  Address
+  toHex
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { arbitrumSepolia, baseSepolia, polygonAmoy } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
+import type { UserOpReceipt, UserOpResponse } from "../../src"
 import {
   type BiconomySmartAccountV2,
   DEFAULT_ENTRYPOINT_ADDRESS,
@@ -39,7 +40,6 @@ import {
   nonZeroBalance,
   topUp
 } from "../utils"
-import { UserOpReceipt, UserOpResponse } from "../../src"
 
 describe("Account:Write", async () => {
   const nonceOptions = { nonceKey: BigInt(Date.now() + 10) }
@@ -77,8 +77,10 @@ describe("Account:Write", async () => {
     })
   ]
 
-  let smartAccount: BiconomySmartAccountV2, smartAccountTwo: BiconomySmartAccountV2;
-  let smartAccountAddress: Address, smartAccountAddressTwo: Address;
+  let smartAccount: BiconomySmartAccountV2
+  let smartAccountTwo: BiconomySmartAccountV2
+  let smartAccountAddress: Address
+  let smartAccountAddressTwo: Address
 
   beforeAll(async () => {
     ;[smartAccount, smartAccountTwo] = await Promise.all(
@@ -99,143 +101,145 @@ describe("Account:Write", async () => {
   })
 
   describe("Account:Basics", async () => {
-      test("Build a user op with pimlico bundler", async () => {
-        const encodedCall = encodeFunctionData({
-          abi: parseAbi(["function safeMint(address _to)"]),
-          functionName: "safeMint",
-          args: [recipient]
-        })
-        const transaction = {
-          to: nftAddress, // NFT address
-          data: encodedCall
-        }
-        const userOp = await smartAccount.buildUserOp([transaction]);
-        expect(userOp).toBeTruthy()
-      }, 60000)
+    test("Build a user op with pimlico bundler", async () => {
+      const encodedCall = encodeFunctionData({
+        abi: parseAbi(["function safeMint(address _to)"]),
+        functionName: "safeMint",
+        args: [recipient]
+      })
+      const transaction = {
+        to: nftAddress, // NFT address
+        data: encodedCall
+      }
+      const userOp = await smartAccount.buildUserOp([transaction])
+      expect(userOp).toBeTruthy()
+    }, 60000)
 
-      test("Mint NFT - Single Call", async () => {
-        const encodedCall = encodeFunctionData({
-          abi: parseAbi(["function safeMint(address _to)"]),
-          functionName: "safeMint",
-          args: [recipient]
-        })
-        const transaction = {
-          to: nftAddress, // NFT address
-          data: encodedCall
-        }
-        const gasCost = await smartAccount.getGasEstimate([transaction])
-        console.log(gasCost, "gasCost")
-    
-        const userOpHash = await smartAccount.sendTransaction([transaction])
-    
-        expect(userOpHash).toBeTruthy()
-      }, 60000)
+    test("Mint NFT - Single Call", async () => {
+      const encodedCall = encodeFunctionData({
+        abi: parseAbi(["function safeMint(address _to)"]),
+        functionName: "safeMint",
+        args: [recipient]
+      })
+      const transaction = {
+        to: nftAddress, // NFT address
+        data: encodedCall
+      }
+      const gasCost = await smartAccount.getGasEstimate([transaction])
+      console.log(gasCost, "gasCost")
 
-      test("Mint NFT's - Batch Call", async () => {
-        const encodedCall = encodeFunctionData({
-          abi: parseAbi(["function safeMint(address _to)"]),
-          functionName: "safeMint",
-          args: [recipient]
-        })
-        const transaction = {
-          to: nftAddress, // NFT address
-          data: encodedCall,
-          value: 0n
-        }
-        const userOpResponse = await smartAccount.sendTransaction([transaction, transaction])
-        const userOpReceipt: UserOpReceipt = await userOpResponse.wait()
-        console.log(userOpReceipt.userOpHash, "user op hash");
-        
-        expect(userOpReceipt.success).toBe(true)
-      }, 60000)
+      const userOpHash = await smartAccount.sendTransaction([transaction])
 
-      // test("Approve & Transfer - Batch Call", async () => {
-      //   const approveCalldata = encodeFunctionData({
-      //     abi: parseAbi(["function approve(address spender, uint256 amount)"]),
-      //     functionName: "approve",
-      //     args: [smartAccountAddress, 10n]
-      //   })
-      //   const transferCalldata = encodeFunctionData({
-      //     abi: parseAbi(["function transferFrom(address from, address to, uint256 amount)"]),
-      //     functionName: "transferFrom",
-      //     args: [recipient]
-      //   })
-      //   const transaction = {
-      //     to: nftAddress, // NFT address
-      //     data: encodedCall,
-      //     value: 0n
-      //   }
-      //   const userOpResponse = await smartAccount.sendTransaction([transaction, transaction])
-      //   const userOpReceipt: UserOpReceipt = await userOpResponse.wait()
-      //   console.log(userOpReceipt.userOpHash, "user op hash");
-        
-      //   expect(userOpReceipt.success).toBe(true)
-      // }, 60000)
-    })
+      expect(userOpHash).toBeTruthy()
+    }, 60000)
+
+    test("Mint NFT's - Batch Call", async () => {
+      const encodedCall = encodeFunctionData({
+        abi: parseAbi(["function safeMint(address _to)"]),
+        functionName: "safeMint",
+        args: [recipient]
+      })
+      const transaction = {
+        to: nftAddress, // NFT address
+        data: encodedCall,
+        value: 0n
+      }
+      const userOpResponse = await smartAccount.sendTransaction([
+        transaction,
+        transaction
+      ])
+      const userOpReceipt: UserOpReceipt = await userOpResponse.wait()
+      console.log(userOpReceipt.userOpHash, "user op hash")
+
+      expect(userOpReceipt.success).toBe(true)
+    }, 60000)
+
+    // test("Approve & Transfer - Batch Call", async () => {
+    //   const approveCalldata = encodeFunctionData({
+    //     abi: parseAbi(["function approve(address spender, uint256 amount)"]),
+    //     functionName: "approve",
+    //     args: [smartAccountAddress, 10n]
+    //   })
+    //   const transferCalldata = encodeFunctionData({
+    //     abi: parseAbi(["function transferFrom(address from, address to, uint256 amount)"]),
+    //     functionName: "transferFrom",
+    //     args: [recipient]
+    //   })
+    //   const transaction = {
+    //     to: nftAddress, // NFT address
+    //     data: encodedCall,
+    //     value: 0n
+    //   }
+    //   const userOpResponse = await smartAccount.sendTransaction([transaction, transaction])
+    //   const userOpReceipt: UserOpReceipt = await userOpResponse.wait()
+    //   console.log(userOpReceipt.userOpHash, "user op hash");
+
+    //   expect(userOpReceipt.success).toBe(true)
+    // }, 60000)
+  })
 
   describe("Account:Validation Module", async () => {
-      test(
-        "should install a dummy K1Validator module",
-        async () => {
-          const newK1ValidatorContract =
-            "0x26d3E02a086D5182F4921CF1917fe9E6462E0495"
-          const userOpResponse: UserOpResponse = await smartAccount.installModule(
-            ModuleType.Validation,
-            newK1ValidatorContract,
-            account.address
-          )
-          const userOpReceipt = await userOpResponse.wait();
-          
-          const isInstalled = await smartAccount.isModuleInstalled(
-            ModuleType.Validation,
-            newK1ValidatorContract
-          )
-    
-          expect(userOpReceipt.success).toBe(true)
-          expect(isInstalled).toBeTruthy()
-        },
-        60000
+    test("should install a dummy K1Validator module", async () => {
+      const newK1ValidatorContract =
+        "0x26d3E02a086D5182F4921CF1917fe9E6462E0495"
+      const userOpResponse: UserOpResponse = await smartAccount.installModule(
+        ModuleType.Validation,
+        newK1ValidatorContract,
+        account.address
       )
-  
-      test(
-        "should uninstall dummy K1Validator module",
-        async () => {
-          const newK1ValidatorContract =
-            "0x26d3E02a086D5182F4921CF1917fe9E6462E0495"
-    
-          const prevAddress: Hex = "0x0000000000000000000000000000000000000001"
-          const deInitData = encodeAbiParameters(
-            [
-              { name: "prev", type: "address" },
-              { name: "disableModuleData", type: "bytes" }
-            ],
-            [prevAddress, toHex(stringToBytes(""))]
-          )
-          const userOpResponse = await smartAccount.uninstallModule(
-            ModuleType.Validation,
-            newK1ValidatorContract,
-            deInitData
-          )
-          const userOpReceipt = await userOpResponse.wait();
-          
-          const isInstalled = await smartAccount.isModuleInstalled(
-            ModuleType.Validation,
-            newK1ValidatorContract
-          )
-    
-          expect(userOpReceipt.success).toBe(true)
-          expect(isInstalled).toBeFalsy()
-          expect(userOpReceipt).toBeTruthy()
-        },
-        60000
+      const userOpReceipt = await userOpResponse.wait()
+
+      const isInstalled = await smartAccount.isModuleInstalled(
+        ModuleType.Validation,
+        newK1ValidatorContract
       )
-  
-      test("should fail to install an already installed Validator", async () => {
-        const isInstalled = await smartAccount.isModuleInstalled(ModuleType.Validation, K1_VALIDATOR)
-        expect(isInstalled).toBeTruthy()
-    
-        const userOpResponse = smartAccount.installModule(ModuleType.Validation, K1_VALIDATOR, account.address)
-        await expect(userOpResponse).rejects.toThrowError("Error from Bundler:")
-      }, 60000)
-    })
-  });
+
+      expect(userOpReceipt.success).toBe(true)
+      expect(isInstalled).toBeTruthy()
+    }, 60000)
+
+    test("should uninstall dummy K1Validator module", async () => {
+      const newK1ValidatorContract =
+        "0x26d3E02a086D5182F4921CF1917fe9E6462E0495"
+
+      const prevAddress: Hex = "0x0000000000000000000000000000000000000001"
+      const deInitData = encodeAbiParameters(
+        [
+          { name: "prev", type: "address" },
+          { name: "disableModuleData", type: "bytes" }
+        ],
+        [prevAddress, toHex(stringToBytes(""))]
+      )
+      const userOpResponse = await smartAccount.uninstallModule(
+        ModuleType.Validation,
+        newK1ValidatorContract,
+        deInitData
+      )
+      const userOpReceipt = await userOpResponse.wait()
+
+      const isInstalled = await smartAccount.isModuleInstalled(
+        ModuleType.Validation,
+        newK1ValidatorContract
+      )
+
+      expect(userOpReceipt.success).toBe(true)
+      expect(isInstalled).toBeFalsy()
+      expect(userOpReceipt).toBeTruthy()
+    }, 60000)
+
+    test("should fail to install an already installed Validator", async () => {
+      const isInstalled = await smartAccount.isModuleInstalled(
+        ModuleType.Validation,
+        K1_VALIDATOR
+      )
+      expect(isInstalled).toBeTruthy()
+
+      const userOpResponse = smartAccount.installModule(
+        ModuleType.Validation,
+        K1_VALIDATOR,
+        account.address
+      )
+      await expect(userOpResponse).rejects.toThrowError("Error from Bundler:")
+    }, 60000)
+  })
+})

@@ -1,7 +1,12 @@
 import { http, type Hash, type PublicClient, createPublicClient } from "viem"
 import type { StateOverrideSet, UserOperationStruct } from "../account"
 import type { SimulationType } from "../account"
-import { HttpMethod, getChain, isNullOrUndefined, sendRequest } from "../account"
+import {
+  HttpMethod,
+  getChain,
+  isNullOrUndefined,
+  sendRequest
+} from "../account"
 import type { IBundler } from "./interfaces/IBundler.js"
 import {
   DEFAULT_ENTRYPOINT_ADDRESS,
@@ -108,23 +113,22 @@ export class Bundler implements IBundler {
     // const userOp = transformUserOP(_userOp)
     const bundlerUrl = this.getBundlerUrl()
 
-    const response: { result: BundlerEstimateUserOpGasResponse, error: { message: string } } =
-      await sendRequest(
-        {
-          url: bundlerUrl,
-          method: HttpMethod.Post,
-          body: {
-            method: "eth_estimateUserOperationGas",
-            params: [
-              deepHexlify(_userOp),
-              this.bundlerConfig.entryPointAddress
-            ],
-            id: getTimestampInSeconds(),
-            jsonrpc: "2.0"
-          }
-        },
-        "Bundler"
-      )
+    const response: {
+      result: BundlerEstimateUserOpGasResponse
+      error: { message: string }
+    } = await sendRequest(
+      {
+        url: bundlerUrl,
+        method: HttpMethod.Post,
+        body: {
+          method: "eth_estimateUserOperationGas",
+          params: [deepHexlify(_userOp), this.bundlerConfig.entryPointAddress],
+          id: getTimestampInSeconds(),
+          jsonrpc: "2.0"
+        }
+      },
+      "Bundler"
+    )
 
     const userOpGasResponse = response
     for (const key in userOpGasResponse) {
@@ -136,8 +140,10 @@ export class Bundler implements IBundler {
       }
     }
 
-    if(isNullOrUndefined(response.result)) {
-      throw new Error(`Error from Bundler: ${JSON.stringify(response?.error?.message)}`)
+    if (isNullOrUndefined(response.result)) {
+      throw new Error(
+        `Error from Bundler: ${JSON.stringify(response?.error?.message)}`
+      )
     }
 
     return {

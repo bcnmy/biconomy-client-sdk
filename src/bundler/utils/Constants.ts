@@ -61,38 +61,38 @@ export const EXECUTE_BATCH = concat([
 
 export const ACCOUNT_MODES = {
   DEFAULT_SINGLE: concat([
-    pad(EXECTYPE_DEFAULT, {size: 1}),
-    pad(CALLTYPE_SINGLE, {size: 1}),
-    pad(UNUSED, {size: 4}),
-    pad(MODE_DEFAULT, {size: 4}),
-    pad(MODE_PAYLOAD, {size: 22})
+    pad(EXECTYPE_DEFAULT, { size: 1 }),
+    pad(CALLTYPE_SINGLE, { size: 1 }),
+    pad(UNUSED, { size: 4 }),
+    pad(MODE_DEFAULT, { size: 4 }),
+    pad(MODE_PAYLOAD, { size: 22 })
   ]),
   DEFAULT_BATCH: concat([
-    pad(EXECTYPE_DEFAULT, {size: 1}),
-    pad(CALLTYPE_BATCH, {size: 1}),
-    pad(UNUSED, {size: 4}),
-    pad(MODE_DEFAULT, {size: 4}),
-    pad(MODE_PAYLOAD, {size: 22})
+    pad(EXECTYPE_DEFAULT, { size: 1 }),
+    pad(CALLTYPE_BATCH, { size: 1 }),
+    pad(UNUSED, { size: 4 }),
+    pad(MODE_DEFAULT, { size: 4 }),
+    pad(MODE_PAYLOAD, { size: 22 })
   ]),
   TRY_BATCH: concat([
-    pad(EXECTYPE_TRY, {size: 1}),
-    pad(CALLTYPE_BATCH, {size: 1}),
-    pad(UNUSED, {size: 4}),
-    pad(MODE_DEFAULT, {size: 4}),
-    pad(MODE_PAYLOAD, {size: 22})
+    pad(EXECTYPE_TRY, { size: 1 }),
+    pad(CALLTYPE_BATCH, { size: 1 }),
+    pad(UNUSED, { size: 4 }),
+    pad(MODE_DEFAULT, { size: 4 }),
+    pad(MODE_PAYLOAD, { size: 22 })
   ]),
   TRY_SINGLE: concat([
-    pad(EXECTYPE_TRY, {size: 1}),
-    pad(CALLTYPE_SINGLE, {size: 1}),
-    pad(UNUSED, {size: 4}),
-    pad(MODE_DEFAULT, {size: 4}),
-    pad(MODE_PAYLOAD, {size: 22})
+    pad(EXECTYPE_TRY, { size: 1 }),
+    pad(CALLTYPE_SINGLE, { size: 1 }),
+    pad(UNUSED, { size: 4 }),
+    pad(MODE_DEFAULT, { size: 4 }),
+    pad(MODE_PAYLOAD, { size: 22 })
   ]),
   DELEGATE_SINGLE: concat([
-    pad(EXECTYPE_DELEGATE, {size: 1}),
-    pad(CALLTYPE_SINGLE, {size: 1}),
-    pad(UNUSED, {size: 4}),
-    pad(MODE_DEFAULT, {size: 4}),
-    pad(MODE_PAYLOAD, {size: 22})
+    pad(EXECTYPE_DELEGATE, { size: 1 }),
+    pad(CALLTYPE_SINGLE, { size: 1 }),
+    pad(UNUSED, { size: 4 }),
+    pad(MODE_DEFAULT, { size: 4 }),
+    pad(MODE_PAYLOAD, { size: 22 })
   ])
 }

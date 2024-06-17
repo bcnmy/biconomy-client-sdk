@@ -22,22 +22,22 @@ import {
   DEFAULT_ENTRYPOINT_ADDRESS,
   ERROR_MESSAGES,
   K1_VALIDATOR,
+  ModuleType,
   NATIVE_TOKEN_ALIAS,
   compareChainIds,
   createSmartAccountClient,
-  isNullOrUndefined,
-  ModuleType
+  isNullOrUndefined
 } from "../../src/account"
 import { type UserOperationStruct, getChain } from "../../src/account"
 import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"
 import { BiconomyFactoryAbi } from "../../src/account/abi/K1ValidatorFactory"
+import { ACCOUNT_MODES } from "../../src/bundler/utils/Constants"
 import {
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   createECDSAOwnershipValidationModule
 } from "../../src/modules"
 import { Paymaster, PaymasterMode } from "../../src/paymaster"
 import { checkBalance, getBundlerUrl, getConfig } from "../utils"
-import { ACCOUNT_MODES } from "../../src/bundler/utils/Constants"
 
 describe("Account:Read", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
@@ -189,7 +189,10 @@ describe("Account:Read", () => {
   test.concurrent(
     "should check if module is enabled on the smart account",
     async () => {
-      const isEnabled = await smartAccount.isModuleInstalled(ModuleType.Validation, K1_VALIDATOR)
+      const isEnabled = await smartAccount.isModuleInstalled(
+        ModuleType.Validation,
+        K1_VALIDATOR
+      )
       expect(isEnabled).toBeTruthy()
     },
     30000
@@ -870,31 +873,19 @@ describe("Account:Read", () => {
   // )
 
   test.concurrent("Should verify supported modes", async () => {
-        expect(
-          await smartAccount.supportsExecutionMode(
-            ACCOUNT_MODES.DEFAULT_SINGLE
-          ),
-        ).to.be.true;
-        expect(
-          await smartAccount.supportsExecutionMode(
-            ACCOUNT_MODES.DEFAULT_BATCH
-          ),
-        ).to.be.true;
-        expect(
-          await smartAccount.supportsExecutionMode(
-            ACCOUNT_MODES.TRY_BATCH
-          ),
-        ).to.be.true;
-        expect(
-          await smartAccount.supportsExecutionMode(
-            ACCOUNT_MODES.TRY_SINGLE
-          ),
-        ).to.be.true;
-  
-        expect(
-          await smartAccount.supportsExecutionMode(
-            ACCOUNT_MODES.DELEGATE_SINGLE
-          ),
-        ).to.be.false;
+    expect(
+      await smartAccount.supportsExecutionMode(ACCOUNT_MODES.DEFAULT_SINGLE)
+    ).to.be.true
+    expect(
+      await smartAccount.supportsExecutionMode(ACCOUNT_MODES.DEFAULT_BATCH)
+    ).to.be.true
+    expect(await smartAccount.supportsExecutionMode(ACCOUNT_MODES.TRY_BATCH)).to
+      .be.true
+    expect(await smartAccount.supportsExecutionMode(ACCOUNT_MODES.TRY_SINGLE))
+      .to.be.true
+
+    expect(
+      await smartAccount.supportsExecutionMode(ACCOUNT_MODES.DELEGATE_SINGLE)
+    ).to.be.false
   })
 })

@@ -871,16 +871,20 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       components: [
         { name: "target", type: "address" },
         { name: "value", type: "uint256" },
-        { name: "callData", type: "bytes" },
-      ],
-    });
-    let execs: { target: Hex, value: bigint, callData: Hex }[] = [];
-    transactions.forEach((tx) => {
-      execs.push({target: tx.to as Hex, callData: (tx.data ?? "0x") as Hex, value: BigInt(tx.value ?? 0n)})
+        { name: "callData", type: "bytes" }
+      ]
     })
+    const execs: { target: Hex; value: bigint; callData: Hex }[] = []
+    for (const tx of transactions) {
+      execs.push({
+        target: tx.to as Hex,
+        callData: (tx.data ?? "0x") as Hex,
+        value: BigInt(tx.value ?? 0n)
+      })
+    }
     const executionCalldataPrep = ethers.AbiCoder.defaultAbiCoder().encode(
       [Executions],
-      [execs],
+      [execs]
     ) as Hex
     return encodeFunctionData({
       abi: parseAbi([
@@ -2146,11 +2150,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     })
   }
 
-  async supportsExecutionMode(
-    mode: Hex
-  ): Promise<boolean> {
+  async supportsExecutionMode(mode: Hex): Promise<boolean> {
     const accountContract = await this._getAccountContract()
-    return await accountContract.read.supportsExecutionMode([mode]) as boolean;
+    return (await accountContract.read.supportsExecutionMode([mode])) as boolean
   }
 
   // Review
