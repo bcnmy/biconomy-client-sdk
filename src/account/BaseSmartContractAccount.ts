@@ -132,7 +132,7 @@ export abstract class BaseSmartContractAccount<
    * @param _params -- Typed Data params to sign
    */
   async signTypedData(_params: SignTypedDataParams): Promise<Hex> {
-    throw new Error("signTypedData not supported")
+    return this.signer.signTypedData(_params)
   }
 
   /**

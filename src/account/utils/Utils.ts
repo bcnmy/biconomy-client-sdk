@@ -9,7 +9,7 @@ import {
 } from "viem"
 
 import type { UserOperationStruct } from "../../account"
-import { type SupportedSigner, convertSigner } from "../../account"
+import { type SupportedSigner, convertSigner, MAGIC_BYTES } from "../../account"
 import { extractChainIdFromBundlerUrl } from "../../bundler"
 import { extractChainIdFromPaymasterUrl } from "../../bundler"
 import type { BiconomySmartAccountV2Config } from "./Types.js"
@@ -157,7 +157,7 @@ export const wrapSignatureWith6492 = ({
       factoryCalldata,
       signature
     ]),
-    "0x6492649264926492649264926492649264926492649264926492649264926492"
+    MAGIC_BYTES
   ])
 }
 
