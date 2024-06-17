@@ -15,10 +15,7 @@ export interface IBundler {
     _userOp: Partial<UserOperationStruct>,
     stateOverrideSet?: StateOverrideSet
   ): Promise<UserOpGasResponse>
-  sendUserOp(
-    _userOp: UserOperationStruct,
-    _simulationType?: SimulationType
-  ): Promise<Hash>
+  sendUserOp(_userOp: UserOperationStruct): Promise<UserOpResponse>
   getUserOpReceipt(_userOpHash: string): Promise<UserOpReceipt>
   getUserOpByHash(_userOpHash: string): Promise<UserOpByHashResponse>
   getGasFeeValues(): Promise<GetUserOperationGasPriceReturnType>

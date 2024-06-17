@@ -1,7 +1,7 @@
 import { http, type Hash, type PublicClient, createPublicClient } from "viem"
 import type { StateOverrideSet, UserOperationStruct } from "../account"
 import type { SimulationType } from "../account"
-import { HttpMethod, getChain, sendRequest } from "../account"
+import { HttpMethod, getChain, isNullOrUndefined, sendRequest } from "../account"
 import type { IBundler } from "./interfaces/IBundler.js"
 import {
   DEFAULT_ENTRYPOINT_ADDRESS,
@@ -108,7 +108,7 @@ export class Bundler implements IBundler {
     // const userOp = transformUserOP(_userOp)
     const bundlerUrl = this.getBundlerUrl()
 
-    const response: { result: BundlerEstimateUserOpGasResponse } =
+    const response: { result: BundlerEstimateUserOpGasResponse, error: { message: string } } =
       await sendRequest(
         {
           url: bundlerUrl,
@@ -136,6 +136,10 @@ export class Bundler implements IBundler {
       }
     }
 
+    if(isNullOrUndefined(response.result)) {
+      throw new Error(`Error from Bundler: ${JSON.stringify(response?.error?.message)}`)
+    }
+
     return {
       preVerificationGas: BigInt(response.result.preVerificationGas || 0),
       verificationGasLimit: BigInt(response.result.verificationGasLimit || 0),
@@ -156,10 +160,8 @@ export class Bundler implements IBundler {
    * @description This function will send signed userOp to bundler to get mined on chain
    * @returns Promise<UserOpResponse>
    */
-  async sendUserOp(
-    _userOp: UserOperationStruct,
-    simulationParam?: SimulationType
-  ): Promise<Hash> {
+  async sendUserOp(_userOp: UserOperationStruct): Promise<UserOpResponse> {
+    const chainId = this.bundlerConfig.chainId
     const params = [deepHexlify(_userOp), this.bundlerConfig.entryPointAddress]
     const bundlerUrl = this.getBundlerUrl()
     const sendUserOperationResponse: { result: Hash } = await sendRequest(
@@ -176,9 +178,60 @@ export class Bundler implements IBundler {
       "Bundler"
     )
 
-    console.log(sendUserOperationResponse)
+    return {
+      userOpHash: sendUserOperationResponse.result,
+      wait: (confirmations?: number): Promise<UserOpReceipt> => {
+        // Note: maxDuration can be defined per chainId
+        const maxDuration =
+          this.UserOpReceiptMaxDurationIntervals[chainId] || 30000 // default 30 seconds
+        let totalDuration = 0
 
-    return sendUserOperationResponse.result
+        return new Promise<UserOpReceipt>((resolve, reject) => {
+          const intervalValue = this.UserOpReceiptIntervals[chainId] || 5000 // default 5 seconds
+          const intervalId = setInterval(async () => {
+            try {
+              const userOpResponse = await this.getUserOpReceipt(
+                sendUserOperationResponse.result
+              )
+              if (userOpResponse?.receipt?.blockNumber) {
+                if (confirmations) {
+                  const latestBlock = await this.provider.getBlockNumber()
+                  const confirmedBlocks =
+                    latestBlock - userOpResponse.receipt.blockNumber
+                  if (confirmations >= confirmedBlocks) {
+                    clearInterval(intervalId)
+                    resolve(userOpResponse)
+                    return
+                  }
+                } else {
+                  clearInterval(intervalId)
+                  resolve(userOpResponse)
+                  return
+                }
+              }
+            } catch (error) {
+              clearInterval(intervalId)
+              reject(error)
+              return
+            }
+
+            totalDuration += intervalValue
+            if (totalDuration >= maxDuration) {
+              clearInterval(intervalId)
+              reject(
+                new Error(
+                  `Exceeded maximum duration (${
+                    maxDuration / 1000
+                  } sec) waiting to get receipt for userOpHash ${
+                    sendUserOperationResponse.result
+                  }. Try getting the receipt manually using eth_getUserOperationReceipt rpc method on bundler`
+                )
+              )
+            }
+          }, intervalValue)
+        })
+      }
+    }
   }
 
   /**

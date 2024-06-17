@@ -1,8 +1,10 @@
-import { concat } from "viem"
+import { concat, pad, toHex } from "viem"
 import {
   CALLTYPE_BATCH,
   CALLTYPE_SINGLE,
   EXECTYPE_DEFAULT,
+  EXECTYPE_DELEGATE,
+  EXECTYPE_TRY,
   MODE_DEFAULT,
   MODE_PAYLOAD,
   UNUSED
@@ -56,3 +58,41 @@ export const EXECUTE_BATCH = concat([
   UNUSED,
   MODE_PAYLOAD
 ])
+
+export const ACCOUNT_MODES = {
+  DEFAULT_SINGLE: concat([
+    pad(EXECTYPE_DEFAULT, {size: 1}),
+    pad(CALLTYPE_SINGLE, {size: 1}),
+    pad(UNUSED, {size: 4}),
+    pad(MODE_DEFAULT, {size: 4}),
+    pad(MODE_PAYLOAD, {size: 22})
+  ]),
+  DEFAULT_BATCH: concat([
+    pad(EXECTYPE_DEFAULT, {size: 1}),
+    pad(CALLTYPE_BATCH, {size: 1}),
+    pad(UNUSED, {size: 4}),
+    pad(MODE_DEFAULT, {size: 4}),
+    pad(MODE_PAYLOAD, {size: 22})
+  ]),
+  TRY_BATCH: concat([
+    pad(EXECTYPE_TRY, {size: 1}),
+    pad(CALLTYPE_BATCH, {size: 1}),
+    pad(UNUSED, {size: 4}),
+    pad(MODE_DEFAULT, {size: 4}),
+    pad(MODE_PAYLOAD, {size: 22})
+  ]),
+  TRY_SINGLE: concat([
+    pad(EXECTYPE_TRY, {size: 1}),
+    pad(CALLTYPE_SINGLE, {size: 1}),
+    pad(UNUSED, {size: 4}),
+    pad(MODE_DEFAULT, {size: 4}),
+    pad(MODE_PAYLOAD, {size: 22})
+  ]),
+  DELEGATE_SINGLE: concat([
+    pad(EXECTYPE_DELEGATE, {size: 1}),
+    pad(CALLTYPE_SINGLE, {size: 1}),
+    pad(UNUSED, {size: 4}),
+    pad(MODE_DEFAULT, {size: 4}),
+    pad(MODE_PAYLOAD, {size: 22})
+  ])
+}

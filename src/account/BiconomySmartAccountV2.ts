@@ -1,4 +1,5 @@
-import { zeroPadBytes } from "ethers"
+import type { UserOpResponse } from "@biconomy/account"
+import { ParamType, ethers, zeroPadBytes } from "ethers"
 import {
   http,
   type Address,
@@ -861,15 +862,32 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   async encodeExecuteBatch(transactions: Transaction[]): Promise<Hex> {
     // return accountContract.interface.encodeFunctionData("execute_ncC", [to, value, data]) as Hex;
     const mode = EXECUTE_BATCH
-
-    const executionCalldata = encodePacked([Executions], [transactions])
-    // Encode a simple call
+    // TODO: Use viem instead of ethers
+    const execution = ParamType.from({
+      type: "tuple(address,uint256,bytes)[]",
+      baseType: "tuple",
+      name: "executions",
+      arrayLength: null,
+      components: [
+        { name: "target", type: "address" },
+        { name: "value", type: "uint256" },
+        { name: "callData", type: "bytes" },
+      ],
+    });
+    let execs: { target: Hex, value: bigint, callData: Hex }[] = [];
+    transactions.forEach((tx) => {
+      execs.push({target: tx.to as Hex, callData: (tx.data ?? "0x") as Hex, value: BigInt(tx.value ?? 0n)})
+    })
+    const executionCalldataPrep = ethers.AbiCoder.defaultAbiCoder().encode(
+      [Executions],
+      [execs],
+    ) as Hex
     return encodeFunctionData({
       abi: parseAbi([
         "function execute(bytes32 mode, bytes calldata executionCalldata) external"
       ]),
       functionName: "execute",
-      args: [mode, executionCalldata]
+      args: [mode, executionCalldataPrep]
     })
   }
 
@@ -1210,7 +1228,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   async sendUserOp(
     userOp: Partial<UserOperationStruct>,
     params?: SendUserOpParams
-  ): Promise<Hash> {
+  ): Promise<UserOpResponse> {
     // biome-ignore lint/performance/noDelete: <explanation>
     delete userOp.signature
     const userOperation = await this.signUserOp(userOp, params)
@@ -1233,7 +1251,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   async sendSignedUserOp(
     userOp: UserOperationStruct,
     simulationType?: SimulationType
-  ): Promise<Hash> {
+  ): Promise<UserOpResponse> {
     // TODO REMOVE COMMENT AND CHECK FOR PIMLICO USER OP FIELDS
     // const requiredFields: UserOperationKey[] = [
     //   "sender",
@@ -1254,10 +1272,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     //   "userOp being sent to the bundler",
     //   JSON.stringify(userOp, null, 2)
     // )
-    const bundlerResponse = await this.bundler.sendUserOp(
-      userOp,
-      simulationType
-    )
+    const bundlerResponse = await this.bundler.sendUserOp(userOp)
     return bundlerResponse
   }
 
@@ -1490,7 +1505,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   async sendTransaction(
     manyOrOneTransactions: Transaction | Transaction[],
     buildUseropDto?: BuildUserOpOptions
-  ): Promise<Hash> {
+  ): Promise<UserOpResponse> {
     const userOp = await this.buildUserOp(
       Array.isArray(manyOrOneTransactions)
         ? manyOrOneTransactions
@@ -2020,7 +2035,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     })
   }
 
-  async enableModule(moduleAddress: Hex): Promise<Hash> {
+  async enableModule(moduleAddress: Hex): Promise<UserOpResponse> {
     const tx: Transaction = await this.getEnableModuleData(moduleAddress)
     const partialUserOp = await this.buildUserOp([tx])
     return this.sendUserOp(partialUserOp)
@@ -2057,7 +2072,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return tx
   }
 
-  async disableModule(prevModule: Hex, moduleAddress: Hex): Promise<Hash> {
+  async disableModule(
+    prevModule: Hex,
+    moduleAddress: Hex
+  ): Promise<UserOpResponse> {
     const tx: Transaction = await this.getDisableModuleData(
       prevModule,
       moduleAddress
@@ -2087,7 +2105,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     moduleType: ModuleType,
     moduleAddress: Hex,
     data?: Hex
-  ): Promise<boolean> {
+  ): Promise<any> {
     const accountContract = await this._getAccountContract()
     return await accountContract.read.isModuleInstalled([
       moduleType,
@@ -2100,7 +2118,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     moduleType: ModuleType,
     moduleAddress: Hex,
     data?: Hex
-  ): Promise<Hash> {
+  ): Promise<UserOpResponse> {
     const installModuleData = encodeFunctionData({
       abi: NexusAccountAbi,
       functionName: "installModule",
@@ -2116,7 +2134,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     moduleType: ModuleType,
     moduleAddress: Hex,
     deInitData?: Hex
-  ): Promise<Hash> {
+  ): Promise<UserOpResponse> {
     const uninstallModuleData = encodeFunctionData({
       abi: NexusAccountAbi,
       functionName: "uninstallModule",
@@ -2126,6 +2144,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       to: await this.getAddress(),
       data: uninstallModuleData
     })
+  }
+
+  async supportsExecutionMode(
+    mode: Hex
+  ): Promise<boolean> {
+    const accountContract = await this._getAccountContract()
+    return await accountContract.read.supportsExecutionMode([mode]) as boolean;
   }
 
   // Review

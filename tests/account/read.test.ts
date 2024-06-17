@@ -25,7 +25,8 @@ import {
   NATIVE_TOKEN_ALIAS,
   compareChainIds,
   createSmartAccountClient,
-  isNullOrUndefined
+  isNullOrUndefined,
+  ModuleType
 } from "../../src/account"
 import { type UserOperationStruct, getChain } from "../../src/account"
 import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"
@@ -36,6 +37,7 @@ import {
 } from "../../src/modules"
 import { Paymaster, PaymasterMode } from "../../src/paymaster"
 import { checkBalance, getBundlerUrl, getConfig } from "../utils"
+import { ACCOUNT_MODES } from "../../src/bundler/utils/Constants"
 
 describe("Account:Read", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
@@ -187,7 +189,7 @@ describe("Account:Read", () => {
   test.concurrent(
     "should check if module is enabled on the smart account",
     async () => {
-      const isEnabled = await smartAccount.isModuleInstalled(K1_VALIDATOR)
+      const isEnabled = await smartAccount.isModuleInstalled(ModuleType.Validation, K1_VALIDATOR)
       expect(isEnabled).toBeTruthy()
     },
     30000
@@ -866,4 +868,33 @@ describe("Account:Read", () => {
   //     await expect(smartAccount.buildUserOp([tx1, tx2])).resolves.toBeTruthy()
   //   }
   // )
+
+  test.concurrent("Should verify supported modes", async () => {
+        expect(
+          await smartAccount.supportsExecutionMode(
+            ACCOUNT_MODES.DEFAULT_SINGLE
+          ),
+        ).to.be.true;
+        expect(
+          await smartAccount.supportsExecutionMode(
+            ACCOUNT_MODES.DEFAULT_BATCH
+          ),
+        ).to.be.true;
+        expect(
+          await smartAccount.supportsExecutionMode(
+            ACCOUNT_MODES.TRY_BATCH
+          ),
+        ).to.be.true;
+        expect(
+          await smartAccount.supportsExecutionMode(
+            ACCOUNT_MODES.TRY_SINGLE
+          ),
+        ).to.be.true;
+  
+        expect(
+          await smartAccount.supportsExecutionMode(
+            ACCOUNT_MODES.DELEGATE_SINGLE
+          ),
+        ).to.be.false;
+  })
 })
