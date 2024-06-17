@@ -180,12 +180,13 @@ export function convertToFactor(percentage: number | undefined): number {
   return 1
 }
 
-export function fixPotentiallyIncorrectVForSignature(signature: Hex) {
-  Number.parseInt(signature.slice(-2), 16)
-  const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
+export function fixPotentiallyIncorrectVForSignature(_signature: Hex) {
+  let signature = _signature
+  Number.parseInt(_signature.slice(-2), 16)
+  const potentiallyIncorrectV = Number.parseInt(_signature.slice(-2), 16)
   if (![27, 28].includes(potentiallyIncorrectV)) {
     const correctV = potentiallyIncorrectV + 27
-    signature = (signature.slice(0, -2) + correctV.toString(16)) as Hex
+    signature = (_signature.slice(0, -2) + correctV.toString(16)) as Hex
   }
   return signature
 }
