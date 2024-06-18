@@ -2163,13 +2163,14 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   ): Promise<UserOpResponse> {
     let executorCalldata: Hex = "0x"
     if (transactions.length > 1) {
-      const execs: { target: Hex; value: bigint; callData: Hex }[] = transactions.map((tx) => {
-        return {
-          target: tx.to as Hex,
-          callData: (tx.data ?? "0x") as Hex,
-          value: BigInt(tx.value ?? 0n)
-        }
-      })
+      const execs: { target: Hex; value: bigint; callData: Hex }[] =
+        transactions.map((tx) => {
+          return {
+            target: tx.to as Hex,
+            callData: (tx.data ?? "0x") as Hex,
+            value: BigInt(tx.value ?? 0n)
+          }
+        })
       const executionCalldataPrep = ethers.AbiCoder.defaultAbiCoder().encode(
         [Executions],
         [execs]
