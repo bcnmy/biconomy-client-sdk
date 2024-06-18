@@ -292,7 +292,22 @@ describe("Account:Write", async () => {
     //   await expect(userOpResponse).rejects.toThrowError("Error from Bundler:")
     // }, 60000)
 
-    test("send user op using the executor", async () => {
+    // test("send user op using the executor call type single", async () => {
+    //   const encodedCall = encodeFunctionData({
+    //     abi: parseAbi(["function safeMint(address _to)"]),
+    //     functionName: "safeMint",
+    //     args: [recipient]
+    //   })
+    //   const transaction = {
+    //     to: nftAddress,
+    //     data: encodedCall
+    //   }
+    //   const userOpResponse = await smartAccount.sendTransactionWithExecutor(transaction, MOCK_EXECUTOR);
+    //   const userOpReceipt: UserOpReceipt = await userOpResponse.wait()
+    //   console.log(userOpReceipt.userOpHash, "user op hash");
+    // }, 60000)
+
+    test("send user op using the executor call type batch", async () => {
       const encodedCall = encodeFunctionData({
         abi: parseAbi(["function safeMint(address _to)"]),
         functionName: "safeMint",
@@ -302,14 +317,11 @@ describe("Account:Write", async () => {
         to: nftAddress,
         data: encodedCall
       }
-
-      const userOpResponse2 = await smartAccount.sendTransaction(transaction, {
-        useExecutor: true
-      })
-      const userOpReceipt2: UserOpReceipt = await userOpResponse2.wait()
-      console.log(userOpReceipt2.userOpHash, "user op hash 2")
+      const userOpResponse = await smartAccount.sendTransactionWithExecutor([transaction, transaction], MOCK_EXECUTOR);
+      const userOpReceipt: UserOpReceipt = await userOpResponse.wait()
+      console.log(userOpReceipt.userOpHash, "user op hash");
     }, 60000)
-  })
+  // })
 
   // describe("Account:Hook Module Tests", async () => {
   //   test("install a mock Hook module", async () => {
@@ -497,5 +509,5 @@ describe("Account:Write", async () => {
 
   //     console.log(userOpReceipt2.userOpHash, "user op hash 2")
   //   }, 60000)
-  // })
+  })
 })

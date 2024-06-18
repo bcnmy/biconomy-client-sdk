@@ -129,7 +129,6 @@ export class Bundler implements IBundler {
       },
       "Bundler"
     )
-
     const userOpGasResponse = response
     for (const key in userOpGasResponse) {
       if (
