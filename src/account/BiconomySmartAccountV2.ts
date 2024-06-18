@@ -831,7 +831,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @returns encoded data for execute function
    */
   async encodeExecute(transaction: Transaction): Promise<Hex> {
-    const mode = EXECUTE_BATCH
+    const mode = EXECUTE_SINGLE
 
     const executionCalldata = encodePacked(
       ["address", "uint256", "bytes"],
@@ -2163,14 +2163,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   ): Promise<UserOpResponse> {
     let executorCalldata: Hex = "0x"
     if (transactions.length > 1) {
-      const execs: { target: Hex; value: bigint; callData: Hex }[] = []
-      for (const tx of transactions) {
-        execs.push({
+      const execs: { target: Hex; value: bigint; callData: Hex }[] = transactions.map((tx) => {
+        return {
           target: tx.to as Hex,
           callData: (tx.data ?? "0x") as Hex,
           value: BigInt(tx.value ?? 0n)
-        })
-      }
+        }
+      })
       const executionCalldataPrep = ethers.AbiCoder.defaultAbiCoder().encode(
         [Executions],
         [execs]
@@ -2181,7 +2180,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
           "function executeBatchViaAccount(address account, bytes calldata execs) external"
         ]),
         functionName: "executeBatchViaAccount",
-        args: [(await this.getAddress()) as Hex, executionCalldataPrep]
+        args: [await this.getAddress(), executionCalldataPrep]
       })
     } else {
       executorCalldata = encodeFunctionData({
@@ -2190,7 +2189,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         ]),
         functionName: "executeViaAccount",
         args: [
-          (await this.getAddress()) as Hex,
+          await this.getAddress(),
           transactions[0].to as Hex,
           BigInt(transactions[0].value ?? 0),
           transactions[0].data as Hex
