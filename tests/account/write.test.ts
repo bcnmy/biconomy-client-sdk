@@ -317,197 +317,200 @@ describe("Account:Write", async () => {
         to: nftAddress,
         data: encodedCall
       }
-      const userOpResponse = await smartAccount.sendTransactionWithExecutor([transaction, transaction], MOCK_EXECUTOR);
+      const userOpResponse = await smartAccount.sendTransactionWithExecutor(
+        [transaction, transaction],
+        MOCK_EXECUTOR
+      )
       const userOpReceipt: UserOpReceipt = await userOpResponse.wait()
-      console.log(userOpReceipt.userOpHash, "user op hash");
+      console.log(userOpReceipt.userOpHash, "user op hash")
     }, 60000)
-  // })
+    // })
 
-  // describe("Account:Hook Module Tests", async () => {
-  //   test("install a mock Hook module", async () => {
-  //     const isSupported = await smartAccount.supportsModule(ModuleType.Hooks)
-  //     console.log(isSupported, "is supported")
+    // describe("Account:Hook Module Tests", async () => {
+    //   test("install a mock Hook module", async () => {
+    //     const isSupported = await smartAccount.supportsModule(ModuleType.Hooks)
+    //     console.log(isSupported, "is supported")
 
-  //     const isInstalledBefore = await smartAccount.isModuleInstalled(
-  //       ModuleType.Hooks,
-  //       MOCK_HOOK
-  //     )
-  //     console.log(isInstalledBefore, "is installed before")
+    //     const isInstalledBefore = await smartAccount.isModuleInstalled(
+    //       ModuleType.Hooks,
+    //       MOCK_HOOK
+    //     )
+    //     console.log(isInstalledBefore, "is installed before")
 
-  //     const userOpResponse: UserOpResponse = await smartAccount.installModule(
-  //       ModuleType.Hooks,
-  //       MOCK_HOOK
-  //     )
-  //     const userOpReceipt = await userOpResponse.wait()
-  //     console.log(userOpReceipt, "user op receipt")
+    //     const userOpResponse: UserOpResponse = await smartAccount.installModule(
+    //       ModuleType.Hooks,
+    //       MOCK_HOOK
+    //     )
+    //     const userOpReceipt = await userOpResponse.wait()
+    //     console.log(userOpReceipt, "user op receipt")
 
-  //     const isInstalled = await smartAccount.isModuleInstalled(
-  //       ModuleType.Hooks,
-  //       MOCK_HOOK
-  //     )
+    //     const isInstalled = await smartAccount.isModuleInstalled(
+    //       ModuleType.Hooks,
+    //       MOCK_HOOK
+    //     )
 
-  //     expect(userOpReceipt.success).toBe(true)
-  //     expect(isInstalled).toBeTruthy()
-  //   }, 60000)
+    //     expect(userOpReceipt.success).toBe(true)
+    //     expect(isInstalled).toBeTruthy()
+    //   }, 60000)
 
-  //   test("get active hook", async () => {
-  //     const activeHook: Address = await smartAccount.getActiveHook()
-  //     console.log(activeHook, "active hook")
-  //     expect(activeHook).toBe(MOCK_HOOK)
-  //   }, 60000)
+    //   test("get active hook", async () => {
+    //     const activeHook: Address = await smartAccount.getActiveHook()
+    //     console.log(activeHook, "active hook")
+    //     expect(activeHook).toBe(MOCK_HOOK)
+    //   }, 60000)
 
-  //   test("uninstall executor module", async () => {
-  //     const prevAddress: Hex = "0x0000000000000000000000000000000000000001"
-  //     const deInitData = encodeAbiParameters(
-  //       [
-  //         { name: "prev", type: "address" },
-  //         { name: "disableModuleData", type: "bytes" }
-  //       ],
-  //       [prevAddress, toHex(stringToBytes(""))]
-  //     )
-  //     const userOpResponse = await smartAccount.uninstallModule(
-  //       ModuleType.Hooks,
-  //       MOCK_HOOK,
-  //       deInitData
-  //     )
-  //     const userOpReceipt = await userOpResponse.wait()
+    //   test("uninstall executor module", async () => {
+    //     const prevAddress: Hex = "0x0000000000000000000000000000000000000001"
+    //     const deInitData = encodeAbiParameters(
+    //       [
+    //         { name: "prev", type: "address" },
+    //         { name: "disableModuleData", type: "bytes" }
+    //       ],
+    //       [prevAddress, toHex(stringToBytes(""))]
+    //     )
+    //     const userOpResponse = await smartAccount.uninstallModule(
+    //       ModuleType.Hooks,
+    //       MOCK_HOOK,
+    //       deInitData
+    //     )
+    //     const userOpReceipt = await userOpResponse.wait()
 
-  //     const isInstalled = await smartAccount.isModuleInstalled(
-  //       ModuleType.Hooks,
-  //       MOCK_HOOK
-  //     )
+    //     const isInstalled = await smartAccount.isModuleInstalled(
+    //       ModuleType.Hooks,
+    //       MOCK_HOOK
+    //     )
 
-  //     expect(userOpReceipt.success).toBe(true)
-  //     expect(isInstalled).toBeFalsy()
-  //     expect(userOpReceipt).toBeTruthy()
-  //   }, 60000)
+    //     expect(userOpReceipt.success).toBe(true)
+    //     expect(isInstalled).toBeFalsy()
+    //     expect(userOpReceipt).toBeTruthy()
+    //   }, 60000)
 
-  //   test("should fail to install same executor module", async () => {
-  //     const isInstalled = await smartAccount.isModuleInstalled(
-  //       ModuleType.Validation,
-  //       K1_VALIDATOR
-  //     )
-  //     expect(isInstalled).toBeTruthy()
+    //   test("should fail to install same executor module", async () => {
+    //     const isInstalled = await smartAccount.isModuleInstalled(
+    //       ModuleType.Validation,
+    //       K1_VALIDATOR
+    //     )
+    //     expect(isInstalled).toBeTruthy()
 
-  //     const userOpResponse = smartAccount.installModule(
-  //       ModuleType.Validation,
-  //       K1_VALIDATOR,
-  //       account.address
-  //     )
-  //     await expect(userOpResponse).rejects.toThrowError("Error from Bundler:")
-  //   }, 60000)
+    //     const userOpResponse = smartAccount.installModule(
+    //       ModuleType.Validation,
+    //       K1_VALIDATOR,
+    //       account.address
+    //     )
+    //     await expect(userOpResponse).rejects.toThrowError("Error from Bundler:")
+    //   }, 60000)
 
-  //   test("send user op using the executor", async () => {
-  //     // const encodedCall = encodeFunctionData({
-  //     //   abi: parseAbi(["function safeMint(address _to)"]),
-  //     //   functionName: "safeMint",
-  //     //   args: [recipient]
-  //     // })
-  //     const transaction = {
-  //       to: zeroAddress,
-  //       data: "0x"
-  //     }
+    //   test("send user op using the executor", async () => {
+    //     // const encodedCall = encodeFunctionData({
+    //     //   abi: parseAbi(["function safeMint(address _to)"]),
+    //     //   functionName: "safeMint",
+    //     //   args: [recipient]
+    //     // })
+    //     const transaction = {
+    //       to: zeroAddress,
+    //       data: "0x"
+    //     }
 
-  //     const userOpResponse2 = await smartAccount.sendTransaction(transaction, {
-  //       useExecutor: true
-  //     })
-  //     const userOpReceipt2: UserOpReceipt = await userOpResponse2.wait()
+    //     const userOpResponse2 = await smartAccount.sendTransaction(transaction, {
+    //       useExecutor: true
+    //     })
+    //     const userOpReceipt2: UserOpReceipt = await userOpResponse2.wait()
 
-  //     console.log(userOpReceipt2.userOpHash, "user op hash 2")
-  //   }, 60000)
-  // })
+    //     console.log(userOpReceipt2.userOpHash, "user op hash 2")
+    //   }, 60000)
+    // })
 
-  // describe("Account:Fallback Handler Module Tests", async () => {
-  //   test("install a fallback handler Hook module", async () => {
-  //     const isSupported = await smartAccount.supportsModule(ModuleType.Fallback)
-  //     console.log(isSupported, "is supported")
+    // describe("Account:Fallback Handler Module Tests", async () => {
+    //   test("install a fallback handler Hook module", async () => {
+    //     const isSupported = await smartAccount.supportsModule(ModuleType.Fallback)
+    //     console.log(isSupported, "is supported")
 
-  //     const isInstalledBefore = await smartAccount.isModuleInstalled(
-  //       ModuleType.Fallback,
-  //       MOCK_FALLBACK_HANDLER
-  //     )
-  //     console.log(isInstalledBefore, "is installed before")
+    //     const isInstalledBefore = await smartAccount.isModuleInstalled(
+    //       ModuleType.Fallback,
+    //       MOCK_FALLBACK_HANDLER
+    //     )
+    //     console.log(isInstalledBefore, "is installed before")
 
-  //     const userOpResponse: UserOpResponse = await smartAccount.installModule(
-  //       ModuleType.Fallback,
-  //       MOCK_FALLBACK_HANDLER
-  //     )
-  //     const userOpReceipt = await userOpResponse.wait()
-  //     console.log(userOpReceipt, "user op receipt")
+    //     const userOpResponse: UserOpResponse = await smartAccount.installModule(
+    //       ModuleType.Fallback,
+    //       MOCK_FALLBACK_HANDLER
+    //     )
+    //     const userOpReceipt = await userOpResponse.wait()
+    //     console.log(userOpReceipt, "user op receipt")
 
-  //     const isInstalled = await smartAccount.isModuleInstalled(
-  //       ModuleType.Fallback,
-  //       MOCK_FALLBACK_HANDLER
-  //     )
+    //     const isInstalled = await smartAccount.isModuleInstalled(
+    //       ModuleType.Fallback,
+    //       MOCK_FALLBACK_HANDLER
+    //     )
 
-  //     expect(userOpReceipt.success).toBe(true)
-  //     expect(isInstalled).toBeTruthy()
-  //   }, 60000)
+    //     expect(userOpReceipt.success).toBe(true)
+    //     expect(isInstalled).toBeTruthy()
+    //   }, 60000)
 
-  //   test("get active hook", async () => {
-  //     const activeHook: Address = await smartAccount.getActiveHook()
-  //     console.log(activeHook, "active hook")
-  //     expect(activeHook).toBe(MOCK_HOOK)
-  //   }, 60000)
+    //   test("get active hook", async () => {
+    //     const activeHook: Address = await smartAccount.getActiveHook()
+    //     console.log(activeHook, "active hook")
+    //     expect(activeHook).toBe(MOCK_HOOK)
+    //   }, 60000)
 
-  //   test("uninstall executor module", async () => {
-  //     const prevAddress: Hex = "0x0000000000000000000000000000000000000001"
-  //     const deInitData = encodeAbiParameters(
-  //       [
-  //         { name: "prev", type: "address" },
-  //         { name: "disableModuleData", type: "bytes" }
-  //       ],
-  //       [prevAddress, toHex(stringToBytes(""))]
-  //     )
-  //     const userOpResponse = await smartAccount.uninstallModule(
-  //       ModuleType.Hooks,
-  //       MOCK_HOOK,
-  //       deInitData
-  //     )
-  //     const userOpReceipt = await userOpResponse.wait()
+    //   test("uninstall executor module", async () => {
+    //     const prevAddress: Hex = "0x0000000000000000000000000000000000000001"
+    //     const deInitData = encodeAbiParameters(
+    //       [
+    //         { name: "prev", type: "address" },
+    //         { name: "disableModuleData", type: "bytes" }
+    //       ],
+    //       [prevAddress, toHex(stringToBytes(""))]
+    //     )
+    //     const userOpResponse = await smartAccount.uninstallModule(
+    //       ModuleType.Hooks,
+    //       MOCK_HOOK,
+    //       deInitData
+    //     )
+    //     const userOpReceipt = await userOpResponse.wait()
 
-  //     const isInstalled = await smartAccount.isModuleInstalled(
-  //       ModuleType.Hooks,
-  //       MOCK_HOOK
-  //     )
+    //     const isInstalled = await smartAccount.isModuleInstalled(
+    //       ModuleType.Hooks,
+    //       MOCK_HOOK
+    //     )
 
-  //     expect(userOpReceipt.success).toBe(true)
-  //     expect(isInstalled).toBeFalsy()
-  //     expect(userOpReceipt).toBeTruthy()
-  //   }, 60000)
+    //     expect(userOpReceipt.success).toBe(true)
+    //     expect(isInstalled).toBeFalsy()
+    //     expect(userOpReceipt).toBeTruthy()
+    //   }, 60000)
 
-  //   test("should fail to install same executor module", async () => {
-  //     const isInstalled = await smartAccount.isModuleInstalled(
-  //       ModuleType.Validation,
-  //       K1_VALIDATOR
-  //     )
-  //     expect(isInstalled).toBeTruthy()
+    //   test("should fail to install same executor module", async () => {
+    //     const isInstalled = await smartAccount.isModuleInstalled(
+    //       ModuleType.Validation,
+    //       K1_VALIDATOR
+    //     )
+    //     expect(isInstalled).toBeTruthy()
 
-  //     const userOpResponse = smartAccount.installModule(
-  //       ModuleType.Validation,
-  //       K1_VALIDATOR,
-  //       account.address
-  //     )
-  //     await expect(userOpResponse).rejects.toThrowError("Error from Bundler:")
-  //   }, 60000)
+    //     const userOpResponse = smartAccount.installModule(
+    //       ModuleType.Validation,
+    //       K1_VALIDATOR,
+    //       account.address
+    //     )
+    //     await expect(userOpResponse).rejects.toThrowError("Error from Bundler:")
+    //   }, 60000)
 
-  //   test("send user op using the executor", async () => {
-  //     // const encodedCall = encodeFunctionData({
-  //     //   abi: parseAbi(["function safeMint(address _to)"]),
-  //     //   functionName: "safeMint",
-  //     //   args: [recipient]
-  //     // })
-  //     const transaction = {
-  //       to: zeroAddress,
-  //       data: "0x"
-  //     }
+    //   test("send user op using the executor", async () => {
+    //     // const encodedCall = encodeFunctionData({
+    //     //   abi: parseAbi(["function safeMint(address _to)"]),
+    //     //   functionName: "safeMint",
+    //     //   args: [recipient]
+    //     // })
+    //     const transaction = {
+    //       to: zeroAddress,
+    //       data: "0x"
+    //     }
 
-  //     const userOpResponse2 = await smartAccount.sendTransaction(transaction, {
-  //       useExecutor: true
-  //     })
-  //     const userOpReceipt2: UserOpReceipt = await userOpResponse2.wait()
+    //     const userOpResponse2 = await smartAccount.sendTransaction(transaction, {
+    //       useExecutor: true
+    //     })
+    //     const userOpReceipt2: UserOpReceipt = await userOpResponse2.wait()
 
-  //     console.log(userOpReceipt2.userOpHash, "user op hash 2")
-  //   }, 60000)
+    //     console.log(userOpReceipt2.userOpHash, "user op hash 2")
+    //   }, 60000)
   })
 })

@@ -830,9 +830,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @param data represent data associated with transaction
    * @returns encoded data for execute function
    */
-  async encodeExecute(
-    transaction: Transaction
-  ): Promise<Hex> {
+  async encodeExecute(transaction: Transaction): Promise<Hex> {
     const mode = EXECUTE_BATCH
 
     const executionCalldata = encodePacked(
@@ -859,9 +857,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @param data represent array of data associated with each transaction
    * @returns encoded data for executeBatch function
    */
-  async encodeExecuteBatch(
-    transactions: Transaction[]
-  ): Promise<Hex> {
+  async encodeExecuteBatch(transactions: Transaction[]): Promise<Hex> {
     // return accountContract.interface.encodeFunctionData("execute_ncC", [to, value, data]) as Hex;
     const mode = EXECUTE_BATCH
     // TODO: Use viem instead of ethers
@@ -877,7 +873,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       [Executions],
       [execs]
     ) as Hex
-   
+
     return encodeFunctionData({
       abi: parseAbi([
         "function execute(bytes32 mode, bytes calldata executionCalldata) external"
@@ -1520,12 +1516,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     executorAddress: Address,
     buildUseropDto?: BuildUserOpOptions
   ): Promise<UserOpResponse> {
-    return await this.executeFromExecutor(Array.isArray(manyOrOneTransactions)
-      ? manyOrOneTransactions
-      : [manyOrOneTransactions], 
+    return await this.executeFromExecutor(
+      Array.isArray(manyOrOneTransactions)
+        ? manyOrOneTransactions
+        : [manyOrOneTransactions],
       executorAddress,
       buildUseropDto
-    );
+    )
   }
 
   /**
@@ -1584,13 +1581,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     let callData: Hex = "0x"
     if (!buildUseropDto?.useEmptyDeployCallData) {
       if (transactions.length > 1 || buildUseropDto?.forceEncodeForBatch) {
-        callData = await this.encodeExecuteBatch(
-          transactions,
-        )
+        callData = await this.encodeExecuteBatch(transactions)
       } else {
-        callData = await this.encodeExecute(
-          transactions[0],
-        )
+        callData = await this.encodeExecute(transactions[0])
       }
     }
 
@@ -1877,9 +1870,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
         const finalUserOp: Partial<UserOperationStruct> = {
           ...userOp,
-          callData: await this.encodeExecuteBatch(
-            [approvalRequest, initialTransaction],
-          )
+          callData: await this.encodeExecuteBatch([
+            approvalRequest,
+            initialTransaction
+          ])
         }
 
         return finalUserOp
@@ -2167,8 +2161,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     executorAddress: Address,
     buildUseropDto?: BuildUserOpOptions
   ): Promise<UserOpResponse> {
-    let executorCalldata: Hex = "0x";
-    if(transactions.length > 1){
+    let executorCalldata: Hex = "0x"
+    if (transactions.length > 1) {
       const execs: { target: Hex; value: bigint; callData: Hex }[] = []
       for (const tx of transactions) {
         execs.push({
@@ -2183,21 +2177,33 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       ) as Hex
 
       executorCalldata = encodeFunctionData({
-        abi: parseAbi(["function executeBatchViaAccount(address account, bytes calldata execs) external"]),
+        abi: parseAbi([
+          "function executeBatchViaAccount(address account, bytes calldata execs) external"
+        ]),
         functionName: "executeBatchViaAccount",
-        args: [this.accountAddress! as Hex, executionCalldataPrep]
+        args: [(await this.getAddress()) as Hex, executionCalldataPrep]
       })
     } else {
       executorCalldata = encodeFunctionData({
-        abi: parseAbi(["function executeViaAccount(address account, address target, uint256 value, bytes calldata callData) external"]),
+        abi: parseAbi([
+          "function executeViaAccount(address account, address target, uint256 value, bytes calldata callData) external"
+        ]),
         functionName: "executeViaAccount",
-        args: [this.accountAddress! as Hex, transactions[0].to as Hex, BigInt(transactions[0].value ?? 0), transactions[0].data as Hex]
+        args: [
+          (await this.getAddress()) as Hex,
+          transactions[0].to as Hex,
+          BigInt(transactions[0].value ?? 0),
+          transactions[0].data as Hex
+        ]
       })
     }
-    return await this.sendTransaction({
-      to: executorAddress,
-      data: executorCalldata
-    }, buildUseropDto)
+    return await this.sendTransaction(
+      {
+        to: executorAddress,
+        data: executorCalldata
+      },
+      buildUseropDto
+    )
   }
 
   async supportsExecutionMode(mode: Hex): Promise<boolean> {
