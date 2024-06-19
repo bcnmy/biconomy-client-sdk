@@ -1,5 +1,4 @@
-import type { UserOpResponse } from "@biconomy/account"
-import { ParamType, ethers, zeroPadBytes } from "ethers"
+import { ethers, zeroPadBytes } from "ethers"
 import {
   http,
   type Address,
@@ -11,26 +10,23 @@ import {
   concat,
   concatHex,
   createPublicClient,
-  createWalletClient,
   decodeFunctionData,
   encodeAbiParameters,
   encodeFunctionData,
   encodePacked,
   formatUnits,
   getContract,
-  getContractAddress,
-  getCreate2Address,
   keccak256,
-  pad,
   parseAbi,
+  parseAbiItem,
   parseAbiParameters,
   toBytes
 } from "viem"
-import { toAccount } from "viem/accounts"
 import {
   Bundler,
   Executions,
-  type GetUserOperationGasPriceReturnType
+  type GetUserOperationGasPriceReturnType,
+  type UserOpResponse
 } from "../bundler/index.js"
 import type { IBundler } from "../bundler/interfaces/IBundler.js"
 import { EXECUTE_BATCH, EXECUTE_SINGLE } from "../bundler/utils/Constants.js"
@@ -62,10 +58,8 @@ import { BaseSmartContractAccount } from "./BaseSmartContractAccount.js"
 import { NexusAccountAbi } from "./abi/SmartAccount.js"
 import {
   ADDRESS_ZERO,
-  BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION,
   DEFAULT_BICONOMY_FACTORY_ADDRESS,
   DEFAULT_ENTRYPOINT_ADDRESS,
-  DEFAULT_FALLBACK_HANDLER_ADDRESS,
   ERC20_ABI,
   ERROR_MESSAGES,
   MAGIC_BYTES,
@@ -80,7 +74,6 @@ import type {
   CounterFactualAddressParam,
   NonceOptions,
   PaymasterUserOperationDto,
-  SimulationType,
   SupportedToken,
   Transaction,
   TransferOwnershipCompatibleModule,
@@ -93,8 +86,7 @@ import {
   packUserOp
 } from "./utils/Utils.js"
 
-type UserOperationKey = keyof UserOperationStruct
-
+// type UserOperationKey = keyof UserOperationStruct
 export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   private sessionData?: ModuleInfo
 
@@ -115,13 +107,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     PublicClient | WalletClient
   >
 
-  private defaultFallbackHandlerAddress: Hex
+  // private scanForUpgradedAccountsFromV1!: boolean
 
-  private implementationAddress: Hex
-
-  private scanForUpgradedAccountsFromV1!: boolean
-
-  private maxIndexForScan!: bigint
+  // private maxIndexForScan!: bigint
 
   // Validation module responsible for account deployment initCode. This acts as a default authorization module.
   defaultValidationModule!: BaseValidationModule
@@ -161,9 +149,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     this.index = biconomySmartAccountConfig.index ?? 0n
     this.chainId = biconomySmartAccountConfig.chainId
     this.bundler = biconomySmartAccountConfig.bundler
-    this.implementationAddress =
-      biconomySmartAccountConfig.implementationAddress ??
-      (BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0 as Hex)
+    // this.implementationAddress =
+    //   biconomySmartAccountConfig.implementationAddress ??
+    //   (BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0 as Hex)
 
     if (biconomySmartAccountConfig.paymasterUrl) {
       this.paymaster = new Paymaster({
@@ -179,14 +167,14 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     this.bundler = biconomySmartAccountConfig.bundler
 
-    const defaultFallbackHandlerAddress =
-      this.factoryAddress === DEFAULT_BICONOMY_FACTORY_ADDRESS
-        ? DEFAULT_FALLBACK_HANDLER_ADDRESS
-        : biconomySmartAccountConfig.defaultFallbackHandler
-    if (!defaultFallbackHandlerAddress) {
-      throw new Error("Default Fallback Handler address is not provided")
-    }
-    this.defaultFallbackHandlerAddress = defaultFallbackHandlerAddress
+    // const defaultFallbackHandlerAddress =
+    //   this.factoryAddress === DEFAULT_BICONOMY_FACTORY_ADDRESS
+    //     ? DEFAULT_FALLBACK_HANDLER_ADDRESS
+    //     : biconomySmartAccountConfig.defaultFallbackHandler
+    // if (!defaultFallbackHandlerAddress) {
+    //   throw new Error("Default Fallback Handler address is not provided")
+    // }
+    // this.defaultFallbackHandlerAddress = defaultFallbackHandlerAddress
 
     // Added bang operator to avoid null check as the constructor have these params as optional
     this.defaultValidationModule =
@@ -207,10 +195,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       )
     })
 
-    this.scanForUpgradedAccountsFromV1 =
-      biconomySmartAccountConfig.scanForUpgradedAccountsFromV1 ?? false
-    this.maxIndexForScan = biconomySmartAccountConfig.maxIndexForScan ?? 10n
-    this.getAccountAddress()
+    // this.scanForUpgradedAccountsFromV1 =
+    // biconomySmartAccountConfig.scanForUpgradedAccountsFromV1 ?? false
+    // this.maxIndexForScan = biconomySmartAccountConfig.maxIndexForScan ?? 10n
+    // this.getAccountAddress()
   }
 
   /**
@@ -578,7 +566,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     withdrawalRequests?: WithdrawalRequest[] | null,
     defaultRecipient?: Hex | null,
     buildUseropDto?: BuildUserOpOptions
-  ): Promise<Hash> {
+  ): Promise<UserOpResponse> {
     const accountAddress =
       this.accountAddress ?? (await this.getAccountAddress())
 
@@ -659,11 +647,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       params?.validationModule ?? this.defaultValidationModule
     const index = params?.index ?? this.index
 
-    const maxIndexForScan = params?.maxIndexForScan ?? this.maxIndexForScan
-    // Review: default behavior
-    const scanForUpgradedAccountsFromV1 =
-      params?.scanForUpgradedAccountsFromV1 ??
-      this.scanForUpgradedAccountsFromV1
+    // const maxIndexForScan = params?.maxIndexForScan ?? this.maxIndexForScan
+    // // Review: default behavior
+    // const scanForUpgradedAccountsFromV1 =
+    //   params?.scanForUpgradedAccountsFromV1 ??
+    //   this.scanForUpgradedAccountsFromV1
 
     // if it's intended to detect V1 upgraded accounts
     // if (scanForUpgradedAccountsFromV1) {
@@ -832,7 +820,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    */
   async encodeExecute(transaction: Transaction): Promise<Hex> {
     const mode = EXECUTE_SINGLE
-
     const executionCalldata = encodePacked(
       ["address", "uint256", "bytes"],
       [
@@ -901,9 +888,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   validateUserOp(
-    userOp: Partial<UserOperationStruct>,
-    requiredFields: UserOperationKey[]
+    // userOp: Partial<UserOperationStruct>,
+    // requiredFields: UserOperationKey[]
   ): boolean {
+    // console.log(userOp, "userOp");
     // for (const field of requiredFields) {
     //   if (isNullOrUndefined(userOp[field])) {
     //     throw new Error(`${String(field)} is missing in the UserOp`)
@@ -920,19 +908,15 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     this.isActiveValidationModuleDefined()
     // TODO REMOVE COMMENT AND CHECK FOR PIMLICO USER OP FIELDS
-    const requiredFields: UserOperationKey[] = [
-      "sender",
-      "nonce",
-      "factory",
-      "factoryData",
-      "callGasLimit",
-      "verificationGasLimit",
-      "preVerificationGas",
-      "maxFeePerGas",
-      "maxPriorityFeePerGas",
-      "paymasterAndData"
-    ]
-    this.validateUserOp(userOp, requiredFields)
+    // const requiredFields: UserOperationKey[] = [
+    //   "sender",
+    //   "nonce",
+    //   "callGasLimit",
+    //   "signature",
+    //   "maxFeePerGas",
+    //   "maxPriorityFeePerGas",
+    // ]
+    // this.validateUserOp(userOp, requiredFields)
     const userOpHash = await this.getUserOpHash(userOp)
 
     const moduleSig = (await this.activeValidationModule.signUserOpHash(
@@ -1225,10 +1209,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     delete userOp.signature
     const userOperation = await this.signUserOp(userOp, params)
 
-    const bundlerResponse = await this.sendSignedUserOp(
-      userOperation,
-      params?.simulationType
-    )
+    const bundlerResponse = await this.sendSignedUserOp(userOperation)
 
     return bundlerResponse
   }
@@ -1240,23 +1221,16 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @description This function call will take 'signedUserOp' as input and send it to the bundler
    * @returns
    */
-  async sendSignedUserOp(
-    userOp: UserOperationStruct,
-    simulationType?: SimulationType
-  ): Promise<UserOpResponse> {
+  async sendSignedUserOp(userOp: UserOperationStruct): Promise<UserOpResponse> {
     // TODO REMOVE COMMENT AND CHECK FOR PIMLICO USER OP FIELDS
     // const requiredFields: UserOperationKey[] = [
     //   "sender",
     //   "nonce",
-    //   "initCode",
-    //   "callData",
-    //   "callGasLimit",
     //   "verificationGasLimit",
     //   "preVerificationGas",
     //   "maxFeePerGas",
     //   "maxPriorityFeePerGas",
-    //   "paymasterAndData",
-    //   "signature"
+    //   "signature",
     // ]
     // this.validateUserOp(userOp, requiredFields)
     if (!this.bundler) throw new Error("Bundler is not provided")
@@ -1269,7 +1243,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   async getUserOpHash(userOp: Partial<UserOperationStruct>): Promise<Hex> {
-    const packedUserOp = packUserOp(userOp, true)
+    const packedUserOp = packUserOp(userOp)
     const userOpHash = keccak256(packedUserOp as Hex)
     const enc = encodeAbiParameters(
       parseAbiParameters("bytes32, address, uint256"),
@@ -1283,13 +1257,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     stateOverrideSet?: StateOverrideSet
   ): Promise<Partial<UserOperationStruct>> {
     if (!this.bundler) throw new Error("Bundler is not provided")
-    const requiredFields: UserOperationKey[] = [
-      "sender",
-      "nonce",
-      "initCode",
-      "callData"
-    ]
-    this.validateUserOp(userOp, requiredFields)
+    // const requiredFields: UserOperationKey[] = [
+    //   "sender",
+    //   "nonce",
+    //   "callData"
+    // ]
+    // this.validateUserOp(userOp, requiredFields)
 
     const finalUserOp = userOp
 
@@ -1406,7 +1379,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     newOwner: Address,
     moduleAddress: TransferOwnershipCompatibleModule,
     buildUseropDto?: BuildUserOpOptions
-  ): Promise<Hash> {
+  ): Promise<UserOpResponse> {
     const encodedCall = encodeFunctionData({
       abi: parseAbi(["function transferOwnership(address newOwner) public"]),
       functionName: "transferOwnership",
@@ -1416,7 +1389,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       to: moduleAddress,
       data: encodedCall
     }
-    const userOpResponse: Hash = await this.sendTransaction(
+    const userOpResponse: UserOpResponse = await this.sendTransaction(
       transaction,
       buildUseropDto
     )
@@ -2171,17 +2144,16 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
             value: BigInt(tx.value ?? 0n)
           }
         })
-      const executionCalldataPrep = ethers.AbiCoder.defaultAbiCoder().encode(
-        [Executions],
-        [execs]
-      ) as Hex
+
+      const executeBatchViaAccountAbi = parseAbiItem([
+        "function executeBatchViaAccount(address account, Execution[] calldata execs) external",
+        "struct Execution { address target; uint256 value; bytes callData; }"
+      ])
 
       executorCalldata = encodeFunctionData({
-        abi: parseAbi([
-          "function executeBatchViaAccount(address account, bytes calldata execs) external"
-        ]),
+        abi: [executeBatchViaAccountAbi],
         functionName: "executeBatchViaAccount",
-        args: [await this.getAddress(), executionCalldataPrep]
+        args: [await this.getAddress(), execs]
       })
     } else {
       executorCalldata = encodeFunctionData({
@@ -2215,7 +2187,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const accountContract = await this._getAccountContract()
     return (
       (await accountContract.read.getValidatorsPaginated([
-        "0x0000000000000000000000000000000000000001",
+        this.SENTINEL_MODULE,
         100
       ])) as Address[][]
     )[0] as Address[]
@@ -2225,7 +2197,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const accountContract = await this._getAccountContract()
     return (
       (await accountContract.read.getExecutorsPaginated([
-        "0x0000000000000000000000000000000000000001",
+        this.SENTINEL_MODULE,
         100
       ])) as Address[][]
     )[0] as Address[]

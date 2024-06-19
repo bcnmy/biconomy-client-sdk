@@ -1,5 +1,3 @@
-import type { BigNumberish, UserOperationStruct } from "../../account"
-
 // Will convert the userOp hex, bigInt and number values to hex strings
 // export const transformUserOP = (
 //   userOp: UserOperationStruct

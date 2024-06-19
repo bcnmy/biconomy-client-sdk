@@ -1,4 +1,3 @@
-import { UndefinedInitialDataOptions } from "@tanstack/react-query"
 import type {
   Address,
   Chain,

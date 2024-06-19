@@ -1,5 +1,3 @@
-import type { Hash } from "viem"
-import type { SimulationType } from "../../account"
 import type { StateOverrideSet, UserOperationStruct } from "../../account"
 import type {
   GetUserOperationGasPriceReturnType,

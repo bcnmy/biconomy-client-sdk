@@ -1,6 +1,5 @@
 import { http, type Hash, type PublicClient, createPublicClient } from "viem"
-import type { StateOverrideSet, UserOperationStruct } from "../account"
-import type { SimulationType } from "../account"
+import type { UserOperationStruct } from "../account"
 import {
   HttpMethod,
   getChain,
@@ -24,14 +23,13 @@ import type {
   GetUserOperationGasPriceReturnType,
   GetUserOperationReceiptResponse,
   GetUserOperationStatusResponse,
-  SendUserOpResponse,
   UserOpByHashResponse,
   UserOpGasResponse,
   UserOpReceipt,
   UserOpResponse,
   UserOpStatus
 } from "./utils/Types.js"
-import { deepHexlify, extractChainIdFromBundlerUrl } from "./utils/Utils.js"
+import { deepHexlify } from "./utils/Utils.js"
 
 /**
  * This class implements IBundler interface.
@@ -105,12 +103,8 @@ export class Bundler implements IBundler {
    * @returns Promise<UserOpGasPricesResponse>
    */
   async estimateUserOpGas(
-    _userOp: UserOperationStruct,
-    stateOverrideSet?: StateOverrideSet
+    _userOp: UserOperationStruct
   ): Promise<UserOpGasResponse> {
-    // expected dummySig and possibly dummmy paymasterAndData should be provided by the caller
-    // bundler doesn't know account and paymaster implementation
-    // const userOp = transformUserOP(_userOp)
     const bundlerUrl = this.getBundlerUrl()
 
     const response: {
@@ -130,10 +124,10 @@ export class Bundler implements IBundler {
       "Bundler"
     )
     const userOpGasResponse = response
-    for (const key in userOpGasResponse) {
+    for (const key in userOpGasResponse.result) {
       if (
-        userOpGasResponse[key as keyof UserOpGasResponse] === undefined ||
-        userOpGasResponse[key as keyof UserOpGasResponse] === null
+        userOpGasResponse.result[key as keyof UserOpGasResponse] === null ||
+        userOpGasResponse.result[key as keyof UserOpGasResponse] === undefined
       ) {
         throw new Error(`Got undefined ${key} from bundler`)
       }

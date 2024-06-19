@@ -22,8 +22,7 @@ import type { BiconomySmartAccountV2Config } from "./Types.js"
  *  "false" to pack entire UserOp, for calculating the calldata cost of putting it on-chain.
  */
 export function packUserOp(
-  userOperation: Partial<UserOperationStruct>,
-  forSignature = true
+  userOperation: Partial<UserOperationStruct>
 ): string {
   const hashedInitCode = keccak256(
     userOperation.factory && userOperation.factoryData

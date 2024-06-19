@@ -1,7 +1,6 @@
 import { encodeFunctionData, parseAbi } from "viem"
 import {
   type BiconomyTokenPaymasterRequest,
-  type BigNumberish,
   HttpMethod,
   Logger,
   type Transaction,

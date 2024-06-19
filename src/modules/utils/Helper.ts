@@ -75,16 +75,16 @@ export interface DeprecatedPermission {
   rules: DeprecatedRule[]
 }
 
-export interface Permission {
-  /** The address of the contract to which the permission applies */
-  destContract: `0x${string}`
-  /** The function selector of the contract to which the permission applies */
-  functionSelector: `0x${string}`
-  /** The maximum value that can be transferred in a single transaction */
-  valueLimit: bigint
-  /** The rules that define the conditions under which the permission is granted */
-  rules: Rule[]
-}
+// export interface Permission {
+//   /** The address of the contract to which the permission applies */
+//   destContract: `0x${string}`
+//   /** The function selector of the contract to which the permission applies */
+//   functionSelector: `0x${string}`
+//   /** The maximum value that can be transferred in a single transaction */
+//   valueLimit: bigint
+//   /** The rules that define the conditions under which the permission is granted */
+//   rules: Rule[]
+// }
 
 function packUserOp(
   op: Partial<UserOperationStruct>,

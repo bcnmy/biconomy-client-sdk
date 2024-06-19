@@ -1,10 +1,4 @@
-import {
-  type Hex,
-  encodeFunctionData,
-  getAddress,
-  parseAbi,
-  toBytes
-} from "viem"
+import { type Hex, encodeFunctionData, getAddress, parseAbi } from "viem"
 import {
   K1_VALIDATOR,
   type SmartAccountSigner,

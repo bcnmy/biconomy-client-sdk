@@ -5,8 +5,6 @@ import type {
   SupportedSigner,
   UserOperationStruct
 } from "../../account"
-import type { SessionKeyManagerModule } from "../SessionKeyManagerModule.js"
-import type { ISessionStorage } from "../interfaces/ISessionStorage.js"
 export type ModuleVersion = "V1_0_0" // | 'V1_0_1'
 
 export interface BaseValidationModuleConfig {
@@ -34,33 +32,33 @@ export interface ECDSAOwnershipValidationModuleConfigConstructorProps
   signer: SmartAccountSigner
 }
 
-export interface SessionKeyManagerModuleConfig
-  extends BaseValidationModuleConfig {
-  /** Address of the module */
-  moduleAddress?: Hex
-  /** Version of the module */
-  version?: ModuleVersion
-  /** SmartAccount address */
-  smartAccountAddress: Hex
-  storageType?: StorageType
-  sessionStorageClient?: ISessionStorage
-}
+// export interface SessionKeyManagerModuleConfig
+//   extends BaseValidationModuleConfig {
+//   /** Address of the module */
+//   moduleAddress?: Hex
+//   /** Version of the module */
+//   version?: ModuleVersion
+//   /** SmartAccount address */
+//   smartAccountAddress: Hex
+//   storageType?: StorageType
+//   sessionStorageClient?: ISessionStorage
+// }
 
-export interface BatchedSessionRouterModuleConfig
-  extends BaseValidationModuleConfig {
-  /** Address of the module */
-  moduleAddress?: Hex
-  /** Version of the module */
-  version?: ModuleVersion
-  /** Session Key Manager module: Could be BaseValidationModule */
-  sessionKeyManagerModule?: SessionKeyManagerModule
-  /** Session Key Manager module address */
-  sessionManagerModuleAddress?: Hex
-  /** Address of the associated smart account */
-  smartAccountAddress: Hex
-  /** Storage type, e.g. local storage */
-  storageType?: StorageType
-}
+// export interface BatchedSessionRouterModuleConfig
+//   extends BaseValidationModuleConfig {
+//   /** Address of the module */
+//   moduleAddress?: Hex
+//   /** Version of the module */
+//   version?: ModuleVersion
+//   /** Session Key Manager module: Could be BaseValidationModule */
+//   sessionKeyManagerModule?: SessionKeyManagerModule
+//   /** Session Key Manager module address */
+//   sessionManagerModuleAddress?: Hex
+//   /** Address of the associated smart account */
+//   smartAccountAddress: Hex
+//   /** Storage type, e.g. local storage */
+//   storageType?: StorageType
+// }
 
 export enum StorageType {
   LOCAL_STORAGE = 0,

@@ -1,4 +1,4 @@
-import { concat, pad, toHex } from "viem"
+import { concat, pad } from "viem"
 import {
   CALLTYPE_BATCH,
   CALLTYPE_SINGLE,
