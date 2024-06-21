@@ -1495,13 +1495,13 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   }
 
   async sendTransactionWithExecutor(
-    manyOrOneTransactions: Transaction | Transaction[],
+    manyOrOneTransactions: Transaction | Transaction[]
     // buildUseropDto?: BuildUserOpOptions
   ): Promise<UserOpReceipt> {
     return await this.executeFromExecutor(
       Array.isArray(manyOrOneTransactions)
         ? manyOrOneTransactions
-        : [manyOrOneTransactions],
+        : [manyOrOneTransactions]
       // buildUseropDto
     )
   }
@@ -2165,10 +2165,10 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   }
 
   private async executeFromExecutor(
-    transactions: Transaction[],
+    transactions: Transaction[]
     // buildUseropDto?: BuildUserOpOptions
   ): Promise<UserOpReceipt> {
-    if(this.activeExecutorModule){
+    if (this.activeExecutorModule) {
       if (transactions.length > 1) {
         const executions: { target: Hex; value: bigint; callData: Hex }[] =
           transactions.map((tx) => {
@@ -2187,7 +2187,9 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       }
       return await this.activeExecutorModule?.executeFromExecutor(execution)
     }
-    throw new Error("Please set an active executor module before running this method.")
+    throw new Error(
+      "Please set an active executor module before running this method."
+    )
   }
 
   async supportsExecutionMode(mode: Hex): Promise<boolean> {
