@@ -1,4 +1,4 @@
-### [Send a multi tx and pay gas with a token](https://bcnmy.github.io/biconomy-client-sdk/classes/BiconomySmartAccountV2.html#getTokenFees)
+### [Send a multi tx and pay gas with a token](https://bcnmy.github.io/biconomy-client-sdk/classes/NexusSmartAccount.html#getTokenFees)
 
 | Key                                                                                                      | Description                                |
 | -------------------------------------------------------------------------------------------------------- | ------------------------------------------ |

@@ -182,7 +182,7 @@ export class Bundler implements IBundler {
       wait: (confirmations?: number): Promise<UserOpReceipt> => {
         // Note: maxDuration can be defined per chainId
         const maxDuration =
-          this.UserOpReceiptMaxDurationIntervals[chainId] || 30000 // default 30 seconds
+          this.UserOpReceiptMaxDurationIntervals[chainId] || 50000 // default 50 seconds
         let totalDuration = 0
 
         return new Promise<UserOpReceipt>((resolve, reject) => {

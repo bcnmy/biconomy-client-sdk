@@ -1,19 +1,19 @@
-import type { Chain, Hex } from "viem"
+import type { Address, Chain, Hex } from "viem"
 import type {
+  ModuleType,
   SimulationType,
   SmartAccountSigner,
   SupportedSigner,
   UserOperationStruct
 } from "../../account"
-export type ModuleVersion = "V1_0_0" // | 'V1_0_1'
+export type ModuleVersion = "1.0.0-beta" // | 'V1_0_1'
 
 export interface BaseValidationModuleConfig {
   /** entryPointAddress: address of the entry point */
   entryPointAddress?: Hex
 }
 
-export interface ECDSAOwnershipValidationModuleConfig
-  extends BaseValidationModuleConfig {
+export interface K1ValidationModuleConfig extends BaseValidationModuleConfig {
   /** Address of the module */
   moduleAddress?: Hex
   /** Version of the module */
@@ -22,7 +22,7 @@ export interface ECDSAOwnershipValidationModuleConfig
   signer: SupportedSigner
 }
 
-export interface ECDSAOwnershipValidationModuleConfigConstructorProps
+export interface K1ValidatorModuleConfigConstructorProps
   extends BaseValidationModuleConfig {
   /** Address of the module */
   moduleAddress?: Hex
@@ -182,4 +182,30 @@ export interface ERC20SessionKeyData extends BaseSessionKeyData {
 export interface SessionValidationModuleConfig {
   /** Address of the module */
   moduleAddress: string
+}
+
+export enum ModuleTypeName {
+  execution = 0,
+  validation = 1,
+  hook = 2,
+  handler = 3
+}
+
+export type V3ModuleInfo = {
+  module: Address
+  data: Hex
+  additionalContext: Hex
+  type: ModuleType
+  hook?: Address
+}
+
+export enum ModuleName {
+  OwnableExecutor = 0,
+  K1Validator = 1
+}
+
+export type Execution = {
+  target: Address
+  value: bigint
+  callData: Hex
 }

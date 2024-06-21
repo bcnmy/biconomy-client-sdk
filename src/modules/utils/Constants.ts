@@ -1,7 +1,7 @@
 import type { Hex } from "viem"
 import type { ModuleVersion } from "./Types.js"
 
-export const DEFAULT_MODULE_VERSION: ModuleVersion = "V1_0_0"
+export const DEFAULT_MODULE_VERSION: ModuleVersion = "1.0.0-beta"
 
 export const ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION = {
   V1_0_0: "0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e"
@@ -39,3 +39,6 @@ export const MOCK_EXECUTOR: Hex = "0xA975e69917A4c856b17Fc8Cc4C352f326Ef21C6B"
 export const MOCK_HOOK: Hex = "0x64587c60A3D19B0D73EFfd7660ee07cb76Ca465C"
 export const MOCK_FALLBACK_HANDLER: Hex =
   "0x56B7080ef4221FdBE210160efFd33F81B19926E0"
+
+// BASE SEPOLIA
+export const OWNABLE_EXECUTOR = "0x858F46775858edB4cE40CE58863dBDf366b7F374"

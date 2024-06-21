@@ -32,6 +32,8 @@ export const BICONOMY_TOKEN_PAYMASTER =
 // will always be latest implementation address
 export const DEFAULT_BICONOMY_IMPLEMENTATION_ADDRESS =
   "0x0000002512019Dafb59528B82CB92D3c5D2423aC"
+export const ENTRYPOINT_V07_ADDRESS =
+  "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
 export const BICONOMY_IMPLEMENTATION_ADDRESSES: BiconomyImplementations = {
   "0x00006b7e42e01957da540dc6a8f7c30c4d816af5": "V1_0_0",
   "0x66Ae45ad5BE4be08a70AD99e9cF41e6d6884B06F": "V2_0_0"
@@ -39,7 +41,8 @@ export const BICONOMY_IMPLEMENTATION_ADDRESSES: BiconomyImplementations = {
 
 export const ENTRYPOINT_ADDRESSES_BY_VERSION: EntryPointAddressesByVersion = {
   V0_0_5: "0x27a4db290b89ae3373ce4313cbeae72112ae7da9",
-  V0_0_6: "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789"
+  V0_0_6: "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789",
+  V0_0_7: "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
 }
 
 export const BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION: BiconomyImplementationsByVersion =

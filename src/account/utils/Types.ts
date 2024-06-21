@@ -12,7 +12,8 @@ import type {
   WalletClient
 } from "viem"
 import type { IBundler } from "../../bundler"
-import type { BaseValidationModule, ModuleInfo } from "../../modules"
+import type { ModuleInfo } from "../../modules"
+import type { BaseValidationModule } from "../../modules/base/BaseValidationModule"
 import type {
   FeeQuotesOrDataDto,
   IPaymaster,

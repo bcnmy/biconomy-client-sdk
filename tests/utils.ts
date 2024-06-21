@@ -7,7 +7,7 @@ import {
   parseAbi
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { baseSepolia } from "viem/chains"
+import { baseSepolia, sepolia } from "viem/chains"
 import { Logger } from "../src/account/utils/Logger"
 import { getChain } from "../src/account/utils/getChain"
 import {

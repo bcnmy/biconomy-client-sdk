@@ -18,24 +18,30 @@ import {
   getContract,
   keccak256,
   parseAbi,
-  parseAbiItem,
   parseAbiParameters,
-  toBytes
+  stringToBytes,
+  toBytes,
+  toHex
 } from "viem"
 import {
   Bundler,
   Executions,
   type GetUserOperationGasPriceReturnType,
+  type UserOpReceipt,
   type UserOpResponse
 } from "../bundler/index.js"
 import type { IBundler } from "../bundler/interfaces/IBundler.js"
 import { EXECUTE_BATCH, EXECUTE_SINGLE } from "../bundler/utils/Constants.js"
+import type { BaseExecutionModule } from "../modules/base/BaseExecutionModule.js"
+import type { BaseModule } from "../modules/base/BaseModule.js"
+import { BaseValidationModule } from "../modules/base/BaseValidationModule.js"
 import {
-  BaseValidationModule,
   type ModuleInfo,
+  type ModuleName,
   type SendUserOpParams,
-  createECDSAOwnershipValidationModule
-} from "../modules"
+  createK1ValidatorModule,
+  createModuleInstace
+} from "../modules/index.js"
 import {
   type FeeQuotesOrDataDto,
   type FeeQuotesOrDataResponse,
@@ -44,7 +50,9 @@ import {
   Paymaster,
   PaymasterMode,
   type SponsorUserOperationDto
-} from "../paymaster"
+} from "../paymaster/index.js"
+import { BaseSmartContractAccount } from "./BaseSmartContractAccount.js"
+import { NexusAccountAbi } from "./abi/SmartAccount.js"
 import {
   Logger,
   type ModuleType,
@@ -53,9 +61,7 @@ import {
   type UserOperationStruct,
   convertSigner,
   getChain
-} from "./"
-import { BaseSmartContractAccount } from "./BaseSmartContractAccount.js"
-import { NexusAccountAbi } from "./abi/SmartAccount.js"
+} from "./index.js"
 import {
   ADDRESS_ZERO,
   DEFAULT_BICONOMY_FACTORY_ADDRESS,
@@ -87,8 +93,8 @@ import {
 } from "./utils/Utils.js"
 
 // type UserOperationKey = keyof UserOperationStruct
-export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
-  private sessionData?: ModuleInfo
+export class NexusSmartAccount extends BaseSmartContractAccount {
+  // private sessionData?: ModuleInfo
 
   private SENTINEL_MODULE = "0x0000000000000000000000000000000000000001"
 
@@ -101,6 +107,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   paymaster?: IPaymaster
 
   bundler?: IBundler
+
+  publicClient!: PublicClient
 
   private accountContract?: GetContractReturnType<
     typeof NexusAccountAbi,
@@ -116,6 +124,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   // Deployed Smart Account can have more than one module enabled. When sending a transaction activeValidationModule is used to prepare and validate userOp signature.
   activeValidationModule!: BaseValidationModule
+
+  installedExecutors: BaseExecutionModule[] = []
+  activeExecutorModule?: BaseExecutionModule
 
   private constructor(
     readonly biconomySmartAccountConfig: BiconomySmartAccountV2ConfigConstructorProps
@@ -139,7 +150,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         DEFAULT_BICONOMY_FACTORY_ADDRESS
     })
 
-    this.sessionData = biconomySmartAccountConfig.sessionData
+    // this.sessionData = biconomySmartAccountConfig.sessionData
 
     this.defaultValidationModule =
       biconomySmartAccountConfig.defaultValidationModule
@@ -149,6 +160,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     this.index = biconomySmartAccountConfig.index ?? 0n
     this.chainId = biconomySmartAccountConfig.chainId
     this.bundler = biconomySmartAccountConfig.bundler
+    this.publicClient = createPublicClient({
+      chain: getChain(biconomySmartAccountConfig.chainId),
+      transport: http()
+    })
+
     // this.implementationAddress =
     //   biconomySmartAccountConfig.implementationAddress ??
     //   (BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0 as Hex)
@@ -202,20 +218,20 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   /**
-   * Creates a new instance of BiconomySmartAccountV2
+   * Creates a new instance of NexusSmartAccount
    *
-   * This method will create a BiconomySmartAccountV2 instance but will not deploy the Smart Account
+   * This method will create a NexusSmartAccount instance but will not deploy the Smart Account
    * Deployment of the Smart Account will be donewith the first user operation.
    *
    * - Docs: https://docs.biconomy.io/Account/integration#integration-1
    *
-   * @param biconomySmartAccountConfig - Configuration for initializing the BiconomySmartAccountV2 instance {@link BiconomySmartAccountV2Config}.
-   * @returns A promise that resolves to a new instance of BiconomySmartAccountV2.
+   * @param biconomySmartAccountConfig - Configuration for initializing the NexusSmartAccount instance {@link BiconomySmartAccountV2Config}.
+   * @returns A promise that resolves to a new instance of NexusSmartAccount.
    * @throws An error if something is wrong with the smart account instance creation.
    *
    * @example
    * import { createClient } from "viem"
-   * import { createSmartAccountClient, BiconomySmartAccountV2 } from "@biconomy/account"
+   * import { createSmartAccountClient, NexusSmartAccount } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
    * import { polygonAmoy } from "viem/chains";
    *
@@ -227,7 +243,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * const bundlerUrl = "" // Retrieve bundler url from dashboard
    *
-   * const smartAccountFromStaticCreate = await BiconomySmartAccountV2.create({ signer, bundlerUrl });
+   * const smartAccountFromStaticCreate = await NexusSmartAccount.create({ signer, bundlerUrl });
    *
    * // Is the same as...
    *
@@ -236,7 +252,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    */
   public static async create(
     biconomySmartAccountConfig: BiconomySmartAccountV2Config
-  ): Promise<BiconomySmartAccountV2> {
+  ): Promise<NexusSmartAccount> {
     let chainId = biconomySmartAccountConfig.chainId
     let rpcUrl = biconomySmartAccountConfig.rpcUrl
     let resolvedSmartAccountSigner!: SmartAccountSigner
@@ -290,21 +306,21 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     // Note: If no module is provided, we will use ECDSA_OWNERSHIP as default
     if (!defaultValidationModule) {
-      const newModule = await createECDSAOwnershipValidationModule({
-        // biome-ignore lint/style/noNonNullAssertion: <explanation>
-        signer: resolvedSmartAccountSigner!
-      })
-      defaultValidationModule = newModule
+      const newModule = await createK1ValidatorModule(
+        resolvedSmartAccountSigner
+      )
+      defaultValidationModule = newModule as BaseValidationModule
     }
     const activeValidationModule =
       biconomySmartAccountConfig?.activeValidationModule ??
       defaultValidationModule
     if (!resolvedSmartAccountSigner) {
-      resolvedSmartAccountSigner = await activeValidationModule.getSigner()
+      resolvedSmartAccountSigner = activeValidationModule.getSigner()
     }
     if (!resolvedSmartAccountSigner) {
       throw new Error("signer required")
     }
+
     const config: BiconomySmartAccountV2ConfigConstructorProps = {
       ...biconomySmartAccountConfig,
       defaultValidationModule,
@@ -325,7 +341,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     //   )
     // }
 
-    return new BiconomySmartAccountV2(config)
+    return new NexusSmartAccount(config)
   }
 
   // Calls the getCounterFactualAddress
@@ -686,12 +702,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     try {
       // TODO: Improve this by computing address off-chain instead of making rpc call
-      const publicClient = createPublicClient({
-        chain: getChain(this.chainId),
-        transport: http()
-      })
-
-      const counterFactualAddress = await publicClient.readContract({
+      const counterFactualAddress = await this.publicClient.readContract({
         address: this.factoryAddress,
         abi: parseAbi([
           "function computeAccountAddress(address, uint256) external view returns (address expectedAddress)"
@@ -733,16 +744,23 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   setActiveValidationModule(
     validationModule: BaseValidationModule
-  ): BiconomySmartAccountV2 {
+  ): NexusSmartAccount {
     if (validationModule instanceof BaseValidationModule) {
       this.activeValidationModule = validationModule
     }
     return this
   }
 
+  async setActiveExecutorModule(
+    executorModule: BaseExecutionModule
+  ): Promise<BaseModule> {
+    this.activeExecutorModule = executorModule
+    return executorModule
+  }
+
   setDefaultValidationModule(
     validationModule: BaseValidationModule
-  ): BiconomySmartAccountV2 {
+  ): NexusSmartAccount {
     if (validationModule instanceof BaseValidationModule) {
       this.defaultValidationModule = validationModule
     }
@@ -871,10 +889,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   // dummy signature depends on the validation module supplied.
-  async getDummySignatures(_params?: ModuleInfo): Promise<Hex> {
-    const params = { ...(this.sessionData ? this.sessionData : {}), ..._params }
+  async getDummySignatures(): Promise<Hex> {
+    // const params = { ...(this.sessionData ? this.sessionData : {}), ..._params }
     this.isActiveValidationModuleDefined()
-    return (await this.activeValidationModule.getDummySignature(params)) as Hex
+    return (await this.activeValidationModule.getDummySignature()) as Hex
   }
 
   // TODO: review this
@@ -901,11 +919,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   async signUserOp(
-    userOp: Partial<UserOperationStruct>,
-    _params?: SendUserOpParams
+    userOp: Partial<UserOperationStruct>
   ): Promise<UserOperationStruct> {
-    const params = { ...(this.sessionData ? this.sessionData : {}), ..._params }
-
     this.isActiveValidationModuleDefined()
     // TODO REMOVE COMMENT AND CHECK FOR PIMLICO USER OP FIELDS
     // const requiredFields: UserOperationKey[] = [
@@ -920,8 +935,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const userOpHash = await this.getUserOpHash(userOp)
 
     const moduleSig = (await this.activeValidationModule.signUserOpHash(
-      userOpHash,
-      params
+      userOpHash
     )) as Hex
 
     // const signatureWithModuleAddress = this.getSignatureWithModuleAddress(
@@ -1202,12 +1216,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    */
   async sendUserOp(
-    userOp: Partial<UserOperationStruct>,
-    params?: SendUserOpParams
+    userOp: Partial<UserOperationStruct>
   ): Promise<UserOpResponse> {
     // biome-ignore lint/performance/noDelete: <explanation>
     delete userOp.signature
-    const userOperation = await this.signUserOp(userOp, params)
+    const userOperation = await this.signUserOp(userOp)
 
     const bundlerResponse = await this.sendSignedUserOp(userOperation)
 
@@ -1478,23 +1491,18 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       buildUseropDto
     )
 
-    return this.sendUserOp(userOp, {
-      simulationType: buildUseropDto?.simulationType,
-      ...buildUseropDto?.params
-    })
+    return this.sendUserOp(userOp)
   }
 
   async sendTransactionWithExecutor(
     manyOrOneTransactions: Transaction | Transaction[],
-    executorAddress: Address,
-    buildUseropDto?: BuildUserOpOptions
-  ): Promise<UserOpResponse> {
+    // buildUseropDto?: BuildUserOpOptions
+  ): Promise<UserOpReceipt> {
     return await this.executeFromExecutor(
       Array.isArray(manyOrOneTransactions)
         ? manyOrOneTransactions
         : [manyOrOneTransactions],
-      executorAddress,
-      buildUseropDto
+      // buildUseropDto
     )
   }
 
@@ -1540,9 +1548,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     transactions: Transaction[],
     buildUseropDto?: BuildUserOpOptions
   ): Promise<Partial<UserOperationStruct>> {
-    const dummySignatureFetchPromise = this.getDummySignatures(
-      buildUseropDto?.params
-    )
+    const dummySignatureFetchPromise = this.getDummySignatures()
     const [nonceFromFetch, signature] = await Promise.all([
       this.getBuildUserOpNonce(buildUseropDto?.nonceOptions),
       dummySignatureFetchPromise
@@ -1963,10 +1969,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   async signMessage(message: string | Uint8Array): Promise<Hex> {
-    let signature: any
+    let signature: Hex
     this.isActiveValidationModuleDefined()
     const dataHash = typeof message === "string" ? toBytes(message) : message
-    signature = await this.activeValidationModule.signMessage(dataHash)
+    signature = (await this.activeValidationModule.signMessage(dataHash)) as Hex
 
     const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
     if (![27, 28].includes(potentiallyIncorrectV)) {
@@ -2088,94 +2094,100 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     moduleType: ModuleType,
     moduleAddress: Hex,
     data?: Hex
-  ): Promise<any> {
+  ): Promise<boolean> {
     const accountContract = await this._getAccountContract()
-    return await accountContract.read.isModuleInstalled([
+    return (await accountContract.read.isModuleInstalled([
       moduleType,
       moduleAddress,
       data ?? "0x"
-    ])
+    ])) as boolean
   }
 
-  async installModule(
-    moduleType: ModuleType,
-    moduleAddress: Hex,
-    data?: Hex
-  ): Promise<UserOpResponse> {
-    const installModuleData = encodeFunctionData({
-      abi: NexusAccountAbi,
-      functionName: "installModule",
-      args: [moduleType, moduleAddress, data ?? "0x"]
-    })
-    return await this.sendTransaction({
+  getSmartAccountOwner(): SmartAccountSigner {
+    return this.signer
+  }
+
+  // async installOwnableExecutor(): Promise<UserOpReceipt> {
+  //   const ownableExecutor = await OwnableExecutorModule.create(this);
+  //   const installModuleData = encodeFunctionData({
+  //     abi: NexusAccountAbi,
+  //     functionName: "installModule",
+  //     args: [ModuleType.Execution, ownableExecutor.moduleInfo.module, ownableExecutor.moduleInfo.data ?? "0x"]
+  //   })
+  //   const response = await this.sendTransaction({
+  //     to: await this.getAddress(),
+  //     data: installModuleData
+  //   })
+  //   console.log("Got response: ", response);
+
+  //   const receipt = await response.wait();
+  //   if(receipt.success) {
+  //     this.installedExecutors.push(ownableExecutor);
+  //     this.activeExecutorModule = ownableExecutor;
+  //   }
+  //   return receipt;
+  // }
+
+  async installModule(moduleName: ModuleName): Promise<UserOpReceipt> {
+    const moduleInstance = await createModuleInstace(moduleName, this)
+    const installModuleData = moduleInstance.installModule()
+    const response = await this.sendTransaction({
       to: await this.getAddress(),
-      data: installModuleData
+      data: installModuleData,
+      value: 0n
     })
+    const receipt = response.wait()
+    return receipt
   }
 
   async uninstallModule(
-    moduleType: ModuleType,
-    moduleAddress: Hex,
-    deInitData?: Hex
-  ): Promise<UserOpResponse> {
-    const uninstallModuleData = encodeFunctionData({
-      abi: NexusAccountAbi,
-      functionName: "uninstallModule",
-      args: [moduleType, moduleAddress, deInitData ?? "0x"]
-    })
-    return await this.sendTransaction({
+    moduleName: ModuleName,
+    uninstallData?: Hex
+  ): Promise<UserOpReceipt> {
+    const moduleInstance = await createModuleInstace(moduleName, this)
+    const deInitData = encodeAbiParameters(
+      [
+        { name: "prev", type: "address" },
+        { name: "disableModuleData", type: "bytes" }
+      ],
+      [this.SENTINEL_MODULE as Hex, toHex(stringToBytes(""))]
+    )
+    const uninstallModuleData = moduleInstance.uninstallModule(
+      uninstallData ?? deInitData
+    )
+    const response = await this.sendTransaction({
       to: await this.getAddress(),
-      data: uninstallModuleData
+      data: uninstallModuleData,
+      value: 0n
     })
+    const receipt = response.wait()
+    return receipt
   }
 
   private async executeFromExecutor(
     transactions: Transaction[],
-    executorAddress: Address,
-    buildUseropDto?: BuildUserOpOptions
-  ): Promise<UserOpResponse> {
-    let executorCalldata: Hex = "0x"
-    if (transactions.length > 1) {
-      const execs: { target: Hex; value: bigint; callData: Hex }[] =
-        transactions.map((tx) => {
-          return {
-            target: tx.to as Hex,
-            callData: (tx.data ?? "0x") as Hex,
-            value: BigInt(tx.value ?? 0n)
-          }
-        })
-
-      const executeBatchViaAccountAbi = parseAbiItem([
-        "function executeBatchViaAccount(address account, Execution[] calldata execs) external",
-        "struct Execution { address target; uint256 value; bytes callData; }"
-      ])
-
-      executorCalldata = encodeFunctionData({
-        abi: [executeBatchViaAccountAbi],
-        functionName: "executeBatchViaAccount",
-        args: [await this.getAddress(), execs]
-      })
-    } else {
-      executorCalldata = encodeFunctionData({
-        abi: parseAbi([
-          "function executeViaAccount(address account, address target, uint256 value, bytes calldata callData) external"
-        ]),
-        functionName: "executeViaAccount",
-        args: [
-          await this.getAddress(),
-          transactions[0].to as Hex,
-          BigInt(transactions[0].value ?? 0),
-          transactions[0].data as Hex
-        ]
-      })
+    // buildUseropDto?: BuildUserOpOptions
+  ): Promise<UserOpReceipt> {
+    if(this.activeExecutorModule){
+      if (transactions.length > 1) {
+        const executions: { target: Hex; value: bigint; callData: Hex }[] =
+          transactions.map((tx) => {
+            return {
+              target: tx.to as Hex,
+              callData: (tx.data ?? "0x") as Hex,
+              value: BigInt(tx.value ?? 0n)
+            }
+          })
+        return await this.activeExecutorModule?.executeFromExecutor(executions)
+      }
+      const execution = {
+        target: transactions[0].to as Hex,
+        callData: (transactions[0].data ?? "0x") as Hex,
+        value: BigInt(transactions[0].value ?? 0n)
+      }
+      return await this.activeExecutorModule?.executeFromExecutor(execution)
     }
-    return await this.sendTransaction(
-      {
-        to: executorAddress,
-        data: executorCalldata
-      },
-      buildUseropDto
-    )
+    throw new Error("Please set an active executor module before running this method.")
   }
 
   async supportsExecutionMode(mode: Hex): Promise<boolean> {

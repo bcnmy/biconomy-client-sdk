@@ -1,3 +1,4 @@
+import type { Execution } from "@rhinestone/module-sdk"
 import {
   type Address,
   type Chain,
@@ -8,7 +9,16 @@ import {
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { type UserOperationStruct, getChain } from "../../account"
-import type { ChainInfo, SignerData } from "../../index.js"
+import type { NexusSmartAccount } from "../../account/NexusSmartAccount.js"
+import {
+  type ChainInfo,
+  ModuleName,
+  type SignerData,
+  type Transaction
+} from "../../index.js"
+import type { BaseModule } from "../base/BaseModule.js"
+import { OwnableExecutorModule } from "../executors/OwnableExecutor.js"
+import { K1ValidatorModule } from "../validators/K1ValidatorModule.js"
 
 /**
  * Rule
@@ -222,3 +232,21 @@ export const parseChain = (chainInfo: ChainInfo): Chain => {
 //   }
 //   throw new Error(ERROR_MESSAGES.UNKNOW_SESSION_ARGUMENTS)
 // }
+
+export const toTransaction = (execution: Execution): Transaction => {
+  return {
+    to: execution.target,
+    value: execution.value,
+    data: execution.callData
+  }
+}
+
+export const createModuleInstace = async (
+  moduleName: ModuleName,
+  smartAccount: NexusSmartAccount
+): Promise<BaseModule> => {
+  if (moduleName === ModuleName.OwnableExecutor) {
+    return await OwnableExecutorModule.create(smartAccount)
+  }
+  return await K1ValidatorModule.create(smartAccount.getSigner())
+}

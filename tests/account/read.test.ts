@@ -5,40 +5,30 @@ import {
   type Hex,
   createPublicClient,
   createWalletClient,
-  encodeAbiParameters,
   encodeFunctionData,
   getContract,
   hashMessage,
-  parseAbi,
-  parseAbiParameters
+  parseAbi
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { bsc } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
-  type BiconomySmartAccountV2,
   type BiconomySmartAccountV2Config,
   DEFAULT_BICONOMY_FACTORY_ADDRESS,
-  DEFAULT_ENTRYPOINT_ADDRESS,
   ERROR_MESSAGES,
   K1_VALIDATOR,
   ModuleType,
   NATIVE_TOKEN_ALIAS,
   compareChainIds,
-  createSmartAccountClient,
-  isNullOrUndefined
+  createSmartAccountClient
 } from "../../src/account"
-import { type UserOperationStruct, getChain } from "../../src/account"
-import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"
+import { getChain } from "../../src/account"
+import type { NexusSmartAccount } from "../../src/account/NexusSmartAccount"
 import { BiconomyFactoryAbi } from "../../src/account/abi/K1ValidatorFactory"
-import { NexusAccountAbi } from "../../src/account/abi/SmartAccount"
 import { ACCOUNT_MODES } from "../../src/bundler/utils/Constants"
-import {
-  DEFAULT_SESSION_KEY_MANAGER_MODULE,
-  createECDSAOwnershipValidationModule
-} from "../../src/modules"
-import { Paymaster, PaymasterMode } from "../../src/paymaster"
-import { checkBalance, getBundlerUrl, getConfig } from "../utils"
+import { createK1ValidatorModule } from "../../src/modules"
+import { getBundlerUrl, getConfig } from "../utils"
 
 describe("Account:Read", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
@@ -59,7 +49,7 @@ describe("Account:Read", () => {
     chain,
     transport: http()
   })
-  let [smartAccount, smartAccountTwo]: BiconomySmartAccountV2[] = []
+  let [smartAccount, smartAccountTwo]: NexusSmartAccount[] = []
   let [smartAccountAddress, smartAccountAddressTwo]: Hex[] = []
 
   const [walletClient, walletClientTwo] = [
@@ -460,13 +450,13 @@ describe("Account:Read", () => {
       const mockPaymasterUrl =
         "https://paymaster.biconomy.io/api/v1/1337/-RObQRX9ei.fc6918eb-c582-4417-9d5a-0507b17cfe71"
 
-      const ecdsaModule = await createECDSAOwnershipValidationModule({
-        signer: walletClient
-      })
+      const k1ValidationModule = await createK1ValidatorModule(
+        smartAccount.getSigner()
+      )
 
       const config: BiconomySmartAccountV2Config = {
-        defaultValidationModule: ecdsaModule,
-        activeValidationModule: ecdsaModule,
+        defaultValidationModule: k1ValidationModule,
+        activeValidationModule: k1ValidationModule,
         bundlerUrl,
         paymasterUrl: mockPaymasterUrl
       }

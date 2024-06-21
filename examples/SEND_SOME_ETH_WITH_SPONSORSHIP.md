@@ -1,4 +1,4 @@
-### [Send some eth with sponsorship](https://bcnmy.github.io/biconomy-client-sdk/classes/BiconomySmartAccountV2.html#sendTransaction)
+### [Send some eth with sponsorship](https://bcnmy.github.io/biconomy-client-sdk/classes/NexusSmartAccount.html#sendTransaction)
 
 | Key                                                                               | Description                                                    |
 | --------------------------------------------------------------------------------- | -------------------------------------------------------------- |

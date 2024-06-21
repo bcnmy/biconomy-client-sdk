@@ -210,13 +210,13 @@ VERSION Bump Only.
 
 ## 3.1.0 (2023-09-20)
 
-Modular Account Abstraction is here. Contains BiconomySmartAccountV2 - an API for modular smart account.
+Modular Account Abstraction is here. Contains NexusSmartAccount - an API for modular smart account.
 
 ### Bug Fixes
 
 - add 10sec timeout limit for a test ([5d12fe7](https://github.com/bcnmy/biconomy-client-sdk/commit/5d12fe7d4b32e5c4628b971d22f6fc9cfcc6b414))
 - avoid sending populated values of gas prices when estimating from bundler ([c58c9fc](https://github.com/bcnmy/biconomy-client-sdk/commit/c58c9fc29ee83978e1a90305e839002431db2b7b))
-- BiconomySmartAccountV2 API Specs ([69a580e](https://github.com/bcnmy/biconomy-client-sdk/commit/69a580ea9e309141b500274aa95e20e24365b522))
+- NexusSmartAccount API Specs ([69a580e](https://github.com/bcnmy/biconomy-client-sdk/commit/69a580ea9e309141b500274aa95e20e24365b522))
 - build errors ([9fb0475](https://github.com/bcnmy/biconomy-client-sdk/commit/9fb047534935b0600bd08a4de7e68fd91a8a089a))
 - comments [#296](https://github.com/bcnmy/biconomy-client-sdk/issues/296) ([55b7376](https://github.com/bcnmy/biconomy-client-sdk/commit/55b7376336886226967b5bec5f11ba3ab750c5b6))
 - estimation without bundler ([5e49473](https://github.com/bcnmy/biconomy-client-sdk/commit/5e49473e7745c2e87e241731ef8ca1f65ee90388))
