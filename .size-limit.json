@@ -32,12 +32,5 @@
     "limit": "5 kB",
     "import": "{ createPaymaster }",
     "ignore": ["node:fs", "fs"]
-  },
-  {
-    "name": "modules (tree-shaking)",
-    "path": "./dist/_esm/modules/index.js",
-    "limit": "60 kB",
-    "import": "{ createSessionKeyManagerModule }",
-    "ignore": ["node:fs", "fs"]
   }
 ]

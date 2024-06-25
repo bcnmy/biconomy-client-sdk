@@ -14,11 +14,12 @@ import {
   type ChainInfo,
   ModuleName,
   type SignerData,
-  type Transaction
+  type Transaction,
+  createOwnableExecutorModule,
+  createK1ValidatorModule,
+  createOwnableValidatorModule
 } from "../../index.js"
 import type { BaseModule } from "../base/BaseModule.js"
-import { OwnableExecutorModule } from "../executors/OwnableExecutor.js"
-import { K1ValidatorModule } from "../validators/K1ValidatorModule.js"
 
 /**
  * Rule
@@ -243,10 +244,13 @@ export const toTransaction = (execution: Execution): Transaction => {
 
 export const createModuleInstace = async (
   moduleName: ModuleName,
-  smartAccount: NexusSmartAccount
+  smartAccount: NexusSmartAccount,
+  config?: any
 ): Promise<BaseModule> => {
   if (moduleName === ModuleName.OwnableExecutor) {
-    return await OwnableExecutorModule.create(smartAccount)
+    return await createOwnableExecutorModule(smartAccount)
+  } else if (moduleName === ModuleName.OwnableValidator) {
+    return await createOwnableValidatorModule(smartAccount, config.threshold, config.owners)
   }
-  return await K1ValidatorModule.create(smartAccount.getSigner())
+  return await createK1ValidatorModule(smartAccount.getSigner())
 }
