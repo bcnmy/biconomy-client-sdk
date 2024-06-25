@@ -96,9 +96,9 @@ describe("Account:Read", () => {
       })
 
       const message = "hello world"
-      const saOwner = smartAccount.getSmartAccountOwner();
-      console.log("SA owner ", await saOwner.getAddress());
-      
+      const saOwner = smartAccount.getSmartAccountOwner()
+      console.log("SA owner ", await saOwner.getAddress())
+
       const signature = await smartAccount.signMessage(message)
       expect(signature).toBeTruthy()
 
@@ -106,9 +106,9 @@ describe("Account:Read", () => {
         address: smartAccountAddress,
         message: "test",
         signature
-      }) 
+      })
 
-      console.log(isValid, "isValid");
+      console.log(isValid, "isValid")
     },
     50000
   )

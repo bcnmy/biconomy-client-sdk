@@ -200,9 +200,9 @@ export type V3ModuleInfo = {
 }
 
 export enum ModuleName {
-  OwnableExecutor,
-  K1Validator,
-  OwnableValidator,
+  OwnableExecutor = 0,
+  K1Validator = 1,
+  OwnableValidator = 2
 }
 
 export type Execution = {

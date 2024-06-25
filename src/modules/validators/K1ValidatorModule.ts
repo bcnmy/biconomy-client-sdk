@@ -3,8 +3,8 @@ import {
   ModuleType,
   type SmartAccountSigner
 } from "../../account/index.js"
-import type { V3ModuleInfo } from "../utils/Types.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
+import type { V3ModuleInfo } from "../utils/Types.js"
 
 export class K1ValidatorModule extends BaseValidationModule {
   private constructor(moduleConfig: V3ModuleInfo, signer: SmartAccountSigner) {

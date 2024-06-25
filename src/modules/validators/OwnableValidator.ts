@@ -1,27 +1,36 @@
 import {
-  ModuleType,
-  OWNABLE_VALIDATOR,
-} from "../../account/index.js"
-import type { V3ModuleInfo } from "../utils/Types.js"
+  getAddOwnableValidatorOwnerAction,
+  getInstallOwnableValidator,
+  getOwnableValidatorMockSignature,
+  getOwnableValidatorOwners,
+  getRemoveOwnableValidatorOwnerAction,
+  getSetOwnableValidatorThresholdAction
+} from "@rhinestone/module-sdk"
+import { type Address, decodeAbiParameters, parseAbiParameters } from "viem"
+import type { Hex } from "viem"
+import type { NexusSmartAccount } from "../../account/NexusSmartAccount.js"
+import { ModuleType, OWNABLE_VALIDATOR } from "../../account/index.js"
+import type { UserOpReceipt } from "../../bundler/index.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
-import { getAddOwnableValidatorOwnerAction, getInstallOwnableValidator, getOwnableValidatorMockSignature, getOwnableValidatorOwners, getRemoveOwnableValidatorOwnerAction, getSetOwnableValidatorThresholdAction } from "@rhinestone/module-sdk"
-import { Address, decodeAbiParameters, parseAbiParameters } from "viem"
-import { UserOpReceipt } from "../../bundler/index.js"
-import { NexusSmartAccount } from "../../account/NexusSmartAccount.js"
-import { Hex } from "viem"
+import type { V3ModuleInfo } from "../utils/Types.js"
 
 export class OwnableValidator extends BaseValidationModule {
-
   public smartAccount: NexusSmartAccount
-  public owners: Address[];
-  public threshold: number;
+  public owners: Address[]
+  public threshold: number
 
-  private constructor(moduleConfig: V3ModuleInfo, smartAccount: NexusSmartAccount) {
-    const moduleData = decodeAbiParameters(parseAbiParameters('uint256 threshold, address[] owners'), moduleConfig.data);
+  private constructor(
+    moduleConfig: V3ModuleInfo,
+    smartAccount: NexusSmartAccount
+  ) {
+    const moduleData = decodeAbiParameters(
+      parseAbiParameters("uint256 threshold, address[] owners"),
+      moduleConfig.data
+    )
     super(moduleConfig, smartAccount.getSmartAccountOwner())
-    this.threshold = Number(moduleData[0]);
-    this.owners = [...moduleData[1]] as Address[];
-    this.smartAccount = smartAccount;
+    this.threshold = Number(moduleData[0])
+    this.owners = [...moduleData[1]] as Address[]
+    this.smartAccount = smartAccount
   }
 
   public static async create(
@@ -30,7 +39,9 @@ export class OwnableValidator extends BaseValidationModule {
     owners: Address[],
     hook?: Address
   ): Promise<OwnableValidator> {
-    if(!owners.includes(await smartAccount.getSmartAccountOwner().getAddress())){
+    if (
+      !owners.includes(await smartAccount.getSmartAccountOwner().getAddress())
+    ) {
       throw Error("Signer needs to be one of the owners")
     }
     const installData = await getInstallOwnableValidator({
@@ -49,7 +60,7 @@ export class OwnableValidator extends BaseValidationModule {
   }
 
   public async setThreshold(threshold: number): Promise<UserOpReceipt> {
-    const execution = getSetOwnableValidatorThresholdAction(threshold);
+    const execution = getSetOwnableValidatorThresholdAction(threshold)
     const response = await this.smartAccount.sendTransaction({
       to: this.moduleAddress,
       data: execution.callData,
@@ -60,7 +71,11 @@ export class OwnableValidator extends BaseValidationModule {
   }
 
   public async removeOwner(owner: Address): Promise<UserOpReceipt> {
-    const execution = getRemoveOwnableValidatorOwnerAction(this.smartAccount.publicClient, this.smartAccount, owner);
+    const execution = getRemoveOwnableValidatorOwnerAction(
+      this.smartAccount.publicClient,
+      this.smartAccount,
+      owner
+    )
     const response = await this.smartAccount.sendTransaction({
       to: this.moduleAddress,
       data: execution.callData,
@@ -71,7 +86,7 @@ export class OwnableValidator extends BaseValidationModule {
   }
 
   public async addOwner(owner: Address): Promise<UserOpReceipt> {
-    const execution = getAddOwnableValidatorOwnerAction(owner);
+    const execution = getAddOwnableValidatorOwnerAction(owner)
     const response = await this.smartAccount.sendTransaction({
       to: this.moduleAddress,
       data: execution.callData,
@@ -82,7 +97,10 @@ export class OwnableValidator extends BaseValidationModule {
   }
 
   public async getOwners(): Promise<UserOpReceipt> {
-    const execution = getOwnableValidatorOwners(this.smartAccount, this.smartAccount.publicClient);
+    const execution = getOwnableValidatorOwners(
+      this.smartAccount,
+      this.smartAccount.publicClient
+    )
     const response = await this.smartAccount.sendTransaction({
       to: this.moduleAddress,
       data: execution.callData,
@@ -93,6 +111,6 @@ export class OwnableValidator extends BaseValidationModule {
   }
 
   public getMockSignature(): Hex {
-    return getOwnableValidatorMockSignature();
+    return getOwnableValidatorMockSignature()
   }
 }

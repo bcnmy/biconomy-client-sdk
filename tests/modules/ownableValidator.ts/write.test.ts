@@ -37,31 +37,33 @@ describe("Account:Modules:OwnableValidator", async () => {
 
   const owners = [walletClient.account.address, accountTwo.address]
 
-  const ownableValidatorModule = await createOwnableValidatorModule(smartAccount, 2, owners)
+  const ownableValidatorModule = await createOwnableValidatorModule(
+    smartAccount,
+    2,
+    owners
+  )
   smartAccount.setActiveValidationModule(ownableValidatorModule)
 
   describe("Ownable Validator Module Tests", async () => {
     test("install Ownable Executor", async () => {
+      const isInstalledBefore = await smartAccount.isModuleInstalled(
+        ModuleType.Validation,
+        OWNABLE_VALIDATOR
+      )
 
-        const isInstalledBefore = await smartAccount.isModuleInstalled(
-            ModuleType.Validation,
-            OWNABLE_VALIDATOR
+      if (!isInstalledBefore) {
+        const userOpReceipt: UserOpReceipt = await smartAccount.installModule(
+          ModuleName.OwnableValidator
         )
 
-        if(!isInstalledBefore) {
-            const userOpReceipt: UserOpReceipt = await smartAccount.installModule(
-                ModuleName.OwnableValidator
-            )
-    
-            const isInstalled = await smartAccount.isModuleInstalled(
-                ModuleType.Validation,
-                OWNABLE_VALIDATOR
-            )
-    
-            expect(userOpReceipt.success).toBe(true)
-            expect(isInstalled).toBeTruthy()
-        }
+        const isInstalled = await smartAccount.isModuleInstalled(
+          ModuleType.Validation,
+          OWNABLE_VALIDATOR
+        )
 
+        expect(userOpReceipt.success).toBe(true)
+        expect(isInstalled).toBeTruthy()
+      }
     }, 60000)
 
     test("Ownable Validator Module should be installed", async () => {
