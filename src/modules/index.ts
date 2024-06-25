@@ -14,6 +14,7 @@ export * from "./sessions/erc20.js"
 export * from "./sessions/batch.js"
 export * from "./sessions/sessionSmartAccountClient.js"
 export * from "./session-storage/index.js"
+import { DANSessionKeyManagerModule } from "./DANSessionKeyManagerModule.js"
 import {
   BatchedSessionRouterModule,
   ECDSAOwnershipValidationModule,
@@ -29,6 +30,7 @@ export const createMultiChainValidationModule =
 export const createECDSAOwnershipValidationModule =
   ECDSAOwnershipValidationModule.create
 export const createSessionKeyManagerModule = SessionKeyManagerModule.create
+export const createDANSessionKeyManagerModule = DANSessionKeyManagerModule.create
 export const createERC20SessionValidationModule =
   ERC20SessionValidationModule.create
 // export * from './PasskeyValidationModule'

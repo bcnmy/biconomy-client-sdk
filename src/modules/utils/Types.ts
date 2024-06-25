@@ -104,6 +104,18 @@ export type ModuleInfo = {
   additionalSessionData?: string
   /** Batch session params */
   batchSessionParams?: SessionParams[]
+  /** Ephemeral sk */
+  ephSK?: Uint8Array
+  /** eoa address */
+  eoaAddress?: string
+  /** scw address */
+  scwAddress?: string
+  /** threshold */
+  threshold?: number
+  /** parties number */
+  partiesNumber?: number
+  /** userOp to be signed */
+  userOp?: Partial<UserOperationStruct>
 }
 
 export interface SendUserOpParams extends ModuleInfo {
