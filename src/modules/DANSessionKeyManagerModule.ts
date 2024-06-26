@@ -1,3 +1,8 @@
+import {
+  EphAuth,
+  NetworkSigner,
+  WalletProviderServiceClient
+} from "@silencelaboratories/walletprovider-sdk"
 import { MerkleTree } from "merkletreejs"
 import {
   type Hex,
@@ -34,26 +39,21 @@ import {
   StorageType
 } from "./utils/Types.js"
 import { generateRandomHex } from "./utils/Uid.js"
-import {
-  NetworkSigner,
-  WalletProviderServiceClient,
-  EphAuth,
-} from '@silencelaboratories/walletprovider-sdk';
 
 export type WalletProviderDefs = {
-  walletProviderId: string;
-  walletProviderUrl: string;
-};
+  walletProviderId: string
+  walletProviderUrl: string
+}
 
 export type Config = {
-  walletProvider: WalletProviderDefs;
-};
+  walletProvider: WalletProviderDefs
+}
 
 const createWalletProviderService = async (config: Config) =>
   new WalletProviderServiceClient({
     walletProviderId: config.walletProvider.walletProviderId,
-    walletProviderUrl: config.walletProvider.walletProviderUrl,
-  });
+    walletProviderUrl: config.walletProvider.walletProviderUrl
+  })
 
 export class DANSessionKeyManagerModule extends BaseValidationModule {
   version: ModuleVersion = "V1_0_0"
@@ -216,24 +216,29 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
   async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<Hex> {
     // need scw address and ephemeral sk to be passed
     // threshold and parties number..
-    console.log('userOpHash', userOpHash)
+    console.log("userOpHash", userOpHash)
 
     const clusterConfig = {
       walletProvider: {
         walletProviderId: "WalletProvider",
         walletProviderUrl: "ws://localhost:8090/v1"
       }
-    };
+    }
 
-    const wpClient = await createWalletProviderService(clusterConfig);
-    const authModule = new EphAuth(params?.eoaAddress!, params?.ephSK!);
+    const wpClient = await createWalletProviderService(clusterConfig)
+    const authModule = new EphAuth(params?.eoaAddress!, params?.ephSK!)
     // // Create a new signer instance
-    const sdk = new NetworkSigner(wpClient, params?.threshold!, params?.partiesNumber!, authModule);
+    const sdk = new NetworkSigner(
+      wpClient,
+      params?.threshold!,
+      params?.partiesNumber!,
+      authModule
+    )
     // signMessage is JSON.stringify of userOp
-    const signMessage = JSON.stringify(params?.userOp);
-    let resp = await sdk.authenticateAndSign(params?.eoaAddress!, signMessage);
+    const signMessage = JSON.stringify(params?.userOp)
+    const resp = await sdk.authenticateAndSign(params?.eoaAddress!, signMessage)
 
-    const signature = resp.sign;
+    const signature = resp.sign
 
     const sessionSignerData = await this.getLeafInfo(params!)
 
