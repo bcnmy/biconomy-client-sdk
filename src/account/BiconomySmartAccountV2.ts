@@ -251,7 +251,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     biconomySmartAccountConfig: BiconomySmartAccountV2Config
   ): Promise<BiconomySmartAccountV2> {
     let chainId = biconomySmartAccountConfig.chainId
-    let rpcUrl = biconomySmartAccountConfig.rpcUrl
+    let rpcUrl =
+      biconomySmartAccountConfig.customChain?.rpcUrls?.default?.http?.[0] ??
+      biconomySmartAccountConfig.rpcUrl
     let resolvedSmartAccountSigner!: SmartAccountSigner
 
     // Signer needs to be initialised here before defaultValidationModule is set
