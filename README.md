@@ -6,6 +6,8 @@
 
 The Biconomy SDK is your all-in-one toolkit for building decentralized applications (dApps) with **ERC4337 Account Abstraction** and **Smart Accounts**. It is designed for seamless user experiences and offers non-custodial solutions for user onboarding, sending transactions (userOps), gas sponsorship and much more.
 
+> :warning: **Building with React?**: [Use our hooks package](https://github.com/bcnmy/useAA)
+
 ## 📚 Table of Contents
 
 - [SDK 🚀](#sdk-)

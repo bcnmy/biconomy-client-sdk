@@ -1,5 +1,11 @@
 # @biconomy/account
 
+## 4.4.7
+
+### Patch Changes
+
+- Add hooks info to README
+
 ## 4.4.6
 
 ### Patch Changes
