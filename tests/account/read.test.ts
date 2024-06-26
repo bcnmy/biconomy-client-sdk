@@ -878,54 +878,51 @@ describe("Account:Read", () => {
     }
   )
 
-  test.concurrent(
-    "should sign typed data",
-    async () => {
-      const smartAccount = await createSmartAccountClient({
-        signer: walletClient,
-        bundlerUrl
-      })
+  test.concurrent("should sign typed data", async () => {
+    const smartAccount = await createSmartAccountClient({
+      signer: walletClient,
+      bundlerUrl
+    })
 
-      const typedData = {
-        account: walletClient.account,
-        domain: {
-            name: "Ether Mail",
-            version: "1",
-            chainId: chain.id,
-            verifyingContract: smartAccountAddress
+    const typedData = {
+      account: walletClient.account,
+      domain: {
+        name: "Ether Mail",
+        version: "1",
+        chainId: chain.id,
+        verifyingContract: smartAccountAddress
+      },
+      types: {
+        Person: [
+          { name: "name", type: "string" },
+          { name: "wallet", type: "address" }
+        ],
+        Mail: [
+          { name: "from", type: "Person" },
+          { name: "to", type: "Person" },
+          { name: "contents", type: "string" }
+        ]
+      },
+      primaryType: "Mail" as const,
+      message: {
+        from: {
+          name: "Cow",
+          wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
         },
-        types: {
-            Person: [
-                { name: "name", type: "string" },
-                { name: "wallet", type: "address" }
-            ],
-            Mail: [
-                { name: "from", type: "Person" },
-                { name: "to", type: "Person" },
-                { name: "contents", type: "string" }
-            ]
+        to: {
+          name: "Bob",
+          wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
         },
-        primaryType: "Mail" as const,
-        message: {
-            from: {
-                name: "Cow",
-                wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
-            },
-            to: {
-                name: "Bob",
-                wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
-            },
-            contents: "Hello, Bob!"
-        }
+        contents: "Hello, Bob!"
       }
-
-      const signature = await smartAccount.signTypedData(typedData)
-      const isVerified = await publicClient.verifyTypedData({
-        address: account.address,
-        signature,
-        ...typedData
-      })
-      expect(isVerified).toBeTruthy()
     }
-  )
+
+    const signature = await smartAccount.signTypedData(typedData)
+    const isVerified = await publicClient.verifyTypedData({
+      address: account.address,
+      signature,
+      ...typedData
+    })
+    expect(isVerified).toBeTruthy()
+  })
 })
