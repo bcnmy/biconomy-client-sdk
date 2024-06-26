@@ -8,7 +8,7 @@ import {
   parseAbiParameters
 } from "viem"
 import type { UserOperationStruct } from "../../account"
-import { type SupportedSigner, convertSigner, MAGIC_BYTES } from "../../account"
+import { MAGIC_BYTES, type SupportedSigner, convertSigner } from "../../account"
 import { extractChainIdFromBundlerUrl } from "../../bundler"
 import { extractChainIdFromPaymasterUrl } from "../../bundler"
 import type { BiconomySmartAccountV2Config } from "./Types.js"
