@@ -16,7 +16,7 @@ import {
   // toBytes,
   toHex
 } from "viem"
-import { type SmartAccountSigner, convertSigner } from "../account"
+import { type SmartAccountSigner } from "../account"
 import { BaseValidationModule } from "./BaseValidationModule.js"
 import type {
   ISessionStorage,
@@ -270,13 +270,13 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
   }
 
   private async getLeafInfo(params: ModuleInfo): Promise<SessionLeafNode> {
-    if (!params?.sessionSigner) {
-      throw new Error("Session signer is not provided.")
-    }
-    const { signer: sessionSigner } = await convertSigner(
-      params.sessionSigner,
-      false
-    )
+    // if (!params?.sessionSigner) {
+    //   throw new Error("Session signer is not provided.")
+    // }
+    // const { signer: sessionSigner } = await convertSigner(
+    //   params.sessionSigner,
+    //   false
+    // )
     // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
     let sessionSignerData
     if (params?.sessionID) {
@@ -286,7 +286,7 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
     } else if (params?.sessionValidationModule) {
       sessionSignerData = await this.sessionStorageClient.getSessionData({
         sessionValidationModule: params.sessionValidationModule,
-        sessionPublicKey: await sessionSigner.getAddress()
+        sessionPublicKey: params.sessionKeyEOA
       })
     } else {
       throw new Error(
@@ -337,10 +337,10 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
    * @returns Dummy signature
    */
   async getDummySignature(params?: ModuleInfo): Promise<Hex> {
-    if (!params) {
-      throw new Error("Session signer is not provided.")
-    }
-    const sessionSignerData = await this.getLeafInfo(params)
+    // if (!params) {
+    //   throw new Error("Session signer is not provided.")
+    // }
+    const sessionSignerData = await this.getLeafInfo(params!)
     const leafDataHex = concat([
       pad(toHex(sessionSignerData.validUntil), { size: 6 }),
       pad(toHex(sessionSignerData.validAfter), { size: 6 }),

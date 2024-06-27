@@ -767,6 +767,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     if (validationModule instanceof BaseValidationModule) {
       this.activeValidationModule = validationModule
     }
+    this.activeValidationModule = validationModule
     return this
   }
 

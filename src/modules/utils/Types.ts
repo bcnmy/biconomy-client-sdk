@@ -116,6 +116,8 @@ export type ModuleInfo = {
   partiesNumber?: number
   /** userOp to be signed */
   userOp?: Partial<UserOperationStruct>
+  /** session public key */
+  sessionKeyEOA?: Hex
 }
 
 export interface SendUserOpParams extends ModuleInfo {
