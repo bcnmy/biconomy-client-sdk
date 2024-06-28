@@ -10,9 +10,10 @@ import type {
 } from "../interfaces/ISessionStorage.js"
 import type { SignerData } from "../utils/Types.js"
 
+export const inBrowser = typeof window !== "undefined"
 export const supportsLocalStorage =
   // @ts-ignore: LocalStorage is not available in node
-  typeof window !== "undefined" && typeof window.localStorage !== "undefined"
+  inBrowser && typeof window.localStorage !== "undefined"
 
 export class SessionLocalStorage implements ISessionStorage {
   public smartAccountAddress: Hex

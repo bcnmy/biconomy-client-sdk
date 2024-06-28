@@ -1529,6 +1529,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         : [manyOrOneTransactions],
       buildUseropDto
     )
+
+    if (buildUseropDto?.params?.ephSK) {
+      buildUseropDto.params.userOp = userOp
+    }
+
     return this.sendUserOp(userOp, {
       simulationType: buildUseropDto?.simulationType,
       ...buildUseropDto?.params
@@ -2029,6 +2034,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   async signMessage(message: string | Uint8Array): Promise<Hex> {
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     let signature: any
     this.isActiveValidationModuleDefined()
     const dataHash = typeof message === "string" ? toBytes(message) : message

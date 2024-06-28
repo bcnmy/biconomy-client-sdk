@@ -16,7 +16,7 @@ import {
   // toBytes,
   toHex
 } from "viem"
-import { type SmartAccountSigner } from "../account"
+import type { SmartAccountSigner } from "../account"
 import { BaseValidationModule } from "./BaseValidationModule.js"
 import type {
   ISessionStorage,
@@ -27,6 +27,7 @@ import type {
 import { SessionLocalStorage } from "./session-storage/SessionLocalStorage.js"
 import { SessionMemoryStorage } from "./session-storage/SessionMemoryStorage.js"
 import {
+  DEFAULT_ERC20_MODULE,
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION
 } from "./utils/Constants.js"
@@ -214,9 +215,14 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
    * @returns The signature of the user operation
    */
   async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<Hex> {
-    // need scw address and ephemeral sk to be passed
-    // threshold and parties number..
-    console.log("userOpHash", userOpHash)
+    if (
+      !params ||
+      !params?.eoaAddress ||
+      !params?.ephSK ||
+      !params?.threshold ||
+      !params?.partiesNumber
+    )
+      throw new Error("Missing params")
 
     const clusterConfig = {
       walletProvider: {
@@ -226,21 +232,19 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
     }
 
     const wpClient = await createWalletProviderService(clusterConfig)
-    const authModule = new EphAuth(params?.eoaAddress!, params?.ephSK!)
-    // // Create a new signer instance
+    const authModule = new EphAuth(params.eoaAddress, params.ephSK)
+
     const sdk = new NetworkSigner(
       wpClient,
-      params?.threshold!,
-      params?.partiesNumber!,
+      params.threshold,
+      params.partiesNumber,
       authModule
     )
-    // signMessage is JSON.stringify of userOp
-    const signMessage = JSON.stringify(params?.userOp)
-    const resp = await sdk.authenticateAndSign(params?.eoaAddress!, signMessage)
+    const signMessage = JSON.stringify(params.userOp)
+    const resp = await sdk.authenticateAndSign(params.eoaAddress, signMessage)
 
     const signature = resp.sign
-
-    const sessionSignerData = await this.getLeafInfo(params!)
+    const sessionSignerData = await this.getLeafInfo(params)
 
     const leafDataHex = concat([
       pad(toHex(sessionSignerData.validUntil), { size: 6 }),
@@ -270,13 +274,7 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
   }
 
   private async getLeafInfo(params: ModuleInfo): Promise<SessionLeafNode> {
-    // if (!params?.sessionSigner) {
-    //   throw new Error("Session signer is not provided.")
-    // }
-    // const { signer: sessionSigner } = await convertSigner(
-    //   params.sessionSigner,
-    //   false
-    // )
+    console.log({ params })
     // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
     let sessionSignerData
     if (params?.sessionID) {
@@ -286,6 +284,11 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
     } else if (params?.sessionValidationModule) {
       sessionSignerData = await this.sessionStorageClient.getSessionData({
         sessionValidationModule: params.sessionValidationModule,
+        sessionPublicKey: params.sessionKeyEOA
+      })
+    } else if (params?.sessionKeyEOA) {
+      sessionSignerData = await this.sessionStorageClient.getSessionData({
+        sessionValidationModule: DEFAULT_ERC20_MODULE,
         sessionPublicKey: params.sessionKeyEOA
       })
     } else {
@@ -337,10 +340,15 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
    * @returns Dummy signature
    */
   async getDummySignature(params?: ModuleInfo): Promise<Hex> {
+    if (!params) {
+      throw new Error("Params must be provided.")
+    }
+
+    console.log({ params })
     // if (!params) {
     //   throw new Error("Session signer is not provided.")
     // }
-    const sessionSignerData = await this.getLeafInfo(params!)
+    const sessionSignerData = await this.getLeafInfo(params)
     const leafDataHex = concat([
       pad(toHex(sessionSignerData.validUntil), { size: 6 }),
       pad(toHex(sessionSignerData.validAfter), { size: 6 }),

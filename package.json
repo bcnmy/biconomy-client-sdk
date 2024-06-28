@@ -119,6 +119,7 @@
     "commit-msg": "npx --no -- commitlint --edit ${1}"
   },
   "dependencies": {
+    "@noble/ed25519": "^2.1.0",
     "merkletreejs": "^0.3.11"
   }
 }
