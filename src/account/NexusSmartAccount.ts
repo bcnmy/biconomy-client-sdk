@@ -15,13 +15,12 @@ import {
   encodeFunctionData,
   encodePacked,
   formatUnits,
+  getAddress,
   getContract,
   keccak256,
   parseAbi,
   parseAbiParameters,
-  stringToBytes,
-  toBytes,
-  toHex
+  toBytes
 } from "viem"
 import {
   Bundler,
@@ -36,11 +35,10 @@ import type { BaseExecutionModule } from "../modules/base/BaseExecutionModule.js
 import type { BaseModule } from "../modules/base/BaseModule.js"
 import { BaseValidationModule } from "../modules/base/BaseValidationModule.js"
 import {
+  type Execution,
   type ModuleInfo,
-  type ModuleName,
   type SendUserOpParams,
-  createK1ValidatorModule,
-  createModuleInstace
+  createK1ValidatorModule
 } from "../modules/index.js"
 import {
   type FeeQuotesOrDataDto,
@@ -55,7 +53,7 @@ import { BaseSmartContractAccount } from "./BaseSmartContractAccount.js"
 import { NexusAccountAbi } from "./abi/SmartAccount.js"
 import {
   Logger,
-  type ModuleType,
+  ModuleType,
   type SmartAccountSigner,
   type StateOverrideSet,
   type UserOperationStruct,
@@ -69,15 +67,17 @@ import {
   ERC20_ABI,
   ERROR_MESSAGES,
   MAGIC_BYTES,
-  NATIVE_TOKEN_ALIAS
+  NATIVE_TOKEN_ALIAS,
+  SENTINEL_ADDRESS
 } from "./utils/Constants.js"
 import type {
   BalancePayload,
-  BiconomySmartAccountV2Config,
-  BiconomySmartAccountV2ConfigConstructorProps,
   BiconomyTokenPaymasterRequest,
   BuildUserOpOptions,
   CounterFactualAddressParam,
+  ModuleInfoParams,
+  NexusSmartAccountConfig,
+  NexusSmartAccountConfigConstructorProps,
   NonceOptions,
   PaymasterUserOperationDto,
   SupportedToken,
@@ -95,8 +95,6 @@ import {
 // type UserOperationKey = keyof UserOperationStruct
 export class NexusSmartAccount extends BaseSmartContractAccount {
   // private sessionData?: ModuleInfo
-
-  private SENTINEL_MODULE = "0x0000000000000000000000000000000000000001"
 
   private index: bigint
 
@@ -129,64 +127,63 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   activeExecutorModule?: BaseExecutionModule
 
   private constructor(
-    readonly biconomySmartAccountConfig: BiconomySmartAccountV2ConfigConstructorProps
+    readonly nexusSmartAccountConfig: NexusSmartAccountConfigConstructorProps
   ) {
     super({
-      ...biconomySmartAccountConfig,
+      ...nexusSmartAccountConfig,
       chain:
-        biconomySmartAccountConfig.viemChain ??
-        biconomySmartAccountConfig.customChain ??
-        getChain(biconomySmartAccountConfig.chainId),
+        nexusSmartAccountConfig.viemChain ??
+        nexusSmartAccountConfig.customChain ??
+        getChain(nexusSmartAccountConfig.chainId),
       rpcClient:
-        biconomySmartAccountConfig.rpcUrl ||
-        getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0],
+        nexusSmartAccountConfig.rpcUrl ||
+        getChain(nexusSmartAccountConfig.chainId).rpcUrls.default.http[0],
       entryPointAddress:
-        (biconomySmartAccountConfig.entryPointAddress as Hex) ??
+        (nexusSmartAccountConfig.entryPointAddress as Hex) ??
         DEFAULT_ENTRYPOINT_ADDRESS,
       accountAddress:
-        (biconomySmartAccountConfig.accountAddress as Hex) ?? undefined,
+        (nexusSmartAccountConfig.accountAddress as Hex) ?? undefined,
       factoryAddress:
-        biconomySmartAccountConfig.factoryAddress ??
+        nexusSmartAccountConfig.factoryAddress ??
         DEFAULT_BICONOMY_FACTORY_ADDRESS
     })
 
-    // this.sessionData = biconomySmartAccountConfig.sessionData
+    // this.sessionData = nexusSmartAccountConfig.sessionData
 
     this.defaultValidationModule =
-      biconomySmartAccountConfig.defaultValidationModule
-    this.activeValidationModule =
-      biconomySmartAccountConfig.activeValidationModule
+      nexusSmartAccountConfig.defaultValidationModule
+    this.activeValidationModule = nexusSmartAccountConfig.activeValidationModule
 
-    this.index = biconomySmartAccountConfig.index ?? 0n
-    this.chainId = biconomySmartAccountConfig.chainId
-    this.bundler = biconomySmartAccountConfig.bundler
+    this.index = nexusSmartAccountConfig.index ?? 0n
+    this.chainId = nexusSmartAccountConfig.chainId
+    this.bundler = nexusSmartAccountConfig.bundler
     this.publicClient = createPublicClient({
-      chain: getChain(biconomySmartAccountConfig.chainId),
+      chain: getChain(nexusSmartAccountConfig.chainId),
       transport: http()
     })
 
     // this.implementationAddress =
-    //   biconomySmartAccountConfig.implementationAddress ??
+    //   nexusSmartAccountConfig.implementationAddress ??
     //   (BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0 as Hex)
 
-    if (biconomySmartAccountConfig.paymasterUrl) {
+    if (nexusSmartAccountConfig.paymasterUrl) {
       this.paymaster = new Paymaster({
-        paymasterUrl: biconomySmartAccountConfig.paymasterUrl
+        paymasterUrl: nexusSmartAccountConfig.paymasterUrl
       })
-    } else if (biconomySmartAccountConfig.biconomyPaymasterApiKey) {
+    } else if (nexusSmartAccountConfig.biconomyPaymasterApiKey) {
       this.paymaster = new Paymaster({
-        paymasterUrl: `https://paymaster.biconomy.io/api/v1/${biconomySmartAccountConfig.chainId}/${biconomySmartAccountConfig.biconomyPaymasterApiKey}`
+        paymasterUrl: `https://paymaster.biconomy.io/api/v1/${nexusSmartAccountConfig.chainId}/${nexusSmartAccountConfig.biconomyPaymasterApiKey}`
       })
     } else {
-      this.paymaster = biconomySmartAccountConfig.paymaster
+      this.paymaster = nexusSmartAccountConfig.paymaster
     }
 
-    this.bundler = biconomySmartAccountConfig.bundler
+    this.bundler = nexusSmartAccountConfig.bundler
 
     // const defaultFallbackHandlerAddress =
     //   this.factoryAddress === DEFAULT_BICONOMY_FACTORY_ADDRESS
     //     ? DEFAULT_FALLBACK_HANDLER_ADDRESS
-    //     : biconomySmartAccountConfig.defaultFallbackHandler
+    //     : nexusSmartAccountConfig.defaultFallbackHandler
     // if (!defaultFallbackHandlerAddress) {
     //   throw new Error("Default Fallback Handler address is not provided")
     // }
@@ -195,25 +192,25 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     // Added bang operator to avoid null check as the constructor have these params as optional
     this.defaultValidationModule =
       // biome-ignore lint/style/noNonNullAssertion: <explanation>
-      biconomySmartAccountConfig.defaultValidationModule!
+      nexusSmartAccountConfig.defaultValidationModule!
     this.activeValidationModule =
       // biome-ignore lint/style/noNonNullAssertion: <explanation>
-      biconomySmartAccountConfig.activeValidationModule!
+      nexusSmartAccountConfig.activeValidationModule!
 
     this.provider = createPublicClient({
       chain:
-        biconomySmartAccountConfig.viemChain ??
-        biconomySmartAccountConfig.customChain ??
-        getChain(biconomySmartAccountConfig.chainId),
+        nexusSmartAccountConfig.viemChain ??
+        nexusSmartAccountConfig.customChain ??
+        getChain(nexusSmartAccountConfig.chainId),
       transport: http(
-        biconomySmartAccountConfig.rpcUrl ||
-          getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0]
+        nexusSmartAccountConfig.rpcUrl ||
+          getChain(nexusSmartAccountConfig.chainId).rpcUrls.default.http[0]
       )
     })
 
     // this.scanForUpgradedAccountsFromV1 =
-    // biconomySmartAccountConfig.scanForUpgradedAccountsFromV1 ?? false
-    // this.maxIndexForScan = biconomySmartAccountConfig.maxIndexForScan ?? 10n
+    // nexusSmartAccountConfig.scanForUpgradedAccountsFromV1 ?? false
+    // this.maxIndexForScan = nexusSmartAccountConfig.maxIndexForScan ?? 10n
     // this.getAccountAddress()
   }
 
@@ -225,7 +222,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    *
    * - Docs: https://docs.biconomy.io/Account/integration#integration-1
    *
-   * @param biconomySmartAccountConfig - Configuration for initializing the NexusSmartAccount instance {@link BiconomySmartAccountV2Config}.
+   * @param nexusSmartAccountConfig - Configuration for initializing the NexusSmartAccount instance {@link NexusSmartAccountConfig}.
    * @returns A promise that resolves to a new instance of NexusSmartAccount.
    * @throws An error if something is wrong with the smart account instance creation.
    *
@@ -251,16 +248,16 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    *
    */
   public static async create(
-    biconomySmartAccountConfig: BiconomySmartAccountV2Config
+    nexusSmartAccountConfig: NexusSmartAccountConfig
   ): Promise<NexusSmartAccount> {
-    let chainId = biconomySmartAccountConfig.chainId
-    let rpcUrl = biconomySmartAccountConfig.rpcUrl
+    let chainId = nexusSmartAccountConfig.chainId
+    let rpcUrl = nexusSmartAccountConfig.rpcUrl
     let resolvedSmartAccountSigner!: SmartAccountSigner
 
     // Signer needs to be initialised here before defaultValidationModule is set
-    if (biconomySmartAccountConfig.signer) {
+    if (nexusSmartAccountConfig.signer) {
       const signerResult = await convertSigner(
-        biconomySmartAccountConfig.signer,
+        nexusSmartAccountConfig.signer,
         !!chainId,
         rpcUrl
       )
@@ -276,13 +273,13 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     }
     // if (!chainId) {
     // Get it from bundler
-    // if (biconomySmartAccountConfig.bundlerUrl) {
+    // if (nexusSmartAccountConfig.bundlerUrl) {
     //   chainId = extractChainIdFromBundlerUrl(
-    //     biconomySmartAccountConfig.bundlerUrl
+    //     nexusSmartAccountConfig.bundlerUrl
     //   )
-    // } else if (biconomySmartAccountConfig.bundler) {
+    // } else if (nexusSmartAccountConfig.bundler) {
     //   const bundlerUrlFromBundler =
-    //     biconomySmartAccountConfig.bundler.getBundlerUrl()
+    //     nexusSmartAccountConfig.bundler.getBundlerUrl()
     //   chainId = extractChainIdFromBundlerUrl(bundlerUrlFromBundler)
     // }
     // }
@@ -291,18 +288,18 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     }
 
     const bundler: IBundler =
-      biconomySmartAccountConfig.bundler ??
+      nexusSmartAccountConfig.bundler ??
       new Bundler({
         // biome-ignore lint/style/noNonNullAssertion: always required
-        bundlerUrl: biconomySmartAccountConfig.bundlerUrl!,
+        bundlerUrl: nexusSmartAccountConfig.bundlerUrl!,
         chainId,
         customChain:
-          biconomySmartAccountConfig.viemChain ??
-          biconomySmartAccountConfig.customChain ??
+          nexusSmartAccountConfig.viemChain ??
+          nexusSmartAccountConfig.customChain ??
           getChain(chainId)
       })
     let defaultValidationModule =
-      biconomySmartAccountConfig.defaultValidationModule
+      nexusSmartAccountConfig.defaultValidationModule
 
     // Note: If no module is provided, we will use ECDSA_OWNERSHIP as default
     if (!defaultValidationModule) {
@@ -312,8 +309,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       defaultValidationModule = newModule as BaseValidationModule
     }
     const activeValidationModule =
-      biconomySmartAccountConfig?.activeValidationModule ??
-      defaultValidationModule
+      nexusSmartAccountConfig?.activeValidationModule ?? defaultValidationModule
     if (!resolvedSmartAccountSigner) {
       resolvedSmartAccountSigner = activeValidationModule.getSigner()
     }
@@ -321,8 +317,8 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       throw new Error("signer required")
     }
 
-    const config: BiconomySmartAccountV2ConfigConstructorProps = {
-      ...biconomySmartAccountConfig,
+    const config: NexusSmartAccountConfigConstructorProps = {
+      ...nexusSmartAccountConfig,
       defaultValidationModule,
       activeValidationModule,
       chainId,
@@ -333,9 +329,9 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
 
     // We check if chain ids match (skip this if chainId is passed by in the config)
     // This check is at the end of the function for cases when the signer is not passed in the config but a validation modules is and we get the signer from the validation module in this case
-    // if (!biconomySmartAccountConfig.chainId) {
+    // if (!nexusSmartAccountConfig.chainId) {
     //   await compareChainIds(
-    //     biconomySmartAccountConfig.signer || resolvedSmartAccountSigner,
+    //     nexusSmartAccountConfig.signer || resolvedSmartAccountSigner,
     //     config,
     //     false
     //   )
@@ -938,11 +934,6 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       userOpHash
     )) as Hex
 
-    // const signatureWithModuleAddress = this.getSignatureWithModuleAddress(
-    //   moduleSig,
-    //   this.activeValidationModule.getAddress() as Hex
-    // )
-
     userOp.signature = moduleSig
     return userOp as UserOperationStruct
   }
@@ -1322,7 +1313,13 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       const address = await this.getAddress()
       return await this.entryPoint.read.getNonce([
         address,
-        BigInt(zeroPadBytes(this.activeValidationModule.getAddress(), 24)) // TODO: Use viem instead of ethers
+        BigInt(
+          zeroPadBytes(
+            this.activeValidationModule.getAddress() ??
+              this.defaultValidationModule.getAddress(),
+            24
+          )
+        ) // TODO: Use viem instead of ethers
       ])
     } catch (e) {
       return BigInt(0)
@@ -1984,7 +1981,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     }
     signature = encodeAbiParameters(
       [{ type: "bytes" }, { type: "address" }],
-      [signature as Hex, this.defaultValidationModule.getAddress()]
+      [signature as Hex, this.activeValidationModule.getAddress()]
     )
     if (await this.isAccountDeployed()) {
       return signature as Hex
@@ -2090,17 +2087,20 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     return tx
   }
 
-  async isModuleInstalled(
-    moduleType: ModuleType,
-    moduleAddress: Hex,
-    data?: Hex
-  ): Promise<boolean> {
-    const accountContract = await this._getAccountContract()
-    return (await accountContract.read.isModuleInstalled([
-      moduleType,
-      moduleAddress,
-      data ?? "0x"
-    ])) as boolean
+  async isModuleInstalled({
+    moduleType,
+    moduleAddress,
+    data
+  }: ModuleInfoParams): Promise<boolean> {
+    if (await this.isAccountDeployed()) {
+      const accountContract = await this._getAccountContract()
+      return (await accountContract.read.isModuleInstalled([
+        moduleType,
+        moduleAddress,
+        data ?? "0x"
+      ])) as boolean
+    }
+    throw new Error("Account not yet deployed")
   }
 
   getSmartAccountOwner(): SmartAccountSigner {
@@ -2128,40 +2128,228 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   //   return receipt;
   // }
 
-  async installModule(moduleName: ModuleName): Promise<UserOpReceipt> {
-    const moduleInstance = await createModuleInstace(moduleName, this)
-    const installModuleData = moduleInstance.installModule()
-    const response = await this.sendTransaction({
-      to: await this.getAddress(),
-      data: installModuleData,
-      value: 0n
-    })
-    const receipt = response.wait()
-    return receipt
+  async installModule({
+    moduleAddress,
+    moduleType,
+    moduleSelector,
+    data
+  }: ModuleInfoParams): Promise<UserOpReceipt> {
+    let execution: Execution
+    switch (moduleType) {
+      case ModuleType.Validation:
+      case ModuleType.Execution:
+      case ModuleType.Hooks:
+        execution = await this._installModule({
+          moduleAddress,
+          moduleType,
+          data
+        })
+        return (
+          await this.sendTransaction({
+            to: execution.target,
+            data: execution.callData,
+            value: execution.value
+          })
+        ).wait()
+      case ModuleType.Fallback:
+        if (!moduleSelector) {
+          throw new Error(
+            "Selector param is required for a Fallback Handler Module"
+          )
+        }
+        execution = await this._uninstallFallback({
+          moduleAddress,
+          moduleType: ModuleType.Fallback,
+          moduleSelector: moduleSelector ?? "0x",
+          data
+        })
+        return (
+          await this.sendTransaction({
+            to: execution.target,
+            data: execution.callData,
+            value: execution.value
+          })
+        ).wait()
+      default:
+        throw new Error(`Unknown module type ${moduleType}`)
+    }
   }
 
-  async uninstallModule(
-    moduleName: ModuleName,
-    uninstallData?: Hex
-  ): Promise<UserOpReceipt> {
-    const moduleInstance = await createModuleInstace(moduleName, this)
-    const deInitData = encodeAbiParameters(
-      [
-        { name: "prev", type: "address" },
-        { name: "disableModuleData", type: "bytes" }
-      ],
-      [this.SENTINEL_MODULE as Hex, toHex(stringToBytes(""))]
-    )
-    const uninstallModuleData = moduleInstance.uninstallModule(
-      uninstallData ?? deInitData
-    )
-    const response = await this.sendTransaction({
-      to: await this.getAddress(),
-      data: uninstallModuleData,
-      value: 0n
+  async _installModule({
+    moduleAddress,
+    moduleType,
+    data
+  }: ModuleInfoParams): Promise<Execution> {
+    const isInstalled = await this.isModuleInstalled({
+      moduleAddress,
+      moduleType,
+      data
     })
-    const receipt = response.wait()
-    return receipt
+
+    if (!isInstalled) {
+      const execution = {
+        target: await this.getAddress(),
+        value: BigInt(0),
+        callData: encodeFunctionData({
+          functionName: "installModule",
+          abi: parseAbi([
+            "function installModule(uint256 moduleTypeId, address module, bytes calldata initData) external payable"
+          ]),
+          args: [BigInt(moduleType), moduleAddress, data || "0x"]
+        })
+      }
+      return execution
+    }
+    throw new Error("Module already installed")
+  }
+
+  async uninstallModule({
+    moduleAddress,
+    moduleType,
+    moduleSelector,
+    data
+  }: ModuleInfoParams): Promise<UserOpReceipt> {
+    let execution: Execution
+    switch (moduleType) {
+      case ModuleType.Validation:
+      case ModuleType.Execution:
+      case ModuleType.Hooks:
+        execution = await this._uninstallModule(moduleAddress, moduleType, data)
+        return (
+          await this.sendTransaction({
+            to: execution.target,
+            data: execution.callData,
+            value: execution.value
+          })
+        ).wait()
+      case ModuleType.Fallback:
+        if (!moduleSelector) {
+          throw new Error(
+            `Selector param is required for module type ${moduleType}`
+          )
+        }
+        execution = await this._uninstallFallback({
+          moduleAddress,
+          moduleType: ModuleType.Fallback,
+          moduleSelector: moduleSelector,
+          data
+        })
+        return (
+          await this.sendTransaction({
+            to: execution.target,
+            data: execution.callData,
+            value: execution.value
+          })
+        ).wait()
+      default:
+        throw new Error(`Unknown module type ${moduleType}`)
+    }
+  }
+
+  async getPreviousModule({
+    moduleAddress,
+    moduleType
+  }: { moduleAddress: Address; moduleType: ModuleType }) {
+    let installedModules: Address[] = []
+    if (moduleType === ModuleType.Validation) {
+      installedModules = await this.getInstalledValidators()
+    }
+    if (moduleType === ModuleType.Execution) {
+      installedModules = await this.getInstalledExecutors()
+    }
+    const index = installedModules.indexOf(getAddress(moduleAddress))
+    if (index === 0) {
+      return SENTINEL_ADDRESS
+    }
+    if (index > 0) {
+      return installedModules[index - 1]
+    }
+    throw new Error(`Module ${moduleAddress} not found in installed modules`)
+  }
+
+  private async _uninstallFallback({
+    moduleAddress,
+    moduleSelector,
+    data
+  }: ModuleInfoParams): Promise<Execution> {
+    let execution: Execution
+
+    const isInstalled = await this.isModuleInstalled({
+      moduleType: ModuleType.Fallback,
+      moduleAddress,
+      data: encodeAbiParameters(
+        [{ name: "functionSignature", type: "bytes4" }],
+        [moduleSelector ?? "0x"]
+      )
+    })
+
+    if (isInstalled) {
+      execution = {
+        target: await this.getAddress(),
+        value: BigInt(0),
+        callData: encodeFunctionData({
+          functionName: "uninstallModule",
+          abi: parseAbi([
+            "function uninstallModule(uint256 moduleTypeId, address module, bytes deInitData)"
+          ]),
+          args: [
+            BigInt(ModuleType.Fallback),
+            moduleAddress,
+            encodePacked(
+              ["bytes4", "bytes"],
+              [moduleSelector ?? "0x", data ?? "0x"]
+            )
+          ]
+        })
+      }
+      return execution
+    }
+    throw new Error("Module is not installed")
+  }
+
+  private async _uninstallModule(
+    moduleAddress: Address,
+    moduleType: ModuleType,
+    data?: Hex
+  ): Promise<Execution> {
+    let execution: Execution
+    const isInstalled = await this.isModuleInstalled({
+      moduleType,
+      moduleAddress
+    })
+
+    if (isInstalled) {
+      let moduleData = data || "0x"
+      if (
+        moduleType === ModuleType.Validation ||
+        moduleType === ModuleType.Execution
+      ) {
+        const prev = await this.getPreviousModule({
+          moduleAddress,
+          moduleType: moduleType
+        })
+        moduleData = encodeAbiParameters(
+          [
+            { name: "prev", type: "address" },
+            { name: "disableModuleData", type: "bytes" }
+          ],
+          [prev, moduleData]
+        )
+      }
+      execution = {
+        target: await this.getAddress(),
+        value: BigInt(0),
+        callData: encodeFunctionData({
+          functionName: "uninstallModule",
+          abi: parseAbi([
+            "function uninstallModule(uint256 moduleTypeId, address module, bytes deInitData)"
+          ]),
+          args: [BigInt(moduleType), moduleAddress, moduleData]
+        })
+      }
+      return execution
+    }
+    throw new Error("Module is not installed")
   }
 
   private async executeFromExecutor(
@@ -2201,7 +2389,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     const accountContract = await this._getAccountContract()
     return (
       (await accountContract.read.getValidatorsPaginated([
-        this.SENTINEL_MODULE,
+        SENTINEL_ADDRESS,
         100
       ])) as Address[][]
     )[0] as Address[]
@@ -2211,7 +2399,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     const accountContract = await this._getAccountContract()
     return (
       (await accountContract.read.getExecutorsPaginated([
-        this.SENTINEL_MODULE,
+        SENTINEL_ADDRESS,
         100
       ])) as Address[][]
     )[0] as Address[]

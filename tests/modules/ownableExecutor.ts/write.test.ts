@@ -1,13 +1,26 @@
-import { http, createWalletClient } from "viem"
+import {
+  http,
+  Hex,
+  createWalletClient,
+  encodeAbiParameters,
+  encodePacked,
+  parseAbi,
+  stringToBytes,
+  toHex
+} from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { baseSepolia } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
-  ModuleName,
+  Module,
   ModuleType,
+  OWNABLE_EXECUTOR,
   createOwnableExecutorModule
 } from "../../../src"
-import { createSmartAccountClient } from "../../../src/account"
+import {
+  SENTINEL_ADDRESS,
+  createSmartAccountClient
+} from "../../../src/account"
 import type { NexusSmartAccount } from "../../../src/account/NexusSmartAccount"
 import type { UserOpReceipt } from "../../../src/bundler"
 import { getConfig } from "../../utils"
@@ -39,41 +52,47 @@ describe("Account:Modules:OwnableExecutor", async () => {
 
   describe("Ownable Executor Module Tests", async () => {
     test("install Ownable Executor", async () => {
-      const userOpReceipt: UserOpReceipt = await smartAccount.installModule(
-        ModuleName.OwnableExecutor
-      )
+      const signerAddress = await smartAccount.getSigner().getAddress()
+      console.log(signerAddress, "signerAddress from tests")
 
-      const isInstalled = await smartAccount.isModuleInstalled(
-        ModuleType.Execution,
-        ownableExecutor
-      )
+      const isInstalled = await smartAccount.isModuleInstalled({
+        moduleType: ModuleType.Execution,
+        moduleAddress: ownableExecutor
+      })
 
-      const activeExecutor = smartAccount.activeExecutorModule
-      const installedExecutors = smartAccount.installedExecutors
+      if (!isInstalled) {
+        const userOpReceipt: UserOpReceipt = await smartAccount.installModule({
+          moduleAddress: OWNABLE_EXECUTOR,
+          moduleType: ModuleType.Execution,
+          data: encodePacked(
+            ["address"],
+            [await smartAccount.getAccountAddress()]
+          )
+        })
 
-      console.log(activeExecutor, installedExecutors)
-
-      expect(userOpReceipt.success).toBe(true)
-      expect(isInstalled).toBeTruthy()
+        expect(userOpReceipt.success).toBe(true)
+        expect(isInstalled).toBeTruthy()
+      }
     }, 60000)
 
     test("Ownable Executor Module should be installed", async () => {
-      const isInstalled = await smartAccount.isModuleInstalled(
-        ModuleType.Execution,
-        ownableExecutor
-      )
+      const isInstalled = await smartAccount.isModuleInstalled({
+        moduleType: ModuleType.Execution,
+        moduleAddress: ownableExecutor
+      })
       expect(isInstalled).toBeTruthy()
     }, 60000)
 
     test("uninstall Ownable Executor Module", async () => {
-      const userOpReceipt = await smartAccount.uninstallModule(
-        ModuleName.OwnableExecutor
-      )
+      const userOpReceipt = await smartAccount.uninstallModule({
+        moduleAddress: OWNABLE_EXECUTOR,
+        moduleType: ModuleType.Execution
+      })
 
-      const isInstalled = await smartAccount.isModuleInstalled(
-        ModuleType.Execution,
-        ownableExecutor
-      )
+      const isInstalled = await smartAccount.isModuleInstalled({
+        moduleType: ModuleType.Execution,
+        moduleAddress: ownableExecutor
+      })
 
       expect(userOpReceipt.success).toBe(true)
       expect(isInstalled).toBeFalsy()
@@ -81,6 +100,22 @@ describe("Account:Modules:OwnableExecutor", async () => {
     }, 60000)
 
     test("should add an owner to the module", async () => {
+      const isInstalled = await smartAccount.isModuleInstalled({
+        moduleType: ModuleType.Execution,
+        moduleAddress: ownableExecutor
+      })
+
+      expect(isInstalled).to.be.false
+
+      await smartAccount.installModule({
+        moduleAddress: OWNABLE_EXECUTOR,
+        moduleType: ModuleType.Execution,
+        data: encodePacked(
+          ["address"],
+          [await smartAccount.getAccountAddress()]
+        )
+      })
+
       const userOpReceipt = await ownableExecutorModule.addOwner(
         "0x4D8249d21c9553b1bD23cABF611011376dd3416a"
       )

@@ -141,7 +141,7 @@ export type ResolvedValidationProps = {
   chainId: number
 }
 
-export type BiconomySmartAccountV2ConfigBaseProps = {
+export type NexusSmartAccountConfigBaseProps = {
   /** Factory address of biconomy factory contract or some other contract you have deployed on chain */
   factoryAddress?: Hex
   /** Sender address: If you want to override the Signer address with some other address and get counterfactual address can use this to pass the EOA and get SA address */
@@ -171,14 +171,13 @@ export type BiconomySmartAccountV2ConfigBaseProps = {
   /** Used for session key manager module */
   sessionData?: ModuleInfo
 }
-export type BiconomySmartAccountV2Config =
-  BiconomySmartAccountV2ConfigBaseProps &
-    BaseSmartAccountConfig &
-    ConditionalBundlerProps &
-    ConditionalValidationProps
+export type NexusSmartAccountConfig = NexusSmartAccountConfigBaseProps &
+  BaseSmartAccountConfig &
+  ConditionalBundlerProps &
+  ConditionalValidationProps
 
-export type BiconomySmartAccountV2ConfigConstructorProps =
-  BiconomySmartAccountV2ConfigBaseProps &
+export type NexusSmartAccountConfigConstructorProps =
+  NexusSmartAccountConfigBaseProps &
     BaseSmartAccountConfig &
     ResolvedBundlerProps &
     ResolvedValidationProps
@@ -457,7 +456,7 @@ export type BatchUserOperationCallData = Exclude<UserOperationCallData, Hex>[]
 export type SignTypedDataParams = Omit<SignTypedDataParameters, "privateKey">
 
 export type BasSmartContractAccountProps =
-  BiconomySmartAccountV2ConfigConstructorProps & {
+  NexusSmartAccountConfigConstructorProps & {
     /** chain: The chain from viem */
     chain: Chain
     /** rpcClient: The rpc url string */
@@ -620,4 +619,11 @@ export enum ModuleType {
   Execution = 2,
   Fallback = 3,
   Hooks = 4
+}
+
+export type ModuleInfoParams = {
+  moduleAddress: Address
+  moduleType: ModuleType
+  moduleSelector?: Hex
+  data?: Hex
 }

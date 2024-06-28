@@ -1,4 +1,3 @@
-import type { Execution } from "@rhinestone/module-sdk"
 import {
   type Address,
   type Chain,
@@ -12,7 +11,8 @@ import { type UserOperationStruct, getChain } from "../../account"
 import type { NexusSmartAccount } from "../../account/NexusSmartAccount.js"
 import {
   type ChainInfo,
-  ModuleName,
+  type Execution,
+  Module,
   type SignerData,
   type Transaction,
   createK1ValidatorModule,
@@ -237,20 +237,20 @@ export const parseChain = (chainInfo: ChainInfo): Chain => {
 export const toTransaction = (execution: Execution): Transaction => {
   return {
     to: execution.target,
-    value: execution.value,
+    value: Number(execution.value),
     data: execution.callData
   }
 }
 
 export const createModuleInstace = async (
-  moduleName: ModuleName,
+  module: Module,
   smartAccount: NexusSmartAccount,
   config?: any
 ): Promise<BaseModule> => {
-  if (moduleName === ModuleName.OwnableExecutor) {
+  if (module === Module.OwnableExecutor) {
     return await createOwnableExecutorModule(smartAccount)
   }
-  if (moduleName === ModuleName.OwnableValidator) {
+  if (module === Module.OwnableValidator) {
     return await createOwnableValidatorModule(
       smartAccount,
       config.threshold,

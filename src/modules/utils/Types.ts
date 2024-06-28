@@ -184,13 +184,6 @@ export interface SessionValidationModuleConfig {
   moduleAddress: string
 }
 
-export enum ModuleTypeName {
-  execution = 0,
-  validation = 1,
-  hook = 2,
-  handler = 3
-}
-
 export type V3ModuleInfo = {
   module: Address
   data: Hex
@@ -199,10 +192,13 @@ export type V3ModuleInfo = {
   hook?: Address
 }
 
-export enum ModuleName {
+export enum Module {
   OwnableExecutor = 0,
-  K1Validator = 1,
-  OwnableValidator = 2
+  MockExecutor = 1,
+  K1Validator = 2,
+  MockHook = 3,
+  MockFallbackHandler = 4,
+  OwnableValidator = 5
 }
 
 export type Execution = {

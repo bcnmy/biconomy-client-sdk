@@ -13,7 +13,7 @@ import type { UserOperationStruct } from "../../account"
 import { type SupportedSigner, convertSigner } from "../../account"
 import { extractChainIdFromBundlerUrl } from "../../bundler"
 import { extractChainIdFromPaymasterUrl } from "../../bundler"
-import type { BiconomySmartAccountV2Config } from "./Types.js"
+import type { NexusSmartAccountConfig } from "./Types.js"
 
 /**
  * pack the userOperation
@@ -86,7 +86,7 @@ export const isNullOrUndefined = (value: any): value is undefined => {
 
 export const compareChainIds = async (
   signer: SupportedSigner,
-  biconomySmartAccountConfig: BiconomySmartAccountV2Config,
+  biconomySmartAccountConfig: NexusSmartAccountConfig,
   skipChainIdCalls: boolean
   // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
 ): Promise<Error | void> => {

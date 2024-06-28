@@ -163,7 +163,10 @@ export class Bundler implements IBundler {
     const chainId = this.bundlerConfig.chainId
     const params = [deepHexlify(_userOp), this.bundlerConfig.entryPointAddress]
     const bundlerUrl = this.getBundlerUrl()
-    const sendUserOperationResponse: { result: Hash } = await sendRequest(
+    const sendUserOperationResponse: {
+      result: Hash
+      error: { message: string }
+    } = await sendRequest(
       {
         url: bundlerUrl,
         method: HttpMethod.Post,
@@ -176,6 +179,10 @@ export class Bundler implements IBundler {
       },
       "Bundler"
     )
+
+    if (isNullOrUndefined(sendUserOperationResponse.result)) {
+      throw new Error(sendUserOperationResponse.error.message)
+    }
 
     return {
       userOpHash: sendUserOperationResponse.result,
@@ -254,6 +261,11 @@ export class Bundler implements IBundler {
       },
       "Bundler"
     )
+
+    if (isNullOrUndefined(response.result)) {
+      throw new Error(response?.error?.message)
+    }
+
     const userOpReceipt: UserOpReceipt = response.result
     return userOpReceipt
   }
@@ -279,6 +291,11 @@ export class Bundler implements IBundler {
       },
       "Bundler"
     )
+
+    if (isNullOrUndefined(response.result)) {
+      throw new Error(response?.error?.message)
+    }
+
     const userOpStatus: UserOpStatus = response.result
     return userOpStatus
   }
@@ -304,6 +321,11 @@ export class Bundler implements IBundler {
       },
       "Bundler"
     )
+
+    if (isNullOrUndefined(response.result)) {
+      throw new Error(response?.error?.message)
+    }
+
     const userOpByHashResponse: UserOpByHashResponse = response.result
     return userOpByHashResponse
   }
@@ -313,20 +335,26 @@ export class Bundler implements IBundler {
    */
   async getGasFeeValues(): Promise<GetUserOperationGasPriceReturnType> {
     const bundlerUrl = this.getBundlerUrl()
-    const response: { result: GetUserOperationGasPriceReturnType } =
-      await sendRequest(
-        {
-          url: bundlerUrl,
-          method: HttpMethod.Post,
-          body: {
-            method: "pimlico_getUserOperationGasPrice",
-            params: [],
-            id: getTimestampInSeconds(),
-            jsonrpc: "2.0"
-          }
-        },
-        "Bundler"
-      )
+    const response: {
+      result: GetUserOperationGasPriceReturnType
+      error: Error
+    } = await sendRequest(
+      {
+        url: bundlerUrl,
+        method: HttpMethod.Post,
+        body: {
+          method: "pimlico_getUserOperationGasPrice",
+          params: [],
+          id: getTimestampInSeconds(),
+          jsonrpc: "2.0"
+        }
+      },
+      "Bundler"
+    )
+
+    if (isNullOrUndefined(response.result)) {
+      throw new Error(response?.error?.message)
+    }
 
     return {
       slow: {
