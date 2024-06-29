@@ -215,6 +215,7 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
    * @returns The signature of the user operation
    */
   async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<Hex> {
+    console.log("userOpHash", userOpHash)
     if (
       !params ||
       !params?.eoaAddress ||
@@ -240,11 +241,32 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       params.partiesNumber,
       authModule
     )
-    const signMessage = JSON.stringify(params.userOp)
-    const resp = await sdk.authenticateAndSign(params.eoaAddress, signMessage)
+    console.log("params userop ")
+    console.log(params.userOp)
+    // todo // get constants from config
+    const objectToSign: any = {
+      userOperation: params.userOp,
+      entryPointVersion: "v0.6.0",
+      entryPointAddress: "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789",
+      chainId: params.chainId
+    }
+    const signMessage = JSON.stringify(objectToSign)
+    console.log("signMessage", signMessage)
+    console.log("mpcKeyId", params.mpcKeyId)
+    const resp = await sdk.authenticateAndSign(
+      params.mpcKeyId as Hex,
+      signMessage
+    )
+    console.log("resp here", resp)
 
-    const signature = resp.sign
+    const v = resp.recid
+    const sigV = v == 0 ? "1b" : "1c"
+
+    let signature = resp.sign
+    signature = "0x" + signature + sigV
     const sessionSignerData = await this.getLeafInfo(params)
+
+    console.log("session singner data", sessionSignerData)
 
     const leafDataHex = concat([
       pad(toHex(sessionSignerData.validUntil), { size: 6 }),

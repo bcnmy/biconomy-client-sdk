@@ -118,6 +118,10 @@ export type ModuleInfo = {
   userOp?: Partial<UserOperationStruct>
   /** session public key */
   sessionKeyEOA?: Hex
+  /** chainId */
+  chainId?: number
+  /** selected mpc key id */
+  mpcKeyId?: Hex
 }
 
 export interface SendUserOpParams extends ModuleInfo {
