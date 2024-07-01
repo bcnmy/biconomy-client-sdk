@@ -92,6 +92,23 @@ export type StrictSessionParams = {
   sessionSigner: SupportedSigner
 }
 
+export type DanModuleInfo = {
+  /** Ephemeral sk */
+  ephSK: Uint8Array
+  /** eoa address */
+  eoaAddress: string
+  /** threshold */
+  threshold: number
+  /** parties number */
+  partiesNumber: number
+  /** userOp to be signed */
+  userOperation?: Partial<UserOperationStruct>
+  /** chainId */
+  chainId: number
+  /** selected mpc key id */
+  mpcKeyId: string
+}
+
 export type ModuleInfo = {
   // Could be a full object of below params and that way it can be an array too!
   // sessionParams?: SessionParams[] // where SessionParams is below four
@@ -104,24 +121,8 @@ export type ModuleInfo = {
   additionalSessionData?: string
   /** Batch session params */
   batchSessionParams?: SessionParams[]
-  /** Ephemeral sk */
-  ephSK?: Uint8Array
-  /** eoa address */
-  eoaAddress?: string
-  /** scw address */
-  scwAddress?: string
-  /** threshold */
-  threshold?: number
-  /** parties number */
-  partiesNumber?: number
-  /** userOp to be signed */
-  userOp?: Partial<UserOperationStruct>
-  /** session public key */
-  sessionKeyEOA?: Hex
-  /** chainId */
-  chainId?: number
-  /** selected mpc key id */
-  mpcKeyId?: Hex
+  /** Dan module info */
+  danModuleInfo?: DanModuleInfo
 }
 
 export interface SendUserOpParams extends ModuleInfo {
@@ -202,4 +203,11 @@ export interface ERC20SessionKeyData extends BaseSessionKeyData {
 export interface SessionValidationModuleConfig {
   /** Address of the module */
   moduleAddress: string
+}
+
+export interface DanSignatureObject {
+  userOperation: Partial<UserOperationStruct>
+  entryPointVersion: string
+  entryPointAddress: string
+  chainId: number
 }

@@ -33,6 +33,7 @@ import {
 import {
   type CreateSessionDataParams,
   type CreateSessionDataResponse,
+  type DanSignatureObject,
   type ModuleInfo,
   type ModuleVersion,
   type SessionKeyManagerModuleConfig,
@@ -215,51 +216,68 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
    */
   async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<Hex> {
     console.log("userOpHash", userOpHash)
-    if (
-      !params ||
-      !params?.eoaAddress ||
-      !params?.ephSK ||
-      !params?.threshold ||
-      !params?.partiesNumber
-    ) {
+
+    if (!params || !params.danModuleInfo) {
       throw new Error("Missing params")
+    }
+
+    if (!params.sessionID) {
+      throw new Error("Missing sessionID")
+    }
+
+    const {
+      eoaAddress,
+      threshold,
+      partiesNumber,
+      userOperation,
+      ephSK,
+      chainId,
+      mpcKeyId
+    } = params.danModuleInfo
+
+    if (
+      !userOperation ||
+      !ephSK ||
+      !eoaAddress ||
+      !threshold ||
+      !partiesNumber ||
+      !chainId ||
+      !mpcKeyId
+    ) {
+      throw new Error("Missing params from User operation")
     }
 
     const wpClient = new WalletProviderServiceClient({
       walletProviderId: "WalletProvider",
       walletProviderUrl: "ws://localhost:8090/v1"
     })
-    const authModule = new EphAuth(params.eoaAddress, params.ephSK)
+    const authModule = new EphAuth(eoaAddress, ephSK)
 
     const sdk = new NetworkSigner(
       wpClient,
-      params.threshold,
-      params.partiesNumber,
+      threshold,
+      partiesNumber,
       authModule
     )
     console.log("params userop ")
-    console.log(params.userOp)
     // todo // get constants from config
-    const objectToSign: any = {
-      userOperation: params.userOp,
+    const objectToSign: DanSignatureObject = {
+      userOperation,
       entryPointVersion: "v0.6.0",
       entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
-      chainId: params.chainId
+      chainId
     }
+    console.log({ objectToSign })
     const signMessage = JSON.stringify(objectToSign)
     console.log("signMessage", signMessage)
-    console.log("mpcKeyId", params.mpcKeyId)
-    const resp = await sdk.authenticateAndSign(
-      params.mpcKeyId as Hex,
-      signMessage
-    )
+    console.log("mpcKeyId", mpcKeyId)
+    const resp = await sdk.authenticateAndSign(mpcKeyId, signMessage)
     console.log("resp here", resp)
 
     const v = resp.recid
     const sigV = v === 0 ? "1b" : "1c"
 
-    let signature = resp.sign
-    signature = `0x${signature}${sigV}`
+    const signature = `0x${resp.sign}${sigV}`
     const sessionSignerData = await this.getLeafInfo({
       sessionID: params.sessionID
     })
@@ -294,25 +312,15 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
   }
 
   private async getLeafInfo(params: ModuleInfo): Promise<SessionLeafNode> {
-    console.log({ params })
-    // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
-    let sessionSignerData
     if (params?.sessionID) {
-      sessionSignerData = await this.sessionStorageClient.getSessionData({
+      const matchedDatum = await this.sessionStorageClient.getSessionData({
         sessionID: params.sessionID
       })
-    } else if (params?.sessionValidationModule) {
-      sessionSignerData = await this.sessionStorageClient.getSessionData({
-        sessionValidationModule: params.sessionValidationModule,
-        sessionPublicKey: params.sessionKeyEOA
-      })
-    } else {
-      throw new Error(
-        "sessionID or sessionValidationModule should be provided."
-      )
+      if (matchedDatum) {
+        return matchedDatum
+      }
     }
-
-    return sessionSignerData
+    throw new Error("Session data not found")
   }
 
   /**
@@ -359,10 +367,6 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       throw new Error("Params must be provided.")
     }
 
-    console.log({ params })
-    // if (!params) {
-    //   throw new Error("Session signer is not provided.")
-    // }
     const sessionSignerData = await this.getLeafInfo(params)
     const leafDataHex = concat([
       pad(toHex(sessionSignerData.validUntil), { size: 6 }),

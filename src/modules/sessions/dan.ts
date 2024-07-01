@@ -118,10 +118,8 @@ export const createDecentralisedSession = async (
     sessionStorageClient
   })
 
-  const { sessionKeyEOA: sessionKeyAddress, keyId } = await getDANSessionKey(
-    smartAccount,
-    chain
-  )
+  const { sessionKeyEOA: sessionKeyAddress, mpcKeyId } =
+    await getDANSessionKey(smartAccount)
 
   const policy: Policy[] = _policy.map((p) => ({
     ...p,
@@ -170,13 +168,12 @@ export const createDecentralisedSession = async (
 }
 
 export const getDANSessionKey = async (
-  smartAccount: BiconomySmartAccountV2,
-  chain: Chain
+  smartAccount: BiconomySmartAccountV2
 ) => {
   if (!process.env.EPHEMERAL_KEY)
     throw new Error("EPHEMERAL_KEY not found in environment variables")
 
-  const eoa = await smartAccount.getSigner().getAddress() // Smart account owner
+  const eoaAddress = await smartAccount.getSigner().getAddress() // Smart account owner
   const wallet = new NodeWallet(smartAccount.getSigner().inner)
 
   const ephSK: Uint8Array = hexToUint8Array(process.env.EPHEMERAL_KEY)
@@ -187,7 +184,7 @@ export const getDANSessionKey = async (
     walletProviderUrl: "ws://localhost:8090/v1"
   })
 
-  const eoaAuth = new EOAAuth(eoa, wallet, ephPK, 60 * 60)
+  const eoaAuth = new EOAAuth(eoaAddress, wallet, ephPK, 60 * 60)
 
   const threshold = 11
   const partiesNumber = 20
@@ -198,7 +195,9 @@ export const getDANSessionKey = async (
   const resp: KeygenResponse = await sdk.authenticateAndCreateKey(ephPK)
 
   const pubKey = resp.publicKey
-  const keyId = resp.keyId as Hex
+  const mpcKeyId = resp.keyId as Hex
+
+  console.log({ resp })
 
   // Compute the Keccak-256 hash of the public key
   const hash = keccak256(`0x${pubKey}` as Hex)
@@ -206,5 +205,12 @@ export const getDANSessionKey = async (
   // The Ethereum address is the last 20 bytes of the hash
   const sessionKeyEOA = `0x${hash.slice(-40)}` as Hex
 
-  return { sessionKeyEOA, keyId }
+  return {
+    sessionKeyEOA,
+    mpcKeyId,
+    ephSK,
+    partiesNumber,
+    threshold,
+    eoaAddress
+  }
 }
