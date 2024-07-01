@@ -13,7 +13,7 @@ import {
   parseAbiParameters
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { bsc } from "viem/chains"
+import { bsc, mainnet } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
@@ -524,6 +524,56 @@ describe("Account:Read", () => {
   test.concurrent("should throw an error, chain id not found", async () => {
     const chainId = 0
     expect(() => getChain(chainId)).toThrow(ERROR_MESSAGES.CHAIN_NOT_FOUND)
+  })
+
+  test.concurrent(
+    "should skip chain check if skipChainCheck flag is passed",
+    async () => {
+      const walletClient = createWalletClient({
+        account,
+        chain: mainnet,
+        transport: http()
+      })
+      expect(
+        createSmartAccountClient({
+          signer: walletClient,
+          viemChain: mainnet,
+          skipChainCheck: true,
+          bundlerUrl,
+          paymasterUrl
+        })
+      ).resolves
+    }
+  )
+
+  test.concurrent("should throw error of incorrect chain setup", async () => {
+    const walletClient = createWalletClient({
+      account,
+      chain: mainnet,
+      transport: http()
+    })
+    await expect(
+      createSmartAccountClient({
+        signer: walletClient,
+        viemChain: mainnet,
+        skipChainCheck: false,
+        bundlerUrl,
+        paymasterUrl
+      })
+    ).rejects.toThrowError(
+      "Chain IDs from signer (1) and bundler (80002) do not match."
+    )
+
+    await expect(
+      createSmartAccountClient({
+        signer: walletClient,
+        viemChain: mainnet,
+        bundlerUrl,
+        paymasterUrl
+      })
+    ).rejects.toThrowError(
+      "Chain IDs from signer (1) and bundler (80002) do not match."
+    )
   })
 
   test.concurrent(
