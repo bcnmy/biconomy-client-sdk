@@ -187,7 +187,21 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     }
   }
 
-  async revokeSessions(sessionIDs: string[]) {
+  /**
+ * Revokes specified sessions by generating a new Merkle root and updating the session statuses to "REVOKED".
+ * 
+ * This method performs the following steps:
+ * 1. Calls `revokeSessions` on the session storage client to get new leaf nodes for the sessions to be revoked.
+ * 2. Constructs new leaf data from the session details, including validity periods and session validation module.
+ * 3. Hashes the leaf data using `keccak256` and adds them to the Merkle tree.
+ * 4. Creates a new Merkle tree with the updated leaves and updates the internal Merkle tree reference.
+ * 5. Sets the new Merkle root in the session storage.
+ * 6. Updates the status of each specified session to "REVOKED" in the session storage.
+ * 
+ * @param sessionIDs - An array of session IDs to be revoked.
+ * @returns A promise that resolves to the new Merkle root as a hexadecimal string.
+ */
+  async revokeSessions(sessionIDs: string[]): Promise<string> {
     const newLeafs = await this.sessionStorageClient.revokeSessions(sessionIDs)
     const leavesToAdd: Buffer[] = []
     for (const leaf of newLeafs) {
