@@ -12,9 +12,17 @@ import {
   type BiconomySmartAccountV2,
   createSmartAccountClient
 } from "../../src/account"
-import { createSessionKeyEOA } from "../../src/modules/session-storage/utils"
-import { createDecentralisedSession } from "../../src/modules/sessions/dan"
+import { createDANSessionKeyManagerModule } from "../../src/modules/index"
+import {
+  createSessionKeyEOA,
+  getDefaultStorageClient
+} from "../../src/modules/session-storage/utils"
+import {
+  createDecentralisedSession,
+  getDANSessionKey
+} from "../../src/modules/sessions/dan"
 import { createSessionSmartAccountClient } from "../../src/modules/sessions/sessionSmartAccountClient"
+import { hexToUint8Array } from "../../src/modules/utils/Helper"
 import { PaymasterMode } from "../../src/paymaster"
 import { checkBalance, getConfig } from "../utils"
 
@@ -74,13 +82,11 @@ describe("Playground:Write", () => {
     )
   })
 
-  test("should create a DAN session on behalf of a user", async () => {
-    const { sessionStorageClient } = await createSessionKeyEOA(
-      smartAccount,
-      chain
-    )
+  test("should create and use a DAN session on behalf of a user", async () => {
+    const { sessionStorageClient, sessionKeyAddress } =
+      await createSessionKeyEOA(smartAccount, chain)
 
-    const { wait } = await createDecentralisedSession(
+    const { wait, session } = await createDecentralisedSession(
       smartAccount,
       chain,
       [
@@ -111,26 +117,6 @@ describe("Playground:Write", () => {
     } = await wait()
 
     expect(success).toBe("true")
-  }, 50000)
-
-  // User no longer has to be connected,
-  // Only the reference to the relevant sessionID and the store from the previous step is needed to execute txs on the user's behalf
-  test.skip("should use the DAN session to mint an NFT for the user", async () => {
-    // Assume the real signer for userSmartAccount is no longer available (ie. user has logged out)
-    const smartAccountWithSession = await createSessionSmartAccountClient(
-      {
-        accountAddress: smartAccountAddress, // Set the account address on behalf of the user
-        bundlerUrl,
-        paymasterUrl,
-        chainId
-      },
-      smartAccountAddress // Storage client, full Session or smartAccount address if using default storage
-    )
-
-    const sessionSmartAccountAddress =
-      await smartAccountWithSession.getAccountAddress()
-
-    expect(sessionSmartAccountAddress).toEqual(smartAccountAddress)
 
     const nftMintTx = {
       to: nftAddress,
@@ -143,16 +129,44 @@ describe("Playground:Write", () => {
 
     const nftBalanceBefore = await checkBalance(smartAccountAddress, nftAddress)
 
-    const { wait } = await smartAccountWithSession.sendTransaction(nftMintTx, {
-      ...withSponsorship
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
+    const sk = hexToUint8Array(process.env.EPHEMERAL_KEY!)
+
+    const unusedSessionKey = (
+      await session.sessionStorageClient.getSessionData({
+        sessionID: session.sessionIDInfo[0]
+      })
+    ).sessionPublicKey
+
+    const sessionModule = await createDANSessionKeyManagerModule({
+      smartAccountAddress,
+      sessionStorageClient
     })
 
-    const { success } = await wait()
+    smartAccount.setActiveValidationModule(sessionModule)
 
-    expect(success).toBe("true")
+    const sessionID = session.sessionIDInfo[0]
+
+    const { wait: mintWait } = await smartAccount.sendTransaction(nftMintTx, {
+      ...withSponsorship,
+      params: {
+        scwAddress: smartAccountAddress,
+        eoaAddress: walletClient.account.address,
+        ephSK: sk,
+        threshold: 11,
+        partiesNumber: 20,
+        sessionID,
+        chainId: 80002,
+        mpcKeyId: session.keyId
+      }
+    })
+    const { success: mintSuccess } = await mintWait()
+
+    expect(mintSuccess).toBe("true")
 
     const nftBalanceAfter = await checkBalance(smartAccountAddress, nftAddress)
-
     expect(nftBalanceAfter - nftBalanceBefore).toBe(1n)
-  })
+
+    console.log({ transactionHash, success, mintSuccess })
+  }, 50000)
 })

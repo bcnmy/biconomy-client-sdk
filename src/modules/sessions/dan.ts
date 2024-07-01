@@ -10,6 +10,7 @@ import {
   type Chain,
   type EIP1193Provider,
   type HttpTransport,
+  WalletClient,
   keccak256
 } from "viem"
 import { getHttpRpcClient } from "viem/utils"
@@ -27,7 +28,7 @@ import { DANSessionKeyManagerModule } from "../DANSessionKeyManagerModule"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import { inBrowser } from "../session-storage/SessionLocalStorage"
 import { DEFAULT_SESSION_KEY_MANAGER_MODULE } from "../utils/Constants"
-import { hexToUint8Array } from "../utils/Helper"
+import { NodeWallet, hexToUint8Array } from "../utils/Helper"
 import { BrowserWallet } from "../utils/Helper"
 import { createABISessionDatum } from "./abi"
 /**
@@ -103,6 +104,7 @@ import { createABISessionDatum } from "./abi"
  */
 
 export type PolicyWithoutSessionKey = Omit<Policy, "sessionKeyAddress">
+
 export const createDecentralisedSession = async (
   smartAccount: BiconomySmartAccountV2,
   chain: Chain,
@@ -116,7 +118,10 @@ export const createDecentralisedSession = async (
     sessionStorageClient
   })
 
-  const sessionKeyAddress = await getDANSessionKey(smartAccountAddress, chain)
+  const { sessionKeyEOA: sessionKeyAddress, keyId } = await getDANSessionKey(
+    smartAccount,
+    chain
+  )
 
   const policy: Policy[] = _policy.map((p) => ({
     ...p,
@@ -157,21 +162,22 @@ export const createDecentralisedSession = async (
   return {
     session: {
       sessionStorageClient,
-      sessionIDInfo
+      sessionIDInfo,
+      keyId
     },
     ...userOpResponse
   }
 }
 
-export const getDANSessionKey = async (eoa: Hex, chain: Chain) => {
+export const getDANSessionKey = async (
+  smartAccount: BiconomySmartAccountV2,
+  chain: Chain
+) => {
   if (!process.env.EPHEMERAL_KEY)
     throw new Error("EPHEMERAL_KEY not found in environment variables")
 
-  const provider = inBrowser
-    ? // biome-ignore lint/style/noNonNullAssertion: <explanation>
-      (window as any).ethereum!
-    : getHttpRpcClient(chain.rpcUrls.default.http[0])
-  const wallet = new BrowserWallet(provider)
+  const eoa = await smartAccount.getSigner().getAddress() // Smart account owner
+  const wallet = new NodeWallet(smartAccount.getSigner().inner)
 
   const ephSK: Uint8Array = hexToUint8Array(process.env.EPHEMERAL_KEY)
   const ephPK: Uint8Array = await ed.getPublicKeyAsync(ephSK)
@@ -192,6 +198,7 @@ export const getDANSessionKey = async (eoa: Hex, chain: Chain) => {
   const resp: KeygenResponse = await sdk.authenticateAndCreateKey(ephPK)
 
   const pubKey = resp.publicKey
+  const keyId = resp.keyId as Hex
 
   // Compute the Keccak-256 hash of the public key
   const hash = keccak256(`0x${pubKey}` as Hex)
@@ -199,5 +206,5 @@ export const getDANSessionKey = async (eoa: Hex, chain: Chain) => {
   // The Ethereum address is the last 20 bytes of the hash
   const sessionKeyEOA = `0x${hash.slice(-40)}` as Hex
 
-  return sessionKeyEOA
+  return { sessionKeyEOA, keyId }
 }

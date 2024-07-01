@@ -45,6 +45,8 @@ export type Session = {
   sessionStorageClient: ISessionStorage
   /** The relevant sessionID for the chosen session */
   sessionIDInfo: string[]
+  /** The keyId for the session */
+  keyId?: Hex
 }
 
 export type SessionEpoch = {

@@ -16,7 +16,7 @@ import {
   // toBytes,
   toHex
 } from "viem"
-import type { SmartAccountSigner } from "../account"
+import { DEFAULT_ENTRYPOINT_ADDRESS, type SmartAccountSigner } from "../account"
 import { BaseValidationModule } from "./BaseValidationModule.js"
 import type {
   ISessionStorage,
@@ -27,7 +27,6 @@ import type {
 import { SessionLocalStorage } from "./session-storage/SessionLocalStorage.js"
 import { SessionMemoryStorage } from "./session-storage/SessionMemoryStorage.js"
 import {
-  DEFAULT_ERC20_MODULE,
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION
 } from "./utils/Constants.js"
@@ -222,17 +221,14 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       !params?.ephSK ||
       !params?.threshold ||
       !params?.partiesNumber
-    )
+    ) {
       throw new Error("Missing params")
-
-    const clusterConfig = {
-      walletProvider: {
-        walletProviderId: "WalletProvider",
-        walletProviderUrl: "ws://localhost:8090/v1"
-      }
     }
 
-    const wpClient = await createWalletProviderService(clusterConfig)
+    const wpClient = new WalletProviderServiceClient({
+      walletProviderId: "WalletProvider",
+      walletProviderUrl: "ws://localhost:8090/v1"
+    })
     const authModule = new EphAuth(params.eoaAddress, params.ephSK)
 
     const sdk = new NetworkSigner(
@@ -247,7 +243,7 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
     const objectToSign: any = {
       userOperation: params.userOp,
       entryPointVersion: "v0.6.0",
-      entryPointAddress: "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789",
+      entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
       chainId: params.chainId
     }
     const signMessage = JSON.stringify(objectToSign)
@@ -260,11 +256,13 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
     console.log("resp here", resp)
 
     const v = resp.recid
-    const sigV = v == 0 ? "1b" : "1c"
+    const sigV = v === 0 ? "1b" : "1c"
 
     let signature = resp.sign
-    signature = "0x" + signature + sigV
-    const sessionSignerData = await this.getLeafInfo(params)
+    signature = `0x${signature}${sigV}`
+    const sessionSignerData = await this.getLeafInfo({
+      sessionID: params.sessionID
+    })
 
     console.log("session singner data", sessionSignerData)
 
@@ -306,11 +304,6 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
     } else if (params?.sessionValidationModule) {
       sessionSignerData = await this.sessionStorageClient.getSessionData({
         sessionValidationModule: params.sessionValidationModule,
-        sessionPublicKey: params.sessionKeyEOA
-      })
-    } else if (params?.sessionKeyEOA) {
-      sessionSignerData = await this.sessionStorageClient.getSessionData({
-        sessionValidationModule: DEFAULT_ERC20_MODULE,
         sessionPublicKey: params.sessionKeyEOA
       })
     } else {
