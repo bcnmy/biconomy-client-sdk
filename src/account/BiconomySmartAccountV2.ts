@@ -945,12 +945,15 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       params
     )) as Hex
 
+    console.log({ moduleSig })
+
     const signatureWithModuleAddress = this.getSignatureWithModuleAddress(
       moduleSig,
       this.activeValidationModule.getAddress() as Hex
     )
 
     userOp.signature = signatureWithModuleAddress
+
     return userOp as UserOperationStruct
   }
 
@@ -960,10 +963,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   ): Hex {
     const moduleAddressToUse =
       moduleAddress ?? (this.activeValidationModule.getAddress() as Hex)
-    return encodeAbiParameters(parseAbiParameters("bytes, address"), [
+    const result = encodeAbiParameters(parseAbiParameters("bytes, address"), [
       moduleSignature,
       moduleAddressToUse
     ])
+
+    console.log("getSignatureWithModuleAddress", { result })
+    return result
   }
 
   public async getPaymasterUserOp(
@@ -1230,10 +1236,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     delete userOp.signature
     const userOperation = await this.signUserOp(userOp, params)
 
-    const bundlerResponse = await this.sendSignedUserOp(
-      userOperation,
-      params?.simulationType
-    )
+    const bundlerResponse = await this.sendSignedUserOp(userOperation)
 
     return bundlerResponse
   }
@@ -1530,14 +1533,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       buildUseropDto
     )
 
-    if (buildUseropDto?.params?.ephSK) {
-      buildUseropDto.params.userOp = userOp
+    if (buildUseropDto?.params?.danModuleInfo) {
+      buildUseropDto.params.danModuleInfo.userOperation = userOp
     }
 
-    return this.sendUserOp(userOp, {
-      simulationType: buildUseropDto?.simulationType,
-      ...buildUseropDto?.params
-    })
+    return this.sendUserOp(userOp, { ...buildUseropDto?.params })
   }
 
   /**

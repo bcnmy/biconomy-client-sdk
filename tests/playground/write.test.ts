@@ -1,20 +1,37 @@
+import { defaultAbiCoder } from "@ethersproject/abi"
 import {
   http,
   type Hex,
   createPublicClient,
   createWalletClient,
   encodeFunctionData,
-  parseAbi
+  parseAbi,
+  parseUnits
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
+  type Transaction,
   createSmartAccountClient
 } from "../../src/account"
-import { createSessionKeyEOA } from "../../src/modules/session-storage/utils"
-import { createDecentralisedSession } from "../../src/modules/sessions/dan"
+import {
+  type CreateSessionDataParams,
+  DEFAULT_ERC20_MODULE,
+  DEFAULT_SESSION_KEY_MANAGER_MODULE,
+  SessionMemoryStorage,
+  createDANSessionKeyManagerModule
+} from "../../src/modules/index"
+import {
+  createSessionKeyEOA,
+  getDefaultStorageClient
+} from "../../src/modules/session-storage/utils"
+import {
+  createDecentralisedSession,
+  getDANSessionKey
+} from "../../src/modules/sessions/dan"
 import { createSessionSmartAccountClient } from "../../src/modules/sessions/sessionSmartAccountClient"
+import { hexToUint8Array } from "../../src/modules/utils/Helper"
 import { PaymasterMode } from "../../src/paymaster"
 import { checkBalance, getConfig } from "../utils"
 
@@ -24,6 +41,7 @@ const withSponsorship = {
 
 describe("Playground:Write", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
+  const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
   const {
     chain,
     chainId,
@@ -34,12 +52,7 @@ describe("Playground:Write", () => {
   } = getConfig()
   const account = privateKeyToAccount(`0x${privateKey}`)
   const accountTwo = privateKeyToAccount(`0x${privateKeyTwo}`)
-  const sender = account.address
-  const recipient = accountTwo.address
-  const publicClient = createPublicClient({
-    chain,
-    transport: http()
-  })
+
   let [smartAccount, smartAccountTwo]: BiconomySmartAccountV2[] = []
   let [smartAccountAddress, smartAccountAddressTwo]: Hex[] = []
 
@@ -74,36 +87,70 @@ describe("Playground:Write", () => {
     )
   })
 
-  test("should create a DAN session on behalf of a user", async () => {
-    const { sessionStorageClient } = await createSessionKeyEOA(
-      smartAccount,
-      chain
+  test("should create and use a DAN session on behalf of a user", async () => {
+    const amount = parseUnits("50".toString(), 6)
+
+    const {
+      sessionKeyEOA,
+      mpcKeyId,
+      ephSK,
+      partiesNumber,
+      threshold,
+      eoaAddress
+    } = await getDANSessionKey(smartAccount)
+
+    const sessionStorageClient = new SessionMemoryStorage(smartAccountAddress)
+
+    const sessionsModule = await createDANSessionKeyManagerModule({
+      smartAccountAddress,
+      sessionStorageClient
+    })
+
+    // cretae session key data
+    const sessionKeyData = defaultAbiCoder.encode(
+      ["address", "address", "address", "uint256"],
+      [sessionKeyEOA, token, eoaAddress, amount]
+    ) as Hex
+
+    const createSessionDataParams: CreateSessionDataParams = {
+      validAfter: 0,
+      validUntil: 0,
+      sessionValidationModule: DEFAULT_ERC20_MODULE,
+      sessionPublicKey: sessionKeyEOA,
+      sessionKeyData: sessionKeyData
+    }
+
+    const { data: policyData, sessionIDInfo } =
+      await sessionsModule.createSessionData([createSessionDataParams])
+
+    const sessionID = sessionIDInfo[0]
+
+    const permitTx = {
+      to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
+      data: policyData
+    }
+
+    const txs: Transaction[] = []
+
+    const isDeployed = await smartAccount.isAccountDeployed()
+    const enableSessionTx = await smartAccount.getEnableModuleData(
+      DEFAULT_SESSION_KEY_MANAGER_MODULE
     )
 
-    const { wait } = await createDecentralisedSession(
-      smartAccount,
-      chain,
-      [
-        {
-          contractAddress: nftAddress,
-          functionSelector: "safeMint(address)",
-          rules: [
-            {
-              offset: 0,
-              condition: 0,
-              referenceValue: smartAccountAddress
-            }
-          ],
-          interval: {
-            validUntil: 0,
-            validAfter: 0
-          },
-          valueLimit: 0n
-        }
-      ],
-      sessionStorageClient,
-      withSponsorship
-    )
+    if (isDeployed) {
+      const enabled = await smartAccount.isModuleEnabled(
+        DEFAULT_SESSION_KEY_MANAGER_MODULE
+      )
+      if (!enabled) {
+        txs.push(enableSessionTx)
+      }
+    } else {
+      txs.push(enableSessionTx)
+    }
+
+    txs.push(permitTx)
+
+    const { wait } = await smartAccount.sendTransaction(txs, withSponsorship)
 
     const {
       receipt: { transactionHash },
@@ -111,48 +158,41 @@ describe("Playground:Write", () => {
     } = await wait()
 
     expect(success).toBe("true")
-  }, 50000)
 
-  // User no longer has to be connected,
-  // Only the reference to the relevant sessionID and the store from the previous step is needed to execute txs on the user's behalf
-  test.skip("should use the DAN session to mint an NFT for the user", async () => {
-    // Assume the real signer for userSmartAccount is no longer available (ie. user has logged out)
-    const smartAccountWithSession = await createSessionSmartAccountClient(
-      {
-        accountAddress: smartAccountAddress, // Set the account address on behalf of the user
-        bundlerUrl,
-        paymasterUrl,
-        chainId
-      },
-      smartAccountAddress // Storage client, full Session or smartAccount address if using default storage
-    )
-
-    const sessionSmartAccountAddress =
-      await smartAccountWithSession.getAccountAddress()
-
-    expect(sessionSmartAccountAddress).toEqual(smartAccountAddress)
-
-    const nftMintTx = {
-      to: nftAddress,
+    const transferTx: Transaction = {
+      to: token,
       data: encodeFunctionData({
-        abi: parseAbi(["function safeMint(address _to)"]),
-        functionName: "safeMint",
-        args: [smartAccountAddress]
+        abi: parseAbi(["function transfer(address _to, uint256 _value)"]),
+        functionName: "transfer",
+        args: [eoaAddress, amount]
       })
     }
 
     const nftBalanceBefore = await checkBalance(smartAccountAddress, nftAddress)
 
-    const { wait } = await smartAccountWithSession.sendTransaction(nftMintTx, {
-      ...withSponsorship
+    smartAccount = smartAccount.setActiveValidationModule(sessionsModule)
+
+    const { wait: mintWait } = await smartAccount.sendTransaction(transferTx, {
+      ...withSponsorship,
+      params: {
+        sessionID,
+        danModuleInfo: {
+          eoaAddress,
+          ephSK,
+          threshold,
+          partiesNumber,
+          chainId: chain.id,
+          mpcKeyId
+        }
+      }
     })
+    const { success: mintSuccess } = await mintWait()
 
-    const { success } = await wait()
-
-    expect(success).toBe("true")
+    expect(mintSuccess).toBe("true")
 
     const nftBalanceAfter = await checkBalance(smartAccountAddress, nftAddress)
-
     expect(nftBalanceAfter - nftBalanceBefore).toBe(1n)
-  })
+
+    console.log({ transactionHash, success, mintSuccess })
+  }, 50000)
 })
