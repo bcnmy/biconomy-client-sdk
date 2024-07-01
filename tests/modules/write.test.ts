@@ -79,8 +79,7 @@ describe("Modules:Write", () => {
     privateKey,
     privateKeyTwo,
     bundlerUrl,
-    paymasterUrl,
-    paymasterUrlTwo
+    paymasterUrl
   } = getConfig()
   const account = privateKeyToAccount(`0x${privateKey}`)
   const accountTwo = privateKeyToAccount(`0x${privateKeyTwo}`)
@@ -641,6 +640,119 @@ describe("Modules:Write", () => {
     expect(maticBalanceAfter).toEqual(maticBalanceBefore)
   }, 60000)
 
+  test("should use SessionValidationModule to send a user op", async () => {
+    let sessionSigner: WalletClientSigner
+    const sessionKeyEOA = walletClient.account.address
+
+    // Create smart account
+    let smartAccount = await createSmartAccountClient({
+      chainId,
+      signer: walletClient,
+      bundlerUrl,
+      paymasterUrl,
+      index: 11 // Increasing index to not conflict with other test cases and use a new smart account
+    })
+    const accountAddress = await smartAccount.getAccountAddress()
+    const sessionMemoryStorage: SessionMemoryStorage = new SessionMemoryStorage(
+      accountAddress
+    )
+    // First we need to check if smart account is deployed
+    // if not deployed, send an empty transaction to deploy it
+    const isDeployed = await smartAccount.isAccountDeployed()
+    if (!isDeployed) {
+      const { wait } = await smartAccount.deploy({
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
+      })
+      const { success } = await wait()
+      expect(success).toBe("true")
+    }
+
+    try {
+      sessionSigner = await sessionMemoryStorage.getSignerByKey(
+        sessionKeyEOA,
+        chain
+      )
+    } catch (error) {
+      sessionSigner = await sessionMemoryStorage.addSigner(
+        {
+          pbKey: sessionKeyEOA,
+          pvKey: `0x${privateKey}`
+        },
+        chain
+      )
+    }
+
+    expect(sessionSigner).toBeTruthy()
+    // Create session module
+    const sessionModule = await createSessionKeyManagerModule({
+      moduleAddress: DEFAULT_SESSION_KEY_MANAGER_MODULE,
+      smartAccountAddress: await smartAccount.getAddress(),
+      sessionStorageClient: sessionMemoryStorage
+    })
+    const functionSelector = slice(
+      toFunctionSelector("safeMint(address)"),
+      0,
+      4
+    )
+    // Set enabled call on session
+    const sessionKeyData = await getABISVMSessionKeyData(sessionKeyEOA as Hex, {
+      destContract: "0xdd526eba63ef200ed95f0f0fb8993fe3e20a23d0" as Hex, // nft address
+      functionSelector: functionSelector,
+      valueLimit: parseEther("0"),
+      rules: [
+        {
+          offset: 0, // offset 0 means we are checking first parameter of safeMint (recipient address)
+          condition: 0, // 0 = Condition.EQUAL
+          referenceValue: pad("0xd3C85Fdd3695Aee3f0A12B3376aCD8DC54020549", {
+            size: 32
+          }) // recipient address
+        }
+      ]
+    })
+    const abiSvmAddress = "0x000006bC2eCdAe38113929293d241Cf252D91861"
+    const sessionTxData = await sessionModule.createSessionData([
+      {
+        validUntil: 0,
+        validAfter: 0,
+        sessionValidationModule: abiSvmAddress,
+        sessionPublicKey: sessionKeyEOA as Hex,
+        sessionKeyData: sessionKeyData as Hex
+      }
+    ])
+    const setSessionAllowedTrx = {
+      to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
+      data: sessionTxData.data
+    }
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    const txArray: any = []
+    // Check if module is enabled
+    const isEnabled = await smartAccount.isModuleEnabled(
+      DEFAULT_SESSION_KEY_MANAGER_MODULE
+    )
+    if (!isEnabled) {
+      const enableModuleTrx = await smartAccount.getEnableModuleData(
+        DEFAULT_SESSION_KEY_MANAGER_MODULE
+      )
+      txArray.push(enableModuleTrx)
+      txArray.push(setSessionAllowedTrx)
+    } else {
+      Logger.log("MODULE ALREADY ENABLED")
+      txArray.push(setSessionAllowedTrx)
+    }
+    const userOp = await smartAccount.buildUserOp(txArray, {
+      nonceOptions,
+      paymasterServiceData: {
+        mode: PaymasterMode.SPONSORED
+      }
+    })
+
+    const userOpResponse1 = await smartAccount.sendUserOp(userOp)
+    const transactionDetails = await userOpResponse1.wait()
+    expect(transactionDetails.success).toBe("true")
+    Logger.log("Tx Hash: ", transactionDetails.receipt.transactionHash)
+    smartAccount = smartAccount.setActiveValidationModule(sessionModule)
+  }, 60000)
+
   test("should enable batched module", async () => {
     const smartAccount = await createSmartAccountClient({
       signer: walletClient,
@@ -943,9 +1055,10 @@ describe("Modules:Write", () => {
     expect(txSuccess).toBe("true")
   }, 60000)
 
-  test("should use single session for submitting orders", async () => {
+  test("should revoke sessions", async () => {
     const DUMMY_CONTRACT_ADDRESS: Hex =
-      "0xC834b3804817883a6b7072e815C3faf8682bFA13"
+      "0xA975e69917A4c856b17Fc8Cc4C352f326Ef21C6B" // amoy address
+    const abiSvmAddress = "0x000006bC2eCdAe38113929293d241Cf252D91861"
     const byteCode = await publicClient.getBytecode({
       address: DUMMY_CONTRACT_ADDRESS as Hex
     })
@@ -955,8 +1068,12 @@ describe("Modules:Write", () => {
     const { sessionKeyAddress, sessionStorageClient } =
       await createSessionKeyEOA(smartAccount, chain)
 
-    const order = parseAbi(["function submitOrder(uint256 _orderNum)"])
+    const setMerkleRoot = parseAbi([
+      "function setMerkleRoot(bytes32 _merkleRoot)"
+    ])
     const cancel = parseAbi(["function submitCancel(uint256 _orderNum)"])
+    const order = parseAbi(["function submitOrder(uint256 _orderNum)"])
+    const setId = parseAbi(["function setId(uint256 _id)"])
 
     const policy: Policy[] = [
       {
@@ -992,6 +1109,34 @@ describe("Modules:Write", () => {
           }
         ],
         valueLimit: 0n
+      },
+      {
+        interval: {
+          validUntil: 0,
+          validAfter: 0
+        },
+        sessionKeyAddress,
+        contractAddress: DUMMY_CONTRACT_ADDRESS,
+        functionSelector: setId[0],
+        rules: [
+          {
+            offset: 0,
+            condition: 0,
+            referenceValue: BigInt(1)
+          }
+        ],
+        valueLimit: 0n
+      },
+      {
+        interval: {
+          validUntil: 0,
+          validAfter: 0
+        },
+        sessionKeyAddress,
+        contractAddress: DEFAULT_SESSION_KEY_MANAGER_MODULE,
+        functionSelector: setMerkleRoot[0],
+        rules: [],
+        valueLimit: 0n
       }
     ]
 
@@ -1015,7 +1160,7 @@ describe("Modules:Write", () => {
         accountAddress: smartAccountAddress, // Set the account address on behalf of the user
         bundlerUrl,
         paymasterUrl,
-        chainId: chain.id
+        chainId
       },
       sessionStorageClient
     )
@@ -1029,6 +1174,50 @@ describe("Modules:Write", () => {
       })
     }
 
+    const sessionModule = await createSessionKeyManagerModule({
+      moduleAddress: DEFAULT_SESSION_KEY_MANAGER_MODULE,
+      smartAccountAddress,
+      sessionStorageClient
+    })
+
+    const allSessionIds = (await sessionStorageClient.getAllSessionData()).map(
+      ({ sessionID }) => sessionID
+    )
+
+    // generate a new merkle root
+    const newMerkleRoot = await sessionModule.revokeSessions([
+      allSessionIds[0] ?? "0x",
+      allSessionIds[2] ?? "0x"
+    ])
+
+    const submitSetMerkleRootTx: Transaction = {
+      to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
+      data: encodeFunctionData({
+        abi: setMerkleRoot,
+        functionName: "setMerkleRoot",
+        args: [newMerkleRoot as Hex]
+      })
+    }
+
+    const { wait: waitForSetMerkleRoot } =
+      await smartAccountWithSession.sendTransaction(submitSetMerkleRootTx, {
+        ...withSponsorship,
+        params: {
+          sessionID: allSessionIds[3] ?? "0x",
+          sessionValidationModule: abiSvmAddress
+        }
+      })
+
+    const { success: txSuccess, userOpHash } = await waitForSetMerkleRoot()
+    expect(txSuccess).toBe("true")
+
+    const sessionDataAfter = await sessionStorageClient.getAllSessionData()
+    console.log(sessionDataAfter, "sessionDataAfter")
+    const revokedSession = sessionDataAfter.find(
+      (session) => session.status === "REVOKED"
+    )
+    expect(revokedSession?.sessionID === allSessionIds[0])
+
     const submitOrderTx: Transaction = {
       to: DUMMY_CONTRACT_ADDRESS,
       data: encodeFunctionData({
@@ -1038,41 +1227,47 @@ describe("Modules:Write", () => {
       })
     }
 
-    const allSessionIds = (await sessionStorageClient.getAllSessionData()).map(
-      ({ sessionID }) => sessionID
-    )
-
-    const singleSessionParamsForCancel = await getSingleSessionTxParams(
-      sessionStorageClient,
-      chain,
-      0
-    )
-
-    const singleSessionParamsForOrder = await getSingleSessionTxParams(
-      sessionStorageClient,
-      chain,
-      1
-    )
-
-    const { wait: waitForCancelTx } =
-      await smartAccountWithSession.sendTransaction(submitCancelTx, {
-        nonceOptions,
-        ...singleSessionParamsForCancel,
-        ...withSponsorship
+    const { wait: waitOrder, userOpHash: hash } =
+      await smartAccount.sendTransaction(submitOrderTx, {
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+        params: {
+          sessionID: allSessionIds[2] ?? "0x",
+          sessionValidationModule: abiSvmAddress
+        }
       })
 
-    const { success: txCancelSuccess } = await waitForCancelTx()
-    expect(txCancelSuccess).toBe("true")
+    await waitOrder()
 
-    const { wait: waitForOrderTx } =
-      await smartAccountWithSession.sendTransaction(submitOrderTx, {
-        nonceOptions,
-        ...singleSessionParamsForOrder,
-        ...withSponsorship
+    const setIdTx: Transaction = {
+      to: DUMMY_CONTRACT_ADDRESS,
+      data: encodeFunctionData({
+        abi: setId,
+        functionName: "setId",
+        args: [BigInt(1)]
       })
+    }
 
-    const { success: txOrderSuccess } = await waitForOrderTx()
-    expect(txOrderSuccess).toBe("true")
+    // Expect to throw because it has been revoked
+    await expect(
+      smartAccountWithSession.sendTransaction(submitCancelTx, {
+        ...withSponsorship,
+        params: {
+          sessionID: allSessionIds[0] ?? "0x",
+          sessionValidationModule: abiSvmAddress
+        }
+      })
+    ).rejects.toThrow()
+
+    // Expect to throw because it has been revoked
+    await expect(
+      smartAccountWithSession.sendTransaction(setIdTx, {
+        ...withSponsorship,
+        params: {
+          sessionID: allSessionIds[2] ?? "0x",
+          sessionValidationModule: abiSvmAddress
+        }
+      })
+    ).rejects.toThrow()
   }, 60000)
 
   test("should combine erc20 token gas payments with a batch session", async () => {

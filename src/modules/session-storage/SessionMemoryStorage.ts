@@ -186,6 +186,37 @@ export class SessionMemoryStorage implements ISessionStorage {
     return signer
   }
 
+  async revokeSessions(sessionIDs: string[]): Promise<any[]> {
+    const data = this.getSessionStore()
+    let newLeafNodes: any[] = []
+    for (const sessionID of sessionIDs) {
+      newLeafNodes = data.leafNodes.filter((s: SessionLeafNode) => {
+        if (sessionID) {
+          return s.sessionID !== sessionID
+        }
+        return undefined
+      })
+    }
+    return newLeafNodes
+  }
+
+  // async revokeSession(
+  //   sessionID: string
+  // ): Promise<string> {
+  //   let data = this.getSessionStore()
+  //   const oldRoot = await this.getMerkleRoot();
+  //   console.log(oldRoot, "oldRoot");
+  //   const updatedSession = data.leafNodes.filter((s: SessionLeafNode) => s.sessionID !== sessionID)
+  //   data.leafNodes = updatedSession;
+  //   memoryStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data))
+  //   const newSessions = this.getSessionStore()
+  //   console.log(newSessions, "newSessions");
+  //   const newMerkleRoot = await this.getMerkleRoot();
+  //   console.log(newMerkleRoot, "newMerkleRoot");
+  //   await this.setMerkleRoot(newMerkleRoot)
+  //   return newMerkleRoot;
+  // }
+
   async getSignerBySession(
     param: SessionSearchParam,
     chain: Chain

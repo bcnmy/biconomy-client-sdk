@@ -187,6 +187,32 @@ export class SessionKeyManagerModule extends BaseValidationModule {
     }
   }
 
+  async revokeSessions(sessionIDs: string[]) {
+    const newLeafs = await this.sessionStorageClient.revokeSessions(sessionIDs)
+    const leavesToAdd: Buffer[] = []
+    for (const leaf of newLeafs) {
+      const leafDataHex = concat([
+        pad(toHex(leaf.validUntil), { size: 6 }),
+        pad(toHex(leaf.validAfter), { size: 6 }),
+        pad(leaf.sessionValidationModule, { size: 20 }),
+        leaf.sessionKeyData
+      ])
+      leavesToAdd.push(keccak256(leafDataHex) as unknown as Buffer)
+    }
+    this.merkleTree.addLeaves(leavesToAdd)
+    const leaves = this.merkleTree.getLeaves()
+    const newMerkleTree = new MerkleTree(leaves, keccak256, {
+      sortPairs: true,
+      hashLeaves: false
+    })
+    this.merkleTree = newMerkleTree
+    await this.sessionStorageClient.setMerkleRoot(this.merkleTree.getHexRoot())
+    for (const sessionID of sessionIDs) {
+      this.sessionStorageClient.updateSessionStatus({ sessionID }, "REVOKED")
+    }
+    return newMerkleTree.getHexRoot()
+  }
+
   /**
    * This method is used to sign the user operation using the session signer
    * @param userOp The user operation to be signed
