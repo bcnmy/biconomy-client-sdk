@@ -330,7 +330,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     // We check if chain ids match (skip this if chainId is passed by in the config)
     // This check is at the end of the function for cases when the signer is not passed in the config but a validation modules is and we get the signer from the validation module in this case
-    if (!biconomySmartAccountConfig.chainId) {
+    if (
+      biconomySmartAccountConfig.skipChainCheck !== true &&
+      !biconomySmartAccountConfig.chainId
+    ) {
       await compareChainIds(
         biconomySmartAccountConfig.signer || resolvedSmartAccountSigner,
         config,
