@@ -8,7 +8,7 @@ import {
   parseAbiParameters
 } from "viem"
 import type { UserOperationStruct } from "../../account"
-import { type SupportedSigner, convertSigner } from "../../account"
+import { MAGIC_BYTES, type SupportedSigner, convertSigner } from "../../account"
 import { extractChainIdFromBundlerUrl } from "../../bundler"
 import { extractChainIdFromPaymasterUrl } from "../../bundler"
 import type { BiconomySmartAccountV2Config } from "./Types.js"
@@ -156,7 +156,7 @@ export const wrapSignatureWith6492 = ({
       factoryCalldata,
       signature
     ]),
-    "0x6492649264926492649264926492649264926492649264926492649264926492"
+    MAGIC_BYTES
   ])
 }
 

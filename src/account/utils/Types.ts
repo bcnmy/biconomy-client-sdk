@@ -173,6 +173,8 @@ export type BiconomySmartAccountV2ConfigBaseProps = {
   initCode?: Hex
   /** Used for session key manager module */
   sessionData?: ModuleInfo
+  /** Used to skip the chain checks between singer, bundler and paymaster */
+  skipChainCheck?: boolean
 }
 export type BiconomySmartAccountV2Config =
   BiconomySmartAccountV2ConfigBaseProps &

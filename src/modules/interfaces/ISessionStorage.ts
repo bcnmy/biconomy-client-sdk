@@ -2,7 +2,12 @@ import type { Chain, Hex } from "viem"
 import type { SmartAccountSigner } from "../../account"
 import type { SignerData } from "../utils/Types.js"
 
-export type SessionStatus = "PENDING" | "ACTIVE" | "INACTIVE" | "EXPIRED"
+export type SessionStatus =
+  | "PENDING"
+  | "ACTIVE"
+  | "INACTIVE"
+  | "EXPIRED"
+  | "REVOKED"
 
 export type SessionLeafNode = {
   validUntil: number
@@ -48,6 +53,8 @@ export interface ISessionStorage {
     _param: SessionSearchParam,
     _status: SessionStatus
   ): Promise<void>
+
+  revokeSessions(sessionIDs: string[]): Promise<any>
 
   /**
    * Clears all the pending sessions from the session storage
