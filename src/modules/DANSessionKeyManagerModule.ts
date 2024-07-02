@@ -209,6 +209,7 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
    * @returns The signature of the user operation
    */
   async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<Hex> {
+    console.log("userOpHash", userOpHash)
     if (!params || !params.danModuleInfo) {
       throw new Error("Missing params")
     }

@@ -67,6 +67,20 @@ export class DANSessionStorage implements ISessionStorage {
     localStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data))
   }
 
+  async revokeSessions(sessionIDs: string[]): Promise<any[]> {
+    const data = this.getSessionStore()
+    let newLeafNodes: any[] = []
+    for (const sessionID of sessionIDs) {
+      newLeafNodes = data.leafNodes.filter((s: SessionLeafNode) => {
+        if (sessionID) {
+          return s.sessionID !== sessionID
+        }
+        return undefined
+      })
+    }
+    return newLeafNodes
+  }
+
   async getSessionData(param: SessionSearchParam): Promise<SessionLeafNode> {
     this.validateSearchParam(param)
 
