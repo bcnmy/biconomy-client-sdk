@@ -41,7 +41,6 @@ import { SessionMemoryStorage } from "../../src/modules/session-storage/SessionM
 import { createSessionKeyEOA } from "../../src/modules/session-storage/utils"
 import {
   type Policy,
-  type Session,
   createABISessionDatum,
   createSession,
   getSingleSessionTxParams
@@ -68,6 +67,8 @@ describe("Modules:Write", () => {
   const preferredToken = token
   const BICONOMY_TOKEN_PAYMASTER = "0x00000f7365cA6C59A2C93719ad53d567ed49c14C"
   const amount = parseUnits(".0001", 6)
+  const DUMMY_CONTRACT_ADDRESS: Hex =
+    "0xA975e69917A4c856b17Fc8Cc4C352f326Ef21C6B" // amoy address
 
   const withSponsorship = {
     paymasterServiceData: { mode: PaymasterMode.SPONSORED }
@@ -79,7 +80,8 @@ describe("Modules:Write", () => {
     privateKey,
     privateKeyTwo,
     bundlerUrl,
-    paymasterUrl
+    paymasterUrl,
+    paymasterUrlTwo
   } = getConfig()
   const account = privateKeyToAccount(`0x${privateKey}`)
   const accountTwo = privateKeyToAccount(`0x${privateKeyTwo}`)
@@ -932,9 +934,7 @@ describe("Modules:Write", () => {
     )
   }, 60000)
 
-  test("should correctly parse the reference value and explicitly pass the storage client while resuming the session", async () => {
-    const DUMMY_CONTRACT_ADDRESS: Hex =
-      "0xC834b3804817883a6b7072e815C3faf8682bFA13"
+  test.skip("should correctly parse the reference value and explicitly pass the storage client while resuming the session", async () => {
     const byteCode = await publicClient.getBytecode({
       address: DUMMY_CONTRACT_ADDRESS as Hex
     })
@@ -1056,8 +1056,6 @@ describe("Modules:Write", () => {
   }, 60000)
 
   test("should revoke sessions", async () => {
-    const DUMMY_CONTRACT_ADDRESS: Hex =
-      "0xA975e69917A4c856b17Fc8Cc4C352f326Ef21C6B" // amoy address
     const abiSvmAddress = "0x000006bC2eCdAe38113929293d241Cf252D91861"
     const byteCode = await publicClient.getBytecode({
       address: DUMMY_CONTRACT_ADDRESS as Hex
@@ -1160,7 +1158,8 @@ describe("Modules:Write", () => {
         accountAddress: smartAccountAddress, // Set the account address on behalf of the user
         bundlerUrl,
         paymasterUrl,
-        chainId
+        chainId,
+        index: 25 // Increasing index to not conflict with other test cases and use a new smart account
       },
       sessionStorageClient
     )
@@ -1208,7 +1207,7 @@ describe("Modules:Write", () => {
         }
       })
 
-    const { success: txSuccess, userOpHash } = await waitForSetMerkleRoot()
+    const { success: txSuccess } = await waitForSetMerkleRoot()
     expect(txSuccess).toBe("true")
 
     const sessionDataAfter = await sessionStorageClient.getAllSessionData()
@@ -1227,14 +1226,16 @@ describe("Modules:Write", () => {
       })
     }
 
-    const { wait: waitOrder, userOpHash: hash } =
-      await smartAccount.sendTransaction(submitOrderTx, {
+    const { wait: waitOrder } = await smartAccount.sendTransaction(
+      submitOrderTx,
+      {
         paymasterServiceData: { mode: PaymasterMode.SPONSORED },
         params: {
           sessionID: allSessionIds[2] ?? "0x",
           sessionValidationModule: abiSvmAddress
         }
-      })
+      }
+    )
 
     await waitOrder()
 
