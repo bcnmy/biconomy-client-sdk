@@ -1,9 +1,13 @@
 # @biconomy/account
 
-## 4.4.7
+## 4.5.0
 
-### Patch Changes
+### Minor Changes
 
+- Added session revoking
+- Skip chain checks flag 
+- Fixed rpc url
+- Improved tsdoc and internal tests
 - Add hooks info to README
 
 ## 4.4.6
