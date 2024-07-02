@@ -772,6 +772,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     if (validationModule instanceof BaseValidationModule) {
       this.activeValidationModule = validationModule
     }
+    this.activeValidationModule = validationModule
     return this
   }
 
@@ -942,6 +943,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       "paymasterAndData"
     ]
     this.validateUserOp(userOp, requiredFields)
+
     const userOpHash = await this.getUserOpHash(userOp)
 
     const moduleSig = (await this.activeValidationModule.signUserOpHash(
@@ -955,6 +957,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     )
 
     userOp.signature = signatureWithModuleAddress
+
     return userOp as UserOperationStruct
   }
 
@@ -964,10 +967,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   ): Hex {
     const moduleAddressToUse =
       moduleAddress ?? (this.activeValidationModule.getAddress() as Hex)
-    return encodeAbiParameters(parseAbiParameters("bytes, address"), [
+    const result = encodeAbiParameters(parseAbiParameters("bytes, address"), [
       moduleSignature,
       moduleAddressToUse
     ])
+
+    return result
   }
 
   public async getPaymasterUserOp(
@@ -1234,10 +1239,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     delete userOp.signature
     const userOperation = await this.signUserOp(userOp, params)
 
-    const bundlerResponse = await this.sendSignedUserOp(
-      userOperation,
-      params?.simulationType
-    )
+    const bundlerResponse = await this.sendSignedUserOp(userOperation)
 
     return bundlerResponse
   }
@@ -1533,10 +1535,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         : [manyOrOneTransactions],
       buildUseropDto
     )
-    return this.sendUserOp(userOp, {
-      simulationType: buildUseropDto?.simulationType,
-      ...buildUseropDto?.params
-    })
+
+    if (buildUseropDto?.params?.danModuleInfo) {
+      buildUseropDto.params.danModuleInfo.userOperation = userOp
+    }
+
+    return this.sendUserOp(userOp, { ...buildUseropDto?.params })
   }
 
   /**
@@ -2033,6 +2037,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   async signMessage(message: string | Uint8Array): Promise<Hex> {
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     let signature: any
     this.isActiveValidationModuleDefined()
     const dataHash = typeof message === "string" ? toBytes(message) : message
