@@ -13,7 +13,7 @@ import {
   parseAbiParameters
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { bsc } from "viem/chains"
+import { bsc, mainnet } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
@@ -527,6 +527,56 @@ describe("Account:Read", () => {
   })
 
   test.concurrent(
+    "should skip chain check if skipChainCheck flag is passed",
+    async () => {
+      const walletClient = createWalletClient({
+        account,
+        chain: mainnet,
+        transport: http()
+      })
+      expect(
+        createSmartAccountClient({
+          signer: walletClient,
+          viemChain: mainnet,
+          skipChainCheck: true,
+          bundlerUrl,
+          paymasterUrl
+        })
+      ).resolves
+    }
+  )
+
+  test.concurrent("should throw error of incorrect chain setup", async () => {
+    const walletClient = createWalletClient({
+      account,
+      chain: mainnet,
+      transport: http()
+    })
+    await expect(
+      createSmartAccountClient({
+        signer: walletClient,
+        viemChain: mainnet,
+        skipChainCheck: false,
+        bundlerUrl,
+        paymasterUrl
+      })
+    ).rejects.toThrowError(
+      "Chain IDs from signer (1) and bundler (80002) do not match."
+    )
+
+    await expect(
+      createSmartAccountClient({
+        signer: walletClient,
+        viemChain: mainnet,
+        bundlerUrl,
+        paymasterUrl
+      })
+    ).rejects.toThrowError(
+      "Chain IDs from signer (1) and bundler (80002) do not match."
+    )
+  })
+
+  test.concurrent(
     "should having matching counterFactual address from the contracts with smartAccount.getAddress()",
     async () => {
       const client = createWalletClient({
@@ -877,4 +927,52 @@ describe("Account:Read", () => {
       await expect(smartAccount.buildUserOp([tx1, tx2])).resolves.toBeTruthy()
     }
   )
+
+  test.concurrent("should sign typed data", async () => {
+    const smartAccount = await createSmartAccountClient({
+      signer: walletClient,
+      bundlerUrl
+    })
+
+    const typedData = {
+      account: walletClient.account,
+      domain: {
+        name: "Ether Mail",
+        version: "1",
+        chainId: chain.id,
+        verifyingContract: smartAccountAddress
+      },
+      types: {
+        Person: [
+          { name: "name", type: "string" },
+          { name: "wallet", type: "address" }
+        ],
+        Mail: [
+          { name: "from", type: "Person" },
+          { name: "to", type: "Person" },
+          { name: "contents", type: "string" }
+        ]
+      },
+      primaryType: "Mail" as const,
+      message: {
+        from: {
+          name: "Cow",
+          wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+        },
+        to: {
+          name: "Bob",
+          wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+        },
+        contents: "Hello, Bob!"
+      }
+    }
+
+    const signature = await smartAccount.signTypedData(typedData)
+    const isVerified = await publicClient.verifyTypedData({
+      address: account.address,
+      signature,
+      ...typedData
+    })
+    expect(isVerified).toBeTruthy()
+  })
 })

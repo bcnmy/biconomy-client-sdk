@@ -188,6 +188,46 @@ export class SessionKeyManagerModule extends BaseValidationModule {
   }
 
   /**
+   * Revokes specified sessions by generating a new Merkle root and updating the session statuses to "REVOKED".
+   *
+   * This method performs the following steps:
+   * 1. Calls `revokeSessions` on the session storage client to get new leaf nodes for the sessions to be revoked.
+   * 2. Constructs new leaf data from the session details, including validity periods and session validation module.
+   * 3. Hashes the leaf data using `keccak256` and adds them to the Merkle tree.
+   * 4. Creates a new Merkle tree with the updated leaves and updates the internal Merkle tree reference.
+   * 5. Sets the new Merkle root in the session storage.
+   * 6. Updates the status of each specified session to "REVOKED" in the session storage.
+   *
+   * @param sessionIDs - An array of session IDs to be revoked.
+   * @returns A promise that resolves to the new Merkle root as a hexadecimal string.
+   */
+  async revokeSessions(sessionIDs: string[]): Promise<string> {
+    const newLeafs = await this.sessionStorageClient.revokeSessions(sessionIDs)
+    const leavesToAdd: Buffer[] = []
+    for (const leaf of newLeafs) {
+      const leafDataHex = concat([
+        pad(toHex(leaf.validUntil), { size: 6 }),
+        pad(toHex(leaf.validAfter), { size: 6 }),
+        pad(leaf.sessionValidationModule, { size: 20 }),
+        leaf.sessionKeyData
+      ])
+      leavesToAdd.push(keccak256(leafDataHex) as unknown as Buffer)
+    }
+    this.merkleTree.addLeaves(leavesToAdd)
+    const leaves = this.merkleTree.getLeaves()
+    const newMerkleTree = new MerkleTree(leaves, keccak256, {
+      sortPairs: true,
+      hashLeaves: false
+    })
+    this.merkleTree = newMerkleTree
+    await this.sessionStorageClient.setMerkleRoot(this.merkleTree.getHexRoot())
+    for (const sessionID of sessionIDs) {
+      this.sessionStorageClient.updateSessionStatus({ sessionID }, "REVOKED")
+    }
+    return newMerkleTree.getHexRoot()
+  }
+
+  /**
    * This method is used to sign the user operation using the session signer
    * @param userOp The user operation to be signed
    * @param sessionSigner The signer to be used to sign the user operation
