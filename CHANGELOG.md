@@ -8,11 +8,6 @@
 - Skip chain checks flag 
 - Fixed rpc url
 - Improved tsdoc and internal tests
-
-## 4.4.7
-
-### Patch Changes
-
 - Add hooks info to README
 
 ## 4.4.6
