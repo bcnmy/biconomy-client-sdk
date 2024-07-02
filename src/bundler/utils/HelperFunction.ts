@@ -1,3 +1,4 @@
+import { type Hex } from "viem"
 import type { BigNumberish, UserOperationStruct } from "../../account"
 
 // Will convert the userOp hex, bigInt and number values to hex strings
@@ -18,7 +19,7 @@ export const transformUserOP = (
       if (userOperation[key] && userOperation[key] !== "0x") {
         userOperation[key] = `0x${BigInt(userOp[key] as BigNumberish).toString(
           16
-        )}` as `0x${string}`
+        )}` as Hex
       }
     }
     return userOperation

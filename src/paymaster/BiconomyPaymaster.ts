@@ -1,4 +1,4 @@
-import { encodeFunctionData, parseAbi } from "viem"
+import { type Hex, encodeFunctionData, parseAbi } from "viem"
 import {
   type BiconomyTokenPaymasterRequest,
   type BigNumberish,
@@ -6,15 +6,15 @@ import {
   Logger,
   type Transaction,
   type UserOperationStruct,
-  sendRequest
+  sendRequest,
+  ADDRESS_ZERO
 } from "../account"
 import type { IHybridPaymaster } from "./interfaces/IHybridPaymaster.js"
-import { ADDRESS_ZERO, ERC20_ABI, MAX_UINT256 } from "./utils/Constants.js"
+import { MAX_UINT256, SMART_ACCOUNT_INFO } from "./utils/Constants.js"
 import { getTimestampInSeconds } from "./utils/Helpers.js"
 import {
   type FeeQuotesOrDataDto,
   type FeeQuotesOrDataResponse,
-  type Hex,
   type JsonRpcResponse,
   type PaymasterAndDataResponse,
   type PaymasterConfig,
@@ -22,6 +22,7 @@ import {
   PaymasterMode,
   type SponsorUserOperationDto
 } from "./utils/Types.js"
+import { ERC20_ABI } from "../account/abi/ERC20.js"
 
 const defaultPaymasterConfig: PaymasterConfig = {
   paymasterUrl: "",
@@ -62,7 +63,7 @@ export class BiconomyPaymaster
         if (userOperation[key] && userOperation[key] !== "0x") {
           userOperation[key] = `0x${BigInt(
             userOp[key] as BigNumberish
-          ).toString(16)}` as `0x${string}`
+          ).toString(16)}` as Hex
         }
       }
       const keys2: (keyof UserOperationStruct)[] = [
@@ -74,7 +75,7 @@ export class BiconomyPaymaster
         if (userOperation[key] && userOperation[key] !== "0x") {
           userOperation[key] = BigInt(
             userOp[key] as BigNumberish
-          ).toString() as `0x${string}`
+          ).toString() as Hex
         }
       }
     } catch (error) {
@@ -170,10 +171,7 @@ export class BiconomyPaymaster
     let preferredToken: string | null = null
     let feeTokensArray: string[] = []
     // could make below null
-    let smartAccountInfo = {
-      name: "BICONOMY",
-      version: "2.0.0"
-    }
+    let smartAccountInfo = SMART_ACCOUNT_INFO
     let webhookData: Record<string, any> | null = null
 
     if (paymasterServiceData.mode) {
@@ -311,10 +309,7 @@ export class BiconomyPaymaster
 
     let tokenInfo: Record<string, string | undefined> | null = null
     // could make below null
-    let smartAccountInfo = {
-      name: "BICONOMY",
-      version: "2.0.0"
-    }
+    let smartAccountInfo = SMART_ACCOUNT_INFO
     let webhookData: Record<string, any> | null = null
     let expiryDuration: number | null = null
 

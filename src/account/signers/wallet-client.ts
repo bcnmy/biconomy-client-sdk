@@ -20,17 +20,18 @@ export class WalletClientSigner implements SmartAccountSigner<WalletClient> {
     this.signerType = signerType
   }
 
-  getAddress: () => Promise<`0x${string}`> = async () => {
+  getAddress: () => Promise<Hex> = async () => {
     const addresses = await this.inner.getAddresses()
     return getAddress(addresses[0])
   }
 
-  readonly signMessage: (message: SignableMessage) => Promise<`0x${string}`> =
-    async (message) => {
-      const account = this.inner.account ?? (await this.getAddress())
+  readonly signMessage: (message: SignableMessage) => Promise<Hex> = async (
+    message
+  ) => {
+    const account = this.inner.account ?? (await this.getAddress())
 
-      return this.inner.signMessage({ message, account })
-    }
+    return this.inner.signMessage({ message, account })
+  }
 
   signTypedData = async <
     const TTypedData extends TypedData | { [key: string]: unknown },

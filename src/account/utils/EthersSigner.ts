@@ -1,5 +1,6 @@
 import type { Hex, SignableMessage } from "viem"
 import type { LightSigner, SmartAccountSigner } from "../utils/Types.js"
+import { fixPotentiallyIncorrectVForSignature } from "./Utils.js"
 
 export class EthersSigner<T extends LightSigner>
   implements SmartAccountSigner<T>
@@ -29,13 +30,7 @@ export class EthersSigner<T extends LightSigner>
   }
 
   #correctSignature = (_signature: Hex): Hex => {
-    let signature = _signature
-    const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
-    if (![27, 28].includes(potentiallyIncorrectV)) {
-      const correctV = potentiallyIncorrectV + 27
-      signature = signature.slice(0, -2) + correctV.toString(16)
-    }
-    return signature as Hex
+    return fixPotentiallyIncorrectVForSignature(_signature)
   }
 }
 

@@ -268,16 +268,16 @@ export const createABISessionDatum = ({
  * @deprecated
  */
 export async function getABISVMSessionKeyData(
-  sessionKey: `0x${string}` | Uint8Array,
+  sessionKey: Hex | Uint8Array,
   permission: DeprecatedPermission
-): Promise<`0x${string}` | Uint8Array> {
+): Promise<Hex | Uint8Array> {
   let sessionKeyData = concat([
     sessionKey,
     permission.destContract,
     permission.functionSelector,
     pad(toHex(permission.valueLimit), { size: 16 }),
     pad(toHex(permission.rules.length), { size: 2 }) // this can't be more 2**11 (see below), so uint16 (2 bytes) is enough
-  ]) as `0x${string}`
+  ]) as Hex
 
   for (let i = 0; i < permission.rules.length; i++) {
     sessionKeyData = concat([

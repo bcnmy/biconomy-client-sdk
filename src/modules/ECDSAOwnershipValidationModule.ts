@@ -5,7 +5,11 @@ import {
   parseAbi,
   toBytes
 } from "viem"
-import { type SmartAccountSigner, convertSigner } from "../account"
+import {
+  type SmartAccountSigner,
+  convertSigner,
+  fixPotentiallyIncorrectVForSignature
+} from "../account"
 import { BaseValidationModule } from "./BaseValidationModule.js"
 import {
   DEFAULT_ECDSA_OWNERSHIP_MODULE,
@@ -103,12 +107,7 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
   async signMessage(_message: Uint8Array | string): Promise<string> {
     const message = typeof _message === "string" ? _message : { raw: _message }
     let signature = await this.signer.signMessage(message)
-
-    const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
-    if (![27, 28].includes(potentiallyIncorrectV)) {
-      const correctV = potentiallyIncorrectV + 27
-      signature = signature.slice(0, -2) + correctV.toString(16)
-    }
+    signature = fixPotentiallyIncorrectVForSignature(signature)
     return signature
   }
 }

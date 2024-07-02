@@ -1,5 +1,9 @@
 import type { Hex } from "viem"
-import { DEFAULT_ENTRYPOINT_ADDRESS, type SmartAccountSigner } from "../account"
+import {
+  DEFAULT_ENTRYPOINT_ADDRESS,
+  fixPotentiallyIncorrectVForSignature,
+  type SmartAccountSigner
+} from "../account"
 import type { IValidationModule } from "./interfaces/IValidationModule.js"
 import type { BaseValidationModuleConfig, ModuleInfo } from "./utils/Types.js"
 
@@ -38,13 +42,8 @@ export abstract class BaseValidationModule implements IValidationModule {
     signer: SmartAccountSigner
   ): Promise<string> {
     const message = typeof _message === "string" ? _message : { raw: _message }
-    let signature: `0x${string}` = await signer.signMessage(message)
-
-    const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
-    if (![27, 28].includes(potentiallyIncorrectV)) {
-      const correctV = potentiallyIncorrectV + 27
-      signature = `0x${signature.slice(0, -2) + correctV.toString(16)}`
-    }
+    let signature: Hex = await signer.signMessage(message)
+    signature = fixPotentiallyIncorrectVForSignature(signature)
 
     return signature
   }
