@@ -5,35 +5,32 @@ import {
   NetworkSigner,
   WalletProviderServiceClient
 } from "@silencelaboratories/walletprovider-sdk"
-import {
-  http,
-  type Chain,
-  type EIP1193Provider,
-  type HttpTransport,
-  WalletClient,
-  keccak256
-} from "viem"
-import { getHttpRpcClient } from "viem/utils"
+import { type Hex, keccak256 } from "viem"
+// import {
+//   type BiconomySmartAccountV2,
+//   ERROR_MESSAGES,
+//   Logger,
+//   type Transaction
+// } from "../../../src/account"
 import {
   type BiconomySmartAccountV2,
+  type BuildUserOpOptions,
   ERROR_MESSAGES,
-  type Hex,
   Logger,
-  type Policy,
-  type SessionGrantedPayload,
   type Transaction
-} from "../../../src"
-import type { BuildUserOpOptions } from "../../account"
+} from "../../account"
 import { DANSessionKeyManagerModule } from "../DANSessionKeyManagerModule"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
-import { inBrowser } from "../session-storage/SessionLocalStorage"
 import { DEFAULT_SESSION_KEY_MANAGER_MODULE } from "../utils/Constants"
 import { NodeWallet, hexToUint8Array } from "../utils/Helper"
-import { BrowserWallet } from "../utils/Helper"
-import { createABISessionDatum } from "./abi"
+import {
+  type Policy,
+  type SessionGrantedPayload,
+  createABISessionDatum
+} from "./abi"
 /**
  *
- * createDecentralisedSession
+ * createDistributedSession
  *
  * Creates a session for a user's smart account.
  * This grants a dapp permission to execute a specific function on a specific contract on behalf of a user.
@@ -105,9 +102,8 @@ import { createABISessionDatum } from "./abi"
 
 export type PolicyWithoutSessionKey = Omit<Policy, "sessionKeyAddress">
 
-export const createDecentralisedSession = async (
+export const createDistributedSession = async (
   smartAccount: BiconomySmartAccountV2,
-  chain: Chain,
   _policy: PolicyWithoutSessionKey[],
   sessionStorageClient: ISessionStorage,
   buildUseropDto?: BuildUserOpOptions
@@ -118,7 +114,7 @@ export const createDecentralisedSession = async (
     sessionStorageClient
   })
 
-  const { sessionKeyEOA: sessionKeyAddress, mpcKeyId } =
+  const { sessionKeyEOA: sessionKeyAddress } =
     await getDANSessionKey(smartAccount)
 
   const policy: Policy[] = _policy.map((p) => ({
@@ -169,13 +165,12 @@ export const createDecentralisedSession = async (
 export const getDANSessionKey = async (
   smartAccount: BiconomySmartAccountV2
 ) => {
-  if (!process.env.EPHEMERAL_KEY)
-    throw new Error("EPHEMERAL_KEY not found in environment variables")
-
   const eoaAddress = await smartAccount.getSigner().getAddress() // Smart account owner
   const wallet = new NodeWallet(smartAccount.getSigner().inner)
 
-  const ephSK: Uint8Array = hexToUint8Array(process.env.EPHEMERAL_KEY)
+  const ephSK: Uint8Array = hexToUint8Array(
+    "4c5c5073aca04eafce53f06762a130127cb406adfe63a7b3ee34d4ddfcd57b12"
+  )
   const ephPK: Uint8Array = await ed.getPublicKeyAsync(ephSK)
 
   const wpClient = new WalletProviderServiceClient({

@@ -938,14 +938,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       "paymasterAndData"
     ]
     this.validateUserOp(userOp, requiredFields)
+
     const userOpHash = await this.getUserOpHash(userOp)
 
     const moduleSig = (await this.activeValidationModule.signUserOpHash(
       userOpHash,
       params
     )) as Hex
-
-    console.log({ moduleSig })
 
     const signatureWithModuleAddress = this.getSignatureWithModuleAddress(
       moduleSig,
@@ -968,7 +967,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       moduleAddressToUse
     ])
 
-    console.log("getSignatureWithModuleAddress", { result })
     return result
   }
 

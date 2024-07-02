@@ -3,7 +3,6 @@ import {
   type Address,
   type ByteArray,
   type Chain,
-  type EIP1193Provider,
   type Hex,
   type WalletClient,
   encodeAbiParameters,
@@ -21,8 +20,7 @@ import type {
   ChainInfo,
   HardcodedReference,
   Session,
-  SignerData,
-  SupportedSigner
+  SignerData
 } from "../../index.js"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import { getDefaultStorageClient } from "../session-storage/utils"
@@ -303,10 +301,7 @@ export class NodeWallet implements IBrowserWallet {
     this.walletClient = walletClient
   }
 
-  async signTypedData<T>(
-    from: string,
-    request: TypedData<T>
-  ): Promise<unknown> {
+  async signTypedData<T>(_: string, request: TypedData<T>): Promise<unknown> {
     // @ts-ignore
     return await this.walletClient.signTypedData(request)
   }

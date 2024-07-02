@@ -22,16 +22,7 @@ import {
   SessionMemoryStorage,
   createDANSessionKeyManagerModule
 } from "../../src/modules/index"
-import {
-  createSessionKeyEOA,
-  getDefaultStorageClient
-} from "../../src/modules/session-storage/utils"
-import {
-  createDecentralisedSession,
-  getDANSessionKey
-} from "../../src/modules/sessions/dan"
-import { createSessionSmartAccountClient } from "../../src/modules/sessions/sessionSmartAccountClient"
-import { hexToUint8Array } from "../../src/modules/utils/Helper"
+import { getDANSessionKey } from "../../src/modules/sessions/dan"
 import { PaymasterMode } from "../../src/paymaster"
 import { checkBalance, getConfig } from "../utils"
 
@@ -192,7 +183,5 @@ describe("Playground:Write", () => {
 
     const nftBalanceAfter = await checkBalance(smartAccountAddress, nftAddress)
     expect(nftBalanceAfter - nftBalanceBefore).toBe(1n)
-
-    console.log({ transactionHash, success, mintSuccess })
   }, 50000)
 })

@@ -10,6 +10,7 @@ import type {
 } from "../interfaces/ISessionStorage.js"
 import type { SignerData } from "../utils/Types.js"
 
+// @ts-ignore
 export const inBrowser = typeof window !== "undefined"
 export const supportsLocalStorage =
   // @ts-ignore: LocalStorage is not available in node

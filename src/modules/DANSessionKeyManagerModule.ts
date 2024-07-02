@@ -50,12 +50,6 @@ export type Config = {
   walletProvider: WalletProviderDefs
 }
 
-const createWalletProviderService = async (config: Config) =>
-  new WalletProviderServiceClient({
-    walletProviderId: config.walletProvider.walletProviderId,
-    walletProviderUrl: config.walletProvider.walletProviderUrl
-  })
-
 export class DANSessionKeyManagerModule extends BaseValidationModule {
   version: ModuleVersion = "V1_0_0"
 
@@ -215,8 +209,6 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
    * @returns The signature of the user operation
    */
   async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<Hex> {
-    console.log("userOpHash", userOpHash)
-
     if (!params || !params.danModuleInfo) {
       throw new Error("Missing params")
     }
@@ -259,7 +251,6 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       partiesNumber,
       authModule
     )
-    console.log("params userop ")
     // todo // get constants from config
     const objectToSign: DanSignatureObject = {
       userOperation,
@@ -267,12 +258,8 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
       chainId
     }
-    console.log({ objectToSign })
     const signMessage = JSON.stringify(objectToSign)
-    console.log("signMessage", signMessage)
-    console.log("mpcKeyId", mpcKeyId)
     const resp = await sdk.authenticateAndSign(mpcKeyId, signMessage)
-    console.log("resp here", resp)
 
     const v = resp.recid
     const sigV = v === 0 ? "1b" : "1c"
@@ -282,7 +269,9 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       sessionID: params.sessionID
     })
 
-    console.log("session singner data", sessionSignerData)
+    console.log("sessionKeyEoa c", sessionSignerData.sessionPublicKey, {
+      matchedLeaf: sessionSignerData
+    })
 
     const leafDataHex = concat([
       pad(toHex(sessionSignerData.validUntil), { size: 6 }),
