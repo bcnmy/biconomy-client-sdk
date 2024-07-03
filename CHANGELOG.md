@@ -1,11 +1,23 @@
 # @biconomy/account
 
+## 4.5.2
+
+### Patch Changes
+
+- Revert DAN
+
+## 4.5.1
+
+### Patch Changes
+
+- Return BiconomySmartAccountV2
+
 ## 4.5.0
 
 ### Minor Changes
 
 - Added session revoking
-- Skip chain checks flag 
+- Skip chain checks flag
 - Fixed rpc url
 - Improved tsdoc and internal tests
 - Add hooks info to README
