@@ -1,5 +1,11 @@
 # @biconomy/account
 
+## 4.5.2
+
+### Patch Changes
+
+- Revert DAN
+
 ## 4.5.1
 
 ### Patch Changes
