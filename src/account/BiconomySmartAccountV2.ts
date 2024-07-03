@@ -97,7 +97,10 @@ import {
 type UserOperationKey = keyof UserOperationStruct
 
 export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
-  private sessionData?: ModuleInfo
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  public getSessionParams: (
+    ...args: Array<any>
+  ) => Promise<{ params: ModuleInfo }>
 
   private SENTINEL_MODULE = "0x0000000000000000000000000000000000000001"
 
@@ -130,7 +133,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   // Deployed Smart Account can have more than one module enabled. When sending a transaction activeValidationModule is used to prepare and validate userOp signature.
   activeValidationModule!: BaseValidationModule
 
-  private constructor(
+  constructor(
     readonly biconomySmartAccountConfig: BiconomySmartAccountV2ConfigConstructorProps
   ) {
     super({
@@ -151,8 +154,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         biconomySmartAccountConfig.factoryAddress ??
         DEFAULT_BICONOMY_FACTORY_ADDRESS
     })
-
-    this.sessionData = biconomySmartAccountConfig.sessionData
 
     this.defaultValidationModule =
       biconomySmartAccountConfig.defaultValidationModule
@@ -895,8 +896,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   // dummy signature depends on the validation module supplied.
-  async getDummySignatures(_params?: ModuleInfo): Promise<Hex> {
-    const params = { ...(this.sessionData ? this.sessionData : {}), ..._params }
+  async getDummySignatures(params?: ModuleInfo): Promise<Hex> {
     this.isActiveValidationModuleDefined()
     return (await this.activeValidationModule.getDummySignature(params)) as Hex
   }
@@ -925,10 +925,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   async signUserOp(
     userOp: Partial<UserOperationStruct>,
-    _params?: SendUserOpParams
+    params?: SendUserOpParams
   ): Promise<UserOperationStruct> {
-    const params = { ...(this.sessionData ? this.sessionData : {}), ..._params }
-
     this.isActiveValidationModuleDefined()
     const requiredFields: UserOperationKey[] = [
       "sender",
@@ -1541,6 +1539,18 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
 
     return this.sendUserOp(userOp, { ...buildUseropDto?.params })
+  }
+
+  async sendSessionTransaction(
+    manyOrOneTransactions: Transaction | Transaction[],
+    _buildUseropDto: BuildUserOpOptions = {},
+    _getSessionArgs?: any
+  ): Promise<UserOpResponse> {
+    if (typeof this.getSessionParams !== "function")
+      throw new Error("Not available for this client.")
+    const sessionParams = await this.getSessionParams(_getSessionArgs)
+    const buildUseropDto = { ...sessionParams, ..._buildUseropDto }
+    return this.sendTransaction(manyOrOneTransactions, buildUseropDto)
   }
 
   /**

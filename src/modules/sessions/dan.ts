@@ -5,13 +5,9 @@ import {
   NetworkSigner,
   WalletProviderServiceClient
 } from "@silencelaboratories/walletprovider-sdk"
-import { type Hex, keccak256 } from "viem"
-// import {
-//   type BiconomySmartAccountV2,
-//   ERROR_MESSAGES,
-//   Logger,
-//   type Transaction
-// } from "../../../src/account"
+import { type Chain, type Hex, keccak256 } from "viem"
+import { generatePrivateKey } from "viem/accounts"
+import { type Session, createDANSessionKeyManagerModule } from "../"
 import {
   type BiconomySmartAccountV2,
   type BuildUserOpOptions,
@@ -19,10 +15,21 @@ import {
   Logger,
   type Transaction
 } from "../../account"
-import { DANSessionKeyManagerModule } from "../DANSessionKeyManagerModule"
+import { extractChainIdFromBundlerUrl } from "../../bundler"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
-import { DEFAULT_SESSION_KEY_MANAGER_MODULE } from "../utils/Constants"
-import { NodeWallet, hexToUint8Array } from "../utils/Helper"
+import { getDefaultStorageClient } from "../session-storage/utils"
+import {
+  DAN_BACKEND_URL,
+  DEFAULT_SESSION_KEY_MANAGER_MODULE
+} from "../utils/Constants"
+import {
+  NodeWallet,
+  type SessionSearchParam,
+  didProvideFullSession,
+  hexToUint8Array,
+  resumeSession
+} from "../utils/Helper"
+import type { DanModuleInfo } from "../utils/Types"
 import {
   type Policy,
   type SessionGrantedPayload,
@@ -38,7 +45,6 @@ import {
  * The session keys granted with the imparted policy are stored in a StorageClient {@link ISessionStorage}. They can later be retrieved and used to validate userops.
  *
  * @param smartAccount - The user's {@link BiconomySmartAccountV2} smartAccount instance.
- * @param sessionKeyAddress - The address of the sessionKey upon which the policy is to be imparted.
  * @param policy - An array of session configurations {@link Policy}.
  * @param sessionStorageClient - The storage client to store the session keys. {@link ISessionStorage}
  * @param buildUseropDto - Optional. {@link BuildUserOpOptions}
@@ -47,83 +53,42 @@ import {
  * @example
  *
  * ```typescript
- * import { createClient } from "viem"
- * import { createSmartAccountClient } from "@biconomy/account"
- * import { createWalletClient, http } from "viem";
- * import { polygonAmoy } from "viem/chains";
- * import { SessionFileStorage } from "@biconomy/session-file-storage";
- * const signer = createWalletClient({
- *   account,
- *   chain: polygonAmoy,
- *   transport: http(),
- * });
- *
- * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, paymasterUrl }); // Retrieve bundler/paymaster url from dashboard
- * const smartAccountAddress = await smartAccount.getAccountAddress();
- * const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
- * const sessionStorage = new SessionFileStorage(smartAccountAddress)
- * const sessionKeyAddress = (await sessionStorage.addSigner(undefined, polygonAmoy)).getAddress();
- *
- * const { wait, sessionID } = await createDANSession(
- *    smartAccount,
- *    [
- *      {
- *        sessionKeyAddress,
- *        contractAddress: nftAddress,
- *        functionSelector: "safeMint(address)",
- *        rules: [
- *          {
- *            offset: 0,
- *            condition: 0,
- *            referenceValue: smartAccountAddress
- *          }
- *        ],
- *        interval: {
- *          validUntil: 0,
- *          validAfter: 0
- *         },
- *         valueLimit: 0n
- *      }
- *    ],
- *    sessionStorage,
- *    {
- *      paymasterServiceData: { mode: PaymasterMode.SPONSORED },
- *    }
- *  )
- *
- *  const {
- *    receipt: { transactionHash },
- *    success
- *  } = await wait();
- *
- * console.log({ sessionID, success }); // Use the sessionID later to retrieve the sessionKey from the storage client
  * ```
  */
 
 export type PolicyWithoutSessionKey = Omit<Policy, "sessionKeyAddress">
-
 export const createDistributedSession = async (
   smartAccount: BiconomySmartAccountV2,
   _policy: PolicyWithoutSessionKey[],
-  sessionStorageClient: ISessionStorage,
-  buildUseropDto?: BuildUserOpOptions
+  _sessionStorageClient?: ISessionStorage,
+  buildUseropDto?: BuildUserOpOptions,
+  _chain?: number
 ): Promise<SessionGrantedPayload> => {
+  const chainId =
+    _chain ??
+    extractChainIdFromBundlerUrl(smartAccount?.bundler?.getBundlerUrl() ?? "")
+  if (!chainId) {
+    throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND)
+  }
   const smartAccountAddress = await smartAccount.getAddress()
-  const sessionsModule = await DANSessionKeyManagerModule.create({
+  const sessionStorageClient =
+    _sessionStorageClient || getDefaultStorageClient(smartAccountAddress)
+  const sessionsModule = await createDANSessionKeyManagerModule({
     smartAccountAddress,
     sessionStorageClient
   })
 
-  const { sessionKeyEOA: sessionKeyAddress } =
+  const { sessionKeyEOA: sessionKeyAddress, ...other } =
     await getDANSessionKey(smartAccount)
 
-  const policy: Policy[] = _policy.map((p) => ({
-    ...p,
-    sessionKeyAddress
-  }))
+  const danModuleInfo: DanModuleInfo = { ...other, chainId }
+  const policy: Policy[] = _policy.map((p) => ({ ...p, sessionKeyAddress }))
+  const humanReadablePolicyArray = policy.map((p) =>
+    createABISessionDatum({ ...p, danModuleInfo })
+  )
 
   const { data: policyData, sessionIDInfo } =
-    await sessionsModule.createSessionData(policy.map(createABISessionDatum))
+    await sessionsModule.createSessionData(humanReadablePolicyArray)
 
   const permitTx = {
     to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
@@ -153,6 +118,8 @@ export const createDistributedSession = async (
 
   const userOpResponse = await smartAccount.sendTransaction(txs, buildUseropDto)
 
+  smartAccount.setActiveValidationModule(sessionsModule)
+
   return {
     session: {
       sessionStorageClient,
@@ -165,17 +132,18 @@ export const createDistributedSession = async (
 export const getDANSessionKey = async (
   smartAccount: BiconomySmartAccountV2
 ) => {
-  const eoaAddress = await smartAccount.getSigner().getAddress() // Smart account owner
+  const eoaAddress = (await smartAccount.getSigner().getAddress()) as Hex // Smart account owner
   const wallet = new NodeWallet(smartAccount.getSigner().inner)
 
-  const ephSK: Uint8Array = hexToUint8Array(
-    "4c5c5073aca04eafce53f06762a130127cb406adfe63a7b3ee34d4ddfcd57b12"
-  )
+  const hexEphSK = generatePrivateKey()
+  const hexEphSKWithout0x = hexEphSK.slice(2)
+
+  const ephSK: Uint8Array = hexToUint8Array(hexEphSKWithout0x)
   const ephPK: Uint8Array = await ed.getPublicKeyAsync(ephSK)
 
   const wpClient = new WalletProviderServiceClient({
     walletProviderId: "WalletProvider",
-    walletProviderUrl: "ws://localhost:8090/v1"
+    walletProviderUrl: DAN_BACKEND_URL
   })
 
   const eoaAuth = new EOAAuth(eoaAddress, wallet, ephPK, 60 * 60)
@@ -191,8 +159,6 @@ export const getDANSessionKey = async (
   const pubKey = resp.publicKey
   const mpcKeyId = resp.keyId as Hex
 
-  console.log({ resp })
-
   // Compute the Keccak-256 hash of the public key
   const hash = keccak256(`0x${pubKey}` as Hex)
 
@@ -206,5 +172,52 @@ export const getDANSessionKey = async (
     partiesNumber,
     threshold,
     eoaAddress
+  }
+}
+
+export type DanSessionParamsPayload = {
+  params: {
+    sessionID: string
+    danModuleInfo: DanModuleInfo
+  }
+}
+/**
+ * getDanSessionTxParams
+ *
+ * Retrieves the transaction parameters for a batched session.
+ *
+ * @param correspondingIndex - An index for the transaction corresponding to the relevant session. If not provided, the last session index is used.
+ * @param conditionalSession - {@link SessionSearchParam} The session data that contains the sessionID and sessionSigner. If not provided, The default session storage (localStorage in browser, fileStorage in node backend) is used to fetch the sessionIDInfo
+ * @returns Promise<{@link DanSessionParamsPayload}> - session parameters.
+ *
+ */
+export const getDanSessionTxParams = async (
+  conditionalSession: SessionSearchParam,
+  chain: Chain,
+  correspondingIndex: number | null | undefined
+): Promise<DanSessionParamsPayload> => {
+  const resumedSession = await resumeSession(conditionalSession)
+  // if correspondingIndex is null then use the last session.
+  const allSessions =
+    await resumedSession.sessionStorageClient.getAllSessionData()
+
+  const sessionID = didProvideFullSession(conditionalSession)
+    ? (conditionalSession as Session).sessionIDInfo[correspondingIndex ?? 0]
+    : allSessions[correspondingIndex ?? allSessions.length - 1].sessionID
+
+  const matchingLeafDatum = allSessions.find((s) => s.sessionID === sessionID)
+
+  if (!sessionID) throw new Error(ERROR_MESSAGES.MISSING_SESSION_ID)
+  if (!matchingLeafDatum) throw new Error(ERROR_MESSAGES.NO_LEAF_FOUND)
+  if (!matchingLeafDatum.danModuleInfo)
+    throw new Error(ERROR_MESSAGES.NO_DAN_MODULE_INFO)
+  const chainIdsMatch = chain.id === matchingLeafDatum?.danModuleInfo?.chainId
+  if (!chainIdsMatch) throw new Error(ERROR_MESSAGES.CHAIN_ID_MISMATCH)
+
+  return {
+    params: {
+      sessionID,
+      danModuleInfo: matchingLeafDatum.danModuleInfo
+    }
   }
 }

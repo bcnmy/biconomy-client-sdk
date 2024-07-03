@@ -11,12 +11,17 @@ import {
 import {
   type SessionSearchParam,
   createBatchedSessionRouterModule,
+  createDANSessionKeyManagerModule,
   createSessionKeyManagerModule,
+  getBatchSessionTxParams,
+  getDanSessionTxParams,
+  getSingleSessionTxParams,
   resumeSession
 } from "../index.js"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
-import type { ModuleInfo, StrictSessionParams } from "../utils/Types"
+import type { StrictSessionParams } from "../utils/Types"
 
+export type SessionType = "SINGLE" | "BATCHED" | "DAN_SINGLE"
 export type ImpersonatedSmartAccountConfig = Omit<
   BiconomySmartAccountV2Config,
   "signer"
@@ -35,7 +40,7 @@ export type ImpersonatedSmartAccountConfig = Omit<
  *
  * @param biconomySmartAccountConfig - Configuration for initializing the BiconomySmartAccountV2 instance {@link ImpersonatedSmartAccountConfig}.
  * @param conditionalSession - {@link SessionSearchParam} The session data that contains the sessionID and sessionSigner. If not provided, The default session storage (localStorage in browser, fileStorage in node backend) is used to fetch the sessionIDInfo
- * @param multiMode - If true, the smart account instance will use the batchedSessionModule for validation, otherwise a single session is assumed.
+ * @param sessionType - {@link SessionType}: One of "SINGLE", "BATCHED" or "DAN_SINGLE". Default is "SINGLE".
  * @returns A promise that resolves to a new instance of {@link BiconomySmartAccountV2}.
  * @throws An error if something is wrong with the smart account instance creation.
  *
@@ -76,13 +81,19 @@ export type ImpersonatedSmartAccountConfig = Omit<
 export const createSessionSmartAccountClient = async (
   biconomySmartAccountConfig: ImpersonatedSmartAccountConfig,
   conditionalSession: SessionSearchParam,
-  multiMode = false
+  _sessionType?: SessionType | boolean // backwards compatibility
 ): Promise<BiconomySmartAccountV2> => {
-  const { sessionStorageClient, sessionIDInfo } = await resumeSession(
+  // backwards compatibility
+  let sessionType = "SINGLE"
+  if (_sessionType === true || _sessionType === "BATCHED")
+    sessionType = "BATCHED"
+  if (_sessionType === "DAN_SINGLE") sessionType = "DAN_SINGLE"
+
+  console.log({ sessionType })
+
+  const { sessionStorageClient } = await resumeSession(
     conditionalSession ?? biconomySmartAccountConfig.accountAddress
   )
-  const sessionID = sessionIDInfo[0] // Default to the first element to find the signer
-
   const account = privateKeyToAccount(generatePrivateKey())
 
   const chain =
@@ -96,36 +107,44 @@ export const createSessionSmartAccountClient = async (
     transport: http()
   })
 
-  const sessionSigner = await sessionStorageClient.getSignerBySession(
-    {
-      sessionID
-    },
-    chain
-  )
-
-  const sessionData: ModuleInfo | undefined = multiMode
-    ? undefined
-    : {
-        sessionID,
-        sessionSigner
-      }
-
   const sessionModule = await createSessionKeyManagerModule({
     smartAccountAddress: biconomySmartAccountConfig.accountAddress,
     sessionStorageClient
   })
 
-  const batchedSessionModule = await createBatchedSessionRouterModule({
+  const batchedSessionValidationModule = await createBatchedSessionRouterModule(
+    {
+      smartAccountAddress: biconomySmartAccountConfig.accountAddress,
+      sessionKeyManagerModule: sessionModule
+    }
+  )
+  const danSessionValidationModule = await createDANSessionKeyManagerModule({
     smartAccountAddress: biconomySmartAccountConfig.accountAddress,
-    sessionKeyManagerModule: sessionModule
+    sessionStorageClient
   })
 
-  return await createSmartAccountClient({
+  const activeValidationModule =
+    sessionType === "BATCHED"
+      ? batchedSessionValidationModule
+      : sessionType === "SINGLE"
+        ? sessionModule
+        : danSessionValidationModule
+  const getSessionParams =
+    sessionType === "BATCHED"
+      ? getBatchSessionTxParams
+      : sessionType === "SINGLE"
+        ? getSingleSessionTxParams
+        : getDanSessionTxParams
+
+  const smartAccount = await createSmartAccountClient({
     ...biconomySmartAccountConfig,
     signer: incompatibleSigner, // This is a dummy signer, it will remain unused
-    activeValidationModule: multiMode ? batchedSessionModule : sessionModule,
-    sessionData // contains the sessionSigner that will be used for txs
+    activeValidationModule
   })
+
+  smartAccount.getSessionParams = getSessionParams
+
+  return smartAccount
 }
 
 /**

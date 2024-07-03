@@ -1,6 +1,6 @@
 import type { Chain, Hex } from "viem"
 import type { SmartAccountSigner } from "../../account"
-import type { SignerData } from "../utils/Types.js"
+import type { DanModuleInfo, SignerData } from "../utils/Types.js"
 
 export type SessionStatus =
   | "PENDING"
@@ -17,6 +17,7 @@ export type SessionLeafNode = {
   sessionPublicKey: Hex
   sessionID?: string
   status: SessionStatus
+  danModuleInfo?: DanModuleInfo
 }
 
 export type SessionSearchParam = {

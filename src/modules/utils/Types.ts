@@ -96,7 +96,7 @@ export type DanModuleInfo = {
   /** Ephemeral sk */
   ephSK: Uint8Array
   /** eoa address */
-  eoaAddress: string
+  eoaAddress: Hex
   /** threshold */
   threshold: number
   /** parties number */
@@ -157,6 +157,8 @@ export interface CreateSessionDataParams {
   sessionKeyData: Hex
   /** we generate uuid based sessionId. but if you prefer to track it on your side and attach custom session identifier this can be passed */
   preferredSessionId?: string
+  /** Dan module info */
+  danModuleInfo?: DanModuleInfo
 }
 
 export interface MultiChainValidationModuleConfig

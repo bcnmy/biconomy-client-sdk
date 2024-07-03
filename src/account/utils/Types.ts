@@ -171,8 +171,6 @@ export type BiconomySmartAccountV2ConfigBaseProps = {
   customChain?: Chain
   /** The initial code to be used for the smart account */
   initCode?: Hex
-  /** Used for session key manager module */
-  sessionData?: ModuleInfo
   /** Used to skip the chain checks between singer, bundler and paymaster */
   skipChainCheck?: boolean
 }

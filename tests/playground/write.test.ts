@@ -1,14 +1,11 @@
-import { defaultAbiCoder } from "@ethersproject/abi"
 import {
   http,
   type Hex,
-  createPublicClient,
   createWalletClient,
   encodeFunctionData,
-  parseAbi,
-  parseUnits
+  parseAbi
 } from "viem"
-import { privateKeyToAccount } from "viem/accounts"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
@@ -16,13 +13,11 @@ import {
   createSmartAccountClient
 } from "../../src/account"
 import {
-  type CreateSessionDataParams,
-  DEFAULT_ERC20_MODULE,
-  DEFAULT_SESSION_KEY_MANAGER_MODULE,
-  SessionMemoryStorage,
-  createDANSessionKeyManagerModule
-} from "../../src/modules/index"
-import { getDANSessionKey } from "../../src/modules/sessions/dan"
+  type PolicyWithoutSessionKey,
+  createDistributedSession,
+  getDanSessionTxParams
+} from "../../src/modules/sessions/dan"
+import { createSessionSmartAccountClient } from "../../src/modules/sessions/sessionSmartAccountClient"
 import { PaymasterMode } from "../../src/paymaster"
 import { checkBalance, getConfig } from "../utils"
 
@@ -47,7 +42,7 @@ describe("Playground:Write", () => {
   let [smartAccount, smartAccountTwo]: BiconomySmartAccountV2[] = []
   let [smartAccountAddress, smartAccountAddressTwo]: Hex[] = []
 
-  const [walletClient, walletClientTwo] = [
+  const [walletClient, walletClientTwo, walletClientRandom] = [
     createWalletClient({
       account,
       chain,
@@ -55,6 +50,11 @@ describe("Playground:Write", () => {
     }),
     createWalletClient({
       account: accountTwo,
+      chain,
+      transport: http()
+    }),
+    createWalletClient({
+      account: privateKeyToAccount(generatePrivateKey()),
       chain,
       transport: http()
     })
@@ -79,105 +79,70 @@ describe("Playground:Write", () => {
   })
 
   test("should create and use a DAN session on behalf of a user", async () => {
-    const amount = parseUnits("50".toString(), 6)
+    const policy: PolicyWithoutSessionKey[] = [
+      {
+        contractAddress: nftAddress,
+        functionSelector: "safeMint(address)",
+        rules: [
+          {
+            offset: 0,
+            condition: 0,
+            referenceValue: smartAccountAddress
+          }
+        ],
+        interval: {
+          validUntil: 0,
+          validAfter: 0
+        },
+        valueLimit: 0n
+      }
+    ]
 
-    const {
-      sessionKeyEOA,
-      mpcKeyId,
-      ephSK,
-      partiesNumber,
-      threshold,
-      eoaAddress
-    } = await getDANSessionKey(smartAccount)
-
-    const sessionStorageClient = new SessionMemoryStorage(smartAccountAddress)
-
-    const sessionsModule = await createDANSessionKeyManagerModule({
-      smartAccountAddress,
-      sessionStorageClient
-    })
-
-    // cretae session key data
-    const sessionKeyData = defaultAbiCoder.encode(
-      ["address", "address", "address", "uint256"],
-      [sessionKeyEOA, token, eoaAddress, amount]
-    ) as Hex
-
-    const createSessionDataParams: CreateSessionDataParams = {
-      validAfter: 0,
-      validUntil: 0,
-      sessionValidationModule: DEFAULT_ERC20_MODULE,
-      sessionPublicKey: sessionKeyEOA,
-      sessionKeyData: sessionKeyData
-    }
-
-    const { data: policyData, sessionIDInfo } =
-      await sessionsModule.createSessionData([createSessionDataParams])
-
-    const sessionID = sessionIDInfo[0]
-
-    const permitTx = {
-      to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
-      data: policyData
-    }
-
-    const txs: Transaction[] = []
-
-    const isDeployed = await smartAccount.isAccountDeployed()
-    const enableSessionTx = await smartAccount.getEnableModuleData(
-      DEFAULT_SESSION_KEY_MANAGER_MODULE
+    const { wait, session } = await createDistributedSession(
+      smartAccount,
+      policy
     )
 
-    if (isDeployed) {
-      const enabled = await smartAccount.isModuleEnabled(
-        DEFAULT_SESSION_KEY_MANAGER_MODULE
-      )
-      if (!enabled) {
-        txs.push(enableSessionTx)
-      }
-    } else {
-      txs.push(enableSessionTx)
-    }
-
-    txs.push(permitTx)
-
-    const { wait } = await smartAccount.sendTransaction(txs, withSponsorship)
-
-    const {
-      receipt: { transactionHash },
-      success
-    } = await wait()
-
+    const { success } = await wait()
     expect(success).toBe("true")
 
-    const transferTx: Transaction = {
-      to: token,
+    const nftMintTx: Transaction = {
+      to: nftAddress,
       data: encodeFunctionData({
-        abi: parseAbi(["function transfer(address _to, uint256 _value)"]),
-        functionName: "transfer",
-        args: [eoaAddress, amount]
+        abi: parseAbi(["function safeMint(address _to)"]),
+        functionName: "safeMint",
+        args: [smartAccountAddress]
       })
     }
 
     const nftBalanceBefore = await checkBalance(smartAccountAddress, nftAddress)
 
-    smartAccount = smartAccount.setActiveValidationModule(sessionsModule)
+    console.log("1", session)
 
-    const { wait: mintWait } = await smartAccount.sendTransaction(transferTx, {
-      ...withSponsorship,
-      params: {
-        sessionID,
-        danModuleInfo: {
-          eoaAddress,
-          ephSK,
-          threshold,
-          partiesNumber,
-          chainId: chain.id,
-          mpcKeyId
-        }
-      }
-    })
-    const { success: mintSuccess } = await mintWait()
+    const smartAccountWithSession = await createSessionSmartAccountClient(
+      {
+        accountAddress: smartAccountAddress, // Set the account address on behalf of the user
+        bundlerUrl,
+        paymasterUrl,
+        chainId
+      },
+      session,
+      "DAN_SINGLE"
+    )
+
+    console.log("2", session)
+
+    const danSessionParamsForMint =
+      await smartAccountWithSession.getSessionParams(session, chain, null)
+
+    console.log("3", session)
+
+    const { wait: waitForMint } = await smartAccountWithSession.sendTransaction(
+      nftMintTx,
+      { ...withSponsorship, ...danSessionParamsForMint }
+    )
+
+    const { success: mintSuccess } = await waitForMint()
 
     expect(mintSuccess).toBe("true")
 

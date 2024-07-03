@@ -27,6 +27,7 @@ import type {
 import { SessionLocalStorage } from "./session-storage/SessionLocalStorage.js"
 import { SessionMemoryStorage } from "./session-storage/SessionMemoryStorage.js"
 import {
+  DAN_BACKEND_URL,
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION
 } from "./utils/Constants.js"
@@ -211,7 +212,7 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
   async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<Hex> {
     console.log("userOpHash", userOpHash)
     if (!params || !params.danModuleInfo) {
-      throw new Error("Missing params")
+      throw new Error("Missing danModuleInfo params")
     }
 
     if (!params.sessionID) {
@@ -228,6 +229,16 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       mpcKeyId
     } = params.danModuleInfo
 
+    console.log({
+      eoaAddress,
+      threshold,
+      partiesNumber,
+      userOperation,
+      ephSK,
+      chainId,
+      mpcKeyId
+    })
+
     if (
       !userOperation ||
       !ephSK ||
@@ -242,7 +253,7 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
 
     const wpClient = new WalletProviderServiceClient({
       walletProviderId: "WalletProvider",
-      walletProviderUrl: "ws://localhost:8090/v1"
+      walletProviderUrl: DAN_BACKEND_URL
     })
     const authModule = new EphAuth(eoaAddress, ephSK)
 

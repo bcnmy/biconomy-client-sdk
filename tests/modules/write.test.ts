@@ -42,13 +42,9 @@ import { createSessionKeyEOA } from "../../src/modules/session-storage/utils"
 import {
   type Policy,
   createABISessionDatum,
-  createSession,
-  getSingleSessionTxParams
+  createSession
 } from "../../src/modules/sessions/abi"
-import {
-  createBatchSession,
-  getBatchSessionTxParams
-} from "../../src/modules/sessions/batch"
+import { createBatchSession } from "../../src/modules/sessions/batch"
 import { createERC20SessionDatum } from "../../src/modules/sessions/erc20"
 import { createSessionSmartAccountClient } from "../../src/modules/sessions/sessionSmartAccountClient"
 import { PaymasterMode } from "../../src/paymaster"
@@ -363,12 +359,13 @@ describe("Modules:Write", () => {
 
     const txs = [transferTx, nftMintTx]
 
-    const batchSessionParams = await getBatchSessionTxParams(
-      txs,
-      [0, 1],
-      smartAccountAddressFour,
-      chain
-    )
+    const batchSessionParams =
+      await smartAccountFourWithSession.getSessionParams(
+        txs,
+        [0, 1],
+        smartAccountAddressFour,
+        chain
+      )
 
     const { wait } = await smartAccountFourWithSession.sendTransaction(txs, {
       ...batchSessionParams,
@@ -922,7 +919,7 @@ describe("Modules:Write", () => {
     const txs = [submitOrderTx, submitCancelTx]
     const correspondingIndexes = [1, 0] // The order of the txs from the sessionBatch
 
-    const batchSessionParams = await getBatchSessionTxParams(
+    const batchSessionParams = await smartAccountWithSession.getSessionParams(
       txs,
       correspondingIndexes,
       sessionStorageClient,
@@ -1266,7 +1263,7 @@ describe("Modules:Write", () => {
 
     const txs = [approvalTx, nftMintTx]
 
-    const batchSessionParams = await getBatchSessionTxParams(
+    const batchSessionParams = await smartAccountWithSession.getSessionParams(
       txs,
       [0, 1],
       session,
@@ -1405,17 +1402,11 @@ describe("Modules:Write", () => {
       })
     }
 
-    const singleSessionParamsForApproval = await getSingleSessionTxParams(
-      session,
-      chain,
-      0
-    )
+    const singleSessionParamsForApproval =
+      await smartAccountWithSession.getSessionParams(session, chain, 0)
 
-    const singleSessionParamsForMint = await getSingleSessionTxParams(
-      session,
-      chain,
-      1
-    )
+    const singleSessionParamsForMint =
+      await smartAccountWithSession.getSessionParams(session, chain, 1)
 
     const { wait: waitForApprovalTx } =
       await smartAccountWithSession.sendTransaction(approvalTx, {

@@ -119,7 +119,7 @@ const nftMintTx: Transaction = {
 const txs = [nftMintTx, transferTx];
 const correspondingIndexes = [1, 0]; // The order of the txs from the sessionBatch
 
-const batchSessionParams = await getBatchSessionTxParams(
+const batchSessionParams = await smartAccountWithSession.getSessionParams(
   txs,
   correspondingIndexes,
   smartAccountAddress, // Storage client, full Session or smartAccount address if using default storage
