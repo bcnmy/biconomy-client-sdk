@@ -1,4 +1,4 @@
-import { getPublicKeyAsync, getPublicKey } from "@noble/ed25519"
+import { getPublicKey, getPublicKeyAsync } from "@noble/ed25519"
 import {
   EOAAuth,
   type KeygenResponse,
@@ -135,9 +135,9 @@ export const getDANSessionKey = async (
   const eoaAddress = (await smartAccount.getSigner().getAddress()) as Hex // Smart account owner
   const wallet = new NodeWallet(smartAccount.getSigner().inner)
 
-  const hexEphSK = generatePrivateKey();
+  const hexEphSK = generatePrivateKey()
   const account = privateKeyToAccount(hexEphSK)
-  const hexEphSKWithout0x = hexEphSK.slice(2);
+  const hexEphSKWithout0x = hexEphSK.slice(2)
 
   const ephSK: Uint8Array = hexToUint8Array(hexEphSKWithout0x)
   const ephPK: Uint8Array = await getPublicKeyAsync(ephSK)

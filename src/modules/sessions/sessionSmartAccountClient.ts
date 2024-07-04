@@ -1,3 +1,4 @@
+import { FunctionOrConstructorTypeNodeBase } from "typescript"
 import { http, type Chain, type Hex, createWalletClient } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import {
@@ -5,10 +6,11 @@ import {
   type BiconomySmartAccountV2Config,
   type BuildUserOpOptions,
   type SupportedSigner,
+  type Transaction,
   createSmartAccountClient,
-  getChain,
-  type Transaction
+  getChain
 } from "../../account"
+import type { UserOpResponse } from "../../bundler/index.js"
 import {
   type SessionSearchParam,
   createBatchedSessionRouterModule,
@@ -21,8 +23,6 @@ import {
 } from "../index.js"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import type { StrictSessionParams } from "../utils/Types"
-import { FunctionOrConstructorTypeNodeBase } from "typescript"
-import type { UserOpResponse } from "../../bundler/index.js"
 
 export type SessionType = "SINGLE" | "BATCHED" | "DAN"
 export type ImpersonatedSmartAccountConfig = Omit<
@@ -35,18 +35,40 @@ export type ImpersonatedSmartAccountConfig = Omit<
 }
 
 export type GetDanSessionParameters = Parameters<typeof getDanSessionTxParams>
-export type GetBatchSessionParameters = Parameters<typeof getBatchSessionTxParams>
-export type GetSingleSessionParameters = Parameters<typeof getSingleSessionTxParams>
+export type GetBatchSessionParameters = Parameters<
+  typeof getBatchSessionTxParams
+>
+export type GetSingleSessionParameters = Parameters<
+  typeof getSingleSessionTxParams
+>
 
-export type GetSessionParameters = GetDanSessionParameters | GetBatchSessionParameters | GetSingleSessionParameters
+export type GetSessionParameters =
+  | GetDanSessionParameters
+  | GetBatchSessionParameters
+  | GetSingleSessionParameters
 
 export type SendSessionTransaction = {
-  sendSessionTransaction: (getParameters: GetSessionParameters, manyOrOneTransactions: Transaction | Transaction[], buildUseropDto?: BuildUserOpOptions
+  sendSessionTransaction: (
+    getParameters: GetSessionParameters,
+    manyOrOneTransactions: Transaction | Transaction[],
+    buildUseropDto?: BuildUserOpOptions
   ) => Promise<UserOpResponse>
 }
-export type DanSessionAccount = BiconomySmartAccountV2 & { getSessionParams(p: GetDanSessionParameters): ReturnType<typeof getDanSessionTxParams> } & SendSessionTransaction
-export type BatchedSessionAccount = BiconomySmartAccountV2 & { getSessionParams(p: GetBatchSessionParameters): ReturnType<typeof getBatchSessionTxParams> } & SendSessionTransaction
-export type SingleSessionAccount = BiconomySmartAccountV2 & { getSessionParams(p: GetSingleSessionParameters): ReturnType<typeof getSingleSessionTxParams> } & SendSessionTransaction
+export type DanSessionAccount = BiconomySmartAccountV2 & {
+  getSessionParams(
+    p: GetDanSessionParameters
+  ): ReturnType<typeof getDanSessionTxParams>
+} & SendSessionTransaction
+export type BatchedSessionAccount = BiconomySmartAccountV2 & {
+  getSessionParams(
+    p: GetBatchSessionParameters
+  ): ReturnType<typeof getBatchSessionTxParams>
+} & SendSessionTransaction
+export type SingleSessionAccount = BiconomySmartAccountV2 & {
+  getSessionParams(
+    p: GetSingleSessionParameters
+  ): ReturnType<typeof getSingleSessionTxParams>
+} & SendSessionTransaction
 
 export type SessionSmartAccountClient =
   | SingleSessionAccount
@@ -164,13 +186,13 @@ export const createSessionSmartAccountClient = async (
     activeValidationModule
   })
 
-  smartAccount.getSessionParams = getSessionParams;
+  smartAccount.getSessionParams = getSessionParams
 
   return sessionType === "BATCHED"
-    ? smartAccount as BatchedSessionAccount
+    ? (smartAccount as BatchedSessionAccount)
     : sessionType === "SINGLE"
-      ? smartAccount as SingleSessionAccount
-      : smartAccount as DanSessionAccount
+      ? (smartAccount as SingleSessionAccount)
+      : (smartAccount as DanSessionAccount)
 }
 
 /**

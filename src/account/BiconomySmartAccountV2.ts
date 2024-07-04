@@ -28,10 +28,10 @@ import {
 } from "../bundler/index.js"
 import {
   BaseValidationModule,
+  type GetSessionParameters,
   type ModuleInfo,
   type SendUserOpParams,
-  createECDSAOwnershipValidationModule,
-  type GetSessionParameters
+  createECDSAOwnershipValidationModule
 } from "../modules"
 import {
   BiconomyPaymaster,
@@ -98,7 +98,6 @@ import {
 type UserOperationKey = keyof UserOperationStruct
 
 export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
-
   public getSessionParams: (
     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     ...args: Array<any>
@@ -207,7 +206,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         getChain(biconomySmartAccountConfig.chainId),
       transport: http(
         biconomySmartAccountConfig.rpcUrl ||
-        getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0]
+          getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0]
       )
     })
 
@@ -1546,7 +1545,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   async sendSessionTransaction(
     getSessionParameters: GetSessionParameters,
     manyOrOneTransactions: Transaction | Transaction[],
-    _buildUseropDto: BuildUserOpOptions = {},
+    _buildUseropDto: BuildUserOpOptions = {}
   ): Promise<UserOpResponse> {
     if (!this.getSessionParams) {
       throw new Error("Not available for this client.")

@@ -31,6 +31,7 @@ import {
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION
 } from "./utils/Constants.js"
+import { hexToUint8Array } from "./utils/Helper.js"
 import {
   type CreateSessionDataParams,
   type CreateSessionDataResponse,
@@ -41,7 +42,6 @@ import {
   StorageType
 } from "./utils/Types.js"
 import { generateRandomHex } from "./utils/Uid.js"
-import { hexToUint8Array } from "./utils/Helper.js"
 
 export type WalletProviderDefs = {
   walletProviderId: string
