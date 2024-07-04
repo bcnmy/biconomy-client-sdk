@@ -134,7 +134,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   // Deployed Smart Account can have more than one module enabled. When sending a transaction activeValidationModule is used to prepare and validate userOp signature.
   activeValidationModule!: BaseValidationModule
 
-  constructor(
+  private constructor(
     readonly biconomySmartAccountConfig: BiconomySmartAccountV2ConfigConstructorProps
   ) {
     super({
