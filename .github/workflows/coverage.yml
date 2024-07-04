@@ -17,6 +17,8 @@ jobs:
 
       - name: Install dependencies
         uses: ./.github/actions/install-dependencies
+        env:
+          SILENCE_LABS_NPM_TOKEN: ${{ secrets.SILENCE_LABS_NPM_TOKEN }}
 
       - name: Run the tests
         run: bun run test:coverage
