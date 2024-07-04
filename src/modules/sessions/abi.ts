@@ -9,31 +9,31 @@ import {
   toFunctionSelector,
   toHex
 } from "viem"
-import type {
-  CreateSessionDataParams,
-  DanModuleInfo,
-  Permission,
-  SessionParams,
-  UserOpResponse
-} from "../../"
+import {
+  type CreateSessionDataParams,
+  type DanModuleInfo,
+  type SessionParams,
+  createSessionKeyEOA,
+  createSessionKeyManagerModule,
+  didProvideFullSession,
+  resumeSession
+} from "../"
 import {
   type BiconomySmartAccountV2,
   type BuildUserOpOptions,
   ERROR_MESSAGES,
   Logger,
-  type Transaction
+  type Transaction,
+  getChain
 } from "../../account"
-import {
-  createSessionKeyManagerModule,
-  didProvideFullSession,
-  resumeSession
-} from "../index"
+import type { UserOpResponse } from "../../bundler/utils/Types"
+import { extractChainIdFromBundlerUrl } from "../../bundler/utils/Utils"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import {
   DEFAULT_ABI_SVM_MODULE,
   DEFAULT_SESSION_KEY_MANAGER_MODULE
 } from "../utils/Constants"
-import type { SessionSearchParam } from "../utils/Helper"
+import type { Permission, SessionSearchParam } from "../utils/Helper"
 import type { DeprecatedPermission, Rule } from "../utils/Helper"
 
 export type SessionConfig = {
@@ -53,6 +53,31 @@ export type SessionEpoch = {
   validUntil?: number
   /** The time at which the session becomes valid */
   validAfter?: number
+}
+
+export const PolicyHelpers = {
+  Indefinitely: { interval: { validUntil: 0, validAfter: 0 } },
+  NoValueLimit: { valueLimit: 0n }
+}
+const RULE_CONDITIONS = [
+  "Equal",
+  "LessThanOrEqual",
+  "LessThan",
+  "GreaterThanOrEqual",
+  "GreaterThan",
+  "NotEqual"
+]
+
+export type RuleCondition = (typeof RULE_CONDITIONS)[number]
+export const RuleHelpers = {
+  OffsetByIndex: (i: number) => ({ offset: i * 32 }),
+  Condition: (condition: RuleCondition) => ({
+    condition: RULE_CONDITIONS.indexOf(condition)
+  })
+}
+
+export type PolicyWithOptionalSessionKey = Omit<Policy, "sessionKeyAddress"> & {
+  sessionKeyAddress?: Hex
 }
 
 export type Policy = {
@@ -145,18 +170,39 @@ export type SessionGrantedPayload = UserOpResponse & { session: Session }
  */
 export const createSession = async (
   smartAccount: BiconomySmartAccountV2,
-  policy: Policy[],
-  sessionStorageClient: ISessionStorage,
+  policy: PolicyWithOptionalSessionKey[],
+  sessionStorageClient?: ISessionStorage | null,
   buildUseropDto?: BuildUserOpOptions
 ): Promise<SessionGrantedPayload> => {
   const smartAccountAddress = await smartAccount.getAddress()
+  const defaultedChainId = extractChainIdFromBundlerUrl(
+    smartAccount?.bundler?.getBundlerUrl() ?? ""
+  )
+
+  if (!defaultedChainId) {
+    throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND)
+  }
+
+  const chain = getChain(defaultedChainId)
+  const {
+    sessionKeyAddress,
+    sessionStorageClient: storageClientFromCreateKey
+  } = await createSessionKeyEOA(smartAccount, chain)
+
+  const defaultedSessionStorageClient =
+    sessionStorageClient ?? storageClientFromCreateKey
   const sessionsModule = await createSessionKeyManagerModule({
     smartAccountAddress,
-    sessionStorageClient
+    sessionStorageClient: defaultedSessionStorageClient
   })
 
+  const defaultedPolicy: Policy[] = policy.map((p) =>
+    !p.sessionKeyAddress ? { ...p, sessionKeyAddress } : (p as Policy)
+  )
+  const humanReadablePolicyArray = defaultedPolicy.map(createABISessionDatum)
+
   const { data: policyData, sessionIDInfo } =
-    await sessionsModule.createSessionData(policy.map(createABISessionDatum))
+    await sessionsModule.createSessionData(humanReadablePolicyArray)
 
   const permitTx = {
     to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
@@ -188,7 +234,7 @@ export const createSession = async (
 
   return {
     session: {
-      sessionStorageClient,
+      sessionStorageClient: defaultedSessionStorageClient,
       sessionIDInfo
     },
     ...userOpResponse

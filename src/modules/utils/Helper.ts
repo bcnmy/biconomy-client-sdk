@@ -4,6 +4,7 @@ import {
   type Address,
   type ByteArray,
   type Chain,
+  type EIP1193Provider,
   type Hex,
   type WalletClient,
   encodeAbiParameters,
@@ -297,9 +298,9 @@ export interface IBrowserWallet {
 // It creates a popup window, presenting the human readable form of `request`
 // Throws an error if User rejected signature
 export class BrowserWallet implements IBrowserWallet {
-  provider: WalletClient
+  provider: EIP1193Provider
 
-  constructor(provider: WalletClient) {
+  constructor(provider: EIP1193Provider) {
     this.provider = provider
   }
 

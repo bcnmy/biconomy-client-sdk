@@ -13,7 +13,8 @@ import {
   type BuildUserOpOptions,
   ERROR_MESSAGES,
   Logger,
-  type Transaction
+  type Transaction,
+  isWalletClient
 } from "../../account"
 import { extractChainIdFromBundlerUrl } from "../../bundler"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
@@ -23,6 +24,7 @@ import {
   DEFAULT_SESSION_KEY_MANAGER_MODULE
 } from "../utils/Constants"
 import {
+  type IBrowserWallet,
   NodeWallet,
   type SessionSearchParam,
   computeAddress,
@@ -36,6 +38,9 @@ import {
   type SessionGrantedPayload,
   createABISessionDatum
 } from "./abi"
+
+export type PolicyWithoutSessionKey = Omit<Policy, "sessionKeyAddress">
+
 /**
  *
  * createDistributedSession
@@ -54,37 +59,71 @@ import {
  * @example
  *
  * ```typescript
+ *
+ * import { type PolicyWithoutSessionKey, type Session, createDistributedSession } from "@biconomy/account"
+ *
+ * const policy: PolicyWithoutSessionKey[] = [{
+ *   contractAddress: nftAddress,
+ *   functionSelector: "safeMint(address)",
+ *   rules: [
+ *     {
+ *       offset: 0,
+ *       condition: 0,
+ *       referenceValue: smartAccountAddress
+ *     }
+ *   ],
+ *   interval: {
+ *     validUntil: 0,
+ *     validAfter: 0
+ *   },
+ *   valueLimit: 0n
+ * }]
+ *
+ * const { wait, session } = await createDistributedSession(
+ *   smartAccountClient,
+ *   policy
+ * )
+ *
+ * const { success } = await wait()
+ *
  * ```
  */
 
-export type PolicyWithoutSessionKey = Omit<Policy, "sessionKeyAddress">
 export const createDistributedSession = async (
   smartAccount: BiconomySmartAccountV2,
-  _policy: PolicyWithoutSessionKey[],
-  _sessionStorageClient?: ISessionStorage,
+  policy: PolicyWithoutSessionKey[],
+  sessionStorageClient?: ISessionStorage,
   buildUseropDto?: BuildUserOpOptions,
-  _chain?: number
+  chain?: number,
+  browserWallet?: IBrowserWallet
 ): Promise<SessionGrantedPayload> => {
-  const chainId =
-    _chain ??
+  const defaultedChainId =
+    chain ??
     extractChainIdFromBundlerUrl(smartAccount?.bundler?.getBundlerUrl() ?? "")
-  if (!chainId) {
+  if (!defaultedChainId) {
     throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND)
   }
   const smartAccountAddress = await smartAccount.getAddress()
-  const sessionStorageClient =
-    _sessionStorageClient || getDefaultStorageClient(smartAccountAddress)
+  const defaultedSessionStorageClient =
+    sessionStorageClient || getDefaultStorageClient(smartAccountAddress)
+
   const sessionsModule = await createDANSessionKeyManagerModule({
     smartAccountAddress,
-    sessionStorageClient
+    sessionStorageClient: defaultedSessionStorageClient
   })
 
-  const { sessionKeyEOA: sessionKeyAddress, ...other } =
-    await getDANSessionKey(smartAccount)
+  const { sessionKeyEOA: sessionKeyAddress, ...other } = await getDANSessionKey(
+    smartAccount,
+    browserWallet
+  )
 
-  const danModuleInfo: DanModuleInfo = { ...other, chainId }
-  const policy: Policy[] = _policy.map((p) => ({ ...p, sessionKeyAddress }))
-  const humanReadablePolicyArray = policy.map((p) =>
+  const danModuleInfo: DanModuleInfo = { ...other, chainId: defaultedChainId }
+  const defaultedPolicy: Policy[] = policy.map((p) => ({
+    ...p,
+    sessionKeyAddress
+  }))
+
+  const humanReadablePolicyArray = defaultedPolicy.map((p) =>
     createABISessionDatum({ ...p, danModuleInfo })
   )
 
@@ -123,7 +162,7 @@ export const createDistributedSession = async (
 
   return {
     session: {
-      sessionStorageClient,
+      sessionStorageClient: defaultedSessionStorageClient,
       sessionIDInfo
     },
     ...userOpResponse
@@ -131,10 +170,16 @@ export const createDistributedSession = async (
 }
 
 export const getDANSessionKey = async (
-  smartAccount: BiconomySmartAccountV2
+  smartAccount: BiconomySmartAccountV2,
+  browserWallet?: IBrowserWallet,
+  { threshold = 11, partiesNumber = 20 }: Partial<DanModuleInfo> = {}
 ) => {
   const eoaAddress = (await smartAccount.getSigner().getAddress()) as Hex // Smart account owner
-  const wallet = new NodeWallet(smartAccount.getSigner().inner)
+  const innerSigner = smartAccount.getSigner().inner
+
+  if (!browserWallet && !isWalletClient(innerSigner))
+    throw new Error(ERROR_MESSAGES.INVALID_BROWSER_WALLET)
+  const wallet = browserWallet ?? new NodeWallet(smartAccount.getSigner().inner)
 
   const hexEphSK = generatePrivateKey()
   const hexEphSKWithout0x = hexEphSK.slice(2)
@@ -148,10 +193,6 @@ export const getDANSessionKey = async (
   })
 
   const eoaAuth = new EOAAuth(eoaAddress, wallet, ephPK, 60 * 60)
-
-  const threshold = 11
-  const partiesNumber = 20
-
   const sdk = new NetworkSigner(wpClient, threshold, partiesNumber, eoaAuth)
 
   // Generate a new key
