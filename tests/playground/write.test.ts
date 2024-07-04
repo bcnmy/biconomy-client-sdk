@@ -1,10 +1,4 @@
-import {
-  http,
-  type Hex,
-  createWalletClient,
-  encodeFunctionData,
-  parseAbi
-} from "viem"
+import { http, type Hex, createWalletClient } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
@@ -26,8 +20,8 @@ const withSponsorship = {
 }
 
 describe("Playground:Write", () => {
-  const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
-  const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
+  // const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
+  // const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
   const {
     chain,
     chainId,

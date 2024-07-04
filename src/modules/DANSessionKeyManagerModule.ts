@@ -16,11 +16,7 @@ import {
   // toBytes,
   toHex
 } from "viem"
-import {
-  DEFAULT_ENTRYPOINT_ADDRESS,
-  type SmartAccountSigner,
-  type UserOperationStruct
-} from "../account"
+import { DEFAULT_ENTRYPOINT_ADDRESS, type UserOperationStruct, type SmartAccountSigner } from "../account"
 import { BaseValidationModule } from "./BaseValidationModule.js"
 import type {
   ISessionStorage,
@@ -35,6 +31,7 @@ import {
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION
 } from "./utils/Constants.js"
+import { hexToUint8Array } from "./utils/Helper.js"
 import {
   type CreateSessionDataParams,
   type CreateSessionDataResponse,
@@ -213,8 +210,7 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
    * @param sessionSigner The signer to be used to sign the user operation
    * @returns The signature of the user operation
    */
-  async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<Hex> {
-    console.log("userOpHash", userOpHash)
+  async signUserOpHash(_: string, params?: ModuleInfo): Promise<Hex> {
     if (!params || !params.danModuleInfo) {
       throw new Error("Missing danModuleInfo params")
     }
@@ -228,24 +224,14 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       threshold,
       partiesNumber,
       userOperation,
-      ephSK,
+      hexEphSKWithout0x,
       chainId,
       mpcKeyId
     } = params.danModuleInfo
 
-    console.log({
-      eoaAddress,
-      threshold,
-      partiesNumber,
-      userOperation,
-      ephSK,
-      chainId,
-      mpcKeyId
-    })
-
     if (
       !userOperation ||
-      !ephSK ||
+      !hexEphSKWithout0x ||
       !eoaAddress ||
       !threshold ||
       !partiesNumber ||
@@ -259,6 +245,9 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       walletProviderId: "WalletProvider",
       walletProviderUrl: DAN_BACKEND_URL
     })
+
+    const ephSK = hexToUint8Array(hexEphSKWithout0x)
+
     const authModule = new EphAuth(eoaAddress, ephSK)
 
     const sdk = new NetworkSigner(
@@ -267,23 +256,9 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       partiesNumber,
       authModule
     )
-
-    console.log("userop being signed by mpc ", userOperation)
-
-    const userOpTemp: Partial<UserOperationStruct> = userOperation
-
-    userOpTemp.verificationGasLimit =
-      userOpTemp.verificationGasLimit!.toString()
-    userOpTemp.callGasLimit = userOpTemp.callGasLimit!.toString()
-    userOpTemp.callData = userOpTemp.callData!.slice(2)
-    userOpTemp.paymasterAndData = userOpTemp.paymasterAndData!.slice(2)
-    userOpTemp.initCode = userOpTemp.initCode!.slice(2)
-
-    console.log("userop being signed by mpc now", userOpTemp)
-
-    // todo // get constants from config
+    
     const objectToSign: DanSignatureObject = {
-      userOperation: userOpTemp,
+      userOperation,
       entryPointVersion: "v0.6.0",
       entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
       chainId
@@ -297,10 +272,6 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
     const signature = `0x${resp.sign}${sigV}`
     const sessionSignerData = await this.getLeafInfo({
       sessionID: params.sessionID
-    })
-
-    console.log("sessionKeyEoa c", sessionSignerData.sessionPublicKey, {
-      matchedLeaf: sessionSignerData
     })
 
     const leafDataHex = concat([

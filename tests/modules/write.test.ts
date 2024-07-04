@@ -30,6 +30,8 @@ import {
   DEFAULT_MULTICHAIN_MODULE,
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION,
+  type PolicyWithoutSessionKey,
+  createDistributedSession,
   createMultiChainValidationModule,
   createSessionKeyManagerModule,
   getABISVMSessionKeyData,
@@ -41,6 +43,8 @@ import { SessionMemoryStorage } from "../../src/modules/session-storage/SessionM
 import { createSessionKeyEOA } from "../../src/modules/session-storage/utils"
 import {
   type Policy,
+  PolicyHelpers,
+  RuleHelpers,
   createABISessionDatum,
   createSession
 } from "../../src/modules/sessions/abi"
@@ -162,14 +166,10 @@ describe("Modules:Write", () => {
 
   // User must be connected with a wallet to grant permissions
   test("should create a single session on behalf of a user", async () => {
-    const { sessionKeyAddress, sessionStorageClient } =
-      await createSessionKeyEOA(smartAccountThree, chain)
-
     const { wait, session } = await createSession(
       smartAccountThree,
       [
         {
-          sessionKeyAddress,
           contractAddress: nftAddress,
           functionSelector: "safeMint(address)",
           rules: [
@@ -186,7 +186,7 @@ describe("Modules:Write", () => {
           valueLimit: 0n
         }
       ],
-      sessionStorageClient,
+      null,
       withSponsorship
     )
 
@@ -1263,24 +1263,18 @@ describe("Modules:Write", () => {
 
     const txs = [approvalTx, nftMintTx]
 
-    const batchSessionParams = await smartAccountWithSession.getSessionParams(
-      txs,
-      [0, 1],
-      session,
-      chain
-    )
-
-    const { wait: waitForMint } = await smartAccountWithSession.sendTransaction(
-      txs,
-      {
-        paymasterServiceData: {
-          mode: PaymasterMode.ERC20,
-          preferredToken,
-          skipPatchCallData: true // This omits the automatic patching of the call data with approvals
-        },
-        ...batchSessionParams
-      }
-    )
+    const { wait: waitForMint } =
+      await smartAccountWithSession.sendSessionTransaction(
+        [txs, [0, 1], session, chain],
+        txs,
+        {
+          paymasterServiceData: {
+            mode: PaymasterMode.ERC20,
+            preferredToken,
+            skipPatchCallData: true // This omits the automatic patching of the call data with approvals
+          }
+        }
+      )
     const {
       receipt: { transactionHash: mintTxHash },
       userOpHash,
@@ -1442,4 +1436,66 @@ describe("Modules:Write", () => {
       balanceOfPreferredTokenBefore - balanceOfPreferredTokenAfter
     ).toBeGreaterThan(0)
   }, 80000)
+
+  test("should create and use a DAN session on behalf of a user", async () => {
+    const policy: PolicyWithoutSessionKey[] = [
+      {
+        contractAddress: nftAddress,
+        functionSelector: "safeMint(address)",
+        rules: [
+          {
+            ...RuleHelpers.OffsetByIndex(0),
+            ...RuleHelpers.Condition("EQUAL"),
+            referenceValue: smartAccountAddress
+          }
+        ],
+        ...PolicyHelpers.Indefinitely,
+        ...PolicyHelpers.NoValueLimit
+      }
+    ]
+
+    const { wait, session } = await createDistributedSession(
+      smartAccount,
+      policy
+    )
+
+    const { success } = await wait()
+    expect(success).toBe("true")
+
+    const nftMintTx: Transaction = {
+      to: nftAddress,
+      data: encodeFunctionData({
+        abi: parseAbi(["function safeMint(address _to)"]),
+        functionName: "safeMint",
+        args: [smartAccountAddress]
+      })
+    }
+
+    const nftBalanceBefore = await checkBalance(smartAccountAddress, nftAddress)
+
+    const smartAccountWithSession = await createSessionSmartAccountClient(
+      {
+        accountAddress: smartAccountAddress, // Set the account address on behalf of the user
+        bundlerUrl,
+        paymasterUrl,
+        chainId
+      },
+      smartAccountAddress,
+      "DAN"
+    )
+
+    const { wait: waitForMint } =
+      await smartAccountWithSession.sendSessionTransaction(
+        [smartAccountAddress, chain, null],
+        nftMintTx,
+        withSponsorship
+      )
+
+    const { success: mintSuccess } = await waitForMint()
+
+    expect(mintSuccess).toBe("true")
+
+    const nftBalanceAfter = await checkBalance(smartAccountAddress, nftAddress)
+    expect(nftBalanceAfter - nftBalanceBefore).toBe(1n)
+  }, 50000)
 })

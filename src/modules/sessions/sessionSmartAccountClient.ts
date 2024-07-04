@@ -5,9 +5,11 @@ import {
   type BiconomySmartAccountV2Config,
   type BuildUserOpOptions,
   type SupportedSigner,
+  type Transaction,
   createSmartAccountClient,
   getChain
 } from "../../account"
+import type { UserOpResponse } from "../../bundler/index.js"
 import {
   type SessionSearchParam,
   createBatchedSessionRouterModule,
@@ -21,7 +23,7 @@ import {
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import type { StrictSessionParams } from "../utils/Types"
 
-export type SessionType = "SINGLE" | "BATCHED" | "DAN_SINGLE"
+export type SessionType = "SINGLE" | "BATCHED" | "DAN"
 export type ImpersonatedSmartAccountConfig = Omit<
   BiconomySmartAccountV2Config,
   "signer"
@@ -30,6 +32,48 @@ export type ImpersonatedSmartAccountConfig = Omit<
   chainId: number
   bundlerUrl: string
 }
+
+export type GetDanSessionParameters = Parameters<typeof getDanSessionTxParams>
+export type GetBatchSessionParameters = Parameters<
+  typeof getBatchSessionTxParams
+>
+export type GetSingleSessionParameters = Parameters<
+  typeof getSingleSessionTxParams
+>
+
+export type GetSessionParameters =
+  | GetDanSessionParameters
+  | GetBatchSessionParameters
+  | GetSingleSessionParameters
+
+export type SendSessionTransaction = {
+  sendSessionTransaction: (
+    getParameters: GetSessionParameters,
+    manyOrOneTransactions: Transaction | Transaction[],
+    buildUseropDto?: BuildUserOpOptions
+  ) => Promise<UserOpResponse>
+}
+export type DanSessionAccount = BiconomySmartAccountV2 & {
+  getSessionParams(
+    p: GetDanSessionParameters
+  ): ReturnType<typeof getDanSessionTxParams>
+} & SendSessionTransaction
+export type BatchedSessionAccount = BiconomySmartAccountV2 & {
+  getSessionParams(
+    p: GetBatchSessionParameters
+  ): ReturnType<typeof getBatchSessionTxParams>
+} & SendSessionTransaction
+export type SingleSessionAccount = BiconomySmartAccountV2 & {
+  getSessionParams(
+    p: GetSingleSessionParameters
+  ): ReturnType<typeof getSingleSessionTxParams>
+} & SendSessionTransaction
+
+export type SessionSmartAccountClient =
+  | SingleSessionAccount
+  | BatchedSessionAccount
+  | DanSessionAccount
+
 /**
  *
  * createSessionSmartAccountClient
@@ -40,7 +84,7 @@ export type ImpersonatedSmartAccountConfig = Omit<
  *
  * @param biconomySmartAccountConfig - Configuration for initializing the BiconomySmartAccountV2 instance {@link ImpersonatedSmartAccountConfig}.
  * @param conditionalSession - {@link SessionSearchParam} The session data that contains the sessionID and sessionSigner. If not provided, The default session storage (localStorage in browser, fileStorage in node backend) is used to fetch the sessionIDInfo
- * @param sessionType - {@link SessionType}: One of "SINGLE", "BATCHED" or "DAN_SINGLE". Default is "SINGLE".
+ * @param sessionType - {@link SessionType}: One of "SINGLE", "BATCHED" or "DAN". Default is "SINGLE".
  * @returns A promise that resolves to a new instance of {@link BiconomySmartAccountV2}.
  * @throws An error if something is wrong with the smart account instance creation.
  *
@@ -82,14 +126,12 @@ export const createSessionSmartAccountClient = async (
   biconomySmartAccountConfig: ImpersonatedSmartAccountConfig,
   conditionalSession: SessionSearchParam,
   _sessionType?: SessionType | boolean // backwards compatibility
-): Promise<BiconomySmartAccountV2> => {
-  // backwards compatibility
+): Promise<SessionSmartAccountClient> => {
+  // for backwards compatibility
   let sessionType = "SINGLE"
   if (_sessionType === true || _sessionType === "BATCHED")
     sessionType = "BATCHED"
-  if (_sessionType === "DAN_SINGLE") sessionType = "DAN_SINGLE"
-
-  console.log({ sessionType })
+  if (_sessionType === "DAN") sessionType = "DAN"
 
   const { sessionStorageClient } = await resumeSession(
     conditionalSession ?? biconomySmartAccountConfig.accountAddress
@@ -144,7 +186,11 @@ export const createSessionSmartAccountClient = async (
 
   smartAccount.getSessionParams = getSessionParams
 
-  return smartAccount
+  return sessionType === "BATCHED"
+    ? (smartAccount as BatchedSessionAccount)
+    : sessionType === "SINGLE"
+      ? (smartAccount as SingleSessionAccount)
+      : (smartAccount as DanSessionAccount)
 }
 
 /**

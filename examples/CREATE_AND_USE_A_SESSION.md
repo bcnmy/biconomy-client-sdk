@@ -17,6 +17,10 @@ import { createWalletClient, http, createPublicClient } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { mainnet as chain } from "viem/chains";
 
+const withSponsorship = {
+  paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+};
+
 const account = privateKeyToAccount(generatePrivateKey());
 const signer = createWalletClient({ account, chain, transport: http() });
 const smartAccount = await createSmartAccountClient({
@@ -25,12 +29,6 @@ const smartAccount = await createSmartAccountClient({
   paymasterUrl,
 }); // Retrieve bundler and pymaster urls from dashboard
 const smartAccountAddress = await smartAccount.getAccountAddress();
-
-// creates a store for the session, and saves the keys to it to be later retrieved
-const { sessionKeyAddress, sessionStorageClient } = await createSessionKeyEOA(
-  smartAccount,
-  chain
-);
 
 /**
  * Rule
@@ -78,7 +76,7 @@ const rules: Rule = [
 /** The policy is made up of a list of rules applied to the contract method with and interval */
 const policy: Policy[] = [
   {
-    /** The address of the sessionKey upon which the policy is to be imparted */
+    /** The address of the sessionKey upon which the policy is to be imparted. Can be optional if creating from scratch */
     sessionKeyAddress,
     /** The address of the contract to be included in the policy */
     contractAddress: nftAddress,
@@ -96,14 +94,9 @@ const policy: Policy[] = [
   },
 ];
 
-const { wait, session } = await createSession(
-  smartAccount,
-  policy,
-  sessionStorageClient,
-  {
-    paymasterServiceData: { mode: PaymasterMode.SPONSORED },
-  }
-);
+const { wait, session } = await createSession(smartAccount, policy, null, {
+  paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+});
 
 const {
   receipt: { transactionHash },
@@ -119,7 +112,12 @@ const smartAccountWithSession = await createSessionSmartAccountClient(
   smartAccountAddress // Storage client, full Session or smartAccount address if using default storage
 );
 
-const { wait: mintWait } = await smartAccountWithSession.sendTransaction(
+const { wait: mintWait } = await smartAccountWithSession.sendSessionTransaction(
+  [
+    correspondingIndexes,
+    smartAccountAddress, // Storage client, full Session or smartAccount address if using default storage
+    chain,
+  ],
   {
     to: nftAddress,
     data: encodeFunctionData({
@@ -128,9 +126,7 @@ const { wait: mintWait } = await smartAccountWithSession.sendTransaction(
       args: [smartAccountAddress],
     }),
   },
-  {
-    paymasterServiceData: { mode: PaymasterMode.SPONSORED },
-  }
+  withSponsorship
 );
 
 const { success } = await mintWait();

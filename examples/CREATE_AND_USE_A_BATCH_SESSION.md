@@ -119,19 +119,15 @@ const nftMintTx: Transaction = {
 const txs = [nftMintTx, transferTx];
 const correspondingIndexes = [1, 0]; // The order of the txs from the sessionBatch
 
-const batchSessionParams = await smartAccountWithSession.getSessionParams(
+const { wait: sessionWait } = await smartAccountWithSession.sendSessionTransaction(
+  [
+    txs,
+    correspondingIndexes,
+    session, // Storage client, full Session or smartAccount address if using default storage
+    chain
+  ],
   txs,
-  correspondingIndexes,
-  smartAccountAddress, // Storage client, full Session or smartAccount address if using default storage
-  chain
-);
-
-const { wait: sessionWait } = await smartAccountWithSession.sendTransaction(
-  txs,
-  {
-    ...batchSessionParams,
-    ...withSponsorship,
-  }
+  withSponsorship
 );
 
 const { success } = await sessionWait();

@@ -1,8 +1,10 @@
+import { ProjectivePoint } from "@noble/secp256k1"
 import type { TypedData } from "@silencelaboratories/walletprovider-sdk"
 import {
   type Address,
   type ByteArray,
   type Chain,
+  type EIP1193Provider,
   type Hex,
   type WalletClient,
   encodeAbiParameters,
@@ -10,7 +12,11 @@ import {
   keccak256,
   parseAbiParameters
 } from "viem"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import {
+  generatePrivateKey,
+  privateKeyToAccount,
+  publicKeyToAddress
+} from "viem/accounts"
 import {
   ERROR_MESSAGES,
   type UserOperationStruct,
@@ -251,6 +257,25 @@ export const hexToUint8Array = (hex: string) => {
   return array
 }
 
+export const computeAddress = (_publicKey: string): Address => {
+  let publicKey = _publicKey
+
+  if (publicKey.startsWith("0x")) {
+    publicKey = publicKey.slice(2)
+  }
+
+  if (publicKey.startsWith("04")) {
+    return publicKeyToAddress(`0x${publicKey} `)
+  }
+
+  if (publicKey.startsWith("02") || publicKey.startsWith("03")) {
+    const uncompressed = ProjectivePoint.fromHex(publicKey).toHex(false)
+    return publicKeyToAddress(`0x${uncompressed}`)
+  }
+
+  throw new Error("Invalid public key")
+}
+
 export interface IBrowserWallet {
   /** Sign data using the secret key stored on Browser Wallet
    * It creates a popup window, presenting the human readable form of `request`
@@ -273,9 +298,9 @@ export interface IBrowserWallet {
 // It creates a popup window, presenting the human readable form of `request`
 // Throws an error if User rejected signature
 export class BrowserWallet implements IBrowserWallet {
-  provider: WalletClient
+  provider: EIP1193Provider
 
-  constructor(provider: WalletClient) {
+  constructor(provider: EIP1193Provider) {
     this.provider = provider
   }
 
