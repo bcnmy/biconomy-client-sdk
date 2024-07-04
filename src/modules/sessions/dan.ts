@@ -1,3 +1,4 @@
+import { getPublicKeyAsync } from "@noble/ed25519"
 import {
   EOAAuth,
   type KeygenResponse,
@@ -24,10 +25,10 @@ import {
 import {
   NodeWallet,
   type SessionSearchParam,
+  computeAddress,
   didProvideFullSession,
   hexToUint8Array,
-  resumeSession,
-  computeAddress
+  resumeSession
 } from "../utils/Helper"
 import type { DanModuleInfo } from "../utils/Types"
 import {
@@ -35,7 +36,6 @@ import {
   type SessionGrantedPayload,
   createABISessionDatum
 } from "./abi"
-import { getPublicKeyAsync } from "@noble/ed25519"
 /**
  *
  * createDistributedSession
@@ -129,7 +129,6 @@ export const createDistributedSession = async (
     ...userOpResponse
   }
 }
-
 
 export const getDANSessionKey = async (
   smartAccount: BiconomySmartAccountV2

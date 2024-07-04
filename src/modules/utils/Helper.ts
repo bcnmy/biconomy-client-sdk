@@ -1,3 +1,4 @@
+import { ProjectivePoint } from "@noble/secp256k1"
 import type { TypedData } from "@silencelaboratories/walletprovider-sdk"
 import {
   type Address,
@@ -10,7 +11,11 @@ import {
   keccak256,
   parseAbiParameters
 } from "viem"
-import { generatePrivateKey, privateKeyToAccount, publicKeyToAddress } from "viem/accounts"
+import {
+  generatePrivateKey,
+  privateKeyToAccount,
+  publicKeyToAddress
+} from "viem/accounts"
 import {
   ERROR_MESSAGES,
   type UserOperationStruct,
@@ -24,7 +29,6 @@ import type {
 } from "../../index.js"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import { getDefaultStorageClient } from "../session-storage/utils"
-import { ProjectivePoint } from "@noble/secp256k1"
 
 /**
  * Rule
@@ -65,12 +69,12 @@ export interface Rule {
   condition: number
   /** The value to compare against */
   referenceValue:
-  | string
-  | number
-  | bigint
-  | boolean
-  | ByteArray
-  | HardcodedReference
+    | string
+    | number
+    | bigint
+    | boolean
+    | ByteArray
+    | HardcodedReference
 }
 
 /**
@@ -253,7 +257,7 @@ export const hexToUint8Array = (hex: string) => {
 }
 
 export const computeAddress = (_publicKey: string): Address => {
-  let publicKey = _publicKey;
+  let publicKey = _publicKey
 
   if (publicKey.startsWith("0x")) {
     publicKey = publicKey.slice(2)
