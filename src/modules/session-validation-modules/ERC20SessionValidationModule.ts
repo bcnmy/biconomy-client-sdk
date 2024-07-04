@@ -12,8 +12,7 @@ import type {
  * @author Sachin Tomar <sachin.tomar@biconomy.io>
  */
 export class ERC20SessionValidationModule
-  implements ISessionValidationModule<ERC20SessionKeyData>
-{
+  implements ISessionValidationModule<ERC20SessionKeyData> {
   moduleAddress!: string
 
   version = "V1_0_0"
