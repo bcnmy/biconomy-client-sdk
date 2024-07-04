@@ -1,4 +1,4 @@
-import * as ed from "@noble/ed25519"
+import { getPublicKeyAsync, getPublicKey } from "@noble/ed25519"
 import {
   EOAAuth,
   type KeygenResponse,
@@ -6,7 +6,7 @@ import {
   WalletProviderServiceClient
 } from "@silencelaboratories/walletprovider-sdk"
 import { type Chain, type Hex, keccak256 } from "viem"
-import { generatePrivateKey } from "viem/accounts"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { type Session, createDANSessionKeyManagerModule } from "../"
 import {
   type BiconomySmartAccountV2,
@@ -135,11 +135,13 @@ export const getDANSessionKey = async (
   const eoaAddress = (await smartAccount.getSigner().getAddress()) as Hex // Smart account owner
   const wallet = new NodeWallet(smartAccount.getSigner().inner)
 
-  const hexEphSK = generatePrivateKey()
-  const hexEphSKWithout0x = hexEphSK.slice(2)
+  const hexEphSK = generatePrivateKey();
+  const account = privateKeyToAccount(hexEphSK)
+  const hexEphSKWithout0x = hexEphSK.slice(2);
 
   const ephSK: Uint8Array = hexToUint8Array(hexEphSKWithout0x)
-  const ephPK: Uint8Array = await ed.getPublicKeyAsync(ephSK)
+  const ephPK: Uint8Array = await getPublicKeyAsync(ephSK)
+  console.log(ephPK)
 
   const wpClient = new WalletProviderServiceClient({
     walletProviderId: "WalletProvider",
@@ -168,7 +170,7 @@ export const getDANSessionKey = async (
   return {
     sessionKeyEOA,
     mpcKeyId,
-    ephSK,
+    hexEphSKWithout0x,
     partiesNumber,
     threshold,
     eoaAddress

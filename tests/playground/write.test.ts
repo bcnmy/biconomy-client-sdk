@@ -71,11 +71,11 @@ describe("Playground:Write", () => {
         })
       )
     )
-    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
-      [smartAccount, smartAccountTwo].map((account) =>
-        account.getAccountAddress()
+      ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+        [smartAccount, smartAccountTwo].map((account) =>
+          account.getAccountAddress()
+        )
       )
-    )
   })
 
   test("should create and use a DAN session on behalf of a user", async () => {
@@ -127,19 +127,13 @@ describe("Playground:Write", () => {
         chainId
       },
       session,
-      "DAN_SINGLE"
+      "DAN"
     )
 
-    console.log("2", session)
-
-    const danSessionParamsForMint =
-      await smartAccountWithSession.getSessionParams(session, chain, null)
-
-    console.log("3", session)
-
-    const { wait: waitForMint } = await smartAccountWithSession.sendTransaction(
+    const { wait: waitForMint } = await smartAccountWithSession.sendSessionTransaction(
+      [session, chain, null],
       nftMintTx,
-      { ...withSponsorship, ...danSessionParamsForMint }
+      withSponsorship
     )
 
     const { success: mintSuccess } = await waitForMint()

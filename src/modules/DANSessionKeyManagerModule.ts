@@ -41,6 +41,7 @@ import {
   StorageType
 } from "./utils/Types.js"
 import { generateRandomHex } from "./utils/Uid.js"
+import { hexToUint8Array } from "./utils/Helper.js"
 
 export type WalletProviderDefs = {
   walletProviderId: string
@@ -224,7 +225,7 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       threshold,
       partiesNumber,
       userOperation,
-      ephSK,
+      hexEphSKWithout0x,
       chainId,
       mpcKeyId
     } = params.danModuleInfo
@@ -234,14 +235,14 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       threshold,
       partiesNumber,
       userOperation,
-      ephSK,
+      hexEphSKWithout0x,
       chainId,
       mpcKeyId
     })
 
     if (
       !userOperation ||
-      !ephSK ||
+      !hexEphSKWithout0x ||
       !eoaAddress ||
       !threshold ||
       !partiesNumber ||
@@ -255,6 +256,9 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       walletProviderId: "WalletProvider",
       walletProviderUrl: DAN_BACKEND_URL
     })
+
+    const ephSK = hexToUint8Array(hexEphSKWithout0x)
+
     const authModule = new EphAuth(eoaAddress, ephSK)
 
     const sdk = new NetworkSigner(

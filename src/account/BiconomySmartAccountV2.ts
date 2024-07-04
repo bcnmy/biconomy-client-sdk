@@ -30,7 +30,8 @@ import {
   BaseValidationModule,
   type ModuleInfo,
   type SendUserOpParams,
-  createECDSAOwnershipValidationModule
+  createECDSAOwnershipValidationModule,
+  type GetSessionParameters
 } from "../modules"
 import {
   BiconomyPaymaster,
@@ -97,10 +98,11 @@ import {
 type UserOperationKey = keyof UserOperationStruct
 
 export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+
   public getSessionParams: (
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     ...args: Array<any>
-  ) => Promise<{ params: ModuleInfo }>
+  ) => Promise<{ params: ModuleInfo }> | undefined
 
   private SENTINEL_MODULE = "0x0000000000000000000000000000000000000001"
 
@@ -205,7 +207,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         getChain(biconomySmartAccountConfig.chainId),
       transport: http(
         biconomySmartAccountConfig.rpcUrl ||
-          getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0]
+        getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0]
       )
     })
 
@@ -1542,13 +1544,14 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   async sendSessionTransaction(
+    getSessionParameters: GetSessionParameters,
     manyOrOneTransactions: Transaction | Transaction[],
     _buildUseropDto: BuildUserOpOptions = {},
-    _getSessionArgs?: any
   ): Promise<UserOpResponse> {
-    if (typeof this.getSessionParams !== "function")
+    if (!this.getSessionParams) {
       throw new Error("Not available for this client.")
-    const sessionParams = await this.getSessionParams(_getSessionArgs)
+    }
+    const sessionParams = await this.getSessionParams(...getSessionParameters)
     const buildUseropDto = { ...sessionParams, ..._buildUseropDto }
     return this.sendTransaction(manyOrOneTransactions, buildUseropDto)
   }
