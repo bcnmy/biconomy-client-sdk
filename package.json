@@ -88,7 +88,6 @@
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
     "@ethersproject/wallet": "^5.7.0",
-    "@noble/secp256k1": "^2.1.0",
     "@size-limit/esbuild-why": "^11",
     "@size-limit/preset-small-lib": "^11",
     "@types/bun": "latest",
