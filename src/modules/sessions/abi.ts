@@ -29,7 +29,6 @@ import {
   createSessionKeyEOA,
   createSessionKeyManagerModule,
   didProvideFullSession,
-  getDefaultStorageClient,
   resumeSession
 } from "../index"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"

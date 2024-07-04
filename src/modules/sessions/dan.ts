@@ -5,7 +5,7 @@ import {
   NetworkSigner,
   WalletProviderServiceClient
 } from "@silencelaboratories/walletprovider-sdk"
-import type { Address, Chain, Hex } from "viem"
+import type { Chain, Hex } from "viem"
 import { generatePrivateKey } from "viem/accounts"
 import { type Session, createDANSessionKeyManagerModule } from "../"
 import {

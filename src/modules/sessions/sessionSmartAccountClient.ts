@@ -1,4 +1,3 @@
-import { FunctionOrConstructorTypeNodeBase } from "typescript"
 import { http, type Chain, type Hex, createWalletClient } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import {
