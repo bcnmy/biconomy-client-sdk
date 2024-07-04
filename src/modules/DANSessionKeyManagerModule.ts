@@ -210,8 +210,7 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
    * @param sessionSigner The signer to be used to sign the user operation
    * @returns The signature of the user operation
    */
-  async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<Hex> {
-    console.log("userOpHash", userOpHash)
+  async signUserOpHash(_: string, params?: ModuleInfo): Promise<Hex> {
     if (!params || !params.danModuleInfo) {
       throw new Error("Missing danModuleInfo params")
     }
@@ -229,16 +228,6 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       chainId,
       mpcKeyId
     } = params.danModuleInfo
-
-    console.log({
-      eoaAddress,
-      threshold,
-      partiesNumber,
-      userOperation,
-      hexEphSKWithout0x,
-      chainId,
-      mpcKeyId
-    })
 
     if (
       !userOperation ||
@@ -283,10 +272,6 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
     const signature = `0x${resp.sign}${sigV}`
     const sessionSignerData = await this.getLeafInfo({
       sessionID: params.sessionID
-    })
-
-    console.log("sessionKeyEoa c", sessionSignerData.sessionPublicKey, {
-      matchedLeaf: sessionSignerData
     })
 
     const leafDataHex = concat([

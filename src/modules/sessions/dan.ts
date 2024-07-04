@@ -6,7 +6,7 @@ import {
   WalletProviderServiceClient
 } from "@silencelaboratories/walletprovider-sdk"
 import type { Chain, Hex } from "viem"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import { generatePrivateKey } from "viem/accounts"
 import { type Session, createDANSessionKeyManagerModule } from "../"
 import {
   type BiconomySmartAccountV2,
@@ -137,12 +137,10 @@ export const getDANSessionKey = async (
   const wallet = new NodeWallet(smartAccount.getSigner().inner)
 
   const hexEphSK = generatePrivateKey()
-  const account = privateKeyToAccount(hexEphSK)
   const hexEphSKWithout0x = hexEphSK.slice(2)
 
   const ephSK: Uint8Array = hexToUint8Array(hexEphSKWithout0x)
   const ephPK: Uint8Array = await getPublicKeyAsync(ephSK)
-  console.log(ephPK)
 
   const wpClient = new WalletProviderServiceClient({
     walletProviderId: "WalletProvider",

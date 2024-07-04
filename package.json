@@ -121,6 +121,7 @@
   },
   "dependencies": {
     "@noble/ed25519": "^2.1.0",
-    "merkletreejs": "^0.3.11"
+    "merkletreejs": "^0.3.11",
+    "@noble/secp256k1": "^2.1.0"
   }
 }
