@@ -10,13 +10,11 @@ import type {
 } from "../interfaces/ISessionStorage.js"
 import type { SignerData } from "../utils/Types.js"
 
-// @ts-ignore
-export const inBrowser = typeof window !== "undefined"
 export const supportsLocalStorage =
   // @ts-ignore: LocalStorage is not available in node
-  inBrowser && typeof window.localStorage !== "undefined"
+  typeof window !== "undefined" && typeof window.localStorage !== "undefined"
 
-export class SessionLocalStorage implements ISessionStorage {
+export class DANSessionStorage implements ISessionStorage {
   public smartAccountAddress: Hex
 
   constructor(smartAccountAddress: Hex) {
@@ -67,6 +65,20 @@ export class SessionLocalStorage implements ISessionStorage {
     data.leafNodes.push(leaf)
     // @ts-ignore: LocalStorage is not available in node
     localStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data))
+  }
+
+  async revokeSessions(sessionIDs: string[]): Promise<any[]> {
+    const data = this.getSessionStore()
+    let newLeafNodes: any[] = []
+    for (const sessionID of sessionIDs) {
+      newLeafNodes = data.leafNodes.filter((s: SessionLeafNode) => {
+        if (sessionID) {
+          return s.sessionID !== sessionID
+        }
+        return undefined
+      })
+    }
+    return newLeafNodes
   }
 
   async getSessionData(param: SessionSearchParam): Promise<SessionLeafNode> {
@@ -195,20 +207,6 @@ export class SessionLocalStorage implements ISessionStorage {
       return sessions
     }
     return sessions.filter((s: SessionLeafNode) => s.status === param.status)
-  }
-
-  async revokeSessions(sessionIDs: string[]): Promise<any[]> {
-    const data = this.getSessionStore()
-    let newLeafNodes: any[] = []
-    for (const sessionID of sessionIDs) {
-      newLeafNodes = data.leafNodes.filter((s: SessionLeafNode) => {
-        if (sessionID) {
-          return s.sessionID !== sessionID
-        }
-        return undefined
-      })
-    }
-    return newLeafNodes
   }
 
   async getMerkleRoot(): Promise<string> {

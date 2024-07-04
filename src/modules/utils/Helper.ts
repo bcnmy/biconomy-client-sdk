@@ -1,14 +1,21 @@
+import { ProjectivePoint } from "@noble/secp256k1"
+import type { TypedData } from "@silencelaboratories/walletprovider-sdk"
 import {
   type Address,
   type ByteArray,
   type Chain,
   type Hex,
+  type WalletClient,
   encodeAbiParameters,
   isAddress,
   keccak256,
   parseAbiParameters
 } from "viem"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import {
+  generatePrivateKey,
+  privateKeyToAccount,
+  publicKeyToAddress
+} from "viem/accounts"
 import {
   ERROR_MESSAGES,
   type UserOperationStruct,
@@ -236,4 +243,90 @@ export const resumeSession = async (
     return session
   }
   throw new Error(ERROR_MESSAGES.UNKNOW_SESSION_ARGUMENTS)
+}
+
+export const hexToUint8Array = (hex: string) => {
+  if (hex.length % 2 !== 0) {
+    throw new Error("Hex string must have an even number of characters")
+  }
+  const array = new Uint8Array(hex.length / 2)
+  for (let i = 0; i < hex.length; i += 2) {
+    array[i / 2] = Number.parseInt(hex.substr(i, 2), 16)
+  }
+  return array
+}
+
+export const computeAddress = (_publicKey: string): Address => {
+  let publicKey = _publicKey
+
+  if (publicKey.startsWith("0x")) {
+    publicKey = publicKey.slice(2)
+  }
+
+  if (publicKey.startsWith("04")) {
+    return publicKeyToAddress(`0x${publicKey} `)
+  }
+
+  if (publicKey.startsWith("02") || publicKey.startsWith("03")) {
+    const uncompressed = ProjectivePoint.fromHex(publicKey).toHex(false)
+    return publicKeyToAddress(`0x${uncompressed}`)
+  }
+
+  throw new Error("Invalid public key")
+}
+
+export interface IBrowserWallet {
+  /** Sign data using the secret key stored on Browser Wallet
+   * It creates a popup window, presenting the human readable form of `request`
+   * @param from - the address used to sign the request
+   * @param request - the request to sign by the User in the form of EIP712 typed data.
+   * @throws Throws an error if User rejected signature
+   * @example The example implementation:
+   * ```ts
+   * async signTypedData<T>(from: string, request: TypedData<T>): Promise<unknown> {
+   *   return await browserWallet.request({
+   *     method: 'eth_signTypedData_v4',
+   *     params: [from, JSON.stringify(request)],
+   *   });
+   * }
+   * ```
+   */
+  signTypedData<T>(from: string, request: TypedData<T>): Promise<unknown>
+}
+// Sign data using the secret key stored on Browser Wallet
+// It creates a popup window, presenting the human readable form of `request`
+// Throws an error if User rejected signature
+export class BrowserWallet implements IBrowserWallet {
+  provider: WalletClient
+
+  constructor(provider: WalletClient) {
+    this.provider = provider
+  }
+
+  async signTypedData<T>(
+    from: string,
+    request: TypedData<T>
+  ): Promise<unknown> {
+    return await this.provider.request({
+      method: "eth_signTypedData_v4",
+      // @ts-ignore
+      params: [from, JSON.stringify(request)]
+    })
+  }
+}
+
+// Sign data using the secret key stored on Browser Wallet
+// It creates a popup window, presenting the human readable form of `request`
+// Throws an error if User rejected signature
+export class NodeWallet implements IBrowserWallet {
+  walletClient: WalletClient
+
+  constructor(walletClient: WalletClient) {
+    this.walletClient = walletClient
+  }
+
+  async signTypedData<T>(_: string, request: TypedData<T>): Promise<unknown> {
+    // @ts-ignore
+    return await this.walletClient.signTypedData(request)
+  }
 }

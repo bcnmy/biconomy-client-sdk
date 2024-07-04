@@ -11,6 +11,7 @@ import {
 } from "viem"
 import type {
   CreateSessionDataParams,
+  DanModuleInfo,
   Permission,
   SessionParams,
   UserOpResponse
@@ -205,6 +206,7 @@ export type CreateSessionDatumParams = {
   functionSelector: string | AbiFunction | HardcodedFunctionSelector
   rules: Rule[]
   valueLimit: bigint
+  danModuleInfo?: DanModuleInfo
 }
 
 /**
@@ -229,7 +231,9 @@ export const createABISessionDatum = ({
   /** The rules to be included in the policy */
   rules,
   /** The maximum value that can be transferred in a single transaction */
-  valueLimit
+  valueLimit,
+  /** information pertinent to the DAN module */
+  danModuleInfo
 }: CreateSessionDatumParams): CreateSessionDataParams => {
   const { validUntil = 0, validAfter = 0 } = interval ?? {}
 
@@ -250,7 +254,7 @@ export const createABISessionDatum = ({
     )
   }
 
-  return {
+  const result = {
     validUntil,
     validAfter,
     sessionValidationModule: DEFAULT_ABI_SVM_MODULE,
@@ -262,6 +266,8 @@ export const createABISessionDatum = ({
       rules
     })
   }
+
+  return danModuleInfo ? { ...result, danModuleInfo } : result
 }
 
 /**

@@ -17,6 +17,10 @@ import { createWalletClient, http, createPublicClient } from "viem";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
 import { mainnet as chain } from "viem/chains";
 
+const withSponsorship = {
+  paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+};
+
 const account = privateKeyToAccount(generatePrivateKey());
 const signer = createWalletClient({ account, chain, transport: http() });
 const smartAccount = await createSmartAccountClient({
@@ -119,7 +123,12 @@ const smartAccountWithSession = await createSessionSmartAccountClient(
   smartAccountAddress // Storage client, full Session or smartAccount address if using default storage
 );
 
-const { wait: mintWait } = await smartAccountWithSession.sendTransaction(
+const { wait: mintWait } = await smartAccountWithSession.sendSessionTransaction(
+  [
+    correspondingIndexes,
+    smartAccountAddress, // Storage client, full Session or smartAccount address if using default storage
+    chain,
+  ],
   {
     to: nftAddress,
     data: encodeFunctionData({
@@ -128,9 +137,7 @@ const { wait: mintWait } = await smartAccountWithSession.sendTransaction(
       args: [smartAccountAddress],
     }),
   },
-  {
-    paymasterServiceData: { mode: PaymasterMode.SPONSORED },
-  }
+  withSponsorship
 );
 
 const { success } = await mintWait();
