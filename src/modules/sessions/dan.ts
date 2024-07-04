@@ -1,11 +1,12 @@
 import * as ed from "@noble/ed25519"
+import { ProjectivePoint } from '@noble/secp256k1';
 import {
   EOAAuth,
   type KeygenResponse,
   NetworkSigner,
   WalletProviderServiceClient
 } from "@silencelaboratories/walletprovider-sdk"
-import { type Chain, type Hex, keccak256 } from "viem"
+import { type Chain, type Hex, keccak256, type Address } from "viem"
 import { generatePrivateKey } from "viem/accounts"
 import { type Session, createDANSessionKeyManagerModule } from "../"
 import {
@@ -35,6 +36,7 @@ import {
   type SessionGrantedPayload,
   createABISessionDatum
 } from "./abi"
+import { publicKeyToAddress } from "viem/accounts"
 /**
  *
  * createDistributedSession
@@ -129,6 +131,21 @@ export const createDistributedSession = async (
   }
 }
 
+export const computeAddress = (publicKey: string): Address => {
+  if (publicKey.startsWith('0x')) {
+    publicKey = publicKey.slice(2);
+  }
+
+  if (publicKey.startsWith('04')) {
+    return publicKeyToAddress(`0x${publicKey} `);
+  } else if (publicKey.startsWith('02') || publicKey.startsWith('03')) {
+    const uncompressed = ProjectivePoint.fromHex(publicKey).toHex(false);
+    return publicKeyToAddress(`0x${uncompressed}`);
+  } else {
+    throw new Error('Invalid public key');
+  }
+}
+
 export const getDANSessionKey = async (
   smartAccount: BiconomySmartAccountV2
 ) => {
@@ -159,11 +176,7 @@ export const getDANSessionKey = async (
   const pubKey = resp.publicKey
   const mpcKeyId = resp.keyId as Hex
 
-  // Compute the Keccak-256 hash of the public key
-  const hash = keccak256(`0x${pubKey}` as Hex)
-
-  // The Ethereum address is the last 20 bytes of the hash
-  const sessionKeyEOA = `0x${hash.slice(-40)}` as Hex
+  const sessionKeyEOA = computeAddress(pubKey);
 
   return {
     sessionKeyEOA,
