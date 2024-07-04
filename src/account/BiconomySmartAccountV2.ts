@@ -28,6 +28,7 @@ import {
 } from "../bundler/index.js"
 import {
   BaseValidationModule,
+  type GetSessionParameters,
   type ModuleInfo,
   type SendUserOpParams,
   createECDSAOwnershipValidationModule
@@ -97,7 +98,10 @@ import {
 type UserOperationKey = keyof UserOperationStruct
 
 export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
-  private sessionData?: ModuleInfo
+  public getSessionParams: (
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    ...args: Array<any>
+  ) => Promise<{ params: ModuleInfo }> | undefined
 
   private SENTINEL_MODULE = "0x0000000000000000000000000000000000000001"
 
@@ -130,7 +134,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   // Deployed Smart Account can have more than one module enabled. When sending a transaction activeValidationModule is used to prepare and validate userOp signature.
   activeValidationModule!: BaseValidationModule
 
-  private constructor(
+  constructor(
     readonly biconomySmartAccountConfig: BiconomySmartAccountV2ConfigConstructorProps
   ) {
     super({
@@ -151,8 +155,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         biconomySmartAccountConfig.factoryAddress ??
         DEFAULT_BICONOMY_FACTORY_ADDRESS
     })
-
-    this.sessionData = biconomySmartAccountConfig.sessionData
 
     this.defaultValidationModule =
       biconomySmartAccountConfig.defaultValidationModule
@@ -211,6 +213,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     this.scanForUpgradedAccountsFromV1 =
       biconomySmartAccountConfig.scanForUpgradedAccountsFromV1 ?? false
     this.maxIndexForScan = biconomySmartAccountConfig.maxIndexForScan ?? 10
+    this.getAccountAddress()
   }
 
   /**
@@ -250,7 +253,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     biconomySmartAccountConfig: BiconomySmartAccountV2Config
   ): Promise<BiconomySmartAccountV2> {
     let chainId = biconomySmartAccountConfig.chainId
-    let rpcUrl = biconomySmartAccountConfig.rpcUrl
+    let rpcUrl =
+      biconomySmartAccountConfig.customChain?.rpcUrls?.default?.http?.[0] ??
+      biconomySmartAccountConfig.rpcUrl
     let resolvedSmartAccountSigner!: SmartAccountSigner
 
     // Signer needs to be initialised here before defaultValidationModule is set
@@ -329,7 +334,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     // We check if chain ids match (skip this if chainId is passed by in the config)
     // This check is at the end of the function for cases when the signer is not passed in the config but a validation modules is and we get the signer from the validation module in this case
-    if (!biconomySmartAccountConfig.chainId) {
+    if (
+      biconomySmartAccountConfig.skipChainCheck !== true &&
+      !biconomySmartAccountConfig.chainId
+    ) {
       await compareChainIds(
         biconomySmartAccountConfig.signer || resolvedSmartAccountSigner,
         config,
@@ -766,6 +774,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     if (validationModule instanceof BaseValidationModule) {
       this.activeValidationModule = validationModule
     }
+    this.activeValidationModule = validationModule
     return this
   }
 
@@ -888,8 +897,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   // dummy signature depends on the validation module supplied.
-  async getDummySignatures(_params?: ModuleInfo): Promise<Hex> {
-    const params = { ...(this.sessionData ? this.sessionData : {}), ..._params }
+  async getDummySignatures(params?: ModuleInfo): Promise<Hex> {
     this.isActiveValidationModuleDefined()
     return (await this.activeValidationModule.getDummySignature(params)) as Hex
   }
@@ -918,10 +926,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   async signUserOp(
     userOp: Partial<UserOperationStruct>,
-    _params?: SendUserOpParams
+    params?: SendUserOpParams
   ): Promise<UserOperationStruct> {
-    const params = { ...(this.sessionData ? this.sessionData : {}), ..._params }
-
     this.isActiveValidationModuleDefined()
     const requiredFields: UserOperationKey[] = [
       "sender",
@@ -936,6 +942,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       "paymasterAndData"
     ]
     this.validateUserOp(userOp, requiredFields)
+
     const userOpHash = await this.getUserOpHash(userOp)
 
     const moduleSig = (await this.activeValidationModule.signUserOpHash(
@@ -949,6 +956,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     )
 
     userOp.signature = signatureWithModuleAddress
+
     return userOp as UserOperationStruct
   }
 
@@ -958,10 +966,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   ): Hex {
     const moduleAddressToUse =
       moduleAddress ?? (this.activeValidationModule.getAddress() as Hex)
-    return encodeAbiParameters(parseAbiParameters("bytes, address"), [
+    const result = encodeAbiParameters(parseAbiParameters("bytes, address"), [
       moduleSignature,
       moduleAddressToUse
     ])
+
+    return result
   }
 
   public async getPaymasterUserOp(
@@ -1184,7 +1194,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @returns Promise<UserOpResponse>
    * Sends a user operation
    *
-   * - Docs: https://docs.biconomy.io/Account/transactions/userpaid#send-useroperation
+   * - Docs: https://docs.biconomy.io/Account/methods#senduserop-
    *
    * @param userOp Partial<{@link UserOperationStruct}> the userOp params to be sent.
    * @param params {@link SendUserOpParams}.
@@ -1227,10 +1237,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     // biome-ignore lint/performance/noDelete: <explanation>
     delete userOp.signature
     const userOperation = await this.signUserOp(userOp, params)
-    const bundlerResponse = await this.sendSignedUserOp(
-      userOperation,
-      params?.simulationType
-    )
+
+    const bundlerResponse = await this.sendSignedUserOp(userOperation)
+
     return bundlerResponse
   }
 
@@ -1447,7 +1456,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   /**
    * Sends a transaction (builds and sends a user op in sequence)
    *
-   * - Docs: https://docs.biconomy.io/Account/transactions/userpaid#send-transaction
+   * - Docs: https://docs.biconomy.io/Account/methods#sendtransaction-
    *
    * @param manyOrOneTransactions Array of {@link Transaction} to be batched and sent. Can also be a single {@link Transaction}.
    * @param buildUseropDto {@link BuildUserOpOptions}.
@@ -1525,10 +1534,25 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         : [manyOrOneTransactions],
       buildUseropDto
     )
-    return this.sendUserOp(userOp, {
-      simulationType: buildUseropDto?.simulationType,
-      ...buildUseropDto?.params
-    })
+
+    if (buildUseropDto?.params?.danModuleInfo) {
+      buildUseropDto.params.danModuleInfo.userOperation = userOp
+    }
+
+    return this.sendUserOp(userOp, { ...buildUseropDto?.params })
+  }
+
+  async sendSessionTransaction(
+    getSessionParameters: GetSessionParameters,
+    manyOrOneTransactions: Transaction | Transaction[],
+    _buildUseropDto: BuildUserOpOptions = {}
+  ): Promise<UserOpResponse> {
+    if (!this.getSessionParams) {
+      throw new Error("Not available for this client.")
+    }
+    const sessionParams = await this.getSessionParams(...getSessionParameters)
+    const buildUseropDto = { ...sessionParams, ..._buildUseropDto }
+    return this.sendTransaction(manyOrOneTransactions, buildUseropDto)
   }
 
   /**
@@ -1536,7 +1560,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * This method will also simulate the validation and execution of the user operation, telling the user if the user operation will be successful or not.
    *
-   * - Docs: https://docs.biconomy.io/Account/transactions/userpaid#build-useroperation
+   * - Docs: https://docs.biconomy.io/Account/methods#builduserop-
    *
    * @param transactions Array of {@link Transaction} to be sent.
    * @param buildUseropDto {@link BuildUserOpOptions}.
@@ -2025,6 +2049,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   async signMessage(message: string | Uint8Array): Promise<Hex> {
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     let signature: any
     this.isActiveValidationModuleDefined()
     const dataHash = typeof message === "string" ? toBytes(message) : message

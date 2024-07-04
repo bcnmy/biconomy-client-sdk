@@ -1,14 +1,21 @@
+import { ProjectivePoint } from "@noble/secp256k1"
+import type { TypedData } from "@silencelaboratories/walletprovider-sdk"
 import {
   type Address,
   type ByteArray,
   type Chain,
   type Hex,
+  type WalletClient,
   encodeAbiParameters,
   isAddress,
   keccak256,
   parseAbiParameters
 } from "viem"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import {
+  generatePrivateKey,
+  privateKeyToAccount,
+  publicKeyToAddress
+} from "viem/accounts"
 import {
   ERROR_MESSAGES,
   type UserOperationStruct,
@@ -22,11 +29,35 @@ import type {
 } from "../../index.js"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import { getDefaultStorageClient } from "../session-storage/utils"
+
+/**
+ * Rule
+ *
+ * https://docs.biconomy.io/Modules/abiSessionValidationModule#rules
+ *
+ * Rules define permissions for the args of an allowed method. With rules, you can precisely define what should be the args of the transaction that is allowed for a given Session. Every Rule works with a single static arg or a 32-byte chunk of the dynamic arg.
+ * Since the ABI Encoding translates every static param into a 32-bytes word, even the shorter ones (like address or uint8), every Rule defines a desired relation (Condition) between n-th 32bytes word of the calldata and a reference Value (that is obviously a 32-bytes word as well).
+ * So, when dApp is creating a _sessionKeyData to enable a session, it should convert every shorter static arg to a 32bytes word to match how it will be actually ABI encoded in the userOp.callData.
+ * For the dynamic args, like bytes, every 32-bytes word of the calldata such as offset of the bytes arg, length of the bytes arg, and n-th 32-bytes word of the bytes arg can be controlled by a dedicated Rule.
+ */
 export interface Rule {
-  /** The index of the param from the selected contract function upon which the condition will be applied */
+  /**
+   *
+   * offset
+   *
+   * https://docs.biconomy.io/Modules/abiSessionValidationModule#rules
+   *
+   * The offset in the ABI SVM contract helps locate the relevant data within the function call data, it serves as a reference point from which to start reading or extracting specific information required for validation. When processing function call data, particularly in low-level languages like Solidity assembly, it's necessary to locate where specific parameters or arguments are stored. The offset is used to calculate the starting position within the calldata where the desired data resides. Suppose we have a function call with multiple arguments passed as calldata. Each argument occupies a certain number of bytes, and the offset helps determine where each argument begins within the calldata.
+   * Using the offset to Extract Data: In the contract, the offset is used to calculate the position within the calldata where specific parameters or arguments are located. Since every arg is a 32-bytes word, offsets are always multiplier of 32 (or of 0x20 in hex).
+   * Let's see how the offset is applied to extract the to and value arguments of a transfer(address to, uint256 value) method:
+   * - Extracting to Argument: The to argument is the first parameter of the transfer function, representing the recipient address. Every calldata starts with the 4-bytes method selector. However, the ABI SVM is adding the selector length itself, so for the first argument the offset will always be 0 (0x00);
+   * - Extracting value Argument: The value argument is the second parameter of the transfer function, representing the amount of tokens to be transferred. To extract this argument, the offset for the value parameter would be calculated based on its position in the function calldata. Despite to is a 20-bytes address, in the solidity abi encoding it is always appended with zeroes to a 32-bytes word. So the offset for the second 32-bytes argument (which isthe value in our case) will be 32 (or 0x20 in hex).
+   *
+   * If you need to deal with dynamic-length arguments, such as bytes, please refer to this document https://docs.soliditylang.org/en/v0.8.24/abi-spec.html#function-selector-and-argument-encoding to learn more about how dynamic arguments are represented in the calldata and which offsets should be used to access them.
+   */
   offset: number
   /**
-   * Conditions:
+   * condition
    *
    * 0 - Equal
    * 1 - Less than or equal
@@ -162,6 +193,9 @@ export const parseChain = (chainInfo: ChainInfo): Chain => {
  *
  */
 export type SessionSearchParam = Session | ISessionStorage | Address
+export const didProvideFullSession = (
+  searchParam: SessionSearchParam
+): boolean => !!(searchParam as Session)?.sessionIDInfo?.length
 /**
  *
  * reconstructSession - Reconstructs a session object from the provided arguments
@@ -177,7 +211,7 @@ export type SessionSearchParam = Session | ISessionStorage | Address
 export const resumeSession = async (
   searchParam: SessionSearchParam
 ): Promise<Session> => {
-  const providedFullSession = !!(searchParam as Session)?.sessionIDInfo?.length
+  const providedFullSession = didProvideFullSession(searchParam)
   const providedStorageClient = !!(searchParam as ISessionStorage)
     .smartAccountAddress?.length
   const providedSmartAccountAddress = isAddress(searchParam as Address)
@@ -209,4 +243,90 @@ export const resumeSession = async (
     return session
   }
   throw new Error(ERROR_MESSAGES.UNKNOW_SESSION_ARGUMENTS)
+}
+
+export const hexToUint8Array = (hex: string) => {
+  if (hex.length % 2 !== 0) {
+    throw new Error("Hex string must have an even number of characters")
+  }
+  const array = new Uint8Array(hex.length / 2)
+  for (let i = 0; i < hex.length; i += 2) {
+    array[i / 2] = Number.parseInt(hex.substr(i, 2), 16)
+  }
+  return array
+}
+
+export const computeAddress = (_publicKey: string): Address => {
+  let publicKey = _publicKey
+
+  if (publicKey.startsWith("0x")) {
+    publicKey = publicKey.slice(2)
+  }
+
+  if (publicKey.startsWith("04")) {
+    return publicKeyToAddress(`0x${publicKey} `)
+  }
+
+  if (publicKey.startsWith("02") || publicKey.startsWith("03")) {
+    const uncompressed = ProjectivePoint.fromHex(publicKey).toHex(false)
+    return publicKeyToAddress(`0x${uncompressed}`)
+  }
+
+  throw new Error("Invalid public key")
+}
+
+export interface IBrowserWallet {
+  /** Sign data using the secret key stored on Browser Wallet
+   * It creates a popup window, presenting the human readable form of `request`
+   * @param from - the address used to sign the request
+   * @param request - the request to sign by the User in the form of EIP712 typed data.
+   * @throws Throws an error if User rejected signature
+   * @example The example implementation:
+   * ```ts
+   * async signTypedData<T>(from: string, request: TypedData<T>): Promise<unknown> {
+   *   return await browserWallet.request({
+   *     method: 'eth_signTypedData_v4',
+   *     params: [from, JSON.stringify(request)],
+   *   });
+   * }
+   * ```
+   */
+  signTypedData<T>(from: string, request: TypedData<T>): Promise<unknown>
+}
+// Sign data using the secret key stored on Browser Wallet
+// It creates a popup window, presenting the human readable form of `request`
+// Throws an error if User rejected signature
+export class BrowserWallet implements IBrowserWallet {
+  provider: WalletClient
+
+  constructor(provider: WalletClient) {
+    this.provider = provider
+  }
+
+  async signTypedData<T>(
+    from: string,
+    request: TypedData<T>
+  ): Promise<unknown> {
+    return await this.provider.request({
+      method: "eth_signTypedData_v4",
+      // @ts-ignore
+      params: [from, JSON.stringify(request)]
+    })
+  }
+}
+
+// Sign data using the secret key stored on Browser Wallet
+// It creates a popup window, presenting the human readable form of `request`
+// Throws an error if User rejected signature
+export class NodeWallet implements IBrowserWallet {
+  walletClient: WalletClient
+
+  constructor(walletClient: WalletClient) {
+    this.walletClient = walletClient
+  }
+
+  async signTypedData<T>(_: string, request: TypedData<T>): Promise<unknown> {
+    // @ts-ignore
+    return await this.walletClient.signTypedData(request)
+  }
 }

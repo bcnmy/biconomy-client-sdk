@@ -1,31 +1,20 @@
 import { http, type Chain, type Hex, createWalletClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { type SmartAccountSigner, WalletClientSigner } from "../../account"
+import { getRandomSigner } from "../../index.js"
 import type {
   ISessionStorage,
   SessionLeafNode,
   SessionSearchParam,
   SessionStatus
 } from "../interfaces/ISessionStorage.js"
-import { getRandomSigner } from "../utils/Helper.js"
 import type { SignerData } from "../utils/Types.js"
 
-type MemoryStore = {
-  _store: Record<string, string>
-  getItem: (key: string) => string | undefined
-  setItem: (key: string, value: string) => void
-}
-const memoryStorage: MemoryStore = {
-  _store: {},
-  getItem: (key: string): string => {
-    return memoryStorage._store[key]
-  },
-  setItem: (key: string, value: string) => {
-    memoryStorage._store[key] = value
-  }
-}
+export const supportsLocalStorage =
+  // @ts-ignore: LocalStorage is not available in node
+  typeof window !== "undefined" && typeof window.localStorage !== "undefined"
 
-export class SessionMemoryStorage implements ISessionStorage {
+export class DANSessionStorage implements ISessionStorage {
   public smartAccountAddress: Hex
 
   constructor(smartAccountAddress: Hex) {
@@ -45,14 +34,15 @@ export class SessionMemoryStorage implements ISessionStorage {
       "Either pass sessionId or a combination of sessionPublicKey and sessionValidationModule address."
     )
   }
-
   private getSessionStore() {
-    const data = memoryStorage.getItem(this.getStorageKey("sessions"))
+    // @ts-ignore: LocalStorage is not available in node
+    const data = localStorage.getItem(this.getStorageKey("sessions"))
     return data ? JSON.parse(data) : { merkleRoot: "", leafNodes: [] }
   }
 
-  public getSignerStore(): Record<string, SignerData> {
-    const data = memoryStorage.getItem(this.getStorageKey("signers"))
+  private getSignerStore(): Record<string, SignerData> {
+    // @ts-ignore: LocalStorage is not available in node
+    const data = localStorage.getItem(this.getStorageKey("signers"))
     return data ? JSON.parse(data) : {}
   }
 
@@ -73,7 +63,22 @@ export class SessionMemoryStorage implements ISessionStorage {
       leaf.sessionPublicKey
     ) as Hex
     data.leafNodes.push(leaf)
-    memoryStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data))
+    // @ts-ignore: LocalStorage is not available in node
+    localStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data))
+  }
+
+  async revokeSessions(sessionIDs: string[]): Promise<any[]> {
+    const data = this.getSessionStore()
+    let newLeafNodes: any[] = []
+    for (const sessionID of sessionIDs) {
+      newLeafNodes = data.leafNodes.filter((s: SessionLeafNode) => {
+        if (sessionID) {
+          return s.sessionID !== sessionID
+        }
+        return undefined
+      })
+    }
+    return newLeafNodes
   }
 
   async getSessionData(param: SessionSearchParam): Promise<SessionLeafNode> {
@@ -132,7 +137,8 @@ export class SessionMemoryStorage implements ISessionStorage {
     }
 
     session.status = status
-    memoryStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data))
+    // @ts-ignore: LocalStorage is not available in node
+    localStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data))
   }
 
   async clearPendingSessions(): Promise<void> {
@@ -140,7 +146,8 @@ export class SessionMemoryStorage implements ISessionStorage {
     data.leafNodes = data.leafNodes.filter(
       (s: SessionLeafNode) => s.status !== "PENDING"
     )
-    memoryStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data))
+    // @ts-ignore: LocalStorage is not available in node
+    localStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data))
   }
 
   async addSigner(
@@ -160,10 +167,8 @@ export class SessionMemoryStorage implements ISessionStorage {
       "json-rpc" // signerType
     )
     signers[this.toLowercaseAddress(accountSigner.address)] = signer
-    memoryStorage.setItem(
-      this.getStorageKey("signers"),
-      JSON.stringify(signers)
-    )
+    // @ts-ignore: LocalStorage is not available in node
+    localStorage.setItem(this.getStorageKey("signers"), JSON.stringify(signers))
     return walletClientSigner
   }
 
@@ -185,37 +190,6 @@ export class SessionMemoryStorage implements ISessionStorage {
     const signer = new WalletClientSigner(client, "viem")
     return signer
   }
-
-  async revokeSessions(sessionIDs: string[]): Promise<any[]> {
-    const data = this.getSessionStore()
-    let newLeafNodes: any[] = []
-    for (const sessionID of sessionIDs) {
-      newLeafNodes = data.leafNodes.filter((s: SessionLeafNode) => {
-        if (sessionID) {
-          return s.sessionID !== sessionID
-        }
-        return undefined
-      })
-    }
-    return newLeafNodes
-  }
-
-  // async revokeSession(
-  //   sessionID: string
-  // ): Promise<string> {
-  //   let data = this.getSessionStore()
-  //   const oldRoot = await this.getMerkleRoot();
-  //   console.log(oldRoot, "oldRoot");
-  //   const updatedSession = data.leafNodes.filter((s: SessionLeafNode) => s.sessionID !== sessionID)
-  //   data.leafNodes = updatedSession;
-  //   memoryStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data))
-  //   const newSessions = this.getSessionStore()
-  //   console.log(newSessions, "newSessions");
-  //   const newMerkleRoot = await this.getMerkleRoot();
-  //   console.log(newMerkleRoot, "newMerkleRoot");
-  //   await this.setMerkleRoot(newMerkleRoot)
-  //   return newMerkleRoot;
-  // }
 
   async getSignerBySession(
     param: SessionSearchParam,
@@ -242,7 +216,8 @@ export class SessionMemoryStorage implements ISessionStorage {
   setMerkleRoot(merkleRoot: string): Promise<void> {
     const data = this.getSessionStore()
     data.merkleRoot = merkleRoot
-    memoryStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data))
+    // @ts-ignore: LocalStorage is not available in node
+    localStorage.setItem(this.getStorageKey("sessions"), JSON.stringify(data))
     return Promise.resolve()
   }
 }

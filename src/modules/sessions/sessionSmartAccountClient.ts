@@ -1,20 +1,30 @@
-import { http, type Hex, createWalletClient } from "viem"
+import { FunctionOrConstructorTypeNodeBase } from "typescript"
+import { http, type Chain, type Hex, createWalletClient } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import {
   type BiconomySmartAccountV2,
   type BiconomySmartAccountV2Config,
+  type BuildUserOpOptions,
+  type SupportedSigner,
+  type Transaction,
   createSmartAccountClient,
   getChain
 } from "../../account"
+import type { UserOpResponse } from "../../bundler/index.js"
 import {
   type SessionSearchParam,
   createBatchedSessionRouterModule,
+  createDANSessionKeyManagerModule,
   createSessionKeyManagerModule,
+  getBatchSessionTxParams,
+  getDanSessionTxParams,
+  getSingleSessionTxParams,
   resumeSession
 } from "../index.js"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
-import type { ModuleInfo } from "../utils/Types"
+import type { StrictSessionParams } from "../utils/Types"
 
+export type SessionType = "SINGLE" | "BATCHED" | "DAN"
 export type ImpersonatedSmartAccountConfig = Omit<
   BiconomySmartAccountV2Config,
   "signer"
@@ -23,6 +33,48 @@ export type ImpersonatedSmartAccountConfig = Omit<
   chainId: number
   bundlerUrl: string
 }
+
+export type GetDanSessionParameters = Parameters<typeof getDanSessionTxParams>
+export type GetBatchSessionParameters = Parameters<
+  typeof getBatchSessionTxParams
+>
+export type GetSingleSessionParameters = Parameters<
+  typeof getSingleSessionTxParams
+>
+
+export type GetSessionParameters =
+  | GetDanSessionParameters
+  | GetBatchSessionParameters
+  | GetSingleSessionParameters
+
+export type SendSessionTransaction = {
+  sendSessionTransaction: (
+    getParameters: GetSessionParameters,
+    manyOrOneTransactions: Transaction | Transaction[],
+    buildUseropDto?: BuildUserOpOptions
+  ) => Promise<UserOpResponse>
+}
+export type DanSessionAccount = BiconomySmartAccountV2 & {
+  getSessionParams(
+    p: GetDanSessionParameters
+  ): ReturnType<typeof getDanSessionTxParams>
+} & SendSessionTransaction
+export type BatchedSessionAccount = BiconomySmartAccountV2 & {
+  getSessionParams(
+    p: GetBatchSessionParameters
+  ): ReturnType<typeof getBatchSessionTxParams>
+} & SendSessionTransaction
+export type SingleSessionAccount = BiconomySmartAccountV2 & {
+  getSessionParams(
+    p: GetSingleSessionParameters
+  ): ReturnType<typeof getSingleSessionTxParams>
+} & SendSessionTransaction
+
+export type SessionSmartAccountClient =
+  | SingleSessionAccount
+  | BatchedSessionAccount
+  | DanSessionAccount
+
 /**
  *
  * createSessionSmartAccountClient
@@ -33,7 +85,7 @@ export type ImpersonatedSmartAccountConfig = Omit<
  *
  * @param biconomySmartAccountConfig - Configuration for initializing the BiconomySmartAccountV2 instance {@link ImpersonatedSmartAccountConfig}.
  * @param conditionalSession - {@link SessionSearchParam} The session data that contains the sessionID and sessionSigner. If not provided, The default session storage (localStorage in browser, fileStorage in node backend) is used to fetch the sessionIDInfo
- * @param multiMode - If true, the smart account instance will use the batchedSessionModule for validation, otherwise a single session is assumed.
+ * @param sessionType - {@link SessionType}: One of "SINGLE", "BATCHED" or "DAN". Default is "SINGLE".
  * @returns A promise that resolves to a new instance of {@link BiconomySmartAccountV2}.
  * @throws An error if something is wrong with the smart account instance creation.
  *
@@ -42,6 +94,7 @@ export type ImpersonatedSmartAccountConfig = Omit<
  * import { createSmartAccountClient, BiconomySmartAccountV2 } from "@biconomy/account"
  * import { createWalletClient, http } from "viem";
  * import { polygonAmoy } from "viem/chains";
+ * import { SessionFileStorage } from "@biconomy/session-file-storage";
  *
  * const signer = createWalletClient({
  *   account,
@@ -73,13 +126,17 @@ export type ImpersonatedSmartAccountConfig = Omit<
 export const createSessionSmartAccountClient = async (
   biconomySmartAccountConfig: ImpersonatedSmartAccountConfig,
   conditionalSession: SessionSearchParam,
-  multiMode = false
-): Promise<BiconomySmartAccountV2> => {
-  const { sessionStorageClient, sessionIDInfo } = await resumeSession(
+  _sessionType?: SessionType | boolean // backwards compatibility
+): Promise<SessionSmartAccountClient> => {
+  // for backwards compatibility
+  let sessionType = "SINGLE"
+  if (_sessionType === true || _sessionType === "BATCHED")
+    sessionType = "BATCHED"
+  if (_sessionType === "DAN") sessionType = "DAN"
+
+  const { sessionStorageClient } = await resumeSession(
     conditionalSession ?? biconomySmartAccountConfig.accountAddress
   )
-  const sessionID = sessionIDInfo[0] // Default to the first element to find the signer
-
   const account = privateKeyToAccount(generatePrivateKey())
 
   const chain =
@@ -93,34 +150,85 @@ export const createSessionSmartAccountClient = async (
     transport: http()
   })
 
-  const sessionSigner = await sessionStorageClient.getSignerBySession(
-    {
-      sessionID
-    },
-    chain
-  )
-
-  const sessionData: ModuleInfo | undefined = multiMode
-    ? undefined
-    : {
-        sessionID,
-        sessionSigner
-      }
-
   const sessionModule = await createSessionKeyManagerModule({
     smartAccountAddress: biconomySmartAccountConfig.accountAddress,
     sessionStorageClient
   })
 
-  const batchedSessionModule = await createBatchedSessionRouterModule({
+  const batchedSessionValidationModule = await createBatchedSessionRouterModule(
+    {
+      smartAccountAddress: biconomySmartAccountConfig.accountAddress,
+      sessionKeyManagerModule: sessionModule
+    }
+  )
+  const danSessionValidationModule = await createDANSessionKeyManagerModule({
     smartAccountAddress: biconomySmartAccountConfig.accountAddress,
-    sessionKeyManagerModule: sessionModule
+    sessionStorageClient
   })
 
-  return await createSmartAccountClient({
+  const activeValidationModule =
+    sessionType === "BATCHED"
+      ? batchedSessionValidationModule
+      : sessionType === "SINGLE"
+        ? sessionModule
+        : danSessionValidationModule
+
+  const getSessionParams =
+    sessionType === "BATCHED"
+      ? getBatchSessionTxParams
+      : sessionType === "SINGLE"
+        ? getSingleSessionTxParams
+        : getDanSessionTxParams
+
+  const smartAccount = await createSmartAccountClient({
     ...biconomySmartAccountConfig,
     signer: incompatibleSigner, // This is a dummy signer, it will remain unused
-    activeValidationModule: multiMode ? batchedSessionModule : sessionModule,
-    sessionData // contains the sessionSigner that will be used for txs
+    activeValidationModule
+  })
+
+  smartAccount.getSessionParams = getSessionParams
+
+  return sessionType === "BATCHED"
+    ? (smartAccount as BatchedSessionAccount)
+    : sessionType === "SINGLE"
+      ? (smartAccount as SingleSessionAccount)
+      : (smartAccount as DanSessionAccount)
+}
+
+/**
+ *
+ * @param privateKey - The private key of the user's account
+ * @param chain - The chain object
+ * @returns {@link SupportedSigner} - A signer object that can be used to sign transactions
+ */
+export const toSupportedSigner = (
+  privateKey: string,
+  chain: Chain
+): SupportedSigner => {
+  const parsedPrivateKey: Hex = privateKey.startsWith("0x")
+    ? (privateKey as Hex)
+    : `0x${privateKey}`
+  const account = privateKeyToAccount(parsedPrivateKey)
+  return createWalletClient({
+    account,
+    chain,
+    transport: http()
   })
 }
+
+/**
+ *
+ * @param privateKey The private key of the user's account
+ * @param sessionIDs An array of sessionIDs
+ * @param chain The chain object
+ * @returns {@link StrictSessionParams[]} - An array of session parameters {@link StrictSessionParams} that can be used to sign transactions here {@link BuildUserOpOptions}
+ */
+export const toSessionParams = (
+  privateKey: Hex,
+  sessionIDs: string[],
+  chain: Chain
+): StrictSessionParams[] =>
+  sessionIDs.map((sessionID) => ({
+    sessionID,
+    sessionSigner: toSupportedSigner(privateKey, chain)
+  }))

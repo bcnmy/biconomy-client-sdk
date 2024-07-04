@@ -31,7 +31,7 @@ function isEthersSigner(signer: SupportedSigner): signer is Signer {
 function isAlchemySigner(
   signer: SupportedSigner
 ): signer is SmartAccountSigner {
-  return (signer as SmartAccountSigner).signerType !== undefined
+  return (signer as SmartAccountSigner)?.signerType !== undefined
 }
 
 export const convertSigner = async (

@@ -11,6 +11,7 @@ import {
 } from "viem"
 import type {
   CreateSessionDataParams,
+  DanModuleInfo,
   Permission,
   SessionParams,
   UserOpResponse
@@ -22,7 +23,11 @@ import {
   Logger,
   type Transaction
 } from "../../account"
-import { createSessionKeyManagerModule, resumeSession } from "../index"
+import {
+  createSessionKeyManagerModule,
+  didProvideFullSession,
+  resumeSession
+} from "../index"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import {
   DEFAULT_ABI_SVM_MODULE,
@@ -90,7 +95,7 @@ export type SessionGrantedPayload = UserOpResponse & { session: Session }
  * import { createSmartAccountClient } from "@biconomy/account"
  * import { createWalletClient, http } from "viem";
  * import { polygonAmoy } from "viem/chains";
- *
+ * import { SessionFileStorage } from "@biconomy/session-file-storage";
  * const signer = createWalletClient({
  *   account,
  *   chain: polygonAmoy,
@@ -190,13 +195,18 @@ export const createSession = async (
   }
 }
 
+export type HardcodedFunctionSelector = {
+  raw: Hex
+}
+
 export type CreateSessionDatumParams = {
   interval?: SessionEpoch
   sessionKeyAddress: Hex
   contractAddress: Hex
-  functionSelector: string | AbiFunction
+  functionSelector: string | AbiFunction | HardcodedFunctionSelector
   rules: Rule[]
   valueLimit: bigint
+  danModuleInfo?: DanModuleInfo
 }
 
 /**
@@ -221,21 +231,43 @@ export const createABISessionDatum = ({
   /** The rules to be included in the policy */
   rules,
   /** The maximum value that can be transferred in a single transaction */
-  valueLimit
+  valueLimit,
+  /** information pertinent to the DAN module */
+  danModuleInfo
 }: CreateSessionDatumParams): CreateSessionDataParams => {
   const { validUntil = 0, validAfter = 0 } = interval ?? {}
-  return {
+
+  let parsedFunctionSelector: Hex = "0x"
+
+  const rawFunctionSelectorWasProvided = !!(
+    functionSelector as HardcodedFunctionSelector
+  )?.raw
+
+  if (rawFunctionSelectorWasProvided) {
+    parsedFunctionSelector = (functionSelector as HardcodedFunctionSelector).raw
+  } else {
+    const unparsedFunctionSelector = functionSelector as AbiFunction | string
+    parsedFunctionSelector = slice(
+      toFunctionSelector(unparsedFunctionSelector),
+      0,
+      4
+    )
+  }
+
+  const result = {
     validUntil,
     validAfter,
     sessionValidationModule: DEFAULT_ABI_SVM_MODULE,
     sessionPublicKey: sessionKeyAddress,
     sessionKeyData: getSessionDatum(sessionKeyAddress, {
       destContract: contractAddress,
-      functionSelector: slice(toFunctionSelector(functionSelector), 0, 4),
+      functionSelector: parsedFunctionSelector,
       valueLimit,
       rules
     })
   }
+
+  return danModuleInfo ? { ...result, danModuleInfo } : result
 }
 
 /**
@@ -284,6 +316,7 @@ export function getSessionDatum(
       parseReferenceValue(permission.rules[i].referenceValue)
     ]) as Hex
   }
+
   return sessionKeyData
 }
 
@@ -326,7 +359,7 @@ export type SingleSessionParamsPayload = {
  *
  * Retrieves the transaction parameters for a batched session.
  *
- * @param correspondingIndex - An index for the transaction corresponding to the relevant session
+ * @param correspondingIndex - An index for the transaction corresponding to the relevant session. If not provided, the last session index is used.
  * @param conditionalSession - {@link SessionSearchParam} The session data that contains the sessionID and sessionSigner. If not provided, The default session storage (localStorage in browser, fileStorage in node backend) is used to fetch the sessionIDInfo
  * @param chain - The chain.
  * @returns Promise<{@link BatchSessionParamsPayload}> - session parameters.
@@ -335,14 +368,19 @@ export type SingleSessionParamsPayload = {
 export const getSingleSessionTxParams = async (
   conditionalSession: SessionSearchParam,
   chain: Chain,
-  correspondingIndex = 0
+  correspondingIndex: number | null | undefined
 ): Promise<SingleSessionParamsPayload> => {
-  const { sessionStorageClient, sessionIDInfo } =
-    await resumeSession(conditionalSession)
+  const { sessionStorageClient } = await resumeSession(conditionalSession)
+
+  // if correspondingIndex is null then use the last session.
+  const allSessions = await sessionStorageClient.getAllSessionData()
+  const sessionID = didProvideFullSession(conditionalSession)
+    ? (conditionalSession as Session).sessionIDInfo[correspondingIndex ?? 0]
+    : allSessions[correspondingIndex ?? allSessions.length - 1].sessionID
 
   const sessionSigner = await sessionStorageClient.getSignerBySession(
     {
-      sessionID: sessionIDInfo[0]
+      sessionID
     },
     chain
   )
@@ -350,7 +388,7 @@ export const getSingleSessionTxParams = async (
   return {
     params: {
       sessionSigner,
-      sessionID: sessionIDInfo[correspondingIndex]
+      sessionID
     }
   }
 }

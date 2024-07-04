@@ -1,3 +1,8 @@
+import {
+  EphAuth,
+  NetworkSigner,
+  WalletProviderServiceClient
+} from "@silencelaboratories/walletprovider-sdk"
 import { MerkleTree } from "merkletreejs"
 import {
   type Hex,
@@ -8,10 +13,10 @@ import {
   pad,
   parseAbi,
   parseAbiParameters,
-  toBytes,
+  // toBytes,
   toHex
 } from "viem"
-import { type SmartAccountSigner, convertSigner } from "../account"
+import { DEFAULT_ENTRYPOINT_ADDRESS, type SmartAccountSigner } from "../account"
 import { BaseValidationModule } from "./BaseValidationModule.js"
 import type {
   ISessionStorage,
@@ -22,12 +27,15 @@ import type {
 import { SessionLocalStorage } from "./session-storage/SessionLocalStorage.js"
 import { SessionMemoryStorage } from "./session-storage/SessionMemoryStorage.js"
 import {
+  DAN_BACKEND_URL,
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION
 } from "./utils/Constants.js"
+import { hexToUint8Array } from "./utils/Helper.js"
 import {
   type CreateSessionDataParams,
   type CreateSessionDataResponse,
+  type DanSignatureObject,
   type ModuleInfo,
   type ModuleVersion,
   type SessionKeyManagerModuleConfig,
@@ -35,7 +43,16 @@ import {
 } from "./utils/Types.js"
 import { generateRandomHex } from "./utils/Uid.js"
 
-export class SessionKeyManagerModule extends BaseValidationModule {
+export type WalletProviderDefs = {
+  walletProviderId: string
+  walletProviderUrl: string
+}
+
+export type Config = {
+  walletProvider: WalletProviderDefs
+}
+
+export class DANSessionKeyManagerModule extends BaseValidationModule {
   version: ModuleVersion = "V1_0_0"
 
   moduleAddress!: Hex
@@ -63,9 +80,9 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    */
   public static async create(
     moduleConfig: SessionKeyManagerModuleConfig
-  ): Promise<SessionKeyManagerModule> {
+  ): Promise<DANSessionKeyManagerModule> {
     // TODO: (Joe) stop doing things in a 'create' call after the instance has been created
-    const instance = new SessionKeyManagerModule(moduleConfig)
+    const instance = new DANSessionKeyManagerModule(moduleConfig)
 
     if (moduleConfig.moduleAddress) {
       instance.moduleAddress = moduleConfig.moduleAddress
@@ -188,66 +205,89 @@ export class SessionKeyManagerModule extends BaseValidationModule {
   }
 
   /**
-   * Revokes specified sessions by generating a new Merkle root and updating the session statuses to "REVOKED".
-   *
-   * This method performs the following steps:
-   * 1. Calls `revokeSessions` on the session storage client to get new leaf nodes for the sessions to be revoked.
-   * 2. Constructs new leaf data from the session details, including validity periods and session validation module.
-   * 3. Hashes the leaf data using `keccak256` and adds them to the Merkle tree.
-   * 4. Creates a new Merkle tree with the updated leaves and updates the internal Merkle tree reference.
-   * 5. Sets the new Merkle root in the session storage.
-   * 6. Updates the status of each specified session to "REVOKED" in the session storage.
-   *
-   * @param sessionIDs - An array of session IDs to be revoked.
-   * @returns A promise that resolves to the new Merkle root as a hexadecimal string.
-   */
-  async revokeSessions(sessionIDs: string[]): Promise<string> {
-    const newLeafs = await this.sessionStorageClient.revokeSessions(sessionIDs)
-    const leavesToAdd: Buffer[] = []
-    for (const leaf of newLeafs) {
-      const leafDataHex = concat([
-        pad(toHex(leaf.validUntil), { size: 6 }),
-        pad(toHex(leaf.validAfter), { size: 6 }),
-        pad(leaf.sessionValidationModule, { size: 20 }),
-        leaf.sessionKeyData
-      ])
-      leavesToAdd.push(keccak256(leafDataHex) as unknown as Buffer)
-    }
-    this.merkleTree.addLeaves(leavesToAdd)
-    const leaves = this.merkleTree.getLeaves()
-    const newMerkleTree = new MerkleTree(leaves, keccak256, {
-      sortPairs: true,
-      hashLeaves: false
-    })
-    this.merkleTree = newMerkleTree
-    await this.sessionStorageClient.setMerkleRoot(this.merkleTree.getHexRoot())
-    for (const sessionID of sessionIDs) {
-      this.sessionStorageClient.updateSessionStatus({ sessionID }, "REVOKED")
-    }
-    return newMerkleTree.getHexRoot()
-  }
-
-  /**
    * This method is used to sign the user operation using the session signer
    * @param userOp The user operation to be signed
    * @param sessionSigner The signer to be used to sign the user operation
    * @returns The signature of the user operation
    */
   async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<Hex> {
-    if (!params?.sessionSigner) {
-      throw new Error("Session signer is not provided.")
+    console.log("userOpHash", userOpHash)
+    if (!params || !params.danModuleInfo) {
+      throw new Error("Missing danModuleInfo params")
     }
-    const { signer: sessionSigner } = await convertSigner(
-      params.sessionSigner,
-      false
-    )
 
-    // Use the sessionSigner to sign the user operation
-    const signature = await sessionSigner.signMessage({
-      raw: toBytes(userOpHash)
+    if (!params.sessionID) {
+      throw new Error("Missing sessionID")
+    }
+
+    const {
+      eoaAddress,
+      threshold,
+      partiesNumber,
+      userOperation,
+      hexEphSKWithout0x,
+      chainId,
+      mpcKeyId
+    } = params.danModuleInfo
+
+    console.log({
+      eoaAddress,
+      threshold,
+      partiesNumber,
+      userOperation,
+      hexEphSKWithout0x,
+      chainId,
+      mpcKeyId
     })
 
-    const sessionSignerData = await this.getLeafInfo(params)
+    if (
+      !userOperation ||
+      !hexEphSKWithout0x ||
+      !eoaAddress ||
+      !threshold ||
+      !partiesNumber ||
+      !chainId ||
+      !mpcKeyId
+    ) {
+      throw new Error("Missing params from User operation")
+    }
+
+    const wpClient = new WalletProviderServiceClient({
+      walletProviderId: "WalletProvider",
+      walletProviderUrl: DAN_BACKEND_URL
+    })
+
+    const ephSK = hexToUint8Array(hexEphSKWithout0x)
+
+    const authModule = new EphAuth(eoaAddress, ephSK)
+
+    const sdk = new NetworkSigner(
+      wpClient,
+      threshold,
+      partiesNumber,
+      authModule
+    )
+    // todo // get constants from config
+    const objectToSign: DanSignatureObject = {
+      userOperation,
+      entryPointVersion: "v0.6.0",
+      entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
+      chainId
+    }
+    const signMessage = JSON.stringify(objectToSign)
+    const resp = await sdk.authenticateAndSign(mpcKeyId, signMessage)
+
+    const v = resp.recid
+    const sigV = v === 0 ? "1b" : "1c"
+
+    const signature = `0x${resp.sign}${sigV}`
+    const sessionSignerData = await this.getLeafInfo({
+      sessionID: params.sessionID
+    })
+
+    console.log("sessionKeyEoa c", sessionSignerData.sessionPublicKey, {
+      matchedLeaf: sessionSignerData
+    })
 
     const leafDataHex = concat([
       pad(toHex(sessionSignerData.validUntil), { size: 6 }),
@@ -265,7 +305,7 @@ export class SessionKeyManagerModule extends BaseValidationModule {
         sessionSignerData.sessionValidationModule,
         sessionSignerData.sessionKeyData,
         this.merkleTree.getHexProof(keccak256(leafDataHex)) as Hex[],
-        signature
+        signature as Hex
       ]
     )
 
@@ -277,31 +317,15 @@ export class SessionKeyManagerModule extends BaseValidationModule {
   }
 
   private async getLeafInfo(params: ModuleInfo): Promise<SessionLeafNode> {
-    if (!params?.sessionSigner) {
-      throw new Error("Session signer is not provided.")
-    }
-    const { signer: sessionSigner } = await convertSigner(
-      params.sessionSigner,
-      false
-    )
-    // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
-    let sessionSignerData
     if (params?.sessionID) {
-      sessionSignerData = await this.sessionStorageClient.getSessionData({
+      const matchedDatum = await this.sessionStorageClient.getSessionData({
         sessionID: params.sessionID
       })
-    } else if (params?.sessionValidationModule) {
-      sessionSignerData = await this.sessionStorageClient.getSessionData({
-        sessionValidationModule: params.sessionValidationModule,
-        sessionPublicKey: await sessionSigner.getAddress()
-      })
-    } else {
-      throw new Error(
-        "sessionID or sessionValidationModule should be provided."
-      )
+      if (matchedDatum) {
+        return matchedDatum
+      }
     }
-
-    return sessionSignerData
+    throw new Error("Session data not found")
   }
 
   /**
@@ -345,8 +369,9 @@ export class SessionKeyManagerModule extends BaseValidationModule {
    */
   async getDummySignature(params?: ModuleInfo): Promise<Hex> {
     if (!params) {
-      throw new Error("Session signer is not provided.")
+      throw new Error("Params must be provided.")
     }
+
     const sessionSignerData = await this.getLeafInfo(params)
     const leafDataHex = concat([
       pad(toHex(sessionSignerData.validUntil), { size: 6 }),

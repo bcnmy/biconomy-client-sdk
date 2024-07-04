@@ -1,6 +1,4 @@
-import { BaseError } from "viem"
 import type { Service } from "../../account"
-import { SDK_VERSION } from "./Constants"
 export type KnownError = {
   name: string
   regex: string
@@ -39,21 +37,6 @@ const buildErrorStrings = (
     service ? `\nSent via: ${service}` : ""
   ].filter(Boolean)
 
-type AccountAbstractionErrorParams = {
-  docsSlug?: string
-  metaMessages?: string[]
-  details?: string
-}
-
-class AccountAbstractionError extends BaseError {
-  override name = "AccountAbstractionError"
-  override version = `@biconomy/account@${SDK_VERSION}`
-
-  constructor(title: string, params: AccountAbstractionErrorParams = {}) {
-    super(title, params)
-  }
-}
-
 export const getAAError = async (
   message: string,
   httpStatus?: number,
@@ -78,9 +61,5 @@ export const getAAError = async (
   const title = matchedError ? matchedError.name : "Unknown Error"
   const docsSlug = matchedError?.docsUrl ?? DOCS_URL
 
-  return new AccountAbstractionError(title, {
-    docsSlug,
-    metaMessages,
-    details
-  })
+  return new Error([title, status, docsSlug, metaMessages, details].join("\n"))
 }

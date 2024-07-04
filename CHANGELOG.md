@@ -1,5 +1,46 @@
 # @biconomy/account
 
+## 4.5.2
+
+### Patch Changes
+
+- Revert DAN
+
+## 4.5.1
+
+### Patch Changes
+
+- Return BiconomySmartAccountV2
+
+## 4.5.0
+
+### Minor Changes
+
+- Added session revoking
+- Skip chain checks flag
+- Fixed rpc url
+- Improved tsdoc and internal tests
+- Add hooks info to README
+
+## 4.4.6
+
+### Patch Changes
+
+- Move SessionStorageClient to its own package (https://www.npmjs.com/package/@biconomy/session-file-storage)
+
+## 4.4.5
+
+### Patch Changes
+
+- modifications for token payment + session support
+
+  - Added "toSupportedSigner" helper for privateKey -> supportedSigner translation
+  - Added "toSessionParams" helper for privateKey -> session params translation
+  - Tweaked getBatchSessionTxParams to return last n leaves by default, so users do not always have to find the correct session leaf
+  - Tweaked getSingleSessionTxParams to return last n leaves by default, so users do not always have to find the correct session leaf
+  - Tweaked createABISessionDatum to allow devs to manually input the functionSelector
+  - Exported BICONOMY_TOKEN_PAYMASTER, useful for manually building approvals
+
 ## 4.4.4
 
 ### Patch Changes

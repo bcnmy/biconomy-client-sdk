@@ -64,8 +64,7 @@ export interface BatchedSessionRouterModuleConfig
 
 export enum StorageType {
   LOCAL_STORAGE = 0,
-  MEMORY_STORAGE = 1,
-  FILE_STORAGE = 2
+  MEMORY_STORAGE = 1
 }
 
 export type SessionDataTuple = [
@@ -78,7 +77,7 @@ export type SessionDataTuple = [
 ]
 
 export type SessionParams = {
-  /** Redundant now as we've favoured uuid() */
+  /** ID of the session */
   sessionID?: string
   /** Session Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
   sessionSigner: SupportedSigner
@@ -86,6 +85,28 @@ export type SessionParams = {
   sessionValidationModule?: Hex
   /** Additional info if needed to be appended in signature */
   additionalSessionData?: string
+}
+
+export type StrictSessionParams = {
+  sessionID: string
+  sessionSigner: SupportedSigner
+}
+
+export type DanModuleInfo = {
+  /** Ephemeral sk */
+  hexEphSKWithout0x: string
+  /** eoa address */
+  eoaAddress: Hex
+  /** threshold */
+  threshold: number
+  /** parties number */
+  partiesNumber: number
+  /** userOp to be signed */
+  userOperation?: Partial<UserOperationStruct>
+  /** chainId */
+  chainId: number
+  /** selected mpc key id */
+  mpcKeyId: string
 }
 
 export type ModuleInfo = {
@@ -100,6 +121,8 @@ export type ModuleInfo = {
   additionalSessionData?: string
   /** Batch session params */
   batchSessionParams?: SessionParams[]
+  /** Dan module info */
+  danModuleInfo?: DanModuleInfo
 }
 
 export interface SendUserOpParams extends ModuleInfo {
@@ -134,6 +157,8 @@ export interface CreateSessionDataParams {
   sessionKeyData: Hex
   /** we generate uuid based sessionId. but if you prefer to track it on your side and attach custom session identifier this can be passed */
   preferredSessionId?: string
+  /** Dan module info */
+  danModuleInfo?: DanModuleInfo
 }
 
 export interface MultiChainValidationModuleConfig
@@ -180,4 +205,11 @@ export interface ERC20SessionKeyData extends BaseSessionKeyData {
 export interface SessionValidationModuleConfig {
   /** Address of the module */
   moduleAddress: string
+}
+
+export interface DanSignatureObject {
+  userOperation: Partial<UserOperationStruct>
+  entryPointVersion: string
+  entryPointAddress: string
+  chainId: number
 }
