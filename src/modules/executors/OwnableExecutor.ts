@@ -160,7 +160,7 @@ export class OwnableExecutorModule extends BaseExecutionModule {
           "function getOwners(address account) external view returns (address[])"
         ]),
         functionName: "getOwners",
-        args: [accountAddress ?? await this.smartAccount.getAccountAddress()]
+        args: [accountAddress ?? (await this.smartAccount.getAccountAddress())]
       })
 
       return owners as Address[]
