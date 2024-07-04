@@ -1491,6 +1491,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    *  @remarks
    * This example shows how to increase the estimated gas values for a transaction using `gasOffset` parameter.
+   *
    *  @example
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
@@ -1542,6 +1543,57 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     return this.sendUserOp(userOp, { ...buildUseropDto?.params })
   }
 
+  /**
+   * Sends a transaction (builds and sends a user op in sequence) with session parameters relevant to the type of session (DAN, BATCH or SINGLE)
+   *
+   * - Docs: https://docs.biconomy.io/Account/methods#sendtransaction-
+   *
+   * @param getSessionParameters {@link GetSessionParameters}.
+   * @param manyOrOneTransactions Array of {@link Transaction} to be batched and sent. Can also be a single {@link Transaction}.
+   * @param buildUseropDto {@link BuildUserOpOptions}.
+   * @returns Promise<{@link UserOpResponse}> that you can use to track the user operation.
+   *
+   * @example
+   * import { createClient } from "viem"
+   * import { createSmartAccountClient } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonAmoy } from "viem/chains";
+   *
+   * const encodedCall = encodeFunctionData({
+   *   abi: parseAbi(["function safeMint(address to) public"]),
+   *   functionName: "safeMint",
+   *   args: ["0x..."],
+   * });
+   *
+   * const transaction = {
+   *   to: nftAddress,
+   *   data: encodedCall({
+   *     abi: parseAbi(["function safeMint(address to) public"]),
+   *     functionName: "safeMint",
+   *     args: ["0x..."],
+   *   })
+   * }
+   *
+   * const smartAccountWithSession = await createSessionSmartAccountClient(
+   *   {
+   *     accountAddress: smartAccountAddress, // Set the account address on behalf of the user
+   *     bundlerUrl,
+   *     paymasterUrl,
+   *     chainId
+   *   },
+   *   smartAccountAddress // Storage client, full Session or smartAccount address if using default storage
+   * )
+   *
+   * // The smartAccountWithSession instance can now be used to interact with the blockchain on behalf of the user in the same manner as a regular smart account instance.
+   * // The correspondingIndex refers to the index of the relevant leaf in the sessionStorageClient. If left null then the last leaf is used.
+   *
+   * const { wait, success } = smartAccountWithSession.sendSessionTransaction([
+   *   correspondingIndexes,
+   *   smartAccountAddress, // Storage client, full Session or smartAccount address if using default storage
+   *   polygonAmoy
+   * ], transaction).
+   *
+   */
   async sendSessionTransaction(
     getSessionParameters: GetSessionParameters,
     manyOrOneTransactions: Transaction | Transaction[],
