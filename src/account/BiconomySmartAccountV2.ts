@@ -29,6 +29,7 @@ import {
 import {
   BaseValidationModule,
   type GetSessionParameters,
+  type GetSessionResponse,
   type ModuleInfo,
   type SendUserOpParams,
   createECDSAOwnershipValidationModule
@@ -98,10 +99,9 @@ import {
 type UserOperationKey = keyof UserOperationStruct
 
 export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
-  public getSessionParams: (
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    ...args: Array<any>
-  ) => Promise<{ params: ModuleInfo }> | undefined
+  public getSessionParams = (
+    ..._: GetSessionParameters
+  ): GetSessionResponse => ({ params: {} })
 
   private SENTINEL_MODULE = "0x0000000000000000000000000000000000000001"
 

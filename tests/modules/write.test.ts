@@ -1095,7 +1095,6 @@ describe("Modules:Write", () => {
     expect(txSuccess).toBe("true")
 
     const sessionDataAfter = await sessionStorageClient.getAllSessionData()
-    console.log(sessionDataAfter, "sessionDataAfter")
     const revokedSession = sessionDataAfter.find(
       (session) => session.status === "REVOKED"
     )

@@ -117,8 +117,6 @@ describe("Playground:Write", () => {
 
     const nftBalanceBefore = await checkBalance(smartAccountAddress, nftAddress)
 
-    console.log("1", session)
-
     const smartAccountWithSession = await createSessionSmartAccountClient(
       {
         accountAddress: smartAccountAddress, // Set the account address on behalf of the user
