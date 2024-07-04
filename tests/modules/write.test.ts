@@ -315,14 +315,10 @@ describe("Modules:Write", () => {
   // User no longer has to be connected,
   // Only the reference to the relevant sessionID and the store from the previous step is needed to execute txs on the user's behalf
   test("should use the batch session to mint an NFT, and pay some token for the user", async () => {
-    const { sessionStorageClient } = await resumeSession(
-      smartAccountAddressFour // Use the store from the previous test, you could pass in the smartAccount address, the full session or your custom sessionStorageClient
-    )
-
     // Assume the real signer for userSmartAccountFour is no longer available (ie. user has logged out);
     const smartAccountFourWithSession = await createSessionSmartAccountClient(
       {
-        accountAddress: sessionStorageClient.smartAccountAddress, // Set the account address on behalf of the user
+        accountAddress: smartAccountAddressFour, // Set the account address on behalf of the user
         bundlerUrl,
         paymasterUrl,
         chainId
