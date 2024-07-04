@@ -16,7 +16,11 @@ import {
   // toBytes,
   toHex
 } from "viem"
-import { DEFAULT_ENTRYPOINT_ADDRESS, type SmartAccountSigner } from "../account"
+import {
+  DEFAULT_ENTRYPOINT_ADDRESS,
+  type SmartAccountSigner,
+  type UserOperationStruct
+} from "../account"
 import { BaseValidationModule } from "./BaseValidationModule.js"
 import type {
   ISessionStorage,
@@ -263,9 +267,23 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       partiesNumber,
       authModule
     )
+
+    console.log("userop being signed by mpc ", userOperation)
+
+    const userOpTemp: Partial<UserOperationStruct> = userOperation
+
+    userOpTemp.verificationGasLimit =
+      userOpTemp.verificationGasLimit!.toString()
+    userOpTemp.callGasLimit = userOpTemp.callGasLimit!.toString()
+    userOpTemp.callData = userOpTemp.callData!.slice(2)
+    userOpTemp.paymasterAndData = userOpTemp.paymasterAndData!.slice(2)
+    userOpTemp.initCode = userOpTemp.initCode!.slice(2)
+
+    console.log("userop being signed by mpc now", userOpTemp)
+
     // todo // get constants from config
     const objectToSign: DanSignatureObject = {
-      userOperation,
+      userOperation: userOpTemp,
       entryPointVersion: "v0.6.0",
       entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
       chainId
