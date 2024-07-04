@@ -16,7 +16,11 @@ import {
   // toBytes,
   toHex
 } from "viem"
-import { DEFAULT_ENTRYPOINT_ADDRESS, type UserOperationStruct, type SmartAccountSigner } from "../account"
+import {
+  DEFAULT_ENTRYPOINT_ADDRESS,
+  type SmartAccountSigner,
+  type UserOperationStruct
+} from "../account"
 import { BaseValidationModule } from "./BaseValidationModule.js"
 import type {
   ISessionStorage,
@@ -256,7 +260,7 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       partiesNumber,
       authModule
     )
-    
+
     const objectToSign: DanSignatureObject = {
       userOperation,
       entryPointVersion: "v0.6.0",
