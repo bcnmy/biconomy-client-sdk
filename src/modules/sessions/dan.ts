@@ -1,11 +1,10 @@
-import { getPublicKey, getPublicKeyAsync } from "@noble/ed25519"
 import {
   EOAAuth,
   type KeygenResponse,
   NetworkSigner,
   WalletProviderServiceClient
 } from "@silencelaboratories/walletprovider-sdk"
-import { type Chain, type Hex, keccak256 } from "viem"
+import type { Chain, Hex } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { type Session, createDANSessionKeyManagerModule } from "../"
 import {
@@ -27,7 +26,8 @@ import {
   type SessionSearchParam,
   didProvideFullSession,
   hexToUint8Array,
-  resumeSession
+  resumeSession,
+  computeAddress
 } from "../utils/Helper"
 import type { DanModuleInfo } from "../utils/Types"
 import {
@@ -35,6 +35,7 @@ import {
   type SessionGrantedPayload,
   createABISessionDatum
 } from "./abi"
+import { getPublicKeyAsync } from "@noble/ed25519"
 /**
  *
  * createDistributedSession
@@ -129,6 +130,7 @@ export const createDistributedSession = async (
   }
 }
 
+
 export const getDANSessionKey = async (
   smartAccount: BiconomySmartAccountV2
 ) => {
@@ -161,11 +163,7 @@ export const getDANSessionKey = async (
   const pubKey = resp.publicKey
   const mpcKeyId = resp.keyId as Hex
 
-  // Compute the Keccak-256 hash of the public key
-  const hash = keccak256(`0x${pubKey}` as Hex)
-
-  // The Ethereum address is the last 20 bytes of the hash
-  const sessionKeyEOA = `0x${hash.slice(-40)}` as Hex
+  const sessionKeyEOA = computeAddress(pubKey)
 
   return {
     sessionKeyEOA,
