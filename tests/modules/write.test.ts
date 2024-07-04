@@ -1443,8 +1443,8 @@ describe("Modules:Write", () => {
         functionSelector: "safeMint(address)",
         rules: [
           {
-            ...RuleHelpers.OffsetByIndex(0),
-            ...RuleHelpers.Condition("EQUAL"),
+            offset: 0,
+            condition: 0,
             referenceValue: smartAccountAddress
           }
         ],
@@ -1490,7 +1490,10 @@ describe("Modules:Write", () => {
         withSponsorship
       )
 
-    const { success: mintSuccess } = await waitForMint()
+    const {
+      success: mintSuccess,
+      receipt: { transactionHash }
+    } = await waitForMint()
 
     expect(mintSuccess).toBe("true")
 

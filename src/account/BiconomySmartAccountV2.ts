@@ -1537,7 +1537,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     )
 
     if (buildUseropDto?.params?.danModuleInfo) {
-      buildUseropDto.params.danModuleInfo.userOperation = userOp
+      buildUseropDto.params.danModuleInfo.userOperation = { ...userOp }
     }
 
     return this.sendUserOp(userOp, { ...buildUseropDto?.params })

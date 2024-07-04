@@ -1,5 +1,6 @@
 import type { Chain, Hex } from "viem"
 import type {
+  BytesLike,
   SimulationType,
   SmartAccountSigner,
   SupportedSigner,
@@ -208,7 +209,9 @@ export interface SessionValidationModuleConfig {
 }
 
 export interface DanSignatureObject {
-  userOperation: Partial<UserOperationStruct>
+  userOperation: Partial<UserOperationStruct> & {
+    initCode: BytesLike | undefined
+  }
   entryPointVersion: string
   entryPointAddress: string
   chainId: number

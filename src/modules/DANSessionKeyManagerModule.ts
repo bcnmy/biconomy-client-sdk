@@ -241,6 +241,16 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       throw new Error("Missing params from User operation")
     }
 
+    if (
+      !userOperation.verificationGasLimit ||
+      !userOperation.callGasLimit ||
+      !userOperation.callData ||
+      !userOperation.paymasterAndData ||
+      !userOperation.initCode
+    ) {
+      throw new Error("Missing params from User operation")
+    }
+
     const wpClient = new WalletProviderServiceClient({
       walletProviderId: "WalletProvider",
       walletProviderUrl: DAN_BACKEND_URL
@@ -256,9 +266,20 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       partiesNumber,
       authModule
     )
+
+    const userOpTemp = {
+      ...userOperation,
+      verificationGasLimit: userOperation.verificationGasLimit.toString(),
+      callGasLimit: userOperation.callGasLimit.toString(),
+      callData: userOperation.callData.slice(2),
+      paymasterAndData: userOperation.paymasterAndData.slice(2),
+      initCode: String(userOperation.initCode).slice(2)
+    }
+
     // todo // get constants from config
     const objectToSign: DanSignatureObject = {
-      userOperation,
+      // @ts-ignore
+      userOperation: userOpTemp,
       entryPointVersion: "v0.6.0",
       entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
       chainId
