@@ -28,6 +28,7 @@ jobs:
       - name: Install Websocket
         run: |
           bun add ws
+          node -e "global.Websocket = require('ws')"
 
       - name: Run the account tests
         run: bun run test:ci -t=Account:Write
