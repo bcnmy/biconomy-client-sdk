@@ -210,7 +210,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         getChain(biconomySmartAccountConfig.chainId),
       transport: http(
         biconomySmartAccountConfig.rpcUrl ||
-        getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0]
+          getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0]
       )
     })
 
@@ -901,9 +901,14 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   // dummy signature depends on the validation module supplied.
   async getDummySignatures(params?: ModuleInfo): Promise<Hex> {
-    const defaultedParams = { ...(this.sessionData ? this.sessionData : {}), ...params }
+    const defaultedParams = {
+      ...(this.sessionData ? this.sessionData : {}),
+      ...params
+    }
     this.isActiveValidationModuleDefined()
-    return (await this.activeValidationModule.getDummySignature(defaultedParams)) as Hex
+    return (await this.activeValidationModule.getDummySignature(
+      defaultedParams
+    )) as Hex
   }
 
   // TODO: review this
@@ -932,7 +937,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     userOp: Partial<UserOperationStruct>,
     params?: SendUserOpParams
   ): Promise<UserOperationStruct> {
-    const defaultedParams = { ...(this.sessionData ? this.sessionData : {}), ...params }
+    const defaultedParams = {
+      ...(this.sessionData ? this.sessionData : {}),
+      ...params
+    }
     this.isActiveValidationModuleDefined()
     const requiredFields: UserOperationKey[] = [
       "sender",

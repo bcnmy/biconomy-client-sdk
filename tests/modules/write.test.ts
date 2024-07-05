@@ -129,11 +129,11 @@ describe("Modules:Write", () => {
         })
       )
     )
-      ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
-        [smartAccount, smartAccountTwo].map((account) =>
-          account.getAccountAddress()
-        )
+    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+      [smartAccount, smartAccountTwo].map((account) =>
+        account.getAccountAddress()
       )
+    )
 
     smartAccountThree = await createSmartAccountClient({
       signer: walletClient,

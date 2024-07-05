@@ -178,15 +178,15 @@ export type BiconomySmartAccountV2ConfigBaseProps = {
 }
 export type BiconomySmartAccountV2Config =
   BiconomySmartAccountV2ConfigBaseProps &
-  BaseSmartAccountConfig &
-  ConditionalBundlerProps &
-  ConditionalValidationProps
+    BaseSmartAccountConfig &
+    ConditionalBundlerProps &
+    ConditionalValidationProps
 
 export type BiconomySmartAccountV2ConfigConstructorProps =
   BiconomySmartAccountV2ConfigBaseProps &
-  BaseSmartAccountConfig &
-  ResolvedBundlerProps &
-  ResolvedValidationProps
+    BaseSmartAccountConfig &
+    ResolvedBundlerProps &
+    ResolvedValidationProps
 
 /**
  * Represents options for building a user operation.
@@ -454,13 +454,13 @@ export interface SmartAccountSigner<Inner = any> {
 //#region UserOperationCallData
 export type UserOperationCallData =
   | {
-    /* the target of the call */
-    target: Address
-    /* the data passed to the target */
-    data: Hex
-    /* the amount of native token to send to the target (default: 0) */
-    value?: bigint
-  }
+      /* the target of the call */
+      target: Address
+      /* the data passed to the target */
+      data: Hex
+      /* the amount of native token to send to the target (default: 0) */
+      value?: bigint
+    }
   | Hex
 //#endregion UserOperationCallData
 

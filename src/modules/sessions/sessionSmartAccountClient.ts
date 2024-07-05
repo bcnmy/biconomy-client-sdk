@@ -161,8 +161,8 @@ export const createSessionSmartAccountClient = async (
     transport: http()
   })
 
-  // Obselete & flow removed from docs but will keep for backwards compatibility reasons. 
-  let sessionData: ModuleInfo | undefined;
+  // Obselete & flow removed from docs but will keep for backwards compatibility reasons.
+  let sessionData: ModuleInfo | undefined
   try {
     const sessionID = sessionIDInfo?.[0] // Default to the first element to find the signer
     const sessionSigner = await sessionStorageClient.getSignerBySession(
@@ -172,15 +172,14 @@ export const createSessionSmartAccountClient = async (
       chain
     )
 
-    sessionData = sessionType === "SINGLE"
-      ? {
-        sessionID,
-        sessionSigner
-      }
-      : undefined
-  }
-  catch (e) { }
-
+    sessionData =
+      sessionType === "SINGLE"
+        ? {
+            sessionID,
+            sessionSigner
+          }
+        : undefined
+  } catch (e) {}
 
   const sessionModule = await createSessionKeyManagerModule({
     smartAccountAddress: biconomySmartAccountConfig.accountAddress,
