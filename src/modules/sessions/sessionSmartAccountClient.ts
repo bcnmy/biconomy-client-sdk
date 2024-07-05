@@ -145,7 +145,7 @@ export const createSessionSmartAccountClient = async (
     sessionType = "BATCHED"
   if (_sessionType === "DAN") sessionType = "DAN"
 
-  const { sessionStorageClient } = await resumeSession(
+  const { sessionStorageClient, sessionIDInfo } = await resumeSession(
     conditionalSession ?? biconomySmartAccountConfig.accountAddress
   )
   const account = privateKeyToAccount(generatePrivateKey())
@@ -160,6 +160,27 @@ export const createSessionSmartAccountClient = async (
     chain,
     transport: http()
   })
+
+  // Obselete & flow removed from docs but will keep for backwards compatibility reasons. 
+  let sessionData: ModuleInfo | undefined;
+  try {
+    const sessionID = sessionIDInfo?.[0] // Default to the first element to find the signer
+    const sessionSigner = await sessionStorageClient.getSignerBySession(
+      {
+        sessionID
+      },
+      chain
+    )
+
+    sessionData = sessionType === "SINGLE"
+      ? {
+        sessionID,
+        sessionSigner
+      }
+      : undefined
+  }
+  catch (e) { }
+
 
   const sessionModule = await createSessionKeyManagerModule({
     smartAccountAddress: biconomySmartAccountConfig.accountAddress,
@@ -187,7 +208,8 @@ export const createSessionSmartAccountClient = async (
   const smartAccount = await createSmartAccountClient({
     ...biconomySmartAccountConfig,
     signer: incompatibleSigner, // This is a dummy signer, it will remain unused
-    activeValidationModule
+    activeValidationModule,
+    sessionData
   })
 
   // @ts-ignore

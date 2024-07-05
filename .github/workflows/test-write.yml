@@ -25,6 +25,10 @@ jobs:
         env:
           SILENCE_LABS_NPM_TOKEN: ${{ secrets.SILENCE_LABS_NPM_TOKEN }}
 
+      - name: Install Websocket
+        run: |
+          bun add ws
+
       - name: Run the account tests
         run: bun run test:ci -t=Account:Write
         env:

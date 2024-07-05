@@ -28,7 +28,7 @@ import {
 import type { UserOpResponse } from "../../bundler/utils/Types"
 import { extractChainIdFromBundlerUrl } from "../../bundler/utils/Utils"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
-import { createSessionKeyEOA } from "../session-storage"
+import { createSessionKeyEOA } from "../session-storage/utils"
 import {
   DEFAULT_ABI_SVM_MODULE,
   DEFAULT_SESSION_KEY_MANAGER_MODULE
