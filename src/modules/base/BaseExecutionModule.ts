@@ -1,4 +1,4 @@
-import { Address } from "viem"
+import type { Address } from "viem"
 import type { UserOpReceipt } from "../../bundler/index.js"
 import { BaseModule } from "../base/BaseModule.js"
 import type { Execution } from "../utils/Types.js"

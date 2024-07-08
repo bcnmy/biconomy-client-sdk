@@ -1,10 +1,10 @@
 import {
   http,
   createWalletClient,
-  encodePacked,
   encodeFunctionData,
+  encodePacked,
   parseAbi,
-  parseEther,
+  parseEther
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { baseSepolia } from "viem/chains"
@@ -14,9 +14,7 @@ import {
   OWNABLE_EXECUTOR,
   createOwnableExecutorModule
 } from "../../../src"
-import {
-  createSmartAccountClient
-} from "../../../src/account"
+import { createSmartAccountClient } from "../../../src/account"
 import type { NexusSmartAccount } from "../../../src/account/NexusSmartAccount"
 import type { UserOpReceipt } from "../../../src/bundler"
 import { getConfig } from "../../utils"
@@ -74,7 +72,7 @@ describe("Account:Modules:OwnableExecutor", async () => {
         expect(userOpReceipt.success).toBe(true)
         expect(isInstalled).toBeTruthy()
       }
-      expect(isInstalled).toBeTruthy();
+      expect(isInstalled).toBeTruthy()
     }, 60000)
 
     test("Ownable Executor Module should be installed", async () => {
@@ -86,7 +84,6 @@ describe("Account:Modules:OwnableExecutor", async () => {
     }, 60000)
 
     test("uninstall Ownable Executor Module", async () => {
-
       let isInstalled = await smartAccount.isModuleInstalled({
         moduleType: ModuleType.Execution,
         moduleAddress: ownableExecutor
@@ -102,12 +99,12 @@ describe("Account:Modules:OwnableExecutor", async () => {
           moduleType: ModuleType.Execution,
           moduleAddress: ownableExecutor
         })
-  
+
         expect(userOpReceipt.success).toBe(true)
         expect(isInstalled).toBeFalsy()
         expect(userOpReceipt).toBeTruthy()
       }
-      expect(isInstalled).toBeFalsy();
+      expect(isInstalled).toBeFalsy()
     }, 60000)
 
     test("should add an owner to the module", async () => {
@@ -116,7 +113,7 @@ describe("Account:Modules:OwnableExecutor", async () => {
         moduleAddress: ownableExecutor
       })
 
-      if(!isInstalled) {
+      if (!isInstalled) {
         await smartAccount.installModule({
           moduleAddress: OWNABLE_EXECUTOR,
           moduleType: ModuleType.Execution,
@@ -154,34 +151,30 @@ describe("Account:Modules:OwnableExecutor", async () => {
     }, 60000)
 
     test("added owner executes token transfer on Smart Account", async () => {
-      const valueToTransfer = parseEther("0.1");
-      const recipient = accountTwo.address;
+      const valueToTransfer = parseEther("0.1")
+      const recipient = accountTwo.address
       const transferEncodedCall = encodeFunctionData({
         abi: parseAbi(["function transfer(address to, uint256 value)"]),
         functionName: "transfer",
         args: [recipient, valueToTransfer]
       })
 
-      await ownableExecutorModule.addOwner(
-        accountTwo.address
-      )
+      await ownableExecutorModule.addOwner(accountTwo.address)
 
       const owners = await ownableExecutorModule.getOwners()
-      const isOwner = owners.includes(accountTwo.address);
-      expect(isOwner).toBeTruthy();
+      const isOwner = owners.includes(accountTwo.address)
+      expect(isOwner).toBeTruthy()
 
       const calldata = encodeFunctionData({
-        abi: parseAbi(["function executeOnOwnedAccount(address ownedAccount, bytes callData)"]),
+        abi: parseAbi([
+          "function executeOnOwnedAccount(address ownedAccount, bytes callData)"
+        ]),
         functionName: "executeOnOwnedAccount",
         args: [
           await smartAccount.getAddress(),
           encodePacked(
             ["address", "uint256", "bytes"],
-            [
-              token,
-              BigInt(Number(0)),
-              transferEncodedCall
-            ]
+            [token, BigInt(Number(0)), transferEncodedCall]
           )
         ]
       })
@@ -193,7 +186,7 @@ describe("Account:Modules:OwnableExecutor", async () => {
         value: 0n
       })
 
-      expect(txHash).toBeTruthy();
+      expect(txHash).toBeTruthy()
     }, 60000)
   })
 })

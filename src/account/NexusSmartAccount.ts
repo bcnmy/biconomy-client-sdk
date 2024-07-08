@@ -2369,14 +2369,20 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
               value: BigInt(tx.value ?? 0n)
             }
           })
-        return await this.activeExecutorModule?.executeFromExecutor(executions, ownedAccountAddress)
+        return await this.activeExecutorModule?.executeFromExecutor(
+          executions,
+          ownedAccountAddress
+        )
       }
       const execution = {
         target: transactions[0].to as Hex,
         callData: (transactions[0].data ?? "0x") as Hex,
         value: BigInt(transactions[0].value ?? 0n)
       }
-      return await this.activeExecutorModule?.executeFromExecutor(execution, ownedAccountAddress)
+      return await this.activeExecutorModule?.executeFromExecutor(
+        execution,
+        ownedAccountAddress
+      )
     }
     throw new Error(
       "Please set an active executor module before running this method."

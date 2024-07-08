@@ -50,7 +50,7 @@ export class OwnableExecutorModule extends BaseExecutionModule {
           "function executeBatchOnOwnedAccount(address ownedAccount, bytes callData)"
         ]),
         args: [
-          accountAddress ?? await this.smartAccount.getAccountAddress(),
+          accountAddress ?? (await this.smartAccount.getAccountAddress()),
           encodeAbiParameters(
             [
               {
@@ -84,7 +84,7 @@ export class OwnableExecutorModule extends BaseExecutionModule {
           "function executeOnOwnedAccount(address ownedAccount, bytes callData)"
         ]),
         args: [
-          accountAddress ?? await this.smartAccount.getAccountAddress(),
+          accountAddress ?? (await this.smartAccount.getAccountAddress()),
           encodePacked(
             ["address", "uint256", "bytes"],
             [
