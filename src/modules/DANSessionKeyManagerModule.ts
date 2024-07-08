@@ -13,6 +13,7 @@ import {
 } from "viem"
 import { DEFAULT_ENTRYPOINT_ADDRESS, type SmartAccountSigner } from "../account"
 import { BaseValidationModule } from "./BaseValidationModule.js"
+import { WalletProviderSDK } from "./index.js"
 import type {
   ISessionStorage,
   SessionLeafNode,
@@ -37,11 +38,6 @@ import {
   StorageType
 } from "./utils/Types.js"
 import { generateRandomHex } from "./utils/Uid.js"
-import {
-  EphAuth,
-  NetworkSigner,
-  WalletProviderServiceClient
-} from "./walletprovider-sdk/types.js"
 
 export type WalletProviderDefs = {
   walletProviderId: string
@@ -251,16 +247,16 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       throw new Error("Missing params from User operation")
     }
 
-    const wpClient = new WalletProviderServiceClient({
+    const wpClient = new WalletProviderSDK.WalletProviderServiceClient({
       walletProviderId: "WalletProvider",
       walletProviderUrl: DAN_BACKEND_URL
     })
 
     const ephSK = hexToUint8Array(hexEphSKWithout0x)
 
-    const authModule = new EphAuth(eoaAddress, ephSK)
+    const authModule = new WalletProviderSDK.EphAuth(eoaAddress, ephSK)
 
-    const sdk = new NetworkSigner(
+    const sdk = new WalletProviderSDK.NetworkSigner(
       wpClient,
       threshold,
       partiesNumber,
