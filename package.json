@@ -6,9 +6,9 @@
   "typings": "./dist/_types/index.d.ts",
   "homepage": "https://biconomy.io",
   "sideEffects": false,
-  "name": "@biconomy/account",
+  "name": "@biconomy-devx/account",
   "author": "Biconomy",
-  "version": "4.5.2",
+  "version": "4.6.4",
   "description": "SDK for Biconomy integration with support for account abstraction, smart accounts, ERC-4337.",
   "keywords": [
     "erc-7579",
@@ -93,6 +93,7 @@
     "@types/bun": "latest",
     "@vitest/coverage-v8": "^1.3.1",
     "buffer": "^6.0.3",
+    "changeset": "^0.2.6",
     "concurrently": "^8.2.2",
     "dotenv": "^16.4.5",
     "ethers": "^6.12.0",
@@ -121,7 +122,6 @@
   "dependencies": {
     "@noble/ed25519": "^2.1.0",
     "@noble/secp256k1": "^2.1.0",
-    "@silencelaboratories/walletprovider-sdk": "^0.0.8",
     "merkletreejs": "^0.3.11"
   }
 }

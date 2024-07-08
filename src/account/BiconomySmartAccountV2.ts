@@ -21,7 +21,6 @@ import {
   toBytes,
   toHex
 } from "viem"
-import type { Prettify } from "viem/chains"
 import type { IBundler } from "../bundler/IBundler.js"
 import {
   Bundler,
@@ -83,6 +82,7 @@ import type {
   BiconomyTokenPaymasterRequest,
   BuildUserOpOptions,
   CounterFactualAddressParam,
+  GetSessionParams,
   NonceOptions,
   PaymasterUserOperationDto,
   QueryParamsForAddressResolver,
@@ -1419,7 +1419,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @description This function will transfer ownership of the smart account to a new owner. If you use session key manager module, after transferring the ownership
    * you will need to re-create a session for the smart account with the new owner (signer) and specify "accountAddress" in "createSmartAccountClient" function.
    * @example
-   * ```typescript
    * 
    * let walletClient = createWalletClient({
         account,
@@ -1448,7 +1447,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         chainId: 84532,
         accountAddress: await smartAccount.getAccountAddress()
       })
-   * ```
    */
   async transferOwnership(
     newOwner: Address,
@@ -1478,7 +1476,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @param manyOrOneTransactions Array of {@link Transaction} to be batched and sent. Can also be a single {@link Transaction}.
    * @param buildUseropDto {@link BuildUserOpOptions}.
-   * @param sessionData - Optional parameter. If you are using session keys, you can pass the sessionIds, the session and the storage client to retrieve the session data while sending a tx
+   * @param sessionData - Optional parameter. If you are using session keys, you can pass the sessionIds, the session and the storage client to retrieve the session data while sending a tx {@link GetSessionParams}
    * @returns Promise<{@link UserOpResponse}> that you can use to track the user operation.
    *
    * @example
@@ -1509,19 +1507,15 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * const { waitForTxHash } = await smartAccount.sendTransaction(transaction);
    * const { transactionHash, userOperationReceipt } = await wait();
    * ```
-   * 
-   * 
-   * 
    */
   async sendTransaction(
     manyOrOneTransactions: Transaction | Transaction[],
     buildUseropDto?: BuildUserOpOptions,
-    sessionData?: Prettify<Parameters<typeof this.getSessionParams>>
+    sessionData?: GetSessionParams
   ): Promise<UserOpResponse> {
     let defaultedBuildUseropDto = { ...buildUseropDto } ?? {}
     if (this.sessionType && sessionData) {
-      sessionData[3] = manyOrOneTransactions;
-      const getSessionParameters = await this.getSessionParams(...(sessionData ?? []))
+      const getSessionParameters = await this.getSessionParams({ ...sessionData, txs: manyOrOneTransactions })
       defaultedBuildUseropDto = {
         ...defaultedBuildUseropDto,
         ...getSessionParameters
@@ -1541,13 +1535,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     return this.sendUserOp(userOp, { ...defaultedBuildUseropDto?.params })
   }
-
-  public async getSessionParams(
-    correspondingIndexes?: number[] | number | undefined | null,
-    conditionalSession?: SessionSearchParam,
-    chain?: Chain,
-    txs?: Transaction | Transaction[]
-  ): Promise<{ params: ModuleInfo }> {
+  public async getSessionParams({
+    leafIndex,
+    store,
+    chain,
+    txs
+  }: GetSessionParams): Promise<{ params: ModuleInfo }> {
 
     const defaultedTransactions: Transaction[] | null = txs
       ? Array.isArray(txs)
@@ -1556,12 +1549,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       : []
 
     const defaultedConditionalSession: SessionSearchParam =
-      conditionalSession ?? (await this.getAccountAddress())
+      store ?? (await this.getAccountAddress())
 
-    const defaultedCorrespondingIndexes: number[] | null = correspondingIndexes
-      ? Array.isArray(correspondingIndexes)
-        ? [...correspondingIndexes]
-        : [correspondingIndexes]
+    const defaultedCorrespondingIndexes: number[] | null = leafIndex
+      ? Array.isArray(leafIndex)
+        ? [...leafIndex]
+        : [leafIndex]
       : null
 
     const correspondingIndex: number | null = defaultedCorrespondingIndexes

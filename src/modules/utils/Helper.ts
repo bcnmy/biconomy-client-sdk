@@ -1,5 +1,4 @@
 import { ProjectivePoint } from "@noble/secp256k1"
-import type { TypedData } from "@silencelaboratories/walletprovider-sdk"
 import {
   type Address,
   type ByteArray,
@@ -26,11 +25,11 @@ import type {
   ChainInfo,
   HardcodedReference,
   Session,
-  SignerData
+  SignerData,
 } from "../../index.js"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import { getDefaultStorageClient } from "../session-storage/utils"
-
+import type { IBrowserWallet, TypedData } from "../walletprovider-sdk/types.js"
 /**
  * Rule
  *
@@ -70,12 +69,12 @@ export interface Rule {
   condition: number
   /** The value to compare against */
   referenceValue:
-    | string
-    | number
-    | bigint
-    | boolean
-    | ByteArray
-    | HardcodedReference
+  | string
+  | number
+  | bigint
+  | boolean
+  | ByteArray
+  | HardcodedReference
 }
 
 /**
@@ -276,24 +275,6 @@ export const computeAddress = (_publicKey: string): Address => {
   throw new Error("Invalid public key")
 }
 
-export interface IBrowserWallet {
-  /** Sign data using the secret key stored on Browser Wallet
-   * It creates a popup window, presenting the human readable form of `request`
-   * @param from - the address used to sign the request
-   * @param request - the request to sign by the User in the form of EIP712 typed data.
-   * @throws Throws an error if User rejected signature
-   * @example The example implementation:
-   * ```ts
-   * async signTypedData<T>(from: string, request: TypedData<T>): Promise<unknown> {
-   *   return await browserWallet.request({
-   *     method: 'eth_signTypedData_v4',
-   *     params: [from, JSON.stringify(request)],
-   *   });
-   * }
-   * ```
-   */
-  signTypedData<T>(from: string, request: TypedData<T>): Promise<unknown>
-}
 // Sign data using the secret key stored on Browser Wallet
 // It creates a popup window, presenting the human readable form of `request`
 // Throws an error if User rejected signature

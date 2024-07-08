@@ -1504,7 +1504,7 @@ describe("Modules:Write", () => {
     const { wait: waitForMint } = await smartAccountWithSession.sendTransaction(
       nftMintTx,
       withSponsorship,
-      [null] // Uses the last session leaf and the default storage client
+      { leafIndex: null, store: smartAccountAddress } // Uses the last session leaf and the default storage client
     )
 
     const {

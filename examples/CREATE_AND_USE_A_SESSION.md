@@ -122,11 +122,11 @@ const { wait: mintWait } = await smartAccountWithSession.sendTransaction(
     }),
   },
   withSponsorship,
-  [
-    correspondingIndexes,
-    smartAccountAddress, // Storage client, full Session or smartAccount address if using default storage
+  {
+    leafIndex,
+    store: smartAccountAddress, // Storage client, full Session or smartAccount address if using default storage
     chain,
-  ],
+  },
 );
 
 const { success } = await mintWait();

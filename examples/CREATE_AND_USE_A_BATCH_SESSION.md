@@ -117,17 +117,17 @@ const nftMintTx: Transaction = {
 };
 
 const txs = [nftMintTx, transferTx];
-const correspondingIndexes = [1, 0]; // The order of the txs from the sessionBatch
+const leafIndex = [1, 0]; // The order of the txs from the sessionBatch
 
 const { wait: sessionWait } = await smartAccountWithSession.sendTransaction(
   txs,
   withSponsorship,
-  [
+  {
     txs,
-    correspondingIndexes,
-    session, // Storage client, full Session or smartAccount address if using default storage
+    leafIndex,
+    store, // Storage client, full Session or smartAccount address if using default storage
     chain
-  ],
+  },
 );
 
 const { success } = await sessionWait();

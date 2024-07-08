@@ -1,10 +1,4 @@
 import { getPublicKeyAsync } from "@noble/ed25519"
-import {
-  EOAAuth,
-  type KeygenResponse,
-  NetworkSigner,
-  WalletProviderServiceClient
-} from "@silencelaboratories/walletprovider-sdk"
 import type { Chain, Hex } from "viem"
 import { generatePrivateKey } from "viem/accounts"
 import { type Session, createDANSessionKeyManagerModule } from "../"
@@ -17,6 +11,7 @@ import {
   isWalletClient
 } from "../../account"
 import { extractChainIdFromBundlerUrl } from "../../bundler"
+import { WalletProviderSDK } from "../../index"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import { getDefaultStorageClient } from "../session-storage/utils"
 import {
@@ -24,7 +19,6 @@ import {
   DEFAULT_SESSION_KEY_MANAGER_MODULE
 } from "../utils/Constants"
 import {
-  type IBrowserWallet,
   NodeWallet,
   type SessionSearchParam,
   computeAddress,
@@ -33,6 +27,7 @@ import {
   resumeSession
 } from "../utils/Helper"
 import type { DanModuleInfo } from "../utils/Types"
+import type { IBrowserWallet } from "../walletprovider-sdk/types"
 import {
   type Policy,
   type SessionGrantedPayload,
@@ -57,8 +52,6 @@ export const DEFAULT_SESSION_DURATION = 60 * 60
  * @returns Promise<{@link SessionGrantedPayload}> - An object containing the status of the transaction and the sessionID.
  *
  * @example
- *
- * ```typescript
  *
  * import { type PolicyWithoutSessionKey, type Session, createDistributedSession } from "@biconomy/account"
  *
@@ -85,10 +78,7 @@ export const DEFAULT_SESSION_DURATION = 60 * 60
  * )
  *
  * const { success } = await wait()
- *
- * ```
- */
-
+*/
 export const createDistributedSession = async (
   smartAccount: BiconomySmartAccountV2,
   policy: PolicyWithoutSessionKey[],
@@ -196,16 +186,17 @@ export const getDANSessionKey = async (
   const ephSK: Uint8Array = hexToUint8Array(hexEphSKWithout0x)
   const ephPK: Uint8Array = await getPublicKeyAsync(ephSK)
 
-  const wpClient = new WalletProviderServiceClient({
+  const wpClient = new WalletProviderSDK.WalletProviderServiceClient({
     walletProviderId: "WalletProvider",
     walletProviderUrl: DAN_BACKEND_URL
   })
 
-  const eoaAuth = new EOAAuth(eoaAddress, wallet, ephPK, duration)
-  const sdk = new NetworkSigner(wpClient, threshold, partiesNumber, eoaAuth)
+  const eoaAuth = new WalletProviderSDK.EOAAuth(eoaAddress, wallet, ephPK, duration)
+  const sdk = new WalletProviderSDK.NetworkSigner(wpClient, threshold, partiesNumber, eoaAuth)
 
   // Generate a new key
-  const resp: KeygenResponse = await sdk.authenticateAndCreateKey(ephPK)
+  // @ts-ignore
+  const resp = await sdk.authenticateAndCreateKey(ephPK)
 
   const pubKey = resp.publicKey
   const mpcKeyId = other?.mpcKeyId ?? resp.keyId as Hex

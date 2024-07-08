@@ -21,13 +21,13 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v1
 
       - name: Build
-        uses: ./.github/actions/install-dependencies
+        uses: ./.github/actions/build
         env:
           SILENCE_LABS_NPM_TOKEN: ${{ secrets.SILENCE_LABS_NPM_TOKEN }}
 

@@ -12,7 +12,7 @@ import type {
   WalletClient
 } from "viem"
 import type { IBundler } from "../../bundler"
-import type { BaseValidationModule, ModuleInfo, SessionType } from "../../modules"
+import type { BaseValidationModule, ModuleInfo, SessionSearchParam, SessionType } from "../../modules"
 import type {
   ISessionStorage,
   SessionLeafNode
@@ -202,44 +202,6 @@ export type BiconomySmartAccountV2ConfigConstructorProps =
  * @property {SimulationType} [simulationType] - Determine which parts of the transaction a bundler will simulate: "validation" | "validation_and_execution".
  * @property {StateOverrideSet} [stateOverrideSet] - For overriding the state.
  * @property {boolean} [useEmptyDeployCallData] - Set to true if the transaction is being used only to deploy the smart contract, so "0x" is set as the user operation call data.
- * 
- * @remarks
- * This example shows how to increase the estimated gas values for a transaction using `gasOffset` parameter.
- *
- *  @example
- * 
- * ```typescript
- * import { createClient } from "viem"
- * import { createSmartAccountClient } from "@biconomy/account"
- * import { createWalletClient, http } from "viem";
- * import { polygonAmoy } from "viem/chains";
- *
- * const signer = createWalletClient({
- *   account,
- *   chain: polygonAmoy,
- *   transport: http(),
- * });
- *
- * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dashboard
- * const encodedCall = encodeFunctionData({
- *   abi: parseAbi(["function safeMint(address to) public"]),
- *   functionName: "safeMint",
- *   args: ["0x..."],
- * });
- *
- * const transaction = {
- *   to: nftAddress,
- *   data: encodedCall
- * }
- *
- * const { waitForTxHash } = await smartAccount.sendTransaction(transaction, {
- *  gasOffset: {
- *      verificationGasLimitOffsetPct: 25, // 25% increase for the already estimated gas limit
- *      preVerificationGasOffsetPct: 10 // 10% increase for the already estimated gas limit
- *     }
- * });
- * const { transactionHash, userOperationReceipt } = await wait();
- * ```
  */
 export type BuildUserOpOptions = {
   gasOffset?: GasOffsetPct
@@ -251,6 +213,17 @@ export type BuildUserOpOptions = {
   stateOverrideSet?: StateOverrideSet
   dummyPndOverride?: BytesLike
   useEmptyDeployCallData?: boolean
+}
+
+export type GetSessionParams = {
+  /** The index of the session leaf(ves) from the session storage client */
+  leafIndex?: number[] | number | undefined | null,
+  /** The session search parameter, can be a full {@link Session}, {@link ISessionStorage} or a smartAccount address */
+  store?: SessionSearchParam,
+  /** The chain to use */
+  chain?: Chain,
+  /** the txs being submitted */
+  txs?: Transaction | Transaction[]
 }
 
 export type SessionDataForAccount = {

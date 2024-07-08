@@ -1,8 +1,3 @@
-import {
-  EphAuth,
-  NetworkSigner,
-  WalletProviderServiceClient
-} from "@silencelaboratories/walletprovider-sdk"
 import { MerkleTree } from "merkletreejs"
 import {
   type Hex,
@@ -42,6 +37,11 @@ import {
   StorageType
 } from "./utils/Types.js"
 import { generateRandomHex } from "./utils/Uid.js"
+import {
+  EphAuth,
+  NetworkSigner,
+  WalletProviderServiceClient
+} from "./walletprovider-sdk/types.js"
 
 export type WalletProviderDefs = {
   walletProviderId: string
