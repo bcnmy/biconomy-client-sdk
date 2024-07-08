@@ -1478,10 +1478,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @param manyOrOneTransactions Array of {@link Transaction} to be batched and sent. Can also be a single {@link Transaction}.
    * @param buildUseropDto {@link BuildUserOpOptions}.
-   * @param sessionData
+   * @param sessionData - Optional parameter. If you are using session keys, you can pass the sessionIds, the session and the storage client to retrieve the session data while sending a tx
    * @returns Promise<{@link UserOpResponse}> that you can use to track the user operation.
    *
    * @example
+   * ```ts
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
@@ -1507,42 +1508,10 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * const { waitForTxHash } = await smartAccount.sendTransaction(transaction);
    * const { transactionHash, userOperationReceipt } = await wait();
-   *
-   *  @remarks
-   * This example shows how to increase the estimated gas values for a transaction using `gasOffset` parameter.
-   *
-   *  @example
-   * import { createClient } from "viem"
-   * import { createSmartAccountClient } from "@biconomy/account"
-   * import { createWalletClient, http } from "viem";
-   * import { polygonAmoy } from "viem/chains";
-   *
-   * const signer = createWalletClient({
-   *   account,
-   *   chain: polygonAmoy,
-   *   transport: http(),
-   * });
-   *
-   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dashboard
-   * const encodedCall = encodeFunctionData({
-   *   abi: parseAbi(["function safeMint(address to) public"]),
-   *   functionName: "safeMint",
-   *   args: ["0x..."],
-   * });
-   *
-   * const transaction = {
-   *   to: nftAddress,
-   *   data: encodedCall
-   * }
-   *
-   * const { waitForTxHash } = await smartAccount.sendTransaction(transaction, {
-   *  gasOffset: {
-   *      verificationGasLimitOffsetPct: 25, // 25% increase for the already estimated gas limit
-   *      preVerificationGasOffsetPct: 10 // 10% increase for the already estimated gas limit
-   *     }
-   * });
-   * const { transactionHash, userOperationReceipt } = await wait();
-   *
+   * ```
+   * 
+   * 
+   * 
    */
   async sendTransaction(
     manyOrOneTransactions: Transaction | Transaction[],
