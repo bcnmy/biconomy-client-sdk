@@ -1519,9 +1519,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     sessionData?: Prettify<Parameters<typeof this.getSessionParams>>
   ): Promise<UserOpResponse> {
     let defaultedBuildUseropDto = { ...buildUseropDto } ?? {}
-
-
     if (this.sessionType && sessionData) {
+      sessionData[3] = manyOrOneTransactions;
       const getSessionParameters = await this.getSessionParams(...(sessionData ?? []))
       defaultedBuildUseropDto = {
         ...defaultedBuildUseropDto,

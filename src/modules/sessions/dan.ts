@@ -179,10 +179,11 @@ export const createDistributedSession = async (
 export const getDANSessionKey = async (
   smartAccount: BiconomySmartAccountV2,
   browserWallet?: IBrowserWallet,
-  { threshold = 11, partiesNumber = 20 }: Partial<DanModuleInfo> = {},
+  { threshold = 11, partiesNumber = 20, ...other }: Partial<DanModuleInfo> = {},
   duration = DEFAULT_SESSION_DURATION
 ) => {
-  const eoaAddress = (await smartAccount.getSigner().getAddress()) as Hex // Smart account owner
+
+  const eoaAddress = other?.eoaAddress ?? (await smartAccount.getSigner().getAddress()) as Hex // Smart account owner
   const innerSigner = smartAccount.getSigner().inner
 
   if (!browserWallet && !isWalletClient(innerSigner))
@@ -190,7 +191,7 @@ export const getDANSessionKey = async (
   const wallet = browserWallet ?? new NodeWallet(smartAccount.getSigner().inner)
 
   const hexEphSK = generatePrivateKey()
-  const hexEphSKWithout0x = hexEphSK.slice(2)
+  const hexEphSKWithout0x = other?.hexEphSKWithout0x ?? hexEphSK.slice(2)
 
   const ephSK: Uint8Array = hexToUint8Array(hexEphSKWithout0x)
   const ephPK: Uint8Array = await getPublicKeyAsync(ephSK)
@@ -207,7 +208,7 @@ export const getDANSessionKey = async (
   const resp: KeygenResponse = await sdk.authenticateAndCreateKey(ephPK)
 
   const pubKey = resp.publicKey
-  const mpcKeyId = resp.keyId as Hex
+  const mpcKeyId = other?.mpcKeyId ?? resp.keyId as Hex
 
   const sessionKeyEOA = computeAddress(pubKey)
 
