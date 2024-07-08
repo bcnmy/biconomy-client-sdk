@@ -1,13 +1,13 @@
-import type { EncodeAbiParametersReturnType, Hex } from "viem";
-import type { SessionEpoch } from "..";
-import { DEFAULT_ERC20_MODULE } from "../utils/Constants";
-import type { CreateSessionDataParams } from "../utils/Types";
+import type { EncodeAbiParametersReturnType, Hex } from "viem"
+import type { SessionEpoch } from ".."
+import { DEFAULT_ERC20_MODULE } from "../utils/Constants"
+import type { CreateSessionDataParams } from "../utils/Types"
 
 export type CreateERC20SessionConfig = {
-  interval: SessionEpoch;
-  sessionKeyAddress: Hex;
-  sessionKeyData: EncodeAbiParametersReturnType;
-};
+  interval: SessionEpoch
+  sessionKeyAddress: Hex
+  sessionKeyData: EncodeAbiParametersReturnType
+}
 /**
  *
  * @param erc20SessionConfig {@link CreateERC20SessionConfig}
@@ -19,14 +19,14 @@ export const createERC20SessionDatum = ({
   /** The sessionKeyAddress upon which the policy is to be imparted. Used as a reference to the stored session keys */
   sessionKeyAddress,
   /** The sessionKeyData to be included in the policy {@link EncodeAbiParametersReturnType}*/
-  sessionKeyData,
+  sessionKeyData
 }: CreateERC20SessionConfig): CreateSessionDataParams => {
-  const { validUntil = 0, validAfter = 0 } = interval ?? {};
+  const { validUntil = 0, validAfter = 0 } = interval ?? {}
   return {
     validUntil,
     validAfter,
     sessionValidationModule: DEFAULT_ERC20_MODULE,
     sessionPublicKey: sessionKeyAddress,
-    sessionKeyData,
-  };
-};
+    sessionKeyData
+  }
+}

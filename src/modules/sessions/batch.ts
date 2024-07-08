@@ -1,12 +1,12 @@
-import type { Chain } from "viem";
+import type { Chain } from "viem"
 import {
   type BiconomySmartAccountV2,
   type BuildUserOpOptions,
   ERROR_MESSAGES,
   Logger,
   type Transaction,
-  isNullOrUndefined,
-} from "../../account";
+  isNullOrUndefined
+} from "../../account"
 import {
   type CreateSessionDataParams,
   DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
@@ -18,16 +18,16 @@ import {
   createBatchedSessionRouterModule,
   createSessionKeyManagerModule,
   didProvideFullSession,
-  resumeSession,
-} from "../index.js";
-import type { ISessionStorage } from "../interfaces/ISessionStorage";
+  resumeSession
+} from "../index.js"
+import type { ISessionStorage } from "../interfaces/ISessionStorage"
 
 export type CreateBatchSessionConfig = {
   /** The storage client to be used for storing the session data */
-  sessionStorageClient: ISessionStorage;
+  sessionStorageClient: ISessionStorage
   /** An array of session configurations */
-  leaves: CreateSessionDataParams[];
-};
+  leaves: CreateSessionDataParams[]
+}
 
 /**
  *
@@ -124,75 +124,72 @@ export const createBatchSession = async (
   sessionStorageClient: ISessionStorage,
   /** An array of session configurations */
   leaves: CreateSessionDataParams[],
-  buildUseropDto?: BuildUserOpOptions,
+  buildUseropDto?: BuildUserOpOptions
 ): Promise<SessionGrantedPayload> => {
-  const smartAccountAddress = await smartAccount.getAddress();
+  const smartAccountAddress = await smartAccount.getAddress()
 
   const sessionsModule = await createSessionKeyManagerModule({
     smartAccountAddress,
-    sessionStorageClient,
-  });
+    sessionStorageClient
+  })
 
   // Create batched session module
   const batchedSessionModule = await createBatchedSessionRouterModule({
     smartAccountAddress,
-    sessionKeyManagerModule: sessionsModule,
-  });
+    sessionKeyManagerModule: sessionsModule
+  })
 
   const { data: policyData, sessionIDInfo } =
-    await batchedSessionModule.createSessionData(leaves);
+    await batchedSessionModule.createSessionData(leaves)
 
   const permitTx = {
     to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
-    data: policyData,
-  };
+    data: policyData
+  }
 
-  const isDeployed = await smartAccount.isAccountDeployed();
+  const isDeployed = await smartAccount.isAccountDeployed()
 
-  const txs: Transaction[] = [];
+  const txs: Transaction[] = []
   const enableSessionKeyTx = await smartAccount.getEnableModuleData(
-    DEFAULT_SESSION_KEY_MANAGER_MODULE,
-  );
+    DEFAULT_SESSION_KEY_MANAGER_MODULE
+  )
   const enableBatchedSessionTx = await smartAccount.getEnableModuleData(
-    DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
-  );
+    DEFAULT_BATCHED_SESSION_ROUTER_MODULE
+  )
   if (isDeployed) {
     const [isSessionModuleEnabled, isBatchedSessionModuleEnabled] =
       await Promise.all([
         smartAccount.isModuleEnabled(DEFAULT_SESSION_KEY_MANAGER_MODULE),
-        smartAccount.isModuleEnabled(DEFAULT_BATCHED_SESSION_ROUTER_MODULE),
-      ]);
+        smartAccount.isModuleEnabled(DEFAULT_BATCHED_SESSION_ROUTER_MODULE)
+      ])
 
     if (!isSessionModuleEnabled) {
-      txs.push(enableSessionKeyTx);
+      txs.push(enableSessionKeyTx)
     }
     if (!isBatchedSessionModuleEnabled) {
-      txs.push(enableBatchedSessionTx);
+      txs.push(enableBatchedSessionTx)
     }
   } else {
-    Logger.log(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED);
-    txs.push(enableSessionKeyTx, enableBatchedSessionTx);
+    Logger.log(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED)
+    txs.push(enableSessionKeyTx, enableBatchedSessionTx)
   }
 
-  txs.push(permitTx);
+  txs.push(permitTx)
 
-  const userOpResponse = await smartAccount.sendTransaction(
-    txs,
-    buildUseropDto,
-  );
+  const userOpResponse = await smartAccount.sendTransaction(txs, buildUseropDto)
 
   return {
     session: {
       sessionStorageClient,
-      sessionIDInfo,
+      sessionIDInfo
     },
-    ...userOpResponse,
-  };
-};
+    ...userOpResponse
+  }
+}
 
 export type BatchSessionParamsPayload = {
-  params: { batchSessionParams: SessionParams[] };
-};
+  params: { batchSessionParams: SessionParams[] }
+}
 /**
  * getBatchSessionTxParams
  *
@@ -209,47 +206,46 @@ export const getBatchSessionTxParams = async (
   transactions: Transaction[],
   correspondingIndexes: number[] | null,
   conditionalSession: SessionSearchParam,
-  chain: Chain,
+  chain: Chain
 ): Promise<BatchSessionParamsPayload> => {
   if (
-    !transactions.length ||
-    (correspondingIndexes &&
-      correspondingIndexes.length !== transactions.length)
+    correspondingIndexes &&
+    correspondingIndexes.length !== transactions.length
   ) {
-    throw new Error(ERROR_MESSAGES.INVALID_SESSION_INDEXES);
+    throw new Error(ERROR_MESSAGES.INVALID_SESSION_INDEXES)
   }
 
-  const { sessionStorageClient } = await resumeSession(conditionalSession);
-  let sessionIDInfo: string[] = [];
+  const { sessionStorageClient } = await resumeSession(conditionalSession)
+  let sessionIDInfo: string[] = []
 
-  const allSessions = await sessionStorageClient.getAllSessionData();
+  const allSessions = await sessionStorageClient.getAllSessionData()
   if (didProvideFullSession(conditionalSession)) {
-    sessionIDInfo = (conditionalSession as Session).sessionIDInfo;
+    sessionIDInfo = (conditionalSession as Session).sessionIDInfo
   } else if (isNullOrUndefined(correspondingIndexes)) {
     sessionIDInfo = allSessions
       .slice(-transactions.length)
-      .map(({ sessionID }) => sessionID as string);
+      .map(({ sessionID }) => sessionID as string)
   } else {
     sessionIDInfo = (correspondingIndexes ?? []).map(
-      (index) => allSessions[index].sessionID as string,
-    );
+      (index) => allSessions[index].sessionID as string
+    )
   }
 
   const sessionSigner = await sessionStorageClient.getSignerBySession(
     {
-      sessionID: sessionIDInfo[0],
+      sessionID: sessionIDInfo[0]
     },
-    chain,
-  );
+    chain
+  )
 
   return {
     params: {
       batchSessionParams: sessionIDInfo.map(
         (sessionID): SessionParams => ({
           sessionSigner,
-          sessionID,
-        }),
-      ),
-    },
-  };
-};
+          sessionID
+        })
+      )
+    }
+  }
+}

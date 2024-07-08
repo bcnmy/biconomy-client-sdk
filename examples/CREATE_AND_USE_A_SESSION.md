@@ -113,11 +113,6 @@ const smartAccountWithSession = await createSessionSmartAccountClient(
 );
 
 const { wait: mintWait } = await smartAccountWithSession.sendTransaction(
-  [
-    correspondingIndexes,
-    smartAccountAddress, // Storage client, full Session or smartAccount address if using default storage
-    chain,
-  ],
   {
     to: nftAddress,
     data: encodeFunctionData({
@@ -126,7 +121,12 @@ const { wait: mintWait } = await smartAccountWithSession.sendTransaction(
       args: [smartAccountAddress],
     }),
   },
-  withSponsorship
+  withSponsorship,
+  [
+    correspondingIndexes,
+    smartAccountAddress, // Storage client, full Session or smartAccount address if using default storage
+    chain,
+  ],
 );
 
 const { success } = await mintWait();

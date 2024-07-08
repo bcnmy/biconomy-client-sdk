@@ -129,11 +129,11 @@ export const createSessionSmartAccountClient = async (
     sessionData =
       sessionType === "SINGLE"
         ? {
-            sessionID,
-            sessionSigner,
-          }
+          sessionID,
+          sessionSigner,
+        }
         : undefined;
-  } catch (e) {}
+  } catch (e) { }
 
   const sessionModule = await createSessionKeyManagerModule({
     smartAccountAddress: biconomySmartAccountConfig.accountAddress,

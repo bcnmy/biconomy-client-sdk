@@ -1,28 +1,28 @@
-import { getPublicKeyAsync } from "@noble/ed25519";
+import { getPublicKeyAsync } from "@noble/ed25519"
 import {
   EOAAuth,
   type KeygenResponse,
   NetworkSigner,
-  WalletProviderServiceClient,
-} from "@silencelaboratories/walletprovider-sdk";
-import type { Chain, Hex } from "viem";
-import { generatePrivateKey } from "viem/accounts";
-import { type Session, createDANSessionKeyManagerModule } from "../";
+  WalletProviderServiceClient
+} from "@silencelaboratories/walletprovider-sdk"
+import type { Chain, Hex } from "viem"
+import { generatePrivateKey } from "viem/accounts"
+import { type Session, createDANSessionKeyManagerModule } from "../"
 import {
   type BiconomySmartAccountV2,
   type BuildUserOpOptions,
   ERROR_MESSAGES,
   Logger,
   type Transaction,
-  isWalletClient,
-} from "../../account";
-import { extractChainIdFromBundlerUrl } from "../../bundler";
-import type { ISessionStorage } from "../interfaces/ISessionStorage";
-import { getDefaultStorageClient } from "../session-storage/utils";
+  isWalletClient
+} from "../../account"
+import { extractChainIdFromBundlerUrl } from "../../bundler"
+import type { ISessionStorage } from "../interfaces/ISessionStorage"
+import { getDefaultStorageClient } from "../session-storage/utils"
 import {
   DAN_BACKEND_URL,
-  DEFAULT_SESSION_KEY_MANAGER_MODULE,
-} from "../utils/Constants";
+  DEFAULT_SESSION_KEY_MANAGER_MODULE
+} from "../utils/Constants"
 import {
   type IBrowserWallet,
   NodeWallet,
@@ -30,17 +30,17 @@ import {
   computeAddress,
   didProvideFullSession,
   hexToUint8Array,
-  resumeSession,
-} from "../utils/Helper";
-import type { DanModuleInfo } from "../utils/Types";
+  resumeSession
+} from "../utils/Helper"
+import type { DanModuleInfo } from "../utils/Types"
 import {
   type Policy,
   type SessionGrantedPayload,
-  createABISessionDatum,
-} from "./abi";
+  createABISessionDatum
+} from "./abi"
 
-export type PolicyWithoutSessionKey = Omit<Policy, "sessionKeyAddress">;
-export const DEFAULT_SESSION_DURATION = 60 * 60;
+export type PolicyWithoutSessionKey = Omit<Policy, "sessionKeyAddress">
+export const DEFAULT_SESSION_DURATION = 60 * 60
 /**
  *
  * createDistributedSession
@@ -95,125 +95,121 @@ export const createDistributedSession = async (
   sessionStorageClient?: ISessionStorage,
   buildUseropDto?: BuildUserOpOptions,
   chain?: number,
-  browserWallet?: IBrowserWallet,
+  browserWallet?: IBrowserWallet
 ): Promise<SessionGrantedPayload> => {
   const defaultedChainId =
     chain ??
-    extractChainIdFromBundlerUrl(smartAccount?.bundler?.getBundlerUrl() ?? "");
+    extractChainIdFromBundlerUrl(smartAccount?.bundler?.getBundlerUrl() ?? "")
   if (!defaultedChainId) {
-    throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND);
+    throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND)
   }
-  const smartAccountAddress = await smartAccount.getAddress();
+  const smartAccountAddress = await smartAccount.getAddress()
   const defaultedSessionStorageClient =
-    sessionStorageClient || getDefaultStorageClient(smartAccountAddress);
+    sessionStorageClient || getDefaultStorageClient(smartAccountAddress)
 
   const sessionsModule = await createDANSessionKeyManagerModule({
     smartAccountAddress,
-    sessionStorageClient: defaultedSessionStorageClient,
-  });
+    sessionStorageClient: defaultedSessionStorageClient
+  })
 
-  let duration = DEFAULT_SESSION_DURATION;
+  let duration = DEFAULT_SESSION_DURATION
   if (policy?.[0].interval?.validUntil) {
-    duration = Math.round(policy?.[0].interval?.validUntil - Date.now() / 1000);
+    duration = Math.round(policy?.[0].interval?.validUntil - Date.now() / 1000)
   }
 
   const { sessionKeyEOA: sessionKeyAddress, ...other } = await getDANSessionKey(
     smartAccount,
     browserWallet,
     undefined,
-    duration,
-  );
+    duration
+  )
 
-  const danModuleInfo: DanModuleInfo = { ...other, chainId: defaultedChainId };
+  const danModuleInfo: DanModuleInfo = { ...other, chainId: defaultedChainId }
   const defaultedPolicy: Policy[] = policy.map((p) => ({
     ...p,
-    sessionKeyAddress,
-  }));
+    sessionKeyAddress
+  }))
 
   const humanReadablePolicyArray = defaultedPolicy.map((p) =>
-    createABISessionDatum({ ...p, danModuleInfo }),
-  );
+    createABISessionDatum({ ...p, danModuleInfo })
+  )
 
   const { data: policyData, sessionIDInfo } =
-    await sessionsModule.createSessionData(humanReadablePolicyArray);
+    await sessionsModule.createSessionData(humanReadablePolicyArray)
 
   const permitTx = {
     to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
-    data: policyData,
-  };
+    data: policyData
+  }
 
-  const txs: Transaction[] = [];
+  const txs: Transaction[] = []
 
-  const isDeployed = await smartAccount.isAccountDeployed();
+  const isDeployed = await smartAccount.isAccountDeployed()
   const enableSessionTx = await smartAccount.getEnableModuleData(
-    DEFAULT_SESSION_KEY_MANAGER_MODULE,
-  );
+    DEFAULT_SESSION_KEY_MANAGER_MODULE
+  )
 
   if (isDeployed) {
     const enabled = await smartAccount.isModuleEnabled(
-      DEFAULT_SESSION_KEY_MANAGER_MODULE,
-    );
+      DEFAULT_SESSION_KEY_MANAGER_MODULE
+    )
     if (!enabled) {
-      txs.push(enableSessionTx);
+      txs.push(enableSessionTx)
     }
   } else {
-    Logger.log(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED);
-    txs.push(enableSessionTx);
+    Logger.log(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED)
+    txs.push(enableSessionTx)
   }
 
-  txs.push(permitTx);
+  txs.push(permitTx)
 
-  const userOpResponse = await smartAccount.sendTransaction(
-    txs,
-    buildUseropDto,
-  );
+  const userOpResponse = await smartAccount.sendTransaction(txs, buildUseropDto)
 
-  smartAccount.setActiveValidationModule(sessionsModule);
+  smartAccount.setActiveValidationModule(sessionsModule)
 
   return {
     session: {
       sessionStorageClient: defaultedSessionStorageClient,
-      sessionIDInfo,
+      sessionIDInfo
     },
-    ...userOpResponse,
-  };
-};
+    ...userOpResponse
+  }
+}
 
 export const getDANSessionKey = async (
   smartAccount: BiconomySmartAccountV2,
   browserWallet?: IBrowserWallet,
   { threshold = 11, partiesNumber = 20 }: Partial<DanModuleInfo> = {},
-  duration = DEFAULT_SESSION_DURATION,
+  duration = DEFAULT_SESSION_DURATION
 ) => {
-  const eoaAddress = (await smartAccount.getSigner().getAddress()) as Hex; // Smart account owner
-  const innerSigner = smartAccount.getSigner().inner;
+  const eoaAddress = (await smartAccount.getSigner().getAddress()) as Hex // Smart account owner
+  const innerSigner = smartAccount.getSigner().inner
 
   if (!browserWallet && !isWalletClient(innerSigner))
-    throw new Error(ERROR_MESSAGES.INVALID_BROWSER_WALLET);
-  const wallet =
-    browserWallet ?? new NodeWallet(smartAccount.getSigner().inner);
+    throw new Error(ERROR_MESSAGES.INVALID_BROWSER_WALLET)
+  const wallet = browserWallet ?? new NodeWallet(smartAccount.getSigner().inner)
 
-  const hexEphSK = generatePrivateKey();
-  const hexEphSKWithout0x = hexEphSK.slice(2);
+  const hexEphSK = generatePrivateKey()
+  const hexEphSKWithout0x = hexEphSK.slice(2)
 
-  const ephSK: Uint8Array = hexToUint8Array(hexEphSKWithout0x);
-  const ephPK: Uint8Array = await getPublicKeyAsync(ephSK);
+  const ephSK: Uint8Array = hexToUint8Array(hexEphSKWithout0x)
+  const ephPK: Uint8Array = await getPublicKeyAsync(ephSK)
 
   const wpClient = new WalletProviderServiceClient({
     walletProviderId: "WalletProvider",
-    walletProviderUrl: DAN_BACKEND_URL,
-  });
+    walletProviderUrl: DAN_BACKEND_URL
+  })
 
-  const eoaAuth = new EOAAuth(eoaAddress, wallet, ephPK, duration);
-  const sdk = new NetworkSigner(wpClient, threshold, partiesNumber, eoaAuth);
+  const eoaAuth = new EOAAuth(eoaAddress, wallet, ephPK, duration)
+  const sdk = new NetworkSigner(wpClient, threshold, partiesNumber, eoaAuth)
 
   // Generate a new key
-  const resp: KeygenResponse = await sdk.authenticateAndCreateKey(ephPK);
+  const resp: KeygenResponse = await sdk.authenticateAndCreateKey(ephPK)
 
-  const pubKey = resp.publicKey;
-  const mpcKeyId = resp.keyId as Hex;
+  const pubKey = resp.publicKey
+  const mpcKeyId = resp.keyId as Hex
 
-  const sessionKeyEOA = computeAddress(pubKey);
+  const sessionKeyEOA = computeAddress(pubKey)
 
   return {
     sessionKeyEOA,
@@ -221,16 +217,16 @@ export const getDANSessionKey = async (
     hexEphSKWithout0x,
     partiesNumber,
     threshold,
-    eoaAddress,
-  };
-};
+    eoaAddress
+  }
+}
 
 export type DanSessionParamsPayload = {
   params: {
-    sessionID: string;
-    danModuleInfo: DanModuleInfo;
-  };
-};
+    sessionID: string
+    danModuleInfo: DanModuleInfo
+  }
+}
 /**
  * getDanSessionTxParams
  *
@@ -244,36 +240,36 @@ export type DanSessionParamsPayload = {
 export const getDanSessionTxParams = async (
   conditionalSession: SessionSearchParam,
   chain: Chain,
-  correspondingIndex?: number | null | undefined,
+  correspondingIndex?: number | null | undefined
 ): Promise<DanSessionParamsPayload> => {
   const defaultedCorrespondingIndex = Array.isArray(correspondingIndex)
     ? correspondingIndex[0]
-    : correspondingIndex;
-  const resumedSession = await resumeSession(conditionalSession);
+    : correspondingIndex
+  const resumedSession = await resumeSession(conditionalSession)
   // if correspondingIndex is null then use the last session.
   const allSessions =
-    await resumedSession.sessionStorageClient.getAllSessionData();
+    await resumedSession.sessionStorageClient.getAllSessionData()
 
   const sessionID = didProvideFullSession(conditionalSession)
     ? (conditionalSession as Session).sessionIDInfo[
-        defaultedCorrespondingIndex ?? 0
-      ]
+    defaultedCorrespondingIndex ?? 0
+    ]
     : allSessions[defaultedCorrespondingIndex ?? allSessions.length - 1]
-        .sessionID;
+      .sessionID
 
-  const matchingLeafDatum = allSessions.find((s) => s.sessionID === sessionID);
+  const matchingLeafDatum = allSessions.find((s) => s.sessionID === sessionID)
 
-  if (!sessionID) throw new Error(ERROR_MESSAGES.MISSING_SESSION_ID);
-  if (!matchingLeafDatum) throw new Error(ERROR_MESSAGES.NO_LEAF_FOUND);
+  if (!sessionID) throw new Error(ERROR_MESSAGES.MISSING_SESSION_ID)
+  if (!matchingLeafDatum) throw new Error(ERROR_MESSAGES.NO_LEAF_FOUND)
   if (!matchingLeafDatum.danModuleInfo)
-    throw new Error(ERROR_MESSAGES.NO_DAN_MODULE_INFO);
-  const chainIdsMatch = chain.id === matchingLeafDatum?.danModuleInfo?.chainId;
-  if (!chainIdsMatch) throw new Error(ERROR_MESSAGES.CHAIN_ID_MISMATCH);
+    throw new Error(ERROR_MESSAGES.NO_DAN_MODULE_INFO)
+  const chainIdsMatch = chain.id === matchingLeafDatum?.danModuleInfo?.chainId
+  if (!chainIdsMatch) throw new Error(ERROR_MESSAGES.CHAIN_ID_MISMATCH)
 
   return {
     params: {
       sessionID,
-      danModuleInfo: matchingLeafDatum.danModuleInfo,
-    },
-  };
-};
+      danModuleInfo: matchingLeafDatum.danModuleInfo
+    }
+  }
+}

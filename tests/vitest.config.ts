@@ -1,5 +1,5 @@
-import { join } from "node:path";
-import { defineConfig } from "vitest/config";
+import { join } from "node:path"
+import { defineConfig } from "vitest/config"
 
 export default defineConfig({
   test: {
@@ -15,21 +15,21 @@ export default defineConfig({
         "**/_esm/**",
         "**/_types/**",
         "**/*.test.ts",
-        "**/test/**",
+        "**/test/**"
       ],
       include: ["src/**/*.ts"],
       thresholds: {
         lines: 80,
         functions: 50,
         branches: 60,
-        statements: 80,
-      },
+        statements: 80
+      }
     },
     environment: "node",
     include: ["tests/**/*.test.ts"],
     setupFiles: [join(__dirname, "./setupFiles.ts")],
     globalSetup: [join(__dirname, "./globalSetup.ts")],
     // hookTimeout: 20_000,
-    testTimeout: 20_000,
-  },
-});
+    testTimeout: 20_000
+  }
+})

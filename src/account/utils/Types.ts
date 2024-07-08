@@ -9,190 +9,187 @@ import type {
   SignableMessage,
   TypedData,
   TypedDataDefinition,
-  WalletClient,
-} from "viem";
-import type { IBundler } from "../../bundler";
-import type {
-  BaseValidationModule,
-  ModuleInfo,
-  SessionType,
-} from "../../modules";
+  WalletClient
+} from "viem"
+import type { IBundler } from "../../bundler"
+import type { BaseValidationModule, ModuleInfo, SessionType } from "../../modules"
 import type {
   ISessionStorage,
-  SessionLeafNode,
-} from "../../modules/interfaces/ISessionStorage";
+  SessionLeafNode
+} from "../../modules/interfaces/ISessionStorage"
 import type {
   FeeQuotesOrDataDto,
   IPaymaster,
   PaymasterFeeQuote,
   PaymasterMode,
   SmartAccountData,
-  SponsorUserOperationDto,
-} from "../../paymaster";
+  SponsorUserOperationDto
+} from "../../paymaster"
 
-export type EntryPointAddresses = Record<string, string>;
-export type BiconomyFactories = Record<string, string>;
-export type BiconomyImplementations = Record<string, string>;
-export type EntryPointAddressesByVersion = Record<string, string>;
-export type BiconomyFactoriesByVersion = Record<string, string>;
-export type BiconomyImplementationsByVersion = Record<string, string>;
+export type EntryPointAddresses = Record<string, string>
+export type BiconomyFactories = Record<string, string>
+export type BiconomyImplementations = Record<string, string>
+export type EntryPointAddressesByVersion = Record<string, string>
+export type BiconomyFactoriesByVersion = Record<string, string>
+export type BiconomyImplementationsByVersion = Record<string, string>
 
 export type SmartAccountConfig = {
   /** entryPointAddress: address of the entry point */
-  entryPointAddress: string;
+  entryPointAddress: string
   /** factoryAddress: address of the smart account factory */
-  bundler?: IBundler;
-};
+  bundler?: IBundler
+}
 
 export interface BalancePayload {
   /** address: The address of the account */
-  address: string;
+  address: string
   /** chainId: The chainId of the network */
-  chainId: number;
+  chainId: number
   /** amount: The amount of the balance */
-  amount: bigint;
+  amount: bigint
   /** decimals: The number of decimals */
-  decimals: number;
+  decimals: number
   /** formattedAmount: The amount of the balance formatted */
-  formattedAmount: string;
+  formattedAmount: string
 }
 
 export interface WithdrawalRequest {
   /** The address of the asset */
-  address: Hex;
+  address: Hex
   /** The amount to withdraw. Expects unformatted amount. Will use max amount if unset */
-  amount?: bigint;
+  amount?: bigint
   /** The destination address of the funds. The second argument from the `withdraw(...)` function will be used as the default if left unset. */
-  recipient?: Hex;
+  recipient?: Hex
 }
 
 export interface GasOverheads {
   /** fixed: fixed gas overhead */
-  fixed: number;
+  fixed: number
   /** perUserOp: per user operation gas overhead */
-  perUserOp: number;
+  perUserOp: number
   /** perUserOpWord: per user operation word gas overhead */
-  perUserOpWord: number;
+  perUserOpWord: number
   /** zeroByte: per byte gas overhead */
-  zeroByte: number;
+  zeroByte: number
   /** nonZeroByte: per non zero byte gas overhead */
-  nonZeroByte: number;
+  nonZeroByte: number
   /** bundleSize: per signature bundleSize */
-  bundleSize: number;
+  bundleSize: number
   /** sigSize: sigSize gas overhead */
-  sigSize: number;
+  sigSize: number
 }
 
 export type BaseSmartAccountConfig = {
   /** index: helps to not conflict with other smart account instances */
-  index?: number;
+  index?: number
   /** provider: WalletClientSigner from viem */
-  provider?: WalletClient;
+  provider?: WalletClient
   /** entryPointAddress: address of the smart account entry point */
-  entryPointAddress?: string;
+  entryPointAddress?: string
   /** accountAddress: address of the smart account, potentially counterfactual */
-  accountAddress?: string;
+  accountAddress?: string
   /** overheads: {@link GasOverheads} */
-  overheads?: Partial<GasOverheads>;
+  overheads?: Partial<GasOverheads>
   /** paymaster: {@link IPaymaster} interface */
-  paymaster?: IPaymaster;
+  paymaster?: IPaymaster
   /** chainId: chainId of the network */
-  chainId?: number;
-};
+  chainId?: number
+}
 
 export type BiconomyTokenPaymasterRequest = {
   /** feeQuote: {@link PaymasterFeeQuote} */
-  feeQuote: PaymasterFeeQuote;
+  feeQuote: PaymasterFeeQuote
   /** spender: The address of the spender who is paying for the transaction, this can usually be set to feeQuotesResponse.tokenPaymasterAddress */
-  spender: Hex;
+  spender: Hex
   /** maxApproval: If set to true, the paymaster will approve the maximum amount of tokens required for the transaction. Not recommended */
-  maxApproval?: boolean;
+  maxApproval?: boolean
   /* skip option to patch callData if approval is already given to the paymaster */
-  skipPatchCallData?: boolean;
-};
+  skipPatchCallData?: boolean
+}
 
 export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<
   T,
   Exclude<keyof T, Keys>
 > &
   {
-    [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>;
-  }[Keys];
+    [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>
+  }[Keys]
 
 export type ConditionalBundlerProps = RequireAtLeastOne<
   {
-    bundler: IBundler;
-    bundlerUrl: string;
+    bundler: IBundler
+    bundlerUrl: string
   },
   "bundler" | "bundlerUrl"
->;
+>
 export type ResolvedBundlerProps = {
-  bundler: IBundler;
-};
+  bundler: IBundler
+}
 export type ConditionalValidationProps = RequireAtLeastOne<
   {
-    defaultValidationModule: BaseValidationModule;
-    signer: SupportedSigner;
+    defaultValidationModule: BaseValidationModule
+    signer: SupportedSigner
   },
   "defaultValidationModule" | "signer"
->;
+>
 
 export type ResolvedValidationProps = {
   /** defaultValidationModule: {@link BaseValidationModule} */
-  defaultValidationModule: BaseValidationModule;
+  defaultValidationModule: BaseValidationModule
   /** activeValidationModule: {@link BaseValidationModule}. The active validation module. Will default to the defaultValidationModule */
-  activeValidationModule: BaseValidationModule;
+  activeValidationModule: BaseValidationModule
   /** signer: ethers Wallet, viemWallet or alchemys SmartAccountSigner */
-  signer: SmartAccountSigner;
+  signer: SmartAccountSigner
   /** chainId: chainId of the network */
-  chainId: number;
-};
+  chainId: number
+}
 
 export type BiconomySmartAccountV2ConfigBaseProps = {
   /** Factory address of biconomy factory contract or some other contract you have deployed on chain */
-  factoryAddress?: Hex;
+  factoryAddress?: Hex
   /** Sender address: If you want to override the Signer address with some other address and get counterfactual address can use this to pass the EOA and get SA address */
-  senderAddress?: Hex;
+  senderAddress?: Hex
   /** implementation of smart contract address or some other contract you have deployed and want to override */
-  implementationAddress?: Hex;
+  implementationAddress?: Hex
   /** defaultFallbackHandler: override the default fallback contract address */
-  defaultFallbackHandler?: Hex;
+  defaultFallbackHandler?: Hex
   /** rpcUrl: Rpc url, optional, we set default rpc url if not passed. */
-  rpcUrl?: string; // as good as Provider
+  rpcUrl?: string // as good as Provider
   /** paymasterUrl: The Paymaster URL retrieved from the Biconomy dashboard */
-  paymasterUrl?: string;
+  paymasterUrl?: string
   /** biconomyPaymasterApiKey: The API key retrieved from the Biconomy dashboard */
-  biconomyPaymasterApiKey?: string;
+  biconomyPaymasterApiKey?: string
   /** activeValidationModule: The active validation module. Will default to the defaultValidationModule */
-  activeValidationModule?: BaseValidationModule;
+  activeValidationModule?: BaseValidationModule
   /** scanForUpgradedAccountsFromV1: set to true if you you want the userwho was using biconomy SA v1 to upgrade to biconomy SA v2 */
-  scanForUpgradedAccountsFromV1?: boolean;
+  scanForUpgradedAccountsFromV1?: boolean
   /** the index of SA the EOA have generated and till which indexes the upgraded SA should scan */
-  maxIndexForScan?: number;
+  maxIndexForScan?: number
   /** Can be used to optionally override the chain with a custom chain if it doesn't already exist in viems list of supported chains. Alias of customChain */
-  viemChain?: Chain;
+  viemChain?: Chain
   /** Can be used to optionally override the chain with a custom chain if it doesn't already exist in viems list of supported chain. Alias of viemChain */
-  customChain?: Chain;
+  customChain?: Chain
   /** The initial code to be used for the smart account */
-  initCode?: Hex;
+  initCode?: Hex
   /** Used for session key manager module */
-  sessionData?: ModuleInfo;
+  sessionData?: ModuleInfo
   /** Used to skip the chain checks between singer, bundler and paymaster */
-  skipChainCheck?: boolean;
+  skipChainCheck?: boolean
   /** The type of the relevant session. Used with createSessionSmartAccountClient */
   sessionType?: SessionType;
-};
+
+}
 export type BiconomySmartAccountV2Config =
   BiconomySmartAccountV2ConfigBaseProps &
-    BaseSmartAccountConfig &
-    ConditionalBundlerProps &
-    ConditionalValidationProps;
+  BaseSmartAccountConfig &
+  ConditionalBundlerProps &
+  ConditionalValidationProps
 
 export type BiconomySmartAccountV2ConfigConstructorProps =
   BiconomySmartAccountV2ConfigBaseProps &
-    BaseSmartAccountConfig &
-    ResolvedBundlerProps &
-    ResolvedValidationProps;
+  BaseSmartAccountConfig &
+  ResolvedBundlerProps &
+  ResolvedValidationProps
 
 /**
  * Represents options for building a user operation.
@@ -207,30 +204,30 @@ export type BiconomySmartAccountV2ConfigConstructorProps =
  * @property {boolean} [useEmptyDeployCallData] - Set to true if the transaction is being used only to deploy the smart contract, so "0x" is set as the user operation call data.
  */
 export type BuildUserOpOptions = {
-  gasOffset?: GasOffsetPct;
-  params?: ModuleInfo;
-  nonceOptions?: NonceOptions;
-  forceEncodeForBatch?: boolean;
-  paymasterServiceData?: PaymasterUserOperationDto;
-  simulationType?: SimulationType;
-  stateOverrideSet?: StateOverrideSet;
-  dummyPndOverride?: BytesLike;
-  useEmptyDeployCallData?: boolean;
-};
+  gasOffset?: GasOffsetPct
+  params?: ModuleInfo
+  nonceOptions?: NonceOptions
+  forceEncodeForBatch?: boolean
+  paymasterServiceData?: PaymasterUserOperationDto
+  simulationType?: SimulationType
+  stateOverrideSet?: StateOverrideSet
+  dummyPndOverride?: BytesLike
+  useEmptyDeployCallData?: boolean
+}
 
 export type SessionDataForAccount = {
-  sessionStorageClient: ISessionStorage;
-  session: SessionLeafNode;
-};
+  sessionStorageClient: ISessionStorage
+  session: SessionLeafNode
+}
 
 export type NonceOptions = {
   /** nonceKey: The key to use for nonce */
-  nonceKey?: number;
+  nonceKey?: number
   /** nonceOverride: The nonce to use for the transaction */
-  nonceOverride?: number;
-};
+  nonceOverride?: number
+}
 
-export type SimulationType = "validation" | "validation_and_execution";
+export type SimulationType = "validation" | "validation_and_execution"
 
 /**
  * Represents an offset percentage value used for gas-related calculations.
@@ -251,177 +248,177 @@ export type SimulationType = "validation" | "validation_and_execution";
  * @property {number} [maxPriorityFeePerGasOffsetPct] - Percentage offset for the maximum priority fee per gas (similar to EIP-1559 max_priority_fee_per_gas).
  */
 export type GasOffsetPct = {
-  callGasLimitOffsetPct?: number;
-  verificationGasLimitOffsetPct?: number;
-  preVerificationGasOffsetPct?: number;
-  maxFeePerGasOffsetPct?: number;
-  maxPriorityFeePerGasOffsetPct?: number;
-};
+  callGasLimitOffsetPct?: number
+  verificationGasLimitOffsetPct?: number
+  preVerificationGasOffsetPct?: number
+  maxFeePerGasOffsetPct?: number
+  maxPriorityFeePerGasOffsetPct?: number
+}
 
 export type InitilizationData = {
-  accountIndex?: number;
-  signerAddress?: string;
-};
+  accountIndex?: number
+  signerAddress?: string
+}
 
 export type PaymasterUserOperationDto = SponsorUserOperationDto &
   FeeQuotesOrDataDto & {
     /** mode: sponsored or erc20 */
-    mode: PaymasterMode;
+    mode: PaymasterMode
     /** Always recommended, especially when using token paymaster */
-    calculateGasLimits?: boolean;
+    calculateGasLimits?: boolean
     /** Expiry duration in seconds */
-    expiryDuration?: number;
+    expiryDuration?: number
     /** Webhooks to be fired after user op is sent */
     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    webhookData?: Record<string, any>;
+    webhookData?: Record<string, any>
     /** Smart account meta data */
-    smartAccountInfo?: SmartAccountData;
+    smartAccountInfo?: SmartAccountData
     /** the fee-paying token address */
-    feeTokenAddress?: string;
+    feeTokenAddress?: string
     /** The fee quote */
-    feeQuote?: PaymasterFeeQuote;
+    feeQuote?: PaymasterFeeQuote
     /** The address of the spender. This is usually set to FeeQuotesOrDataResponse.tokenPaymasterAddress  */
-    spender?: Hex;
+    spender?: Hex
     /** Not recommended */
-    maxApproval?: boolean;
+    maxApproval?: boolean
     /* skip option to patch callData if approval is already given to the paymaster */
-    skipPatchCallData?: boolean;
-  };
+    skipPatchCallData?: boolean
+  }
 
 export type InitializeV2Data = {
-  accountIndex?: number;
-};
+  accountIndex?: number
+}
 
 export type EstimateUserOpGasParams = {
-  userOp: Partial<UserOperationStruct>;
+  userOp: Partial<UserOperationStruct>
   /** Currrently has no effect */
   // skipBundlerGasEstimation?: boolean;
   /**  paymasterServiceData: Options specific to transactions that involve a paymaster */
-  paymasterServiceData?: SponsorUserOperationDto;
-};
+  paymasterServiceData?: SponsorUserOperationDto
+}
 
 export interface TransactionDetailsForUserOp {
   /** target: The address of the contract to call */
-  target: string;
+  target: string
   /** data: The data to send to the contract */
-  data: string;
+  data: string
   /** value: The value to send to the contract */
-  value?: BigNumberish;
+  value?: BigNumberish
   /** gasLimit: The gas limit to use for the transaction */
-  gasLimit?: BigNumberish;
+  gasLimit?: BigNumberish
   /** maxFeePerGas: The maximum fee per gas to use for the transaction */
-  maxFeePerGas?: BigNumberish;
+  maxFeePerGas?: BigNumberish
   /** maxPriorityFeePerGas: The maximum priority fee per gas to use for the transaction */
-  maxPriorityFeePerGas?: BigNumberish;
+  maxPriorityFeePerGas?: BigNumberish
   /** nonce: The nonce to use for the transaction */
-  nonce?: BigNumberish;
+  nonce?: BigNumberish
 }
 
 export type CounterFactualAddressParam = {
-  index?: number;
-  validationModule?: BaseValidationModule;
+  index?: number
+  validationModule?: BaseValidationModule
   /** scanForUpgradedAccountsFromV1: set to true if you you want the userwho was using biconomy SA v1 to upgrade to biconomy SA v2 */
-  scanForUpgradedAccountsFromV1?: boolean;
+  scanForUpgradedAccountsFromV1?: boolean
   /** the index of SA the EOA have generated and till which indexes the upgraded SA should scan */
-  maxIndexForScan?: number;
-};
+  maxIndexForScan?: number
+}
 
 export type QueryParamsForAddressResolver = {
-  eoaAddress: Hex;
-  index: number;
-  moduleAddress: Hex;
-  moduleSetupData: Hex;
-  maxIndexForScan?: number;
-};
+  eoaAddress: Hex
+  index: number
+  moduleAddress: Hex
+  moduleSetupData: Hex
+  maxIndexForScan?: number
+}
 
 export type SmartAccountInfo = {
   /** accountAddress: The address of the smart account */
-  accountAddress: Hex;
+  accountAddress: Hex
   /** factoryAddress: The address of the smart account factory */
-  factoryAddress: Hex;
+  factoryAddress: Hex
   /** currentImplementation: The address of the current implementation */
-  currentImplementation: string;
+  currentImplementation: string
   /** currentVersion: The version of the smart account */
-  currentVersion: string;
+  currentVersion: string
   /** factoryVersion: The version of the factory */
-  factoryVersion: string;
+  factoryVersion: string
   /** deploymentIndex: The index of the deployment */
-  deploymentIndex: BigNumberish;
-};
+  deploymentIndex: BigNumberish
+}
 
 export type ValueOrData = RequireAtLeastOne<
   {
-    value: BigNumberish | string;
-    data: string;
+    value: BigNumberish | string
+    data: string
   },
   "value" | "data"
->;
+>
 export type Transaction = {
-  to: string;
-} & ValueOrData;
+  to: string
+} & ValueOrData
 
 export type SupportedToken = Omit<
   PaymasterFeeQuote,
   "maxGasFeeUSD" | "usdPayment" | "maxGasFee" | "validUntil"
-> & { balance: BalancePayload };
+> & { balance: BalancePayload }
 
 export type Signer = LightSigner & {
   // biome-ignore lint/suspicious/noExplicitAny: any is used here to allow for the ethers provider
-  provider: any;
-};
-export type SupportedSignerName = "alchemy" | "ethers" | "viem";
+  provider: any
+}
+export type SupportedSignerName = "alchemy" | "ethers" | "viem"
 export type SupportedSigner =
   | SmartAccountSigner
   | WalletClient
   | Signer
   | LightSigner
-  | PrivateKeyAccount;
-export type Service = "Bundler" | "Paymaster";
+  | PrivateKeyAccount
+export type Service = "Bundler" | "Paymaster"
 
 export interface LightSigner {
-  getAddress(): Promise<string>;
-  signMessage(message: string | Uint8Array): Promise<string>;
+  getAddress(): Promise<string>
+  signMessage(message: string | Uint8Array): Promise<string>
 }
 
 export type StateOverrideSet = {
   [key: string]: {
-    balance?: string;
-    nonce?: string;
-    code?: string;
-    state?: object;
-    stateDiff?: object;
-  };
-};
+    balance?: string
+    nonce?: string
+    code?: string
+    state?: object
+    stateDiff?: object
+  }
+}
 
-export type BigNumberish = Hex | number | bigint;
-export type BytesLike = Uint8Array | Hex;
+export type BigNumberish = Hex | number | bigint
+export type BytesLike = Uint8Array | Hex
 
 //#region UserOperationStruct
 // based on @account-abstraction/common
 // this is used for building requests
 export interface UserOperationStruct {
   /* the origin of the request */
-  sender: string;
+  sender: string
   /* nonce of the transaction, returned from the entry point for this Address */
-  nonce: BigNumberish;
+  nonce: BigNumberish
   /* the initCode for creating the sender if it does not exist yet, otherwise "0x" */
-  initCode: BytesLike | "0x";
+  initCode: BytesLike | "0x"
   /* the callData passed to the target */
-  callData: BytesLike;
+  callData: BytesLike
   /* Value used by inner account execution */
-  callGasLimit?: BigNumberish;
+  callGasLimit?: BigNumberish
   /* Actual gas used by the validation of this UserOperation */
-  verificationGasLimit?: BigNumberish;
+  verificationGasLimit?: BigNumberish
   /* Gas overhead of this UserOperation */
-  preVerificationGas?: BigNumberish;
+  preVerificationGas?: BigNumberish
   /* Maximum fee per gas (similar to EIP-1559 max_fee_per_gas) */
-  maxFeePerGas?: BigNumberish;
+  maxFeePerGas?: BigNumberish
   /* Maximum priority fee per gas (similar to EIP-1559 max_priority_fee_per_gas) */
-  maxPriorityFeePerGas?: BigNumberish;
+  maxPriorityFeePerGas?: BigNumberish
   /* Address of paymaster sponsoring the transaction, followed by extra data to send to the paymaster ("0x" for self-sponsored transaction) */
-  paymasterAndData: BytesLike | "0x";
+  paymasterAndData: BytesLike | "0x"
   /* Data passed into the account along with the nonce during the verification step */
-  signature: BytesLike;
+  signature: BytesLike
 }
 //#endregion UserOperationStruct
 
@@ -441,67 +438,67 @@ export interface UserOperationStruct {
 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
 export interface SmartAccountSigner<Inner = any> {
-  signerType: string;
-  inner: Inner;
+  signerType: string
+  inner: Inner
 
-  getAddress: () => Promise<Address>;
+  getAddress: () => Promise<Address>
 
-  signMessage: (message: SignableMessage) => Promise<Hex>;
+  signMessage: (message: SignableMessage) => Promise<Hex>
 
   signTypedData: <
     const TTypedData extends TypedData | { [key: string]: unknown },
-    TPrimaryType extends string = string,
+    TPrimaryType extends string = string
   >(
-    params: TypedDataDefinition<TTypedData, TPrimaryType>,
-  ) => Promise<Hex>;
+    params: TypedDataDefinition<TTypedData, TPrimaryType>
+  ) => Promise<Hex>
 }
 //#endregion SmartAccountSigner
 
 //#region UserOperationCallData
 export type UserOperationCallData =
   | {
-      /* the target of the call */
-      target: Address;
-      /* the data passed to the target */
-      data: Hex;
-      /* the amount of native token to send to the target (default: 0) */
-      value?: bigint;
-    }
-  | Hex;
+    /* the target of the call */
+    target: Address
+    /* the data passed to the target */
+    data: Hex
+    /* the amount of native token to send to the target (default: 0) */
+    value?: bigint
+  }
+  | Hex
 //#endregion UserOperationCallData
 
 //#region BatchUserOperationCallData
-export type BatchUserOperationCallData = Exclude<UserOperationCallData, Hex>[];
+export type BatchUserOperationCallData = Exclude<UserOperationCallData, Hex>[]
 //#endregion BatchUserOperationCallData
 
-export type SignTypedDataParams = Omit<SignTypedDataParameters, "privateKey">;
+export type SignTypedDataParams = Omit<SignTypedDataParameters, "privateKey">
 
 export type BasSmartContractAccountProps =
   BiconomySmartAccountV2ConfigConstructorProps & {
     /** chain: The chain from viem */
-    chain: Chain;
+    chain: Chain
     /** rpcClient: The rpc url string */
-    rpcClient: string;
+    rpcClient: string
     /** factoryAddress: The address of the factory */
-    factoryAddress: Hex;
+    factoryAddress: Hex
     /** entryPointAddress: The address of the entry point */
-    entryPointAddress: Hex;
+    entryPointAddress: Hex
     /** accountAddress: The address of the account */
-    accountAddress?: Address;
-  };
+    accountAddress?: Address
+  }
 
 export interface ISmartContractAccount<
-  TSigner extends SmartAccountSigner = SmartAccountSigner,
+  TSigner extends SmartAccountSigner = SmartAccountSigner
 > {
   /**
    * The RPC provider the account uses to make RPC calls
    */
-  readonly rpcProvider: PublicClient;
+  readonly rpcProvider: PublicClient
 
   /**
    * @returns the init code for the account
    */
-  getInitCode(): Promise<Hex>;
+  getInitCode(): Promise<Hex>
 
   /**
    * This is useful for estimating gas costs. It should return a signature that doesn't cause the account to revert
@@ -509,7 +506,7 @@ export interface ISmartContractAccount<
    *
    * @returns a dummy signature that doesn't cause the account to revert during estimation
    */
-  getDummySignature(): Hex;
+  getDummySignature(): Hex
 
   /**
    * Encodes a call to the account's execute function.
@@ -518,7 +515,7 @@ export interface ISmartContractAccount<
    * @param value - optionally the amount of native token to send
    * @param data - the call data or "0x" if empty
    */
-  encodeExecute(target: string, value: bigint, data: string): Promise<Hex>;
+  encodeExecute(target: string, value: bigint, data: string): Promise<Hex>
 
   /**
    * Encodes a batch of transactions to the account's batch execute function.
@@ -526,12 +523,12 @@ export interface ISmartContractAccount<
    * @param txs - An Array of objects containing the target, value, and data for each transaction
    * @returns the encoded callData for a UserOperation
    */
-  encodeBatchExecute(txs: BatchUserOperationCallData): Promise<Hex>;
+  encodeBatchExecute(txs: BatchUserOperationCallData): Promise<Hex>
 
   /**
    * @returns the nonce of the account
    */
-  getNonce(): Promise<bigint>;
+  getNonce(): Promise<bigint>
 
   /**
    * If your account handles 1271 signatures of personal_sign differently
@@ -540,7 +537,7 @@ export interface ISmartContractAccount<
    * @param uoHash -- The hash of the UserOperation to sign
    * @returns the signature of the UserOperation
    */
-  signUserOperationHash(uoHash: Hash): Promise<Hash>;
+  signUserOperationHash(uoHash: Hash): Promise<Hash>
 
   /**
    * Returns a signed and prefixed message.
@@ -548,7 +545,7 @@ export interface ISmartContractAccount<
    * @param msg - the message to sign
    * @returns the signature of the message
    */
-  signMessage(msg: string | Uint8Array | Hex): Promise<Hex>;
+  signMessage(msg: string | Uint8Array | Hex): Promise<Hex>
 
   /**
    * Signs a typed data object as per ERC-712
@@ -556,7 +553,7 @@ export interface ISmartContractAccount<
    * @param params - {@link SignTypedDataParams}
    * @returns the signed hash for the message passed
    */
-  signTypedData(params: SignTypedDataParams): Promise<Hash>;
+  signTypedData(params: SignTypedDataParams): Promise<Hash>
 
   /**
    * If the account is not deployed, it will sign the message and then wrap it in 6492 format
@@ -564,7 +561,7 @@ export interface ISmartContractAccount<
    * @param msg - the message to sign
    * @returns ths signature wrapped in 6492 format
    */
-  signMessageWith6492(msg: string | Uint8Array | Hex): Promise<Hex>;
+  signMessageWith6492(msg: string | Uint8Array | Hex): Promise<Hex>
 
   /**
    * If the account is not deployed, it will sign the typed data blob and then wrap it in 6492 format
@@ -572,12 +569,12 @@ export interface ISmartContractAccount<
    * @param params - {@link SignTypedDataParams}
    * @returns the signed hash for the params passed in wrapped in 6492 format
    */
-  signTypedDataWith6492(params: SignTypedDataParams): Promise<Hash>;
+  signTypedDataWith6492(params: SignTypedDataParams): Promise<Hash>
 
   /**
    * @returns the address of the account
    */
-  getAddress(): Promise<Address>;
+  getAddress(): Promise<Address>
 
   /**
    * @returns the current account signer instance that the smart account client
@@ -586,17 +583,17 @@ export interface ISmartContractAccount<
    * The signer is expected to be the owner or one of the owners of the account
    * for the signatures to be valid for the acting account.
    */
-  getSigner(): TSigner;
+  getSigner(): TSigner
 
   /**
    * @returns the address of the factory contract for the smart account
    */
-  getFactoryAddress(): Address;
+  getFactoryAddress(): Address
 
   /**
    * @returns the address of the entry point contract for the smart account
    */
-  getEntryPointAddress(): Address;
+  getEntryPointAddress(): Address
 
   /**
    * Allows you to add additional functionality and utility methods to this account
@@ -623,14 +620,14 @@ export interface ISmartContractAccount<
    * with the extension methods
    * @returns -- the account with the extension methods added
    */
-  extend: <R>(extendFn: (self: this) => R) => this & R;
+  extend: <R>(extendFn: (self: this) => R) => this & R
 
   encodeUpgradeToAndCall: (
     upgradeToImplAddress: Address,
-    upgradeToInitData: Hex,
-  ) => Promise<Hex>;
+    upgradeToInitData: Hex
+  ) => Promise<Hex>
 }
 
 export type TransferOwnershipCompatibleModule =
   | "0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e"
-  | "0x000000824dc138db84FD9109fc154bdad332Aa8E";
+  | "0x000000824dc138db84FD9109fc154bdad332Aa8E"

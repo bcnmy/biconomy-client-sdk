@@ -1,22 +1,22 @@
 export const ECDSAModuleAbi = [
   {
     inputs: [
-      { internalType: "address", name: "smartAccount", type: "address" },
+      { internalType: "address", name: "smartAccount", type: "address" }
     ],
     name: "AlreadyInitedForSmartAccount",
-    type: "error",
+    type: "error"
   },
   {
     inputs: [
-      { internalType: "address", name: "smartAccount", type: "address" },
+      { internalType: "address", name: "smartAccount", type: "address" }
     ],
     name: "NoOwnerRegisteredForSmartAccount",
-    type: "error",
+    type: "error"
   },
   {
     inputs: [{ internalType: "address", name: "account", type: "address" }],
     name: "NotEOA",
-    type: "error",
+    type: "error"
   },
   { inputs: [], name: "WrongSignatureLength", type: "error" },
   { inputs: [], name: "ZeroAddressNotAllowedAsOwner", type: "error" },
@@ -27,88 +27,88 @@ export const ECDSAModuleAbi = [
         indexed: true,
         internalType: "address",
         name: "smartAccount",
-        type: "address",
+        type: "address"
       },
       {
         indexed: true,
         internalType: "address",
         name: "oldOwner",
-        type: "address",
+        type: "address"
       },
       {
         indexed: true,
         internalType: "address",
         name: "newOwner",
-        type: "address",
-      },
+        type: "address"
+      }
     ],
     name: "OwnershipTransferred",
-    type: "event",
+    type: "event"
   },
   {
     inputs: [],
     name: "NAME",
     outputs: [{ internalType: "string", name: "", type: "string" }],
     stateMutability: "view",
-    type: "function",
+    type: "function"
   },
   {
     inputs: [],
     name: "VERSION",
     outputs: [{ internalType: "string", name: "", type: "string" }],
     stateMutability: "view",
-    type: "function",
+    type: "function"
   },
   {
     inputs: [
-      { internalType: "address", name: "smartAccount", type: "address" },
+      { internalType: "address", name: "smartAccount", type: "address" }
     ],
     name: "getOwner",
     outputs: [{ internalType: "address", name: "", type: "address" }],
     stateMutability: "view",
-    type: "function",
+    type: "function"
   },
   {
     inputs: [{ internalType: "address", name: "eoaOwner", type: "address" }],
     name: "initForSmartAccount",
     outputs: [{ internalType: "address", name: "", type: "address" }],
     stateMutability: "nonpayable",
-    type: "function",
+    type: "function"
   },
   {
     inputs: [
       { internalType: "bytes32", name: "dataHash", type: "bytes32" },
-      { internalType: "bytes", name: "moduleSignature", type: "bytes" },
+      { internalType: "bytes", name: "moduleSignature", type: "bytes" }
     ],
     name: "isValidSignature",
     outputs: [{ internalType: "bytes4", name: "", type: "bytes4" }],
     stateMutability: "view",
-    type: "function",
+    type: "function"
   },
   {
     inputs: [
       { internalType: "bytes32", name: "dataHash", type: "bytes32" },
       { internalType: "bytes", name: "moduleSignature", type: "bytes" },
-      { internalType: "address", name: "smartAccount", type: "address" },
+      { internalType: "address", name: "smartAccount", type: "address" }
     ],
     name: "isValidSignatureForAddress",
     outputs: [{ internalType: "bytes4", name: "", type: "bytes4" }],
     stateMutability: "view",
-    type: "function",
+    type: "function"
   },
   {
     inputs: [],
     name: "renounceOwnership",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
+    type: "function"
   },
   {
     inputs: [{ internalType: "address", name: "owner", type: "address" }],
     name: "transferOwnership",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
+    type: "function"
   },
   {
     inputs: [
@@ -122,31 +122,31 @@ export const ECDSAModuleAbi = [
           {
             internalType: "uint256",
             name: "verificationGasLimit",
-            type: "uint256",
+            type: "uint256"
           },
           {
             internalType: "uint256",
             name: "preVerificationGas",
-            type: "uint256",
+            type: "uint256"
           },
           { internalType: "uint256", name: "maxFeePerGas", type: "uint256" },
           {
             internalType: "uint256",
             name: "maxPriorityFeePerGas",
-            type: "uint256",
+            type: "uint256"
           },
           { internalType: "bytes", name: "paymasterAndData", type: "bytes" },
-          { internalType: "bytes", name: "signature", type: "bytes" },
+          { internalType: "bytes", name: "signature", type: "bytes" }
         ],
         internalType: "struct UserOperation",
         name: "userOp",
-        type: "tuple",
+        type: "tuple"
       },
-      { internalType: "bytes32", name: "userOpHash", type: "bytes32" },
+      { internalType: "bytes32", name: "userOpHash", type: "bytes32" }
     ],
     name: "validateUserOp",
     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
     stateMutability: "view",
-    type: "function",
-  },
-];
+    type: "function"
+  }
+]
