@@ -1,8 +1,8 @@
-import { config } from "dotenv"
-import { getConfig } from "./utils.js"
+import { config } from "dotenv";
+import { getConfig } from "./utils.js";
 
-config()
+config();
 
 export default function setup({ provide: _ }) {
-  getConfig()
+  getConfig();
 }

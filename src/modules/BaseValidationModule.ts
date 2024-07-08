@@ -1,51 +1,54 @@
-import type { Hex } from "viem"
-import { DEFAULT_ENTRYPOINT_ADDRESS, type SmartAccountSigner } from "../account"
-import type { IValidationModule } from "./interfaces/IValidationModule.js"
-import type { BaseValidationModuleConfig, ModuleInfo } from "./utils/Types.js"
+import type { Hex } from "viem";
+import {
+  DEFAULT_ENTRYPOINT_ADDRESS,
+  type SmartAccountSigner,
+} from "../account";
+import type { IValidationModule } from "./interfaces/IValidationModule.js";
+import type { BaseValidationModuleConfig, ModuleInfo } from "./utils/Types.js";
 
 export abstract class BaseValidationModule implements IValidationModule {
-  entryPointAddress: Hex
+  entryPointAddress: Hex;
 
   constructor(moduleConfig: BaseValidationModuleConfig) {
-    const { entryPointAddress } = moduleConfig
+    const { entryPointAddress } = moduleConfig;
 
-    this.entryPointAddress = entryPointAddress || DEFAULT_ENTRYPOINT_ADDRESS
+    this.entryPointAddress = entryPointAddress || DEFAULT_ENTRYPOINT_ADDRESS;
   }
 
-  abstract getAddress(): Hex
+  abstract getAddress(): Hex;
 
   setEntryPointAddress(entryPointAddress: Hex): void {
-    this.entryPointAddress = entryPointAddress
+    this.entryPointAddress = entryPointAddress;
   }
 
-  abstract getInitData(): Promise<Hex>
+  abstract getInitData(): Promise<Hex>;
 
   // Anything  required to get dummy signature can be passed as params
-  abstract getDummySignature(_params?: ModuleInfo): Promise<Hex>
+  abstract getDummySignature(_params?: ModuleInfo): Promise<Hex>;
 
-  abstract getSigner(): Promise<SmartAccountSigner>
+  abstract getSigner(): Promise<SmartAccountSigner>;
 
   // Signer specific or any other additional information can be passed as params
   abstract signUserOpHash(
     _userOpHash: string,
-    _params?: ModuleInfo
-  ): Promise<Hex>
+    _params?: ModuleInfo,
+  ): Promise<Hex>;
 
-  abstract signMessage(_message: Uint8Array | string): Promise<string>
+  abstract signMessage(_message: Uint8Array | string): Promise<string>;
 
   async signMessageSmartAccountSigner(
     _message: string | Uint8Array,
-    signer: SmartAccountSigner
+    signer: SmartAccountSigner,
   ): Promise<string> {
-    const message = typeof _message === "string" ? _message : { raw: _message }
-    let signature: `0x${string}` = await signer.signMessage(message)
+    const message = typeof _message === "string" ? _message : { raw: _message };
+    let signature: `0x${string}` = await signer.signMessage(message);
 
-    const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
+    const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16);
     if (![27, 28].includes(potentiallyIncorrectV)) {
-      const correctV = potentiallyIncorrectV + 27
-      signature = `0x${signature.slice(0, -2) + correctV.toString(16)}`
+      const correctV = potentiallyIncorrectV + 27;
+      signature = `0x${signature.slice(0, -2) + correctV.toString(16)}`;
     }
 
-    return signature
+    return signature;
   }
 }

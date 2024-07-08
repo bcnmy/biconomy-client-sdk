@@ -1,11 +1,11 @@
-import { http, type Hex, createWalletClient } from "viem"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { beforeAll, describe, expect, test } from "vitest"
+import { http, type Hex, createWalletClient } from "viem";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { beforeAll, describe, expect, test } from "vitest";
 import {
   type BiconomySmartAccountV2,
-  createSmartAccountClient
-} from "../../src/account"
-import { getConfig } from "../utils"
+  createSmartAccountClient,
+} from "../../src/account";
+import { getConfig } from "../utils";
 
 describe("Playground:Write", () => {
   // const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
@@ -16,49 +16,49 @@ describe("Playground:Write", () => {
     privateKey,
     privateKeyTwo,
     bundlerUrl,
-    paymasterUrl
-  } = getConfig()
-  const account = privateKeyToAccount(`0x${privateKey}`)
-  const accountTwo = privateKeyToAccount(`0x${privateKeyTwo}`)
+    paymasterUrl,
+  } = getConfig();
+  const account = privateKeyToAccount(`0x${privateKey}`);
+  const accountTwo = privateKeyToAccount(`0x${privateKeyTwo}`);
 
-  let [smartAccount, smartAccountTwo]: BiconomySmartAccountV2[] = []
-  let [smartAccountAddress, smartAccountAddressTwo]: Hex[] = []
+  let [smartAccount, smartAccountTwo]: BiconomySmartAccountV2[] = [];
+  let [smartAccountAddress, smartAccountAddressTwo]: Hex[] = [];
 
   const [walletClient, walletClientTwo, walletClientRandom] = [
     createWalletClient({
       account,
       chain,
-      transport: http()
+      transport: http(),
     }),
     createWalletClient({
       account: accountTwo,
       chain,
-      transport: http()
+      transport: http(),
     }),
     createWalletClient({
       account: privateKeyToAccount(generatePrivateKey()),
       chain,
-      transport: http()
-    })
-  ]
+      transport: http(),
+    }),
+  ];
 
   beforeAll(async () => {
-    ;[smartAccount, smartAccountTwo] = await Promise.all(
+    [smartAccount, smartAccountTwo] = await Promise.all(
       [walletClient, walletClientTwo].map((client) =>
         createSmartAccountClient({
           chainId,
           signer: client,
           bundlerUrl,
-          paymasterUrl
-        })
-      )
-    )
-    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+          paymasterUrl,
+        }),
+      ),
+    );
+    [smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
       [smartAccount, smartAccountTwo].map((account) =>
-        account.getAccountAddress()
-      )
-    )
-  })
+        account.getAccountAddress(),
+      ),
+    );
+  });
 
   test.concurrent(
     "should quickly run a write test in the playground ",
@@ -67,10 +67,10 @@ describe("Playground:Write", () => {
         walletClient.account.address,
         smartAccountAddress,
         walletClientTwo.account.address,
-        smartAccountAddressTwo
-      ])
-      expect(addresses.every(Boolean)).toBe(true)
+        smartAccountAddressTwo,
+      ]);
+      expect(addresses.every(Boolean)).toBe(true);
     },
-    30000
-  )
-})
+    30000,
+  );
+});

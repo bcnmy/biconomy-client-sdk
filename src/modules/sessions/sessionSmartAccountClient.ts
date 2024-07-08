@@ -1,5 +1,5 @@
-import { http, type Chain, type Hex, createWalletClient } from "viem"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import { http, type Chain, type Hex, createWalletClient } from "viem";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import {
   type BiconomySmartAccountV2,
   type BiconomySmartAccountV2Config,
@@ -7,84 +7,38 @@ import {
   type SupportedSigner,
   type Transaction,
   createSmartAccountClient,
-  getChain
-} from "../../account"
-import type { UserOpResponse } from "../../bundler/index.js"
+  getChain,
+} from "../../account";
+import type { UserOpResponse } from "../../bundler/index.js";
 import {
   type SessionSearchParam,
   createBatchedSessionRouterModule,
   createDANSessionKeyManagerModule,
   createSessionKeyManagerModule,
-  getBatchSessionTxParams,
-  getDanSessionTxParams,
-  getSingleSessionTxParams,
-  resumeSession
-} from "../index.js"
-import type { ISessionStorage } from "../interfaces/ISessionStorage"
-import type { ModuleInfo, StrictSessionParams } from "../utils/Types"
+  type getSingleSessionTxParams,
+  resumeSession,
+} from "../index.js";
+import type { ISessionStorage } from "../interfaces/ISessionStorage";
+import type { ModuleInfo, StrictSessionParams } from "../utils/Types";
 
-export type SessionType = "SINGLE" | "BATCHED" | "DAN"
+export type SessionType = "SINGLE" | "BATCHED" | "DAN";
 export type ImpersonatedSmartAccountConfig = Omit<
   BiconomySmartAccountV2Config,
   "signer"
 > & {
-  accountAddress: Hex
-  chainId: number
-  bundlerUrl: string
-}
+  accountAddress: Hex;
+  chainId: number;
+  bundlerUrl: string;
+};
 
-export type GetDanSessionParameters = Parameters<typeof getDanSessionTxParams>
-export type GetBatchSessionParameters = Parameters<
-  typeof getBatchSessionTxParams
->
-export type GetSingleSessionParameters = Parameters<
-  typeof getSingleSessionTxParams
->
+export type GetSessionParameters = Parameters<typeof getSingleSessionTxParams>;
+export type GetSessionResponse = { params: ModuleInfo };
 
-export type GetSessionParameters =
-  | GetDanSessionParameters
-  | GetBatchSessionParameters
-  | GetSingleSessionParameters
-
-export type GetSingleSessionResponse = ReturnType<
-  typeof getSingleSessionTxParams
->
-export type GetBatchSessionResponse = ReturnType<typeof getBatchSessionTxParams>
-export type GetDanSessionResponse = ReturnType<typeof getDanSessionTxParams>
-export type GetSessionResponse = { params: ModuleInfo }
-
-export type DanSessionAccount = BiconomySmartAccountV2 & {
-  getSessionParams(p: GetDanSessionParameters): GetDanSessionResponse
-} & {
-  sendSessionTransaction: (
-    getParameters: GetDanSessionParameters,
-    manyOrOneTransactions: Transaction | Transaction[],
-    buildUseropDto?: BuildUserOpOptions
-  ) => Promise<UserOpResponse>
-}
-export type BatchedSessionAccount = BiconomySmartAccountV2 & {
-  getSessionParams(p: GetBatchSessionParameters): GetBatchSessionResponse
-} & {
-  sendSessionTransaction: (
-    getParameters: GetBatchSessionParameters,
-    manyOrOneTransactions: Transaction | Transaction[],
-    buildUseropDto?: BuildUserOpOptions
-  ) => Promise<UserOpResponse>
-}
-export type SingleSessionAccount = BiconomySmartAccountV2 & {
-  getSessionParams(p: GetSingleSessionParameters): GetSingleSessionResponse
-} & {
-  sendSessionTransaction: (
-    getParameters: GetSingleSessionParameters,
-    manyOrOneTransactions: Transaction | Transaction[],
-    buildUseropDto?: BuildUserOpOptions
-  ) => Promise<UserOpResponse>
-}
-
-export type SessionSmartAccountClient =
-  | SingleSessionAccount
-  | BatchedSessionAccount
-  | DanSessionAccount
+export type SendSessionTransactionFunction = (
+  getParameters: GetSessionParameters,
+  manyOrOneTransactions: Transaction | Transaction[],
+  buildUseropDto?: BuildUserOpOptions,
+) => Promise<UserOpResponse>;
 
 /**
  *
@@ -137,94 +91,81 @@ export type SessionSmartAccountClient =
 export const createSessionSmartAccountClient = async (
   biconomySmartAccountConfig: ImpersonatedSmartAccountConfig,
   conditionalSession: SessionSearchParam,
-  _sessionType?: SessionType | boolean // backwards compatibility
-): Promise<SessionSmartAccountClient> => {
+  _sessionType?: SessionType | boolean, // backwards compatibility
+): Promise<BiconomySmartAccountV2> => {
   // for backwards compatibility
-  let sessionType: SessionType = "SINGLE"
+  let sessionType: SessionType = "SINGLE";
   if (_sessionType === true || _sessionType === "BATCHED")
-    sessionType = "BATCHED"
-  if (_sessionType === "DAN") sessionType = "DAN"
+    sessionType = "BATCHED";
+  if (_sessionType === "DAN") sessionType = "DAN";
 
   const { sessionStorageClient, sessionIDInfo } = await resumeSession(
-    conditionalSession ?? biconomySmartAccountConfig.accountAddress
-  )
-  const account = privateKeyToAccount(generatePrivateKey())
+    conditionalSession ?? biconomySmartAccountConfig.accountAddress,
+  );
+  const account = privateKeyToAccount(generatePrivateKey());
 
   const chain =
     biconomySmartAccountConfig.viemChain ??
     biconomySmartAccountConfig.customChain ??
-    getChain(biconomySmartAccountConfig.chainId)
+    getChain(biconomySmartAccountConfig.chainId);
 
   const incompatibleSigner = createWalletClient({
     account,
     chain,
-    transport: http()
-  })
+    transport: http(),
+  });
 
   // Obselete & flow removed from docs but will keep for backwards compatibility reasons.
-  let sessionData: ModuleInfo | undefined
+  let sessionData: ModuleInfo | undefined;
   try {
-    const sessionID = sessionIDInfo?.[0] // Default to the first element to find the signer
+    const sessionID = sessionIDInfo?.[0]; // Default to the first element to find the signer
     const sessionSigner = await sessionStorageClient.getSignerBySession(
       {
-        sessionID
+        sessionID,
       },
-      chain
-    )
+      chain,
+    );
 
     sessionData =
       sessionType === "SINGLE"
         ? {
             sessionID,
-            sessionSigner
+            sessionSigner,
           }
-        : undefined
+        : undefined;
   } catch (e) {}
 
   const sessionModule = await createSessionKeyManagerModule({
     smartAccountAddress: biconomySmartAccountConfig.accountAddress,
-    sessionStorageClient
-  })
+    sessionStorageClient,
+  });
 
   const batchedSessionValidationModule = await createBatchedSessionRouterModule(
     {
       smartAccountAddress: biconomySmartAccountConfig.accountAddress,
-      sessionKeyManagerModule: sessionModule
-    }
-  )
+      sessionKeyManagerModule: sessionModule,
+    },
+  );
   const danSessionValidationModule = await createDANSessionKeyManagerModule({
     smartAccountAddress: biconomySmartAccountConfig.accountAddress,
-    sessionStorageClient
-  })
+    sessionStorageClient,
+  });
 
   const activeValidationModule =
     sessionType === "BATCHED"
       ? batchedSessionValidationModule
       : sessionType === "SINGLE"
         ? sessionModule
-        : danSessionValidationModule
+        : danSessionValidationModule;
 
-  const smartAccount = await createSmartAccountClient({
+  return await createSmartAccountClient({
     ...biconomySmartAccountConfig,
     signer: incompatibleSigner, // This is a dummy signer, it will remain unused
     activeValidationModule,
-    sessionData
-  })
-
-  // @ts-ignore
-  smartAccount.getSessionParams =
-    sessionType === "BATCHED"
-      ? getBatchSessionTxParams
-      : sessionType === "SINGLE"
-        ? getSingleSessionTxParams
-        : getDanSessionTxParams
-
-  return sessionType === "BATCHED"
-    ? (smartAccount as BatchedSessionAccount)
-    : sessionType === "SINGLE"
-      ? (smartAccount as SingleSessionAccount)
-      : (smartAccount as DanSessionAccount)
-}
+    sessionData,
+    sessionType,
+  });
+};
 
 /**
  *
@@ -234,18 +175,18 @@ export const createSessionSmartAccountClient = async (
  */
 export const toSupportedSigner = (
   privateKey: string,
-  chain: Chain
+  chain: Chain,
 ): SupportedSigner => {
   const parsedPrivateKey: Hex = privateKey.startsWith("0x")
     ? (privateKey as Hex)
-    : `0x${privateKey}`
-  const account = privateKeyToAccount(parsedPrivateKey)
+    : `0x${privateKey}`;
+  const account = privateKeyToAccount(parsedPrivateKey);
   return createWalletClient({
     account,
     chain,
-    transport: http()
-  })
-}
+    transport: http(),
+  });
+};
 
 /**
  *
@@ -257,9 +198,9 @@ export const toSupportedSigner = (
 export const toSessionParams = (
   privateKey: Hex,
   sessionIDs: string[],
-  chain: Chain
+  chain: Chain,
 ): StrictSessionParams[] =>
   sessionIDs.map((sessionID) => ({
     sessionID,
-    sessionSigner: toSupportedSigner(privateKey, chain)
-  }))
+    sessionSigner: toSupportedSigner(privateKey, chain),
+  }));
