@@ -18,7 +18,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 19
+          node-version: 21
 
       - name: Install dependencies
         uses: ./.github/actions/install-dependencies

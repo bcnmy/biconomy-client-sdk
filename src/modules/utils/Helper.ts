@@ -1,5 +1,5 @@
-import { ProjectivePoint } from "@noble/secp256k1"
-import type { TypedData } from "@silencelaboratories/walletprovider-sdk"
+import { ProjectivePoint } from "@noble/secp256k1";
+import type { TypedData } from "@silencelaboratories/walletprovider-sdk";
 import {
   type Address,
   type ByteArray,
@@ -10,26 +10,26 @@ import {
   encodeAbiParameters,
   isAddress,
   keccak256,
-  parseAbiParameters
-} from "viem"
+  parseAbiParameters,
+} from "viem";
 import {
   generatePrivateKey,
   privateKeyToAccount,
-  publicKeyToAddress
-} from "viem/accounts"
+  publicKeyToAddress,
+} from "viem/accounts";
 import {
   ERROR_MESSAGES,
   type UserOperationStruct,
-  getChain
-} from "../../account"
+  getChain,
+} from "../../account";
 import type {
   ChainInfo,
   HardcodedReference,
   Session,
-  SignerData
-} from "../../index.js"
-import type { ISessionStorage } from "../interfaces/ISessionStorage"
-import { getDefaultStorageClient } from "../session-storage/utils"
+  SignerData,
+} from "../../index.js";
+import type { ISessionStorage } from "../interfaces/ISessionStorage";
+import { getDefaultStorageClient } from "../session-storage/utils";
 
 /**
  * Rule
@@ -56,7 +56,7 @@ export interface Rule {
    *
    * If you need to deal with dynamic-length arguments, such as bytes, please refer to this document https://docs.soliditylang.org/en/v0.8.24/abi-spec.html#function-selector-and-argument-encoding to learn more about how dynamic arguments are represented in the calldata and which offsets should be used to access them.
    */
-  offset: number
+  offset: number;
   /**
    * condition
    *
@@ -67,7 +67,7 @@ export interface Rule {
    * 4 - Greater than
    * 5 - Not equal
    */
-  condition: number
+  condition: number;
   /** The value to compare against */
   referenceValue:
     | string
@@ -75,48 +75,48 @@ export interface Rule {
     | bigint
     | boolean
     | ByteArray
-    | HardcodedReference
+    | HardcodedReference;
 }
 
 /**
  * @deprecated
  */
 export interface DeprecatedRule {
-  offset: number
-  condition: number
-  referenceValue: Hex
+  offset: number;
+  condition: number;
+  referenceValue: Hex;
 }
 /**
  * @deprecated
  */
 export interface DeprecatedPermission {
-  destContract: `0x${string}`
-  functionSelector: `0x${string}`
-  valueLimit: bigint
-  rules: DeprecatedRule[]
+  destContract: `0x${string}`;
+  functionSelector: `0x${string}`;
+  valueLimit: bigint;
+  rules: DeprecatedRule[];
 }
 
 export interface Permission {
   /** The address of the contract to which the permission applies */
-  destContract: `0x${string}`
+  destContract: `0x${string}`;
   /** The function selector of the contract to which the permission applies */
-  functionSelector: `0x${string}`
+  functionSelector: `0x${string}`;
   /** The maximum value that can be transferred in a single transaction */
-  valueLimit: bigint
+  valueLimit: bigint;
   /** The rules that define the conditions under which the permission is granted */
-  rules: Rule[]
+  rules: Rule[];
 }
 
 function packUserOp(
   op: Partial<UserOperationStruct>,
-  forSignature = true
+  forSignature = true,
 ): string {
   if (!op.initCode || !op.callData || !op.paymasterAndData)
-    throw new Error("Missing userOp properties")
+    throw new Error("Missing userOp properties");
   if (forSignature) {
     return encodeAbiParameters(
       parseAbiParameters(
-        "address, uint256, bytes32, bytes32, uint256, uint256, uint256, uint256, uint256, bytes32"
+        "address, uint256, bytes32, bytes32, uint256, uint256, uint256, uint256, uint256, bytes32",
       ),
       [
         op.sender as Hex,
@@ -128,14 +128,14 @@ function packUserOp(
         BigInt(op.preVerificationGas as Hex),
         BigInt(op.maxFeePerGas as Hex),
         BigInt(op.maxPriorityFeePerGas as Hex),
-        keccak256(op.paymasterAndData as Hex)
-      ]
-    )
+        keccak256(op.paymasterAndData as Hex),
+      ],
+    );
   }
   // for the purpose of calculating gas cost encode also signature (and no keccak of bytes)
   return encodeAbiParameters(
     parseAbiParameters(
-      "address, uint256, bytes, bytes, uint256, uint256, uint256, uint256, uint256, bytes, bytes"
+      "address, uint256, bytes, bytes, uint256, uint256, uint256, uint256, uint256, bytes, bytes",
     ),
     [
       op.sender as Hex,
@@ -148,37 +148,37 @@ function packUserOp(
       BigInt(op.maxFeePerGas as Hex),
       BigInt(op.maxPriorityFeePerGas as Hex),
       op.paymasterAndData as Hex,
-      op.signature as Hex
-    ]
-  )
+      op.signature as Hex,
+    ],
+  );
 }
 
 export const getUserOpHash = (
   userOp: Partial<UserOperationStruct>,
   entryPointAddress: Hex,
-  chainId: number
+  chainId: number,
 ): Hex => {
-  const userOpHash = keccak256(packUserOp(userOp, true) as Hex)
+  const userOpHash = keccak256(packUserOp(userOp, true) as Hex);
   const enc = encodeAbiParameters(
     parseAbiParameters("bytes32, address, uint256"),
-    [userOpHash, entryPointAddress, BigInt(chainId)]
-  )
-  return keccak256(enc)
-}
+    [userOpHash, entryPointAddress, BigInt(chainId)],
+  );
+  return keccak256(enc);
+};
 
 export const getRandomSigner = (): SignerData => {
-  const pkey = generatePrivateKey()
-  const account = privateKeyToAccount(pkey)
+  const pkey = generatePrivateKey();
+  const account = privateKeyToAccount(pkey);
   return {
     pvKey: pkey,
-    pbKey: account.address
-  }
-}
+    pbKey: account.address,
+  };
+};
 
 export const parseChain = (chainInfo: ChainInfo): Chain => {
-  if (typeof chainInfo === "number") return getChain(chainInfo)
-  return chainInfo
-}
+  if (typeof chainInfo === "number") return getChain(chainInfo);
+  return chainInfo;
+};
 /**
  *
  * SessionSearchParam - The arguments that can be used to reconstruct a session object
@@ -193,10 +193,10 @@ export const parseChain = (chainInfo: ChainInfo): Chain => {
  * When a smart account address is provided, the default session storage client is used to reconstruct the session object using **all** of the sessionIds found in the storage client
  *
  */
-export type SessionSearchParam = Session | ISessionStorage | Address
+export type SessionSearchParam = Session | ISessionStorage | Address;
 export const didProvideFullSession = (
-  searchParam: SessionSearchParam
-): boolean => !!(searchParam as Session)?.sessionIDInfo?.length
+  searchParam: SessionSearchParam,
+): boolean => !!(searchParam as Session)?.sessionIDInfo?.length;
 /**
  *
  * reconstructSession - Reconstructs a session object from the provided arguments
@@ -210,71 +210,71 @@ export const didProvideFullSession = (
  * @error If the provided arguments do not match any of the above cases
  */
 export const resumeSession = async (
-  searchParam: SessionSearchParam
+  searchParam: SessionSearchParam,
 ): Promise<Session> => {
-  const providedFullSession = didProvideFullSession(searchParam)
+  const providedFullSession = didProvideFullSession(searchParam);
   const providedStorageClient = !!(searchParam as ISessionStorage)
-    .smartAccountAddress?.length
-  const providedSmartAccountAddress = isAddress(searchParam as Address)
+    .smartAccountAddress?.length;
+  const providedSmartAccountAddress = isAddress(searchParam as Address);
 
   if (providedFullSession) {
-    const session = searchParam as Session
-    return session
+    const session = searchParam as Session;
+    return session;
   }
   if (providedStorageClient) {
-    const sessionStorageClient = searchParam as ISessionStorage
-    const leafArray = await sessionStorageClient.getAllSessionData()
-    const sessionIDInfo = leafArray.map(({ sessionID }) => sessionID as string)
+    const sessionStorageClient = searchParam as ISessionStorage;
+    const leafArray = await sessionStorageClient.getAllSessionData();
+    const sessionIDInfo = leafArray.map(({ sessionID }) => sessionID as string);
     const session: Session = {
       sessionIDInfo,
-      sessionStorageClient
-    }
-    return session
+      sessionStorageClient,
+    };
+    return session;
   }
   if (providedSmartAccountAddress) {
-    const smartAccountAddress = searchParam as Address
+    const smartAccountAddress = searchParam as Address;
     // Use the default session storage client
-    const sessionStorageClient = getDefaultStorageClient(smartAccountAddress)
-    const leafArray = await sessionStorageClient.getAllSessionData()
-    const sessionIDInfo = leafArray.map(({ sessionID }) => sessionID as string)
+    const sessionStorageClient = getDefaultStorageClient(smartAccountAddress);
+    const leafArray = await sessionStorageClient.getAllSessionData();
+    const sessionIDInfo = leafArray.map(({ sessionID }) => sessionID as string);
     const session: Session = {
       sessionIDInfo,
-      sessionStorageClient
-    }
-    return session
+      sessionStorageClient,
+    };
+    return session;
   }
-  throw new Error(ERROR_MESSAGES.UNKNOW_SESSION_ARGUMENTS)
-}
+  throw new Error(ERROR_MESSAGES.UNKNOW_SESSION_ARGUMENTS);
+};
 
 export const hexToUint8Array = (hex: string) => {
   if (hex.length % 2 !== 0) {
-    throw new Error("Hex string must have an even number of characters")
+    throw new Error("Hex string must have an even number of characters");
   }
-  const array = new Uint8Array(hex.length / 2)
+  const array = new Uint8Array(hex.length / 2);
   for (let i = 0; i < hex.length; i += 2) {
-    array[i / 2] = Number.parseInt(hex.substr(i, 2), 16)
+    array[i / 2] = Number.parseInt(hex.substr(i, 2), 16);
   }
-  return array
-}
+  return array;
+};
 
 export const computeAddress = (_publicKey: string): Address => {
-  let publicKey = _publicKey
+  let publicKey = _publicKey;
 
   if (publicKey.startsWith("0x")) {
-    publicKey = publicKey.slice(2)
+    publicKey = publicKey.slice(2);
   }
 
   if (publicKey.startsWith("04")) {
-    return publicKeyToAddress(`0x${publicKey} `)
+    return publicKeyToAddress(`0x${publicKey} `);
   }
 
   if (publicKey.startsWith("02") || publicKey.startsWith("03")) {
-    const uncompressed = ProjectivePoint.fromHex(publicKey).toHex(false)
-    return publicKeyToAddress(`0x${uncompressed}`)
+    const uncompressed = ProjectivePoint.fromHex(publicKey).toHex(false);
+    return publicKeyToAddress(`0x${uncompressed}`);
   }
 
-  throw new Error("Invalid public key")
-}
+  throw new Error("Invalid public key");
+};
 
 export interface IBrowserWallet {
   /** Sign data using the secret key stored on Browser Wallet
@@ -292,27 +292,27 @@ export interface IBrowserWallet {
    * }
    * ```
    */
-  signTypedData<T>(from: string, request: TypedData<T>): Promise<unknown>
+  signTypedData<T>(from: string, request: TypedData<T>): Promise<unknown>;
 }
 // Sign data using the secret key stored on Browser Wallet
 // It creates a popup window, presenting the human readable form of `request`
 // Throws an error if User rejected signature
 export class BrowserWallet implements IBrowserWallet {
-  provider: EIP1193Provider
+  provider: EIP1193Provider;
 
   constructor(provider: EIP1193Provider) {
-    this.provider = provider
+    this.provider = provider;
   }
 
   async signTypedData<T>(
     from: string,
-    request: TypedData<T>
+    request: TypedData<T>,
   ): Promise<unknown> {
     return await this.provider.request({
       method: "eth_signTypedData_v4",
       // @ts-ignore
-      params: [from, JSON.stringify(request)]
-    })
+      params: [from, JSON.stringify(request)],
+    });
   }
 }
 
@@ -320,14 +320,14 @@ export class BrowserWallet implements IBrowserWallet {
 // It creates a popup window, presenting the human readable form of `request`
 // Throws an error if User rejected signature
 export class NodeWallet implements IBrowserWallet {
-  walletClient: WalletClient
+  walletClient: WalletClient;
 
   constructor(walletClient: WalletClient) {
-    this.walletClient = walletClient
+    this.walletClient = walletClient;
   }
 
   async signTypedData<T>(_: string, request: TypedData<T>): Promise<unknown> {
     // @ts-ignore
-    return await this.walletClient.signTypedData(request)
+    return await this.walletClient.signTypedData(request);
   }
 }

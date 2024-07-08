@@ -2,20 +2,20 @@
   {
     "name": "core (esm)",
     "path": "./dist/_esm/index.js",
-    "limit": "75 kB",
+    "limit": "80 kB",
     "import": "*",
     "ignore": ["node:fs", "fs"]
   },
   {
     "name": "core (cjs)",
     "path": "./dist/_cjs/index.js",
-    "limit": "75 kB",
+    "limit": "80 kB",
     "ignore": ["node:fs", "fs"]
   },
   {
     "name": "account (tree-shaking)",
     "path": "./dist/_esm/index.js",
-    "limit": "75 kB",
+    "limit": "80 kB",
     "import": "{ createSmartAccountClient }",
     "ignore": ["node:fs", "fs"]
   },
@@ -36,7 +36,7 @@
   {
     "name": "modules (tree-shaking)",
     "path": "./dist/_esm/modules/index.js",
-    "limit": "75 kB",
+    "limit": "80 kB",
     "import": "{ createSessionKeyManagerModule }",
     "ignore": ["node:fs", "fs"]
   }

@@ -1,19 +1,19 @@
-import { http, type PublicClient, createPublicClient } from "viem"
-import type { StateOverrideSet, UserOperationStruct } from "../account"
-import type { SimulationType } from "../account"
-import { HttpMethod, getChain, sendRequest } from "../account"
-import type { IBundler } from "./interfaces/IBundler.js"
+import { http, type PublicClient, createPublicClient } from "viem";
+import type { StateOverrideSet, UserOperationStruct } from "../account";
+import type { SimulationType } from "../account";
+import { HttpMethod, getChain, sendRequest } from "../account";
+import type { IBundler } from "./interfaces/IBundler.js";
 import {
   DEFAULT_ENTRYPOINT_ADDRESS,
   UserOpReceiptIntervals,
   UserOpReceiptMaxDurationIntervals,
   UserOpWaitForTxHashIntervals,
-  UserOpWaitForTxHashMaxDurationIntervals
-} from "./utils/Constants.js"
+  UserOpWaitForTxHashMaxDurationIntervals,
+} from "./utils/Constants.js";
 import {
   getTimestampInSeconds,
-  transformUserOP
-} from "./utils/HelperFunction.js"
+  transformUserOP,
+} from "./utils/HelperFunction.js";
 import type {
   BundlerConfigWithChainId,
   Bundlerconfig,
@@ -28,9 +28,9 @@ import type {
   UserOpGasResponse,
   UserOpReceipt,
   UserOpResponse,
-  UserOpStatus
-} from "./utils/Types.js"
-import { extractChainIdFromBundlerUrl } from "./utils/Utils.js"
+  UserOpStatus,
+} from "./utils/Types.js";
+import { extractChainIdFromBundlerUrl } from "./utils/Utils.js";
 
 /**
  * This class implements IBundler interface.
@@ -38,24 +38,24 @@ import { extractChainIdFromBundlerUrl } from "./utils/Utils.js"
  * Checkout the proposal for more details on Bundlers.
  */
 export class Bundler implements IBundler {
-  private bundlerConfig: BundlerConfigWithChainId
+  private bundlerConfig: BundlerConfigWithChainId;
 
   // eslint-disable-next-line no-unused-vars
-  UserOpReceiptIntervals!: { [key in number]?: number }
+  UserOpReceiptIntervals!: { [key in number]?: number };
 
-  UserOpWaitForTxHashIntervals!: { [key in number]?: number }
+  UserOpWaitForTxHashIntervals!: { [key in number]?: number };
 
-  UserOpReceiptMaxDurationIntervals!: { [key in number]?: number }
+  UserOpReceiptMaxDurationIntervals!: { [key in number]?: number };
 
-  UserOpWaitForTxHashMaxDurationIntervals!: { [key in number]?: number }
+  UserOpWaitForTxHashMaxDurationIntervals!: { [key in number]?: number };
 
-  private provider: PublicClient
+  private provider: PublicClient;
 
   constructor(bundlerConfig: Bundlerconfig) {
     const parsedChainId: number =
       bundlerConfig?.chainId ||
-      extractChainIdFromBundlerUrl(bundlerConfig.bundlerUrl)
-    this.bundlerConfig = { ...bundlerConfig, chainId: parsedChainId }
+      extractChainIdFromBundlerUrl(bundlerConfig.bundlerUrl);
+    this.bundlerConfig = { ...bundlerConfig, chainId: parsedChainId };
 
     this.provider = createPublicClient({
       chain:
@@ -67,36 +67,36 @@ export class Bundler implements IBundler {
           bundlerConfig.viemChain ||
           bundlerConfig.customChain ||
           getChain(parsedChainId)
-        ).rpcUrls.default.http[0]
-      )
-    })
+        ).rpcUrls.default.http[0],
+      ),
+    });
 
     this.UserOpReceiptIntervals = {
       ...UserOpReceiptIntervals,
-      ...bundlerConfig.userOpReceiptIntervals
-    }
+      ...bundlerConfig.userOpReceiptIntervals,
+    };
 
     this.UserOpWaitForTxHashIntervals = {
       ...UserOpWaitForTxHashIntervals,
-      ...bundlerConfig.userOpWaitForTxHashIntervals
-    }
+      ...bundlerConfig.userOpWaitForTxHashIntervals,
+    };
 
     this.UserOpReceiptMaxDurationIntervals = {
       ...UserOpReceiptMaxDurationIntervals,
-      ...bundlerConfig.userOpReceiptMaxDurationIntervals
-    }
+      ...bundlerConfig.userOpReceiptMaxDurationIntervals,
+    };
 
     this.UserOpWaitForTxHashMaxDurationIntervals = {
       ...UserOpWaitForTxHashMaxDurationIntervals,
-      ...bundlerConfig.userOpWaitForTxHashMaxDurationIntervals
-    }
+      ...bundlerConfig.userOpWaitForTxHashMaxDurationIntervals,
+    };
 
     this.bundlerConfig.entryPointAddress =
-      bundlerConfig.entryPointAddress || DEFAULT_ENTRYPOINT_ADDRESS
+      bundlerConfig.entryPointAddress || DEFAULT_ENTRYPOINT_ADDRESS;
   }
 
   public getBundlerUrl(): string {
-    return `${this.bundlerConfig.bundlerUrl}`
+    return `${this.bundlerConfig.bundlerUrl}`;
   }
 
   /**
@@ -106,12 +106,12 @@ export class Bundler implements IBundler {
    */
   async estimateUserOpGas(
     _userOp: UserOperationStruct,
-    stateOverrideSet?: StateOverrideSet
+    stateOverrideSet?: StateOverrideSet,
   ): Promise<UserOpGasResponse> {
     // expected dummySig and possibly dummmy paymasterAndData should be provided by the caller
     // bundler doesn't know account and paymaster implementation
-    const userOp = transformUserOP(_userOp)
-    const bundlerUrl = this.getBundlerUrl()
+    const userOp = transformUserOP(_userOp);
+    const bundlerUrl = this.getBundlerUrl();
 
     const response: EstimateUserOpGasResponse = await sendRequest(
       {
@@ -123,23 +123,23 @@ export class Bundler implements IBundler {
             ? [userOp, this.bundlerConfig.entryPointAddress, stateOverrideSet]
             : [userOp, this.bundlerConfig.entryPointAddress],
           id: getTimestampInSeconds(),
-          jsonrpc: "2.0"
-        }
+          jsonrpc: "2.0",
+        },
       },
-      "Bundler"
-    )
+      "Bundler",
+    );
 
-    const userOpGasResponse = response.result
+    const userOpGasResponse = response.result;
     for (const key in userOpGasResponse) {
-      if (key === "maxFeePerGas" || key === "maxPriorityFeePerGas") continue
+      if (key === "maxFeePerGas" || key === "maxPriorityFeePerGas") continue;
       if (
         userOpGasResponse[key as keyof UserOpGasResponse] === undefined ||
         userOpGasResponse[key as keyof UserOpGasResponse] === null
       ) {
-        throw new Error(`Got undefined ${key} from bundler`)
+        throw new Error(`Got undefined ${key} from bundler`);
       }
     }
-    return userOpGasResponse
+    return userOpGasResponse;
   }
 
   /**
@@ -150,16 +150,16 @@ export class Bundler implements IBundler {
    */
   async sendUserOp(
     _userOp: UserOperationStruct,
-    simulationParam?: SimulationType
+    simulationParam?: SimulationType,
   ): Promise<UserOpResponse> {
-    const chainId = this.bundlerConfig.chainId
+    const chainId = this.bundlerConfig.chainId;
     // transformUserOP will convert all bigNumber values to string
-    const userOp = transformUserOP(_userOp)
+    const userOp = transformUserOP(_userOp);
     const simType = {
-      simulation_type: simulationParam || "validation"
-    }
-    const params = [userOp, this.bundlerConfig.entryPointAddress, simType]
-    const bundlerUrl = this.getBundlerUrl()
+      simulation_type: simulationParam || "validation",
+    };
+    const params = [userOp, this.bundlerConfig.entryPointAddress, simType];
+    const bundlerUrl = this.getBundlerUrl();
     const sendUserOperationResponse: SendUserOpResponse = await sendRequest(
       {
         url: bundlerUrl,
@@ -168,106 +168,106 @@ export class Bundler implements IBundler {
           method: "eth_sendUserOperation",
           params: params,
           id: getTimestampInSeconds(),
-          jsonrpc: "2.0"
-        }
+          jsonrpc: "2.0",
+        },
       },
-      "Bundler"
-    )
+      "Bundler",
+    );
     const response: UserOpResponse = {
       userOpHash: sendUserOperationResponse.result,
       wait: (confirmations?: number): Promise<UserOpReceipt> => {
         // Note: maxDuration can be defined per chainId
         const maxDuration =
-          this.UserOpReceiptMaxDurationIntervals[chainId] || 30000 // default 30 seconds
-        let totalDuration = 0
+          this.UserOpReceiptMaxDurationIntervals[chainId] || 30000; // default 30 seconds
+        let totalDuration = 0;
 
         return new Promise<UserOpReceipt>((resolve, reject) => {
-          const intervalValue = this.UserOpReceiptIntervals[chainId] || 5000 // default 5 seconds
+          const intervalValue = this.UserOpReceiptIntervals[chainId] || 5000; // default 5 seconds
           const intervalId = setInterval(async () => {
             try {
               const userOpResponse = await this.getUserOpReceipt(
-                sendUserOperationResponse.result
-              )
+                sendUserOperationResponse.result,
+              );
               if (userOpResponse?.receipt?.blockNumber) {
                 if (confirmations) {
-                  const latestBlock = await this.provider.getBlockNumber()
+                  const latestBlock = await this.provider.getBlockNumber();
                   const confirmedBlocks =
-                    Number(latestBlock) - userOpResponse.receipt.blockNumber
+                    Number(latestBlock) - userOpResponse.receipt.blockNumber;
                   if (confirmations >= confirmedBlocks) {
-                    clearInterval(intervalId)
-                    resolve(userOpResponse)
-                    return
+                    clearInterval(intervalId);
+                    resolve(userOpResponse);
+                    return;
                   }
                 } else {
-                  clearInterval(intervalId)
-                  resolve(userOpResponse)
-                  return
+                  clearInterval(intervalId);
+                  resolve(userOpResponse);
+                  return;
                 }
               }
             } catch (error) {
-              clearInterval(intervalId)
-              reject(error)
-              return
+              clearInterval(intervalId);
+              reject(error);
+              return;
             }
 
-            totalDuration += intervalValue
+            totalDuration += intervalValue;
             if (totalDuration >= maxDuration) {
-              clearInterval(intervalId)
+              clearInterval(intervalId);
               reject(
                 new Error(
                   `Exceeded maximum duration (${
                     maxDuration / 1000
                   } sec) waiting to get receipt for userOpHash ${
                     sendUserOperationResponse.result
-                  }. Try getting the receipt manually using eth_getUserOperationReceipt rpc method on bundler`
-                )
-              )
+                  }. Try getting the receipt manually using eth_getUserOperationReceipt rpc method on bundler`,
+                ),
+              );
             }
-          }, intervalValue)
-        })
+          }, intervalValue);
+        });
       },
       waitForTxHash: (): Promise<UserOpStatus> => {
         const maxDuration =
-          this.UserOpWaitForTxHashMaxDurationIntervals[chainId] || 20000 // default 20 seconds
-        let totalDuration = 0
+          this.UserOpWaitForTxHashMaxDurationIntervals[chainId] || 20000; // default 20 seconds
+        let totalDuration = 0;
 
         return new Promise<UserOpStatus>((resolve, reject) => {
           const intervalValue =
-            this.UserOpWaitForTxHashIntervals[chainId] || 500 // default 0.5 seconds
+            this.UserOpWaitForTxHashIntervals[chainId] || 500; // default 0.5 seconds
           const intervalId = setInterval(async () => {
             try {
               const userOpStatus = await this.getUserOpStatus(
-                sendUserOperationResponse.result
-              )
+                sendUserOperationResponse.result,
+              );
               if (userOpStatus?.state && userOpStatus.transactionHash) {
-                clearInterval(intervalId)
-                resolve(userOpStatus)
-                return
+                clearInterval(intervalId);
+                resolve(userOpStatus);
+                return;
               }
             } catch (error) {
-              clearInterval(intervalId)
-              reject(error)
-              return
+              clearInterval(intervalId);
+              reject(error);
+              return;
             }
 
-            totalDuration += intervalValue
+            totalDuration += intervalValue;
             if (totalDuration >= maxDuration) {
-              clearInterval(intervalId)
+              clearInterval(intervalId);
               reject(
                 new Error(
                   `Exceeded maximum duration (${
                     maxDuration / 1000
                   } sec) waiting to get receipt for userOpHash ${
                     sendUserOperationResponse.result
-                  }. Try getting the receipt manually using eth_getUserOperationReceipt rpc method on bundler`
-                )
-              )
+                  }. Try getting the receipt manually using eth_getUserOperationReceipt rpc method on bundler`,
+                ),
+              );
             }
-          }, intervalValue)
-        })
-      }
-    }
-    return response
+          }, intervalValue);
+        });
+      },
+    };
+    return response;
   }
 
   /**
@@ -277,7 +277,7 @@ export class Bundler implements IBundler {
    * @returns Promise<UserOpReceipt>
    */
   async getUserOpReceipt(userOpHash: string): Promise<UserOpReceipt> {
-    const bundlerUrl = this.getBundlerUrl()
+    const bundlerUrl = this.getBundlerUrl();
     const response: GetUserOperationReceiptResponse = await sendRequest(
       {
         url: bundlerUrl,
@@ -286,13 +286,13 @@ export class Bundler implements IBundler {
           method: "eth_getUserOperationReceipt",
           params: [userOpHash],
           id: getTimestampInSeconds(),
-          jsonrpc: "2.0"
-        }
+          jsonrpc: "2.0",
+        },
       },
-      "Bundler"
-    )
-    const userOpReceipt: UserOpReceipt = response.result
-    return userOpReceipt
+      "Bundler",
+    );
+    const userOpReceipt: UserOpReceipt = response.result;
+    return userOpReceipt;
   }
 
   /**
@@ -302,7 +302,7 @@ export class Bundler implements IBundler {
    * @returns Promise<UserOpReceipt>
    */
   async getUserOpStatus(userOpHash: string): Promise<UserOpStatus> {
-    const bundlerUrl = this.getBundlerUrl()
+    const bundlerUrl = this.getBundlerUrl();
     const response: GetUserOperationStatusResponse = await sendRequest(
       {
         url: bundlerUrl,
@@ -311,13 +311,13 @@ export class Bundler implements IBundler {
           method: "biconomy_getUserOperationStatus",
           params: [userOpHash],
           id: getTimestampInSeconds(),
-          jsonrpc: "2.0"
-        }
+          jsonrpc: "2.0",
+        },
       },
-      "Bundler"
-    )
-    const userOpStatus: UserOpStatus = response.result
-    return userOpStatus
+      "Bundler",
+    );
+    const userOpStatus: UserOpStatus = response.result;
+    return userOpStatus;
   }
 
   /**
@@ -327,7 +327,7 @@ export class Bundler implements IBundler {
    * @returns Promise<UserOpByHashResponse>
    */
   async getUserOpByHash(userOpHash: string): Promise<UserOpByHashResponse> {
-    const bundlerUrl = this.getBundlerUrl()
+    const bundlerUrl = this.getBundlerUrl();
     const response: GetUserOpByHashResponse = await sendRequest(
       {
         url: bundlerUrl,
@@ -336,20 +336,20 @@ export class Bundler implements IBundler {
           method: "eth_getUserOperationByHash",
           params: [userOpHash],
           id: getTimestampInSeconds(),
-          jsonrpc: "2.0"
-        }
+          jsonrpc: "2.0",
+        },
       },
-      "Bundler"
-    )
-    const userOpByHashResponse: UserOpByHashResponse = response.result
-    return userOpByHashResponse
+      "Bundler",
+    );
+    const userOpByHashResponse: UserOpByHashResponse = response.result;
+    return userOpByHashResponse;
   }
 
   /**
    * @description This function will return the gas fee values
    */
   async getGasFeeValues(): Promise<GasFeeValues> {
-    const bundlerUrl = this.getBundlerUrl()
+    const bundlerUrl = this.getBundlerUrl();
     const response: GetGasFeeValuesResponse = await sendRequest(
       {
         url: bundlerUrl,
@@ -358,15 +358,15 @@ export class Bundler implements IBundler {
           method: "biconomy_getGasFeeValues",
           params: [],
           id: getTimestampInSeconds(),
-          jsonrpc: "2.0"
-        }
+          jsonrpc: "2.0",
+        },
       },
-      "Bundler"
-    )
-    return response.result
+      "Bundler",
+    );
+    return response.result;
   }
 
   public static async create(config: Bundlerconfig): Promise<Bundler> {
-    return new Bundler(config)
+    return new Bundler(config);
   }
 }

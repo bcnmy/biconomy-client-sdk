@@ -6,23 +6,23 @@ export const BiconomyFactoryAbi = [
         indexed: true,
         internalType: "address",
         name: "account",
-        type: "address"
+        type: "address",
       },
       {
         indexed: true,
         internalType: "address",
         name: "initialAuthModule",
-        type: "address"
+        type: "address",
       },
       {
         indexed: true,
         internalType: "uint256",
         name: "index",
-        type: "uint256"
-      }
+        type: "uint256",
+      },
     ],
     name: "AccountCreation",
-    type: "event"
+    type: "event",
   },
   {
     anonymous: false,
@@ -31,17 +31,17 @@ export const BiconomyFactoryAbi = [
         indexed: true,
         internalType: "address",
         name: "account",
-        type: "address"
+        type: "address",
       },
       {
         indexed: true,
         internalType: "address",
         name: "initialAuthModule",
-        type: "address"
-      }
+        type: "address",
+      },
     ],
     name: "AccountCreationWithoutIndex",
-    type: "event"
+    type: "event",
   },
   {
     inputs: [],
@@ -50,92 +50,92 @@ export const BiconomyFactoryAbi = [
       {
         internalType: "bytes",
         name: "",
-        type: "bytes"
-      }
+        type: "bytes",
+      },
     ],
     stateMutability: "pure",
-    type: "function"
+    type: "function",
   },
   {
     inputs: [
       {
         internalType: "address",
         name: "moduleSetupContract",
-        type: "address"
+        type: "address",
       },
       {
         internalType: "bytes",
         name: "moduleSetupData",
-        type: "bytes"
-      }
+        type: "bytes",
+      },
     ],
     name: "deployAccount",
     outputs: [
       {
         internalType: "address",
         name: "proxy",
-        type: "address"
-      }
+        type: "address",
+      },
     ],
     stateMutability: "nonpayable",
-    type: "function"
+    type: "function",
   },
   {
     inputs: [
       {
         internalType: "address",
         name: "moduleSetupContract",
-        type: "address"
+        type: "address",
       },
       {
         internalType: "bytes",
         name: "moduleSetupData",
-        type: "bytes"
+        type: "bytes",
       },
       {
         internalType: "uint256",
         name: "index",
-        type: "uint256"
-      }
+        type: "uint256",
+      },
     ],
     name: "deployCounterFactualAccount",
     outputs: [
       {
         internalType: "address",
         name: "proxy",
-        type: "address"
-      }
+        type: "address",
+      },
     ],
     stateMutability: "nonpayable",
-    type: "function"
+    type: "function",
   },
   {
     inputs: [
       {
         internalType: "address",
         name: "moduleSetupContract",
-        type: "address"
+        type: "address",
       },
       {
         internalType: "bytes",
         name: "moduleSetupData",
-        type: "bytes"
+        type: "bytes",
       },
       {
         internalType: "uint256",
         name: "index",
-        type: "uint256"
-      }
+        type: "uint256",
+      },
     ],
     name: "getAddressForCounterFactualAccount",
     outputs: [
       {
         internalType: "address",
         name: "_account",
-        type: "address"
-      }
+        type: "address",
+      },
     ],
     stateMutability: "view",
-    type: "function"
-  }
-] as const
+    type: "function",
+  },
+] as const;

@@ -6,20 +6,20 @@ import {
   pad,
   parseAbiParameters,
   toBytes,
-  toHex
-} from "viem"
-import { type SmartAccountSigner, convertSigner } from "../account"
-import { BaseValidationModule } from "./BaseValidationModule.js"
-import { SessionKeyManagerModule } from "./SessionKeyManagerModule.js"
+  toHex,
+} from "viem";
+import { type SmartAccountSigner, convertSigner } from "../account";
+import { BaseValidationModule } from "./BaseValidationModule.js";
+import { SessionKeyManagerModule } from "./SessionKeyManagerModule.js";
 import type {
   SessionSearchParam,
-  SessionStatus
-} from "./interfaces/ISessionStorage.js"
+  SessionStatus,
+} from "./interfaces/ISessionStorage.js";
 import {
   BATCHED_SESSION_ROUTER_MODULE_ADDRESSES_BY_VERSION,
   DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
-  DEFAULT_SESSION_KEY_MANAGER_MODULE
-} from "./utils/Constants.js"
+  DEFAULT_SESSION_KEY_MANAGER_MODULE,
+} from "./utils/Constants.js";
 // @ts-nocheck
 import type {
   BatchedSessionRouterModuleConfig,
@@ -27,20 +27,20 @@ import type {
   CreateSessionDataResponse,
   ModuleInfo,
   ModuleVersion,
-  SessionDataTuple
-} from "./utils/Types.js"
+  SessionDataTuple,
+} from "./utils/Types.js";
 
 export class BatchedSessionRouterModule extends BaseValidationModule {
-  version: ModuleVersion = "V1_0_0"
+  version: ModuleVersion = "V1_0_0";
 
-  moduleAddress!: Hex
+  moduleAddress!: Hex;
 
-  sessionManagerModuleAddress!: Hex
+  sessionManagerModuleAddress!: Hex;
 
-  sessionKeyManagerModule!: SessionKeyManagerModule
+  sessionKeyManagerModule!: SessionKeyManagerModule;
 
   readonly mockEcdsaSessionKeySig: Hex =
-    "0x73c3ac716c487ca34bb858247b5ccf1dc354fbaabdd089af3b2ac8e78ba85a4959a2d76250325bd67c11771c31fccda87c33ceec17cc0de912690521bb95ffcb1b"
+    "0x73c3ac716c487ca34bb858247b5ccf1dc354fbaabdd089af3b2ac8e78ba85a4959a2d76250325bd67c11771c31fccda87c33ceec17cc0de912690521bb95ffcb1b";
 
   /**
    * This constructor is private. Use the static create method to instantiate SessionKeyManagerModule
@@ -48,7 +48,7 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
    * @returns An instance of SessionKeyManagerModule
    */
   private constructor(moduleConfig: BatchedSessionRouterModuleConfig) {
-    super(moduleConfig)
+    super(moduleConfig);
   }
 
   /**
@@ -57,46 +57,46 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
    * @returns A Promise that resolves to an instance of SessionKeyManagerModule
    */
   public static async create(
-    moduleConfig: BatchedSessionRouterModuleConfig
+    moduleConfig: BatchedSessionRouterModuleConfig,
   ): Promise<BatchedSessionRouterModule> {
-    const instance = new BatchedSessionRouterModule(moduleConfig)
+    const instance = new BatchedSessionRouterModule(moduleConfig);
 
     if (moduleConfig.moduleAddress) {
-      instance.moduleAddress = moduleConfig.moduleAddress
+      instance.moduleAddress = moduleConfig.moduleAddress;
     } else if (moduleConfig.version) {
       const moduleAddr = BATCHED_SESSION_ROUTER_MODULE_ADDRESSES_BY_VERSION[
         moduleConfig.version
-      ] as Hex
+      ] as Hex;
       if (!moduleAddr) {
-        throw new Error(`Invalid version ${moduleConfig.version}`)
+        throw new Error(`Invalid version ${moduleConfig.version}`);
       }
-      instance.moduleAddress = moduleAddr
-      instance.version = moduleConfig.version as ModuleVersion
+      instance.moduleAddress = moduleAddr;
+      instance.version = moduleConfig.version as ModuleVersion;
     } else {
-      instance.moduleAddress = DEFAULT_BATCHED_SESSION_ROUTER_MODULE
+      instance.moduleAddress = DEFAULT_BATCHED_SESSION_ROUTER_MODULE;
       // Note: in this case Version remains the default one
     }
 
     instance.sessionManagerModuleAddress =
       moduleConfig.sessionManagerModuleAddress ??
-      DEFAULT_SESSION_KEY_MANAGER_MODULE
+      DEFAULT_SESSION_KEY_MANAGER_MODULE;
 
     if (!moduleConfig.sessionKeyManagerModule) {
       // generate sessionModule
       const sessionModule = await SessionKeyManagerModule.create({
         moduleAddress: instance.sessionManagerModuleAddress,
         smartAccountAddress: moduleConfig.smartAccountAddress,
-        storageType: moduleConfig.storageType
-      })
+        storageType: moduleConfig.storageType,
+      });
 
-      instance.sessionKeyManagerModule = sessionModule
+      instance.sessionKeyManagerModule = sessionModule;
     } else {
-      instance.sessionKeyManagerModule = moduleConfig.sessionKeyManagerModule
+      instance.sessionKeyManagerModule = moduleConfig.sessionKeyManagerModule;
       instance.sessionManagerModuleAddress =
-        moduleConfig.sessionKeyManagerModule.getAddress()
+        moduleConfig.sessionKeyManagerModule.getAddress();
     }
 
-    return instance
+    return instance;
   }
 
   /**
@@ -105,10 +105,10 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
    * @returns The session data
    */
   createSessionData = async (
-    leavesData: CreateSessionDataParams[]
+    leavesData: CreateSessionDataParams[],
   ): Promise<CreateSessionDataResponse> => {
-    return this.sessionKeyManagerModule.createSessionData(leavesData)
-  }
+    return this.sessionKeyManagerModule.createSessionData(leavesData);
+  };
 
   /**
    * This method is used to sign the user operation using the session signer
@@ -117,55 +117,55 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
    * @returns The signature of the user operation
    */
   async signUserOpHash(userOpHash: string, params?: ModuleInfo): Promise<Hex> {
-    const sessionParams = params?.batchSessionParams
+    const sessionParams = params?.batchSessionParams;
     if (!sessionParams || sessionParams.length === 0) {
-      throw new Error("Session parameters are not provided")
+      throw new Error("Session parameters are not provided");
     }
 
-    const sessionDataTupleArray: SessionDataTuple[] = []
+    const sessionDataTupleArray: SessionDataTuple[] = [];
 
     // signer must be the same for all the sessions
     const { signer: sessionSigner } = await convertSigner(
       sessionParams[0].sessionSigner,
-      false
-    )
+      false,
+    );
 
     const signature = await sessionSigner.signMessage({
-      raw: toBytes(userOpHash)
-    })
+      raw: toBytes(userOpHash),
+    });
 
     for (const sessionParam of sessionParams) {
       if (!sessionParam.sessionSigner) {
-        throw new Error("Session signer is not provided.")
+        throw new Error("Session signer is not provided.");
       }
       if (!sessionParam.sessionID && !sessionParam.sessionValidationModule) {
         throw new Error(
-          "sessionID or sessionValidationModule should be provided."
-        )
+          "sessionID or sessionValidationModule should be provided.",
+        );
       }
 
       const sessionSignerData =
         await this.sessionKeyManagerModule.sessionStorageClient.getSessionData(
           sessionParam.sessionID
             ? {
-                sessionID: sessionParam.sessionID
+                sessionID: sessionParam.sessionID,
               }
             : {
                 sessionValidationModule: sessionParam.sessionValidationModule,
-                sessionPublicKey: await sessionSigner.getAddress()
-              }
-        )
+                sessionPublicKey: await sessionSigner.getAddress(),
+              },
+        );
 
       const leafDataHex = concat([
         pad(toHex(sessionSignerData.validUntil), { size: 6 }),
         pad(toHex(sessionSignerData.validAfter), { size: 6 }),
         pad(sessionSignerData.sessionValidationModule, { size: 20 }),
-        sessionSignerData.sessionKeyData
-      ])
+        sessionSignerData.sessionKeyData,
+      ]);
 
       const proof = this.sessionKeyManagerModule.merkleTree.getHexProof(
-        keccak256(leafDataHex)
-      )
+        keccak256(leafDataHex),
+      );
 
       const sessionDataTuple: SessionDataTuple = [
         sessionSignerData.validUntil,
@@ -173,10 +173,10 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
         sessionSignerData.sessionValidationModule,
         sessionSignerData.sessionKeyData,
         proof,
-        sessionParam.additionalSessionData ?? "0x"
-      ]
+        sessionParam.additionalSessionData ?? "0x",
+      ];
 
-      sessionDataTupleArray.push(sessionDataTuple)
+      sessionDataTupleArray.push(sessionDataTuple);
     }
 
     // Generate the padded signature
@@ -190,19 +190,19 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
           { type: "address" },
           { type: "bytes" },
           { type: "bytes32[]" },
-          { type: "bytes" }
-        ]
+          { type: "bytes" },
+        ],
       },
-      { type: "bytes" }
-    ]
+      { type: "bytes" },
+    ];
 
     const paddedSignature = encodeAbiParameters(abiParameters, [
       this.getSessionKeyManagerAddress(),
       sessionDataTupleArray,
-      signature
-    ])
+      signature,
+    ]);
 
-    return paddedSignature as Hex
+    return paddedSignature as Hex;
   }
 
   /**
@@ -213,12 +213,12 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
    */
   async updateSessionStatus(
     param: SessionSearchParam,
-    status: SessionStatus
+    status: SessionStatus,
   ): Promise<void> {
     this.sessionKeyManagerModule.sessionStorageClient.updateSessionStatus(
       param,
-      status
-    )
+      status,
+    );
   }
 
   /**
@@ -226,28 +226,28 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
    * @returns
    */
   async clearPendingSessions(): Promise<void> {
-    this.sessionKeyManagerModule.sessionStorageClient.clearPendingSessions()
+    this.sessionKeyManagerModule.sessionStorageClient.clearPendingSessions();
   }
 
   /**
    * @returns SessionKeyManagerModule address
    */
   getAddress(): Hex {
-    return this.moduleAddress
+    return this.moduleAddress;
   }
 
   /**
    * @returns SessionKeyManagerModule address
    */
   getSessionKeyManagerAddress(): Hex {
-    return this.sessionManagerModuleAddress
+    return this.sessionManagerModuleAddress;
   }
 
   /**
    * @remarks This is the version of the module contract
    */
   async getSigner(): Promise<SmartAccountSigner> {
-    throw new Error("Method not implemented.")
+    throw new Error("Method not implemented.");
   }
 
   /**
@@ -255,51 +255,51 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
    * @returns Dummy signature
    */
   async getDummySignature(params?: ModuleInfo): Promise<Hex> {
-    const sessionParams = params?.batchSessionParams
+    const sessionParams = params?.batchSessionParams;
     if (!sessionParams || sessionParams.length === 0) {
-      throw new Error("Session parameters are not provided")
+      throw new Error("Session parameters are not provided");
     }
 
-    const sessionDataTupleArray: SessionDataTuple[] = []
+    const sessionDataTupleArray: SessionDataTuple[] = [];
     // signer must be the same for all the sessions
     const { signer: sessionSigner } = await convertSigner(
       sessionParams[0].sessionSigner,
-      false
-    )
+      false,
+    );
 
     for (const sessionParam of sessionParams) {
       if (!sessionParam.sessionSigner) {
-        throw new Error("Session signer is not provided.")
+        throw new Error("Session signer is not provided.");
       }
 
       if (!sessionParam.sessionID && !sessionParam.sessionValidationModule) {
         throw new Error(
-          "sessionID or sessionValidationModule should be provided."
-        )
+          "sessionID or sessionValidationModule should be provided.",
+        );
       }
 
       const sessionSignerData =
         await this.sessionKeyManagerModule.sessionStorageClient.getSessionData(
           sessionParam.sessionID
             ? {
-                sessionID: sessionParam.sessionID
+                sessionID: sessionParam.sessionID,
               }
             : {
                 sessionValidationModule: sessionParam.sessionValidationModule,
-                sessionPublicKey: await sessionSigner.getAddress()
-              }
-        )
+                sessionPublicKey: await sessionSigner.getAddress(),
+              },
+        );
 
       const leafDataHex = concat([
         pad(toHex(sessionSignerData.validUntil), { size: 6 }),
         pad(toHex(sessionSignerData.validAfter), { size: 6 }),
         pad(sessionSignerData.sessionValidationModule, { size: 20 }),
-        sessionSignerData.sessionKeyData
-      ])
+        sessionSignerData.sessionKeyData,
+      ]);
 
       const proof = this.sessionKeyManagerModule.merkleTree.getHexProof(
-        keccak256(leafDataHex)
-      )
+        keccak256(leafDataHex),
+      );
 
       const sessionDataTuple: SessionDataTuple = [
         BigInt(sessionSignerData.validUntil),
@@ -307,10 +307,10 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
         sessionSignerData.sessionValidationModule,
         sessionSignerData.sessionKeyData,
         proof,
-        sessionParam.additionalSessionData ?? "0x"
-      ]
+        sessionParam.additionalSessionData ?? "0x",
+      ];
 
-      sessionDataTupleArray.push(sessionDataTuple)
+      sessionDataTupleArray.push(sessionDataTuple);
     }
 
     // Generate the padded signature
@@ -325,36 +325,36 @@ export class BatchedSessionRouterModule extends BaseValidationModule {
           { type: "address" },
           { type: "bytes" },
           { type: "bytes32[]" },
-          { type: "bytes" }
-        ]
+          { type: "bytes" },
+        ],
       },
-      { type: "bytes" }
-    ]
+      { type: "bytes" },
+    ];
 
     const paddedSignature = encodeAbiParameters(abiParameters, [
       this.getSessionKeyManagerAddress(),
       sessionDataTupleArray,
-      this.mockEcdsaSessionKeySig
-    ])
+      this.mockEcdsaSessionKeySig,
+    ]);
 
     const dummySig = encodeAbiParameters(parseAbiParameters("bytes, address"), [
       paddedSignature as Hex,
-      this.getAddress()
-    ])
-    return dummySig
+      this.getAddress(),
+    ]);
+    return dummySig;
   }
 
   /**
    * @remarks Other modules may need additional attributes to build init data
    */
   async getInitData(): Promise<Hex> {
-    throw new Error("Method not implemented.")
+    throw new Error("Method not implemented.");
   }
 
   /**
    * @remarks This Module dont have knowledge of signer. So, this method is not implemented
    */
   async signMessage(_message: Uint8Array | string): Promise<string> {
-    throw new Error("Method not implemented.")
+    throw new Error("Method not implemented.");
   }
 }

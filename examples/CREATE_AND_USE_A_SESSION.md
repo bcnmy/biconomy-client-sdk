@@ -112,7 +112,7 @@ const smartAccountWithSession = await createSessionSmartAccountClient(
   smartAccountAddress // Storage client, full Session or smartAccount address if using default storage
 );
 
-const { wait: mintWait } = await smartAccountWithSession.sendSessionTransaction(
+const { wait: mintWait } = await smartAccountWithSession.sendTransaction(
   [
     correspondingIndexes,
     smartAccountAddress, // Storage client, full Session or smartAccount address if using default storage

@@ -7,69 +7,69 @@ import {
   type PublicClient,
   createPublicClient,
   getContract,
-  trim
-} from "viem"
-import { EntryPointAbi } from "./abi/EntryPointAbi.js"
-import { Logger, type SmartAccountSigner, getChain } from "./index.js"
-import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants.js"
+  trim,
+} from "viem";
+import { EntryPointAbi } from "./abi/EntryPointAbi.js";
+import { Logger, type SmartAccountSigner, getChain } from "./index.js";
+import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants.js";
 import type {
   BasSmartContractAccountProps,
   BatchUserOperationCallData,
   ISmartContractAccount,
-  SignTypedDataParams
-} from "./utils/Types.js"
-import { wrapSignatureWith6492 } from "./utils/Utils.js"
+  SignTypedDataParams,
+} from "./utils/Types.js";
+import { wrapSignatureWith6492 } from "./utils/Utils.js";
 
 export enum DeploymentState {
   UNDEFINED = "0x0",
   NOT_DEPLOYED = "0x1",
-  DEPLOYED = "0x2"
+  DEPLOYED = "0x2",
 }
 
 export abstract class BaseSmartContractAccount<
-  TSigner extends SmartAccountSigner = SmartAccountSigner
+  TSigner extends SmartAccountSigner = SmartAccountSigner,
 > implements ISmartContractAccount<TSigner>
 {
-  protected factoryAddress: Address
+  protected factoryAddress: Address;
 
-  protected deploymentState: DeploymentState = DeploymentState.UNDEFINED
+  protected deploymentState: DeploymentState = DeploymentState.UNDEFINED;
 
-  protected accountAddress?: Address
+  protected accountAddress?: Address;
 
-  protected accountInitCode?: Hex
+  protected accountInitCode?: Hex;
 
-  protected signer: TSigner
+  protected signer: TSigner;
 
   protected entryPoint: GetContractReturnType<
     typeof EntryPointAbi,
     PublicClient
-  >
+  >;
 
-  protected entryPointAddress: Address
+  protected entryPointAddress: Address;
 
-  readonly rpcProvider: PublicClient
+  readonly rpcProvider: PublicClient;
 
   constructor(params: BasSmartContractAccountProps) {
     this.entryPointAddress =
-      params.entryPointAddress ?? DEFAULT_ENTRYPOINT_ADDRESS
+      params.entryPointAddress ?? DEFAULT_ENTRYPOINT_ADDRESS;
 
     this.rpcProvider = createPublicClient({
       chain: params.viemChain ?? params.customChain ?? getChain(params.chainId),
       transport: http(
-        params.rpcUrl || getChain(params.chainId).rpcUrls.default.http[0]
-      )
-    }) as PublicClient
+        params.rpcUrl || getChain(params.chainId).rpcUrls.default.http[0],
+      ),
+    }) as PublicClient;
 
-    this.accountAddress = params.accountAddress
-    this.factoryAddress = params.factoryAddress
-    this.signer = params.signer as TSigner
-    this.accountInitCode = params.initCode
+    this.accountAddress = params.accountAddress;
+    this.factoryAddress = params.factoryAddress;
+    this.signer = params.signer as TSigner;
+    this.accountInitCode = params.initCode;
 
     this.entryPoint = getContract({
       address: this.entryPointAddress,
       abi: EntryPointAbi,
-      client: this.rpcProvider as PublicClient
-    })
+      client: this.rpcProvider as PublicClient,
+    });
   }
 
   //#region abstract-methods
@@ -80,7 +80,7 @@ export abstract class BaseSmartContractAccount<
    * This is required for gas estimation so that the gas estimate are accurate.
    *
    */
-  abstract getDummySignature(): Hash
+  abstract getDummySignature(): Hash;
 
   /**
    * this method should return the abi encoded function data for a call to your contract's `execute` method
@@ -93,22 +93,22 @@ export abstract class BaseSmartContractAccount<
   abstract encodeExecute(
     target: string,
     value: bigint,
-    data: string
-  ): Promise<Hash>
+    data: string,
+  ): Promise<Hash>;
 
   /**
    * this should return an ERC-191 compliant message and is used to sign UO Hashes
    *
    * @param msg -- the message to sign
    */
-  abstract signMessage(msg: string | Uint8Array): Promise<Hash>
+  abstract signMessage(msg: string | Uint8Array): Promise<Hash>;
 
   /**
    * this should return the init code that will be used to create an account if one does not exist.
    * This is the concatenation of the account's factory address and the abi encoded function data of the account factory's `createAccount` method.
    * https://github.com/eth-infinitism/account-abstraction/blob/abff2aca61a8f0934e533d0d352978055fddbd96/contracts/core/SenderCreator.sol#L12
    */
-  protected abstract getAccountInitCode(): Promise<Hash>
+  protected abstract getAccountInitCode(): Promise<Hash>;
 
   //#endregion abstract-methods
 
@@ -122,7 +122,7 @@ export abstract class BaseSmartContractAccount<
    * @returns the signature of the UserOperation
    */
   async signUserOperationHash(uoHash: Hash): Promise<Hash> {
-    return this.signMessage(uoHash)
+    return this.signMessage(uoHash);
   }
 
   /**
@@ -132,7 +132,7 @@ export abstract class BaseSmartContractAccount<
    * @param _params -- Typed Data params to sign
    */
   async signTypedData(_params: SignTypedDataParams): Promise<`0x${string}`> {
-    return this.signer.signTypedData(_params)
+    return this.signer.signTypedData(_params);
   }
 
   /**
@@ -144,10 +144,10 @@ export abstract class BaseSmartContractAccount<
   async signMessageWith6492(msg: string | Uint8Array): Promise<`0x${string}`> {
     const [isDeployed, signature] = await Promise.all([
       this.isAccountDeployed(),
-      this.signMessage(msg)
-    ])
+      this.signMessage(msg),
+    ]);
 
-    return this.create6492Signature(isDeployed, signature)
+    return this.create6492Signature(isDeployed, signature);
   }
 
   /**
@@ -158,14 +158,14 @@ export abstract class BaseSmartContractAccount<
    * @param params -- Typed Data params to sign
    */
   async signTypedDataWith6492(
-    params: SignTypedDataParams
+    params: SignTypedDataParams,
   ): Promise<`0x${string}`> {
     const [isDeployed, signature] = await Promise.all([
       this.isAccountDeployed(),
-      this.signTypedData(params)
-    ])
+      this.signTypedData(params),
+    ]);
 
-    return this.create6492Signature(isDeployed, signature)
+    return this.create6492Signature(isDeployed, signature);
   }
 
   /**
@@ -177,9 +177,9 @@ export abstract class BaseSmartContractAccount<
    * @param _txs -- the transactions to batch execute
    */
   async encodeBatchExecute(
-    _txs: BatchUserOperationCallData
+    _txs: BatchUserOperationCallData,
   ): Promise<`0x${string}`> {
-    throw new Error("Batch execution not supported")
+    throw new Error("Batch execution not supported");
   }
 
   /**
@@ -191,105 +191,105 @@ export abstract class BaseSmartContractAccount<
    */
   encodeUpgradeToAndCall = async (
     _upgradeToImplAddress: Address,
-    _upgradeToInitData: Hex
+    _upgradeToInitData: Hex,
   ): Promise<Hex> => {
-    throw new Error("Upgrade ToAndCall Not Supported")
-  }
+    throw new Error("Upgrade ToAndCall Not Supported");
+  };
   //#endregion optional-methods
 
   // Extra implementations
   async getNonce(): Promise<bigint> {
     if (!(await this.isAccountDeployed())) {
-      return 0n
+      return 0n;
     }
-    const address = await this.getAddress()
-    return this.entryPoint.read.getNonce([address, BigInt(0)])
+    const address = await this.getAddress();
+    return this.entryPoint.read.getNonce([address, BigInt(0)]);
   }
 
   async getInitCode(): Promise<Hex> {
     if (this.deploymentState === DeploymentState.DEPLOYED) {
-      return "0x"
+      return "0x";
     }
 
     const contractCode = await this.rpcProvider.getBytecode({
-      address: await this.getAddress()
-    })
+      address: await this.getAddress(),
+    });
 
     if ((contractCode?.length ?? 0) > 2) {
-      this.deploymentState = DeploymentState.DEPLOYED
-      return "0x"
+      this.deploymentState = DeploymentState.DEPLOYED;
+      return "0x";
     }
 
-    this.deploymentState = DeploymentState.NOT_DEPLOYED
+    this.deploymentState = DeploymentState.NOT_DEPLOYED;
 
-    return this._getAccountInitCode()
+    return this._getAccountInitCode();
   }
 
   async getAddress(): Promise<Address> {
     if (!this.accountAddress) {
-      const initCode = await this._getAccountInitCode()
-      Logger.log("[BaseSmartContractAccount](getAddress) initCode: ", initCode)
+      const initCode = await this._getAccountInitCode();
+      Logger.log("[BaseSmartContractAccount](getAddress) initCode: ", initCode);
       try {
-        await this.entryPoint.simulate.getSenderAddress([initCode])
+        await this.entryPoint.simulate.getSenderAddress([initCode]);
       } catch (err: any) {
         Logger.log(
           "[BaseSmartContractAccount](getAddress) getSenderAddress err: ",
-          err
-        )
+          err,
+        );
 
         if (err.cause?.data?.errorName === "SenderAddressResult") {
-          this.accountAddress = err.cause.data.args[0] as Address
+          this.accountAddress = err.cause.data.args[0] as Address;
           Logger.log(
             "[BaseSmartContractAccount](getAddress) entryPoint.getSenderAddress result:",
-            this.accountAddress
-          )
-          return this.accountAddress
+            this.accountAddress,
+          );
+          return this.accountAddress;
         }
 
         if (err.details === "Invalid URL") {
-          throw new Error("Invalid URL")
+          throw new Error("Invalid URL");
         }
       }
 
-      throw new Error("Failed to get counterfactual account address")
+      throw new Error("Failed to get counterfactual account address");
     }
 
-    return this.accountAddress
+    return this.accountAddress;
   }
 
   extend = <R>(fn: (self: this) => R): this & R => {
-    const extended = fn(this) as any
+    const extended = fn(this) as any;
     // this should make it so extensions can't overwrite the base methods
     for (const key in this) {
-      delete extended[key]
+      delete extended[key];
     }
-    return Object.assign(this, extended)
-  }
+    return Object.assign(this, extended);
+  };
 
   getSigner(): TSigner {
-    return this.signer
+    return this.signer;
   }
 
   getFactoryAddress(): Address {
-    return this.factoryAddress
+    return this.factoryAddress;
   }
 
   getEntryPointAddress(): Address {
-    return this.entryPointAddress
+    return this.entryPointAddress;
   }
 
   async isAccountDeployed(): Promise<boolean> {
-    return (await this.getDeploymentState()) === DeploymentState.DEPLOYED
+    return (await this.getDeploymentState()) === DeploymentState.DEPLOYED;
   }
 
   async getDeploymentState(): Promise<DeploymentState> {
     if (this.deploymentState === DeploymentState.UNDEFINED) {
-      const initCode = await this.getInitCode()
+      const initCode = await this.getInitCode();
       return initCode === "0x"
         ? DeploymentState.DEPLOYED
-        : DeploymentState.NOT_DEPLOYED
+        : DeploymentState.NOT_DEPLOYED;
     }
-    return this.deploymentState
+    return this.deploymentState;
   }
 
   /**
@@ -301,54 +301,54 @@ export abstract class BaseSmartContractAccount<
   protected async parseFactoryAddressFromAccountInitCode(): Promise<
     [Address, Hex]
   > {
-    const initCode = await this._getAccountInitCode()
-    const factoryAddress = `0x${initCode.substring(2, 42)}` as Address
-    const factoryCalldata = `0x${initCode.substring(42)}` as Hex
-    return [factoryAddress, factoryCalldata]
+    const initCode = await this._getAccountInitCode();
+    const factoryAddress = `0x${initCode.substring(2, 42)}` as Address;
+    const factoryCalldata = `0x${initCode.substring(42)}` as Hex;
+    return [factoryAddress, factoryCalldata];
   }
 
   protected async getImplementationAddress(): Promise<"0x0" | Address> {
-    const accountAddress = await this.getAddress()
+    const accountAddress = await this.getAddress();
 
     const storage = await this.rpcProvider.getStorageAt({
       address: accountAddress,
       // This is the default slot for the implementation address for Proxies
-      slot: "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc"
-    })
+      slot: "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc",
+    });
 
     if (storage == null) {
       throw new Error(
-        "Failed to get storage slot 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc"
-      )
+        "Failed to get storage slot 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc",
+      );
     }
 
-    return trim(storage)
+    return trim(storage);
   }
 
   private async _getAccountInitCode(): Promise<Hash> {
-    return this.accountInitCode ?? this.getAccountInitCode()
+    return this.accountInitCode ?? this.getAccountInitCode();
   }
 
   private async create6492Signature(
     isDeployed: boolean,
-    signature: Hash
+    signature: Hash,
   ): Promise<Hash> {
     if (isDeployed) {
-      return signature
+      return signature;
     }
 
     const [factoryAddress, factoryCalldata] =
-      await this.parseFactoryAddressFromAccountInitCode()
+      await this.parseFactoryAddressFromAccountInitCode();
 
     Logger.log(
       `[BaseSmartContractAccount](create6492Signature)\
-        factoryAddress: ${factoryAddress}, factoryCalldata: ${factoryCalldata}`
-    )
+        factoryAddress: ${factoryAddress}, factoryCalldata: ${factoryCalldata}`,
+    );
 
     return wrapSignatureWith6492({
       factoryAddress,
       factoryCalldata,
-      signature
-    })
+      signature,
+    });
   }
 }

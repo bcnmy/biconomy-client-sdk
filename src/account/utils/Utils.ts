@@ -5,13 +5,17 @@ import {
   concat,
   encodeAbiParameters,
   keccak256,
-  parseAbiParameters
-} from "viem"
-import type { UserOperationStruct } from "../../account"
-import { MAGIC_BYTES, type SupportedSigner, convertSigner } from "../../account"
-import { extractChainIdFromBundlerUrl } from "../../bundler"
-import { extractChainIdFromPaymasterUrl } from "../../bundler"
-import type { BiconomySmartAccountV2Config } from "./Types.js"
+  parseAbiParameters,
+} from "viem";
+import type { UserOperationStruct } from "../../account";
+import {
+  MAGIC_BYTES,
+  type SupportedSigner,
+  convertSigner,
+} from "../../account";
+import { extractChainIdFromBundlerUrl } from "../../bundler";
+import { extractChainIdFromPaymasterUrl } from "../../bundler";
+import type { BiconomySmartAccountV2Config } from "./Types.js";
 
 /**
  * pack the userOperation
@@ -21,14 +25,14 @@ import type { BiconomySmartAccountV2Config } from "./Types.js"
  */
 export function packUserOp(
   op: Partial<UserOperationStruct>,
-  forSignature = true
+  forSignature = true,
 ): string {
   if (!op.initCode || !op.callData || !op.paymasterAndData)
-    throw new Error("Missing userOp properties")
+    throw new Error("Missing userOp properties");
   if (forSignature) {
     return encodeAbiParameters(
       parseAbiParameters(
-        "address, uint256, bytes32, bytes32, uint256, uint256, uint256, uint256, uint256, bytes32"
+        "address, uint256, bytes32, bytes32, uint256, uint256, uint256, uint256, uint256, bytes32",
       ),
       [
         op.sender as Hex,
@@ -40,14 +44,14 @@ export function packUserOp(
         BigInt(op.preVerificationGas as Hex),
         BigInt(op.maxFeePerGas as Hex),
         BigInt(op.maxPriorityFeePerGas as Hex),
-        keccak256(op.paymasterAndData as Hex)
-      ]
-    )
+        keccak256(op.paymasterAndData as Hex),
+      ],
+    );
   }
   // for the purpose of calculating gas cost encode also signature (and no keccak of bytes)
   return encodeAbiParameters(
     parseAbiParameters(
-      "address, uint256, bytes, bytes, uint256, uint256, uint256, uint256, uint256, bytes, bytes"
+      "address, uint256, bytes, bytes, uint256, uint256, uint256, uint256, uint256, bytes, bytes",
     ),
     [
       op.sender as Hex,
@@ -60,39 +64,39 @@ export function packUserOp(
       BigInt(op.maxFeePerGas as Hex),
       BigInt(op.maxPriorityFeePerGas as Hex),
       op.paymasterAndData as Hex,
-      op.signature as Hex
-    ]
-  )
+      op.signature as Hex,
+    ],
+  );
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
 export const isNullOrUndefined = (value: any): value is undefined => {
-  return value === null || value === undefined
-}
+  return value === null || value === undefined;
+};
 
 export const compareChainIds = async (
   signer: SupportedSigner,
   biconomySmartAccountConfig: BiconomySmartAccountV2Config,
-  skipChainIdCalls: boolean
+  skipChainIdCalls: boolean,
   // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
 ): Promise<Error | void> => {
   const signerResult = await convertSigner(
     signer,
     skipChainIdCalls,
-    biconomySmartAccountConfig.rpcUrl
-  )
+    biconomySmartAccountConfig.rpcUrl,
+  );
 
   const chainIdFromBundler = biconomySmartAccountConfig.bundlerUrl
     ? extractChainIdFromBundlerUrl(biconomySmartAccountConfig.bundlerUrl)
     : biconomySmartAccountConfig.bundler
       ? extractChainIdFromBundlerUrl(
-          biconomySmartAccountConfig.bundler.getBundlerUrl()
+          biconomySmartAccountConfig.bundler.getBundlerUrl(),
         )
-      : undefined
+      : undefined;
 
   const chainIdFromPaymasterUrl = biconomySmartAccountConfig.paymasterUrl
     ? extractChainIdFromPaymasterUrl(biconomySmartAccountConfig.paymasterUrl)
-    : undefined
+    : undefined;
 
   if (!isNullOrUndefined(signerResult.chainId)) {
     if (
@@ -100,16 +104,16 @@ export const compareChainIds = async (
       signerResult.chainId !== chainIdFromBundler
     ) {
       throw new Error(
-        `Chain IDs from signer (${signerResult.chainId}) and bundler (${chainIdFromBundler}) do not match.`
-      )
+        `Chain IDs from signer (${signerResult.chainId}) and bundler (${chainIdFromBundler}) do not match.`,
+      );
     }
     if (
       chainIdFromPaymasterUrl !== undefined &&
       signerResult.chainId !== chainIdFromPaymasterUrl
     ) {
       throw new Error(
-        `Chain IDs from signer (${signerResult.chainId}) and paymaster (${chainIdFromPaymasterUrl}) do not match.`
-      )
+        `Chain IDs from signer (${signerResult.chainId}) and paymaster (${chainIdFromPaymasterUrl}) do not match.`,
+      );
     }
   } else {
     if (
@@ -118,30 +122,30 @@ export const compareChainIds = async (
       chainIdFromBundler !== chainIdFromPaymasterUrl
     ) {
       throw new Error(
-        `Chain IDs from bundler (${chainIdFromBundler}) and paymaster (${chainIdFromPaymasterUrl}) do not match.`
-      )
+        `Chain IDs from bundler (${chainIdFromBundler}) and paymaster (${chainIdFromPaymasterUrl}) do not match.`,
+      );
     }
   }
-}
+};
 
 export const isValidRpcUrl = (url: string): boolean => {
-  const regex = /^(https:\/\/|wss:\/\/).*/
-  return regex.test(url)
-}
+  const regex = /^(https:\/\/|wss:\/\/).*/;
+  return regex.test(url);
+};
 
 export const addressEquals = (a?: string, b?: string): boolean =>
-  !!a && !!b && a?.toLowerCase() === b.toLowerCase()
+  !!a && !!b && a?.toLowerCase() === b.toLowerCase();
 
 export type SignWith6492Params = {
-  factoryAddress: Address
-  factoryCalldata: Hex
-  signature: Hash
-}
+  factoryAddress: Address;
+  factoryCalldata: Hex;
+  signature: Hash;
+};
 
 export const wrapSignatureWith6492 = ({
   factoryAddress,
   factoryCalldata,
-  signature
+  signature,
 }: SignWith6492Params): Hash => {
   // wrap the signature as follows: https://eips.ethereum.org/EIPS/eip-6492
   // concat(
@@ -154,27 +158,27 @@ export const wrapSignatureWith6492 = ({
     encodeAbiParameters(parseAbiParameters("address, bytes, bytes"), [
       factoryAddress,
       factoryCalldata,
-      signature
+      signature,
     ]),
-    MAGIC_BYTES
-  ])
-}
+    MAGIC_BYTES,
+  ]);
+};
 
 export function percentage(partialValue: number, totalValue: number) {
-  return (100 * partialValue) / totalValue
+  return (100 * partialValue) / totalValue;
 }
 
 export function convertToFactor(percentage: number | undefined): number {
   // Check if the input is within the valid range
   if (percentage) {
     if (percentage < 1 || percentage > 100) {
-      throw new Error("The percentage value should be between 1 and 100.")
+      throw new Error("The percentage value should be between 1 and 100.");
     }
 
     // Calculate the factor
-    const factor = percentage / 100 + 1
+    const factor = percentage / 100 + 1;
 
-    return factor
+    return factor;
   }
-  return 1
+  return 1;
 }

@@ -119,7 +119,7 @@ const nftMintTx: Transaction = {
 const txs = [nftMintTx, transferTx];
 const correspondingIndexes = [1, 0]; // The order of the txs from the sessionBatch
 
-const { wait: sessionWait } = await smartAccountWithSession.sendSessionTransaction(
+const { wait: sessionWait } = await smartAccountWithSession.sendTransaction(
   [
     txs,
     correspondingIndexes,
