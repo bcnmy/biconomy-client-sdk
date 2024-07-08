@@ -1492,13 +1492,15 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   }
 
   async sendTransactionWithExecutor(
-    manyOrOneTransactions: Transaction | Transaction[]
+    manyOrOneTransactions: Transaction | Transaction[],
+    ownedAccountAddress?: Address
     // buildUseropDto?: BuildUserOpOptions
   ): Promise<UserOpReceipt> {
     return await this.executeFromExecutor(
       Array.isArray(manyOrOneTransactions)
         ? manyOrOneTransactions
-        : [manyOrOneTransactions]
+        : [manyOrOneTransactions],
+      ownedAccountAddress
       // buildUseropDto
     )
   }
@@ -2353,7 +2355,8 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   }
 
   private async executeFromExecutor(
-    transactions: Transaction[]
+    transactions: Transaction[],
+    ownedAccountAddress?: Address
     // buildUseropDto?: BuildUserOpOptions
   ): Promise<UserOpReceipt> {
     if (this.activeExecutorModule) {
@@ -2366,14 +2369,14 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
               value: BigInt(tx.value ?? 0n)
             }
           })
-        return await this.activeExecutorModule?.executeFromExecutor(executions)
+        return await this.activeExecutorModule?.executeFromExecutor(executions, ownedAccountAddress)
       }
       const execution = {
         target: transactions[0].to as Hex,
         callData: (transactions[0].data ?? "0x") as Hex,
         value: BigInt(transactions[0].value ?? 0n)
       }
-      return await this.activeExecutorModule?.executeFromExecutor(execution)
+      return await this.activeExecutorModule?.executeFromExecutor(execution, ownedAccountAddress)
     }
     throw new Error(
       "Please set an active executor module before running this method."

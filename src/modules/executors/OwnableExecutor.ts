@@ -39,7 +39,8 @@ export class OwnableExecutorModule extends BaseExecutionModule {
   }
 
   public async executeFromExecutor(
-    execution: Execution | Execution[]
+    execution: Execution | Execution[],
+    accountAddress?: Address
   ): Promise<UserOpReceipt> {
     let calldata: Hex
     if (Array.isArray(execution)) {
@@ -49,7 +50,7 @@ export class OwnableExecutorModule extends BaseExecutionModule {
           "function executeBatchOnOwnedAccount(address ownedAccount, bytes callData)"
         ]),
         args: [
-          await this.smartAccount.getAccountAddress(),
+          accountAddress ?? await this.smartAccount.getAccountAddress(),
           encodeAbiParameters(
             [
               {
@@ -83,7 +84,7 @@ export class OwnableExecutorModule extends BaseExecutionModule {
           "function executeOnOwnedAccount(address ownedAccount, bytes callData)"
         ]),
         args: [
-          await this.smartAccount.getAccountAddress(),
+          accountAddress ?? await this.smartAccount.getAccountAddress(),
           encodePacked(
             ["address", "uint256", "bytes"],
             [
