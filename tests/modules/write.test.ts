@@ -1479,7 +1479,7 @@ describe("Modules:Write", () => {
       }
     ]
 
-    const { wait } = await createDistributedSession(smartAccount, policy)
+    const { wait } = await createDistributedSession({ smartAccountClient: smartAccount, policy })
 
     const { success } = await wait()
     expect(success).toBe("true")
@@ -1549,7 +1549,6 @@ describe("Modules:Write", () => {
     const danSessionData = await getDANSessionKey({
       smartAccountClient: smartAccount,
       browserWallet: new NodeWallet(walletClient),
-      hardcodedValues: {},
       duration
     })
 

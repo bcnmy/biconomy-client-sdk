@@ -36,6 +36,22 @@ import {
 
 export type PolicyWithoutSessionKey = Omit<Policy, "sessionKeyAddress">
 export const DEFAULT_SESSION_DURATION = 60 * 60
+
+export type CreateDistributedParams = {
+  /** The user's smart account instance */
+  smartAccountClient: BiconomySmartAccountV2,
+  /** An array of session configurations */
+  policy: PolicyWithoutSessionKey[],
+  /** The storage client to store the session keys */
+  sessionStorageClient?: ISessionStorage,
+  /** The build userop dto */
+  buildUseropDto?: BuildUserOpOptions,
+  /** The chain ID */
+  chainId?: number,
+  /** Optional. The user's {@link IBrowserWallet} instance. Default will be the signer associated with the smart account. */
+  browserWallet?: IBrowserWallet
+}
+
 /**
  *
  * createDistributedSession
@@ -49,7 +65,7 @@ export const DEFAULT_SESSION_DURATION = 60 * 60
  * @param policy - An array of session configurations {@link Policy}.
  * @param sessionStorageClient - The storage client to store the session keys. {@link ISessionStorage}
  * @param buildUseropDto - Optional. {@link BuildUserOpOptions}
- * @param chain - Optional. Will be inferred if left unset.
+ * @param chainId - Optional. Will be inferred if left unset.
  * @param browserWallet - Optional. The user's {@link IBrowserWallet} instance. Default will be the signer associated with the smart account.
  * @returns Promise<{@link SessionGrantedPayload}> - An object containing the status of the transaction and the sessionID.
  *
@@ -74,28 +90,29 @@ export const DEFAULT_SESSION_DURATION = 60 * 60
  *   valueLimit: 0n
  * }]
  *
- * const { wait, session } = await createDistributedSession(
+ * const { wait, session } = await createDistributedSession({
  *   smartAccountClient,
  *   policy
- * )
+ * })
  *
  * const { success } = await wait()
 */
-export const createDistributedSession = async (
-  smartAccount: BiconomySmartAccountV2,
-  policy: PolicyWithoutSessionKey[],
-  sessionStorageClient?: ISessionStorage,
-  buildUseropDto?: BuildUserOpOptions,
-  chain?: number,
-  browserWallet?: IBrowserWallet
-): Promise<SessionGrantedPayload> => {
+export const createDistributedSession = async ({
+  smartAccountClient,
+  policy,
+  sessionStorageClient,
+  buildUseropDto,
+  chainId,
+  browserWallet
+}: CreateDistributedParams): Promise<SessionGrantedPayload> => {
   const defaultedChainId =
-    chain ??
-    extractChainIdFromBundlerUrl(smartAccount?.bundler?.getBundlerUrl() ?? "")
+    chainId ??
+    extractChainIdFromBundlerUrl(smartAccountClient?.bundler?.getBundlerUrl() ?? "");
+
   if (!defaultedChainId) {
     throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND)
   }
-  const smartAccountAddress = await smartAccount.getAddress()
+  const smartAccountAddress = await smartAccountClient.getAddress()
   const defaultedSessionStorageClient =
     sessionStorageClient || getDefaultStorageClient(smartAccountAddress)
 
@@ -110,9 +127,10 @@ export const createDistributedSession = async (
   }
 
   const { sessionKeyEOA: sessionKeyAddress, ...other } = await getDANSessionKey({
-    smartAccountClient: smartAccount,
+    smartAccountClient,
     browserWallet,
-    duration
+    duration,
+    chainId
   })
 
   const danModuleInfo: DanModuleInfo = { ...other }
@@ -135,13 +153,13 @@ export const createDistributedSession = async (
 
   const txs: Transaction[] = []
 
-  const isDeployed = await smartAccount.isAccountDeployed()
-  const enableSessionTx = await smartAccount.getEnableModuleData(
+  const isDeployed = await smartAccountClient.isAccountDeployed()
+  const enableSessionTx = await smartAccountClient.getEnableModuleData(
     DEFAULT_SESSION_KEY_MANAGER_MODULE
   )
 
   if (isDeployed) {
-    const enabled = await smartAccount.isModuleEnabled(
+    const enabled = await smartAccountClient.isModuleEnabled(
       DEFAULT_SESSION_KEY_MANAGER_MODULE
     )
     if (!enabled) {
@@ -154,9 +172,9 @@ export const createDistributedSession = async (
 
   txs.push(permitTx)
 
-  const userOpResponse = await smartAccount.sendTransaction(txs, buildUseropDto)
+  const userOpResponse = await smartAccountClient.sendTransaction(txs, buildUseropDto)
 
-  smartAccount.setActiveValidationModule(sessionsModule)
+  smartAccountClient.setActiveValidationModule(sessionsModule)
 
   return {
     session: {
@@ -194,7 +212,7 @@ export type DanSessionKeyRequestParams = {
   /** Optional duration of the session key in seconds. Default is 3600 seconds. */
   duration?: number;
   /** Optional chainId. Will be inferred if left unset. */
-  chain?: Chain;
+  chainId?: number;
 }
 
 /**
@@ -208,7 +226,7 @@ export type DanSessionKeyRequestParams = {
  * @param browserWallet - Optional. The user's {@link IBrowserWallet} instance.
  * @param hardcodedValues - Optional. {@link DanModuleInfo} - Additional information for the DAN module configuration to override the default values.
  * @param duration - Optional. The duration of the session key in seconds. Default is 3600 seconds.
- * @param chain - Optional. The chain ID. Will be inferred if left unset.
+ * @param chainId - Optional. The chain ID. Will be inferred if left unset.
  * @returns Promise<{@link DanModuleInfo}> - An object containing the session key, the MPC key ID, the number of parties, the threshold, and the EOA address.
  * 
 */
@@ -217,13 +235,13 @@ export const getDANSessionKey = async ({
   browserWallet,
   hardcodedValues = {},
   duration = DEFAULT_SESSION_DURATION,
-  chain
+  chainId
 }: DanSessionKeyRequestParams): Promise<DanSessionKeyPayload> => {
 
   const eoaAddress = hardcodedValues?.eoaAddress ?? (await smartAccountClient.getSigner().getAddress()) as Hex // Smart account owner
   const innerSigner = smartAccountClient.getSigner().inner
 
-  const defaultedChainId = chain?.id ?? extractChainIdFromBundlerUrl(
+  const defaultedChainId = chainId ?? extractChainIdFromBundlerUrl(
     smartAccountClient?.bundler?.getBundlerUrl() ?? ""
   )
 
