@@ -109,14 +109,13 @@ export const createDistributedSession = async (
     duration = Math.round(policy?.[0].interval?.validUntil - Date.now() / 1000)
   }
 
-  const { sessionKeyEOA: sessionKeyAddress, ...other } = await getDANSessionKey(
-    smartAccount,
+  const { sessionKeyEOA: sessionKeyAddress, ...other } = await getDANSessionKey({
+    smartAccountClient: smartAccount,
     browserWallet,
-    undefined,
     duration
-  )
+  })
 
-  const danModuleInfo: DanModuleInfo = { ...other, chainId: defaultedChainId }
+  const danModuleInfo: DanModuleInfo = { ...other }
   const defaultedPolicy: Policy[] = policy.map((p) => ({
     ...p,
     sessionKeyAddress
@@ -168,6 +167,36 @@ export const createDistributedSession = async (
   }
 }
 
+export type DanSessionKeyPayload = {
+  /** Dan Session ephemeral key*/
+  sessionKeyEOA: Hex;
+  /** Dan Session MPC key ID*/
+  mpcKeyId: string;
+  /** Dan Session ephemeral private key without 0x prefi x*/
+  hexEphSKWithout0x: string;
+  /** Number of nodes that participate in keygen operation. Also known as n. */
+  partiesNumber: number;
+  /** Number of nodes that needs to participate in protocol in order to generate valid signature. Also known as t. */
+  threshold: number;
+  /** The eoa that was used to create the session */
+  eoaAddress: Hex;
+  /** the chainId is relevant only to the */
+  chainId: number
+}
+
+export type DanSessionKeyRequestParams = {
+  /**  Relevant smart account */
+  smartAccountClient: BiconomySmartAccountV2;
+  /** Optional browser wallet. If using wagmi can be set to connector.getProvider() from useAccount hook */
+  browserWallet?: IBrowserWallet;
+  /** Optional hardcoded values if required */
+  hardcodedValues?: Partial<DanModuleInfo>;
+  /** Optional duration of the session key in seconds. Default is 3600 seconds. */
+  duration?: number;
+  /** Optional chainId. Will be inferred if left unset. */
+  chain?: Chain;
+}
+
 /**
  * 
  * getDANSessionKey
@@ -179,25 +208,35 @@ export const createDistributedSession = async (
  * @param browserWallet - Optional. The user's {@link IBrowserWallet} instance.
  * @param hardcodedValues - Optional. {@link DanModuleInfo} - Additional information for the DAN module configuration to override the default values.
  * @param duration - Optional. The duration of the session key in seconds. Default is 3600 seconds.
+ * @param chain - Optional. The chain ID. Will be inferred if left unset.
  * @returns Promise<{@link DanModuleInfo}> - An object containing the session key, the MPC key ID, the number of parties, the threshold, and the EOA address.
  * 
 */
-export const getDANSessionKey = async (
-  smartAccount: BiconomySmartAccountV2,
-  browserWallet?: IBrowserWallet,
-  { threshold = 11, partiesNumber = 20, ...other }: Partial<DanModuleInfo> = {},
-  duration = DEFAULT_SESSION_DURATION
-) => {
+export const getDANSessionKey = async ({
+  smartAccountClient,
+  browserWallet,
+  hardcodedValues = {},
+  duration = DEFAULT_SESSION_DURATION,
+  chain
+}: DanSessionKeyRequestParams): Promise<DanSessionKeyPayload> => {
 
-  const eoaAddress = other?.eoaAddress ?? (await smartAccount.getSigner().getAddress()) as Hex // Smart account owner
-  const innerSigner = smartAccount.getSigner().inner
+  const eoaAddress = hardcodedValues?.eoaAddress ?? (await smartAccountClient.getSigner().getAddress()) as Hex // Smart account owner
+  const innerSigner = smartAccountClient.getSigner().inner
+
+  const defaultedChainId = chain?.id ?? extractChainIdFromBundlerUrl(
+    smartAccountClient?.bundler?.getBundlerUrl() ?? ""
+  )
+
+  if (!defaultedChainId) {
+    throw new Error(ERROR_MESSAGES.CHAIN_NOT_FOUND)
+  }
 
   if (!browserWallet && !isWalletClient(innerSigner))
     throw new Error(ERROR_MESSAGES.INVALID_BROWSER_WALLET)
-  const wallet = browserWallet ?? new NodeWallet(smartAccount.getSigner().inner)
+  const wallet = browserWallet ?? new NodeWallet(innerSigner)
 
   const hexEphSK = generatePrivateKey()
-  const hexEphSKWithout0x = other?.hexEphSKWithout0x ?? hexEphSK.slice(2)
+  const hexEphSKWithout0x = hardcodedValues?.hexEphSKWithout0x ?? hexEphSK.slice(2)
 
   const ephSK: Uint8Array = hexToUint8Array(hexEphSKWithout0x)
   const ephPK: Uint8Array = await getPublicKeyAsync(ephSK);
@@ -207,15 +246,18 @@ export const getDANSessionKey = async (
     walletProviderUrl: DAN_BACKEND_URL
   })
 
-  const eoaAuth = new WalletProviderSDK.EOAAuth(eoaAddress, wallet, ephPK, duration)
+  const eoaAuth = new WalletProviderSDK.EOAAuth(eoaAddress, wallet, ephPK, duration);
+
+  const partiesNumber = hardcodedValues?.partiesNumber ?? 20
+  const threshold = hardcodedValues?.threshold ?? 11
+
   const sdk = new WalletProviderSDK.NetworkSigner(wpClient, threshold, partiesNumber, eoaAuth)
 
-  // Generate a new key
   // @ts-ignore
   const resp = await sdk.authenticateAndCreateKey(ephPK)
 
   const pubKey = resp.publicKey
-  const mpcKeyId = other?.mpcKeyId ?? resp.keyId as Hex
+  const mpcKeyId = resp.keyId as Hex
 
   const sessionKeyEOA = computeAddress(pubKey)
 
@@ -225,7 +267,8 @@ export const getDANSessionKey = async (
     hexEphSKWithout0x,
     partiesNumber,
     threshold,
-    eoaAddress
+    eoaAddress,
+    chainId: defaultedChainId
   }
 }
 

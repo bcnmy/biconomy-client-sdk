@@ -1546,12 +1546,12 @@ describe("Modules:Write", () => {
     const duration = 60 * 60
 
     // Get the session key from the dan network
-    const danSessionData = await getDANSessionKey(
-      smartAccount,
-      new NodeWallet(walletClient),
-      undefined,
+    const danSessionData = await getDANSessionKey({
+      smartAccountClient: smartAccount,
+      browserWallet: new NodeWallet(walletClient),
+      hardcodedValues: {},
       duration
-    )
+    })
 
     // create the policy to be signed over by the user
     const policy: Policy[] = [{
