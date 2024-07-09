@@ -1,5 +1,11 @@
 # @biconomy/account
 
+## 4.6.0
+
+### Minor Changes
+
+- Distributed Sessions
+
 ## 4.5.2
 
 ### Patch Changes

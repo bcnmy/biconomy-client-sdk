@@ -6,9 +6,9 @@
   "typings": "./dist/_types/index.d.ts",
   "homepage": "https://biconomy.io",
   "sideEffects": false,
-  "name": "@biconomy-devx/account",
+  "name": "@biconomy/account",
   "author": "Biconomy",
-  "version": "4.6.4",
+  "version": "4.6.0",
   "description": "SDK for Biconomy integration with support for account abstraction, smart accounts, ERC-4337.",
   "keywords": [
     "erc-7579",
