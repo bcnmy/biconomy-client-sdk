@@ -1479,7 +1479,7 @@ describe("Modules:Write", () => {
       }
     ]
 
-    const { wait } = await createDistributedSession(smartAccount, policy)
+    const { wait } = await createDistributedSession({ smartAccountClient: smartAccount, policy })
 
     const { success } = await wait()
     expect(success).toBe("true")
@@ -1546,18 +1546,17 @@ describe("Modules:Write", () => {
     const duration = 60 * 60
 
     // Get the session key from the dan network
-    const danSessionData = await getDANSessionKey(
-      smartAccount,
-      new NodeWallet(walletClient),
-      undefined,
+    const danModuleInfo = await getDANSessionKey({
+      smartAccountClient: smartAccount,
+      browserWallet: new NodeWallet(walletClient),
       duration
-    )
+    })
 
     // create the policy to be signed over by the user
     const policy: Policy[] = [{
       contractAddress: nftAddress,
       functionSelector: "safeMint(address)",
-      sessionKeyAddress: danSessionData.sessionKeyEOA, // Add the session key address from DAN
+      sessionKeyAddress: danModuleInfo.sessionKeyEOA, // Add the session key address from DAN
       rules: [
         {
           offset: RuleHelpers.OffsetByIndex(0),
@@ -1574,7 +1573,7 @@ describe("Modules:Write", () => {
 
     // Create the session data using the information retrieved from DAN. Keep the danModuleInfo for later use in a session leaf
     const { data: policyData, sessionIDInfo: sessionIDs } =
-      await sessionsModule.createSessionData(policy.map(p => createABISessionDatum({ ...p, danModuleInfo: { ...danSessionData, chainId } })))
+      await sessionsModule.createSessionData(policy.map(p => createABISessionDatum({ ...p, danModuleInfo })))
 
     // Cconstruct the session transaction
     const permitTx = {
@@ -1647,10 +1646,13 @@ describe("Modules:Write", () => {
     // Assume we know that the relevant session leaf to the transaction is the last one...
     const allLeaves = await memoryStore.getAllSessionData();
     const relevantLeaf = allLeaves[allLeaves.length - 1];
+
     const sessionID = relevantLeaf.sessionID;
+    // OR 
+    const sameSessionID = sessionIDs[0]; // Usually only available when the session is created
 
     const nftBalanceBefore = await checkBalance(smartAccountAddress, nftAddress);
-    // Now use the sessionID and the DAN module info to send the transaction
+    // Now use the sessionID to send the transaction
     const { wait: waitForMint } = await unconnectedSmartAccount.sendTransaction(nftMintTx, {
       ...withSponsorship,
       params: { sessionID }
