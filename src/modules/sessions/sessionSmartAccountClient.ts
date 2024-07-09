@@ -91,13 +91,13 @@ export type SendSessionTransactionFunction = (
 export const createSessionSmartAccountClient = async (
   biconomySmartAccountConfig: ImpersonatedSmartAccountConfig,
   conditionalSession: SessionSearchParam,
-  _sessionType?: SessionType | boolean, // backwards compatibility
+  sessionType?: SessionType | boolean, // backwards compatibility
 ): Promise<BiconomySmartAccountV2> => {
   // for backwards compatibility
-  let sessionType: SessionType = "SINGLE";
-  if (_sessionType === true || _sessionType === "BATCHED")
-    sessionType = "BATCHED";
-  if (_sessionType === "DAN") sessionType = "DAN";
+  let defaultedSessionType: SessionType = "SINGLE";
+  if (sessionType === true || sessionType === "BATCHED")
+    defaultedSessionType = "BATCHED";
+  if (sessionType === "DAN") defaultedSessionType = "DAN";
 
   const { sessionStorageClient, sessionIDInfo } = await resumeSession(
     conditionalSession ?? biconomySmartAccountConfig.accountAddress,
@@ -127,7 +127,7 @@ export const createSessionSmartAccountClient = async (
     );
 
     sessionData =
-      sessionType === "SINGLE"
+      defaultedSessionType === "SINGLE"
         ? {
           sessionID,
           sessionSigner,
@@ -152,9 +152,9 @@ export const createSessionSmartAccountClient = async (
   });
 
   const activeValidationModule =
-    sessionType === "BATCHED"
+    defaultedSessionType === "BATCHED"
       ? batchedSessionValidationModule
-      : sessionType === "SINGLE"
+      : defaultedSessionType === "SINGLE"
         ? sessionModule
         : danSessionValidationModule;
 
@@ -163,7 +163,7 @@ export const createSessionSmartAccountClient = async (
     signer: incompatibleSigner, // This is a dummy signer, it will remain unused
     activeValidationModule,
     sessionData,
-    sessionType,
+    sessionType: defaultedSessionType,
   });
 };
 

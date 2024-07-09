@@ -12,7 +12,7 @@ import {
   slice,
   toFunctionSelector
 } from "viem"
-import { privateKeyToAccount } from "viem/accounts"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
@@ -24,26 +24,33 @@ import {
 } from "../../src/account"
 import { Logger, getChain } from "../../src/account"
 import {
+  BrowserWallet,
   type CreateSessionDataParams,
   DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
   DEFAULT_ECDSA_OWNERSHIP_MODULE,
   DEFAULT_MULTICHAIN_MODULE,
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
+  DanModuleInfo,
   ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION,
+  NodeWallet,
   type PolicyWithoutSessionKey,
   createDistributedSession,
+  createECDSAOwnershipValidationModule,
   createMultiChainValidationModule,
   createSessionKeyManagerModule,
   getABISVMSessionKeyData,
+  getDANSessionKey,
   resumeSession
 } from "../../src/modules"
 
 import { ECDSAModuleAbi } from "../../src/account/abi/ECDSAModule"
+import { DANSessionKeyManagerModule } from "../../src/modules/DANSessionKeyManagerModule"
 import { SessionMemoryStorage } from "../../src/modules/session-storage/SessionMemoryStorage"
 import { createSessionKeyEOA } from "../../src/modules/session-storage/utils"
 import {
   type Policy,
   PolicyHelpers,
+  RuleHelpers,
   createABISessionDatum,
   createSession,
   getSingleSessionTxParams
@@ -1454,27 +1461,25 @@ describe("Modules:Write", () => {
     ).toBeGreaterThan(0)
   }, 80000)
 
-  test("should create and use a DAN session on behalf of a user", async () => {
+  test("should create and use an DAN session on behalf of a user (abstracted)", async () => {
+
     const policy: PolicyWithoutSessionKey[] = [
       {
         contractAddress: nftAddress,
         functionSelector: "safeMint(address)",
         rules: [
           {
-            offset: 0,
-            condition: 0,
+            offset: RuleHelpers.OffsetByIndex(0),
+            condition: RuleHelpers.Condition("EQUAL"),
             referenceValue: smartAccountAddress
           }
         ],
-        ...PolicyHelpers.Indefinitely,
-        ...PolicyHelpers.NoValueLimit
+        interval: PolicyHelpers.Indefinitely,
+        valueLimit: PolicyHelpers.NoValueLimit
       }
     ]
 
-    const { wait, session } = await createDistributedSession(
-      smartAccount,
-      policy
-    )
+    const { wait } = await createDistributedSession(smartAccount, policy)
 
     const { success } = await wait()
     expect(success).toBe("true")
@@ -1504,7 +1509,7 @@ describe("Modules:Write", () => {
     const { wait: waitForMint } = await smartAccountWithSession.sendTransaction(
       nftMintTx,
       withSponsorship,
-      { leafIndex: null, store: smartAccountAddress } // Uses the last session leaf and the default storage client
+      { leafIndex: "LAST_LEAF", store: "DEFAULT_STORE" }
     )
 
     const {
@@ -1513,8 +1518,151 @@ describe("Modules:Write", () => {
     } = await waitForMint()
 
     expect(mintSuccess).toBe("true")
+    expect(transactionHash).toBeTruthy()
 
     const nftBalanceAfter = await checkBalance(smartAccountAddress, nftAddress)
     expect(nftBalanceAfter - nftBalanceBefore).toBe(1n)
+
   }, 50000)
+
+
+  test("should create and use a DAN session on behalf of a user (deconstructed)", async () => {
+
+    // To begin with, ensure that the regular validation module is set
+    smartAccount = smartAccount.setActiveValidationModule(
+      await createECDSAOwnershipValidationModule({ signer: walletClient })
+    )
+
+    // Create a new storage client
+    const memoryStore = new SessionMemoryStorage(smartAccountAddress);
+
+    // Get the module for activation later
+    const sessionsModule = await DANSessionKeyManagerModule.create({
+      smartAccountAddress,
+      sessionStorageClient: memoryStore
+    })
+
+    // Set the ttl for the session 
+    const duration = 60 * 60
+
+    // Get the session key from the dan network
+    const danSessionData = await getDANSessionKey(
+      smartAccount,
+      new NodeWallet(walletClient),
+      undefined,
+      duration
+    )
+
+    // create the policy to be signed over by the user
+    const policy: Policy[] = [{
+      contractAddress: nftAddress,
+      functionSelector: "safeMint(address)",
+      sessionKeyAddress: danSessionData.sessionKeyEOA, // Add the session key address from DAN
+      rules: [
+        {
+          offset: RuleHelpers.OffsetByIndex(0),
+          condition: RuleHelpers.Condition("EQUAL"),
+          referenceValue: smartAccountAddress
+        }
+      ],
+      interval: {
+        validAfter: 0,
+        validUntil: Math.round(Date.now() / 1000) + duration // The duration is set to 1 hour
+      },
+      valueLimit: PolicyHelpers.NoValueLimit
+    }];
+
+    // Create the session data using the information retrieved from DAN. Keep the danModuleInfo for later use in a session leaf
+    const { data: policyData, sessionIDInfo: sessionIDs } =
+      await sessionsModule.createSessionData(policy.map(p => createABISessionDatum({ ...p, danModuleInfo: { ...danSessionData, chainId } })))
+
+    // Cconstruct the session transaction
+    const permitTx = {
+      to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
+      data: policyData
+    }
+
+    const txs: Transaction[] = []
+
+    // Ensure the module is enabled
+    const isDeployed = await smartAccount.isAccountDeployed()
+    const enableSessionTx = await smartAccount.getEnableModuleData(
+      DEFAULT_SESSION_KEY_MANAGER_MODULE
+    )
+
+    // Ensure the smart account is deployed
+    if (isDeployed) {
+      // Add the enable module transaction if it is not enabled
+      const enabled = await smartAccount.isModuleEnabled(
+        DEFAULT_SESSION_KEY_MANAGER_MODULE
+      )
+      if (!enabled) {
+        txs.push(enableSessionTx)
+      }
+    } else {
+      txs.push(enableSessionTx)
+    }
+
+    // Add the permit transaction
+    txs.push(permitTx)
+
+    // User must sign over the policy to grant the relevant permissions
+    const { wait } = await smartAccount.sendTransaction(txs, { ...withSponsorship, nonceOptions });
+    const { success } = await wait();
+
+    expect(success).toBe("true");
+
+    // Now let's use the session, assuming we have no user-connected smartAccountClient.
+    const randomWalletClient = createWalletClient({
+      account: privateKeyToAccount(generatePrivateKey()),
+      chain,
+      transport: http()
+    });
+
+    // Now assume that the users smart account address and the storage client are the only known values
+    let unconnectedSmartAccount = await createSmartAccountClient({
+      accountAddress: smartAccountAddress, // Set the account address on behalf of the user
+      signer: randomWalletClient, // This signer is irrelevant and will not be used
+      bundlerUrl,
+      paymasterUrl,
+      chainId
+    });
+
+    // Set the active validation module to the DAN session module
+    unconnectedSmartAccount = unconnectedSmartAccount.setActiveValidationModule(await DANSessionKeyManagerModule.create({
+      smartAccountAddress,
+      sessionStorageClient: memoryStore
+    }));
+
+    // Use the session to submit a tx relevant to the policy
+    const nftMintTx = {
+      to: nftAddress,
+      data: encodeFunctionData({
+        abi: parseAbi(["function safeMint(address _to)"]),
+        functionName: "safeMint",
+        args: [smartAccountAddress]
+      })
+    }
+
+    // Assume we know that the relevant session leaf to the transaction is the last one...
+    const allLeaves = await memoryStore.getAllSessionData();
+    const relevantLeaf = allLeaves[allLeaves.length - 1];
+    const sessionID = relevantLeaf.sessionID;
+
+    const nftBalanceBefore = await checkBalance(smartAccountAddress, nftAddress);
+    // Now use the sessionID and the DAN module info to send the transaction
+    const { wait: waitForMint } = await unconnectedSmartAccount.sendTransaction(nftMintTx, {
+      ...withSponsorship,
+      params: { sessionID }
+    });
+
+    // Check for success
+    const { success: mintSuccess } = await waitForMint();
+    const nftBalanceAfter = await checkBalance(smartAccountAddress, nftAddress);
+
+    expect(nftBalanceAfter - nftBalanceBefore).toBe(1n);
+    expect(mintSuccess).toBe("true");
+
+  }, 50000)
+
 })

@@ -38,6 +38,7 @@ import {
   getDanSessionTxParams,
   getSingleSessionTxParams
 } from "../modules"
+import { getDefaultStorageClient } from "../modules/session-storage/utils.js"
 import {
   BiconomyPaymaster,
   type FeeQuotesOrDataDto,
@@ -944,7 +945,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   ): Promise<UserOperationStruct> {
     const defaultedParams = {
       ...(this.sessionData ? this.sessionData : {}),
-      ...params
+      ...params,
+      rawUserOperation: userOp
     }
     this.isActiveValidationModuleDefined()
     const requiredFields: UserOperationKey[] = [
@@ -1529,12 +1531,48 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       defaultedBuildUseropDto
     )
 
-    if (defaultedBuildUseropDto?.params?.danModuleInfo) {
-      defaultedBuildUseropDto.params.danModuleInfo.userOperation = { ...userOp }
-    }
-
     return this.sendUserOp(userOp, { ...defaultedBuildUseropDto?.params })
   }
+  /**
+   * Retrieves the session parameters for sending the session transaction
+   * 
+   * @description This method is called under the hood with the third argument passed into the smartAccount.sendTransaction(...args) method. It is used to retrieve the relevant session parameters while sending the session transaction.
+   *
+   * @param leafIndex - The leaf index(es) of the session in the storage client to be used. If you want to use the last leaf index, you can pass "LAST_LEAVES" as the value.
+   * @param store - The {@link ISessionStorage} client to be used. If you want to use the default storage client (localStorage in the browser), you can pass "DEFAULT_STORE" as the value. Alternatively you can pass in {@link SessionSearchParam} for more control over how the leaves are stored and retrieved.
+   * @param chain - Optional, will be inferred if left unset
+   * @param txs - Optional, used only for validation while using Batched session type
+   * @returns Promise<{@link GetSessionParams}> 
+   *
+   * @example
+   * ```ts
+   * import { createClient } from "viem"
+   * import { createSmartAccountClient } from "@biconomy/account"
+   * import { createWalletClient, http } from "viem";
+   * import { polygonAmoy } from "viem/chains";
+   *
+   * const signer = createWalletClient({
+   *   account,
+   *   chain: polygonAmoy,
+   *   transport: http(),
+   * });
+   *
+   * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dashboard
+   * const encodedCall = encodeFunctionData({
+   *   abi: parseAbi(["function safeMint(address to) public"]),
+   *   functionName: "safeMint",
+   *   args: ["0x..."],
+   * });
+   *
+   * const transaction = {
+   *   to: nftAddress,
+   *   data: encodedCall
+   * }
+   *
+   * const { waitForTxHash } = await smartAccount.sendTransaction(transaction);
+   * const { transactionHash, userOperationReceipt } = await wait();
+   * ```
+   */
   public async getSessionParams({
     leafIndex,
     store,
@@ -1542,19 +1580,20 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     txs
   }: GetSessionParams): Promise<{ params: ModuleInfo }> {
 
+    const accountAddress = await this.getAccountAddress()
     const defaultedTransactions: Transaction[] | null = txs
       ? Array.isArray(txs)
         ? [...txs]
         : [txs]
       : []
 
-    const defaultedConditionalSession: SessionSearchParam =
+    const defaultedConditionalSession: SessionSearchParam = store === "DEFAULT_STORE" ? getDefaultStorageClient(accountAddress) :
       store ?? (await this.getAccountAddress())
 
-    const defaultedCorrespondingIndexes: number[] | null = leafIndex
-      ? Array.isArray(leafIndex)
-        ? [...leafIndex]
-        : [leafIndex]
+    const defaultedCorrespondingIndexes: (number[] | null) = ["LAST_LEAF", "LAST_LEAVES"].includes(String(leafIndex)) ? null : leafIndex
+      ? (Array.isArray(leafIndex)
+        ? leafIndex
+        : [leafIndex]) as number[]
       : null
 
     const correspondingIndex: number | null = defaultedCorrespondingIndexes
@@ -1565,7 +1604,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       chain ?? getChain(await this.provider.getChainId())
 
     if (!defaultedChain) throw new Error("Chain is not provided")
-
 
     if (this.sessionType === "DAN") {
       return getDanSessionTxParams(

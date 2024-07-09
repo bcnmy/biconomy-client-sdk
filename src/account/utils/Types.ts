@@ -217,9 +217,9 @@ export type BuildUserOpOptions = {
 
 export type GetSessionParams = {
   /** The index of the session leaf(ves) from the session storage client */
-  leafIndex?: number[] | number | undefined | null,
+  leafIndex: number[] | number | undefined | null | "LAST_LEAF" | "LAST_LEAVES",
   /** The session search parameter, can be a full {@link Session}, {@link ISessionStorage} or a smartAccount address */
-  store?: SessionSearchParam,
+  store: SessionSearchParam | "DEFAULT_STORE",
   /** The chain to use */
   chain?: Chain,
   /** the txs being submitted */

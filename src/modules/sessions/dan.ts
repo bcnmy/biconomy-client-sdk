@@ -11,7 +11,7 @@ import {
   isWalletClient
 } from "../../account"
 import { extractChainIdFromBundlerUrl } from "../../bundler"
-import { WalletProviderSDK } from "../../index"
+import { WalletProviderSDK } from "../index"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import { getDefaultStorageClient } from "../session-storage/utils"
 import {
@@ -49,6 +49,8 @@ export const DEFAULT_SESSION_DURATION = 60 * 60
  * @param policy - An array of session configurations {@link Policy}.
  * @param sessionStorageClient - The storage client to store the session keys. {@link ISessionStorage}
  * @param buildUseropDto - Optional. {@link BuildUserOpOptions}
+ * @param chain - Optional. Will be inferred if left unset.
+ * @param browserWallet - Optional. The user's {@link IBrowserWallet} instance. Default will be the signer associated with the smart account.
  * @returns Promise<{@link SessionGrantedPayload}> - An object containing the status of the transaction and the sessionID.
  *
  * @example
@@ -166,6 +168,20 @@ export const createDistributedSession = async (
   }
 }
 
+/**
+ * 
+ * getDANSessionKey
+ * 
+ * @description This function is used to generate a new session key for a Distributed Account Network (DAN) session. This information is kept in the session storage and can be used to validate userops without the user's direct involvement.
+ * 
+ * Generates a new session key for a Distributed Account Network (DAN) session.
+ * @param smartAccount - The user's {@link BiconomySmartAccountV2} smartAccount instance.
+ * @param browserWallet - Optional. The user's {@link IBrowserWallet} instance.
+ * @param hardcodedValues - Optional. {@link DanModuleInfo} - Additional information for the DAN module configuration to override the default values.
+ * @param duration - Optional. The duration of the session key in seconds. Default is 3600 seconds.
+ * @returns Promise<{@link DanModuleInfo}> - An object containing the session key, the MPC key ID, the number of parties, the threshold, and the EOA address.
+ * 
+*/
 export const getDANSessionKey = async (
   smartAccount: BiconomySmartAccountV2,
   browserWallet?: IBrowserWallet,
@@ -184,7 +200,7 @@ export const getDANSessionKey = async (
   const hexEphSKWithout0x = other?.hexEphSKWithout0x ?? hexEphSK.slice(2)
 
   const ephSK: Uint8Array = hexToUint8Array(hexEphSKWithout0x)
-  const ephPK: Uint8Array = await getPublicKeyAsync(ephSK)
+  const ephPK: Uint8Array = await getPublicKeyAsync(ephSK);
 
   const wpClient = new WalletProviderSDK.WalletProviderServiceClient({
     walletProviderId: "WalletProvider",
@@ -216,7 +232,6 @@ export const getDANSessionKey = async (
 export type DanSessionParamsPayload = {
   params: {
     sessionID: string
-    danModuleInfo: DanModuleInfo
   }
 }
 /**
@@ -258,10 +273,5 @@ export const getDanSessionTxParams = async (
   const chainIdsMatch = chain.id === matchingLeafDatum?.danModuleInfo?.chainId
   if (!chainIdsMatch) throw new Error(ERROR_MESSAGES.CHAIN_ID_MISMATCH)
 
-  return {
-    params: {
-      sessionID,
-      danModuleInfo: matchingLeafDatum.danModuleInfo
-    }
-  }
+  return { params: { sessionID } }
 }

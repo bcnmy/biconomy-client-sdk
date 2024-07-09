@@ -11,7 +11,7 @@ import {
   // toBytes,
   toHex
 } from "viem"
-import { DEFAULT_ENTRYPOINT_ADDRESS, type SmartAccountSigner } from "../account"
+import { DEFAULT_ENTRYPOINT_ADDRESS, type SmartAccountSigner, type UserOperationStruct } from "../account"
 import { BaseValidationModule } from "./BaseValidationModule.js"
 import { WalletProviderSDK } from "./index.js"
 import type {
@@ -35,6 +35,7 @@ import {
   type ModuleInfo,
   type ModuleVersion,
   type SessionKeyManagerModuleConfig,
+  type SessionParams,
   StorageType
 } from "./utils/Types.js"
 import { generateRandomHex } from "./utils/Uid.js"
@@ -47,6 +48,8 @@ export type WalletProviderDefs = {
 export type Config = {
   walletProvider: WalletProviderDefs
 }
+
+export type SendUserOpArgs = SessionParams & { rawUserOperation: Partial<UserOperationStruct> }
 
 export class DANSessionKeyManagerModule extends BaseValidationModule {
   version: ModuleVersion = "V1_0_0"
@@ -206,27 +209,24 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
    * @param sessionSigner The signer to be used to sign the user operation
    * @returns The signature of the user operation
    */
-  async signUserOpHash(_: string, params?: ModuleInfo): Promise<Hex> {
-    if (!params || !params.danModuleInfo) {
-      throw new Error("Missing danModuleInfo params")
-    }
+  async signUserOpHash(_: string, { sessionID, rawUserOperation, additionalSessionData }: SendUserOpArgs): Promise<Hex> {
+    const sessionSignerData = await this.getLeafInfo({ sessionID })
 
-    if (!params.sessionID) {
-      throw new Error("Missing sessionID")
-    }
+    if (!rawUserOperation) throw new Error("Missing userOperation")
+    if (!sessionID) throw new Error("Missing sessionID")
+    if (!sessionSignerData.danModuleInfo) throw new Error("Missing danModuleInfo")
 
     const {
       eoaAddress,
       threshold,
       partiesNumber,
-      userOperation,
       hexEphSKWithout0x,
       chainId,
       mpcKeyId
-    } = params.danModuleInfo
+    } = sessionSignerData.danModuleInfo
 
     if (
-      !userOperation ||
+      !rawUserOperation ||
       !hexEphSKWithout0x ||
       !eoaAddress ||
       !threshold ||
@@ -238,11 +238,11 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
     }
 
     if (
-      !userOperation.verificationGasLimit ||
-      !userOperation.callGasLimit ||
-      !userOperation.callData ||
-      !userOperation.paymasterAndData ||
-      !userOperation.initCode
+      !rawUserOperation.verificationGasLimit ||
+      !rawUserOperation.callGasLimit ||
+      !rawUserOperation.callData ||
+      !rawUserOperation.paymasterAndData ||
+      !rawUserOperation.initCode
     ) {
       throw new Error("Missing params from User operation")
     }
@@ -264,12 +264,12 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
     )
 
     const userOpTemp = {
-      ...userOperation,
-      verificationGasLimit: userOperation.verificationGasLimit.toString(),
-      callGasLimit: userOperation.callGasLimit.toString(),
-      callData: userOperation.callData.slice(2),
-      paymasterAndData: userOperation.paymasterAndData.slice(2),
-      initCode: String(userOperation.initCode).slice(2)
+      ...rawUserOperation,
+      verificationGasLimit: rawUserOperation.verificationGasLimit.toString(),
+      callGasLimit: rawUserOperation.callGasLimit.toString(),
+      callData: rawUserOperation.callData.slice(2),
+      paymasterAndData: rawUserOperation.paymasterAndData.slice(2),
+      initCode: String(rawUserOperation.initCode).slice(2)
     }
 
     // todo // get constants from config
@@ -287,9 +287,6 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
     const sigV = v === 0 ? "1b" : "1c"
 
     const signature = `0x${resp.sign}${sigV}`
-    const sessionSignerData = await this.getLeafInfo({
-      sessionID: params.sessionID
-    })
 
     const leafDataHex = concat([
       pad(toHex(sessionSignerData.validUntil), { size: 6 }),
@@ -311,8 +308,8 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       ]
     )
 
-    if (params?.additionalSessionData) {
-      paddedSignature += params.additionalSessionData
+    if (additionalSessionData) {
+      paddedSignature += additionalSessionData
     }
 
     return paddedSignature as Hex
