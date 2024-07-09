@@ -234,7 +234,7 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       !chainId ||
       !mpcKeyId
     ) {
-      throw new Error("Missing params from User operation")
+      throw new Error("Missing params from danModuleInfo")
     }
 
     if (
