@@ -33,8 +33,8 @@ import {
   DanModuleInfo,
   ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION,
   NodeWallet,
-  type PolicyWithoutSessionKey,
-  createDistributedSession,
+  type PolicyLeaf,
+  createDelegatedSession,
   createECDSAOwnershipValidationModule,
   createMultiChainValidationModule,
   createSessionKeyManagerModule,
@@ -176,14 +176,11 @@ describe("Modules:Write", () => {
 
   // User must be connected with a wallet to grant permissions
   test("should create a single session on behalf of a user", async () => {
-    const { sessionKeyAddress, sessionStorageClient } =
-      await createSessionKeyEOA(smartAccountThree, chain)
 
     const { wait, session } = await createSession(
       smartAccountThree,
       [
         {
-          sessionKeyAddress,
           contractAddress: nftAddress,
           functionSelector: "safeMint(address)",
           rules: [
@@ -200,7 +197,7 @@ describe("Modules:Write", () => {
           valueLimit: 0n
         }
       ],
-      sessionStorageClient,
+      undefined,
       withSponsorship
     )
 
@@ -1463,7 +1460,7 @@ describe("Modules:Write", () => {
 
   test("should create and use an DAN session on behalf of a user (abstracted)", async () => {
 
-    const policy: PolicyWithoutSessionKey[] = [
+    const policy: PolicyLeaf[] = [
       {
         contractAddress: nftAddress,
         functionSelector: "safeMint(address)",
@@ -1479,7 +1476,7 @@ describe("Modules:Write", () => {
       }
     ]
 
-    const { wait } = await createDistributedSession({ smartAccountClient: smartAccount, policy })
+    const { wait } = await createDelegatedSession({ smartAccountClient: smartAccount, policy })
 
     const { success } = await wait()
     expect(success).toBe("true")
@@ -1503,7 +1500,7 @@ describe("Modules:Write", () => {
         chainId
       },
       smartAccountAddress,
-      "DAN"
+      "DELEGATED"
     )
 
     const { wait: waitForMint } = await smartAccountWithSession.sendTransaction(
