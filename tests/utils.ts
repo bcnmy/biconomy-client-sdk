@@ -27,8 +27,7 @@ export const getEnvVars = () => {
   const errorFields = fields.filter((field) => !process?.env?.[field])
   if (errorFields.length) {
     throw new Error(
-      `Missing environment variable${
-        errorFields.length > 1 ? "s" : ""
+      `Missing environment variable${errorFields.length > 1 ? "s" : ""
       }: ${errorFields.join(", ")}`
     )
   }
@@ -37,12 +36,10 @@ export const getEnvVars = () => {
     bundlerUrlTwo: getBundlerUrl(84532) || "",
     privateKey: process.env.E2E_PRIVATE_KEY_ONE || "",
     privateKeyTwo: process.env.E2E_PRIVATE_KEY_TWO || "",
-    paymasterUrl: `https://paymaster.biconomy.io/api/v1/80002/${
-      process.env.E2E_BICO_PAYMASTER_KEY_AMOY || ""
-    }`,
-    paymasterUrlTwo: `https://paymaster.biconomy.io/api/v1/84532/${
-      process.env.E2E_BICO_PAYMASTER_KEY_BASE || ""
-    }`,
+    paymasterUrl: `https://paymaster.biconomy.io/api/v1/80002/${process.env.E2E_BICO_PAYMASTER_KEY_AMOY || ""
+      }`,
+    paymasterUrlTwo: `https://paymaster.biconomy.io/api/v1/84532/${process.env.E2E_BICO_PAYMASTER_KEY_BASE || ""
+      }`,
     chainId: process.env.CHAIN_ID || "0"
   }
 }
@@ -72,12 +69,12 @@ export const getConfig = (): TestConfig => {
   try {
     const chainIdFromBundlerUrl = extractChainIdFromBundlerUrl(bundlerUrl)
     chains.push(chainIdFromBundlerUrl)
-  } catch (e) {}
+  } catch (e) { }
 
   try {
     const chainIdFromPaymasterUrl = extractChainIdFromPaymasterUrl(paymasterUrl)
     chains.push(chainIdFromPaymasterUrl)
-  } catch (e) {}
+  } catch (e) { }
 
   const allChainsMatch = chains.every((chain) => chain === chains[0])
 
@@ -126,8 +123,7 @@ export const nonZeroBalance = async (address: Hex, tokenAddress?: Hex) => {
   const balance = await checkBalance(address, tokenAddress)
   if (balance > BigInt(0)) return
   throw new Error(
-    `Insufficient balance ${
-      tokenAddress ? `of token ${tokenAddress}` : "of native token"
+    `Insufficient balance ${tokenAddress ? `of token ${tokenAddress}` : "of native token"
     } during test setup of owner: ${address}`
   )
 }
@@ -151,8 +147,7 @@ export const topUp = async (
 
   if (balanceOfRecipient > amount) {
     Logger.log(
-      `balanceOfRecipient (${recipient}) already has enough ${
-        token ?? "native token"
+      `balanceOfRecipient (${recipient}) already has enough ${token ?? "native token"
       } (${balanceOfRecipient}) during topUp`
     )
     return await Promise.resolve()
@@ -160,8 +155,7 @@ export const topUp = async (
 
   if (balanceOfSender < amount) {
     throw new Error(
-      `Insufficient ${
-        token ? token : ""
+      `Insufficient ${token ? token : ""
       }balance during test setup: ${balanceOfSender}`
     )
   }
@@ -193,5 +187,5 @@ export const topUp = async (
   }
 }
 
-export const getBundlerUrl = (chainId: number) =>
-  `https://bundler.biconomy.io/api/v2/${chainId}/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f14`
+export const getBundlerUrl = (chainId: number, apiKey?: string) =>
+  `https://bundler.biconomy.io/api/v2/${chainId}/${apiKey ?? "nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f14"}`
