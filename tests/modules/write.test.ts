@@ -34,7 +34,7 @@ import {
   ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION,
   NodeWallet,
   type PolicyLeaf,
-  createDelegatedSession,
+  createDistributedSession,
   createECDSAOwnershipValidationModule,
   createMultiChainValidationModule,
   createSessionKeyManagerModule,
@@ -176,11 +176,14 @@ describe("Modules:Write", () => {
 
   // User must be connected with a wallet to grant permissions
   test("should create a single session on behalf of a user", async () => {
+    const { sessionKeyAddress, sessionStorageClient } =
+      await createSessionKeyEOA(smartAccountThree, chain)
 
     const { wait, session } = await createSession(
       smartAccountThree,
       [
         {
+          sessionKeyAddress,
           contractAddress: nftAddress,
           functionSelector: "safeMint(address)",
           rules: [
@@ -197,7 +200,7 @@ describe("Modules:Write", () => {
           valueLimit: 0n
         }
       ],
-      undefined,
+      sessionStorageClient,
       withSponsorship
     )
 
@@ -1476,7 +1479,7 @@ describe("Modules:Write", () => {
       }
     ]
 
-    const { wait } = await createDelegatedSession({ smartAccountClient: smartAccount, policy })
+    const { wait } = await createDistributedSession({ smartAccountClient: smartAccount, policy })
 
     const { success } = await wait()
     expect(success).toBe("true")
@@ -1500,7 +1503,7 @@ describe("Modules:Write", () => {
         chainId
       },
       smartAccountAddress,
-      "DELEGATED"
+      "DAN"
     )
 
     const { wait: waitForMint } = await smartAccountWithSession.sendTransaction(

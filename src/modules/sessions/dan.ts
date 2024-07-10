@@ -37,7 +37,7 @@ import {
 export type PolicyLeaf = Omit<Policy, "sessionKeyAddress">
 export const DEFAULT_SESSION_DURATION = 60 * 60
 
-export type CreateDelegatedParams = {
+export type CreateDistributedParams = {
   /** The user's smart account instance */
   smartAccountClient: BiconomySmartAccountV2,
   /** An array of session configurations */
@@ -54,7 +54,7 @@ export type CreateDelegatedParams = {
 
 /**
  *
- * createDelegatedSession
+ * createDistributedSession
  *
  * Creates a session for a user's smart account.
  * This grants a dapp permission to execute a specific function on a specific contract on behalf of a user.
@@ -71,7 +71,7 @@ export type CreateDelegatedParams = {
  *
  * @example
  *
- * import { type PolicyLeaf, type Session, createDelegatedSession } from "@biconomy/account"
+ * import { type PolicyLeaf, type Session, createDistributedSession } from "@biconomy/account"
  *
  * const policy: PolicyLeaf[] = [{
  *   contractAddress: nftAddress,
@@ -90,21 +90,21 @@ export type CreateDelegatedParams = {
  *   valueLimit: 0n
  * }]
  *
- * const { wait, session } = await createDelegatedSession({
+ * const { wait, session } = await createDistributedSession({
  *   smartAccountClient,
  *   policy
  * })
  *
  * const { success } = await wait()
 */
-export const createDelegatedSession = async ({
+export const createDistributedSession = async ({
   smartAccountClient,
   policy,
   sessionStorageClient,
   buildUseropDto,
   chainId,
   browserWallet
-}: CreateDelegatedParams): Promise<SessionGrantedPayload> => {
+}: CreateDistributedParams): Promise<SessionGrantedPayload> => {
   const defaultedChainId =
     chainId ??
     extractChainIdFromBundlerUrl(smartAccountClient?.bundler?.getBundlerUrl() ?? "");
@@ -219,9 +219,9 @@ export type DanSessionKeyRequestParams = {
  * 
  * getDANSessionKey
  * 
- * @description This function is used to generate a new session key for a Delegated Account Network (DAN) session. This information is kept in the session storage and can be used to validate userops without the user's direct involvement.
+ * @description This function is used to generate a new session key for a Distributed Account Network (DAN) session. This information is kept in the session storage and can be used to validate userops without the user's direct involvement.
  * 
- * Generates a new session key for a Delegated Account Network (DAN) session.
+ * Generates a new session key for a Distributed Account Network (DAN) session.
  * @param smartAccount - The user's {@link BiconomySmartAccountV2} smartAccount instance.
  * @param browserWallet - Optional. The user's {@link IBrowserWallet} instance.
  * @param hardcodedValues - Optional. {@link DanModuleInfo} - Additional information for the DAN module configuration to override the default values.

@@ -21,7 +21,7 @@ import {
 import type { ISessionStorage } from "../interfaces/ISessionStorage";
 import type { ModuleInfo, StrictSessionParams } from "../utils/Types";
 
-export type SessionType = "SINGLE" | "BATCHED" | "DELEGATED";
+export type SessionType = "SINGLE" | "BATCHED" | "DAN";
 export type ImpersonatedSmartAccountConfig = Omit<
   BiconomySmartAccountV2Config,
   "signer"
@@ -50,7 +50,7 @@ export type SendSessionTransactionFunction = (
  *
  * @param biconomySmartAccountConfig - Configuration for initializing the BiconomySmartAccountV2 instance {@link ImpersonatedSmartAccountConfig}.
  * @param conditionalSession - {@link SessionSearchParam} The session data that contains the sessionID and sessionSigner. If not provided, The default session storage (localStorage in browser, fileStorage in node backend) is used to fetch the sessionIDInfo
- * @param sessionType - {@link SessionType}: One of "SINGLE", "BATCHED" or "DELEGATED". Default is "SINGLE".
+ * @param sessionType - {@link SessionType}: One of "SINGLE", "BATCHED" or "DAN". Default is "SINGLE".
  * @returns A promise that resolves to a new instance of {@link BiconomySmartAccountV2}.
  * @throws An error if something is wrong with the smart account instance creation.
  *
@@ -97,7 +97,7 @@ export const createSessionSmartAccountClient = async (
   let defaultedSessionType: SessionType = "SINGLE";
   if (sessionType === true || sessionType === "BATCHED")
     defaultedSessionType = "BATCHED";
-  if (sessionType === "DELEGATED") defaultedSessionType = "DELEGATED";
+  if (sessionType === "DAN") defaultedSessionType = "DAN";
 
   const { sessionStorageClient, sessionIDInfo } = await resumeSession(
     conditionalSession ?? biconomySmartAccountConfig.accountAddress,
