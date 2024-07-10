@@ -34,14 +34,14 @@ import {
   createABISessionDatum
 } from "./abi"
 
-export type PolicyWithoutSessionKey = Omit<Policy, "sessionKeyAddress">
+export type PolicyLeaf = Omit<Policy, "sessionKeyAddress">
 export const DEFAULT_SESSION_DURATION = 60 * 60
 
-export type CreateDistributedParams = {
+export type CreateDelegatedParams = {
   /** The user's smart account instance */
   smartAccountClient: BiconomySmartAccountV2,
   /** An array of session configurations */
-  policy: PolicyWithoutSessionKey[],
+  policy: PolicyLeaf[],
   /** The storage client to store the session keys */
   sessionStorageClient?: ISessionStorage,
   /** The build userop dto */
@@ -54,7 +54,7 @@ export type CreateDistributedParams = {
 
 /**
  *
- * createDistributedSession
+ * createDelegatedSession
  *
  * Creates a session for a user's smart account.
  * This grants a dapp permission to execute a specific function on a specific contract on behalf of a user.
@@ -71,9 +71,9 @@ export type CreateDistributedParams = {
  *
  * @example
  *
- * import { type PolicyWithoutSessionKey, type Session, createDistributedSession } from "@biconomy/account"
+ * import { type PolicyLeaf, type Session, createDelegatedSession } from "@biconomy/account"
  *
- * const policy: PolicyWithoutSessionKey[] = [{
+ * const policy: PolicyLeaf[] = [{
  *   contractAddress: nftAddress,
  *   functionSelector: "safeMint(address)",
  *   rules: [
@@ -90,21 +90,21 @@ export type CreateDistributedParams = {
  *   valueLimit: 0n
  * }]
  *
- * const { wait, session } = await createDistributedSession({
+ * const { wait, session } = await createDelegatedSession({
  *   smartAccountClient,
  *   policy
  * })
  *
  * const { success } = await wait()
 */
-export const createDistributedSession = async ({
+export const createDelegatedSession = async ({
   smartAccountClient,
   policy,
   sessionStorageClient,
   buildUseropDto,
   chainId,
   browserWallet
-}: CreateDistributedParams): Promise<SessionGrantedPayload> => {
+}: CreateDelegatedParams): Promise<SessionGrantedPayload> => {
   const defaultedChainId =
     chainId ??
     extractChainIdFromBundlerUrl(smartAccountClient?.bundler?.getBundlerUrl() ?? "");
@@ -219,9 +219,9 @@ export type DanSessionKeyRequestParams = {
  * 
  * getDANSessionKey
  * 
- * @description This function is used to generate a new session key for a Distributed Account Network (DAN) session. This information is kept in the session storage and can be used to validate userops without the user's direct involvement.
+ * @description This function is used to generate a new session key for a Delegated Account Network (DAN) session. This information is kept in the session storage and can be used to validate userops without the user's direct involvement.
  * 
- * Generates a new session key for a Distributed Account Network (DAN) session.
+ * Generates a new session key for a Delegated Account Network (DAN) session.
  * @param smartAccount - The user's {@link BiconomySmartAccountV2} smartAccount instance.
  * @param browserWallet - Optional. The user's {@link IBrowserWallet} instance.
  * @param hardcodedValues - Optional. {@link DanModuleInfo} - Additional information for the DAN module configuration to override the default values.

@@ -4,7 +4,7 @@
 
 ### Minor Changes
 
-- Distributed Sessions
+- Delegated Sessions
 
 ## 4.5.2
 
