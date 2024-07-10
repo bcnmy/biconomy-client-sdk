@@ -1,5 +1,6 @@
 import { http, type Hex, createPublicClient, createWalletClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
+import { baseSepolia } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
@@ -9,7 +10,6 @@ import {
   getCustomChain
 } from "../../src/account"
 import { getBundlerUrl, getConfig } from "../utils"
-import { baseSepolia } from "viem/chains"
 
 describe("Playground:Write", () => {
   const TEST_INIT_CODE =
@@ -58,11 +58,11 @@ describe("Playground:Write", () => {
         })
       )
     )
-      ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
-        [smartAccount, smartAccountTwo].map((account) =>
-          account.getAccountAddress()
-        )
+    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+      [smartAccount, smartAccountTwo].map((account) =>
+        account.getAccountAddress()
       )
+    )
   })
 
   test.concurrent(
