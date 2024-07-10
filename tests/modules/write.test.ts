@@ -1503,7 +1503,7 @@ describe("Modules:Write", () => {
         chainId
       },
       smartAccountAddress,
-      "DAN"
+      "DISTRIBUTED"
     )
 
     const { wait: waitForMint } = await smartAccountWithSession.sendTransaction(
