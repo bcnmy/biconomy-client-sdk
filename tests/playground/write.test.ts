@@ -9,6 +9,7 @@ import {
   getCustomChain
 } from "../../src/account"
 import { getBundlerUrl, getConfig } from "../utils"
+import { baseSepolia } from "viem/chains"
 
 describe("Playground:Write", () => {
   const TEST_INIT_CODE =
@@ -57,11 +58,11 @@ describe("Playground:Write", () => {
         })
       )
     )
-    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
-      [smartAccount, smartAccountTwo].map((account) =>
-        account.getAccountAddress()
+      ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+        [smartAccount, smartAccountTwo].map((account) =>
+          account.getAccountAddress()
+        )
       )
-    )
   })
 
   test.concurrent(
@@ -77,6 +78,11 @@ describe("Playground:Write", () => {
 
       const publicClientFire = createPublicClient({
         chain: customChain,
+        transport: http()
+      })
+
+      const publicClientBase = createPublicClient({
+        chain: baseSepolia,
         transport: http()
       })
 
@@ -106,7 +112,11 @@ describe("Playground:Write", () => {
       const fireFactoryCode = await publicClientFire.getBytecode({
         address: DEFAULT_BICONOMY_FACTORY_ADDRESS
       })
+      const baseFactoryCode = await publicClientBase.getBytecode({
+        address: DEFAULT_BICONOMY_FACTORY_ADDRESS
+      })
 
+      expect(amoyFactoryCode).toBe(baseFactoryCode)
       expect(amoyFactoryCode).toBe(fireFactoryCode)
 
       const { wait } = await smartAccountClient.sendTransaction({
