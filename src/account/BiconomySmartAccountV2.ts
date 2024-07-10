@@ -38,6 +38,7 @@ import {
   getDanSessionTxParams,
   getSingleSessionTxParams
 } from "../modules"
+import type { ISessionStorage } from "../modules/interfaces/ISessionStorage.js"
 import { getDefaultStorageClient } from "../modules/session-storage/utils.js"
 import {
   BiconomyPaymaster,
@@ -101,7 +102,6 @@ import {
   isValidRpcUrl,
   packUserOp
 } from "./utils/Utils.js"
-import type { ISessionStorage } from "../modules/interfaces/ISessionStorage.js"
 
 type UserOperationKey = keyof UserOperationStruct
 
