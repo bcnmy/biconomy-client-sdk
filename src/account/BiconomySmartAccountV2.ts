@@ -204,7 +204,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         getChain(biconomySmartAccountConfig.chainId),
       transport: http(
         biconomySmartAccountConfig.rpcUrl ||
-          getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0]
+        getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0]
       )
     })
 
@@ -833,7 +833,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   async getAccountInitCode(): Promise<Hex> {
     this.isDefaultValidationModuleDefined()
 
-    if (await this.isAccountDeployed()) return "0x"
+    // if (await this.isAccountDeployed()) return "0x"
+
+    const factoryData = await this.getFactoryData();
+
+    console.log("this.factoryAddress", this.factoryAddress, factoryData)
 
     return concatHex([
       this.factoryAddress as Hex,
@@ -2017,7 +2021,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   }
 
   async getFactoryData() {
-    if (await this.isAccountDeployed()) return undefined
+    // if (await this.isAccountDeployed()) return undefined
 
     this.isDefaultValidationModuleDefined()
 

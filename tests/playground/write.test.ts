@@ -57,23 +57,12 @@ describe("Playground:Write", () => {
         })
       )
     )
-    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
-      [smartAccount, smartAccountTwo].map((account) =>
-        account.getAccountAddress()
+      ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+        [smartAccount, smartAccountTwo].map((account) =>
+          account.getAccountAddress()
+        )
       )
-    )
   })
-
-  // test.concurrent(
-  //   "should quickly run a write test in the playground",
-  //   async () => {
-
-  //     const initCode = await smartAccount.getAccountInitCode()
-  //     expect(initCode).toBe(TEST_INIT_CODE)
-
-  //   },
-  //   30000
-  // )
 
   test.concurrent(
     "should quickly run a write test in the playground",
@@ -86,7 +75,7 @@ describe("Playground:Write", () => {
         "https://explorer.ga.5ire.network"
       )
 
-      const publicClient = createPublicClient({
+      const publicClientFire = createPublicClient({
         chain: customChain,
         transport: http()
       })
@@ -111,6 +100,11 @@ describe("Playground:Write", () => {
         address: smartAccountAddress
       })
 
+      const amoyFactoryCode = await publicClient.getBytecode({ address: DEFAULT_BICONOMY_FACTORY_ADDRESS })
+      const fireFactoryCode = await publicClientFire.getBytecode({ address: DEFAULT_BICONOMY_FACTORY_ADDRESS })
+
+      expect(amoyFactoryCode).toBe(fireFactoryCode);
+
       const { wait } = await smartAccountClient.sendTransaction({
         to: recipient,
         value: BigInt(1)
@@ -120,6 +114,7 @@ describe("Playground:Write", () => {
       const balanceAfter = await publicClient.getBalance({
         address: smartAccountAddress
       })
+
 
       expect(balanceAfter).toBe(balanceBefore - 1n)
       expect(success).toBe("true")
