@@ -3,15 +3,16 @@ import { privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
-  createSmartAccountClient,
   DEFAULT_BICONOMY_FACTORY_ADDRESS,
+  createSmartAccountClient,
   getChain,
   getCustomChain
 } from "../../src/account"
 import { getBundlerUrl, getConfig } from "../utils"
 
 describe("Playground:Write", () => {
-  const TEST_INIT_CODE = "0x000000a56Aaca3e9a4C479ea6b6CD0DbcB6634F5df20ffbc0000000000000000000000000000001c5b32f37f5bea87bdd5374eb2ac54ea8e0000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000242ede3bc0000000000000000000000000fa66e705cf2582cf56528386bb9dfca11976726200000000000000000000000000000000000000000000000000000000"
+  const TEST_INIT_CODE =
+    "0x000000a56Aaca3e9a4C479ea6b6CD0DbcB6634F5df20ffbc0000000000000000000000000000001c5b32f37f5bea87bdd5374eb2ac54ea8e0000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000242ede3bc0000000000000000000000000fa66e705cf2582cf56528386bb9dfca11976726200000000000000000000000000000000000000000000000000000000"
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const {
     chain,
@@ -56,11 +57,11 @@ describe("Playground:Write", () => {
         })
       )
     )
-      ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
-        [smartAccount, smartAccountTwo].map((account) =>
-          account.getAccountAddress()
-        )
+    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+      [smartAccount, smartAccountTwo].map((account) =>
+        account.getAccountAddress()
       )
+    )
   })
 
   // test.concurrent(
@@ -74,13 +75,16 @@ describe("Playground:Write", () => {
   //   30000
   // )
 
-
   test.concurrent(
     "should quickly run a write test in the playground",
     async () => {
-
       const chainId = 997
-      const customChain = getCustomChain("5ireChain Testnet", chainId, "https://rpc.ga.5ire.network", "https://explorer.ga.5ire.network");
+      const customChain = getCustomChain(
+        "5ireChain Testnet",
+        chainId,
+        "https://rpc.ga.5ire.network",
+        "https://explorer.ga.5ire.network"
+      )
 
       const publicClient = createPublicClient({
         chain: customChain,
@@ -97,24 +101,28 @@ describe("Playground:Write", () => {
         chainId,
         signer: walletClient,
         customChain: customChain,
-        bundlerUrl: getBundlerUrl(chainId, "A5CBjLqSc.0dcbc53e-anPe-44c7-b22d-21071345f76a"),
+        bundlerUrl: getBundlerUrl(
+          chainId,
+          "A5CBjLqSc.0dcbc53e-anPe-44c7-b22d-21071345f76a"
+        )
       })
 
-      const balanceBefore = await publicClient.getBalance({ address: smartAccountAddress })
+      const balanceBefore = await publicClient.getBalance({
+        address: smartAccountAddress
+      })
 
-      const { wait } = await smartAccountClient.sendTransaction(
-        {
-          to: recipient,
-          value: BigInt(1)
-        }
-      )
+      const { wait } = await smartAccountClient.sendTransaction({
+        to: recipient,
+        value: BigInt(1)
+      })
 
-      const { success } = await wait();
-      const balanceAfter = await publicClient.getBalance({ address: smartAccountAddress })
+      const { success } = await wait()
+      const balanceAfter = await publicClient.getBalance({
+        address: smartAccountAddress
+      })
 
       expect(balanceAfter).toBe(balanceBefore - 1n)
       expect(success).toBe("true")
-
     },
     30000
   )
