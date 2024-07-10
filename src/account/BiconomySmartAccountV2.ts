@@ -204,7 +204,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         getChain(biconomySmartAccountConfig.chainId),
       transport: http(
         biconomySmartAccountConfig.rpcUrl ||
-        getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0]
+          getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0]
       )
     })
 
@@ -835,7 +835,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     // if (await this.isAccountDeployed()) return "0x"
 
-    const factoryData = await this.getFactoryData();
+    const factoryData = await this.getFactoryData()
 
     console.log("this.factoryAddress", this.factoryAddress, factoryData)
 

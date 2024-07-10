@@ -57,11 +57,11 @@ describe("Playground:Write", () => {
         })
       )
     )
-      ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
-        [smartAccount, smartAccountTwo].map((account) =>
-          account.getAccountAddress()
-        )
+    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+      [smartAccount, smartAccountTwo].map((account) =>
+        account.getAccountAddress()
       )
+    )
   })
 
   test.concurrent(
@@ -100,10 +100,14 @@ describe("Playground:Write", () => {
         address: smartAccountAddress
       })
 
-      const amoyFactoryCode = await publicClient.getBytecode({ address: DEFAULT_BICONOMY_FACTORY_ADDRESS })
-      const fireFactoryCode = await publicClientFire.getBytecode({ address: DEFAULT_BICONOMY_FACTORY_ADDRESS })
+      const amoyFactoryCode = await publicClient.getBytecode({
+        address: DEFAULT_BICONOMY_FACTORY_ADDRESS
+      })
+      const fireFactoryCode = await publicClientFire.getBytecode({
+        address: DEFAULT_BICONOMY_FACTORY_ADDRESS
+      })
 
-      expect(amoyFactoryCode).toBe(fireFactoryCode);
+      expect(amoyFactoryCode).toBe(fireFactoryCode)
 
       const { wait } = await smartAccountClient.sendTransaction({
         to: recipient,
@@ -114,7 +118,6 @@ describe("Playground:Write", () => {
       const balanceAfter = await publicClient.getBalance({
         address: smartAccountAddress
       })
-
 
       expect(balanceAfter).toBe(balanceBefore - 1n)
       expect(success).toBe("true")
