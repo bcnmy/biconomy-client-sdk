@@ -224,7 +224,7 @@ describe("Modules:Write", () => {
         paymasterUrl,
         chainId
       },
-      smartAccountAddressThree // Storage client, full Session or smartAccount address if using default storage
+      "DEFAULT_STORE" // Storage client, full Session or smartAccount address if using default storage
     )
 
     const sessionSmartAccountThreeAddress =
@@ -337,7 +337,7 @@ describe("Modules:Write", () => {
         paymasterUrl,
         chainId
       },
-      smartAccountAddressFour, // Storage client, full Session or smartAccount address if using default storage
+      "DEFAULT_STORE", // Storage client, full Session or smartAccount address if using default storage
       true // if batching
     )
 
@@ -907,7 +907,7 @@ describe("Modules:Write", () => {
         paymasterUrl,
         chainId: chain.id
       },
-      sessionStorageClient, // Storage client, full Session or smartAccount address if using default storage
+      "DEFAULT_STORE", // Storage client, full Session or smartAccount address if using default storage
       true
     )
 
@@ -1058,7 +1058,7 @@ describe("Modules:Write", () => {
         chainId,
         index: 25 // Increasing index to not conflict with other test cases and use a new smart account
       },
-      sessionStorageClient
+      "DEFAULT_STORE"
     )
 
     const submitCancelTx: Transaction = {
@@ -1393,7 +1393,7 @@ describe("Modules:Write", () => {
         paymasterUrl,
         chainId: chain.id
       },
-      smartAccountAddress
+      "DEFAULT_STORE"
     )
 
     const approvalTx = {
@@ -1502,14 +1502,14 @@ describe("Modules:Write", () => {
         paymasterUrl,
         chainId
       },
-      smartAccountAddress,
+      "DEFAULT_STORE",
       "DISTRIBUTED"
     )
 
     const { wait: waitForMint } = await smartAccountWithSession.sendTransaction(
       nftMintTx,
       withSponsorship,
-      { leafIndex: "LAST_LEAF", store: "DEFAULT_STORE" }
+      { leafIndex: "LAST_LEAF" }
     )
 
     const {

@@ -95,7 +95,7 @@ const smartAccountWithSession = await createSessionSmartAccountClient(
     paymasterUrl,
     chainId,
   },
-  smartAccountAddress // Storage client, full Session or smartAccount address if using default storage
+  "DEFAULT_STORE", // Storage client, full Session or smartAccount address if using default storage
   true // if batching
 );
 
@@ -125,7 +125,6 @@ const { wait: sessionWait } = await smartAccountWithSession.sendTransaction(
   {
     txs,
     leafIndex: leafIndexex,
-    store: "DEFAULT_STORE", // Storage client, full Session or smartAccount address if using default storage
     chain
   },
 );

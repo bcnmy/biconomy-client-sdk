@@ -81,7 +81,7 @@ export type SendSessionTransactionFunction = (
  *     paymasterUrl,
  *     chainId
  *   },
- *   storeForSingleSession // Can be ommitted if using default session storage (localStorage in browser, fileStorage in node backend)
+ *   "DEFAULT_STORE" // Can be ommitted if using default session storage (localStorage in browser, fileStorage in node backend)
  * )
  *
  * // The smartAccountWithSession instance can now be used to interact with the blockchain on behalf of the user in the same manner as a regular smart account instance.
@@ -90,8 +90,8 @@ export type SendSessionTransactionFunction = (
  */
 export const createSessionSmartAccountClient = async (
   biconomySmartAccountConfig: ImpersonatedSmartAccountConfig,
-  conditionalSession: SessionSearchParam,
-  sessionType?: SessionType | boolean, // backwards compatibility
+  conditionalSession: SessionSearchParam | "DEFAULT_STORE",
+  sessionType?: SessionType | boolean, // boolean for backwards compatibility
 ): Promise<BiconomySmartAccountV2> => {
   // for backwards compatibility
   let defaultedSessionType: SessionType = "SINGLE";
@@ -99,9 +99,8 @@ export const createSessionSmartAccountClient = async (
     defaultedSessionType = "BATCHED";
   if (sessionType === "DISTRIBUTED") defaultedSessionType = "DISTRIBUTED";
 
-  const { sessionStorageClient, sessionIDInfo } = await resumeSession(
-    conditionalSession ?? biconomySmartAccountConfig.accountAddress,
-  );
+  const defaultedSessionStore = conditionalSession !== "DEFAULT_STORE" ? conditionalSession : biconomySmartAccountConfig.accountAddress;
+  const { sessionStorageClient, sessionIDInfo } = await resumeSession(defaultedSessionStore);
   const account = privateKeyToAccount(generatePrivateKey());
 
   const chain =
@@ -164,6 +163,7 @@ export const createSessionSmartAccountClient = async (
     activeValidationModule,
     sessionData,
     sessionType: defaultedSessionType,
+    sessionStorageClient,
   });
 };
 

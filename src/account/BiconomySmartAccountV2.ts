@@ -101,6 +101,7 @@ import {
   isValidRpcUrl,
   packUserOp
 } from "./utils/Utils.js"
+import type { ISessionStorage } from "../modules/interfaces/ISessionStorage.js"
 
 type UserOperationKey = keyof UserOperationStruct
 
@@ -108,6 +109,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   private sessionData?: ModuleInfo
 
   private sessionType: SessionType | null = null
+
+  private sessionStorageClient: ISessionStorage | undefined;
 
   private SENTINEL_MODULE = "0x0000000000000000000000000000000000000001"
 
@@ -223,6 +226,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       biconomySmartAccountConfig.scanForUpgradedAccountsFromV1 ?? false
     this.maxIndexForScan = biconomySmartAccountConfig.maxIndexForScan ?? 10
     this.getAccountAddress()
+    this.sessionStorageClient = biconomySmartAccountConfig.sessionStorageClient;
   }
 
   /**
@@ -1517,7 +1521,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   ): Promise<UserOpResponse> {
     let defaultedBuildUseropDto = { ...buildUseropDto } ?? {}
     if (this.sessionType && sessionData) {
-      const getSessionParameters = await this.getSessionParams({ ...sessionData, txs: manyOrOneTransactions })
+      const store = this.sessionStorageClient ?? sessionData?.store;
+      const getSessionParameters = await this.getSessionParams({ ...sessionData, store, txs: manyOrOneTransactions })
       defaultedBuildUseropDto = {
         ...defaultedBuildUseropDto,
         ...getSessionParameters

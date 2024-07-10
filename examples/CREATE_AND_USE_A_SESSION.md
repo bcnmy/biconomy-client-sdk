@@ -109,7 +109,7 @@ const smartAccountWithSession = await createSessionSmartAccountClient(
     paymasterUrl,
     chainId,
   },
-  smartAccountAddress // Storage client, full Session or smartAccount address if using default storage
+  "DEFAULT_STORE" // Storage client, full Session or smartAccount address if using default storage
 );
 
 const { wait: mintWait } = await smartAccountWithSession.sendTransaction(
@@ -122,10 +122,7 @@ const { wait: mintWait } = await smartAccountWithSession.sendTransaction(
     }),
   },
   withSponsorship,
-  {
-    leafIndex: "LAST_LEAF",
-    store: "DEFAULT_STORE", // Storage client, full Session or smartAccount address if using default storage
-  },
+  { leafIndex: "LAST_LEAF" },
 );
 
 const { success } = await mintWait();

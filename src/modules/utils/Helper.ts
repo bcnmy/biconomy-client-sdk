@@ -192,7 +192,7 @@ export const parseChain = (chainInfo: ChainInfo): Chain => {
  * When a smart account address is provided, the default session storage client is used to reconstruct the session object using **all** of the sessionIds found in the storage client
  *
  */
-export type SessionSearchParam = Session | ISessionStorage | Address
+export type SessionSearchParam = Session | ISessionStorage | Address | "DEFAULT_STORE"
 export const didProvideFullSession = (
   searchParam: SessionSearchParam
 ): boolean => !!(searchParam as Session)?.sessionIDInfo?.length
