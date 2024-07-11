@@ -39,7 +39,7 @@ import {
   createSessionKeyManagerModule,
   createSessionWithDistributedKey,
   getABISVMSessionKeyData,
-  getDANSessionKey,
+  getSessionKeyWithDan,
   resumeSession
 } from "../../src/modules"
 
@@ -1546,7 +1546,7 @@ describe("Modules:Write", () => {
     const duration = 60 * 60
 
     // Get the session key from the dan network
-    const danModuleInfo = await getDANSessionKey({
+    const danModuleInfo = await getSessionKeyWithDan({
       smartAccountClient: smartAccount,
       browserWallet: new NodeWallet(walletClient),
       duration

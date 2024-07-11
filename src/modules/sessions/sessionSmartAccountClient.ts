@@ -21,7 +21,7 @@ import {
 import type { ISessionStorage } from "../interfaces/ISessionStorage";
 import type { ModuleInfo, StrictSessionParams } from "../utils/Types";
 
-export type SessionType = "SINGLE" | "BATCHED" | "DISTRIBUTED_KEY";
+export type SessionType = "SIMPLE" | "BATCHED" | "DISTRIBUTED_KEY";
 export type ImpersonatedSmartAccountConfig = Omit<
   BiconomySmartAccountV2Config,
   "signer"
@@ -50,7 +50,7 @@ export type SendSessionTransactionFunction = (
  *
  * @param biconomySmartAccountConfig - Configuration for initializing the BiconomySmartAccountV2 instance {@link ImpersonatedSmartAccountConfig}.
  * @param conditionalSession - {@link SessionSearchParam} The session data that contains the sessionID and sessionSigner. If not provided, The default session storage (localStorage in browser, fileStorage in node backend) is used to fetch the sessionIDInfo
- * @param sessionType - {@link SessionType}: One of "SINGLE", "BATCHED" or "DISTRIBUTED_KEY". Default is "SINGLE".
+ * @param sessionType - {@link SessionType}: One of "SIMPLE", "BATCHED" or "DISTRIBUTED_KEY". Default is "SIMPLE".
  * @returns A promise that resolves to a new instance of {@link BiconomySmartAccountV2}.
  * @throws An error if something is wrong with the smart account instance creation.
  *
@@ -94,7 +94,7 @@ export const createSessionSmartAccountClient = async (
   sessionType?: SessionType | boolean, // boolean for backwards compatibility
 ): Promise<BiconomySmartAccountV2> => {
   // for backwards compatibility
-  let defaultedSessionType: SessionType = "SINGLE";
+  let defaultedSessionType: SessionType = "SIMPLE";
   if (sessionType === true || sessionType === "BATCHED")
     defaultedSessionType = "BATCHED";
   if (sessionType === "DISTRIBUTED_KEY") defaultedSessionType = "DISTRIBUTED_KEY";
@@ -126,7 +126,7 @@ export const createSessionSmartAccountClient = async (
     );
 
     sessionData =
-      defaultedSessionType === "SINGLE"
+      defaultedSessionType === "SIMPLE"
         ? {
           sessionID,
           sessionSigner,
@@ -153,7 +153,7 @@ export const createSessionSmartAccountClient = async (
   const activeValidationModule =
     defaultedSessionType === "BATCHED"
       ? batchedSessionValidationModule
-      : defaultedSessionType === "SINGLE"
+      : defaultedSessionType === "SIMPLE"
         ? sessionModule
         : danSessionValidationModule;
 

@@ -13,7 +13,7 @@ import {
 } from "viem"
 import { DEFAULT_ENTRYPOINT_ADDRESS, type SmartAccountSigner, type UserOperationStruct } from "../account"
 import { BaseValidationModule } from "./BaseValidationModule.js"
-import { WalletProviderSDK } from "./index.js"
+import { signWithDan } from "./index.js"
 import type {
   ISessionStorage,
   SessionLeafNode,
@@ -23,11 +23,9 @@ import type {
 import { SessionLocalStorage } from "./session-storage/SessionLocalStorage.js"
 import { SessionMemoryStorage } from "./session-storage/SessionMemoryStorage.js"
 import {
-  DAN_BACKEND_URL,
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
   SESSION_MANAGER_MODULE_ADDRESSES_BY_VERSION
 } from "./utils/Constants.js"
-import { hexToUint8Array } from "./utils/Helper.js"
 import {
   type CreateSessionDataParams,
   type CreateSessionDataResponse,
@@ -216,27 +214,6 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
     if (!sessionID) throw new Error("Missing sessionID")
     if (!sessionSignerData.danModuleInfo) throw new Error("Missing danModuleInfo")
 
-    const {
-      eoaAddress,
-      threshold,
-      partiesNumber,
-      hexEphSKWithout0x,
-      chainId,
-      mpcKeyId
-    } = sessionSignerData.danModuleInfo
-
-    if (
-      !rawUserOperation ||
-      !hexEphSKWithout0x ||
-      !eoaAddress ||
-      !threshold ||
-      !partiesNumber ||
-      !chainId ||
-      !mpcKeyId
-    ) {
-      throw new Error("Missing params from danModuleInfo")
-    }
-
     if (
       !rawUserOperation.verificationGasLimit ||
       !rawUserOperation.callGasLimit ||
@@ -247,22 +224,6 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       throw new Error("Missing params from User operation")
     }
 
-    const wpClient = new WalletProviderSDK.WalletProviderServiceClient({
-      walletProviderId: "WalletProvider",
-      walletProviderUrl: DAN_BACKEND_URL
-    })
-
-    const ephSK = hexToUint8Array(hexEphSKWithout0x)
-
-    const authModule = new WalletProviderSDK.EphAuth(eoaAddress, ephSK)
-
-    const sdk = new WalletProviderSDK.NetworkSigner(
-      wpClient,
-      threshold,
-      partiesNumber,
-      authModule
-    )
-
     const userOpTemp = {
       ...rawUserOperation,
       verificationGasLimit: rawUserOperation.verificationGasLimit.toString(),
@@ -272,21 +233,16 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
       initCode: String(rawUserOperation.initCode).slice(2)
     }
 
-    // todo // get constants from config
     const objectToSign: DanSignatureObject = {
       // @ts-ignore
       userOperation: userOpTemp,
       entryPointVersion: "v0.6.0",
       entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
-      chainId
+      chainId: sessionSignerData.danModuleInfo.chainId
     }
-    const signMessage = JSON.stringify(objectToSign)
-    const resp = await sdk.authenticateAndSign(mpcKeyId, signMessage)
+    const messageToSign = JSON.stringify(objectToSign)
 
-    const v = resp.recid
-    const sigV = v === 0 ? "1b" : "1c"
-
-    const signature = `0x${resp.sign}${sigV}`
+    const signature = await signWithDan(messageToSign, sessionSignerData.danModuleInfo)
 
     const leafDataHex = concat([
       pad(toHex(sessionSignerData.validUntil), { size: 6 }),

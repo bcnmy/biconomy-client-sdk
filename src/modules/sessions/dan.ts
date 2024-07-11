@@ -27,7 +27,7 @@ import {
   resumeSession
 } from "../utils/Helper"
 import type { DanModuleInfo } from "../utils/Types"
-import type { IBrowserWallet } from "../walletprovider-sdk/types"
+import type { IBrowserWallet, NetworkSigner } from "../walletprovider-sdk/types"
 import {
   type Policy,
   type SessionGrantedPayload,
@@ -126,7 +126,7 @@ export const createSessionWithDistributedKey = async ({
     duration = Math.round(policy?.[0].interval?.validUntil - Date.now() / 1000)
   }
 
-  const { sessionKeyEOA: sessionKeyAddress, ...other } = await getDANSessionKey({
+  const { sessionKeyEOA: sessionKeyAddress, ...other } = await getSessionKeyWithDan({
     smartAccountClient,
     browserWallet,
     duration,
@@ -214,7 +214,7 @@ export type DanSessionKeyRequestParams = {
 
 /**
  * 
- * getDANSessionKey
+ * getSessionKeyWithDan
  * 
  * @description This function is used to generate a new session key for a Distributed Account Network (DAN) session. This information is kept in the session storage and can be used to validate userops without the user's direct involvement.
  * 
@@ -227,7 +227,7 @@ export type DanSessionKeyRequestParams = {
  * @returns Promise<{@link DanModuleInfo}> - An object containing the session key, the MPC key ID, the number of parties, the threshold, and the EOA address.
  * 
 */
-export const getDANSessionKey = async ({
+export const getSessionKeyWithDan = async ({
   smartAccountClient,
   browserWallet,
   hardcodedValues = {},
@@ -332,4 +332,57 @@ export const getDanSessionTxParams = async (
   if (!chainIdsMatch) throw new Error(ERROR_MESSAGES.CHAIN_ID_MISMATCH)
 
   return { params: { sessionID } }
+
+}
+
+/**
+ * 
+ * signWithDan
+ * 
+ * @description This function is used to sign a message using the Distributed Account Network (DAN) module.
+ * 
+ * @param message - The message to sign
+ * @param danParams {@link DanModuleInfo} - The DAN module information required to sign the message 
+ * @returns signedResponse - Hex
+ */
+export const signWithDan = async (message: string, danParams: DanModuleInfo): Promise<Hex> => {
+
+  const { hexEphSKWithout0x, eoaAddress, threshold, partiesNumber, chainId, mpcKeyId } = danParams;
+
+  if (!message) throw new Error("Missing message")
+  if (
+    !hexEphSKWithout0x ||
+    !eoaAddress ||
+    !threshold ||
+    !partiesNumber ||
+    !chainId ||
+    !mpcKeyId
+  ) {
+    throw new Error("Missing params from danModuleInfo")
+  }
+
+  const wpClient = new WalletProviderSDK.WalletProviderServiceClient({
+    walletProviderId: "WalletProvider",
+    walletProviderUrl: DAN_BACKEND_URL
+  })
+
+  const ephSK = hexToUint8Array(hexEphSKWithout0x)
+
+  const authModule = new WalletProviderSDK.EphAuth(eoaAddress, ephSK)
+
+  const sdk = new WalletProviderSDK.NetworkSigner(
+    wpClient,
+    threshold,
+    partiesNumber,
+    authModule
+  )
+
+  const reponse: Awaited<ReturnType<NetworkSigner['authenticateAndSign']>> = await sdk.authenticateAndSign(mpcKeyId, message);
+
+  const v = reponse.recid
+  const sigV = v === 0 ? "1b" : "1c"
+
+  const signature: Hex = `0x${reponse.sign}${sigV}`
+
+  return signature
 }

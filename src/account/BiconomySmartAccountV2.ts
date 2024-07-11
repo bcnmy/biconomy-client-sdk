@@ -1625,7 +1625,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         defaultedChain
       )
     }
-    if (this.sessionType === "SINGLE") {
+    if (this.sessionType === "SIMPLE") {
       return getSingleSessionTxParams(
         defaultedConditionalSession,
         defaultedChain,
