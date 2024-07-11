@@ -1325,9 +1325,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       } else if (feeData.gasPrice?.toString()) {
         finalUserOp.maxFeePerGas = `0x${feeData.gasPrice.toString(16)}` as Hex
       } else {
-        finalUserOp.maxFeePerGas = `0x${(
-          await this.provider.getGasPrice()
-        ).toString(16)}` as Hex
+        finalUserOp.maxFeePerGas =
+          `0x${(await this.provider.getGasPrice()).toString(16)}` as Hex
       }
 
       if (feeData.maxPriorityFeePerGas?.toString()) {
@@ -1338,9 +1337,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
           Number(feeData.gasPrice?.toString())
         )
       } else {
-        finalUserOp.maxPriorityFeePerGas = `0x${(
-          await this.provider.getGasPrice()
-        ).toString(16)}` as Hex
+        finalUserOp.maxPriorityFeePerGas =
+          `0x${(await this.provider.getGasPrice()).toString(16)}` as Hex
       }
     } else {
       finalUserOp.maxFeePerGas =

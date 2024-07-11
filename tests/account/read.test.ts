@@ -13,7 +13,7 @@ import {
   parseAbiParameters
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { bsc, mainnet } from "viem/chains"
+import { baseSepolia, bsc, mainnet } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
@@ -24,6 +24,7 @@ import {
   NATIVE_TOKEN_ALIAS,
   compareChainIds,
   createSmartAccountClient,
+  getCustomChain,
   isNullOrUndefined
 } from "../../src/account"
 import { type UserOperationStruct, getChain } from "../../src/account"
@@ -107,6 +108,47 @@ describe("Account:Read", () => {
       expect(signature).toBeTruthy()
     },
     50000
+  )
+
+  test.concurrent(
+    "should check that deployed factory byteCode is consistent",
+    async () => {
+      const fire = getCustomChain(
+        "5ireChain Testnet",
+        997,
+        "https://rpc.ga.5ire.network",
+        "https://explorer.ga.5ire.network"
+      )
+
+      const combo = getCustomChain(
+        "Combo",
+        1715,
+        "https://test-rpc.combonetwork.io",
+        "https://combotrace-testnet.nodereal.io"
+      )
+
+      const chainsToTest = [chain, baseSepolia /*, fire, combo*/]
+      const publicClients = chainsToTest.map((chain) =>
+        createPublicClient({
+          chain,
+          transport: http()
+        })
+      )
+
+      const byteCodes = await Promise.all(
+        publicClients.map((publicClient) =>
+          publicClient.getCode({
+            address: DEFAULT_BICONOMY_FACTORY_ADDRESS
+          })
+        )
+      )
+
+      const allByteCodesMatch = byteCodes.every(
+        (byteCode) => byteCode === byteCodes[0]
+      )
+
+      expect(allByteCodesMatch).toBeTruthy()
+    }
   )
 
   test.concurrent(
