@@ -37,13 +37,13 @@ import {
 export type PolicyLeaf = Omit<Policy, "sessionKeyAddress">
 export const DEFAULT_SESSION_DURATION = 60 * 60
 
-export type CreateDistributedParams = {
+export type CreateDistributedSessionParams = {
   /** The user's smart account instance */
   smartAccountClient: BiconomySmartAccountV2,
   /** An array of session configurations */
   policy: PolicyLeaf[],
   /** The storage client to store the session keys */
-  sessionStorageClient?: ISessionStorage,
+  sessionStorageClient?: ISessionStorage | null,
   /** The build userop dto */
   buildUseropDto?: BuildUserOpOptions,
   /** The chain ID */
@@ -104,7 +104,7 @@ export const createDistributedSession = async ({
   buildUseropDto,
   chainId,
   browserWallet
-}: CreateDistributedParams): Promise<SessionGrantedPayload> => {
+}: CreateDistributedSessionParams): Promise<SessionGrantedPayload> => {
   const defaultedChainId =
     chainId ??
     extractChainIdFromBundlerUrl(smartAccountClient?.bundler?.getBundlerUrl() ?? "");

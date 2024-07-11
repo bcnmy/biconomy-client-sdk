@@ -96,7 +96,7 @@ const smartAccountWithSession = await createSessionSmartAccountClient(
     chainId,
   },
   "DEFAULT_STORE", // Storage client, full Session or smartAccount address if using default storage
-  true // if batching
+  "BATCHED"
 );
 
 const transferTx: Transaction = {
@@ -117,16 +117,12 @@ const nftMintTx: Transaction = {
 };
 
 const txs = [nftMintTx, transferTx];
-const leafIndexex = [1, 0]; // The order of the txs from the sessionBatch
+const leafIndexes = [1, 0]; // The order of the txs from the sessionBatch
 
 const { wait: sessionWait } = await smartAccountWithSession.sendTransaction(
   txs,
   withSponsorship,
-  {
-    txs,
-    leafIndex: leafIndexex,
-    chain
-  },
+  { leafIndex: leafIndexes },
 );
 
 const { success } = await sessionWait();

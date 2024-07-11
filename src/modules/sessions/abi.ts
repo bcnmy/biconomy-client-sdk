@@ -10,9 +10,11 @@ import {
   toHex
 } from "viem"
 import {
+  type CreateDistributedSessionParams,
   type CreateSessionDataParams,
   type DanModuleInfo,
   type SessionParams,
+  createDistributedSession,
   createSessionKeyManagerModule,
   didProvideFullSession,
   resumeSession
@@ -109,6 +111,8 @@ export type SessionGrantedPayload = UserOpResponse & { session: Session }
  * @param policy - An array of session configurations {@link Policy}.
  * @param sessionStorageClient - The storage client to store the session keys. {@link ISessionStorage}
  * @param buildUseropDto - Optional. {@link BuildUserOpOptions}
+ * @param storeSessionKeyInDAN - Optional. If true, the session key stored on the DAN network. Must be used with "DISTRIBUTED" {@link SessionType} when creating the sessionSmartAccountClient and using the session
+ * @param browserWallet - Optional. The browser wallet instance. Only relevant when storeSessionKeyInDan is true. {@link CreateDistributedSessionParams['browserWallet']}
  * @returns Promise<{@link SessionGrantedPayload}> - An object containing the status of the transaction and the sessionID.
  *
  * @example
@@ -170,8 +174,15 @@ export const createSession = async (
   smartAccount: BiconomySmartAccountV2,
   policy: PolicyWithOptionalSessionKey[],
   sessionStorageClient?: ISessionStorage | null,
-  buildUseropDto?: BuildUserOpOptions
+  buildUseropDto?: BuildUserOpOptions,
+  storeSessionKeyInDAN = false,
+  browserWallet?: CreateDistributedSessionParams['browserWallet']
 ): Promise<SessionGrantedPayload> => {
+
+  if (storeSessionKeyInDAN) {
+    return await createDistributedSession({ smartAccountClient: smartAccount, policy, sessionStorageClient, buildUseropDto, browserWallet })
+  }
+
   const smartAccountAddress = await smartAccount.getAddress()
   const defaultedChainId = extractChainIdFromBundlerUrl(
     smartAccount?.bundler?.getBundlerUrl() ?? ""
