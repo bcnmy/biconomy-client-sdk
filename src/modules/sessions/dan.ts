@@ -126,7 +126,7 @@ export const createSessionWithDistributedKey = async ({
     duration = Math.round(policy?.[0].interval?.validUntil - Date.now() / 1000)
   }
 
-  const { sessionKeyEOA: sessionKeyAddress, ...other } = await getSessionKeyWithDan({
+  const { sessionKeyEOA: sessionKeyAddress, ...other } = await danSDK.generateSessionKey({
     smartAccountClient,
     browserWallet,
     duration,
@@ -187,7 +187,7 @@ export type DanSessionKeyPayload = {
   sessionKeyEOA: Hex;
   /** Dan Session MPC key ID*/
   mpcKeyId: string;
-  /** Dan Session ephemeral private key without 0x prefi x*/
+  /** Dan Session ephemeral private key without 0x prefix */
   hexEphSKWithout0x: string;
   /** Number of nodes that participate in keygen operation. Also known as n. */
   partiesNumber: number;
@@ -214,7 +214,7 @@ export type DanSessionKeyRequestParams = {
 
 /**
  * 
- * getSessionKeyWithDan
+ * generateSessionKey
  * 
  * @description This function is used to generate a new session key for a Distributed Account Network (DAN) session. This information is kept in the session storage and can be used to validate userops without the user's direct involvement.
  * 
@@ -227,7 +227,7 @@ export type DanSessionKeyRequestParams = {
  * @returns Promise<{@link DanModuleInfo}> - An object containing the session key, the MPC key ID, the number of parties, the threshold, and the EOA address.
  * 
 */
-export const getSessionKeyWithDan = async ({
+export const generateSessionKey = async ({
   smartAccountClient,
   browserWallet,
   hardcodedValues = {},
@@ -337,7 +337,7 @@ export const getDanSessionTxParams = async (
 
 /**
  * 
- * signWithDan
+ * signMessage
  * 
  * @description This function is used to sign a message using the Distributed Account Network (DAN) module.
  * 
@@ -348,7 +348,7 @@ export const getDanSessionTxParams = async (
  * @example
  * 
  * ```ts
- * import { signWithDan } from "@biconomy/account";
+ * import { signMessage } from "@biconomy/account";
  * const objectToSign: DanSignatureObject = {
  *   userOperation: UserOperationStruct,
  *   entryPointVersion: "v0.6.0",
@@ -357,11 +357,11 @@ export const getDanSessionTxParams = async (
  * }
  * 
  * const messageToSign = JSON.stringify(objectToSign)
- * const signature: Hex = await signWithDan(messageToSign, sessionSignerData.danModuleInfo); // From the getSessionKeyWithDan helper
+ * const signature: Hex = await signMessage(messageToSign, sessionSignerData.danModuleInfo); // From the generateSessionKey helper
  * ```
  * 
  */
-export const signWithDan = async (message: string, danParams: DanModuleInfo): Promise<Hex> => {
+export const signMessage = async (message: string, danParams: DanModuleInfo): Promise<Hex> => {
 
   const { hexEphSKWithout0x, eoaAddress, threshold, partiesNumber, chainId, mpcKeyId } = danParams;
 
@@ -401,4 +401,11 @@ export const signWithDan = async (message: string, danParams: DanModuleInfo): Pr
   const signature: Hex = `0x${reponse.sign}${sigV}`
 
   return signature
+};
+
+export const danSDK = {
+  generateSessionKey,
+  signMessage
 }
+
+export default danSDK;

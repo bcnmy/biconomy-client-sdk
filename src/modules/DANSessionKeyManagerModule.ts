@@ -13,7 +13,7 @@ import {
 } from "viem"
 import { DEFAULT_ENTRYPOINT_ADDRESS, type SmartAccountSigner, type UserOperationStruct } from "../account"
 import { BaseValidationModule } from "./BaseValidationModule.js"
-import { signWithDan } from "./index.js"
+import { danSDK } from "./index.js"
 import type {
   ISessionStorage,
   SessionLeafNode,
@@ -242,7 +242,7 @@ export class DANSessionKeyManagerModule extends BaseValidationModule {
     }
     const messageToSign = JSON.stringify(objectToSign)
 
-    const signature = await signWithDan(messageToSign, sessionSignerData.danModuleInfo)
+    const signature = await danSDK.signMessage(messageToSign, sessionSignerData.danModuleInfo)
 
     const leafDataHex = concat([
       pad(toHex(sessionSignerData.validUntil), { size: 6 }),

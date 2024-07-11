@@ -38,8 +38,8 @@ import {
   createMultiChainValidationModule,
   createSessionKeyManagerModule,
   createSessionWithDistributedKey,
+  danSDK,
   getABISVMSessionKeyData,
-  getSessionKeyWithDan,
   resumeSession
 } from "../../src/modules"
 
@@ -1546,7 +1546,7 @@ describe("Modules:Write", () => {
     const duration = 60 * 60
 
     // Get the session key from the dan network
-    const danModuleInfo = await getSessionKeyWithDan({
+    const danModuleInfo = await danSDK.generateSessionKey({
       smartAccountClient: smartAccount,
       browserWallet: new NodeWallet(walletClient),
       duration
@@ -1628,10 +1628,7 @@ describe("Modules:Write", () => {
     });
 
     // Set the active validation module to the DAN session module
-    unconnectedSmartAccount = unconnectedSmartAccount.setActiveValidationModule(await DANSessionKeyManagerModule.create({
-      smartAccountAddress,
-      sessionStorageClient: memoryStore
-    }));
+    unconnectedSmartAccount = unconnectedSmartAccount.setActiveValidationModule(sessionsModule);
 
     // Use the session to submit a tx relevant to the policy
     const nftMintTx = {
@@ -1652,11 +1649,9 @@ describe("Modules:Write", () => {
     const sameSessionID = sessionIDs[0]; // Usually only available when the session is created
 
     const nftBalanceBefore = await checkBalance(smartAccountAddress, nftAddress);
+
     // Now use the sessionID to send the transaction
-    const { wait: waitForMint } = await unconnectedSmartAccount.sendTransaction(nftMintTx, {
-      ...withSponsorship,
-      params: { sessionID }
-    });
+    const { wait: waitForMint } = await unconnectedSmartAccount.sendTransaction(nftMintTx, { ...withSponsorship, params: { sessionID } });
 
     // Check for success
     const { success: mintSuccess } = await waitForMint();
