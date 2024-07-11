@@ -120,7 +120,7 @@ describe("Account:Read", () => {
         "https://explorer.ga.5ire.network"
       )
 
-      const combo = getCustomChain(
+      const comboChain = getCustomChain(
         "Combo",
         1715,
         "https://test-rpc.combonetwork.io",
@@ -148,6 +148,23 @@ describe("Account:Read", () => {
       )
 
       expect(allByteCodesMatch).toBeTruthy()
+
+      const comboSmartAccount = await createSmartAccountClient({
+        signer: createWalletClient({
+          account,
+          chain: comboChain,
+          transport: http()
+        }),
+        bundlerUrl: getBundlerUrl(1715),
+        customChain: comboChain
+      })
+
+      const [nativeTokenBalance] = await comboSmartAccount.getBalances()
+      const smartAccountAddress = await comboSmartAccount.getAccountAddress()
+      console.log("smartAccountAddress", {
+        smartAccountAddress,
+        nativeTokenBalance
+      })
     }
   )
 
