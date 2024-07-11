@@ -1610,7 +1610,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     if (!defaultedChain) throw new Error("Chain is not provided")
 
-    if (this.sessionType === "DISTRIBUTED") {
+    if (this.sessionType === "DISTRIBUTED_KEY") {
       return getDanSessionTxParams(
         defaultedConditionalSession,
         defaultedChain,

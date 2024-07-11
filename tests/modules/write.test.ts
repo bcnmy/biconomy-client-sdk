@@ -34,10 +34,10 @@ import {
   ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION,
   NodeWallet,
   type PolicyLeaf,
-  createDistributedSession,
   createECDSAOwnershipValidationModule,
   createMultiChainValidationModule,
   createSessionKeyManagerModule,
+  createSessionWithDistributedKey,
   getABISVMSessionKeyData,
   getDANSessionKey,
   resumeSession
@@ -1479,7 +1479,7 @@ describe("Modules:Write", () => {
       }
     ]
 
-    const { wait } = await createDistributedSession({ smartAccountClient: smartAccount, policy })
+    const { wait } = await createSessionWithDistributedKey({ smartAccountClient: smartAccount, policy })
 
     const { success } = await wait()
     expect(success).toBe("true")
@@ -1503,7 +1503,7 @@ describe("Modules:Write", () => {
         chainId
       },
       "DEFAULT_STORE",
-      "DISTRIBUTED"
+      "DISTRIBUTED_KEY"
     )
 
     const { wait: waitForMint } = await smartAccountWithSession.sendTransaction(

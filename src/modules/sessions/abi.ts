@@ -10,12 +10,12 @@ import {
   toHex
 } from "viem"
 import {
-  type CreateDistributedSessionParams,
   type CreateSessionDataParams,
+  type CreateSessionWithDistributedKeyParams,
   type DanModuleInfo,
   type SessionParams,
-  createDistributedSession,
   createSessionKeyManagerModule,
+  createSessionWithDistributedKey,
   didProvideFullSession,
   resumeSession
 } from "../"
@@ -111,8 +111,8 @@ export type SessionGrantedPayload = UserOpResponse & { session: Session }
  * @param policy - An array of session configurations {@link Policy}.
  * @param sessionStorageClient - The storage client to store the session keys. {@link ISessionStorage}
  * @param buildUseropDto - Optional. {@link BuildUserOpOptions}
- * @param storeSessionKeyInDAN - Optional. If true, the session key stored on the DAN network. Must be used with "DISTRIBUTED" {@link SessionType} when creating the sessionSmartAccountClient and using the session
- * @param browserWallet - Optional. The browser wallet instance. Only relevant when storeSessionKeyInDan is true. {@link CreateDistributedSessionParams['browserWallet']}
+ * @param storeSessionKeyInDAN - Optional. If true, the session key stored on the DAN network. Must be used with "DISTRIBUTED_KEY" {@link SessionType} when creating the sessionSmartAccountClient and using the session
+ * @param browserWallet - Optional. The browser wallet instance. Only relevant when storeSessionKeyInDan is true. {@link CreateSessionWithDistributedKeyParams['browserWallet']}
  * @returns Promise<{@link SessionGrantedPayload}> - An object containing the status of the transaction and the sessionID.
  *
  * @example
@@ -176,11 +176,11 @@ export const createSession = async (
   sessionStorageClient?: ISessionStorage | null,
   buildUseropDto?: BuildUserOpOptions,
   storeSessionKeyInDAN = false,
-  browserWallet?: CreateDistributedSessionParams['browserWallet']
+  browserWallet?: CreateSessionWithDistributedKeyParams['browserWallet']
 ): Promise<SessionGrantedPayload> => {
 
   if (storeSessionKeyInDAN) {
-    return await createDistributedSession({ smartAccountClient: smartAccount, policy, sessionStorageClient, buildUseropDto, browserWallet })
+    return await createSessionWithDistributedKey({ smartAccountClient: smartAccount, policy, sessionStorageClient, buildUseropDto, browserWallet })
   }
 
   const smartAccountAddress = await smartAccount.getAddress()

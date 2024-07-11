@@ -37,7 +37,7 @@ import {
 export type PolicyLeaf = Omit<Policy, "sessionKeyAddress">
 export const DEFAULT_SESSION_DURATION = 60 * 60
 
-export type CreateDistributedSessionParams = {
+export type CreateSessionWithDistributedKeyParams = {
   /** The user's smart account instance */
   smartAccountClient: BiconomySmartAccountV2,
   /** An array of session configurations */
@@ -54,7 +54,7 @@ export type CreateDistributedSessionParams = {
 
 /**
  *
- * createDistributedSession
+ * createSessionWithDistributedKey
  *
  * Creates a session for a user's smart account.
  * This grants a dapp permission to execute a specific function on a specific contract on behalf of a user.
@@ -71,7 +71,7 @@ export type CreateDistributedSessionParams = {
  *
  * @example
  *
- * import { type PolicyLeaf, type Session, createDistributedSession } from "@biconomy/account"
+ * import { type PolicyLeaf, type Session, createSessionWithDistributedKey } from "@biconomy/account"
  *
  * const policy: PolicyLeaf[] = [{
  *   contractAddress: nftAddress,
@@ -90,21 +90,21 @@ export type CreateDistributedSessionParams = {
  *   valueLimit: 0n
  * }]
  *
- * const { wait, session } = await createDistributedSession({
+ * const { wait, session } = await createSessionWithDistributedKey({
  *   smartAccountClient,
  *   policy
  * })
  *
  * const { success } = await wait()
 */
-export const createDistributedSession = async ({
+export const createSessionWithDistributedKey = async ({
   smartAccountClient,
   policy,
   sessionStorageClient,
   buildUseropDto,
   chainId,
   browserWallet
-}: CreateDistributedSessionParams): Promise<SessionGrantedPayload> => {
+}: CreateSessionWithDistributedKeyParams): Promise<SessionGrantedPayload> => {
   const defaultedChainId =
     chainId ??
     extractChainIdFromBundlerUrl(smartAccountClient?.bundler?.getBundlerUrl() ?? "");
@@ -134,10 +134,7 @@ export const createDistributedSession = async ({
   })
 
   const danModuleInfo: DanModuleInfo = { ...other }
-  const defaultedPolicy: Policy[] = policy.map((p) => ({
-    ...p,
-    sessionKeyAddress
-  }))
+  const defaultedPolicy: Policy[] = policy.map((p) => ({ ...p, sessionKeyAddress }))
 
   const humanReadablePolicyArray = defaultedPolicy.map((p) =>
     createABISessionDatum({ ...p, danModuleInfo })
