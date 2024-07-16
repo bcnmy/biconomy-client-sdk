@@ -122,5 +122,6 @@ export const getCustomChain = (
     },
     ...((contracts && { contracts }) || {})
   }
+  CUSTOM_CHAINS.push(chain)
   return chain
 }

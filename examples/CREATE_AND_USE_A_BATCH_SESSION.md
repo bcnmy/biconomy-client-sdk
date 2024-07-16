@@ -95,8 +95,8 @@ const smartAccountWithSession = await createSessionSmartAccountClient(
     paymasterUrl,
     chainId,
   },
-  smartAccountAddress // Storage client, full Session or smartAccount address if using default storage
-  true // if batching
+  "DEFAULT_STORE", // Storage client, full Session or smartAccount address if using default storage
+  "BATCHED"
 );
 
 const transferTx: Transaction = {
@@ -117,21 +117,12 @@ const nftMintTx: Transaction = {
 };
 
 const txs = [nftMintTx, transferTx];
-const correspondingIndexes = [1, 0]; // The order of the txs from the sessionBatch
-
-const batchSessionParams = await getBatchSessionTxParams(
-  txs,
-  correspondingIndexes,
-  smartAccountAddress, // Storage client, full Session or smartAccount address if using default storage
-  chain
-);
+const leafIndexes = [1, 0]; // The order of the txs from the sessionBatch
 
 const { wait: sessionWait } = await smartAccountWithSession.sendTransaction(
   txs,
-  {
-    ...batchSessionParams,
-    ...withSponsorship,
-  }
+  withSponsorship,
+  { leafIndex: leafIndexes },
 );
 
 const { success } = await sessionWait();
