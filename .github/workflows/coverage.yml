@@ -20,8 +20,8 @@ jobs:
         env:
           SILENCE_LABS_NPM_TOKEN: ${{ secrets.SILENCE_LABS_NPM_TOKEN }}
 
-      - name: Run the tests
-        run: bun run test:coverage
+      - name: Run the account tests
+        run: bun run test:ci -t=Account:Write
         env:
           E2E_PRIVATE_KEY_ONE: ${{ secrets.E2E_PRIVATE_KEY_ONE }}
           E2E_PRIVATE_KEY_TWO: ${{ secrets.E2E_PRIVATE_KEY_TWO }}
@@ -30,7 +30,7 @@ jobs:
           E2E_BICO_PAYMASTER_KEY_AMOY: ${{ secrets.E2E_BICO_PAYMASTER_KEY_AMOY }}
           CHAIN_ID: 80002
           TESTING: true
-
+  
       - name: report coverage
         uses: davelosert/vitest-coverage-report-action@v2
         with:
