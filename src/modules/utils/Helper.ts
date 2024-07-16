@@ -2,13 +2,18 @@ import {
   type Address,
   type ByteArray,
   type Chain,
+  type EIP1193Provider,
   type Hex,
+  type WalletClient,
   encodeAbiParameters,
   isAddress,
   keccak256,
   parseAbiParameters
 } from "viem"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import {
+  generatePrivateKey,
+  privateKeyToAccount,
+} from "viem/accounts"
 import {
   ERROR_MESSAGES,
   type UserOperationStruct,
@@ -17,12 +22,13 @@ import {
 import type {
   ChainInfo,
   HardcodedReference,
+  IBrowserWallet,
   Session,
-  SignerData
+  SignerData,
+  TypedData,
 } from "../../index.js"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import { getDefaultStorageClient } from "../session-storage/utils"
-
 /**
  * Rule
  *
@@ -62,12 +68,12 @@ export interface Rule {
   condition: number
   /** The value to compare against */
   referenceValue:
-    | string
-    | number
-    | bigint
-    | boolean
-    | ByteArray
-    | HardcodedReference
+  | string
+  | number
+  | bigint
+  | boolean
+  | ByteArray
+  | HardcodedReference
 }
 
 /**
@@ -185,7 +191,7 @@ export const parseChain = (chainInfo: ChainInfo): Chain => {
  * When a smart account address is provided, the default session storage client is used to reconstruct the session object using **all** of the sessionIds found in the storage client
  *
  */
-export type SessionSearchParam = Session | ISessionStorage | Address
+export type SessionSearchParam = Session | ISessionStorage | Address | "DEFAULT_STORE"
 export const didProvideFullSession = (
   searchParam: SessionSearchParam
 ): boolean => !!(searchParam as Session)?.sessionIDInfo?.length
@@ -236,4 +242,53 @@ export const resumeSession = async (
     return session
   }
   throw new Error(ERROR_MESSAGES.UNKNOW_SESSION_ARGUMENTS)
+}
+
+export const hexToUint8Array = (hex: string) => {
+  if (hex.length % 2 !== 0) {
+    throw new Error("Hex string must have an even number of characters")
+  }
+  const array = new Uint8Array(hex.length / 2)
+  for (let i = 0; i < hex.length; i += 2) {
+    array[i / 2] = Number.parseInt(hex.substr(i, 2), 16)
+  }
+  return array
+}
+
+// Sign data using the secret key stored on Browser Wallet
+// It creates a popup window, presenting the human readable form of `request`
+// Throws an error if User rejected signature
+export class BrowserWallet implements IBrowserWallet {
+  provider: EIP1193Provider
+
+  constructor(provider: EIP1193Provider) {
+    this.provider = provider
+  }
+
+  async signTypedData<T>(
+    from: string,
+    request: TypedData<T>
+  ): Promise<unknown> {
+    return await this.provider.request({
+      method: "eth_signTypedData_v4",
+      // @ts-ignore
+      params: [from, JSON.stringify(request)]
+    })
+  }
+}
+
+// Sign data using the secret key stored on Browser Wallet
+// It creates a popup window, presenting the human readable form of `request`
+// Throws an error if User rejected signature
+export class NodeWallet implements IBrowserWallet {
+  walletClient: WalletClient
+
+  constructor(walletClient: WalletClient) {
+    this.walletClient = walletClient
+  }
+
+  async signTypedData<T>(_: string, request: TypedData<T>): Promise<unknown> {
+    // @ts-ignore
+    return await this.walletClient.signTypedData(request)
+  }
 }

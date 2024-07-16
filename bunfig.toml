@@ -1,0 +1,2 @@
+[install.scopes]
+silencelaboratories = { token = "$SILENCE_LABS_NPM_TOKEN", url = "https://registry.npmjs.org" }
