@@ -259,6 +259,40 @@ describe("Paymaster:Write", () => {
     )
   }, 60000)
 
+  test("should check sending txs with paymasterServiceData.smartAccountInfo set to SAFE", async () => {
+    await topUp(smartAccountAddress, BigInt(1000000000000000000))
+    const balanceOfRecipient = await checkBalance(recipient)
+
+    const { wait } = await smartAccount.sendTransaction(
+      {
+        to: recipient,
+        value: 1n
+      },
+      {
+        nonceOptions,
+        paymasterServiceData: {
+          mode: PaymasterMode.SPONSORED,
+          smartAccountInfo: {
+            name: "SAFE",
+            version: "1.4.1"
+          }
+        }
+      }
+    )
+
+    const {
+      receipt: { transactionHash },
+      success
+    } = await wait()
+
+    expect(success).toBe("true")
+
+    const newBalanceOfRecipient = await checkBalance(recipient)
+
+    expect(transactionHash).toBeTruthy()
+    expect(newBalanceOfRecipient - balanceOfRecipient).toBe(1n)
+  }, 60000)
+
   test("should withdraw all native token", async () => {
     await nonZeroBalance(smartAccountAddress)
     const balanceOfSABefore = await checkBalance(smartAccountAddress)
