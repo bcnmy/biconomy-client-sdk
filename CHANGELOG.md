@@ -1,6 +1,6 @@
 # @biconomy/account
 
-## 4.6.0
+## 4.5.3
 
 ### Minor Changes
 
