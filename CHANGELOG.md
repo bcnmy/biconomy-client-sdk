@@ -4,7 +4,7 @@
 
 ### Minor Changes
 
-- Distributed Sessions
+- Sessions Dx
 
 ## 4.5.2
 
