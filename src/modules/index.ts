@@ -15,7 +15,6 @@ export * from "./sessions/batch.js"
 export * from "./sessions/dan.js"
 export * from "./sessions/sessionSmartAccountClient.js"
 export * from "./session-storage/index.js"
-export * from "./walletprovider-sdk/types.js"
 import { DANSessionKeyManagerModule } from "./DANSessionKeyManagerModule.js"
 import {
   BatchedSessionRouterModule,
@@ -35,6 +34,3 @@ export const createDANSessionKeyManagerModule =
   DANSessionKeyManagerModule.create
 export const createERC20SessionValidationModule =
   ERC20SessionValidationModule.create
-// @ts-ignore
-export * as WalletProviderSDK from "./walletprovider-sdk/index.js"
-

@@ -1,4 +1,5 @@
 import { ProjectivePoint } from "@noble/secp256k1"
+import type { IBrowserWallet, TypedData } from "@silencelaboratories/walletprovider-sdk"
 import {
   type Address,
   type ByteArray,
@@ -29,7 +30,6 @@ import type {
 } from "../../index.js"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import { getDefaultStorageClient } from "../session-storage/utils"
-import type { IBrowserWallet, TypedData } from "../walletprovider-sdk/types.js"
 /**
  * Rule
  *

@@ -1,4 +1,5 @@
 import { getPublicKeyAsync } from "@noble/ed25519"
+import { EOAAuth, EphAuth, type IBrowserWallet, NetworkSigner, WalletProviderServiceClient } from "@silencelaboratories/walletprovider-sdk"
 import type { Chain, Hex } from "viem"
 import { generatePrivateKey } from "viem/accounts"
 import { type Session, createDANSessionKeyManagerModule } from "../"
@@ -11,7 +12,6 @@ import {
   isWalletClient
 } from "../../account"
 import { extractChainIdFromBundlerUrl } from "../../bundler"
-import { WalletProviderSDK } from "../index"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import { getDefaultStorageClient } from "../session-storage/utils"
 import {
@@ -27,7 +27,6 @@ import {
   resumeSession
 } from "../utils/Helper"
 import type { DanModuleInfo } from "../utils/Types"
-import type { IBrowserWallet, NetworkSigner } from "../walletprovider-sdk/types"
 import {
   type Policy,
   type SessionGrantedPayload,
@@ -256,17 +255,17 @@ export const generateSessionKey = async ({
   const ephSK: Uint8Array = hexToUint8Array(hexEphSKWithout0x)
   const ephPK: Uint8Array = await getPublicKeyAsync(ephSK);
 
-  const wpClient = new WalletProviderSDK.WalletProviderServiceClient({
+  const wpClient = new WalletProviderServiceClient({
     walletProviderId: "WalletProvider",
     walletProviderUrl: DAN_BACKEND_URL
   })
 
-  const eoaAuth = new WalletProviderSDK.EOAAuth(eoaAddress, wallet, ephPK, duration);
+  const eoaAuth = new EOAAuth(eoaAddress, wallet, ephPK, duration);
 
   const partiesNumber = hardcodedValues?.partiesNumber ?? 20
   const threshold = hardcodedValues?.threshold ?? 11
 
-  const sdk = new WalletProviderSDK.NetworkSigner(wpClient, threshold, partiesNumber, eoaAuth)
+  const sdk = new NetworkSigner(wpClient, threshold, partiesNumber, eoaAuth)
 
   // @ts-ignore
   const resp = await sdk.authenticateAndCreateKey(ephPK)
@@ -377,16 +376,16 @@ export const signMessage = async (message: string, danParams: DanModuleInfo): Pr
     throw new Error("Missing params from danModuleInfo")
   }
 
-  const wpClient = new WalletProviderSDK.WalletProviderServiceClient({
+  const wpClient = new WalletProviderServiceClient({
     walletProviderId: "WalletProvider",
     walletProviderUrl: DAN_BACKEND_URL
   })
 
   const ephSK = hexToUint8Array(hexEphSKWithout0x)
 
-  const authModule = new WalletProviderSDK.EphAuth(eoaAddress, ephSK)
+  const authModule = new EphAuth(eoaAddress, ephSK)
 
-  const sdk = new WalletProviderSDK.NetworkSigner(
+  const sdk = new NetworkSigner(
     wpClient,
     threshold,
     partiesNumber,
