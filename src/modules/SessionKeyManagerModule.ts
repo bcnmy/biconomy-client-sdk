@@ -1,4 +1,4 @@
-import { MerkleTree } from "merkletreejs"
+import MerkleTree from "merkletreejs"
 import {
   type Hex,
   concat,
