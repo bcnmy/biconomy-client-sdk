@@ -30,7 +30,7 @@ The Biconomy SDK is your all-in-one toolkit for building decentralized applicati
 1. **Add the package and install dependencies:**
 
 ```bash
-bun add @biconomy/account viem
+bun add @biconomy-devx/account viem
 ```
 
 2. **Install dependencies:**
@@ -40,7 +40,7 @@ bun i
 ```
 
 ```typescript
-import { createSmartAccountClient } from "@biconomy/account";
+import { createSmartAccountClient } from "@biconomy-devx/account";
 
 const smartAccount = await createSmartAccountClient({
   signer: viemWalletOrEthersSigner,

@@ -64,7 +64,7 @@ type StringOrStrings = string | string[]
  *
  * @example
  *
- * import { getCustomChain, createSmartAccountClient } from "@biconomy/account"
+ * import { getCustomChain, createSmartAccountClient } from "@biconomy-devx/account"
  *
  * const customChain = getCustomChain(
  *   "My Custom Chain",
