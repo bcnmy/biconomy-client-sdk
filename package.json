@@ -103,12 +103,12 @@
     "tsc-alias": "^1.8.8",
     "tslib": "^2.6.2",
     "typedoc": "^0.25.9",
-    "vitest": "^1.3.1"
+    "vitest": "^1.3.1",
+    "@silencelaboratories/walletprovider-sdk": "^0.0.9"
   },
   "peerDependencies": {
     "typescript": "^5",
-    "viem": "^2",
-    "@silencelaboratories/walletprovider-sdk": "^0.0.9"
+    "viem": "^2"
   },
   "commitlint": {
     "extends": [

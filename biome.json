@@ -14,8 +14,7 @@
       "_types",
       "bun.lockb",
       "docs",
-      "dist",
-      "walletprovider-sdk"
+      "dist"
     ]
   },
   "organizeImports": {
