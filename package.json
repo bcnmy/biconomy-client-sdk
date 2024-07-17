@@ -8,7 +8,7 @@
   "sideEffects": false,
   "name": "@biconomy-devx/account",
   "author": "Biconomy",
-  "version": "4.6.11",
+  "version": "4.6.15",
   "description": "SDK for Biconomy integration with support for account abstraction, smart accounts, ERC-4337.",
   "keywords": [
     "erc-7579",
@@ -103,11 +103,10 @@
     "tsc-alias": "^1.8.8",
     "tslib": "^2.6.2",
     "typedoc": "^0.25.9",
-    "vitest": "^1.3.1",
-    "@silencelaboratories/walletprovider-sdk": "^0.0.9"
+    "vitest": "^1.3.1"
   },
   "peerDependencies": {
-    "typescript": "^5",
+    "typescript": "^5.5.3",
     "viem": "^2"
   },
   "commitlint": {
@@ -122,6 +121,7 @@
   "dependencies": {
     "@noble/ed25519": "^2.1.0",
     "@noble/secp256k1": "^2.1.0",
-    "merkletreejs": "^0.4.0"
+    "merkletreejs": "^0.4.0",
+    "@silencelaboratories/walletprovider-sdk": "^0.0.9"
   }
 }
