@@ -1,8 +1,11 @@
 import { JsonRpcProvider } from "@ethersproject/providers"
 import { Wallet } from "@ethersproject/wallet"
+import _map from "lodash/map"
 import {
   http,
+  type Chain,
   type Hex,
+  PublicClient,
   createPublicClient,
   createWalletClient,
   encodeAbiParameters,
@@ -13,7 +16,7 @@ import {
   parseAbiParameters
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { baseSepolia, bsc, mainnet } from "viem/chains"
+import { baseSepolia, bsc, mainnet, polygonAmoy } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
@@ -111,9 +114,30 @@ describe("Account:Read", () => {
   )
 
   test.concurrent(
-    "should check that deployed factory byteCode is consistent",
+    "should check byteCodes are consistent across chains",
     async () => {
-      const fire = getCustomChain(
+      const DEFAULT_CHAIN = mainnet
+      const CONTRACTS: Record<string, Hex> = {
+        "Smart Account Implementation V2":
+          "0x0000002512019Dafb59528B82CB92D3c5D2423aC",
+        "Smart Account Factory V2":
+          "0x000000a56Aaca3e9a4C479ea6b6CD0DbcB6634F5",
+        "ECDSA Ownership Module": "0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e",
+        "Multichain Validation Module":
+          "0x000000824dc138db84FD9109fc154bdad332Aa8E",
+        "Batched Session Router Module":
+          "0x00000D09967410f8C76752A104c9848b57ebba55",
+        // "ABI Session Validation Module": "0x000006bC2eCdAe38113929293d241Cf252D91861",
+        "Session Key Manager V1": "0x000002FbFfedd9B33F4E7156F2DE8D48945E7489"
+        // "Verifying Paymaster V1": "0x000031DD6D9D3A133E663660b959162870D755D4",
+        // "Verifying Paymaster V1.1.0": "0x00000f79b7faf42eebadba19acc07cd08af44789",
+        // "Token Paymaster": "0x00000f7365cA6C59A2C93719ad53d567ed49c14C"
+      }
+
+      const contractNames = Object.keys(CONTRACTS)
+      const contractAddresses = Object.values(CONTRACTS)
+
+      const fireChain = getCustomChain(
         "5ireChain Testnet",
         997,
         "https://rpc.ga.5ire.network",
@@ -127,44 +151,135 @@ describe("Account:Read", () => {
         "https://combotrace-testnet.nodereal.io"
       )
 
-      const chainsToTest = [chain, baseSepolia /*, fire, combo*/]
-      const publicClients = chainsToTest.map((chain) =>
+      // Comparing polygon with itself to ensure the setup is correct
+      const COMPARISON_CHAINS = [
+        baseSepolia /*polygonAmoy, mainnet, baseSepolia, fireChain, comboChain*/
+      ]
+
+      const defaultPublicClient = createPublicClient({
+        chain: DEFAULT_CHAIN,
+        transport: http()
+      })
+
+      const comparisonPublicClients = COMPARISON_CHAINS.map((chain) =>
         createPublicClient({
           chain,
           transport: http()
         })
       )
 
-      const byteCodes = await Promise.all(
-        publicClients.map((publicClient) =>
-          publicClient.getCode({
-            address: DEFAULT_BICONOMY_FACTORY_ADDRESS
+      const sanitiseByteCodes = async (publicClient, chain: Chain) => {
+        const byteCodes = await Promise.all(
+          contractAddresses.map((address) =>
+            publicClient.getBytecode({ address })
+          )
+        )
+        const firstIncorrectByteCode = byteCodes.findIndex(
+          (byteCode) => !byteCode || byteCode?.length <= 2
+        )
+        if (firstIncorrectByteCode !== -1) {
+          const contractName = contractNames[firstIncorrectByteCode]
+          const contractAddress = contractAddresses[firstIncorrectByteCode]
+          const byteCodeSubstring: string | undefined | null =
+            byteCodes[firstIncorrectByteCode]?.substring(0, 10) ?? null
+          throw new Error(
+            `${contractName} contract byteCode for ${
+              chain.name
+            } is incorrect: ${byteCodeSubstring}. Verify here: ${[
+              chain?.blockExplorers?.default.url,
+              "address",
+              contractAddress
+            ].join("/")} `
+          )
+        }
+        return byteCodes
+      }
+
+      const defaultChainByteCodes: Hex[] = await sanitiseByteCodes(
+        defaultPublicClient,
+        DEFAULT_CHAIN
+      )
+      const comparisonByteCodes: Hex[][] = await Promise.all(
+        comparisonPublicClients.map((publicClient, i) =>
+          sanitiseByteCodes(publicClient, COMPARISON_CHAINS[i])
+        )
+      )
+
+      comparisonByteCodes.map((byteCodes: Hex[], i) => {
+        const chain = COMPARISON_CHAINS[i]
+        byteCodes.filter((byteCode, j) => {
+          const matches =
+            byteCode?.toLowerCase() === defaultChainByteCodes[j].toLowerCase()
+          if (!matches) {
+            const contractName = contractNames[j]
+            const contractAddress = contractAddresses[j]
+            const byteCodeSubstring: string | undefined | null =
+              byteCode?.substring(0, 10) ?? null
+            const defaultChainByteCodeSubstring: string | undefined | null =
+              defaultChainByteCodes[j]?.substring(0, 10) ?? null
+            throw new Error(
+              `${contractName} contract byteCode (${byteCodeSubstring}) for ${
+                chain.name
+              } does not match ${
+                DEFAULT_CHAIN.name
+              }: (${defaultChainByteCodeSubstring}).\n\n${`${[
+                chain?.blockExplorers?.default.url,
+                "address",
+                contractAddress
+              ].join("/")}#code`}\n${`${[
+                DEFAULT_CHAIN?.blockExplorers?.default.url,
+                "address",
+                contractAddress
+              ].join("/")}#code`}\n`
+            )
+          }
+        })
+      })
+
+      const defaultSmartAccountClient = await createSmartAccountClient({
+        signer: createWalletClient({
+          account,
+          chain: DEFAULT_CHAIN,
+          transport: http()
+        }),
+        bundlerUrl: getBundlerUrl(DEFAULT_CHAIN.id),
+        customChain: DEFAULT_CHAIN
+      })
+
+      const comparisonSmartAccountClients = await Promise.all(
+        COMPARISON_CHAINS.map((chain) =>
+          createSmartAccountClient({
+            signer: createWalletClient({
+              account,
+              chain,
+              transport: http()
+            }),
+            bundlerUrl: getBundlerUrl(chain.id),
+            customChain: chain
           })
         )
       )
 
-      const allByteCodesMatch = byteCodes.every(
-        (byteCode) => byteCode === byteCodes[0]
+      const [defaultChainNativeTokenBalance] =
+        await defaultSmartAccountClient.getBalances()
+      const smartAccountAddress =
+        await defaultSmartAccountClient.getAccountAddress()
+      const comparisonChainNativeTokenBalances = (
+        await Promise.all(
+          comparisonSmartAccountClients.map((smartAccountClient) =>
+            smartAccountClient.getBalances()
+          )
+        )
+      ).map((balances) => balances[0])
+
+      expect(smartAccountAddress).toBeTruthy()
+      expect(defaultChainNativeTokenBalance).toBeTruthy()
+      expect(comparisonSmartAccountClients).toHaveLength(
+        COMPARISON_CHAINS.length
       )
-
-      expect(allByteCodesMatch).toBeTruthy()
-
-      const comboSmartAccount = await createSmartAccountClient({
-        signer: createWalletClient({
-          account,
-          chain: comboChain,
-          transport: http()
-        }),
-        bundlerUrl: getBundlerUrl(1715),
-        customChain: comboChain
-      })
-
-      const [nativeTokenBalance] = await comboSmartAccount.getBalances()
-      const smartAccountAddress = await comboSmartAccount.getAccountAddress()
-      console.log("smartAccountAddress", {
-        smartAccountAddress,
-        nativeTokenBalance
-      })
+      expect(comparisonChainNativeTokenBalances).toHaveLength(
+        COMPARISON_CHAINS.length
+      )
     }
   )
 
@@ -219,7 +334,7 @@ describe("Account:Read", () => {
   test.concurrent(
     "should throw if PrivateKeyAccount is used as signer and rpcUrl is not provided",
     async () => {
-      const account = privateKeyToAccount(`0x${privateKey}`)
+      const account = privateKeyToAccount(`0x${privateKey} `)
 
       const createSmartAccount = createSmartAccountClient({
         signer: account,
@@ -313,7 +428,7 @@ describe("Account:Read", () => {
       )
       const ethersSigner = new Wallet(privateKey, originalEthersProvider)
 
-      const accountOne = privateKeyToAccount(`0x${privateKey}`)
+      const accountOne = privateKeyToAccount(`0x${privateKey} `)
       const walletClientWithNewRpcUrl = createWalletClient({
         account: accountOne,
         chain,
