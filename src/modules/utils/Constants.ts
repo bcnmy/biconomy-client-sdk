@@ -37,3 +37,5 @@ export const MULTICHAIN_VALIDATION_MODULE_ADDRESSES_BY_VERSION = {
 
 export const DEFAULT_ABI_SVM_MODULE: Hex =
   "0x000006bC2eCdAe38113929293d241Cf252D91861"
+
+export const DAN_BACKEND_URL = "wss://dan.staging.biconomy.io/v1"

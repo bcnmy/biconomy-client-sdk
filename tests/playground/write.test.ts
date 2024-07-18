@@ -1,5 +1,5 @@
-import { http, type Hex, createPublicClient, createWalletClient } from "viem"
-import { privateKeyToAccount } from "viem/accounts"
+import { http, type Hex, createWalletClient } from "viem"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
@@ -8,7 +8,8 @@ import {
 import { getConfig } from "../utils"
 
 describe("Playground:Write", () => {
-  const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
+  // const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
+  // const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
   const {
     chain,
     chainId,
@@ -19,16 +20,11 @@ describe("Playground:Write", () => {
   } = getConfig()
   const account = privateKeyToAccount(`0x${privateKey}`)
   const accountTwo = privateKeyToAccount(`0x${privateKeyTwo}`)
-  const sender = account.address
-  const recipient = accountTwo.address
-  const publicClient = createPublicClient({
-    chain,
-    transport: http()
-  })
+
   let [smartAccount, smartAccountTwo]: BiconomySmartAccountV2[] = []
   let [smartAccountAddress, smartAccountAddressTwo]: Hex[] = []
 
-  const [walletClient, walletClientTwo] = [
+  const [walletClient, walletClientTwo, walletClientRandom] = [
     createWalletClient({
       account,
       chain,
@@ -36,6 +32,11 @@ describe("Playground:Write", () => {
     }),
     createWalletClient({
       account: accountTwo,
+      chain,
+      transport: http()
+    }),
+    createWalletClient({
+      account: privateKeyToAccount(generatePrivateKey()),
       chain,
       transport: http()
     })

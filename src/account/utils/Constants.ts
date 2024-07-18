@@ -90,7 +90,12 @@ export const ERROR_MESSAGES = {
     "Session indexes and transactions must be of the same length and correspond to each other",
   SIGNER_REQUIRED: "Signer is required for creating a smart account",
   UNKNOW_SESSION_ARGUMENTS:
-    "You have not provided the necessary information to find and use a session"
+    "You have not provided the necessary information to find and use a session",
+  CHAIN_ID_MISMATCH: "Chain ID does not match the chain ID of the session",
+  MISSING_SESSION_ID: "Session ID is missing",
+  NO_LEAF_FOUND: "No leaf found for the provided session ID",
+  NO_DAN_MODULE_INFO: "No DAN module info found for the provided session ID",
+  INVALID_BROWSER_WALLET: "Invalid BrowserWallet provided"
 }
 
 export const NATIVE_TOKEN_ALIAS: Hex =

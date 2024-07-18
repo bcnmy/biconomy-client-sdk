@@ -12,3 +12,5 @@ jobs:
 
       - name: Build
         uses: ./.github/actions/build
+        env:
+          SILENCE_LABS_NPM_TOKEN: ${{ secrets.SILENCE_LABS_NPM_TOKEN }}

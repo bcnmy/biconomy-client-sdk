@@ -1,5 +1,11 @@
 # @biconomy/account
 
+## 4.5.3
+
+### Minor Changes
+
+- Sessions Dx
+
 ## 4.5.2
 
 ### Patch Changes
