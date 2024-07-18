@@ -1,6 +1,5 @@
 import { JsonRpcProvider } from "@ethersproject/providers"
 import { Wallet } from "@ethersproject/wallet"
-import _map from "lodash/map"
 import {
   http,
   type Chain,
