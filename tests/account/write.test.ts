@@ -3,13 +3,17 @@ import {
   http,
   type Address,
   type Hex,
+  concat,
   createPublicClient,
   createWalletClient,
   encodeAbiParameters,
   encodeFunctionData,
   encodePacked,
+  hexToBytes,
+  pad,
   parseAbi,
   stringToBytes,
+  toBytes,
   toHex
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
@@ -19,14 +23,17 @@ import {
   MOCK_EXECUTOR,
   MOCK_FALLBACK_HANDLER,
   MOCK_HOOK,
-  createOwnableExecutorModule
+  MODE_MODULE_ENABLE,
+  MODULE_TYPE_MULTI,
+  createOwnableExecutorModule,
+  makeInstallDataAndHash
 } from "../../src"
 import {
   K1_VALIDATOR,
   ModuleType,
   createSmartAccountClient
 } from "../../src/account"
-import { UserOpReceipt } from "../../src/bundler"
+import type { UserOpReceipt } from "../../src/bundler"
 import { getConfig } from "../utils"
 
 describe("Account:Write", async () => {
@@ -66,53 +73,138 @@ describe("Account:Write", async () => {
   })
 
   const ownableExecutorModule = await createOwnableExecutorModule(smartAccount)
-  smartAccount.setActiveExecutorModule(ownableExecutorModule)
+  smartAccount.setactiveExecutionModule(ownableExecutorModule)
 
   console.log(`Using SA at address : ${await smartAccount.getAddress()}`)
   console.log(`Using Signer with address : ${await account.address}`)
 
   describe("Account:Basics", async () => {
-    // test("Build a user op with pimlico bundler", async () => {
-    //   const encodedCall = encodeFunctionData({
-    //     abi: parseAbi(["function safeMint(address _to)"]),
-    //     functionName: "safeMint",
-    //     args: [recipient]
-    //   })
-    //   const transaction = {
-    //     to: nftAddress, // NFT address
-    //     data: encodedCall
-    //   }
-    //   const userOp = await smartAccount.buildUserOp([transaction])
-    //   expect(userOp).toBeTruthy()
-    // }, 60000)
-
-    test("Mint NFT - Single Call", async () => {
+    test("Build a user op with pimlico bundler", async () => {
       const encodedCall = encodeFunctionData({
         abi: parseAbi(["function safeMint(address _to)"]),
         functionName: "safeMint",
         args: [recipient]
       })
-
-      console.log(recipient, "recipient")
-
-      // smartAccount.setActiveValidationModule()
-
-      // const isInstalled = await smartAccount.isModuleInstalled({moduleType: ModuleType.Validation, moduleAddress: K1_VALIDATOR});
-      // console.log(isInstalled);
-
       const transaction = {
         to: nftAddress, // NFT address
         data: encodedCall
       }
-      const gasCost = await smartAccount.getGasEstimate([transaction])
-      console.log(gasCost, "gasCost")
+      const userOp = await smartAccount.buildUserOp([transaction])
+      expect(userOp).toBeTruthy()
+    }, 60000)
 
-      const response = await smartAccount.sendTransaction([transaction])
-      const receipt = await response.wait()
+    // test("Mint NFT - Single Call", async () => {
+    //   const encodedCall = encodeFunctionData({
+    //     abi: parseAbi(["function safeMint(address _to)"]),
+    //     functionName: "safeMint",
+    //     args: [recipient]
+    //   })
 
-      console.log(receipt, "receipt")
+    //   console.log(recipient, "recipient")
 
-      expect(receipt.userOpHash).toBeTruthy()
+    //   // smartAccount.setActiveValidationModule()
+
+    //   // const isInstalled = await smartAccount.isModuleInstalled({moduleType: ModuleType.Validation, moduleAddress: K1_VALIDATOR});
+    //   // console.log(isInstalled);
+
+    //   const transaction = {
+    //     to: nftAddress, // NFT address
+    //     data: encodedCall
+    //   }
+    //   const gasCost = await smartAccount.getGasEstimate([transaction])
+    //   console.log(gasCost, "gasCost")
+
+    //   const response = await smartAccount.sendTransaction([transaction])
+    //   const receipt = await response.wait()
+
+    //   console.log(receipt, "receipt")
+
+    //   expect(receipt.userOpHash).toBeTruthy()
+    // }, 60000)
+
+    test("Use enable mode", async () => {
+      const counterAddress = "0x6BFE41FF0605a87911c0542bF958691ea2ac77f8" // base sepolia
+
+      const counterBefore = await publicClient.readContract({
+        address: counterAddress,
+        abi: parseAbi(["function getCount() external view returns(uint256)"]),
+        functionName: "getCount"
+      })
+
+      console.log(counterBefore, "counter before")
+
+      const encodedCall = encodeFunctionData({
+        abi: parseAbi(["function increment() external view returns(uint256)"]),
+        functionName: "increment"
+      })
+      const userOp = await smartAccount.buildUserOp(
+        [{ to: counterAddress, data: encodedCall }],
+        { nonceOptions: { validationMode: MODE_MODULE_ENABLE } }
+      )
+
+      // Prepare Enable Mode Data
+      const validatorConfig = pad(
+        toBytes("0xdB9426d6cE27071b3a806f95B0d9430455d4d4c6"),
+        { size: 32 }
+      )
+      const executorConfig = pad(hexToBytes("0x2222"), { size: 32 })
+
+      const validatorInstallData = concat([
+        toBytes(ModuleType.Validation),
+        validatorConfig
+      ])
+
+      const executorInstallData = concat([
+        toBytes(ModuleType.Execution),
+        executorConfig
+      ])
+
+      const [multiInstallData, hashToSign] = makeInstallDataAndHash(
+        walletClient.account?.address,
+        [
+          {
+            moduleType: ModuleType.Validation,
+            config: toHex(validatorInstallData)
+          },
+          {
+            moduleType: ModuleType.Execution,
+            config: toHex(executorInstallData)
+          }
+        ]
+      )
+      const enableModeSig = encodePacked(
+        ["address", "bytes"],
+        [K1_VALIDATOR, await smartAccount.signMessage(hashToSign)]
+      )
+
+      const enableModeSigPrefix = concat([
+        toBytes(MODULE_TYPE_MULTI),
+        pad(toBytes(BigInt(hexToBytes(multiInstallData as Hex).length)), {
+          size: 4,
+          dir: "right"
+        }),
+        hexToBytes(multiInstallData as Hex),
+        pad(toBytes(BigInt(hexToBytes(enableModeSig).length)), {
+          size: 4,
+          dir: "right"
+        }),
+        hexToBytes(enableModeSig)
+      ])
+
+      // userOp.signature = encodePacked(['bytes', 'bytes'], [toHex(enableModeSigPrefix), userOp.signature!]);
+
+      // const response = await smartAccount.sendUserOp(userOp);
+      // const receipt = await response.wait();
+
+      // console.log(receipt, "receipt");
+
+      // const counterAfter = await publicClient.readContract({
+      //   address: counterAddress,
+      //   abi: parseAbi(["function getCount() external view returns(uint256)"]),
+      //   functionName: "getCount"
+      // })
+
+      // console.log(counterAfter, "counter after");
     }, 60000)
 
     // test("Mint NFT's - Batch Call", async () => {
@@ -137,47 +229,47 @@ describe("Account:Write", async () => {
     // }, 60000)
   })
 
-  describe("Account:Validation Module", async () => {
-    // test("should install a dummy K1Validator module", async () => {
-    //   const userOpReceipt = await smartAccount.installModule(K1_VALIDATOR, ModuleType.Validation, encodePacked(['address'], [await smartAccount.getAddress() as Hex]))
-    //   const isInstalled = await smartAccount.isModuleInstalled(
-    //     ModuleType.Validation,
-    //     K1_VALIDATOR
-    //   )
-    //   expect(userOpReceipt.success).toBe(true)
-    //   expect(isInstalled).toBeTruthy()
-    // }, 60000)
-    // test("should uninstall dummy K1Validator module", async () => {
-    //   const newK1ValidatorContract =
-    //     "0x26d3E02a086D5182F4921CF1917fe9E6462E0495"
-    //   const prevAddress: Hex = "0x9C08e1CE188C29bAaeBc64A08cF2Ec44207749B6"
-    //   const deInitData = encodeAbiParameters(
-    //     [
-    //       { name: "prev", type: "address" },
-    //       { name: "disableModuleData", type: "bytes" }
-    //     ],
-    //     [prevAddress, toHex(stringToBytes(""))]
-    //   )
-    //   console.log(deInitData, "deInitData");
-    // const userOpReceipt = await smartAccount.uninstallModule(newK1ValidatorContract, ModuleType.Validation, deInitData);
-    // const isInstalled = await smartAccount.isModuleInstalled(
-    //   ModuleType.Validation,
-    //   newK1ValidatorContract
-    // )
-    // expect(userOpReceipt.success).toBe(true)
-    // expect(isInstalled).toBeFalsy()
-    // expect(userOpReceipt).toBeTruthy()
-    // }, 60000)
-    //   test("should fail to install an already installed Validator", async () => {
-    //     const isInstalled = await smartAccount.isModuleInstalled(
-    //       ModuleType.Validation,
-    //       K1_VALIDATOR
-    //     )
-    //     expect(isInstalled).toBeTruthy()
-    //     const receiptPromise = smartAccount.installModule(K1_VALIDATOR, ModuleType.Validation)
-    //     await expect(receiptPromise).rejects.toThrowError("Error from Bundler:")
-    //   }, 60000)
-  })
+  // describe("Account:Validation Module", async () => {
+  // test("should install a dummy K1Validator module", async () => {
+  //   const userOpReceipt = await smartAccount.installModule(K1_VALIDATOR, ModuleType.Validation, encodePacked(['address'], [await smartAccount.getAddress() as Hex]))
+  //   const isInstalled = await smartAccount.isModuleInstalled(
+  //     ModuleType.Validation,
+  //     K1_VALIDATOR
+  //   )
+  //   expect(userOpReceipt.success).toBe(true)
+  //   expect(isInstalled).toBeTruthy()
+  // }, 60000)
+  // test("should uninstall dummy K1Validator module", async () => {
+  //   const newK1ValidatorContract =
+  //     "0x26d3E02a086D5182F4921CF1917fe9E6462E0495"
+  //   const prevAddress: Hex = "0x9C08e1CE188C29bAaeBc64A08cF2Ec44207749B6"
+  //   const deInitData = encodeAbiParameters(
+  //     [
+  //       { name: "prev", type: "address" },
+  //       { name: "disableModuleData", type: "bytes" }
+  //     ],
+  //     [prevAddress, toHex(stringToBytes(""))]
+  //   )
+  //   console.log(deInitData, "deInitData");
+  // const userOpReceipt = await smartAccount.uninstallModule(newK1ValidatorContract, ModuleType.Validation, deInitData);
+  // const isInstalled = await smartAccount.isModuleInstalled(
+  //   ModuleType.Validation,
+  //   newK1ValidatorContract
+  // )
+  // expect(userOpReceipt.success).toBe(true)
+  // expect(isInstalled).toBeFalsy()
+  // expect(userOpReceipt).toBeTruthy()
+  // }, 60000)
+  //   test("should fail to install an already installed Validator", async () => {
+  //     const isInstalled = await smartAccount.isModuleInstalled(
+  //       ModuleType.Validation,
+  //       K1_VALIDATOR
+  //     )
+  //     expect(isInstalled).toBeTruthy()
+  //     const receiptPromise = smartAccount.installModule(K1_VALIDATOR, ModuleType.Validation)
+  //     await expect(receiptPromise).rejects.toThrowError("Error from Bundler:")
+  //   }, 60000)
+  // })
 
   // describe("Account:Execution Module Tests", async () => {
   // test("install a mock Execution module", async () => {

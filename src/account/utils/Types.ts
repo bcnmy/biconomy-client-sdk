@@ -22,6 +22,7 @@ import type {
   SmartAccountData,
   SponsorUserOperationDto
 } from "../../paymaster"
+import type { MODE_MODULE_ENABLE, MODE_VALIDATION } from "../utils/Constants"
 
 export type EntryPointAddresses = Record<string, string>
 export type BiconomyFactories = Record<string, string>
@@ -210,6 +211,8 @@ export type BuildUserOpOptions = {
 export type NonceOptions = {
   /** nonceKey: The key to use for nonce */
   nonceKey?: bigint
+  /** validationMode: Mode of the validation module */
+  validationMode?: typeof MODE_VALIDATION | typeof MODE_MODULE_ENABLE
   /** nonceOverride: The nonce to use for the transaction */
   nonceOverride?: bigint
 }
@@ -510,7 +513,9 @@ export interface ISmartContractAccount<
   /**
    * @returns the nonce of the account
    */
-  getNonce(): Promise<bigint>
+  getNonce(
+    validationMode?: typeof MODE_VALIDATION | typeof MODE_MODULE_ENABLE
+  ): Promise<bigint>
 
   /**
    * If your account handles 1271 signatures of personal_sign differently

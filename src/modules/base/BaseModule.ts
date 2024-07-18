@@ -48,6 +48,40 @@ export abstract class BaseModule {
     return uninstallModuleData
   }
 
+  /**
+   * Determines if the module matches a specific module type.
+   * @dev Should return true if the module corresponds to the type ID, false otherwise.
+   * @param moduleTypeId Numeric ID of the module type as per ERC-7579 specifications.
+   * @returns True if the module is of the specified type, false otherwise.
+   */
+  public isModuleType(moduleTypeId: bigint): Hex {
+    const isModuleTypeData = encodeFunctionData({
+      abi: parseAbi([
+        "function isModuleType(uint256 moduleTypeId) external view returns (bool)"
+      ]),
+      functionName: "isModuleType",
+      args: [moduleTypeId]
+    })
+    return isModuleTypeData
+  }
+
+  /**
+   * Checks if the module has been initialized for a specific smart account.
+   * @dev Returns true if initialized, false otherwise.
+   * @param smartAccount Address of the smart account to check for initialization status.
+   * @returns True if the module is initialized for the given smart account, false otherwise.
+   */
+  public isInitialized(smartAccount: Address): Hex {
+    const isInitializedeData = encodeFunctionData({
+      abi: parseAbi([
+        "function isInitialized(address smartAccount) external view returns (bool)"
+      ]),
+      functionName: "isInitialized",
+      args: [smartAccount]
+    })
+    return isInitializedeData
+  }
+
   public getAddress(): Hex {
     return this.moduleAddress
   }

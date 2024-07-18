@@ -11,7 +11,11 @@ import {
 } from "viem"
 import { EntryPointAbi } from "./abi/EntryPointAbi.js"
 import { Logger, type SmartAccountSigner, getChain } from "./index.js"
-import { DEFAULT_ENTRYPOINT_ADDRESS } from "./utils/Constants.js"
+import {
+  DEFAULT_ENTRYPOINT_ADDRESS,
+  type MODE_MODULE_ENABLE,
+  type MODE_VALIDATION
+} from "./utils/Constants.js"
 import type {
   BasSmartContractAccountProps,
   BatchUserOperationCallData,
@@ -198,13 +202,9 @@ export abstract class BaseSmartContractAccount<
   //#endregion optional-methods
 
   // Extra implementations
-  async getNonce(): Promise<bigint> {
-    if (!(await this.isAccountDeployed())) {
-      return 0n
-    }
-    const address = await this.getAddress()
-    return this.entryPoint.read.getNonce([address, BigInt(0)])
-  }
+  abstract getNonce(
+    validationMode?: typeof MODE_VALIDATION | typeof MODE_MODULE_ENABLE
+  ): Promise<bigint>
 
   async getInitCode(): Promise<Hex> {
     if (this.deploymentState === DeploymentState.DEPLOYED) {

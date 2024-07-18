@@ -1,4 +1,4 @@
-import { ethers, zeroPadBytes } from "ethers"
+import { ethers } from "ethers"
 import {
   http,
   type Address,
@@ -32,14 +32,15 @@ import {
 import type { IBundler } from "../bundler/interfaces/IBundler.js"
 import { EXECUTE_BATCH, EXECUTE_SINGLE } from "../bundler/utils/Constants.js"
 import type { BaseExecutionModule } from "../modules/base/BaseExecutionModule.js"
-import type { BaseModule } from "../modules/base/BaseModule.js"
 import { BaseValidationModule } from "../modules/base/BaseValidationModule.js"
 import {
   type Execution,
   type ModuleInfo,
   type SendUserOpParams,
-  createK1ValidatorModule
+  createK1ValidatorModule,
+  createValidationModule
 } from "../modules/index.js"
+import type { K1ValidatorModule } from "../modules/validators/K1ValidatorModule.js"
 import {
   type FeeQuotesOrDataDto,
   type FeeQuotesOrDataResponse,
@@ -60,6 +61,7 @@ import {
   convertSigner,
   getChain
 } from "./index.js"
+import { type MODE_MODULE_ENABLE, MODE_VALIDATION } from "./utils/Constants.js"
 import {
   ADDRESS_ZERO,
   DEFAULT_BICONOMY_FACTORY_ADDRESS,
@@ -124,7 +126,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   activeValidationModule!: BaseValidationModule
 
   installedExecutors: BaseExecutionModule[] = []
-  activeExecutorModule?: BaseExecutionModule
+  activeExecutionModule?: BaseExecutionModule
 
   private constructor(
     readonly nexusSmartAccountConfig: NexusSmartAccountConfigConstructorProps
@@ -271,6 +273,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       }
       resolvedSmartAccountSigner = signerResult.signer
     }
+    // @note Skipped this check untill we have our Bundler ready for EP V7
     // if (!chainId) {
     // Get it from bundler
     // if (nexusSmartAccountConfig.bundlerUrl) {
@@ -301,12 +304,12 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     let defaultValidationModule =
       nexusSmartAccountConfig.defaultValidationModule
 
-    // Note: If no module is provided, we will use ECDSA_OWNERSHIP as default
+    // @note If no module is provided, we will use K1_VALIDATOR as default
     if (!defaultValidationModule) {
       const newModule = await createK1ValidatorModule(
         resolvedSmartAccountSigner
       )
-      defaultValidationModule = newModule as BaseValidationModule
+      defaultValidationModule = newModule as K1ValidatorModule
     }
     const activeValidationModule =
       nexusSmartAccountConfig?.activeValidationModule ?? defaultValidationModule
@@ -327,6 +330,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       rpcUrl
     }
 
+    // @note Skipped this check untill we have our Bundler ready for EP V7
     // We check if chain ids match (skip this if chainId is passed by in the config)
     // This check is at the end of the function for cases when the signer is not passed in the config but a validation modules is and we get the signer from the validation module in this case
     // if (!nexusSmartAccountConfig.chainId) {
@@ -659,6 +663,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       params?.validationModule ?? this.defaultValidationModule
     const index = params?.index ?? this.index
 
+    // @note Skipped this check untill we have our implementation of V2 to V3 (Nexus) upgrade
     // const maxIndexForScan = params?.maxIndexForScan ?? this.maxIndexForScan
     // // Review: default behavior
     // const scanForUpgradedAccountsFromV1 =
@@ -698,6 +703,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
 
     try {
       // TODO: Improve this by computing address off-chain instead of making rpc call
+      // https://viem.sh/docs/utilities/getContractAddress#opcode-optional
       const counterFactualAddress = await this.publicClient.readContract({
         address: this.factoryAddress,
         abi: parseAbi([
@@ -738,20 +744,58 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     return true
   }
 
+  /**
+   * Sets the active validation module on the NexusSmartAccount instance
+   * @param validationModule - BaseValidationModule instance
+   *
+   * @returns Promise<BaseValidationModule> - The BaseValidationModule instance.
+   */
   setActiveValidationModule(
     validationModule: BaseValidationModule
-  ): NexusSmartAccount {
+  ): BaseValidationModule {
     if (validationModule instanceof BaseValidationModule) {
       this.activeValidationModule = validationModule
     }
-    return this
+    return this.activeValidationModule
   }
 
-  async setActiveExecutorModule(
+  /**
+   * Sets the active validation module on the NexusSmartAccount instance
+   * @param validationModuleAddress - Address of the validation module
+   * @param data - Initialization data for the validation module
+   *
+   * @returns Promise<BaseValidationModule> - The BaseValidationModule instance.
+   */
+  async setActiveValidationModuleByAddress({
+    validationModuleAddress,
+    data
+  }: {
+    validationModuleAddress: Address
+    data: Hex
+  }): Promise<BaseValidationModule> {
+    if (validationModuleAddress) {
+      this.activeValidationModule = await createValidationModule(
+        this.signer,
+        validationModuleAddress,
+        data
+      )
+      return this.activeValidationModule
+    }
+    throw new Error("Validation module address is required")
+  }
+
+  /**
+   * Sets the active executor module on the NexusSmartAccount instance
+   * @param executorModule - Address of the executor module
+   * @param data - Initialization data for the executor module
+   *
+   * @returns Promise<BaseExecutionModule> - The BaseExecutionModule instance.
+   */
+  setactiveExecutionModule(
     executorModule: BaseExecutionModule
-  ): Promise<BaseModule> {
-    this.activeExecutorModule = executorModule
-    return executorModule
+  ): BaseExecutionModule {
+    this.activeExecutionModule = executorModule
+    return this.activeExecutionModule
   }
 
   setDefaultValidationModule(
@@ -1292,7 +1336,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
 
     const { callGasLimit, verificationGasLimit, preVerificationGas } =
       await this.bundler.estimateUserOpGas(userOp, stateOverrideSet)
-    // COMMENTED because pimlico bundler does not estimate maxFeePerGas and maxPriorityFeePerGas
+    // @note COMMENTED because pimlico bundler does not estimate maxFeePerGas and maxPriorityFeePerGas
     // else {
     //   finalUserOp.maxFeePerGas =
     //     toHex(Number(maxFeePerGas)) ?? userOp.maxFeePerGas
@@ -1308,19 +1352,14 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     return finalUserOp
   }
 
-  override async getNonce(): Promise<bigint> {
+  override async getNonce(
+    validationMode?: typeof MODE_VALIDATION | typeof MODE_MODULE_ENABLE
+  ): Promise<bigint> {
     try {
-      const address = await this.getAddress()
-      return await this.entryPoint.read.getNonce([
-        address,
-        BigInt(
-          zeroPadBytes(
-            this.activeValidationModule.getAddress() ??
-              this.defaultValidationModule.getAddress(),
-            24
-          )
-        ) // TODO: Use viem instead of ethers
-      ])
+      const vm = this.activeValidationModule.moduleAddress
+      const key = concat(["0x000000", validationMode ?? MODE_VALIDATION, vm])
+      const accountAddress = await this.getAddress()
+      return await this.entryPoint.read.getNonce([accountAddress, BigInt(key)])
     } catch (e) {
       return BigInt(0)
     }
@@ -1334,7 +1373,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       if (nonceOptions?.nonceOverride) {
         nonce = BigInt(nonceOptions?.nonceOverride)
       } else {
-        nonce = await this.getNonce()
+        nonce = await this.getNonce(nonceOptions?.validationMode)
       }
     } catch (error) {
       // Not throwing this error as nonce would be 0 if this.getNonce() throw exception, which is expected flow for undeployed account
@@ -2023,25 +2062,25 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     })
   }
 
-  async enableModule(moduleAddress: Hex): Promise<UserOpResponse> {
-    const tx: Transaction = await this.getEnableModuleData(moduleAddress)
-    const partialUserOp = await this.buildUserOp([tx])
-    return this.sendUserOp(partialUserOp)
-  }
+  // async enableModule(moduleAddress: Hex): Promise<UserOpResponse> {
+  //   const tx: Transaction = await this.getEnableModuleData(moduleAddress)
+  //   const partialUserOp = await this.buildUserOp([tx])
+  //   return this.sendUserOp(partialUserOp)
+  // }
 
-  async getEnableModuleData(moduleAddress: Hex): Promise<Transaction> {
-    const callData = encodeFunctionData({
-      abi: NexusAccountAbi,
-      functionName: "enableModule",
-      args: [moduleAddress]
-    })
-    const tx: Transaction = {
-      to: await this.getAddress(),
-      value: "0x00",
-      data: callData
-    }
-    return tx
-  }
+  // async getEnableModuleData(moduleAddress: Hex, value?: bigint): Promise<Transaction> {
+  //   const callData = encodeFunctionData({
+  //     abi: NexusAccountAbi,
+  //     functionName: "enableModule",
+  //     args: [moduleAddress]
+  //   })
+  //   const tx: Transaction = {
+  //     to: await this.getAddress(),
+  //     value: value ?? 0n,
+  //     data: callData
+  //   }
+  //   return tx
+  // }
 
   async getSetupAndEnableModuleData(
     moduleAddress: Hex,
@@ -2060,34 +2099,34 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     return tx
   }
 
-  async disableModule(
-    prevModule: Hex,
-    moduleAddress: Hex
-  ): Promise<UserOpResponse> {
-    const tx: Transaction = await this.getDisableModuleData(
-      prevModule,
-      moduleAddress
-    )
-    const partialUserOp = await this.buildUserOp([tx])
-    return this.sendUserOp(partialUserOp)
-  }
+  // async disableModule(
+  //   prevModule: Hex,
+  //   moduleAddress: Hex
+  // ): Promise<UserOpResponse> {
+  //   const tx: Transaction = await this.getDisableModuleData(
+  //     prevModule,
+  //     moduleAddress
+  //   )
+  //   const partialUserOp = await this.buildUserOp([tx])
+  //   return this.sendUserOp(partialUserOp)
+  // }
 
-  async getDisableModuleData(
-    prevModule: Hex,
-    moduleAddress: Hex
-  ): Promise<Transaction> {
-    const callData = encodeFunctionData({
-      abi: NexusAccountAbi,
-      functionName: "disableModule",
-      args: [prevModule, moduleAddress]
-    })
-    const tx: Transaction = {
-      to: await this.getAddress(),
-      value: "0x00",
-      data: callData
-    }
-    return tx
-  }
+  // async getDisableModuleData(
+  //   prevModule: Hex,
+  //   moduleAddress: Hex
+  // ): Promise<Transaction> {
+  //   const callData = encodeFunctionData({
+  //     abi: NexusAccountAbi,
+  //     functionName: "disableModule",
+  //     args: [prevModule, moduleAddress]
+  //   })
+  //   const tx: Transaction = {
+  //     to: await this.getAddress(),
+  //     value: "0x00",
+  //     data: callData
+  //   }
+  //   return tx
+  // }
 
   async isModuleInstalled({
     moduleType,
@@ -2125,7 +2164,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   //   const receipt = await response.wait();
   //   if(receipt.success) {
   //     this.installedExecutors.push(ownableExecutor);
-  //     this.activeExecutorModule = ownableExecutor;
+  //     this.activeExecutionModule = ownableExecutor;
   //   }
   //   return receipt;
   // }
@@ -2359,7 +2398,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     ownedAccountAddress?: Address
     // buildUseropDto?: BuildUserOpOptions
   ): Promise<UserOpReceipt> {
-    if (this.activeExecutorModule) {
+    if (this.activeExecutionModule) {
       if (transactions.length > 1) {
         const executions: { target: Hex; value: bigint; callData: Hex }[] =
           transactions.map((tx) => {
@@ -2369,7 +2408,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
               value: BigInt(tx.value ?? 0n)
             }
           })
-        return await this.activeExecutorModule?.executeFromExecutor(
+        return await this.activeExecutionModule?.executeFromExecutor(
           executions,
           ownedAccountAddress
         )
@@ -2379,7 +2418,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
         callData: (transactions[0].data ?? "0x") as Hex,
         value: BigInt(transactions[0].value ?? 0n)
       }
-      return await this.activeExecutorModule?.executeFromExecutor(
+      return await this.activeExecutionModule.executeFromExecutor(
         execution,
         ownedAccountAddress
       )
