@@ -16,7 +16,7 @@ import type { UserOperationStruct } from "../../account"
 import {
   MOCK_MULTI_MODULE_ADDRESS,
   MODULE_ENABLE_MODE_TYPE_HASH,
-  ModuleType,
+  type ModuleType,
   type SupportedSigner,
   convertSigner
 } from "../../account"
@@ -204,10 +204,12 @@ export function convertToFactor(percentage: number | undefined): number {
 
 export function makeInstallDataAndHash(
   accountOwner: Address,
-  modules: {moduleType: ModuleType, config: Hex}[]
+  modules: { moduleType: ModuleType; config: Hex }[]
 ): [string, string] {
-  const types = modules.map(module => BigInt(module.moduleType))
-  const initDatas = modules.map(module => toHex(concat([toBytes(module.moduleType), module.config])))
+  const types = modules.map((module) => BigInt(module.moduleType))
+  const initDatas = modules.map((module) =>
+    toHex(concat([toBytes(module.moduleType), module.config]))
+  )
 
   const multiInstallData = encodeAbiParameters(
     [{ type: "uint256[]" }, { type: "bytes[]" }],

@@ -123,7 +123,7 @@ describe("Account:Write", async () => {
     // }, 60000)
 
     test("Use enable mode", async () => {
-      const counterAddress = "0x6BFE41FF0605a87911c0542bF958691ea2ac77f8"; // base sepolia
+      const counterAddress = "0x6BFE41FF0605a87911c0542bF958691ea2ac77f8" // base sepolia
 
       const counterBefore = await publicClient.readContract({
         address: counterAddress,
@@ -131,13 +131,16 @@ describe("Account:Write", async () => {
         functionName: "getCount"
       })
 
-      console.log(counterBefore, "counter before");
+      console.log(counterBefore, "counter before")
 
       const encodedCall = encodeFunctionData({
         abi: parseAbi(["function increment() external view returns(uint256)"]),
-        functionName: "increment",
+        functionName: "increment"
       })
-      let userOp = await smartAccount.buildUserOp([{to: counterAddress, data: encodedCall}], {nonceOptions: {validationMode: MODE_MODULE_ENABLE}})
+      const userOp = await smartAccount.buildUserOp(
+        [{ to: counterAddress, data: encodedCall }],
+        { nonceOptions: { validationMode: MODE_MODULE_ENABLE } }
+      )
 
       // Prepare Enable Mode Data
       const validatorConfig = pad(
@@ -156,15 +159,35 @@ describe("Account:Write", async () => {
         executorConfig
       ])
 
-
-      const [multiInstallData, hashToSign] = makeInstallDataAndHash(walletClient.account?.address!, [{moduleType: ModuleType.Validation, config: toHex(validatorInstallData)}, {moduleType: ModuleType.Execution, config: toHex(executorInstallData)}]);
-      const enableModeSig = encodePacked(['address', 'bytes'], [K1_VALIDATOR, await smartAccount.signMessage(hashToSign)])
+      const [multiInstallData, hashToSign] = makeInstallDataAndHash(
+        walletClient.account?.address,
+        [
+          {
+            moduleType: ModuleType.Validation,
+            config: toHex(validatorInstallData)
+          },
+          {
+            moduleType: ModuleType.Execution,
+            config: toHex(executorInstallData)
+          }
+        ]
+      )
+      const enableModeSig = encodePacked(
+        ["address", "bytes"],
+        [K1_VALIDATOR, await smartAccount.signMessage(hashToSign)]
+      )
 
       const enableModeSigPrefix = concat([
         toBytes(MODULE_TYPE_MULTI),
-        pad(toBytes(BigInt(hexToBytes(multiInstallData as Hex).length)), { size: 4, dir: 'right' }),
+        pad(toBytes(BigInt(hexToBytes(multiInstallData as Hex).length)), {
+          size: 4,
+          dir: "right"
+        }),
         hexToBytes(multiInstallData as Hex),
-        pad(toBytes(BigInt(hexToBytes(enableModeSig).length)), { size: 4, dir: 'right' }),
+        pad(toBytes(BigInt(hexToBytes(enableModeSig).length)), {
+          size: 4,
+          dir: "right"
+        }),
         hexToBytes(enableModeSig)
       ])
 
