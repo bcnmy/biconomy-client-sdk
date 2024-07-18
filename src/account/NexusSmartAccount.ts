@@ -1,4 +1,4 @@
-import { ethers, zeroPadBytes } from "ethers"
+import { ethers } from "ethers"
 import {
   http,
   type Address,
@@ -32,7 +32,6 @@ import {
 import type { IBundler } from "../bundler/interfaces/IBundler.js"
 import { EXECUTE_BATCH, EXECUTE_SINGLE } from "../bundler/utils/Constants.js"
 import type { BaseExecutionModule } from "../modules/base/BaseExecutionModule.js"
-import type { BaseModule } from "../modules/base/BaseModule.js"
 import { BaseValidationModule } from "../modules/base/BaseValidationModule.js"
 import {
   type Execution,
@@ -41,6 +40,7 @@ import {
   createK1ValidatorModule,
   createValidationModule
 } from "../modules/index.js"
+import type { K1ValidatorModule } from "../modules/validators/K1ValidatorModule.js"
 import {
   type FeeQuotesOrDataDto,
   type FeeQuotesOrDataResponse,
@@ -61,6 +61,7 @@ import {
   convertSigner,
   getChain
 } from "./index.js"
+import { type MODE_MODULE_ENABLE, MODE_VALIDATION } from "./utils/Constants.js"
 import {
   ADDRESS_ZERO,
   DEFAULT_BICONOMY_FACTORY_ADDRESS,
@@ -92,7 +93,6 @@ import {
   isValidRpcUrl,
   packUserOp
 } from "./utils/Utils.js"
-import { K1ValidatorModule } from "../modules/validators/K1ValidatorModule.js"
 
 // type UserOperationKey = keyof UserOperationStruct
 export class NexusSmartAccount extends BaseSmartContractAccount {
@@ -745,44 +745,52 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   }
 
   /**
-  * Sets the active validation module on the NexusSmartAccount instance
+   * Sets the active validation module on the NexusSmartAccount instance
    * @param validationModule - BaseValidationModule instance
    *
    * @returns Promise<BaseValidationModule> - The BaseValidationModule instance.
-  */
+   */
   setActiveValidationModule(
     validationModule: BaseValidationModule
   ): BaseValidationModule {
     if (validationModule instanceof BaseValidationModule) {
       this.activeValidationModule = validationModule
-    } 
+    }
     return this.activeValidationModule
   }
 
   /**
-  * Sets the active validation module on the NexusSmartAccount instance
+   * Sets the active validation module on the NexusSmartAccount instance
    * @param validationModuleAddress - Address of the validation module
    * @param data - Initialization data for the validation module
    *
    * @returns Promise<BaseValidationModule> - The BaseValidationModule instance.
-  */
-  async setActiveValidationModuleByAddress(
-    {validationModuleAddress, data} : {validationModuleAddress: Address, data: Hex}
-  ): Promise<BaseValidationModule> {
+   */
+  async setActiveValidationModuleByAddress({
+    validationModuleAddress,
+    data
+  }: {
+    validationModuleAddress: Address
+    data: Hex
+  }): Promise<BaseValidationModule> {
     if (validationModuleAddress) {
-      this.activeValidationModule = await createValidationModule(this.signer, validationModuleAddress, data);
+      this.activeValidationModule = await createValidationModule(
+        this.signer,
+        validationModuleAddress,
+        data
+      )
       return this.activeValidationModule
-    } 
+    }
     throw new Error("Validation module address is required")
   }
 
   /**
-    * Sets the active executor module on the NexusSmartAccount instance
-    * @param executorModule - Address of the executor module
-    * @param data - Initialization data for the executor module
-    *
-    * @returns Promise<BaseExecutionModule> - The BaseExecutionModule instance.
-  */
+   * Sets the active executor module on the NexusSmartAccount instance
+   * @param executorModule - Address of the executor module
+   * @param data - Initialization data for the executor module
+   *
+   * @returns Promise<BaseExecutionModule> - The BaseExecutionModule instance.
+   */
   setactiveExecutionModule(
     executorModule: BaseExecutionModule
   ): BaseExecutionModule {
@@ -1344,19 +1352,14 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     return finalUserOp
   }
 
-  override async getNonce(): Promise<bigint> {
+  override async getNonce(
+    validationMode?: typeof MODE_VALIDATION | typeof MODE_MODULE_ENABLE
+  ): Promise<bigint> {
     try {
-      const address = await this.getAddress()
-      return await this.entryPoint.read.getNonce([
-        address,
-        BigInt(
-          zeroPadBytes(
-            this.activeValidationModule.getAddress() ??
-              this.defaultValidationModule.getAddress(),
-            24
-          )
-        ) // TODO: Use viem instead of ethers
-      ])
+      const vm = this.activeValidationModule.moduleAddress
+      const key = concat(["0x000000", validationMode ?? MODE_VALIDATION, vm])
+      const accountAddress = await this.getAddress()
+      return await this.entryPoint.read.getNonce([accountAddress, BigInt(key)])
     } catch (e) {
       return BigInt(0)
     }
@@ -1370,7 +1373,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       if (nonceOptions?.nonceOverride) {
         nonce = BigInt(nonceOptions?.nonceOverride)
       } else {
-        nonce = await this.getNonce()
+        nonce = await this.getNonce(nonceOptions?.validationMode)
       }
     } catch (error) {
       // Not throwing this error as nonce would be 0 if this.getNonce() throw exception, which is expected flow for undeployed account
@@ -2405,10 +2408,10 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
               value: BigInt(tx.value ?? 0n)
             }
           })
-          return await this.activeExecutionModule?.executeFromExecutor(
-            executions,
-            ownedAccountAddress
-          )
+        return await this.activeExecutionModule?.executeFromExecutor(
+          executions,
+          ownedAccountAddress
+        )
       }
       const execution = {
         target: transactions[0].to as Hex,

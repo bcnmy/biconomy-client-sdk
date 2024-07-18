@@ -4,13 +4,22 @@ import {
   type Hex,
   concat,
   encodeAbiParameters,
+  hexToBytes,
   keccak256,
   pad,
   parseAbiParameters,
+  stringToBytes,
+  toBytes,
   toHex
 } from "viem"
 import type { UserOperationStruct } from "../../account"
-import { type SupportedSigner, convertSigner } from "../../account"
+import {
+  MOCK_MULTI_MODULE_ADDRESS,
+  MODULE_ENABLE_MODE_TYPE_HASH,
+  ModuleType,
+  type SupportedSigner,
+  convertSigner
+} from "../../account"
 import { extractChainIdFromBundlerUrl } from "../../bundler"
 import { extractChainIdFromPaymasterUrl } from "../../bundler"
 import type { NexusSmartAccountConfig } from "./Types.js"
@@ -191,4 +200,89 @@ export function convertToFactor(percentage: number | undefined): number {
     return factor
   }
   return 1
+}
+
+export function makeInstallDataAndHash(
+  accountOwner: Address
+): [string, string] {
+  // Prepare Enable Mode Data
+  const validatorConfig = pad(
+    toBytes("0xdB9426d6cE27071b3a806f95B0d9430455d4d4c6"),
+    { size: 32 }
+  )
+  const executorConfig = pad(hexToBytes("0x2222"), { size: 32 })
+
+  const validatorInstallData = concat([
+    toBytes(ModuleType.Validation),
+    validatorConfig
+  ])
+
+  const executorInstallData = concat([
+    toBytes(ModuleType.Execution),
+    executorConfig
+  ])
+
+  const types = [BigInt(ModuleType.Validation), BigInt(ModuleType.Execution)]
+  const initDatas = [toHex(validatorInstallData), toHex(executorInstallData)]
+
+  const multiInstallData = encodeAbiParameters(
+    [{ type: "uint256[]" }, { type: "bytes[]" }],
+    [types, initDatas]
+  )
+
+  const structHash = keccak256(
+    encodeAbiParameters(
+      [{ type: "bytes32" }, { type: "address" }, { type: "bytes32" }],
+      [
+        MODULE_ENABLE_MODE_TYPE_HASH,
+        MOCK_MULTI_MODULE_ADDRESS,
+        keccak256(multiInstallData)
+      ]
+    )
+  )
+
+  const hashToSign = _hashTypedData(
+    structHash,
+    "Nexus",
+    "1.0.0-beta",
+    accountOwner
+  )
+
+  return [multiInstallData, hashToSign]
+}
+
+export function _hashTypedData(
+  structHash: Hex,
+  name: string,
+  version: string,
+  verifyingContract: Address
+): string {
+  const DOMAIN_SEPARATOR = keccak256(
+    encodeAbiParameters(
+      [
+        { type: "bytes32" },
+        { type: "bytes32" },
+        { type: "bytes32" },
+        { type: "address" }
+      ],
+      [
+        keccak256(
+          stringToBytes(
+            "EIP712Domain(string name,string version,address verifyingContract)"
+          )
+        ),
+        keccak256(stringToBytes(name)),
+        keccak256(stringToBytes(version)),
+        verifyingContract
+      ]
+    )
+  )
+
+  return keccak256(
+    concat([
+      stringToBytes("\x19\x01"),
+      hexToBytes(DOMAIN_SEPARATOR),
+      hexToBytes(structHash)
+    ])
+  )
 }

@@ -1,4 +1,4 @@
-import type { Hex } from "viem"
+import { type Hex, keccak256, toHex } from "viem"
 import type {
   BiconomyImplementations,
   BiconomyImplementationsByVersion,
@@ -123,3 +123,13 @@ export const MODE_PAYLOAD = "0x00000000000000000000000000000000000000000000" // 
 export const GENERIC_FALLBACK_SELECTOR = "0xcb5baf0f"
 
 export const SENTINEL_ADDRESS = "0x0000000000000000000000000000000000000001"
+
+export const MODE_VALIDATION = "0x00" as Hex
+export const MODE_MODULE_ENABLE = "0x01" as Hex
+
+export const MODULE_ENABLE_MODE_TYPE_HASH = keccak256(
+  toHex("ModuleEnableMode(address module, bytes32 initDataHash)")
+)
+export const MOCK_MULTI_MODULE_ADDRESS =
+  "0x9C992f91E7Cd4697B81E137007f446E826b8378b"
+export const MODULE_TYPE_MULTI = 0
