@@ -88,11 +88,11 @@ describe("Account:Read", () => {
         })
       )
     )
-    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
-      [smartAccount, smartAccountTwo].map((account) =>
-        account.getAccountAddress()
+      ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+        [smartAccount, smartAccountTwo].map((account) =>
+          account.getAccountAddress()
+        )
       )
-    )
   })
 
   test.concurrent(
@@ -151,7 +151,6 @@ describe("Account:Read", () => {
         "https://combotrace-testnet.nodereal.io"
       )
 
-      // Comparing polygon with itself to ensure the setup is correct
       const COMPARISON_CHAINS = [
         baseSepolia /*polygonAmoy, mainnet, baseSepolia, fireChain, comboChain*/
       ]
@@ -183,8 +182,7 @@ describe("Account:Read", () => {
           const byteCodeSubstring: string | undefined | null =
             byteCodes[firstIncorrectByteCode]?.substring(0, 10) ?? null
           throw new Error(
-            `${contractName} contract byteCode for ${
-              chain.name
+            `${contractName} contract byteCode for ${chain.name
             } is incorrect: ${byteCodeSubstring}. Verify here: ${[
               chain?.blockExplorers?.default.url,
               "address",
@@ -218,10 +216,8 @@ describe("Account:Read", () => {
             const defaultChainByteCodeSubstring: string | undefined | null =
               defaultChainByteCodes[j]?.substring(0, 10) ?? null
             throw new Error(
-              `${contractName} contract byteCode (${byteCodeSubstring}) for ${
-                chain.name
-              } does not match ${
-                DEFAULT_CHAIN.name
+              `${contractName} contract byteCode (${byteCodeSubstring}) for ${chain.name
+              } does not match ${DEFAULT_CHAIN.name
               }: (${defaultChainByteCodeSubstring}).\n\n${`${[
                 chain?.blockExplorers?.default.url,
                 "address",
@@ -680,19 +676,19 @@ describe("Account:Read", () => {
   test.concurrent("should have correct fields", async () => {
     const chainId = 1
     const chain = getChain(chainId)
-    ;[
-      "blockExplorers",
-      "contracts",
-      "fees",
-      "formatters",
-      "id",
-      "name",
-      "nativeCurrency",
-      "rpcUrls",
-      "serializers"
-    ].every((field) => {
-      expect(chain).toHaveProperty(field)
-    })
+      ;[
+        "blockExplorers",
+        "contracts",
+        "fees",
+        "formatters",
+        "id",
+        "name",
+        "nativeCurrency",
+        "rpcUrls",
+        "serializers"
+      ].every((field) => {
+        expect(chain).toHaveProperty(field)
+      })
   })
 
   test.concurrent("should throw an error, chain id not found", async () => {
