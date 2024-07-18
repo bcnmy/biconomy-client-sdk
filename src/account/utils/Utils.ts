@@ -203,27 +203,11 @@ export function convertToFactor(percentage: number | undefined): number {
 }
 
 export function makeInstallDataAndHash(
-  accountOwner: Address
+  accountOwner: Address,
+  modules: {moduleType: ModuleType, config: Hex}[]
 ): [string, string] {
-  // Prepare Enable Mode Data
-  const validatorConfig = pad(
-    toBytes("0xdB9426d6cE27071b3a806f95B0d9430455d4d4c6"),
-    { size: 32 }
-  )
-  const executorConfig = pad(hexToBytes("0x2222"), { size: 32 })
-
-  const validatorInstallData = concat([
-    toBytes(ModuleType.Validation),
-    validatorConfig
-  ])
-
-  const executorInstallData = concat([
-    toBytes(ModuleType.Execution),
-    executorConfig
-  ])
-
-  const types = [BigInt(ModuleType.Validation), BigInt(ModuleType.Execution)]
-  const initDatas = [toHex(validatorInstallData), toHex(executorInstallData)]
+  const types = modules.map(module => BigInt(module.moduleType))
+  const initDatas = modules.map(module => toHex(concat([toBytes(module.moduleType), module.config])))
 
   const multiInstallData = encodeAbiParameters(
     [{ type: "uint256[]" }, { type: "bytes[]" }],
