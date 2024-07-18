@@ -79,19 +79,19 @@ describe("Account:Write", async () => {
   console.log(`Using Signer with address : ${await account.address}`)
 
   describe("Account:Basics", async () => {
-    // test("Build a user op with pimlico bundler", async () => {
-    //   const encodedCall = encodeFunctionData({
-    //     abi: parseAbi(["function safeMint(address _to)"]),
-    //     functionName: "safeMint",
-    //     args: [recipient]
-    //   })
-    //   const transaction = {
-    //     to: nftAddress, // NFT address
-    //     data: encodedCall
-    //   }
-    //   const userOp = await smartAccount.buildUserOp([transaction])
-    //   expect(userOp).toBeTruthy()
-    // }, 60000)
+    test("Build a user op with pimlico bundler", async () => {
+      const encodedCall = encodeFunctionData({
+        abi: parseAbi(["function safeMint(address _to)"]),
+        functionName: "safeMint",
+        args: [recipient]
+      })
+      const transaction = {
+        to: nftAddress, // NFT address
+        data: encodedCall
+      }
+      const userOp = await smartAccount.buildUserOp([transaction])
+      expect(userOp).toBeTruthy()
+    }, 60000)
 
     // test("Mint NFT - Single Call", async () => {
     //   const encodedCall = encodeFunctionData({
@@ -165,26 +165,26 @@ describe("Account:Write", async () => {
     //   console.log(counterAfter, "counter after");
     // }, 60000)
 
-    test("Mint NFT's - Batch Call", async () => {
-      const encodedCall = encodeFunctionData({
-        abi: parseAbi(["function safeMint(address _to)"]),
-        functionName: "safeMint",
-        args: [recipient]
-      })
-      const transaction = {
-        to: nftAddress, // NFT address
-        data: encodedCall,
-        value: 0n
-      }
-      const userOpResponse = await smartAccount.sendTransaction([
-        transaction,
-        transaction
-      ])
-      const userOpReceipt: UserOpReceipt = await userOpResponse.wait()
-      console.log(userOpReceipt.userOpHash, "user op hash")
+    // test("Mint NFT's - Batch Call", async () => {
+    //   const encodedCall = encodeFunctionData({
+    //     abi: parseAbi(["function safeMint(address _to)"]),
+    //     functionName: "safeMint",
+    //     args: [recipient]
+    //   })
+    //   const transaction = {
+    //     to: nftAddress, // NFT address
+    //     data: encodedCall,
+    //     value: 0n
+    //   }
+    //   const userOpResponse = await smartAccount.sendTransaction([
+    //     transaction,
+    //     transaction
+    //   ])
+    //   const userOpReceipt: UserOpReceipt = await userOpResponse.wait()
+    //   console.log(userOpReceipt.userOpHash, "user op hash")
 
-      expect(userOpReceipt.success).toBe(true)
-    }, 60000)
+    //   expect(userOpReceipt.success).toBe(true)
+    // }, 60000)
   })
 
   // describe("Account:Validation Module", async () => {

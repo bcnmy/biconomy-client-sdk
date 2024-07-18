@@ -175,10 +175,9 @@ describe("Account:Read", () => {
   test.concurrent(
     "enable mode",
     async () => {
-      const result = makeInstallDataAndHash([
+      const result = makeInstallDataAndHash(
         walletClient.account.address,
-        walletClientTwo.account.address
-      ])
+      )
       console.log(result, "result")
     },
     30000
