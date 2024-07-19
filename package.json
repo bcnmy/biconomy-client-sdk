@@ -8,7 +8,7 @@
   "sideEffects": false,
   "name": "@biconomy-devx/account",
   "author": "Biconomy",
-  "version": "4.6.16",
+  "version": "4.6.18",
   "description": "SDK for Biconomy integration with support for account abstraction, smart accounts, ERC-4337.",
   "keywords": [
     "erc-7579",

@@ -34,7 +34,9 @@ import {
 } from "./abi"
 
 export type PolicyLeaf = Omit<Policy, "sessionKeyAddress">
-export const DEFAULT_SESSION_DURATION = 60 * 60
+export const DEFAULT_SESSION_DURATION = 60 * 60 * 24 * 365 // 1 year
+export const QUORUM_PARTIES = 5
+export const QUORUM_THRESHOLD = 3
 
 export type CreateSessionWithDistributedKeyParams = {
   /** The user's smart account instance */
@@ -262,8 +264,8 @@ export const generateSessionKey = async ({
 
   const eoaAuth = new EOAAuth(eoaAddress, wallet, ephPK, duration);
 
-  const partiesNumber = hardcodedValues?.partiesNumber ?? 20
-  const threshold = hardcodedValues?.threshold ?? 11
+  const partiesNumber = hardcodedValues?.partiesNumber ?? QUORUM_PARTIES
+  const threshold = hardcodedValues?.threshold ?? QUORUM_THRESHOLD
 
   const sdk = new NetworkSigner(wpClient, threshold, partiesNumber, eoaAuth)
 
