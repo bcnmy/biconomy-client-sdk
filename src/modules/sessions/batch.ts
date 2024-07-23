@@ -46,7 +46,7 @@ export type CreateBatchSessionConfig = {
  *
  * ```typescript
  * import { createClient } from "viem"
- * import { createSmartAccountClient } from "@biconomy-devx/account"
+ * import { createSmartAccountClient } from "@biconomy/account"
  * import { createWalletClient, http } from "viem";
  * import { polygonAmoy } from "viem/chains";
  * import { SessionFileStorage } from "@biconomy/session-file-storage";

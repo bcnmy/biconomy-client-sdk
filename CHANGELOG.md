@@ -1,4 +1,4 @@
-# @biconomy-devx/account
+# @biconomy/account
 
 ## 4.6.0
 

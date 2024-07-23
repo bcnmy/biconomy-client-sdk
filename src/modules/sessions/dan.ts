@@ -72,7 +72,7 @@ export type CreateSessionWithDistributedKeyParams = {
  *
  * @example
  *
- * import { type PolicyLeaf, type Session, createSessionWithDistributedKey } from "@biconomy-devx/account"
+ * import { type PolicyLeaf, type Session, createSessionWithDistributedKey } from "@biconomy/account"
  *
  * const policy: PolicyLeaf[] = [{
  *   contractAddress: nftAddress,
@@ -349,7 +349,7 @@ export const getDanSessionTxParams = async (
  * @example
  * 
  * ```ts
- * import { signMessage } from "@biconomy-devx/account";
+ * import { signMessage } from "@biconomy/account";
  * const objectToSign: DanSignatureObject = {
  *   userOperation: UserOperationStruct,
  *   entryPointVersion: "v0.6.0",
