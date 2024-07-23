@@ -56,24 +56,21 @@ export type SessionEpoch = {
 };
 
 export const PolicyHelpers = {
-  Indefinitely: { interval: { validUntil: 0, validAfter: 0 } },
-  NoValueLimit: { valueLimit: 0n },
+  Indefinitely: { validUntil: 0, validAfter: 0 },
+  NoValueLimit: 0n,
 };
 const RULE_CONDITIONS = [
-  "Equal",
-  "LessThanOrEqual",
-  "LessThan",
-  "GreaterThanOrEqual",
-  "GreaterThan",
-  "NotEqual",
+  "EQUAL",
+  "LASS_THAN_OR_EQUAL",
+  "LESS_THAN",
+  "GREATER_THAN_OR_EQUAL",
+  "GREATER_THAN",
+  "NOT_EQUAL"
 ];
-
-export type RuleCondition = (typeof RULE_CONDITIONS)[number];
+type RuleCondition = "EQUAL" | "LASS_THAN_OR_EQUAL" | "LESS_THAN" | "GREATER_THAN_OR_EQUAL" | "GREATER_THAN" | "NOT_EQUAL";
 export const RuleHelpers = {
-  OffsetByIndex: (i: number) => ({ offset: i * 32 }),
-  Condition: (condition: RuleCondition) => ({
-    condition: RULE_CONDITIONS.indexOf(condition),
-  }),
+  OffsetByIndex: (i: number) => i * 32,
+  Condition: (condition: RuleCondition) => RULE_CONDITIONS.indexOf(condition),
 };
 
 export type PolicyWithOptionalSessionKey = Omit<Policy, "sessionKeyAddress"> & {

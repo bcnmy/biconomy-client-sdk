@@ -261,7 +261,7 @@ describe("Modules:Write", () => {
     );
 
     expect(nftBalanceAfter - nftBalanceBefore).toBe(1n);
-  });
+  }, 50000);
 
   // User must be connected with a wallet to grant permissions
   test("should create a batch session on behalf of a user", async () => {

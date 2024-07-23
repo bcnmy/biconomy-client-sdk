@@ -97,6 +97,7 @@
     "dotenv": "^16.4.5",
     "ethers": "^6.12.0",
     "gh-pages": "^6.1.1",
+    "node-gyp-build": "^4.8.1",
     "rimraf": "^5.0.5",
     "simple-git-hooks": "^2.9.0",
     "size-limit": "^11",
