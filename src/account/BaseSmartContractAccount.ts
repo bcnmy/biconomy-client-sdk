@@ -158,6 +158,7 @@ export abstract class BaseSmartContractAccount<
    * @param params -- Typed Data params to sign
    */
   async signTypedDataWith6492(
+    // @ts-ignore
     params: SignTypedDataParams
   ): Promise<`0x${string}`> {
     throw new Error("signTypedDataWith6492 not supported")
