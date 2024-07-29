@@ -61,7 +61,7 @@ import {
   convertSigner,
   getChain
 } from "./index.js"
-import { type MODE_MODULE_ENABLE, MODE_VALIDATION } from "./utils/Constants.js"
+import { GENERIC_FALLBACK_SELECTOR, type MODE_MODULE_ENABLE, MODE_VALIDATION } from "./utils/Constants.js"
 import {
   ADDRESS_ZERO,
   DEFAULT_BICONOMY_FACTORY_ADDRESS,
@@ -689,14 +689,14 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     //   }
     // }
 
-    const counterFactualAddressV2 = await this.getCounterFactualAddressV2({
+    const counterFactualAddressV2 = await this.getCounterFactualAddressV3({
       validationModule,
       index
     })
     return counterFactualAddressV2
   }
 
-  private async getCounterFactualAddressV2(
+  private async getCounterFactualAddressV3(
     params?: CounterFactualAddressParam
   ): Promise<Hex> {
     const index = params?.index ?? this.index
@@ -791,7 +791,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    *
    * @returns Promise<BaseExecutionModule> - The BaseExecutionModule instance.
    */
-  setactiveExecutionModule(
+  setActiveExecutionModule(
     executorModule: BaseExecutionModule
   ): BaseExecutionModule {
     this.activeExecutionModule = executorModule
@@ -2453,9 +2453,23 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     )[0] as Address[]
   }
 
+  async getInstalledModules(): Promise<Address[]> {
+    const validators = await this.getInstalledValidators();
+    const executors = await this.getInstalledExecutors();
+    const hook = await this.getActiveHook();
+    const fallbackHandler = await this.getFallbackBySelector();
+
+    return [...validators, ...executors, hook, fallbackHandler];
+  }
+
   async getActiveHook(): Promise<Address> {
     const accountContract = await this._getAccountContract()
     return (await accountContract.read.getActiveHook()) as Address
+  }
+
+  async getFallbackBySelector(selector?: Hex): Promise<Address> {
+    const accountContract = await this._getAccountContract()
+    return (await accountContract.read.getFallbackHandlerBySelector([selector ?? GENERIC_FALLBACK_SELECTOR])) as Address
   }
 
   async supportsModule(moduleType: ModuleType): Promise<boolean> {
