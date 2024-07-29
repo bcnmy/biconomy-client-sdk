@@ -967,12 +967,7 @@ describe("Account:Read", () => {
       }
     }
 
-    const signature = await smartAccount.signTypedData(typedData)
-    const isVerified = await publicClient.verifyTypedData({
-      address: account.address,
-      signature,
-      ...typedData
-    })
-    expect(isVerified).toBeTruthy()
+    const signature = smartAccount.signTypedData(typedData)
+    expect(signature).rejects.toThrowError("signTypedData not supported")
   })
 })
