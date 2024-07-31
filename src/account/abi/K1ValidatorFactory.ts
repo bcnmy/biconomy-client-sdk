@@ -20,6 +20,11 @@ export const BiconomyFactoryAbi = [
         internalType: "contract Bootstrap",
         name: "bootstrapper",
         type: "address"
+      },
+      {
+        internalType: "contract IERC7484",
+        name: "registry",
+        type: "address"
       }
     ],
     stateMutability: "nonpayable",
@@ -165,6 +170,19 @@ export const BiconomyFactoryAbi = [
     type: "function"
   },
   {
+    inputs: [],
+    name: "REGISTRY",
+    outputs: [
+      {
+        internalType: "contract IERC7484",
+        name: "",
+        type: "address"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -213,6 +231,16 @@ export const BiconomyFactoryAbi = [
         internalType: "uint256",
         name: "",
         type: "uint256"
+      },
+      {
+        internalType: "address[]",
+        name: "",
+        type: "address[]"
+      },
+      {
+        internalType: "uint8",
+        name: "",
+        type: "uint8"
       }
     ],
     name: "computeAccountAddress",
@@ -237,6 +265,16 @@ export const BiconomyFactoryAbi = [
         internalType: "uint256",
         name: "index",
         type: "uint256"
+      },
+      {
+        internalType: "address[]",
+        name: "attesters",
+        type: "address[]"
+      },
+      {
+        internalType: "uint8",
+        name: "threshold",
+        type: "uint8"
       }
     ],
     name: "createAccount",

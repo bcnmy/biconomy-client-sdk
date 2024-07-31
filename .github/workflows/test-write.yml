@@ -24,20 +24,20 @@ jobs:
         env:
           E2E_PRIVATE_KEY_ONE: ${{ secrets.E2E_PRIVATE_KEY_ONE }}
           E2E_PRIVATE_KEY_TWO: ${{ secrets.E2E_PRIVATE_KEY_TWO }}
-          BUNDLER_URL: https://bundler.biconomy.io/api/v2/80002/cJPK7B3ru.dd7f7861-190d-45ic-af80-6877f74b8f44
+          BUNDLER_URL: https://bundler.biconomy.io/api/v2/11155111/cJPK7B3ru.dd7f7861-190d-45ic-af80-6877f74b8f44
           E2E_BICO_PAYMASTER_KEY_BASE: ${{ secrets.E2E_BICO_PAYMASTER_KEY_BASE }}
           E2E_BICO_PAYMASTER_KEY_AMOY: ${{ secrets.E2E_BICO_PAYMASTER_KEY_AMOY }}
-          CHAIN_ID: 80002
+          CHAIN_ID: 11155111
 
       - name: Run the bundler tests
         run: bun run test:ci -t=Bundler:Write
         env:
           E2E_PRIVATE_KEY_ONE: ${{ secrets.E2E_PRIVATE_KEY_ONE }}
           E2E_PRIVATE_KEY_TWO: ${{ secrets.E2E_PRIVATE_KEY_TWO }}
-          BUNDLER_URL: https://bundler.biconomy.io/api/v2/80002/cJPK7B3ru.dd7f7861-190d-45ic-af80-6877f74b8f44
+          BUNDLER_URL: https://bundler.biconomy.io/api/v2/11155111/cJPK7B3ru.dd7f7861-190d-45ic-af80-6877f74b8f44
           E2E_BICO_PAYMASTER_KEY_BASE: ${{ secrets.E2E_BICO_PAYMASTER_KEY_BASE }}
           E2E_BICO_PAYMASTER_KEY_AMOY: ${{ secrets.E2E_BICO_PAYMASTER_KEY_AMOY }}
-          CHAIN_ID: 80002
+          CHAIN_ID: 11155111
           TESTING: true
 
       - name: Run the paymaster tests
@@ -45,10 +45,10 @@ jobs:
         env:
           E2E_PRIVATE_KEY_ONE: ${{ secrets.E2E_PRIVATE_KEY_ONE }}
           E2E_PRIVATE_KEY_TWO: ${{ secrets.E2E_PRIVATE_KEY_TWO }}
-          BUNDLER_URL: https://bundler.biconomy.io/api/v2/80002/cJPK7B3ru.dd7f7861-190d-45ic-af80-6877f74b8f44
+          BUNDLER_URL: https://bundler.biconomy.io/api/v2/11155111/cJPK7B3ru.dd7f7861-190d-45ic-af80-6877f74b8f44
           E2E_BICO_PAYMASTER_KEY_BASE: ${{ secrets.E2E_BICO_PAYMASTER_KEY_BASE }}
           E2E_BICO_PAYMASTER_KEY_AMOY: ${{ secrets.E2E_BICO_PAYMASTER_KEY_AMOY }}
-          CHAIN_ID: 80002
+          CHAIN_ID: 11155111
           TESTING: true
 
       - name: Run the modules tests
@@ -56,8 +56,8 @@ jobs:
         env:
           E2E_PRIVATE_KEY_ONE: ${{ secrets.E2E_PRIVATE_KEY_ONE }}
           E2E_PRIVATE_KEY_TWO: ${{ secrets.E2E_PRIVATE_KEY_TWO }}
-          BUNDLER_URL: https://bundler.biconomy.io/api/v2/80002/cJPK7B3ru.dd7f7861-190d-45ic-af80-6877f74b8f44
+          BUNDLER_URL: https://bundler.biconomy.io/api/v2/11155111/cJPK7B3ru.dd7f7861-190d-45ic-af80-6877f74b8f44
           E2E_BICO_PAYMASTER_KEY_BASE: ${{ secrets.E2E_BICO_PAYMASTER_KEY_BASE }}
           E2E_BICO_PAYMASTER_KEY_AMOY: ${{ secrets.E2E_BICO_PAYMASTER_KEY_AMOY }}
-          CHAIN_ID: 80002
+          CHAIN_ID: 11155111
           TESTING: true

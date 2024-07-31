@@ -61,7 +61,11 @@ import {
   convertSigner,
   getChain
 } from "./index.js"
-import { GENERIC_FALLBACK_SELECTOR, type MODE_MODULE_ENABLE, MODE_VALIDATION } from "./utils/Constants.js"
+import {
+  GENERIC_FALLBACK_SELECTOR,
+  type MODE_MODULE_ENABLE,
+  MODE_VALIDATION
+} from "./utils/Constants.js"
 import {
   ADDRESS_ZERO,
   DEFAULT_BICONOMY_FACTORY_ADDRESS,
@@ -469,7 +473,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    * //   decimals: 6,
    * //   address: "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a",
    * //   formattedAmount: "1000000",
-   * //   chainId: 80002
+   * //   chainId: 11155111
    * // }
    *
    * // or to get the nativeToken balance
@@ -482,7 +486,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    * //   decimals: 18,
    * //   address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
    * //   formattedAmount: "1",
-   * //   chainId: 80002
+   * //   chainId: 11155111
    * // }
    *
    */
@@ -707,10 +711,10 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       const counterFactualAddress = await this.publicClient.readContract({
         address: this.factoryAddress,
         abi: parseAbi([
-          "function computeAccountAddress(address, uint256) external view returns (address expectedAddress)"
+          "function computeAccountAddress(address, uint256, address[], uint8) external view returns (address expectedAddress)"
         ]),
         functionName: "computeAccountAddress",
-        args: [await this.signer.getAddress(), index]
+        args: [await this.signer.getAddress(), index, [], 0]
       })
 
       return counterFactualAddress
@@ -722,14 +726,17 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   async _getAccountContract(): Promise<
     GetContractReturnType<typeof NexusAccountAbi, PublicClient>
   > {
-    if (this.accountContract == null) {
-      this.accountContract = getContract({
-        address: await this.getAddress(),
-        abi: NexusAccountAbi,
-        client: this.provider as PublicClient
-      })
+    if (await this.isAccountDeployed()) {
+      if (this.accountContract == null) {
+        this.accountContract = getContract({
+          address: await this.getAddress(),
+          abi: NexusAccountAbi,
+          client: this.provider as PublicClient
+        })
+      }
+      return this.accountContract
     }
-    return this.accountContract
+    throw new Error("Account is not deployed")
   }
 
   isActiveValidationModuleDefined(): boolean {
@@ -1359,7 +1366,10 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       const vm = this.activeValidationModule.moduleAddress
       const key = concat(["0x000000", validationMode ?? MODE_VALIDATION, vm])
       const accountAddress = await this.getAddress()
-      return await this.entryPoint.read.getNonce([accountAddress, BigInt(key)])
+      return (await this.entryPoint.read.getNonce([
+        accountAddress,
+        BigInt(key)
+      ])) as bigint
     } catch (e) {
       return BigInt(0)
     }
@@ -1397,7 +1407,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    * 
    * let walletClient = createWalletClient({
         account,
-        chain: baseSepolia,
+        chain: sepolia,
         transport: http()
       });
 
@@ -1411,7 +1421,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       
       walletClient = createWalletClient({
         newOwnerAccount,
-        chain: baseSepolia,
+        chain: sepolia,
         transport: http()
       })
       
@@ -1999,10 +2009,10 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
 
     return encodeFunctionData({
       abi: parseAbi([
-        "function createAccount(address eoaOwner, uint256 index) external payable returns (address payable)"
+        "function createAccount(address eoaOwner, uint256 index, address[] calldata attesters, uint8 threshold) external payable returns (address payable)"
       ]),
       functionName: "createAccount",
-      args: [await this.signer.getAddress(), this.index]
+      args: [await this.signer.getAddress(), this.index, [], 0]
     })
   }
 
@@ -2020,10 +2030,15 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     if (signature.slice(0, 2) !== "0x") {
       signature = `0x${signature}`
     }
-    signature = encodeAbiParameters(
-      [{ type: "bytes" }, { type: "address" }],
-      [signature as Hex, this.activeValidationModule.getAddress()]
+    // @note Signature specific to Nexus Account
+    signature = encodePacked(
+      ["address", "bytes"],
+      [this.activeValidationModule.getAddress(), signature as Hex]
     )
+    // signature = encodeAbiParameters(
+    //   [{ type: "bytes" }, { type: "address" }],
+    //   [signature as Hex, this.activeValidationModule.getAddress()]
+    // )
     if (await this.isAccountDeployed()) {
       return signature as Hex
     }
@@ -2141,7 +2156,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
         data ?? "0x"
       ])) as boolean
     }
-    throw new Error("Account not yet deployed")
+    throw new Error("Account is not deployed")
   }
 
   getSmartAccountOwner(): SmartAccountSigner {
@@ -2454,12 +2469,12 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   }
 
   async getInstalledModules(): Promise<Address[]> {
-    const validators = await this.getInstalledValidators();
-    const executors = await this.getInstalledExecutors();
-    const hook = await this.getActiveHook();
-    const fallbackHandler = await this.getFallbackBySelector();
+    const validators = await this.getInstalledValidators()
+    const executors = await this.getInstalledExecutors()
+    const hook = await this.getActiveHook()
+    const fallbackHandler = await this.getFallbackBySelector()
 
-    return [...validators, ...executors, hook, fallbackHandler];
+    return [...validators, ...executors, hook, fallbackHandler]
   }
 
   async getActiveHook(): Promise<Address> {
@@ -2469,7 +2484,9 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
 
   async getFallbackBySelector(selector?: Hex): Promise<Address> {
     const accountContract = await this._getAccountContract()
-    return (await accountContract.read.getFallbackHandlerBySelector([selector ?? GENERIC_FALLBACK_SELECTOR])) as Address
+    return (await accountContract.read.getFallbackHandlerBySelector([
+      selector ?? GENERIC_FALLBACK_SELECTOR
+    ])) as Address
   }
 
   async supportsModule(moduleType: ModuleType): Promise<boolean> {

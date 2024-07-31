@@ -7,13 +7,9 @@ import {
   parseAbi
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { baseSepolia, sepolia } from "viem/chains"
+import { sepolia } from "viem/chains"
 import { Logger } from "../src/account/utils/Logger"
 import { getChain } from "../src/account/utils/getChain"
-import {
-  extractChainIdFromBundlerUrl,
-  extractChainIdFromPaymasterUrl
-} from "../src/bundler"
 
 export const getEnvVars = () => {
   const fields = [
@@ -38,7 +34,7 @@ export const getEnvVars = () => {
     bundlerUrlTwo: getBundlerUrl(84532) || "",
     privateKey: process.env.E2E_PRIVATE_KEY_ONE || "",
     privateKeyTwo: process.env.E2E_PRIVATE_KEY_TWO || "",
-    paymasterUrl: `https://paymaster.biconomy.io/api/v1/80002/${
+    paymasterUrl: `https://paymaster.biconomy.io/api/v1/11155111/${
       process.env.E2E_BICO_PAYMASTER_KEY_AMOY || ""
     }`,
     paymasterUrlTwo: `https://paymaster.biconomy.io/api/v1/84532/${
@@ -105,10 +101,8 @@ export const checkBalance = (
 ) => {
   // const { chain: chainFromConfig } = getConfig()
   // const chain = _chain || chainFromConfig
-  console.log(tokenAddress, "tokenAddress")
-
   const publicClient = createPublicClient({
-    chain: baseSepolia,
+    chain: sepolia,
     transport: http()
   })
 
@@ -118,7 +112,7 @@ export const checkBalance = (
   return publicClient.readContract({
     address: tokenAddress,
     abi: parseAbi([
-      "function balanceOf(address owner) view returns (uint balance)"
+      "function balanceOf(address owner) public view returns (uint256 balance)"
     ]),
     functionName: "balanceOf",
     args: [owner]

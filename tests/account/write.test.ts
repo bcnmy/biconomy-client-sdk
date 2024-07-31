@@ -39,7 +39,7 @@ import { getConfig } from "../utils"
 describe("Account:Write", async () => {
   const nonceOptions = { nonceKey: BigInt(Date.now() + 10) }
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
-  const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
+  const token = "0x69835C1f31ed0721A05d5711C1d669C10802a3E1"
   const {
     chain,
     chainId,
@@ -73,10 +73,7 @@ describe("Account:Write", async () => {
   })
 
   const ownableExecutorModule = await createOwnableExecutorModule(smartAccount)
-  smartAccount.setactiveExecutionModule(ownableExecutorModule)
-
-  console.log(`Using SA at address : ${await smartAccount.getAddress()}`)
-  console.log(`Using Signer with address : ${await account.address}`)
+  smartAccount.setActiveExecutionModule(ownableExecutorModule)
 
   describe("Account:Basics", async () => {
     test("Build a user op with pimlico bundler", async () => {
@@ -93,119 +90,118 @@ describe("Account:Write", async () => {
       expect(userOp).toBeTruthy()
     }, 60000)
 
-    // test("Mint NFT - Single Call", async () => {
-    //   const encodedCall = encodeFunctionData({
-    //     abi: parseAbi(["function safeMint(address _to)"]),
-    //     functionName: "safeMint",
-    //     args: [recipient]
+    test("Mint NFT - Single Call", async () => {
+      const encodedCall = encodeFunctionData({
+        abi: parseAbi(["function safeMint(address _to)"]),
+        functionName: "safeMint",
+        args: [recipient]
+      })
+
+      // smartAccount.setActiveValidationModule()
+
+      // const isInstalled = await smartAccount.isModuleInstalled({moduleType: ModuleType.Validation, moduleAddress: K1_VALIDATOR});
+      // console.log(isInstalled);
+
+      const transaction = {
+        to: nftAddress, // NFT address
+        data: encodedCall
+      }
+      const gasCost = await smartAccount.getGasEstimate([transaction])
+      console.log(gasCost, "gasCost")
+
+      const response = await smartAccount.sendTransaction([transaction])
+      console.log(response, "response")
+
+      const receipt = await response.wait()
+      console.log(receipt, "receipt")
+
+      // expect(receipt.userOpHash).toBeTruthy()
+    }, 60000)
+
+    // test("Use enable mode", async () => {
+    //   const counterAddress = "0x6BFE41FF0605a87911c0542bF958691ea2ac77f8" // base sepolia
+
+    //   const counterBefore = await publicClient.readContract({
+    //     address: counterAddress,
+    //     abi: parseAbi(["function getCount() external view returns(uint256)"]),
+    //     functionName: "getCount"
     //   })
 
-    //   console.log(recipient, "recipient")
+    //   console.log(counterBefore, "counter before")
 
-    //   // smartAccount.setActiveValidationModule()
+    //   const encodedCall = encodeFunctionData({
+    //     abi: parseAbi(["function increment() external view returns(uint256)"]),
+    //     functionName: "increment"
+    //   })
+    //   const userOp = await smartAccount.buildUserOp(
+    //     [{ to: counterAddress, data: encodedCall }],
+    //     { nonceOptions: { validationMode: MODE_MODULE_ENABLE } }
+    //   )
 
-    //   // const isInstalled = await smartAccount.isModuleInstalled({moduleType: ModuleType.Validation, moduleAddress: K1_VALIDATOR});
-    //   // console.log(isInstalled);
+    //   // Prepare Enable Mode Data
+    //   const validatorConfig = pad(
+    //     toBytes("0xdB9426d6cE27071b3a806f95B0d9430455d4d4c6"),
+    //     { size: 32 }
+    //   )
+    //   const executorConfig = pad(hexToBytes("0x2222"), { size: 32 })
 
-    //   const transaction = {
-    //     to: nftAddress, // NFT address
-    //     data: encodedCall
-    //   }
-    //   const gasCost = await smartAccount.getGasEstimate([transaction])
-    //   console.log(gasCost, "gasCost")
+    //   const validatorInstallData = concat([
+    //     toBytes(ModuleType.Validation),
+    //     validatorConfig
+    //   ])
 
-    //   const response = await smartAccount.sendTransaction([transaction])
-    //   const receipt = await response.wait()
+    //   const executorInstallData = concat([
+    //     toBytes(ModuleType.Execution),
+    //     executorConfig
+    //   ])
 
-    //   console.log(receipt, "receipt")
+    //   const [multiInstallData, hashToSign] = makeInstallDataAndHash(
+    //     walletClient.account?.address,
+    //     [
+    //       {
+    //         moduleType: ModuleType.Validation,
+    //         config: toHex(validatorInstallData)
+    //       },
+    //       {
+    //         moduleType: ModuleType.Execution,
+    //         config: toHex(executorInstallData)
+    //       }
+    //     ]
+    //   )
+    //   const enableModeSig = encodePacked(
+    //     ["address", "bytes"],
+    //     [K1_VALIDATOR, await smartAccount.signMessage(hashToSign)]
+    //   )
 
-    //   expect(receipt.userOpHash).toBeTruthy()
+    //   const enableModeSigPrefix = concat([
+    //     toBytes(MODULE_TYPE_MULTI),
+    //     pad(toBytes(BigInt(hexToBytes(multiInstallData as Hex).length)), {
+    //       size: 4,
+    //       dir: "right"
+    //     }),
+    //     hexToBytes(multiInstallData as Hex),
+    //     pad(toBytes(BigInt(hexToBytes(enableModeSig).length)), {
+    //       size: 4,
+    //       dir: "right"
+    //     }),
+    //     hexToBytes(enableModeSig)
+    //   ])
+
+    //   // userOp.signature = encodePacked(['bytes', 'bytes'], [toHex(enableModeSigPrefix), userOp.signature!]);
+
+    //   // const response = await smartAccount.sendUserOp(userOp);
+    //   // const receipt = await response.wait();
+
+    //   // console.log(receipt, "receipt");
+
+    //   // const counterAfter = await publicClient.readContract({
+    //   //   address: counterAddress,
+    //   //   abi: parseAbi(["function getCount() external view returns(uint256)"]),
+    //   //   functionName: "getCount"
+    //   // })
+
+    //   // console.log(counterAfter, "counter after");
     // }, 60000)
-
-    test("Use enable mode", async () => {
-      const counterAddress = "0x6BFE41FF0605a87911c0542bF958691ea2ac77f8" // base sepolia
-
-      const counterBefore = await publicClient.readContract({
-        address: counterAddress,
-        abi: parseAbi(["function getCount() external view returns(uint256)"]),
-        functionName: "getCount"
-      })
-
-      console.log(counterBefore, "counter before")
-
-      const encodedCall = encodeFunctionData({
-        abi: parseAbi(["function increment() external view returns(uint256)"]),
-        functionName: "increment"
-      })
-      const userOp = await smartAccount.buildUserOp(
-        [{ to: counterAddress, data: encodedCall }],
-        { nonceOptions: { validationMode: MODE_MODULE_ENABLE } }
-      )
-
-      // Prepare Enable Mode Data
-      const validatorConfig = pad(
-        toBytes("0xdB9426d6cE27071b3a806f95B0d9430455d4d4c6"),
-        { size: 32 }
-      )
-      const executorConfig = pad(hexToBytes("0x2222"), { size: 32 })
-
-      const validatorInstallData = concat([
-        toBytes(ModuleType.Validation),
-        validatorConfig
-      ])
-
-      const executorInstallData = concat([
-        toBytes(ModuleType.Execution),
-        executorConfig
-      ])
-
-      const [multiInstallData, hashToSign] = makeInstallDataAndHash(
-        walletClient.account?.address,
-        [
-          {
-            moduleType: ModuleType.Validation,
-            config: toHex(validatorInstallData)
-          },
-          {
-            moduleType: ModuleType.Execution,
-            config: toHex(executorInstallData)
-          }
-        ]
-      )
-      const enableModeSig = encodePacked(
-        ["address", "bytes"],
-        [K1_VALIDATOR, await smartAccount.signMessage(hashToSign)]
-      )
-
-      const enableModeSigPrefix = concat([
-        toBytes(MODULE_TYPE_MULTI),
-        pad(toBytes(BigInt(hexToBytes(multiInstallData as Hex).length)), {
-          size: 4,
-          dir: "right"
-        }),
-        hexToBytes(multiInstallData as Hex),
-        pad(toBytes(BigInt(hexToBytes(enableModeSig).length)), {
-          size: 4,
-          dir: "right"
-        }),
-        hexToBytes(enableModeSig)
-      ])
-
-      // userOp.signature = encodePacked(['bytes', 'bytes'], [toHex(enableModeSigPrefix), userOp.signature!]);
-
-      // const response = await smartAccount.sendUserOp(userOp);
-      // const receipt = await response.wait();
-
-      // console.log(receipt, "receipt");
-
-      // const counterAfter = await publicClient.readContract({
-      //   address: counterAddress,
-      //   abi: parseAbi(["function getCount() external view returns(uint256)"]),
-      //   functionName: "getCount"
-      // })
-
-      // console.log(counterAfter, "counter after");
-    }, 60000)
 
     // test("Mint NFT's - Batch Call", async () => {
     //   const encodedCall = encodeFunctionData({

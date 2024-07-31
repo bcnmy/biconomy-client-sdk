@@ -7,7 +7,7 @@ import {
   parseEther
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { baseSepolia } from "viem/chains"
+import { sepolia } from "viem/chains"
 import { describe, expect, test } from "vitest"
 import {
   ModuleType,
@@ -30,12 +30,12 @@ describe("Account:Modules:OwnableExecutor", async () => {
   const [walletClient, walletClientTwo] = [
     createWalletClient({
       account,
-      chain: baseSepolia,
+      chain: sepolia,
       transport: http()
     }),
     createWalletClient({
       account: accountTwo,
-      chain: baseSepolia,
+      chain: sepolia,
       transport: http()
     })
   ]

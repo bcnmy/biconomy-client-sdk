@@ -1,6 +1,6 @@
 // import { http, createWalletClient, encodeAbiParameters } from "viem"
 // import { privateKeyToAccount } from "viem/accounts"
-// import { baseSepolia } from "viem/chains"
+// import { sepolia } from "viem/chains"
 // import { describe, expect, test } from "vitest"
 // import {
 //   Module,
@@ -24,7 +24,7 @@
 //   const [walletClient] = [
 //     createWalletClient({
 //       account,
-//       chain: baseSepolia,
+//       chain: sepolia,
 //       transport: http()
 //     })
 //   ]
