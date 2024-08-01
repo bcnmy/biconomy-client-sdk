@@ -2020,28 +2020,16 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     let signature: Hex
     this.isActiveValidationModuleDefined()
     const dataHash = typeof message === "string" ? toBytes(message) : message
-    signature = (await this.activeValidationModule.signMessage(dataHash)) as Hex
 
-    const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
-    if (![27, 28].includes(potentiallyIncorrectV)) {
-      const correctV = potentiallyIncorrectV + 27
-      signature = signature.slice(0, -2) + correctV.toString(16)
-    }
-    if (signature.slice(0, 2) !== "0x") {
-      signature = `0x${signature}`
-    }
-    // @note Signature specific to Nexus Account
+    signature = await this.activeValidationModule.signMessage(dataHash)
     signature = encodePacked(
       ["address", "bytes"],
-      [this.activeValidationModule.getAddress(), signature as Hex]
+      [this.activeValidationModule.getAddress(), signature]
     )
-    // signature = encodeAbiParameters(
-    //   [{ type: "bytes" }, { type: "address" }],
-    //   [signature as Hex, this.activeValidationModule.getAddress()]
-    // )
     if (await this.isAccountDeployed()) {
-      return signature as Hex
+      return signature
     }
+    // If the account is not deployed, follow ERC 6492
     const abiEncodedMessage = encodeAbiParameters(
       [
         {

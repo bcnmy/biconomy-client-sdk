@@ -46,7 +46,7 @@ export abstract class BaseValidationModule extends BaseModule {
    * @returns {Promise<string>} A promise resolving to the signature or error message.
    * @throws {Error} If the signer type is invalid or unsupported.
    */
-  async signMessage(_message: Uint8Array | string): Promise<string> {
+  async signMessage(_message: Uint8Array | string): Promise<Hex> {
     const message = typeof _message === "string" ? _message : { raw: _message }
     let signature = await this.signer.signMessage(message)
 
@@ -55,6 +55,9 @@ export abstract class BaseValidationModule extends BaseModule {
       const correctV = potentiallyIncorrectV + 27
       signature = signature.slice(0, -2) + correctV.toString(16)
     }
-    return signature
+    if (signature.slice(0, 2) !== "0x") {
+      signature = `0x${signature}`
+    }
+    return signature as Hex
   }
 }

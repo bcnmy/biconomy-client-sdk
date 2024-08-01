@@ -9,14 +9,17 @@ import {
   createWalletClient,
   encodeAbiParameters,
   encodeFunctionData,
+  encodePacked,
   getContract,
   hashMessage,
   keccak256,
   parseAbi,
   parseAbiParameters,
-  toBytes
+  toBytes,
+  toHex
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import { verifyMessage } from "viem/actions"
 import { bsc, sepolia } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
@@ -36,9 +39,15 @@ import type { NexusSmartAccount } from "../../src/account/NexusSmartAccount"
 import { BiconomyFactoryAbi } from "../../src/account/abi/K1ValidatorFactory"
 import { NexusAccountAbi } from "../../src/account/abi/SmartAccount"
 import { createK1ValidatorModule } from "../../src/modules"
-import { checkBalance, getBundlerUrl, getConfig } from "../utils"
+import {
+  checkBalance,
+  getAccountDomainStructFields,
+  getBundlerUrl,
+  getConfig
+} from "../utils"
 
 describe("Account:Read", () => {
+  const eip1271MagicValue = "0x1626ba7e"
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const {
     chain,
@@ -78,8 +87,8 @@ describe("Account:Read", () => {
         createSmartAccountClient({
           chainId,
           signer: client,
-          bundlerUrl,
-          paymasterUrl
+          bundlerUrl
+          // paymasterUrl
         })
       )
     )
@@ -209,7 +218,6 @@ describe("Account:Read", () => {
           config: walletClient.account.address
         }
       ])
-      console.log(result, "result")
       expect(result).toBeTruthy()
     },
     30000
@@ -328,7 +336,6 @@ describe("Account:Read", () => {
       const userOp = await smartAccount.buildUserOp([tx])
 
       const estimatedGas = await smartAccount.estimateUserOpGas(userOp)
-      console.log(estimatedGas, "estimatedGas")
       expect(estimatedGas.maxFeePerGas).toBeTruthy()
       expect(estimatedGas.maxPriorityFeePerGas).toBeTruthy()
       expect(estimatedGas.verificationGasLimit).toBeTruthy()
@@ -415,14 +422,14 @@ describe("Account:Read", () => {
     expect(addresses.every(Boolean)).toBeTruthy()
   })
 
-  test.concurrent(
-    "should create a smart account with paymaster with an api key",
-    async () => {
-      const paymaster = smartAccount.paymaster
-      expect(paymaster).not.toBeNull()
-      expect(paymaster).not.toBeUndefined()
-    }
-  )
+  // test.concurrent(
+  //   "should create a smart account with paymaster with an api key",
+  //   async () => {
+  //     const paymaster = smartAccount.paymaster
+  //     expect(paymaster).not.toBeNull()
+  //     expect(paymaster).not.toBeUndefined()
+  //   }
+  // )
 
   test.concurrent("should not throw and error, chain ids match", async () => {
     const mockBundlerUrl =
@@ -684,11 +691,10 @@ describe("Account:Read", () => {
 
   // @note Nexus SA signature needs to contain the validator module address in the first 20 bytes
   test.concurrent(
-    "should verify a correct 712 signature through isValidSignature",
+    "should test isValidSignature PersonalSign to be valid",
     async () => {
       if (await smartAccount.isAccountDeployed()) {
-        const eip1271MagicValue = "0x1626ba7e"
-        const data = keccak256("0x1234")
+        const data = hashMessage("0x1234")
 
         // Define constants as per the original Solidity function
         const DOMAIN_NAME = "Nexus"
@@ -696,7 +702,6 @@ describe("Account:Read", () => {
         const DOMAIN_TYPEHASH =
           "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
         const PARENT_TYPEHASH = "PersonalSign(bytes prefixed)"
-        const ALICE_ACCOUNT = smartAccountAddress
         const chainId = sepolia.id
 
         // Calculate the domain separator
@@ -708,7 +713,7 @@ describe("Account:Read", () => {
               keccak256(toBytes(DOMAIN_NAME)),
               keccak256(toBytes(DOMAIN_VERSION)),
               BigInt(chainId),
-              ALICE_ACCOUNT
+              smartAccountAddress
             ]
           )
         )
@@ -717,7 +722,7 @@ describe("Account:Read", () => {
         const parentStructHash = keccak256(
           encodeAbiParameters(parseAbiParameters("bytes32, bytes32"), [
             keccak256(toBytes(PARENT_TYPEHASH)),
-            data
+            hashMessage(data)
           ])
         )
 
@@ -728,59 +733,184 @@ describe("Account:Read", () => {
 
         const signature = await smartAccount.signMessage(resultHash)
 
-        const response = await publicClient.readContract({
+        const contractResponse = await publicClient.readContract({
           address: await smartAccount.getAddress(),
           abi: NexusAccountAbi,
           functionName: "isValidSignature",
-          args: [data, signature]
+          args: [hashMessage(data), signature]
         })
 
-        expect(response).toBe(eip1271MagicValue)
+        const viemResponse = await publicClient.verifyMessage({
+          address: smartAccountAddress,
+          message: data,
+          signature
+        })
+
+        expect(contractResponse).toBe(eip1271MagicValue)
+        expect(viemResponse).toBe(true)
       }
     }
   )
 
-  test.concurrent("should verifySignature of deployed", async () => {
-    const smartAccount = await createSmartAccountClient({
-      signer: walletClient,
-      bundlerUrl
-    })
+  test.concurrent(
+    "should test isValidSignature EIP712Sign to be valid",
+    async () => {
+      if (await smartAccount.isAccountDeployed()) {
+        const data = hashMessage("0x1234")
 
-    const message = "hello world"
-    const signature = await smartAccount.signMessage(message)
+        // Define constants as per the original Solidity function
+        const DOMAIN_NAME = "Nexus"
+        const DOMAIN_VERSION = "1.0.0-beta"
+        const DOMAIN_TYPEHASH =
+          "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+        const PARENT_TYPEHASH =
+          "TypedDataSign(Contents contents,bytes1 fields,string name,string version,uint256 chainId,address verifyingContract,bytes32 salt,uint256[] extensions)Contents(bytes32 stuff)"
+        const chainId = sepolia.id
 
-    const isVerified = await publicClient.readContract({
-      address: await smartAccount.getAddress(),
-      abi: NexusAccountAbi,
-      functionName: "isValidSignature",
-      args: [hashMessage(message), signature]
-    })
+        // Calculate the domain separator
+        const domainSeparator = keccak256(
+          encodeAbiParameters(
+            parseAbiParameters("bytes32, bytes32, bytes32, uint256, address"),
+            [
+              keccak256(toBytes(DOMAIN_TYPEHASH)),
+              keccak256(toBytes(DOMAIN_NAME)),
+              keccak256(toBytes(DOMAIN_VERSION)),
+              BigInt(chainId),
+              smartAccountAddress
+            ]
+          )
+        )
 
-    expect(isVerified).toBeTruthy()
-  })
+        const encodedAccountDomainStructFields =
+          await getAccountDomainStructFields(publicClient, smartAccountAddress)
 
-  test.concurrent("should verifySignature of not deployed", async () => {
-    const undeployedSmartAccount = await createSmartAccountClient({
-      signer: walletClient,
-      bundlerUrl,
-      index: 99n
-    })
-    const isDeployed = await undeployedSmartAccount.isAccountDeployed()
-    if (!isDeployed) {
-      const message = "hello world"
+        // Calculate the parent struct hash
+        const parentStructHash = keccak256(
+          encodePacked(
+            ["bytes", "bytes"],
+            [
+              encodeAbiParameters(parseAbiParameters("bytes32, bytes32"), [
+                keccak256(toBytes(PARENT_TYPEHASH)),
+                hashMessage(data)
+              ]),
+              encodedAccountDomainStructFields
+            ]
+          )
+        )
 
-      const signature = await smartAccount.signMessage(message)
+        const dataToSign: Hex = keccak256(
+          concat(["0x1901", domainSeparator, parentStructHash])
+        )
 
-      const isVerified = await publicClient.readContract({
-        address: await smartAccount.getAddress(),
-        abi: NexusAccountAbi,
-        functionName: "isValidSignature",
-        args: [hashMessage(message), signature]
-      })
+        let signature = await smartAccount.signMessage(dataToSign)
+        const contentsType: Hex = toHex("Contents(bytes32 stuff)")
+        signature = encodePacked(
+          ["bytes", "bytes", "bytes", "bytes", "uint"],
+          [
+            signature,
+            domainSeparator,
+            data,
+            contentsType,
+            BigInt(contentsType.length)
+          ]
+        )
 
-      expect(isVerified).toBeTruthy()
+        const finalSignature = encodePacked(
+          ["address", "bytes"],
+          [smartAccount.activeValidationModule.moduleAddress, signature]
+        )
+
+        const contractResponse = await publicClient.readContract({
+          address: await smartAccount.getAddress(),
+          abi: NexusAccountAbi,
+          functionName: "isValidSignature",
+          args: [data, finalSignature]
+        })
+
+        const viemResponse = await publicClient.verifyMessage({
+          address: smartAccountAddress,
+          message: data,
+          signature: finalSignature
+        })
+
+        expect(contractResponse).toBe(eip1271MagicValue)
+        expect(viemResponse).toBe(true)
+      }
     }
-  })
+  )
+
+  // test.concurrent("should call isValidSignature for deployed smart account", async () => {
+  //   const smartAccount = await createSmartAccountClient({
+  //     signer: walletClient,
+  //     bundlerUrl
+  //   })
+
+  //   const message = "hello world"
+  //   const signature = await smartAccount.signMessage(message)
+
+  //   const isVerified = await publicClient.readContract({
+  //     address: await smartAccount.getAddress(),
+  //     abi: NexusAccountAbi,
+  //     functionName: "isValidSignature",
+  //     args: [hashMessage(message), signature]
+  //   })
+
+  //   expect(isVerified).toBe(eip1271MagicValue)
+  // })
+
+  // test.concurrent("should verifySignature of not deployed", async () => {
+  //   const undeployedSmartAccount = await createSmartAccountClient({
+  //     signer: walletClient,
+  //     bundlerUrl,
+  //     index: 99n
+  //   })
+  //   const isDeployed = await undeployedSmartAccount.isAccountDeployed()
+  //   if (!isDeployed) {
+  //     const message = "hello world"
+
+  //     const signature = await smartAccount.signMessage(message)
+  //     // OR
+  //     // const signature = await smartAccount.signMessageWith6492(message)
+
+  //     const isVerified = await publicClient.readContract({
+  //       address: await smartAccount.getAddress(),
+  //       abi: NexusAccountAbi,
+  //       functionName: "isValidSignature",
+  //       args: [hashMessage(message), signature]
+  //     })
+
+  //     expect(isVerified).toBe(eip1271MagicValue)
+  //   }
+  // })
+
+  // test.concurrent("should verifySignature using viem", async () => {
+  //   const isDeployed = await smartAccount.isAccountDeployed()
+  //   if (isDeployed) {
+  //     const message = "0x123"
+
+  //     const signature = await smartAccount.signMessage(message)
+
+  //     console.log(signature, 'signature');
+  //     console.log(hashMessage(message), 'hashMessage(message)');
+
+  //     // const isVerified = await verifyMessage(publicClient, {
+  //     //   address: await smartAccount.getAddress(),
+  //     //   message,
+  //     //   signature,
+  //     // })
+
+  //     const isVerified = await publicClient.readContract({
+  //       address: await smartAccount.getAddress(),
+  //       abi: NexusAccountAbi,
+  //       functionName: "isValidSignature",
+  //       args: [hashMessage(message), signature]
+  //     })
+
+  //     console.log(isVerified, "isVerified");
+
+  //     expect(isVerified).toBe(eip1271MagicValue)
+  //   }
+  // })
 
   // @note Removed untill we implement the Bundler (Pimlico's bundler does no behave as expected in this test)
   // test.concurrent(

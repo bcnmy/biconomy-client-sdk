@@ -1,13 +1,18 @@
 import {
   http,
+  type Address,
   type Chain,
   type Hex,
+  type PublicClient,
   createPublicClient,
   createWalletClient,
-  parseAbi
+  encodeAbiParameters,
+  parseAbi,
+  parseAbiParameters
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { sepolia } from "viem/chains"
+import type { EIP712DomainReturn } from "../src"
 import { Logger } from "../src/account/utils/Logger"
 import { getChain } from "../src/account/utils/getChain"
 
@@ -188,6 +193,37 @@ export const topUp = async (
     })
     // await publicClient.waitForTransactionReceipt({ hash })
   }
+}
+
+// Returns the encoded EIP-712 domain struct fields.
+export const getAccountDomainStructFields = async (
+  publicClient: PublicClient,
+  accountAddress: Address
+) => {
+  const accountDomainStructFields = (await publicClient.readContract({
+    address: accountAddress,
+    abi: parseAbi([
+      "function eip712Domain() public view returns (bytes1 fields, string memory name, string memory version, uint256 chainId, address verifyingContract, bytes32 salt, uint256[] memory extensions)"
+    ]),
+    functionName: "eip712Domain"
+  })) as EIP712DomainReturn
+
+  const [fields, name, version, chainId, verifyingContract, salt, extensions] =
+    accountDomainStructFields
+
+  const params = parseAbiParameters(
+    "bytes1, string, string, uint256, address, bytes32, uint256[]"
+  )
+
+  return encodeAbiParameters(params, [
+    fields,
+    name,
+    version,
+    chainId,
+    verifyingContract,
+    salt,
+    extensions
+  ])
 }
 
 export const getBundlerUrl = (chainId: number) =>

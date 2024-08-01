@@ -632,3 +632,13 @@ export type ModuleInfoParams = {
   moduleSelector?: Hex
   data?: Hex
 }
+
+export type EIP712DomainReturn = [
+  Hex,
+  string,
+  string,
+  bigint,
+  Address,
+  Hex,
+  bigint[]
+]
