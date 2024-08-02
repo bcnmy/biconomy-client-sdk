@@ -717,7 +717,7 @@ describe("Account:Read", () => {
             ]
           )
         )
-
+        
         // Calculate the parent struct hash
         const parentStructHash = keccak256(
           encodeAbiParameters(parseAbiParameters("bytes32, bytes32"), [
@@ -756,7 +756,7 @@ describe("Account:Read", () => {
     "should test isValidSignature EIP712Sign to be valid",
     async () => {
       if (await smartAccount.isAccountDeployed()) {
-        const data = hashMessage("0x1234")
+        const data = keccak256("0x1234")
 
         // Define constants as per the original Solidity function
         const DOMAIN_NAME = "Nexus"
@@ -764,7 +764,7 @@ describe("Account:Read", () => {
         const DOMAIN_TYPEHASH =
           "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
         const PARENT_TYPEHASH =
-          "TypedDataSign(Contents contents,bytes1 fields,string name,string version,uint256 chainId,address verifyingContract,bytes32 salt,uint256[] extensions)Contents(bytes32 stuff)"
+          "TypedDataSign(Contents contents,bytes1 fields,string name,string version,uint256 chainId,address verifyingContract,bytes32 salt,uint256[] extensions) Contents(bytes32 stuff)"
         const chainId = sepolia.id
 
         // Calculate the domain separator
@@ -781,9 +781,8 @@ describe("Account:Read", () => {
           )
         )
 
-        const encodedAccountDomainStructFields =
-          await getAccountDomainStructFields(publicClient, smartAccountAddress)
-
+        const encodedAccountDomainStructFields = await getAccountDomainStructFields(publicClient, smartAccountAddress)
+        
         // Calculate the parent struct hash
         const parentStructHash = keccak256(
           encodePacked(
@@ -799,7 +798,7 @@ describe("Account:Read", () => {
         )
 
         const dataToSign: Hex = keccak256(
-          concat(["0x1901", domainSeparator, parentStructHash])
+          concat(["0x1901" as Hex, domainSeparator, parentStructHash])
         )
 
         let signature = await smartAccount.signMessage(dataToSign)
@@ -820,11 +819,13 @@ describe("Account:Read", () => {
           [smartAccount.activeValidationModule.moduleAddress, signature]
         )
 
+        const contents = keccak256(encodePacked(["bytes", "bytes", "bytes"], ["0x1901", domainSeparator, data]));
+
         const contractResponse = await publicClient.readContract({
           address: await smartAccount.getAddress(),
           abi: NexusAccountAbi,
           functionName: "isValidSignature",
-          args: [data, finalSignature]
+          args: [contents, finalSignature]
         })
 
         const viemResponse = await publicClient.verifyMessage({
