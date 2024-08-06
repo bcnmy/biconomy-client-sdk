@@ -8,7 +8,7 @@
   "sideEffects": false,
   "name": "@biconomy/account",
   "author": "Biconomy",
-  "version": "4.5.3",
+  "version": "4.5.4",
   "description": "SDK for Biconomy integration with support for account abstraction, smart accounts, ERC-4337.",
   "keywords": [
     "erc-7579",
@@ -119,6 +119,7 @@
     "commit-msg": "npx --no -- commitlint --edit ${1}"
   },
   "dependencies": {
-    "merkletreejs": "^0.3.11"
+    "merkletreejs": "^0.4.0",
+    "@silencelaboratories/walletprovider-sdk": "^0.1.0"
   }
 }

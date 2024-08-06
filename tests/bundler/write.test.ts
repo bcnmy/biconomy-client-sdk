@@ -60,15 +60,15 @@ describe("Bundler:Write", () => {
         })
       )
     )
-    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
-      [smartAccount, smartAccountTwo].map((account) =>
-        account.getAccountAddress()
+      ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+        [smartAccount, smartAccountTwo].map((account) =>
+          account.getAccountAddress()
+        )
       )
-    )
   })
 
   test("should send some native token to a recipient", async () => {
-    await topUp(smartAccountAddress, BigInt(1000000000000000000))
+    await topUp(smartAccountAddress, 3000000000000000000n)
     const balanceOfRecipient = await checkBalance(recipient)
 
     const { wait } = await smartAccount.sendTransaction(
@@ -93,7 +93,7 @@ describe("Bundler:Write", () => {
   }, 60000)
 
   test("should send some native token to a recipient with a bundler instance", async () => {
-    await topUp(smartAccountAddress, BigInt(1000000000000000000))
+    await topUp(smartAccountAddress, 3000000000000000000n)
 
     const balanceOfRecipient = await checkBalance(recipient)
 
