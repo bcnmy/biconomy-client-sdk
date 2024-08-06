@@ -10,19 +10,19 @@ import {
   parseEther,
   parseUnits,
   slice,
-  toFunctionSelector
-} from "viem"
-import { privateKeyToAccount } from "viem/accounts"
-import { beforeAll, describe, expect, test } from "vitest"
+  toFunctionSelector,
+} from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { beforeAll, describe, expect, test } from "vitest";
 import {
   type BiconomySmartAccountV2,
   type Transaction,
   type TransferOwnershipCompatibleModule,
   type WalletClientSigner,
   addressEquals,
-  createSmartAccountClient
-} from "../../src/account"
-import { Logger, getChain } from "../../src/account"
+  createSmartAccountClient,
+} from "../../src/account";
+import { Logger, getChain } from "../../src/account";
 import {
   type CreateSessionDataParams,
   DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
@@ -33,46 +33,47 @@ import {
   createMultiChainValidationModule,
   createSessionKeyManagerModule,
   getABISVMSessionKeyData,
-  resumeSession
-} from "../../src/modules"
+  resumeSession,
+} from "../../src/modules";
 
-import { ECDSAModuleAbi } from "../../src/account/abi/ECDSAModule"
-import { SessionMemoryStorage } from "../../src/modules/session-storage/SessionMemoryStorage"
-import { createSessionKeyEOA } from "../../src/modules/session-storage/utils"
+import { ECDSAModuleAbi } from "../../src/account/abi/ECDSAModule";
+import { SessionMemoryStorage } from "../../src/modules/session-storage/SessionMemoryStorage";
+import { createSessionKeyEOA } from "../../src/modules/session-storage/utils";
 import {
   type Policy,
+  PolicyHelpers,
   createABISessionDatum,
   createSession,
-  getSingleSessionTxParams
-} from "../../src/modules/sessions/abi"
+  getSingleSessionTxParams,
+} from "../../src/modules/sessions/abi";
 import {
   createBatchSession,
-  getBatchSessionTxParams
-} from "../../src/modules/sessions/batch"
-import { createERC20SessionDatum } from "../../src/modules/sessions/erc20"
-import { createSessionSmartAccountClient } from "../../src/modules/sessions/sessionSmartAccountClient"
-import { PaymasterMode } from "../../src/paymaster"
+  getBatchSessionTxParams,
+} from "../../src/modules/sessions/batch";
+import { createERC20SessionDatum } from "../../src/modules/sessions/erc20";
+import { createSessionSmartAccountClient } from "../../src/modules/sessions/sessionSmartAccountClient";
+import { PaymasterMode } from "../../src/paymaster";
 import {
   checkBalance,
   getBundlerUrl,
   getConfig,
   nonZeroBalance,
-  topUp
-} from "../utils"
+  topUp,
+} from "../utils";
 
 describe("Modules:Write", () => {
-  const nonceOptions = { nonceKey: Date.now() + 30 }
-  const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
-  const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
-  const preferredToken = token
-  const BICONOMY_TOKEN_PAYMASTER = "0x00000f7365cA6C59A2C93719ad53d567ed49c14C"
-  const amount = parseUnits(".0001", 6)
+  const nonceOptions = { nonceKey: Date.now() + 30 };
+  const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
+  const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a";
+  const preferredToken = token;
+  const BICONOMY_TOKEN_PAYMASTER = "0x00000f7365cA6C59A2C93719ad53d567ed49c14C";
+  const amount = parseUnits(".0001", 6);
   const DUMMY_CONTRACT_ADDRESS: Hex =
-    "0xA975e69917A4c856b17Fc8Cc4C352f326Ef21C6B" // amoy address
+    "0xA975e69917A4c856b17Fc8Cc4C352f326Ef21C6B"; // amoy address
 
   const withSponsorship = {
-    paymasterServiceData: { mode: PaymasterMode.SPONSORED }
-  }
+    paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+  };
 
   const {
     chain,
@@ -81,76 +82,76 @@ describe("Modules:Write", () => {
     privateKeyTwo,
     bundlerUrl,
     paymasterUrl,
-    paymasterUrlTwo
-  } = getConfig()
-  const account = privateKeyToAccount(`0x${privateKey}`)
-  const accountTwo = privateKeyToAccount(`0x${privateKeyTwo}`)
+    paymasterUrlTwo,
+  } = getConfig();
+  const account = privateKeyToAccount(`0x${privateKey}`);
+  const accountTwo = privateKeyToAccount(`0x${privateKeyTwo}`);
   const publicClient = createPublicClient({
     chain,
-    transport: http()
-  })
+    transport: http(),
+  });
 
   let [
     smartAccount,
     smartAccountTwo,
     smartAccountThree,
-    smartAccountFour
-  ]: BiconomySmartAccountV2[] = []
+    smartAccountFour,
+  ]: BiconomySmartAccountV2[] = [];
   let [
     smartAccountAddress,
     smartAccountAddressTwo,
     smartAccountAddressThree,
-    smartAccountAddressFour
-  ]: Hex[] = []
+    smartAccountAddressFour,
+  ]: Hex[] = [];
 
   const [walletClient, walletClientTwo] = [
     createWalletClient({
       account,
       chain,
-      transport: http()
+      transport: http(),
     }),
     createWalletClient({
       account: accountTwo,
       chain,
-      transport: http()
-    })
-  ]
+      transport: http(),
+    }),
+  ];
 
-  const recipient = walletClientTwo.account.address
+  const recipient = walletClientTwo.account.address;
 
   beforeAll(async () => {
-    ;[smartAccount, smartAccountTwo] = await Promise.all(
+    [smartAccount, smartAccountTwo] = await Promise.all(
       [walletClient, walletClientTwo].map((client) =>
         createSmartAccountClient({
           chainId,
           signer: client,
           bundlerUrl,
-          paymasterUrl
-        })
-      )
-    )
-    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+          paymasterUrl,
+        }),
+      ),
+    );
+    [smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
       [smartAccount, smartAccountTwo].map((account) =>
-        account.getAccountAddress()
-      )
-    )
+        account.getAccountAddress(),
+      ),
+    );
 
     smartAccountThree = await createSmartAccountClient({
       signer: walletClient,
       bundlerUrl,
       paymasterUrl,
-      index: 7
-    })
+      index: 7,
+    });
 
     smartAccountFour = await createSmartAccountClient({
       signer: walletClient,
       bundlerUrl,
       paymasterUrl,
-      index: 6
-    })
+      index: 6,
+    });
 
-    smartAccountAddressThree = await smartAccountThree.getAccountAddress()
-    smartAccountAddressFour = await smartAccountFour.getAccountAddress()
+    smartAccountAddressThree = await smartAccountThree.getAccountAddress();
+    smartAccountAddressFour = await smartAccountFour.getAccountAddress();
 
     await Promise.all([
       topUp(smartAccountAddress, undefined, token),
@@ -160,14 +161,14 @@ describe("Modules:Write", () => {
       topUp(smartAccountAddressThree, undefined, token),
       topUp(smartAccountAddressThree, undefined),
       topUp(smartAccountAddressFour, undefined, token),
-      topUp(smartAccountAddressFour, undefined)
-    ])
-  })
+      topUp(smartAccountAddressFour, undefined),
+    ]);
+  });
 
   // User must be connected with a wallet to grant permissions
   test("should create a single session on behalf of a user", async () => {
     const { sessionKeyAddress, sessionStorageClient } =
-      await createSessionKeyEOA(smartAccountThree, chain)
+      await createSessionKeyEOA(smartAccountThree, chain);
 
     const { wait, session } = await createSession(
       smartAccountThree,
@@ -180,28 +181,28 @@ describe("Modules:Write", () => {
             {
               offset: 0,
               condition: 0,
-              referenceValue: smartAccountAddressThree
-            }
+              referenceValue: smartAccountAddressThree,
+            },
           ],
           interval: {
             validUntil: 0,
-            validAfter: 0
+            validAfter: 0,
           },
-          valueLimit: 0n
-        }
+          valueLimit: 0n,
+        },
       ],
       sessionStorageClient,
-      withSponsorship
-    )
+      withSponsorship,
+    );
 
     const {
       receipt: { transactionHash },
-      success
-    } = await wait()
+      success,
+    } = await wait();
 
-    expect(success).toBe("true")
-    Logger.log("Tx Hash: ", transactionHash)
-  }, 50000)
+    expect(success).toBe("true");
+    Logger.log("Tx Hash: ", transactionHash);
+  }, 50000);
 
   // User no longer has to be connected,
   // Only the reference to the relevant sessionID and the store from the previous step is needed to execute txs on the user's behalf
@@ -212,57 +213,57 @@ describe("Modules:Write", () => {
         accountAddress: smartAccountAddressThree, // Set the account address on behalf of the user
         bundlerUrl,
         paymasterUrl,
-        chainId
+        chainId,
       },
-      smartAccountAddressThree // Storage client, full Session or smartAccount address if using default storage
-    )
+      smartAccountAddressThree, // Storage client, full Session or smartAccount address if using default storage
+    );
 
     const sessionSmartAccountThreeAddress =
-      await smartAccountThreeWithSession.getAccountAddress()
+      await smartAccountThreeWithSession.getAccountAddress();
 
-    expect(sessionSmartAccountThreeAddress).toEqual(smartAccountAddressThree)
+    expect(sessionSmartAccountThreeAddress).toEqual(smartAccountAddressThree);
 
     const nftMintTx = {
       to: nftAddress,
       data: encodeFunctionData({
         abi: parseAbi(["function safeMint(address _to)"]),
         functionName: "safeMint",
-        args: [smartAccountAddressThree]
-      })
-    }
+        args: [smartAccountAddressThree],
+      }),
+    };
 
     const nftBalanceBefore = await checkBalance(
       smartAccountAddressThree,
-      nftAddress
-    )
+      nftAddress,
+    );
 
     const { wait } = await smartAccountThreeWithSession.sendTransaction(
       nftMintTx,
-      { ...withSponsorship, nonceOptions }
-    )
+      { ...withSponsorship, nonceOptions },
+    );
 
-    const { success } = await wait()
+    const { success } = await wait();
 
-    expect(success).toBe("true")
+    expect(success).toBe("true");
 
     const nftBalanceAfter = await checkBalance(
       smartAccountAddressThree,
-      nftAddress
-    )
+      nftAddress,
+    );
 
-    expect(nftBalanceAfter - nftBalanceBefore).toBe(1n)
-  })
+    expect(nftBalanceAfter - nftBalanceBefore).toBe(1n);
+  });
 
   // User must be connected with a wallet to grant permissions
   test("should create a batch session on behalf of a user", async () => {
     const { sessionKeyAddress, sessionStorageClient } =
-      await createSessionKeyEOA(smartAccountFour, chain)
+      await createSessionKeyEOA(smartAccountFour, chain);
 
     const leaves: CreateSessionDataParams[] = [
       createERC20SessionDatum({
         interval: {
           validUntil: 0,
-          validAfter: 0
+          validAfter: 0,
         },
         sessionKeyAddress,
         sessionKeyData: encodeAbiParameters(
@@ -270,15 +271,15 @@ describe("Modules:Write", () => {
             { type: "address" },
             { type: "address" },
             { type: "address" },
-            { type: "uint256" }
+            { type: "uint256" },
           ],
-          [sessionKeyAddress, token, recipient, amount]
-        )
+          [sessionKeyAddress, token, recipient, amount],
+        ),
       }),
       createABISessionDatum({
         interval: {
           validUntil: 0,
-          validAfter: 0
+          validAfter: 0,
         },
         sessionKeyAddress,
         contractAddress: nftAddress,
@@ -287,37 +288,37 @@ describe("Modules:Write", () => {
           {
             offset: 0,
             condition: 0,
-            referenceValue: smartAccountAddressFour
-          }
+            referenceValue: smartAccountAddressFour,
+          },
         ],
-        valueLimit: 0n
-      })
-    ]
+        valueLimit: 0n,
+      }),
+    ];
 
     const { wait, session } = await createBatchSession(
       smartAccountFour,
       sessionStorageClient,
       leaves,
-      withSponsorship
-    )
+      withSponsorship,
+    );
 
     const {
       receipt: { transactionHash },
-      success
-    } = await wait()
+      success,
+    } = await wait();
 
-    expect(success).toBe("true")
+    expect(success).toBe("true");
 
-    Logger.log("Tx Hash: ", transactionHash)
-    Logger.log("session: ", { session })
-  }, 50000)
+    Logger.log("Tx Hash: ", transactionHash);
+    Logger.log("session: ", { session });
+  }, 50000);
 
   // User no longer has to be connected,
   // Only the reference to the relevant sessionID and the store from the previous step is needed to execute txs on the user's behalf
   test("should use the batch session to mint an NFT, and pay some token for the user", async () => {
     const { sessionStorageClient } = await resumeSession(
-      smartAccountAddressFour // Use the store from the previous test, you could pass in the smartAccount address, the full session or your custom sessionStorageClient
-    )
+      smartAccountAddressFour, // Use the store from the previous test, you could pass in the smartAccount address, the full session or your custom sessionStorageClient
+    );
 
     // Assume the real signer for userSmartAccountFour is no longer available (ie. user has logged out);
     const smartAccountFourWithSession = await createSessionSmartAccountClient(
@@ -325,86 +326,86 @@ describe("Modules:Write", () => {
         accountAddress: sessionStorageClient.smartAccountAddress, // Set the account address on behalf of the user
         bundlerUrl,
         paymasterUrl,
-        chainId
+        chainId,
       },
       smartAccountAddressFour, // Storage client, full Session or smartAccount address if using default storage
-      true // if batching
-    )
+      true, // if batching
+    );
 
     const sessionSmartAccountFourAddress =
-      await smartAccountFourWithSession.getAccountAddress()
+      await smartAccountFourWithSession.getAccountAddress();
 
     expect(
-      addressEquals(sessionSmartAccountFourAddress, smartAccountAddressFour)
-    ).toBe(true)
+      addressEquals(sessionSmartAccountFourAddress, smartAccountAddressFour),
+    ).toBe(true);
 
     const transferTx: Transaction = {
       to: token,
       data: encodeFunctionData({
         abi: parseAbi(["function transfer(address _to, uint256 _value)"]),
         functionName: "transfer",
-        args: [recipient, amount]
-      })
-    }
+        args: [recipient, amount],
+      }),
+    };
     const nftMintTx: Transaction = {
       to: nftAddress,
       data: encodeFunctionData({
         abi: parseAbi(["function safeMint(address _to)"]),
         functionName: "safeMint",
-        args: [smartAccountAddressFour]
-      })
-    }
+        args: [smartAccountAddressFour],
+      }),
+    };
 
     const nftBalanceBefore = await checkBalance(
       smartAccountAddressFour,
-      nftAddress
-    )
-    const tokenBalanceBefore = await checkBalance(recipient, token)
+      nftAddress,
+    );
+    const tokenBalanceBefore = await checkBalance(recipient, token);
 
-    const txs = [transferTx, nftMintTx]
+    const txs = [transferTx, nftMintTx];
 
     const batchSessionParams = await getBatchSessionTxParams(
       txs,
       [0, 1],
       smartAccountAddressFour,
-      chain
-    )
+      chain,
+    );
 
     const { wait } = await smartAccountFourWithSession.sendTransaction(txs, {
       ...batchSessionParams,
       ...withSponsorship,
-      nonceOptions
-    })
-    const { success } = await wait()
-    expect(success).toBe("true")
+      nonceOptions,
+    });
+    const { success } = await wait();
+    expect(success).toBe("true");
 
-    const tokenBalanceAfter = await checkBalance(recipient, token)
+    const tokenBalanceAfter = await checkBalance(recipient, token);
     const nftBalanceAfter = await checkBalance(
       smartAccountAddressFour,
-      nftAddress
-    )
-    expect(tokenBalanceAfter - tokenBalanceBefore).toBe(amount)
-    expect(nftBalanceAfter - nftBalanceBefore).toBe(1n)
-  }, 50000)
+      nftAddress,
+    );
+    expect(tokenBalanceAfter - tokenBalanceBefore).toBe(amount);
+    expect(nftBalanceAfter - nftBalanceBefore).toBe(1n);
+  }, 50000);
 
   test("should use MultichainValidationModule to mint an NFT on two chains with sponsorship", async () => {
-    const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
+    const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
 
-    const chainIdBase = 84532
-    const bundlerUrlBase = getBundlerUrl(chainIdBase)
+    const chainIdBase = 84532;
+    const bundlerUrlBase = getBundlerUrl(chainIdBase);
 
     const signerBase = createWalletClient({
       account: privateKeyToAccount(`0x${privateKey}`),
       chain: getChain(84532),
-      transport: http()
-    })
+      transport: http(),
+    });
 
-    const paymasterUrlBase = paymasterUrlTwo
+    const paymasterUrlBase = paymasterUrlTwo;
 
     const multiChainModule = await createMultiChainValidationModule({
       signer: walletClient,
-      moduleAddress: DEFAULT_MULTICHAIN_MODULE
-    })
+      moduleAddress: DEFAULT_MULTICHAIN_MODULE,
+    });
 
     const [polygonAccount, baseAccount] = await Promise.all([
       createSmartAccountClient({
@@ -413,7 +414,7 @@ describe("Modules:Write", () => {
         bundlerUrl,
         defaultValidationModule: multiChainModule,
         activeValidationModule: multiChainModule,
-        paymasterUrl
+        paymasterUrl,
       }),
       createSmartAccountClient({
         chainId: chainIdBase,
@@ -421,94 +422,94 @@ describe("Modules:Write", () => {
         bundlerUrl: bundlerUrlBase,
         defaultValidationModule: multiChainModule,
         activeValidationModule: multiChainModule,
-        paymasterUrl: paymasterUrlBase
-      })
-    ])
+        paymasterUrl: paymasterUrlBase,
+      }),
+    ]);
 
     // Check if the smart account has been deployed
     const [isPolygonDeployed, isBaseDeployed] = await Promise.all([
       polygonAccount.isAccountDeployed(),
-      baseAccount.isAccountDeployed()
-    ])
+      baseAccount.isAccountDeployed(),
+    ]);
     if (!isPolygonDeployed) {
-      const { wait } = await polygonAccount.deploy(withSponsorship)
-      const { success } = await wait()
-      expect(success).toBe("true")
+      const { wait } = await polygonAccount.deploy(withSponsorship);
+      const { success } = await wait();
+      expect(success).toBe("true");
     }
     if (!isBaseDeployed) {
-      const { wait } = await baseAccount.deploy(withSponsorship)
-      const { success } = await wait()
-      expect(success).toBe("true")
+      const { wait } = await baseAccount.deploy(withSponsorship);
+      const { success } = await wait();
+      expect(success).toBe("true");
     }
 
     const moduleEnabled1 = await polygonAccount.isModuleEnabled(
-      DEFAULT_MULTICHAIN_MODULE
-    )
-    const moduleActive1 = polygonAccount.activeValidationModule
-    expect(moduleEnabled1).toBeTruthy()
-    expect(moduleActive1.getAddress()).toBe(DEFAULT_MULTICHAIN_MODULE)
+      DEFAULT_MULTICHAIN_MODULE,
+    );
+    const moduleActive1 = polygonAccount.activeValidationModule;
+    expect(moduleEnabled1).toBeTruthy();
+    expect(moduleActive1.getAddress()).toBe(DEFAULT_MULTICHAIN_MODULE);
 
     const moduleEnabled2 = await baseAccount.isModuleEnabled(
-      DEFAULT_MULTICHAIN_MODULE
-    )
-    const moduleActive2 = polygonAccount.activeValidationModule
-    expect(moduleEnabled2).toBeTruthy()
-    expect(moduleActive2.getAddress()).toBe(DEFAULT_MULTICHAIN_MODULE)
+      DEFAULT_MULTICHAIN_MODULE,
+    );
+    const moduleActive2 = polygonAccount.activeValidationModule;
+    expect(moduleEnabled2).toBeTruthy();
+    expect(moduleActive2.getAddress()).toBe(DEFAULT_MULTICHAIN_MODULE);
 
     const encodedCall = encodeFunctionData({
       abi: parseAbi([
-        "function safeMint(address owner) view returns (uint balance)"
+        "function safeMint(address owner) view returns (uint balance)",
       ]),
       functionName: "safeMint",
-      args: [recipient]
-    })
+      args: [recipient],
+    });
 
     const transaction = {
       to: nftAddress,
-      data: encodedCall
-    }
+      data: encodedCall,
+    };
 
     const [partialUserOp1, partialUserOp2] = await Promise.all([
       baseAccount.buildUserOp([transaction], withSponsorship),
-      polygonAccount.buildUserOp([transaction], withSponsorship)
-    ])
+      polygonAccount.buildUserOp([transaction], withSponsorship),
+    ]);
 
-    expect(partialUserOp1.paymasterAndData).not.toBe("0x")
-    expect(partialUserOp2.paymasterAndData).not.toBe("0x")
+    expect(partialUserOp1.paymasterAndData).not.toBe("0x");
+    expect(partialUserOp2.paymasterAndData).not.toBe("0x");
 
     // Sign the user ops using multiChainModule
     const returnedOps = await multiChainModule.signUserOps([
       { userOp: partialUserOp1, chainId: chainIdBase },
-      { userOp: partialUserOp2, chainId }
-    ])
+      { userOp: partialUserOp2, chainId },
+    ]);
 
     // Send the signed user ops on both chains
     const userOpResponse1 = await baseAccount.sendSignedUserOp(
       // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-      returnedOps[0] as any
-    )
+      returnedOps[0] as any,
+    );
     const userOpResponse2 = await polygonAccount.sendSignedUserOp(
       // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-      returnedOps[1] as any
-    )
+      returnedOps[1] as any,
+    );
 
-    Logger.log(userOpResponse1.userOpHash, "MULTICHAIN BASE USER OP HASH")
-    Logger.log(userOpResponse2.userOpHash, "MULTICHAIN POLYGON USER OP HASH")
+    Logger.log(userOpResponse1.userOpHash, "MULTICHAIN BASE USER OP HASH");
+    Logger.log(userOpResponse2.userOpHash, "MULTICHAIN POLYGON USER OP HASH");
 
-    expect(userOpResponse1.userOpHash).toBeTruthy()
-    expect(userOpResponse2.userOpHash).toBeTruthy()
+    expect(userOpResponse1.userOpHash).toBeTruthy();
+    expect(userOpResponse2.userOpHash).toBeTruthy();
 
-    const { success: success1 } = await userOpResponse1.wait()
-    const { success: success2 } = await userOpResponse2.wait()
+    const { success: success1 } = await userOpResponse1.wait();
+    const { success: success2 } = await userOpResponse2.wait();
 
-    expect(success1).toBe("true")
-    expect(success2).toBe("true")
-  }, 50000)
+    expect(success1).toBe("true");
+    expect(success2).toBe("true");
+  }, 50000);
 
   test("should use SessionValidationModule to send a user op", async () => {
-    let sessionSigner: WalletClientSigner
-    const sessionKeyEOA = walletClient.account.address
-    const recipient = walletClientTwo.account.address
+    let sessionSigner: WalletClientSigner;
+    const sessionKeyEOA = walletClient.account.address;
+    const recipient = walletClientTwo.account.address;
 
     // Create smart account
     let smartAccount = await createSmartAccountClient({
@@ -516,50 +517,50 @@ describe("Modules:Write", () => {
       signer: walletClient,
       bundlerUrl,
       paymasterUrl,
-      index: 11 // Increasing index to not conflict with other test cases and use a new smart account
-    })
-    const accountAddress = await smartAccount.getAccountAddress()
+      index: 11, // Increasing index to not conflict with other test cases and use a new smart account
+    });
+    const accountAddress = await smartAccount.getAccountAddress();
     const sessionMemoryStorage: SessionMemoryStorage = new SessionMemoryStorage(
-      accountAddress
-    )
+      accountAddress,
+    );
     // First we need to check if smart account is deployed
     // if not deployed, send an empty transaction to deploy it
-    const isDeployed = await smartAccount.isAccountDeployed()
+    const isDeployed = await smartAccount.isAccountDeployed();
     if (!isDeployed) {
       const { wait } = await smartAccount.deploy({
-        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
-      })
-      const { success } = await wait()
-      expect(success).toBe("true")
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+      });
+      const { success } = await wait();
+      expect(success).toBe("true");
     }
 
     try {
       sessionSigner = await sessionMemoryStorage.getSignerByKey(
         sessionKeyEOA,
-        chain
-      )
+        chain,
+      );
     } catch (error) {
       sessionSigner = await sessionMemoryStorage.addSigner(
         {
           pbKey: sessionKeyEOA,
-          pvKey: `0x${privateKey}`
+          pvKey: `0x${privateKey}`,
         },
-        chain
-      )
+        chain,
+      );
     }
 
-    expect(sessionSigner).toBeTruthy()
+    expect(sessionSigner).toBeTruthy();
     // Create session module
     const sessionModule = await createSessionKeyManagerModule({
       moduleAddress: DEFAULT_SESSION_KEY_MANAGER_MODULE,
       smartAccountAddress: await smartAccount.getAddress(),
-      sessionStorageClient: sessionMemoryStorage
-    })
+      sessionStorageClient: sessionMemoryStorage,
+    });
     const functionSelector = slice(
       toFunctionSelector("safeMint(address)"),
       0,
-      4
-    )
+      4,
+    );
     // Set enabled call on session
     const sessionKeyData = await getABISVMSessionKeyData(sessionKeyEOA as Hex, {
       destContract: "0xdd526eba63ef200ed95f0f0fb8993fe3e20a23d0" as Hex, // nft address
@@ -570,101 +571,101 @@ describe("Modules:Write", () => {
           offset: 0, // offset 0 means we are checking first parameter of safeMint (recipient address)
           condition: 0, // 0 = Condition.EQUAL
           referenceValue: pad("0xd3C85Fdd3695Aee3f0A12B3376aCD8DC54020549", {
-            size: 32
-          }) // recipient address
-        }
-      ]
-    })
-    const abiSvmAddress = "0x000006bC2eCdAe38113929293d241Cf252D91861"
+            size: 32,
+          }), // recipient address
+        },
+      ],
+    });
+    const abiSvmAddress = "0x000006bC2eCdAe38113929293d241Cf252D91861";
     const sessionTxData = await sessionModule.createSessionData([
       {
         validUntil: 0,
         validAfter: 0,
         sessionValidationModule: abiSvmAddress,
         sessionPublicKey: sessionKeyEOA as Hex,
-        sessionKeyData: sessionKeyData as Hex
-      }
-    ])
+        sessionKeyData: sessionKeyData as Hex,
+      },
+    ]);
     const setSessionAllowedTrx = {
       to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
-      data: sessionTxData.data
-    }
+      data: sessionTxData.data,
+    };
     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    const txArray: any = []
+    const txArray: any = [];
     // Check if module is enabled
     const isEnabled = await smartAccount.isModuleEnabled(
-      DEFAULT_SESSION_KEY_MANAGER_MODULE
-    )
+      DEFAULT_SESSION_KEY_MANAGER_MODULE,
+    );
     if (!isEnabled) {
       const enableModuleTrx = await smartAccount.getEnableModuleData(
-        DEFAULT_SESSION_KEY_MANAGER_MODULE
-      )
-      txArray.push(enableModuleTrx)
-      txArray.push(setSessionAllowedTrx)
+        DEFAULT_SESSION_KEY_MANAGER_MODULE,
+      );
+      txArray.push(enableModuleTrx);
+      txArray.push(setSessionAllowedTrx);
     } else {
-      Logger.log("MODULE ALREADY ENABLED")
-      txArray.push(setSessionAllowedTrx)
+      Logger.log("MODULE ALREADY ENABLED");
+      txArray.push(setSessionAllowedTrx);
     }
     const userOp = await smartAccount.buildUserOp(txArray, {
       nonceOptions,
       paymasterServiceData: {
-        mode: PaymasterMode.SPONSORED
-      }
-    })
-    const userOpResponse1 = await smartAccount.sendUserOp(userOp)
-    const transactionDetails = await userOpResponse1.wait()
-    expect(transactionDetails.success).toBe("true")
-    Logger.log("Tx Hash: ", transactionDetails.receipt.transactionHash)
+        mode: PaymasterMode.SPONSORED,
+      },
+    });
+    const userOpResponse1 = await smartAccount.sendUserOp(userOp);
+    const transactionDetails = await userOpResponse1.wait();
+    expect(transactionDetails.success).toBe("true");
+    Logger.log("Tx Hash: ", transactionDetails.receipt.transactionHash);
     const encodedCall = encodeFunctionData({
       abi: parseAbi(["function safeMint(address _to)"]),
       functionName: "safeMint",
-      args: ["0xd3C85Fdd3695Aee3f0A12B3376aCD8DC54020549"]
-    })
+      args: ["0xd3C85Fdd3695Aee3f0A12B3376aCD8DC54020549"],
+    });
     const nftMintTx = {
       to: "0xdd526eba63ef200ed95f0f0fb8993fe3e20a23d0",
-      data: encodedCall
-    }
-    smartAccount = smartAccount.setActiveValidationModule(sessionModule)
-    const maticBalanceBefore = await checkBalance(smartAccountAddress)
+      data: encodedCall,
+    };
+    smartAccount = smartAccount.setActiveValidationModule(sessionModule);
+    const maticBalanceBefore = await checkBalance(smartAccountAddress);
     const userOpResponse2 = await smartAccount.sendTransaction(nftMintTx, {
       nonceOptions,
       params: {
         sessionSigner: sessionSigner,
-        sessionValidationModule: abiSvmAddress
+        sessionValidationModule: abiSvmAddress,
       },
       paymasterServiceData: {
-        mode: PaymasterMode.SPONSORED
-      }
-    })
-    expect(userOpResponse2.userOpHash).toBeTruthy()
-    expect(userOpResponse2.userOpHash).not.toBeNull()
-    const maticBalanceAfter = await checkBalance(smartAccountAddress)
-    expect(maticBalanceAfter).toEqual(maticBalanceBefore)
-  }, 60000)
+        mode: PaymasterMode.SPONSORED,
+      },
+    });
+    expect(userOpResponse2.userOpHash).toBeTruthy();
+    expect(userOpResponse2.userOpHash).not.toBeNull();
+    const maticBalanceAfter = await checkBalance(smartAccountAddress);
+    expect(maticBalanceAfter).toEqual(maticBalanceBefore);
+  }, 60000);
 
   test("should enable batched module", async () => {
     const smartAccount = await createSmartAccountClient({
       signer: walletClient,
       bundlerUrl,
-      paymasterUrl
-    })
+      paymasterUrl,
+    });
 
     const isBRMenabled = await smartAccount.isModuleEnabled(
-      DEFAULT_BATCHED_SESSION_ROUTER_MODULE
-    )
+      DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
+    );
 
     if (!isBRMenabled) {
       const tx = await smartAccount.getEnableModuleData(
-        DEFAULT_BATCHED_SESSION_ROUTER_MODULE
-      )
+        DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
+      );
       const { wait } = await smartAccount.sendTransaction(tx, {
         nonceOptions,
-        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
-      })
-      const { success } = await wait()
-      expect(success).toBe("true")
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+      });
+      const { success } = await wait();
+      expect(success).toBe("true");
     }
-  }, 50000)
+  }, 50000);
 
   test.skip("should use ABI SVM to allow transfer ownership of smart account", async () => {
     const smartAccount = await createSmartAccountClient({
@@ -672,19 +673,19 @@ describe("Modules:Write", () => {
       signer: walletClient,
       bundlerUrl,
       paymasterUrl,
-      index: 10 // Increasing index to not conflict with other test cases and use a new smart account
-    })
+      index: 10, // Increasing index to not conflict with other test cases and use a new smart account
+    });
 
     const smartAccountAddressForPreviousOwner =
-      await smartAccount.getAccountAddress()
+      await smartAccount.getAccountAddress();
 
-    const signerOfAccount = walletClient.account.address
+    const signerOfAccount = walletClient.account.address;
     const ownerOfAccount = await publicClient.readContract({
       address: DEFAULT_ECDSA_OWNERSHIP_MODULE,
       abi: ECDSAModuleAbi,
       functionName: "getOwner",
-      args: [await smartAccount.getAccountAddress()]
-    })
+      args: [await smartAccount.getAccountAddress()],
+    });
 
     if (ownerOfAccount !== signerOfAccount) {
       // Re-create the smart account instance with the new owner
@@ -693,63 +694,63 @@ describe("Modules:Write", () => {
         signer: walletClientTwo,
         bundlerUrl,
         paymasterUrl,
-        accountAddress: smartAccountAddressForPreviousOwner
-      })
+        accountAddress: smartAccountAddressForPreviousOwner,
+      });
 
       // Transfer ownership back to walletClient 1
       await smartAccountWithOtherOwner.transferOwnership(
         walletClient.account.address,
         DEFAULT_ECDSA_OWNERSHIP_MODULE as TransferOwnershipCompatibleModule,
-        { paymasterServiceData: { mode: PaymasterMode.SPONSORED } }
-      )
+        { paymasterServiceData: { mode: PaymasterMode.SPONSORED } },
+      );
     }
 
-    let sessionSigner: WalletClientSigner
-    const sessionKeyEOA = walletClient.account.address
-    const newOwner = walletClientTwo.account.address
+    let sessionSigner: WalletClientSigner;
+    const sessionKeyEOA = walletClient.account.address;
+    const newOwner = walletClientTwo.account.address;
 
-    const accountAddress = await smartAccount.getAccountAddress()
+    const accountAddress = await smartAccount.getAccountAddress();
     const sessionMemoryStorage: SessionMemoryStorage = new SessionMemoryStorage(
-      accountAddress
-    )
+      accountAddress,
+    );
     // First we need to check if smart account is deployed
     // if not deployed, send an empty transaction to deploy it
-    const isDeployed = await smartAccount.isAccountDeployed()
+    const isDeployed = await smartAccount.isAccountDeployed();
     if (!isDeployed) {
       const { wait } = await smartAccount.deploy({
-        paymasterServiceData: { mode: PaymasterMode.SPONSORED }
-      })
-      const { success } = await wait()
-      expect(success).toBe("true")
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+      });
+      const { success } = await wait();
+      expect(success).toBe("true");
     }
 
     try {
       sessionSigner = await sessionMemoryStorage.getSignerByKey(
         sessionKeyEOA,
-        chain
-      )
+        chain,
+      );
     } catch (error) {
       sessionSigner = await sessionMemoryStorage.addSigner(
         {
           pbKey: sessionKeyEOA,
-          pvKey: `0x${privateKeyTwo}`
+          pvKey: `0x${privateKeyTwo}`,
         },
-        chain
-      )
+        chain,
+      );
     }
 
-    expect(sessionSigner).toBeTruthy()
+    expect(sessionSigner).toBeTruthy();
     // Create session module
     const sessionModule = await createSessionKeyManagerModule({
       moduleAddress: DEFAULT_SESSION_KEY_MANAGER_MODULE,
       smartAccountAddress: await smartAccount.getAddress(),
-      sessionStorageClient: sessionMemoryStorage
-    })
+      sessionStorageClient: sessionMemoryStorage,
+    });
     const functionSelectorTransferOwnership = slice(
       toFunctionSelector("transferOwnership(address) public"),
       0,
-      4
-    )
+      4,
+    );
     const sessionKeyDataTransferOwnership = await getABISVMSessionKeyData(
       sessionKeyEOA as Hex,
       {
@@ -761,13 +762,13 @@ describe("Modules:Write", () => {
             offset: 0, // offset 0 means we are checking first parameter of transferOwnership (recipient address)
             condition: 0, // 0 = Condition.EQUAL
             referenceValue: pad(walletClient.account.address, {
-              size: 32
-            }) // new owner address
-          }
-        ]
-      }
-    )
-    const abiSvmAddress = "0x000006bC2eCdAe38113929293d241Cf252D91861"
+              size: 32,
+            }), // new owner address
+          },
+        ],
+      },
+    );
+    const abiSvmAddress = "0x000006bC2eCdAe38113929293d241Cf252D91861";
     const sessionTxDataTransferOwnership =
       await sessionModule.createSessionData([
         {
@@ -775,37 +776,37 @@ describe("Modules:Write", () => {
           validAfter: 0,
           sessionValidationModule: abiSvmAddress,
           sessionPublicKey: sessionKeyEOA as Hex,
-          sessionKeyData: sessionKeyDataTransferOwnership as Hex
-        }
-      ])
+          sessionKeyData: sessionKeyDataTransferOwnership as Hex,
+        },
+      ]);
     const setSessionAllowedTransferOwnerhsipTrx = {
       to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
-      data: sessionTxDataTransferOwnership.data
-    }
+      data: sessionTxDataTransferOwnership.data,
+    };
     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    const txArray: any = []
+    const txArray: any = [];
     // Check if module is enabled
     const isEnabled = await smartAccount.isModuleEnabled(
-      DEFAULT_SESSION_KEY_MANAGER_MODULE
-    )
+      DEFAULT_SESSION_KEY_MANAGER_MODULE,
+    );
 
     if (!isEnabled) {
       const enableModuleTrx = await smartAccount.getEnableModuleData(
-        DEFAULT_SESSION_KEY_MANAGER_MODULE
-      )
-      txArray.push(enableModuleTrx)
-      txArray.push(setSessionAllowedTransferOwnerhsipTrx)
+        DEFAULT_SESSION_KEY_MANAGER_MODULE,
+      );
+      txArray.push(enableModuleTrx);
+      txArray.push(setSessionAllowedTransferOwnerhsipTrx);
     } else {
-      Logger.log("MODULE ALREADY ENABLED")
-      txArray.push(setSessionAllowedTransferOwnerhsipTrx)
+      Logger.log("MODULE ALREADY ENABLED");
+      txArray.push(setSessionAllowedTransferOwnerhsipTrx);
     }
     const userOpResponse1 = await smartAccount.sendTransaction(txArray, {
       nonceOptions,
-      paymasterServiceData: { mode: PaymasterMode.SPONSORED }
-    })
-    const transactionDetails = await userOpResponse1.wait()
-    expect(transactionDetails.success).toBe("true")
-    Logger.log("Tx Hash: ", transactionDetails.receipt.transactionHash)
+      paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+    });
+    const transactionDetails = await userOpResponse1.wait();
+    expect(transactionDetails.success).toBe("true");
+    Logger.log("Tx Hash: ", transactionDetails.receipt.transactionHash);
 
     // Transfer ownership back to walletClient
     await smartAccount.transferOwnership(
@@ -815,34 +816,34 @@ describe("Modules:Write", () => {
         paymasterServiceData: { mode: PaymasterMode.SPONSORED },
         params: {
           sessionSigner: sessionSigner,
-          sessionValidationModule: abiSvmAddress
-        }
-      }
-    )
-  }, 60000)
+          sessionValidationModule: abiSvmAddress,
+        },
+      },
+    );
+  }, 60000);
 
   test.skip("should correctly parse the reference value and explicitly pass the storage client while resuming the session", async () => {
     const byteCode = await publicClient.getBytecode({
-      address: DUMMY_CONTRACT_ADDRESS as Hex
-    })
+      address: DUMMY_CONTRACT_ADDRESS as Hex,
+    });
 
-    expect(byteCode).toBeTruthy()
+    expect(byteCode).toBeTruthy();
 
     const { sessionKeyAddress, sessionStorageClient } =
       await createSessionKeyEOA(
         smartAccount,
         chain,
-        new SessionMemoryStorage(smartAccountAddress)
-      )
+        new SessionMemoryStorage(smartAccountAddress),
+      );
 
-    const order = parseAbi(["function submitOrder(uint256 _orderNum)"])
-    const cancel = parseAbi(["function submitCancel(uint256 _orderNum)"])
+    const order = parseAbi(["function submitOrder(uint256 _orderNum)"]);
+    const cancel = parseAbi(["function submitCancel(uint256 _orderNum)"]);
 
     const sessionBatch: CreateSessionDataParams[] = [
       createABISessionDatum({
         interval: {
           validUntil: 0,
-          validAfter: 0
+          validAfter: 0,
         },
         sessionKeyAddress,
         contractAddress: DUMMY_CONTRACT_ADDRESS,
@@ -851,15 +852,15 @@ describe("Modules:Write", () => {
           {
             offset: 0,
             condition: 0,
-            referenceValue: BigInt(1)
-          }
+            referenceValue: 1n,
+          },
         ],
-        valueLimit: 0n
+        valueLimit: 0n,
       }),
       createABISessionDatum({
         interval: {
           validUntil: 0,
-          validAfter: 0
+          validAfter: 0,
         },
         sessionKeyAddress,
         contractAddress: DUMMY_CONTRACT_ADDRESS,
@@ -868,103 +869,103 @@ describe("Modules:Write", () => {
           {
             offset: 0,
             condition: 0,
-            referenceValue: BigInt(1)
-          }
+            referenceValue: 1n,
+          },
         ],
-        valueLimit: 0n
-      })
-    ]
+        valueLimit: 0n,
+      }),
+    ];
 
     const { wait, session } = await createBatchSession(
       smartAccount,
       sessionStorageClient,
       sessionBatch,
-      withSponsorship
-    )
+      withSponsorship,
+    );
 
     const {
       receipt: { transactionHash },
-      success
-    } = await wait()
+      success,
+    } = await wait();
 
-    expect(success).toBe("true")
-    expect(transactionHash).toBeTruthy()
+    expect(success).toBe("true");
+    expect(transactionHash).toBeTruthy();
 
     const smartAccountWithSession = await createSessionSmartAccountClient(
       {
         accountAddress: await smartAccount.getAccountAddress(), // Set the account address on behalf of the user
         bundlerUrl,
         paymasterUrl,
-        chainId: chain.id
+        chainId: chain.id,
       },
       sessionStorageClient, // Storage client, full Session or smartAccount address if using default storage
-      true
-    )
+      true,
+    );
 
     const submitCancelTx: Transaction = {
       to: DUMMY_CONTRACT_ADDRESS,
       data: encodeFunctionData({
         abi: cancel,
         functionName: "submitCancel",
-        args: [BigInt(1)]
-      })
-    }
+        args: [1n],
+      }),
+    };
 
     const submitOrderTx: Transaction = {
       to: DUMMY_CONTRACT_ADDRESS,
       data: encodeFunctionData({
         abi: order,
         functionName: "submitOrder",
-        args: [BigInt(1)]
-      })
-    }
+        args: [1n],
+      }),
+    };
 
-    const txs = [submitOrderTx, submitCancelTx]
-    const correspondingIndexes = [1, 0] // The order of the txs from the sessionBatch
+    const txs = [submitOrderTx, submitCancelTx];
+    const correspondingIndexes = [1, 0]; // The order of the txs from the sessionBatch
 
     const batchSessionParams = await getBatchSessionTxParams(
       txs,
       correspondingIndexes,
       sessionStorageClient,
-      chain
-    )
+      chain,
+    );
 
     const { wait: waitForTx } = await smartAccountWithSession.sendTransaction(
       txs,
       {
         ...batchSessionParams,
         ...withSponsorship,
-        nonceOptions
-      }
-    )
+        nonceOptions,
+      },
+    );
 
-    const { success: txSuccess } = await waitForTx()
-    expect(txSuccess).toBe("true")
-  }, 60000)
+    const { success: txSuccess } = await waitForTx();
+    expect(txSuccess).toBe("true");
+  }, 60000);
 
   test("should revoke sessions", async () => {
-    const abiSvmAddress = "0x000006bC2eCdAe38113929293d241Cf252D91861"
+    const abiSvmAddress = "0x000006bC2eCdAe38113929293d241Cf252D91861";
     const byteCode = await publicClient.getBytecode({
-      address: DUMMY_CONTRACT_ADDRESS as Hex
-    })
+      address: DUMMY_CONTRACT_ADDRESS as Hex,
+    });
 
-    expect(byteCode).toBeTruthy()
+    expect(byteCode).toBeTruthy();
 
     const { sessionKeyAddress, sessionStorageClient } =
-      await createSessionKeyEOA(smartAccount, chain)
+      await createSessionKeyEOA(smartAccount, chain);
 
     const setMerkleRoot = parseAbi([
-      "function setMerkleRoot(bytes32 _merkleRoot)"
-    ])
-    const cancel = parseAbi(["function submitCancel(uint256 _orderNum)"])
-    const order = parseAbi(["function submitOrder(uint256 _orderNum)"])
-    const setId = parseAbi(["function setId(uint256 _id)"])
+      "function setMerkleRoot(bytes32 _merkleRoot)",
+    ]);
+    const cancel = parseAbi(["function submitCancel(uint256 _orderNum)"]);
+    const order = parseAbi(["function submitOrder(uint256 _orderNum)"]);
+    const setId = parseAbi(["function setId(uint256 _id)"]);
 
     const policy: Policy[] = [
       {
         interval: {
           validUntil: 0,
-          validAfter: 0
+          validAfter: 0,
         },
         sessionKeyAddress,
         contractAddress: DUMMY_CONTRACT_ADDRESS,
@@ -973,15 +974,15 @@ describe("Modules:Write", () => {
           {
             offset: 0,
             condition: 0,
-            referenceValue: BigInt(1)
-          }
+            referenceValue: 1n,
+          },
         ],
-        valueLimit: 0n
+        valueLimit: 0n,
       },
       {
         interval: {
           validUntil: 0,
-          validAfter: 0
+          validAfter: 0,
         },
         sessionKeyAddress,
         contractAddress: DUMMY_CONTRACT_ADDRESS,
@@ -990,15 +991,15 @@ describe("Modules:Write", () => {
           {
             offset: 0,
             condition: 0,
-            referenceValue: BigInt(1)
-          }
+            referenceValue: 1n,
+          },
         ],
-        valueLimit: 0n
+        valueLimit: 0n,
       },
       {
         interval: {
           validUntil: 0,
-          validAfter: 0
+          validAfter: 0,
         },
         sessionKeyAddress,
         contractAddress: DUMMY_CONTRACT_ADDRESS,
@@ -1007,38 +1008,38 @@ describe("Modules:Write", () => {
           {
             offset: 0,
             condition: 0,
-            referenceValue: BigInt(1)
-          }
+            referenceValue: 1n,
+          },
         ],
-        valueLimit: 0n
+        valueLimit: 0n,
       },
       {
         interval: {
           validUntil: 0,
-          validAfter: 0
+          validAfter: 0,
         },
         sessionKeyAddress,
         contractAddress: DEFAULT_SESSION_KEY_MANAGER_MODULE,
         functionSelector: setMerkleRoot[0],
         rules: [],
-        valueLimit: 0n
-      }
-    ]
+        valueLimit: 0n,
+      },
+    ];
 
     const { wait } = await createSession(
       smartAccount,
       policy,
       sessionStorageClient,
-      withSponsorship
-    )
+      withSponsorship,
+    );
 
     const {
       receipt: { transactionHash },
-      success
-    } = await wait()
+      success,
+    } = await wait();
 
-    expect(success).toBe("true")
-    expect(transactionHash).toBeTruthy()
+    expect(success).toBe("true");
+    expect(transactionHash).toBeTruthy();
 
     const smartAccountWithSession = await createSessionSmartAccountClient(
       {
@@ -1046,72 +1047,71 @@ describe("Modules:Write", () => {
         bundlerUrl,
         paymasterUrl,
         chainId,
-        index: 25 // Increasing index to not conflict with other test cases and use a new smart account
+        index: 25, // Increasing index to not conflict with other test cases and use a new smart account
       },
-      sessionStorageClient
-    )
+      sessionStorageClient,
+    );
 
     const submitCancelTx: Transaction = {
       to: DUMMY_CONTRACT_ADDRESS,
       data: encodeFunctionData({
         abi: cancel,
         functionName: "submitCancel",
-        args: [BigInt(1)]
-      })
-    }
+        args: [1n],
+      }),
+    };
 
     const sessionModule = await createSessionKeyManagerModule({
       moduleAddress: DEFAULT_SESSION_KEY_MANAGER_MODULE,
       smartAccountAddress,
-      sessionStorageClient
-    })
+      sessionStorageClient,
+    });
 
     const allSessionIds = (await sessionStorageClient.getAllSessionData()).map(
-      ({ sessionID }) => sessionID
-    )
+      ({ sessionID }) => sessionID,
+    );
 
     // generate a new merkle root
     const newMerkleRoot = await sessionModule.revokeSessions([
       allSessionIds[0] ?? "0x",
-      allSessionIds[2] ?? "0x"
-    ])
+      allSessionIds[2] ?? "0x",
+    ]);
 
     const submitSetMerkleRootTx: Transaction = {
       to: DEFAULT_SESSION_KEY_MANAGER_MODULE,
       data: encodeFunctionData({
         abi: setMerkleRoot,
         functionName: "setMerkleRoot",
-        args: [newMerkleRoot as Hex]
-      })
-    }
+        args: [newMerkleRoot as Hex],
+      }),
+    };
 
     const { wait: waitForSetMerkleRoot } =
       await smartAccountWithSession.sendTransaction(submitSetMerkleRootTx, {
         ...withSponsorship,
         params: {
           sessionID: allSessionIds[3] ?? "0x",
-          sessionValidationModule: abiSvmAddress
-        }
-      })
+          sessionValidationModule: abiSvmAddress,
+        },
+      });
 
-    const { success: txSuccess } = await waitForSetMerkleRoot()
-    expect(txSuccess).toBe("true")
+    const { success: txSuccess } = await waitForSetMerkleRoot();
+    expect(txSuccess).toBe("true");
 
-    const sessionDataAfter = await sessionStorageClient.getAllSessionData()
-    console.log(sessionDataAfter, "sessionDataAfter")
+    const sessionDataAfter = await sessionStorageClient.getAllSessionData();
     const revokedSession = sessionDataAfter.find(
-      (session) => session.status === "REVOKED"
-    )
-    expect(revokedSession?.sessionID === allSessionIds[0])
+      (session) => session.status === "REVOKED",
+    );
+    expect(revokedSession?.sessionID === allSessionIds[0]);
 
     const submitOrderTx: Transaction = {
       to: DUMMY_CONTRACT_ADDRESS,
       data: encodeFunctionData({
         abi: order,
         functionName: "submitOrder",
-        args: [BigInt(1)]
-      })
-    }
+        args: [1n],
+      }),
+    };
 
     const { wait: waitOrder } = await smartAccount.sendTransaction(
       submitOrderTx,
@@ -1119,21 +1119,21 @@ describe("Modules:Write", () => {
         paymasterServiceData: { mode: PaymasterMode.SPONSORED },
         params: {
           sessionID: allSessionIds[2] ?? "0x",
-          sessionValidationModule: abiSvmAddress
-        }
-      }
-    )
+          sessionValidationModule: abiSvmAddress,
+        },
+      },
+    );
 
-    await waitOrder()
+    await waitOrder();
 
     const setIdTx: Transaction = {
       to: DUMMY_CONTRACT_ADDRESS,
       data: encodeFunctionData({
         abi: setId,
         functionName: "setId",
-        args: [BigInt(1)]
-      })
-    }
+        args: [1n],
+      }),
+    };
 
     // Expect to throw because it has been revoked
     await expect(
@@ -1141,10 +1141,10 @@ describe("Modules:Write", () => {
         ...withSponsorship,
         params: {
           sessionID: allSessionIds[0] ?? "0x",
-          sessionValidationModule: abiSvmAddress
-        }
-      })
-    ).rejects.toThrow()
+          sessionValidationModule: abiSvmAddress,
+        },
+      }),
+    ).rejects.toThrow();
 
     // Expect to throw because it has been revoked
     await expect(
@@ -1152,37 +1152,37 @@ describe("Modules:Write", () => {
         ...withSponsorship,
         params: {
           sessionID: allSessionIds[2] ?? "0x",
-          sessionValidationModule: abiSvmAddress
-        }
-      })
-    ).rejects.toThrow()
-  }, 60000)
+          sessionValidationModule: abiSvmAddress,
+        },
+      }),
+    ).rejects.toThrow();
+  }, 60000);
 
   test("should combine erc20 token gas payments with a batch session", async () => {
-    await nonZeroBalance(smartAccountAddress, preferredToken)
+    await nonZeroBalance(smartAccountAddress, preferredToken);
 
     const balanceOfPreferredTokenBefore = await checkBalance(
       smartAccountAddress,
-      preferredToken
-    )
+      preferredToken,
+    );
 
     const { sessionKeyAddress, sessionStorageClient } =
-      await createSessionKeyEOA(smartAccount, chain)
+      await createSessionKeyEOA(smartAccount, chain);
 
     const maxUnit256Value =
-      115792089237316195423570985008687907853269984665640564039457584007913129639935n
+      115792089237316195423570985008687907853269984665640564039457584007913129639935n;
     const approval = parseAbi([
-      "function approve(address spender, uint256 value) external returns (bool)"
-    ])
+      "function approve(address spender, uint256 value) external returns (bool)",
+    ]);
     const safeMint = parseAbi([
-      "function safeMint(address owner) view returns (uint balance)"
-    ])
+      "function safeMint(address owner) view returns (uint balance)",
+    ]);
 
     const leaves: CreateSessionDataParams[] = [
       createABISessionDatum({
         interval: {
           validUntil: 0,
-          validAfter: 0
+          validAfter: 0,
         },
         sessionKeyAddress,
         contractAddress: preferredToken,
@@ -1191,20 +1191,20 @@ describe("Modules:Write", () => {
           {
             offset: 0,
             condition: 0, // equal
-            referenceValue: BICONOMY_TOKEN_PAYMASTER
+            referenceValue: BICONOMY_TOKEN_PAYMASTER,
           },
           {
             offset: 32,
             condition: 1, // less than or equal
-            referenceValue: maxUnit256Value // max amount
-          }
+            referenceValue: maxUnit256Value, // max amount
+          },
         ],
-        valueLimit: 0n
+        valueLimit: 0n,
       }),
       createABISessionDatum({
         interval: {
           validUntil: 0,
-          validAfter: 0
+          validAfter: 0,
         },
         sessionKeyAddress,
         contractAddress: nftAddress,
@@ -1213,65 +1213,65 @@ describe("Modules:Write", () => {
           {
             offset: 0,
             condition: 0,
-            referenceValue: smartAccountAddress
-          }
+            referenceValue: smartAccountAddress,
+          },
         ],
-        valueLimit: 0n
-      })
-    ]
+        valueLimit: 0n,
+      }),
+    ];
 
     const { wait, session } = await createBatchSession(
       smartAccount,
       sessionStorageClient,
       leaves,
-      withSponsorship
-    )
+      withSponsorship,
+    );
 
     const {
       receipt: { transactionHash },
-      success
-    } = await wait()
+      success,
+    } = await wait();
 
-    expect(success).toBe("true")
-    expect(transactionHash).toBeTruthy()
+    expect(success).toBe("true");
+    expect(transactionHash).toBeTruthy();
 
     const smartAccountWithSession = await createSessionSmartAccountClient(
       {
         accountAddress: smartAccountAddress, // Set the account address on behalf of the user
         bundlerUrl,
         paymasterUrl,
-        chainId: chain.id
+        chainId: chain.id,
       },
       session,
-      true // for batching
-    )
+      true, // for batching
+    );
 
     const approvalTx = {
       to: preferredToken,
       data: encodeFunctionData({
         abi: approval,
         functionName: "approve",
-        args: [BICONOMY_TOKEN_PAYMASTER, 1000000n] // Must be more than the expected value, could be retrieved from the getTokenFees() method
-      })
-    }
+        args: [BICONOMY_TOKEN_PAYMASTER, 1000000n], // Must be more than the expected value, could be retrieved from the getTokenFees() method
+      }),
+    };
 
     const nftMintTx = {
       to: nftAddress,
       data: encodeFunctionData({
         abi: safeMint,
         functionName: "safeMint",
-        args: [smartAccountAddress]
-      })
-    }
+        args: [smartAccountAddress],
+      }),
+    };
 
-    const txs = [approvalTx, nftMintTx]
+    const txs = [approvalTx, nftMintTx];
 
     const batchSessionParams = await getBatchSessionTxParams(
       txs,
       [0, 1],
       session,
-      chain
-    )
+      chain,
+    );
 
     const { wait: waitForMint } = await smartAccountWithSession.sendTransaction(
       txs,
@@ -1279,52 +1279,52 @@ describe("Modules:Write", () => {
         paymasterServiceData: {
           mode: PaymasterMode.ERC20,
           preferredToken,
-          skipPatchCallData: true // This omits the automatic patching of the call data with approvals
+          skipPatchCallData: true, // This omits the automatic patching of the call data with approvals
         },
-        ...batchSessionParams
-      }
-    )
+        ...batchSessionParams,
+      },
+    );
     const {
       receipt: { transactionHash: mintTxHash },
       userOpHash,
-      success: mintSuccess
-    } = await waitForMint()
+      success: mintSuccess,
+    } = await waitForMint();
 
     const balanceOfPreferredTokenAfter = await checkBalance(
       smartAccountAddress,
-      preferredToken
-    )
+      preferredToken,
+    );
 
-    expect(mintSuccess).toBe("true")
+    expect(mintSuccess).toBe("true");
     expect(
-      balanceOfPreferredTokenBefore - balanceOfPreferredTokenAfter
-    ).toBeGreaterThan(0)
-  }, 60000)
+      balanceOfPreferredTokenBefore - balanceOfPreferredTokenAfter,
+    ).toBeGreaterThan(0);
+  }, 60000);
 
   test("should use different policy leaves from a single session for a) approving token gas payment approvals and b) the main tx", async () => {
-    await nonZeroBalance(smartAccountAddress, preferredToken)
+    await nonZeroBalance(smartAccountAddress, preferredToken);
 
     const balanceOfPreferredTokenBefore = await checkBalance(
       smartAccountAddress,
-      preferredToken
-    )
+      preferredToken,
+    );
 
     const { sessionKeyAddress, sessionStorageClient } =
-      await createSessionKeyEOA(smartAccount, chain)
+      await createSessionKeyEOA(smartAccount, chain);
 
     const maxUnit256Value =
-      115792089237316195423570985008687907853269984665640564039457584007913129639935n
+      115792089237316195423570985008687907853269984665640564039457584007913129639935n;
     const approval = parseAbi([
-      "function approve(address spender, uint256 value) external returns (bool)"
-    ])
+      "function approve(address spender, uint256 value) external returns (bool)",
+    ]);
     const safeMint = parseAbi([
-      "function safeMint(address owner) view returns (uint balance)"
-    ])
+      "function safeMint(address owner) view returns (uint balance)",
+    ]);
     const policy: Policy[] = [
       {
         interval: {
           validUntil: 0,
-          validAfter: 0
+          validAfter: 0,
         },
         sessionKeyAddress,
         contractAddress: preferredToken,
@@ -1333,20 +1333,20 @@ describe("Modules:Write", () => {
           {
             offset: 0,
             condition: 0, // equal
-            referenceValue: BICONOMY_TOKEN_PAYMASTER
+            referenceValue: BICONOMY_TOKEN_PAYMASTER,
           },
           {
             offset: 32,
             condition: 1, // less than or equal
-            referenceValue: maxUnit256Value // max amount
-          }
+            referenceValue: maxUnit256Value, // max amount
+          },
         ],
-        valueLimit: 0n
+        valueLimit: 0n,
       },
       {
         interval: {
           validUntil: 0,
-          validAfter: 0
+          validAfter: 0,
         },
         sessionKeyAddress,
         contractAddress: nftAddress,
@@ -1355,67 +1355,67 @@ describe("Modules:Write", () => {
           {
             offset: 0,
             condition: 0,
-            referenceValue: smartAccountAddress
-          }
+            referenceValue: smartAccountAddress,
+          },
         ],
-        valueLimit: 0n
-      }
-    ]
+        valueLimit: 0n,
+      },
+    ];
 
     const { wait, session } = await createSession(
       smartAccount,
       policy,
       sessionStorageClient,
-      withSponsorship
-    )
+      withSponsorship,
+    );
 
     const {
       receipt: { transactionHash },
-      success
-    } = await wait()
+      success,
+    } = await wait();
 
-    expect(success).toBe("true")
-    expect(transactionHash).toBeTruthy()
+    expect(success).toBe("true");
+    expect(transactionHash).toBeTruthy();
 
     const smartAccountWithSession = await createSessionSmartAccountClient(
       {
         accountAddress: smartAccountAddress, // Set the account address on behalf of the user
         bundlerUrl,
         paymasterUrl,
-        chainId: chain.id
+        chainId: chain.id,
       },
-      smartAccountAddress
-    )
+      smartAccountAddress,
+    );
 
     const approvalTx = {
       to: preferredToken,
       data: encodeFunctionData({
         abi: approval,
         functionName: "approve",
-        args: [BICONOMY_TOKEN_PAYMASTER, 1000000n] // Must be more than the expected value, could be retrieved from the getTokenFees() method
-      })
-    }
+        args: [BICONOMY_TOKEN_PAYMASTER, 1000000n], // Must be more than the expected value, could be retrieved from the getTokenFees() method
+      }),
+    };
 
     const nftMintTx = {
       to: nftAddress,
       data: encodeFunctionData({
         abi: safeMint,
         functionName: "safeMint",
-        args: [smartAccountAddress]
-      })
-    }
+        args: [smartAccountAddress],
+      }),
+    };
 
     const singleSessionParamsForApproval = await getSingleSessionTxParams(
       session,
       chain,
-      0
-    )
+      0,
+    );
 
     const singleSessionParamsForMint = await getSingleSessionTxParams(
       session,
       chain,
-      1
-    )
+      1,
+    );
 
     const { wait: waitForApprovalTx } =
       await smartAccountWithSession.sendTransaction(approvalTx, {
@@ -1423,11 +1423,11 @@ describe("Modules:Write", () => {
         paymasterServiceData: {
           mode: PaymasterMode.ERC20,
           preferredToken,
-          skipPatchCallData: true // This omits the automatic patching of the call data with approvals
-        }
-      })
-    const { success: txApprovalSuccess } = await waitForApprovalTx()
-    expect(txApprovalSuccess).toBe("true")
+          skipPatchCallData: true, // This omits the automatic patching of the call data with approvals
+        },
+      });
+    const { success: txApprovalSuccess } = await waitForApprovalTx();
+    expect(txApprovalSuccess).toBe("true");
 
     const { wait: waitForMintTx } =
       await smartAccountWithSession.sendTransaction(nftMintTx, {
@@ -1435,20 +1435,21 @@ describe("Modules:Write", () => {
         paymasterServiceData: {
           mode: PaymasterMode.ERC20,
           preferredToken,
-          skipPatchCallData: true // This omits the automatic patching of the call data with approvals
-        }
-      })
+          skipPatchCallData: true, // This omits the automatic patching of the call data with approvals
+        },
+      });
 
-    const { success: txMintSuccess } = await waitForMintTx()
-    expect(txMintSuccess).toBe("true")
+    const { success: txMintSuccess } = await waitForMintTx();
+    expect(txMintSuccess).toBe("true");
 
     const balanceOfPreferredTokenAfter = await checkBalance(
       smartAccountAddress,
-      preferredToken
-    )
+      preferredToken,
+    );
 
     expect(
-      balanceOfPreferredTokenBefore - balanceOfPreferredTokenAfter
-    ).toBeGreaterThan(0)
-  }, 80000)
-})
+      balanceOfPreferredTokenBefore - balanceOfPreferredTokenAfter,
+    ).toBeGreaterThan(0);
+  }, 80000);
+
+});

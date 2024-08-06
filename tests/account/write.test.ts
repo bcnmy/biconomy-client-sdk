@@ -89,11 +89,11 @@ describe("Account:Write", async () => {
         })
       )
     )
-    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
-      [smartAccount, smartAccountTwo].map((account) =>
-        account.getAccountAddress()
+      ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+        [smartAccount, smartAccountTwo].map((account) =>
+          account.getAccountAddress()
+        )
       )
-    )
   })
 
   test.skip("should test the nonce on arbSepolia", async () => {
@@ -115,7 +115,7 @@ describe("Account:Write", async () => {
     const { wait } = await smartAccount.sendTransaction(
       {
         to: recipient,
-        value: BigInt(1)
+        value: 1n
       },
       {
         nonceOptions
@@ -207,7 +207,7 @@ describe("Account:Write", async () => {
     const newSmartAccountAddress = await newSmartAccount.getAccountAddress()
 
     // Setup:
-    await topUp(newSmartAccountAddress, BigInt(100000000000000000))
+    await topUp(newSmartAccountAddress, 3000000000000000000n)
 
     const balanceCheck = await checkBalance(newSmartAccountAddress)
 
@@ -215,11 +215,11 @@ describe("Account:Write", async () => {
     const { wait } = await newSmartAccount.deploy()
     const { success } = await wait()
 
-    const byteCode = await publicClient.getBytecode({
-      address: newSmartAccountAddress
-    })
+    const byteCode = await publicClient.getCode({ address: newSmartAccountAddress })
     expect(success).toBe("true")
     expect(byteCode).toBeTruthy()
+
+    const balanceCheckAfter = await checkBalance(newSmartAccountAddress)
   }, 60000)
 
   test.concurrent(
@@ -253,7 +253,7 @@ describe("Account:Write", async () => {
       const { wait } = await smartAccountCustomChain.sendTransaction(
         {
           to: recipient,
-          value: BigInt(1)
+          value: 1n
         },
         { nonceOptions }
       )
@@ -274,7 +274,7 @@ describe("Account:Write", async () => {
       const { wait } = await smartAccount.sendTransaction(
         {
           to: recipient,
-          value: BigInt(1)
+          value: 1n
         },
         { nonceOptions, simulationType: "validation_and_execution" }
       )
@@ -307,7 +307,7 @@ describe("Account:Write", async () => {
     )
     const tokenBalanceOfRecipientBefore = await checkBalance(sender, token)
     const { wait } = await smartAccount.withdraw(
-      [{ address: token, amount: BigInt(1), recipient: sender }],
+      [{ address: token, amount: 1n, recipient: sender }],
       undefined,
       {
         nonceOptions,
@@ -439,7 +439,7 @@ describe("Account:Write", async () => {
 
     const difference = Math.round(
       Number(userOpWithOffset.verificationGasLimit) -
-        Number(userOpWithNoOffset.verificationGasLimit)
+      Number(userOpWithNoOffset.verificationGasLimit)
     )
     const percentageValue = Math.round(
       percentage(difference, Number(userOpWithNoOffset.verificationGasLimit))
@@ -464,15 +464,15 @@ describe("Account:Write", async () => {
 
     const vglDifference = Math.round(
       Number(userOpWithOffset.verificationGasLimit) -
-        Number(userOpWithNoOffset.verificationGasLimit)
+      Number(userOpWithNoOffset.verificationGasLimit)
     )
     const cgllDifference = Math.round(
       Number(userOpWithOffset.callGasLimit) -
-        Number(userOpWithNoOffset.callGasLimit)
+      Number(userOpWithNoOffset.callGasLimit)
     )
     const pvgDifference = Math.round(
       Number(userOpWithOffset.preVerificationGas) -
-        Number(userOpWithNoOffset.preVerificationGas)
+      Number(userOpWithNoOffset.preVerificationGas)
     )
 
     const vglPercentageValue = Math.round(
@@ -512,15 +512,15 @@ describe("Account:Write", async () => {
 
     const vglDifference = Math.round(
       Number(userOpWithOffset.verificationGasLimit) -
-        Number(userOpWithNoOffset.verificationGasLimit)
+      Number(userOpWithNoOffset.verificationGasLimit)
     )
     const cgllDifference = Math.round(
       Number(userOpWithOffset.callGasLimit) -
-        Number(userOpWithNoOffset.callGasLimit)
+      Number(userOpWithNoOffset.callGasLimit)
     )
     const pvgDifference = Math.round(
       Number(userOpWithOffset.preVerificationGas) -
-        Number(userOpWithNoOffset.preVerificationGas)
+      Number(userOpWithNoOffset.preVerificationGas)
     )
 
     const vglPercentageValue = Math.round(

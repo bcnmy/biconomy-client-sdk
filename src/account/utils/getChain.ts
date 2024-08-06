@@ -88,7 +88,7 @@ type StringOrStrings = string | string[]
  *
  * const { wait } = await smartAccountCustomChain.sendTransaction({
  *   to: recipient,
- *   value: BigInt(1)
+ *   value: 1n
  * })
  *
  * const { success, receipt } = await wait();
@@ -122,5 +122,6 @@ export const getCustomChain = (
     },
     ...((contracts && { contracts }) || {})
   }
+  CUSTOM_CHAINS.push(chain)
   return chain
 }

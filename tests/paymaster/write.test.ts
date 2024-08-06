@@ -63,11 +63,11 @@ describe("Paymaster:Write", () => {
         })
       )
     )
-    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
-      [smartAccount, smartAccountTwo].map((account) =>
-        account.getAccountAddress()
+      ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+        [smartAccount, smartAccountTwo].map((account) =>
+          account.getAccountAddress()
+        )
       )
-    )
   })
 
   test("should mint an NFT with sponsorship", async () => {
@@ -150,7 +150,7 @@ describe("Paymaster:Write", () => {
       [
         {
           address: NATIVE_TOKEN_ALIAS,
-          amount: BigInt(1),
+          amount: 1n,
           recipient: sender
         }
       ],
@@ -228,8 +228,8 @@ describe("Paymaster:Write", () => {
 
     const { wait } = await smartAccount.withdraw(
       [
-        { address: token, amount: BigInt(1) },
-        { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) }
+        { address: token, amount: 1n },
+        { address: NATIVE_TOKEN_ALIAS, amount: 1n }
       ],
       sender,
       { nonceOptions, paymasterServiceData: { mode: PaymasterMode.SPONSORED } }
@@ -257,6 +257,40 @@ describe("Paymaster:Write", () => {
     expect(tokenBalanceOfRecipientAfter - tokenBalanceOfRecipientBefore).toBe(
       1n
     )
+  }, 60000)
+
+  test("should check sending txs with paymasterServiceData.smartAccountInfo set to SAFE", async () => {
+    await topUp(smartAccountAddress, 3000000000000000000n)
+    const balanceOfRecipient = await checkBalance(recipient)
+
+    const { wait } = await smartAccount.sendTransaction(
+      {
+        to: recipient,
+        value: 1n
+      },
+      {
+        nonceOptions,
+        paymasterServiceData: {
+          mode: PaymasterMode.SPONSORED,
+          smartAccountInfo: {
+            name: "SAFE",
+            version: "1.4.1"
+          }
+        }
+      }
+    )
+
+    const {
+      receipt: { transactionHash },
+      success
+    } = await wait()
+
+    expect(success).toBe("true")
+
+    const newBalanceOfRecipient = await checkBalance(recipient)
+
+    expect(transactionHash).toBeTruthy()
+    expect(newBalanceOfRecipient - balanceOfRecipient).toBe(1n)
   }, 60000)
 
   test("should withdraw all native token", async () => {

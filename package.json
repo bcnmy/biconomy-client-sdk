@@ -8,7 +8,7 @@
   "sideEffects": false,
   "name": "@biconomy/account",
   "author": "Biconomy",
-  "version": "4.5.2",
+  "version": "4.5.4",
   "description": "SDK for Biconomy integration with support for account abstraction, smart accounts, ERC-4337.",
   "keywords": [
     "erc-7579",
@@ -54,7 +54,7 @@
     "format": "biome format . --write",
     "lint": "biome check .",
     "lint:fix": "bun run lint --apply",
-    "dev": "bun link && concurrently \"bun run esm:watch\" \"bun run cjs:watch\" \"bun run esm:watch:aliases\" \"bun run cjs:watch:aliases\"",
+    "dev": "bun link && concurrently \"bun run esm:watch\" \"bun run cjs:watch\" \"bun run types:watch\" \"bun run esm:watch:aliases\" \"bun run cjs:watch:aliases\" \"bun run types:watch:aliases\"",
     "build": "bun run clean && bun run build:cjs && bun run build:esm && bun run build:types",
     "clean": "rimraf ./dist/_esm ./dist/_cjs ./dist/_types ./dist/tsconfig",
     "test": "vitest dev -c ./tests/vitest.config.ts",
@@ -72,14 +72,16 @@
     "changeset:version": "changeset version && bun install --lockfile-only",
     "esm:watch": "tsc --project ./tsconfig/tsconfig.esm.json --watch",
     "cjs:watch": "tsc --project ./tsconfig/tsconfig.cjs.json --watch",
+    "types:watch": "tsc --project ./tsconfig/tsconfig.types.json --watch",
     "esm:watch:aliases": "tsc-alias -p ./tsconfig/tsconfig.esm.json --watch",
     "cjs:watch:aliases": "tsc-alias -p ./tsconfig/tsconfig.cjs.json --watch",
+    "types:watch:aliases": "tsc-alias -p ./tsconfig/tsconfig.types.json --watch",
     "build:cjs": "tsc --project ./tsconfig/tsconfig.cjs.json && tsc-alias -p ./tsconfig/tsconfig.cjs.json && echo > ./dist/_cjs/package.json '{\"type\":\"commonjs\"}'",
     "build:esm": "tsc --project ./tsconfig/tsconfig.esm.json && tsc-alias -p ./tsconfig/tsconfig.esm.json && echo > ./dist/_esm/package.json '{\"type\": \"module\",\"sideEffects\":false}'",
     "build:types": "tsc --project ./tsconfig/tsconfig.types.json && tsc-alias -p ./tsconfig/tsconfig.types.json"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.6.0",
+    "@biomejs/biome": "^1.8.3",
     "@changesets/cli": "^2.27.1",
     "@commitlint/cli": "^19.0.3",
     "@commitlint/config-conventional": "^19.0.3",
@@ -117,6 +119,7 @@
     "commit-msg": "npx --no -- commitlint --edit ${1}"
   },
   "dependencies": {
-    "merkletreejs": "^0.3.11"
+    "merkletreejs": "^0.4.0",
+    "@silencelaboratories/walletprovider-sdk": "^0.1.0"
   }
 }
