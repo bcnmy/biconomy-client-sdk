@@ -1,5 +1,11 @@
 # @biconomy/account
 
+## 4.5.4
+
+### Patch Changes
+
+- Fix CJS builds
+
 ## 4.5.3
 
 ### Minor Changes
