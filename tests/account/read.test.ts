@@ -84,11 +84,11 @@ describe("Account:Read", () => {
         })
       )
     )
-    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
-      [smartAccount, smartAccountTwo].map((account) =>
-        account.getAccountAddress()
+      ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+        [smartAccount, smartAccountTwo].map((account) =>
+          account.getAccountAddress()
+        )
       )
-    )
   })
 
   test.concurrent(
@@ -506,19 +506,19 @@ describe("Account:Read", () => {
   test.concurrent("should have correct fields", async () => {
     const chainId = 1
     const chain = getChain(chainId)
-    ;[
-      "blockExplorers",
-      "contracts",
-      "fees",
-      "formatters",
-      "id",
-      "name",
-      "nativeCurrency",
-      "rpcUrls",
-      "serializers"
-    ].every((field) => {
-      expect(chain).toHaveProperty(field)
-    })
+      ;[
+        "blockExplorers",
+        "contracts",
+        "fees",
+        "formatters",
+        "id",
+        "name",
+        "nativeCurrency",
+        "rpcUrls",
+        "serializers"
+      ].every((field) => {
+        expect(chain).toHaveProperty(field)
+      })
   })
 
   test.concurrent("should throw an error, chain id not found", async () => {
@@ -726,8 +726,8 @@ describe("Account:Read", () => {
     const token: Hex = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
 
     const txs = [
-      { address: token, amount: BigInt(1), recipient: sender },
-      { address: NATIVE_TOKEN_ALIAS, amount: BigInt(1) }
+      { address: token, amount: 1n, recipient: sender },
+      { address: NATIVE_TOKEN_ALIAS, amount: 1n }
     ]
 
     expect(async () => smartAccount.withdraw(txs)).rejects.toThrow(
