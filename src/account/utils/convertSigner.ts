@@ -110,7 +110,7 @@ export const convertSigner = async (
 */
 export const getSignerAddress = async (signer: SupportedSigner): Promise<Hex> => {
   if (isEthersSigner(signer)) {
-    const result = await (signer as Signer).getAddress();
+    const result = await (signer as Signer)?.getAddress();
     if (result) return result as Hex
     throw new Error("Unsupported signer");
   } if (isWalletClient(signer)) {
