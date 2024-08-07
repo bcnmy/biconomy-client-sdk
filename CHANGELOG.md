@@ -1,5 +1,11 @@
 # @biconomy/account
 
+## 4.5.6
+
+### Patch Changes
+
+- shorten default pollInterval
+
 ## 4.5.5
 
 ### Patch Changes
