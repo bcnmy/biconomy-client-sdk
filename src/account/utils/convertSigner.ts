@@ -6,7 +6,7 @@ import {
   createWalletClient
 } from "viem"
 import { WalletClientSigner } from "../../account"
-import type { LightSigner, Signer, SmartAccountSigner, SupportedSigner } from "../../account"
+import type { Signer, SmartAccountSigner, SupportedSigner } from "../../account"
 import { EthersSigner } from "./EthersSigner.js"
 
 interface SmartAccountResult {
