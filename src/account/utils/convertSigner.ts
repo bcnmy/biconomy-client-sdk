@@ -1,5 +1,6 @@
 import {
   http,
+  type Hex,
   type PrivateKeyAccount,
   type WalletClient,
   createWalletClient
@@ -100,4 +101,30 @@ export const convertSigner = async (
     resolvedSmartAccountSigner = signer as SmartAccountSigner
   }
   return { signer: resolvedSmartAccountSigner, rpcUrl, chainId }
+}
+/*
+  This function is used to get the signer's address, it can be used to get the signer's address from different types of signers.
+  The function takes a signer as an argument and returns the signer's address.
+  The function checks the type of the signer and returns the signer's address based on the type of the signer.
+  The function throws an error if the signer is not supported.
+*/
+export const getSignerAddress = async (signer: SupportedSigner): Promise<Hex> => {
+  if (isEthersSigner(signer)) {
+    const result = await (signer as Signer)?.getAddress();
+    if (result) return result as Hex
+    throw new Error("Unsupported signer");
+  } if (isWalletClient(signer)) {
+    const result = ((signer as WalletClient)?.account?.address);
+    if (result) return result as Hex
+    throw new Error("Unsupported signer");
+  } if (isPrivateKeyAccount(signer)) {
+    const result = ((signer as PrivateKeyAccount)?.address);
+    if (result) return result as Hex
+    throw new Error("Unsupported signer");
+  } if (isAlchemySigner(signer)) {
+    const result = ((signer as SmartAccountSigner)?.inner?.address);
+    if (result) return result as Hex
+    throw new Error("Unsupported signer");
+  }
+  throw new Error("Unsupported signer");
 }
