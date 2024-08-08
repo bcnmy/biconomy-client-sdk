@@ -41,44 +41,38 @@ describe("Account:Modules:OwnableValidator", async () => {
     1,
     owners
   )
-  
+
   describe("Ownable Validator Module Tests", async () => {
     test("install Ownable Validator with 1 owner", async () => {
-      const isInstalledBefore = await smartAccount.isModuleInstalled(
-        {
-            moduleType: ModuleType.Validation,
-            moduleAddress: OWNABLE_VALIDATOR
-        }
-      )
+      const isInstalledBefore = await smartAccount.isModuleInstalled({
+        moduleType: ModuleType.Validation,
+        moduleAddress: OWNABLE_VALIDATOR
+      })
 
-      const threshold = 1;
+      const threshold = 1
       const installData = encodeAbiParameters(
         [
-          { name: 'threshold', type: 'uint256' }, 
-          { name: 'owners', type: 'address[]' },
+          { name: "threshold", type: "uint256" },
+          { name: "owners", type: "address[]" }
         ],
-        [BigInt(threshold), [walletClient.account.address]],
+        [BigInt(threshold), [walletClient.account.address]]
       )
 
       // 866077811418299683029716658306608038086113973150706820694579085353n
       // 866077811418299683029716658306608038086113973150706820694579085354n
-      console.log(isInstalledBefore, "isInstalledBefore");
+      console.log(isInstalledBefore, "isInstalledBefore")
 
       if (!isInstalledBefore) {
-        const userOpReceipt: UserOpReceipt = await smartAccount.installModule(
-          {
-            moduleAddress: OWNABLE_VALIDATOR,
-            moduleType: ModuleType.Validation,
-            data: installData
-          }
-        )
+        const userOpReceipt: UserOpReceipt = await smartAccount.installModule({
+          moduleAddress: OWNABLE_VALIDATOR,
+          moduleType: ModuleType.Validation,
+          data: installData
+        })
 
-        const isInstalled = await smartAccount.isModuleInstalled(
-          {
-            moduleType: ModuleType.Validation,
-            moduleAddress: OWNABLE_VALIDATOR
-          }
-        )
+        const isInstalled = await smartAccount.isModuleInstalled({
+          moduleType: ModuleType.Validation,
+          moduleAddress: OWNABLE_VALIDATOR
+        })
 
         smartAccount.setActiveValidationModule(ownableValidatorModule)
 
@@ -88,12 +82,10 @@ describe("Account:Modules:OwnableValidator", async () => {
     }, 60000)
 
     test("Ownable Validator Module should be installed", async () => {
-      const isInstalled = await smartAccount.isModuleInstalled(
-        {
-            moduleType: ModuleType.Validation,
-            moduleAddress: OWNABLE_VALIDATOR
-        }
-      )
+      const isInstalled = await smartAccount.isModuleInstalled({
+        moduleType: ModuleType.Validation,
+        moduleAddress: OWNABLE_VALIDATOR
+      })
       expect(isInstalled).toBeTruthy()
     }, 60000)
 

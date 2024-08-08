@@ -12,10 +12,10 @@ import {
   hexToBytes,
   pad,
   parseAbi,
+  parseEther,
   stringToBytes,
   toBytes,
-  toHex,
-  parseEther
+  toHex
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { describe, expect, test } from "vitest"
@@ -29,10 +29,7 @@ import {
   createOwnableExecutorModule,
   makeInstallDataAndHash
 } from "../../src"
-import {
-  ModuleType,
-  createSmartAccountClient
-} from "../../src/account"
+import { ModuleType, createSmartAccountClient } from "../../src/account"
 import type { UserOpReceipt } from "../../src/bundler"
 import { getConfig } from "../utils"
 

@@ -34,7 +34,7 @@ import { getChain } from "../../src/account"
 import type { NexusSmartAccount } from "../../src/account/NexusSmartAccount"
 import { BiconomyFactoryAbi } from "../../src/account/abi/K1ValidatorFactory"
 import { NexusAccountAbi } from "../../src/account/abi/SmartAccount"
-import { createK1ValidatorModule, K1_VALIDATOR } from "../../src/modules"
+import { K1_VALIDATOR, createK1ValidatorModule } from "../../src/modules"
 import {
   checkBalance,
   getAccountDomainStructFields,
@@ -697,7 +697,7 @@ describe("Account:Read", () => {
             ]
           )
         )
-        
+
         // Calculate the parent struct hash
         const parentStructHash = keccak256(
           encodeAbiParameters(parseAbiParameters("bytes32, bytes32"), [
@@ -761,8 +761,9 @@ describe("Account:Read", () => {
           )
         )
 
-        const encodedAccountDomainStructFields = await getAccountDomainStructFields(publicClient, smartAccountAddress)
-        
+        const encodedAccountDomainStructFields =
+          await getAccountDomainStructFields(publicClient, smartAccountAddress)
+
         // Calculate the parent struct hash
         const parentStructHash = keccak256(
           encodePacked(
@@ -799,7 +800,12 @@ describe("Account:Read", () => {
           [smartAccount.activeValidationModule.moduleAddress, signature]
         )
 
-        const contents = keccak256(encodePacked(["bytes", "bytes", "bytes"], ["0x1901", domainSeparator, hashMessage(data)]));
+        const contents = keccak256(
+          encodePacked(
+            ["bytes", "bytes", "bytes"],
+            ["0x1901", domainSeparator, hashMessage(data)]
+          )
+        )
 
         const contractResponse = await publicClient.readContract({
           address: await smartAccount.getAddress(),

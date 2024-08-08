@@ -19,7 +19,7 @@ export abstract class BaseValidationModule extends BaseModule {
   }
 
   async signUserOpHash(userOpHash: string): Promise<Hex> {
-    let signature = await this.signer.signMessage({raw: userOpHash as Hex})
+    const signature = await this.signer.signMessage({ raw: userOpHash as Hex })
     return signature as Hex
   }
 

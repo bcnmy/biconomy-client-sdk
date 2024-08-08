@@ -1,7 +1,4 @@
-import {
-  ModuleType,
-  type SmartAccountSigner
-} from "../../account/index.js"
+import { ModuleType, type SmartAccountSigner } from "../../account/index.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
 import { K1_VALIDATOR } from "../utils/Constants.js"
 import type { V3ModuleInfo } from "../utils/Types.js"

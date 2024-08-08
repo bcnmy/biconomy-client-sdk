@@ -9,14 +9,11 @@ import {
 } from "viem"
 import type { Hex } from "viem"
 import type { NexusSmartAccount } from "../../account/NexusSmartAccount.js"
-import {
-  ModuleType,
-  SENTINEL_ADDRESS
-} from "../../account/index.js"
+import { ModuleType, SENTINEL_ADDRESS } from "../../account/index.js"
 import type { UserOpReceipt } from "../../bundler/index.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
-import type { V3ModuleInfo } from "../utils/Types.js"
 import { OWNABLE_VALIDATOR } from "../utils/Constants.js"
+import type { V3ModuleInfo } from "../utils/Types.js"
 
 export class OwnableValidator extends BaseValidationModule {
   public smartAccount: NexusSmartAccount

@@ -1363,7 +1363,9 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     validationMode?: typeof MODE_VALIDATION | typeof MODE_MODULE_ENABLE
   ): Promise<bigint> {
     try {
-      const vm = this.activeValidationModule.moduleAddress ?? this.defaultValidationModule.moduleAddress
+      const vm =
+        this.activeValidationModule.moduleAddress ??
+        this.defaultValidationModule.moduleAddress
       const key = concat(["0x000000", validationMode ?? MODE_VALIDATION, vm])
       const accountAddress = await this.getAddress()
       return (await this.entryPoint.read.getNonce([
@@ -2021,10 +2023,16 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     this.isActiveValidationModuleDefined()
     const dataHash = typeof message === "string" ? toBytes(message) : message
 
-    signature = await this.activeValidationModule.signMessage(dataHash) ?? this.defaultValidationModule.signMessage(dataHash)
+    signature =
+      (await this.activeValidationModule.signMessage(dataHash)) ??
+      this.defaultValidationModule.signMessage(dataHash)
     signature = encodePacked(
       ["address", "bytes"],
-      [this.activeValidationModule.getAddress() ?? this.defaultValidationModule.getAddress(), signature]
+      [
+        this.activeValidationModule.getAddress() ??
+          this.defaultValidationModule.getAddress(),
+        signature
+      ]
     )
     if (await this.isAccountDeployed()) {
       return signature
@@ -2177,7 +2185,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     moduleType,
     moduleSelector,
     data
-  }: ModuleInfoParams): Promise<UserOpReceipt> {  
+  }: ModuleInfoParams): Promise<UserOpReceipt> {
     let execution: Execution
     switch (moduleType) {
       case ModuleType.Validation:

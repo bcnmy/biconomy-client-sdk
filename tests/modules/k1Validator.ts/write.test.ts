@@ -1,9 +1,14 @@
-import { http, createWalletClient, encodeAbiParameters, encodePacked } from "viem"
+import {
+  http,
+  createWalletClient,
+  encodeAbiParameters,
+  encodePacked
+} from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { sepolia } from "viem/chains"
 import { afterEach, describe, expect, test } from "vitest"
 import {
-    K1_VALIDATOR,
+  K1_VALIDATOR,
   Module,
   ModuleType,
   OWNABLE_VALIDATOR,
@@ -38,26 +43,22 @@ describe("Account:Modules:OwnableValidator", async () => {
   const k1ValidationModule = await createK1ValidatorModule(
     smartAccount.getSigner()
   )
-  
+
   describe("K1 Validator Module Tests", async () => {
     test("install k1 Validator with 1 owner", async () => {
-      const isInstalledBefore = await smartAccount.isModuleInstalled(
-        {
-            moduleType: ModuleType.Validation,
-            moduleAddress: K1_VALIDATOR
-        }
-      )
+      const isInstalledBefore = await smartAccount.isModuleInstalled({
+        moduleType: ModuleType.Validation,
+        moduleAddress: K1_VALIDATOR
+      })
 
-      console.log(isInstalledBefore, "isInstalledBefore");
+      console.log(isInstalledBefore, "isInstalledBefore")
 
       if (!isInstalledBefore) {
-        const userOpReceipt: UserOpReceipt = await smartAccount.installModule(
-          {
-            moduleAddress: K1_VALIDATOR,
-            moduleType: ModuleType.Validation,
-            data: encodePacked(['address'], [await smartAccount.getAddress()])
-          }
-        )
+        const userOpReceipt: UserOpReceipt = await smartAccount.installModule({
+          moduleAddress: K1_VALIDATOR,
+          moduleType: ModuleType.Validation,
+          data: encodePacked(["address"], [await smartAccount.getAddress()])
+        })
 
         // const isInstalled = await smartAccount.isModuleInstalled(
         //   {
@@ -74,12 +75,10 @@ describe("Account:Modules:OwnableValidator", async () => {
     }, 60000)
 
     test("Ownable Validator Module should be installed", async () => {
-      const isInstalled = await smartAccount.isModuleInstalled(
-        {
-            moduleType: ModuleType.Validation,
-            moduleAddress: OWNABLE_VALIDATOR
-        }
-      )
+      const isInstalled = await smartAccount.isModuleInstalled({
+        moduleType: ModuleType.Validation,
+        moduleAddress: OWNABLE_VALIDATOR
+      })
       expect(isInstalled).toBeTruthy()
     }, 60000)
   })

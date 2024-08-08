@@ -55,7 +55,7 @@ describe("Account:Modules:OwnableExecutor", async () => {
     //     ["address"],
     //     [await smartAccount.getAddress()]
     //   ));
-      
+
     //   if (!isInstalled) {
     //     const receipt = await smartAccount.installModule({
     //       moduleAddress: OWNABLE_EXECUTOR,
@@ -84,7 +84,7 @@ describe("Account:Modules:OwnableExecutor", async () => {
         moduleType: ModuleType.Execution,
         moduleAddress: OWNABLE_EXECUTOR
       })
-      console.log(isInstalled, "isInstalled");
+      console.log(isInstalled, "isInstalled")
       expect(isInstalled).toBeTruthy()
     }, 60000)
 
@@ -139,7 +139,7 @@ describe("Account:Modules:OwnableExecutor", async () => {
       const ownersBefore = await ownableExecutorModule.getOwners()
       const isOwnerBefore = ownersBefore.includes(accountTwo.address)
 
-      if(isOwnerBefore) {
+      if (isOwnerBefore) {
         console.log("Owner already exists in list, skipping test case ...")
         return
       }
@@ -169,7 +169,7 @@ describe("Account:Modules:OwnableExecutor", async () => {
       expect(isOwner).toBeTruthy()
 
       const balanceBefore = await smartAccount.getBalances([token])
-      console.log("balanceBefore", balanceBefore);
+      console.log("balanceBefore", balanceBefore)
 
       const calldata = encodeFunctionData({
         abi: parseAbi([
@@ -193,9 +193,9 @@ describe("Account:Modules:OwnableExecutor", async () => {
       })
 
       const balanceAfter = await smartAccount.getBalances([token])
-      console.log("balanceAfter", balanceAfter);
+      console.log("balanceAfter", balanceAfter)
 
-      console.log("txHash", txHash);
+      console.log("txHash", txHash)
       expect(txHash).toBeTruthy()
     }, 60000)
 
