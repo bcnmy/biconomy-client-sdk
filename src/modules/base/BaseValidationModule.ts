@@ -19,8 +19,8 @@ export abstract class BaseValidationModule extends BaseModule {
   }
 
   async signUserOpHash(userOpHash: string): Promise<Hex> {
-    const sig = await this.signer.signMessage({ raw: userOpHash as Hex })
-    return sig
+    let signature = await this.signer.signMessage({raw: userOpHash as Hex})
+    return signature as Hex
   }
 
   async signMessageSmartAccountSigner(

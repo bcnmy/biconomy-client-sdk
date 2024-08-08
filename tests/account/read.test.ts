@@ -2,7 +2,6 @@ import { JsonRpcProvider } from "@ethersproject/providers"
 import { Wallet } from "@ethersproject/wallet"
 import {
   http,
-  Address,
   type Hex,
   concat,
   createPublicClient,
@@ -19,17 +18,14 @@ import {
   toHex
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { verifyMessage } from "viem/actions"
 import { bsc, sepolia } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   DEFAULT_BICONOMY_FACTORY_ADDRESS,
   ERROR_MESSAGES,
-  K1_VALIDATOR,
   ModuleType,
   NATIVE_TOKEN_ALIAS,
   type NexusSmartAccountConfig,
-  UserOperationStruct,
   compareChainIds,
   createSmartAccountClient,
   makeInstallDataAndHash
@@ -38,7 +34,7 @@ import { getChain } from "../../src/account"
 import type { NexusSmartAccount } from "../../src/account/NexusSmartAccount"
 import { BiconomyFactoryAbi } from "../../src/account/abi/K1ValidatorFactory"
 import { NexusAccountAbi } from "../../src/account/abi/SmartAccount"
-import { createK1ValidatorModule } from "../../src/modules"
+import { createK1ValidatorModule, K1_VALIDATOR } from "../../src/modules"
 import {
   checkBalance,
   getAccountDomainStructFields,
@@ -97,22 +93,6 @@ describe("Account:Read", () => {
         account.getAccountAddress()
       )
     )
-
-    if (!(await smartAccount.isAccountDeployed())) {
-      // await walletClient.sendTransaction({
-      //   to: smartAccountAddress,
-      //   value: parseEther("0.01")
-      // })
-      await smartAccount.deploy()
-    }
-
-    if (!(await smartAccountTwo.isAccountDeployed())) {
-      // await walletClientTwo.sendTransaction({
-      //   to: smartAccountAddressTwo,
-      //   value: parseEther("0.01")
-      // })
-      await smartAccountTwo.deploy()
-    }
   })
 
   test.concurrent(
@@ -808,7 +788,7 @@ describe("Account:Read", () => {
           [
             signature,
             domainSeparator,
-            data,
+            hashMessage(data),
             contentsType,
             BigInt(contentsType.length)
           ]
@@ -819,7 +799,7 @@ describe("Account:Read", () => {
           [smartAccount.activeValidationModule.moduleAddress, signature]
         )
 
-        const contents = keccak256(encodePacked(["bytes", "bytes", "bytes"], ["0x1901", domainSeparator, data]));
+        const contents = keccak256(encodePacked(["bytes", "bytes", "bytes"], ["0x1901", domainSeparator, hashMessage(data)]));
 
         const contractResponse = await publicClient.readContract({
           address: await smartAccount.getAddress(),

@@ -30,7 +30,6 @@ import {
   makeInstallDataAndHash
 } from "../../src"
 import {
-  K1_VALIDATOR,
   ModuleType,
   createSmartAccountClient
 } from "../../src/account"
@@ -91,33 +90,31 @@ describe("Account:Write", async () => {
       expect(userOp).toBeTruthy()
     }, 60000)
 
-    // test("Mint NFT - Single Call", async () => {
-    //   const encodedCall = encodeFunctionData({
-    //     abi: parseAbi(["function safeMint(address _to)"]),
-    //     functionName: "safeMint",
-    //     args: [recipient]
-    //   })
+    test("Mint NFT - Single Call", async () => {
+      const encodedCall = encodeFunctionData({
+        abi: parseAbi(["function safeMint(address _to)"]),
+        functionName: "safeMint",
+        args: [recipient]
+      })
 
-    //   // smartAccount.setActiveValidationModule()
+      // smartAccount.setActiveValidationModule()
 
-    //   // const isInstalled = await smartAccount.isModuleInstalled({moduleType: ModuleType.Validation, moduleAddress: K1_VALIDATOR});
-    //   // console.log(isInstalled);
+      // const isInstalled = await smartAccount.isModuleInstalled({moduleType: ModuleType.Validation, moduleAddress: K1_VALIDATOR});
+      // console.log(isInstalled);
 
-    //   const transaction = {
-    //     to: nftAddress, // NFT address
-    //     data: encodedCall
-    //   }
-    //   const gasCost = await smartAccount.getGasEstimate([transaction])
-    //   console.log(gasCost, "gasCost")
+      const transaction = {
+        to: nftAddress, // NFT address
+        data: encodedCall
+      }
 
-    //   const response = await smartAccount.sendTransaction([transaction])
-    //   console.log(response, "response")
+      const response = await smartAccount.sendTransaction([transaction])
+      console.log(response, "response")
 
-    //   const receipt = await response.wait()
-    //   console.log(receipt, "receipt")
+      // const receipt = await response.wait()
+      // console.log(receipt, "receipt")
 
-    //   // expect(receipt.userOpHash).toBeTruthy()
-    // }, 60000)
+      // expect(receipt.userOpHash).toBeTruthy()
+    }, 60000)
 
     // test("Use enable mode", async () => {
     //   const counterAddress = "0x6BFE41FF0605a87911c0542bF958691ea2ac77f8" // base sepolia

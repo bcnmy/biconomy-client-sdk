@@ -14,7 +14,7 @@ import {
   UserOpWaitForTxHashIntervals,
   UserOpWaitForTxHashMaxDurationIntervals
 } from "./utils/Constants.js"
-import { getTimestampInSeconds } from "./utils/HelperFunction.js"
+import { decodeUserOperationError, getTimestampInSeconds } from "./utils/HelperFunction.js"
 import type {
   BundlerConfigWithChainId,
   BundlerEstimateUserOpGasResponse,
@@ -106,7 +106,7 @@ export class Bundler implements IBundler {
     _userOp: UserOperationStruct
   ): Promise<UserOpGasResponse> {
     const bundlerUrl = this.getBundlerUrl()
-
+    
     const response: {
       result: BundlerEstimateUserOpGasResponse
       error: { message: string }
@@ -134,8 +134,9 @@ export class Bundler implements IBundler {
     }
 
     if (isNullOrUndefined(response.result)) {
+      const decodedError = decodeUserOperationError(JSON.stringify(response?.error?.message));
       throw new Error(
-        `Error from Bundler: ${JSON.stringify(response?.error?.message)}`
+        `Error from Bundler: ${decodedError}`
       )
     }
 

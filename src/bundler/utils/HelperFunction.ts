@@ -32,3 +32,26 @@
 export const getTimestampInSeconds = (): number => {
   return Math.floor(Date.now() / 1000)
 }
+
+export function decodeUserOperationError(errorFromBundler: string) {
+  const prefix = "UserOperation reverted during simulation with reason: ";
+  if (errorFromBundler.includes(prefix)) {
+    const errorCode = errorFromBundler.slice(prefix.length).trim().replace(/"/g, '');
+    return decodeErrorCode(errorCode);
+  }
+  return errorFromBundler; // Return original error if it doesn't match the expected format
+}
+
+function decodeErrorCode(errorCode: string) {
+  const errorMap: { [key: string]: string } = {
+    "0xe7190273": "NotSortedAndUnique: The owners array must contain unique addresses.",
+    "0xf91bd6f1000000000000000000000000da6959da394b1bddb068923a9a214dc0cd193d2e" : "NotInitialized: The module is not initialized on this smart account.",
+    "0xaabd5a09": "InvalidThreshold: The threshold must be greater than or equal to the number of owners.",
+    "0x71448bfe000000000000000000000000bf2137a23f439ca5aa4360cc6970d70b24d07ea2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c0": "WrongContractSignatureFormat",
+    "0x40d3d1a40000000000000000000000004d8249d21c9553b1bd23cabf611011376dd3416a" : "LinkedList_EntryAlreadyInList",
+    "0x40d3d1a40000000000000000000000004b8306128aed3d49a9d17b99bf8082d4e406fa1f": "LinkedList_EntryAlreadyInList"
+    // Add more error codes and their corresponding human-readable messages here
+  };
+  const decodedError = errorMap[errorCode] || errorCode;
+  return `User operation reverted during simulation with reason: ${decodedError}`;
+}
