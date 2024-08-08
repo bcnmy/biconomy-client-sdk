@@ -32,6 +32,7 @@ import type {
 } from "./utils/Types.js"
 import { extractChainIdFromBundlerUrl } from "./utils/Utils.js"
 
+const POLL_INTERVAL = 2000;
 /**
  * This class implements IBundler interface.
  * Implementation sends UserOperation to a bundler URL as per ERC4337 standard.
@@ -182,7 +183,7 @@ export class Bundler implements IBundler {
         let totalDuration = 0
 
         return new Promise<UserOpReceipt>((resolve, reject) => {
-          const intervalValue = this.UserOpReceiptIntervals[chainId] || 5000 // default 5 seconds
+          const intervalValue = this.UserOpReceiptIntervals[chainId] || POLL_INTERVAL
           const intervalId = setInterval(async () => {
             try {
               const userOpResponse = await this.getUserOpReceipt(
@@ -215,10 +216,8 @@ export class Bundler implements IBundler {
               clearInterval(intervalId)
               reject(
                 new Error(
-                  `Exceeded maximum duration (${
-                    maxDuration / 1000
-                  } sec) waiting to get receipt for userOpHash ${
-                    sendUserOperationResponse.result
+                  `Exceeded maximum duration (${maxDuration / 1000
+                  } sec) waiting to get receipt for userOpHash ${sendUserOperationResponse.result
                   }. Try getting the receipt manually using eth_getUserOperationReceipt rpc method on bundler`
                 )
               )
@@ -255,10 +254,8 @@ export class Bundler implements IBundler {
               clearInterval(intervalId)
               reject(
                 new Error(
-                  `Exceeded maximum duration (${
-                    maxDuration / 1000
-                  } sec) waiting to get receipt for userOpHash ${
-                    sendUserOperationResponse.result
+                  `Exceeded maximum duration (${maxDuration / 1000
+                  } sec) waiting to get receipt for userOpHash ${sendUserOperationResponse.result
                   }. Try getting the receipt manually using eth_getUserOperationReceipt rpc method on bundler`
                 )
               )
