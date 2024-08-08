@@ -1,6 +1,6 @@
 export const extractChainIdFromBundlerUrl = (url: string): number => {
   try {
-    const regex = /\/api\/v2\/(\d+)\/[a-zA-Z0-9.-]+$/
+    const regex = /\/api\/v[2-3]\/(\d+)\/[a-zA-Z0-9.-]+$/
     // biome-ignore lint/style/noNonNullAssertion: <explanation>
     const match = regex.exec(url)!
     return Number.parseInt(match[1])
