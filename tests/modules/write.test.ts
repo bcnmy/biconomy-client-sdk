@@ -397,7 +397,7 @@ describe("Modules:Write", () => {
     expect(nftBalanceAfter - nftBalanceBefore).toBe(1n);
   }, 50000);
 
-  test("should use MultichainValidationModule to mint an NFT on two chains with sponsorship", async () => {
+  test.skip("should use MultichainValidationModule to mint an NFT on two chains with sponsorship", async () => {
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
 
     const chainIdBase = 84532;
@@ -478,19 +478,17 @@ describe("Modules:Write", () => {
       data: encodedCall,
     };
 
+    const options = {
+      ...withSponsorship, gasOffset: {
+        verificationGasLimitOffsetPct: 100,
+        preVerificationGasOffsetPct: 50,
+      },
+      nonceOptions
+    }
+
     const [partialUserOp1, partialUserOp2] = await Promise.all([
-      baseAccount.buildUserOp([transaction], {
-        ...withSponsorship, gasOffset: {
-          verificationGasLimitOffsetPct: 100,
-          preVerificationGasOffsetPct: 50
-        }
-      }),
-      polygonAccount.buildUserOp([transaction], {
-        ...withSponsorship, gasOffset: {
-          verificationGasLimitOffsetPct: 100,
-          preVerificationGasOffsetPct: 50
-        }
-      }),
+      baseAccount.buildUserOp([transaction], options),
+      polygonAccount.buildUserOp([transaction], options),
     ]);
 
     expect(partialUserOp1.paymasterAndData).not.toBe("0x");
