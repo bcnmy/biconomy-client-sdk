@@ -77,7 +77,8 @@ export const convertSigner = async (
         chainId = walletClient.chain.id
       }
       // convert viems walletClient to alchemy's SmartAccountSigner under the hood
-      resolvedSmartAccountSigner = new WalletClientSigner(walletClient, "viem")
+      resolvedSmartAccountSigner = new WalletClientSigner(walletClient, "viem");
+
       rpcUrl = walletClient?.transport?.url ?? undefined
     } else if (isPrivateKeyAccount(signer)) {
       if (rpcUrl !== null && rpcUrl !== undefined) {

@@ -13,10 +13,11 @@
 - Distributed Session Keys
 
 ## 4.5.3
+## 4.6.0
 
 ### Minor Changes
 
-- Sessions Dx
+- Distributed Sessions
 
 ## 4.5.2
 
