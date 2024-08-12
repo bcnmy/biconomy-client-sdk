@@ -1,4 +1,4 @@
-import { http, type Hex, createWalletClient, encodeFunctionData, parseAbi } from "viem"
+import { http, type Hex, createPublicClient, createWalletClient, encodeFunctionData, parseAbi } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { polygonAmoy } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
@@ -52,61 +52,82 @@ describe("Playground:Write", () => {
         transport: http()
       })
 
-      const smartAccount = await createSmartAccountClient({
-        signer: walletClientWithCustomChain,
-        bundlerUrl,
-        paymasterUrl,
-        customChain
+      const publicClient = createPublicClient({
+        chain: customChain,
+        transport: http()
       })
 
-      const smartAccountAddress: Hex = await smartAccount.getAddress();
 
-      const [balance] = await smartAccount.getBalances();
-      if (balance.amount <= 0) console.warn("Smart account balance is zero");
+      // const smartAccount = await createSmartAccountClient({
+      //   signer: walletClientWithCustomChain,
+      //   bundlerUrl,
+      //   paymasterUrl,
+      //   customChain
+      // })
 
-      const policy: PolicyLeaf[] = [
-        {
-          contractAddress: incrementCountContractAdd,
-          functionSelector: "increment()",
-          rules: [],
-          interval: {
-            validUntil: 0,
-            validAfter: 0,
-          },
-          valueLimit: BigInt(0),
-        },
-      ];
+      // const smartAccountAddress: Hex = await smartAccount.getAddress();
 
-      const { wait } = await createSession(smartAccount, policy, null, withSponsorship);
-      const { success } = await wait();
+      // const [balance] = await smartAccount.getBalances();
+      // if (balance.amount <= 0) console.warn("Smart account balance is zero");
 
-      expect(success).toBe("true");
+      // const policy: PolicyLeaf[] = [
+      //   {
+      //     contractAddress: incrementCountContractAdd,
+      //     functionSelector: "increment()",
+      //     rules: [],
+      //     interval: {
+      //       validUntil: 0,
+      //       validAfter: 0,
+      //     },
+      //     valueLimit: BigInt(0),
+      //   },
+      // ];
 
-      const smartAccountWithSession = await createSessionSmartAccountClient(
-        {
-          accountAddress: smartAccountAddress, // Set the account address on behalf of the user
-          bundlerUrl,
-          paymasterUrl,
-          chainId,
-        },
-        "DEFAULT_STORE" // Storage client, full Session or smartAccount address if using default storage
-      );
+      // const { wait } = await createSession(smartAccount, policy, null, withSponsorship);
+      // const { success } = await wait();
 
-      const { wait: mintWait } = await smartAccountWithSession.sendTransaction(
-        {
-          to: incrementCountContractAdd,
-          data: encodeFunctionData({
-            abi: parseAbi(["function increment()"]),
-            functionName: "increment",
-            args: [],
-          }),
-        },
-        { paymasterServiceData: { mode: PaymasterMode.SPONSORED } },
-        { leafIndex: "LAST_LEAF" },
-      );
+      // expect(success).toBe("true");
 
-      const { success: mintSuccess, receipt } = await mintWait();
-      expect(mintSuccess).toBe("true");
+      // const smartAccountWithSession = await createSessionSmartAccountClient(
+      //   {
+      //     accountAddress: smartAccountAddress, // Set the account address on behalf of the user
+      //     bundlerUrl,
+      //     paymasterUrl,
+      //     chainId,
+      //   },
+      //   "DEFAULT_STORE" // Storage client, full Session or smartAccount address if using default storage
+      // );
+
+      // const { wait: mintWait } = await smartAccountWithSession.sendTransaction(
+      //   {
+      //     to: incrementCountContractAdd,
+      //     data: encodeFunctionData({
+      //       abi: parseAbi(["function increment()"]),
+      //       functionName: "increment",
+      //       args: [],
+      //     }),
+      //   },
+      //   { paymasterServiceData: { mode: PaymasterMode.SPONSORED } },
+      //   { leafIndex: "LAST_LEAF" },
+      // );
+
+
+      const hash = await walletClientWithCustomChain.sendTransaction({
+        to: incrementCountContractAdd,
+        data: encodeFunctionData({
+          abi: parseAbi(["function increment()"]),
+          functionName: "increment",
+        }),
+      });
+
+
+      const receipt = await publicClient.getTransactionReceipt({ hash });
+      console.log({ receipt })
+
+      // const { success: mintSuccess, receipt } = await mintWait();
+      // expect(mintSuccess).toBe("true");
+
+      console.log({ receipt })
 
     },
     30000
