@@ -13,6 +13,7 @@ import type { UserOpResponse } from "../../bundler/index.js";
 import {
   type SessionSearchParam,
   createBatchedSessionRouterModule,
+  createDANSessionKeyManagerModule,
   createSessionKeyManagerModule,
   type getSingleSessionTxParams,
   resumeSession,
@@ -144,11 +145,17 @@ export const createSessionSmartAccountClient = async (
       sessionKeyManagerModule: sessionModule,
     },
   );
+  const danSessionValidationModule = await createDANSessionKeyManagerModule({
+    smartAccountAddress: biconomySmartAccountConfig.accountAddress,
+    sessionStorageClient,
+  });
 
   const activeValidationModule =
     defaultedSessionType === "BATCHED"
       ? batchedSessionValidationModule
-      : sessionModule
+      : defaultedSessionType === "STANDARD"
+        ? sessionModule
+        : danSessionValidationModule;
 
   return await createSmartAccountClient({
     ...biconomySmartAccountConfig,

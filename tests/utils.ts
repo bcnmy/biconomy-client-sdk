@@ -187,5 +187,7 @@ export const topUp = async (
   }
 }
 
-export const getBundlerUrl = (chainId: number) =>
-  `https://bundler.biconomy.io/api/v2/${chainId}/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f14`
+export const getBundlerUrl = (chainId: number, apiKey?: string) =>
+  `https://bundler.biconomy.io/api/v2/${chainId}/${apiKey ?? "nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f14"}`
+
+export const getPaymasterUrl = (chainId: number, apiKey: string) => `https://paymaster.biconomy.io/api/v1/${chainId}/${apiKey}`

@@ -132,7 +132,7 @@ export abstract class BaseSmartContractAccount<
    * @param _params -- Typed Data params to sign
    */
   async signTypedData(_params: SignTypedDataParams): Promise<`0x${string}`> {
-    return this.signer.signTypedData(_params)
+    throw new Error("signTypedData not supported")
   }
 
   /**
@@ -158,14 +158,16 @@ export abstract class BaseSmartContractAccount<
    * @param params -- Typed Data params to sign
    */
   async signTypedDataWith6492(
+    // @ts-ignore
     params: SignTypedDataParams
   ): Promise<`0x${string}`> {
-    const [isDeployed, signature] = await Promise.all([
-      this.isAccountDeployed(),
-      this.signTypedData(params)
-    ])
+    throw new Error("signTypedDataWith6492 not supported")
+    // const [isDeployed, signature] = await Promise.all([
+    //   this.isAccountDeployed(),
+    //   this.signTypedData(params)
+    // ])
 
-    return this.create6492Signature(isDeployed, signature)
+    // return this.create6492Signature(isDeployed, signature)
   }
 
   /**

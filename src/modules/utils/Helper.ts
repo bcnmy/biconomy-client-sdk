@@ -1,3 +1,4 @@
+import type { IBrowserWallet, TypedData } from "@silencelaboratories/walletprovider-sdk"
 import {
   type Address,
   type ByteArray,
@@ -22,10 +23,8 @@ import {
 import type {
   ChainInfo,
   HardcodedReference,
-  IBrowserWallet,
   Session,
   SignerData,
-  TypedData,
 } from "../../index.js"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import { getDefaultStorageClient } from "../session-storage/utils"
