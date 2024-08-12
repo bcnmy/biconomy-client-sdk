@@ -479,8 +479,18 @@ describe("Modules:Write", () => {
     };
 
     const [partialUserOp1, partialUserOp2] = await Promise.all([
-      baseAccount.buildUserOp([transaction], withSponsorship),
-      polygonAccount.buildUserOp([transaction], withSponsorship),
+      baseAccount.buildUserOp([transaction], {
+        ...withSponsorship, gasOffset: {
+          verificationGasLimitOffsetPct: 100,
+          preVerificationGasOffsetPct: 50
+        }
+      }),
+      polygonAccount.buildUserOp([transaction], {
+        ...withSponsorship, gasOffset: {
+          verificationGasLimitOffsetPct: 100,
+          preVerificationGasOffsetPct: 50
+        }
+      }),
     ]);
 
     expect(partialUserOp1.paymasterAndData).not.toBe("0x");
