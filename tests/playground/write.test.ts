@@ -1,17 +1,18 @@
-import { http, type Hex, createWalletClient, encodeFunctionData, parseAbi } from "viem"
+import { http, type Hex, createPublicClient, createWalletClient, encodeFunctionData, getContract, parseAbi } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { polygonAmoy } from "viem/chains"
+import { polygonAmoy, taikoHekla } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
-import { PaymasterMode, type PolicyLeaf } from "../../src"
+import { DEFAULT_BICONOMY_FACTORY_ADDRESS, PaymasterMode, type PolicyLeaf, TAIKO_FACTORY_ADDRESS, createECDSAOwnershipValidationModule } from "../../src"
 import {
   type BiconomySmartAccountV2,
   createSmartAccountClient,
   getChain,
   getCustomChain
 } from "../../src/account"
+import { BiconomyFactoryAbi } from "../../src/account/abi/Factory"
 import { createSession } from "../../src/modules/sessions/abi"
 import { createSessionSmartAccountClient } from "../../src/modules/sessions/sessionSmartAccountClient"
-import { getBundlerUrl, getConfig, getPaymasterUrl } from "../utils"
+import { checkBalance, getBundlerUrl, getConfig, getPaymasterUrl } from "../utils"
 
 const withSponsorship = {
   paymasterServiceData: { mode: PaymasterMode.SPONSORED },
@@ -19,96 +20,147 @@ const withSponsorship = {
 
 describe("Playground:Write", () => {
 
+
   test.concurrent(
-    "should quickly run a write test in the playground ",
+    "should check taiko",
     async () => {
 
-      const { privateKey } = getConfig();
-      const incrementCountContractAdd = "0xcf29227477393728935BdBB86770f8F81b698F1A";
+      const { privateKey, privateKeyTwo } = getConfig();
 
-      // const customChain = getCustomChain(
-      //   "Bera",
-      //   80084,
-      //   "https://bartio.rpc.b-harvest.io",
-      //   "https://bartio.beratrail.io/tx"
-      // )
-
-      // Switch to this line to test against Amoy
-      const customChain = polygonAmoy;
+      const customChain = taikoHekla
       const chainId = customChain.id;
       const bundlerUrl = getBundlerUrl(chainId);
 
-      const paymasterUrls = {
-        80002: getPaymasterUrl(chainId, "_sTfkyAEp.552504b5-9093-4d4b-94dd-701f85a267ea"),
-        80084: getPaymasterUrl(chainId, "9ooHeMdTl.aa829ad6-e07b-4fcb-afc2-584e3400b4f5")
-      }
-
-      const paymasterUrl = paymasterUrls[chainId];
       const account = privateKeyToAccount(`0x${privateKey}`);
+      const recipientAccount = privateKeyToAccount(`0x${privateKeyTwo}`);
 
       const walletClientWithCustomChain = createWalletClient({
         account,
         chain: customChain,
-        transport: http()
+        transport: http(),
+      })
+
+      const publicClient = createPublicClient({
+        chain: customChain,
+        transport: http(),
       })
 
       const smartAccount = await createSmartAccountClient({
         signer: walletClientWithCustomChain,
         bundlerUrl,
-        paymasterUrl,
-        customChain
+        customChain,
       })
 
       const smartAccountAddress: Hex = await smartAccount.getAddress();
-
       const [balance] = await smartAccount.getBalances();
-      if (balance.amount <= 0) console.warn("Smart account balance is zero");
 
-      const policy: PolicyLeaf[] = [
+      console.log({ smartAccountAddress, balance })
+
+      const recipientBalanceBefore = await checkBalance(recipientAccount.address, undefined, customChain);
+
+
+      console.log(await publicClient.getCode({ address: TAIKO_FACTORY_ADDRESS }))
+
+
+      const userOp = await smartAccount.buildUserOp([
         {
-          contractAddress: incrementCountContractAdd,
-          functionSelector: "increment()",
-          rules: [],
-          interval: {
-            validUntil: 0,
-            validAfter: 0,
-          },
-          valueLimit: BigInt(0),
-        },
-      ];
+          to: recipientAccount.address,
+          value: 1n
+        }
+      ])
 
-      const { wait } = await createSession(smartAccount, policy, null, withSponsorship);
-      const { success } = await wait();
+      userOp.signature = undefined
 
-      expect(success).toBe("true");
 
-      const smartAccountWithSession = await createSessionSmartAccountClient(
-        {
-          accountAddress: smartAccountAddress, // Set the account address on behalf of the user
-          bundlerUrl,
-          paymasterUrl,
-          chainId,
-        },
-        "DEFAULT_STORE" // Storage client, full Session or smartAccount address if using default storage
-      );
+      // await expect(
+      //   smartAccount.sendTransaction(
+      //     {
+      //       to: recipientAccount.address,
+      //       value: 1n
+      //     }
+      //   )
+      // ).rejects.not.toThrow("aa14")
 
-      const { wait: mintWait } = await smartAccountWithSession.sendTransaction(
-        {
-          to: incrementCountContractAdd,
-          data: encodeFunctionData({
-            abi: parseAbi(["function increment()"]),
-            functionName: "increment",
-            args: [],
-          }),
-        },
-        { paymasterServiceData: { mode: PaymasterMode.SPONSORED } },
-        { leafIndex: "LAST_LEAF" },
-      );
+      // Uncomment the following code to test the transaction...
 
-      const { success: mintSuccess, receipt } = await mintWait();
-      expect(mintSuccess).toBe("true");
+      // const { wait } = await smartAccount.sendTransaction(
+      //   {
+      //     to: recipientAccount.address,
+      //     value: 1n
+      //   }
+      // )
+
+      // const {
+      //   receipt: { transactionHash },
+      //   success
+      // } = await wait()
+
+      // expect(success).toBe("true");
+
+
+      // const recipientBalanceAfter = await checkBalance(recipientAccount.address, undefined, customChain);
+
+      // expect(transactionHash).toBeTruthy()
+      // expect(recipientBalanceBefore - recipientBalanceAfter).toBe(1n)
 
     },
     30000
   )
+
+  test.concurrent(
+    "should having matching counterFactual address from the contracts with smartAccount.getAddress()",
+    async () => {
+      const { privateKey, privateKeyTwo } = getConfig();
+
+      const customChain = taikoHekla
+      const chainId = customChain.id;
+      const bundlerUrl = getBundlerUrl(chainId);
+
+      const account = privateKeyToAccount(`0x${privateKey}`);
+      const recipientAccount = privateKeyToAccount(`0x${privateKeyTwo}`);
+
+      const publicClient = createPublicClient({
+        chain: customChain,
+        transport: http(),
+      })
+
+      const walletClientWithCustomChain = createWalletClient({
+        account,
+        chain: customChain,
+        transport: http(),
+      })
+
+      const ecdsaModule = await createECDSAOwnershipValidationModule({
+        signer: walletClientWithCustomChain
+      })
+
+
+      const smartAccount = await createSmartAccountClient({
+        signer: walletClientWithCustomChain,
+        bundlerUrl,
+        customChain,
+      })
+
+      const owner = ecdsaModule.getAddress()
+      const moduleSetupData = (await ecdsaModule.getInitData()) as Hex
+
+      const factoryContract = getContract({
+        address: TAIKO_FACTORY_ADDRESS,
+        abi: BiconomyFactoryAbi,
+        client: { public: publicClient, wallet: walletClientWithCustomChain }
+      })
+
+      const smartAccountAddressFromContracts =
+        await factoryContract.read.getAddressForCounterFactualAccount([
+          owner,
+          moduleSetupData,
+          BigInt(0)
+        ])
+
+      const smartAccountAddressFromSDK = await smartAccount.getAccountAddress()
+      expect(smartAccountAddressFromSDK).toBe(smartAccountAddressFromContracts)
+    }
+  )
+
+
 })

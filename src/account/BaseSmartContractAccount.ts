@@ -28,8 +28,7 @@ export enum DeploymentState {
 
 export abstract class BaseSmartContractAccount<
   TSigner extends SmartAccountSigner = SmartAccountSigner
-> implements ISmartContractAccount<TSigner>
-{
+> implements ISmartContractAccount<TSigner> {
   protected factoryAddress: Address
 
   protected deploymentState: DeploymentState = DeploymentState.UNDEFINED
@@ -209,18 +208,21 @@ export abstract class BaseSmartContractAccount<
   }
 
   async getInitCode(): Promise<Hex> {
-    if (this.deploymentState === DeploymentState.DEPLOYED) {
-      return "0x"
-    }
 
-    const contractCode = await this.rpcProvider.getBytecode({
-      address: await this.getAddress()
-    })
+    const address = await this.getAddress();
 
-    if ((contractCode?.length ?? 0) > 2) {
-      this.deploymentState = DeploymentState.DEPLOYED
-      return "0x"
-    }
+    // if (this.deploymentState === DeploymentState.DEPLOYED) {
+    //   return "0x"
+    // }
+
+    // const contractCode = await this.rpcProvider.getBytecode({
+    //   address: await this.getAddress()
+    // })
+
+    // if ((contractCode?.length ?? 0) > 2) {
+    //   this.deploymentState = DeploymentState.DEPLOYED
+    //   return "0x"
+    // }
 
     this.deploymentState = DeploymentState.NOT_DEPLOYED
 
@@ -228,12 +230,16 @@ export abstract class BaseSmartContractAccount<
   }
 
   async getAddress(): Promise<Address> {
+
+    console.log("getAddress()", this.accountAddress)
+
     if (!this.accountAddress) {
       const initCode = await this._getAccountInitCode()
       Logger.log("[BaseSmartContractAccount](getAddress) initCode: ", initCode)
       try {
         await this.entryPoint.simulate.getSenderAddress([initCode])
       } catch (err: any) {
+
         Logger.log(
           "[BaseSmartContractAccount](getAddress) getSenderAddress err: ",
           err
@@ -255,6 +261,8 @@ export abstract class BaseSmartContractAccount<
 
       throw new Error("Failed to get counterfactual account address")
     }
+
+    console.log("this.accountAddress", this.accountAddress)
 
     return this.accountAddress
   }

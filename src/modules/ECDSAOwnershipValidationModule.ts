@@ -61,6 +61,7 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
   }
 
   getAddress(): Hex {
+    console.log("this.moduleAddress", this.moduleAddress)
     return this.moduleAddress
   }
 
@@ -77,14 +78,15 @@ export class ECDSAOwnershipValidationModule extends BaseValidationModule {
   // Note: other modules may need additional attributes to build init data
   async getInitData(): Promise<Hex> {
     const ecdsaOwnerAddress = await this.signer.getAddress()
-    const moduleRegistryParsedAbi = parseAbi([
-      "function initForSmartAccount(address owner)"
-    ])
+    const moduleRegistryParsedAbi = parseAbi(["function initForSmartAccount(address owner)"])
     const ecdsaOwnershipInitData = encodeFunctionData({
       abi: moduleRegistryParsedAbi,
       functionName: "initForSmartAccount",
       args: [ecdsaOwnerAddress]
     })
+
+    console.log({ ecdsaOwnershipInitData })
+
     return ecdsaOwnershipInitData
   }
 
