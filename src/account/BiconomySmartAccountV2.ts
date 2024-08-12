@@ -303,7 +303,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     if (!chainId) {
       throw new Error("chainId required");
     }
-
     const bundler: IBundler =
       biconomySmartAccountConfig.bundler ??
       new Bundler({
@@ -335,6 +334,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     if (!resolvedSmartAccountSigner) {
       throw new Error("signer required");
     }
+
     const config: BiconomySmartAccountV2ConfigConstructorProps = {
       ...biconomySmartAccountConfig,
       defaultValidationModule,
