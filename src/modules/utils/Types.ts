@@ -95,7 +95,7 @@ export type StrictSessionParams = {
 
 export type DanModuleInfo = {
   /** Ephemeral sk */
-  hexEphSKWithout0x: string
+  jwt: string
   /** eoa address */
   eoaAddress: Hex
   /** threshold */

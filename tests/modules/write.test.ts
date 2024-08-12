@@ -861,7 +861,7 @@ describe("Modules:Write", () => {
           {
             offset: 0,
             condition: 0,
-            referenceValue: BigInt(1),
+            referenceValue: 1n,
           },
         ],
         valueLimit: 0n,
@@ -878,7 +878,7 @@ describe("Modules:Write", () => {
           {
             offset: 0,
             condition: 0,
-            referenceValue: BigInt(1),
+            referenceValue: 1n,
           },
         ],
         valueLimit: 0n,
@@ -916,7 +916,7 @@ describe("Modules:Write", () => {
       data: encodeFunctionData({
         abi: cancel,
         functionName: "submitCancel",
-        args: [BigInt(1)],
+        args: [1n],
       }),
     };
 
@@ -925,7 +925,7 @@ describe("Modules:Write", () => {
       data: encodeFunctionData({
         abi: order,
         functionName: "submitOrder",
-        args: [BigInt(1)],
+        args: [1n],
       }),
     };
 
@@ -983,7 +983,7 @@ describe("Modules:Write", () => {
           {
             offset: 0,
             condition: 0,
-            referenceValue: BigInt(1),
+            referenceValue: 1n,
           },
         ],
         valueLimit: 0n,
@@ -1000,7 +1000,7 @@ describe("Modules:Write", () => {
           {
             offset: 0,
             condition: 0,
-            referenceValue: BigInt(1),
+            referenceValue: 1n,
           },
         ],
         valueLimit: 0n,
@@ -1017,7 +1017,7 @@ describe("Modules:Write", () => {
           {
             offset: 0,
             condition: 0,
-            referenceValue: BigInt(1),
+            referenceValue: 1n,
           },
         ],
         valueLimit: 0n,
@@ -1066,7 +1066,7 @@ describe("Modules:Write", () => {
       data: encodeFunctionData({
         abi: cancel,
         functionName: "submitCancel",
-        args: [BigInt(1)],
+        args: [1n],
       }),
     };
 
@@ -1118,7 +1118,7 @@ describe("Modules:Write", () => {
       data: encodeFunctionData({
         abi: order,
         functionName: "submitOrder",
-        args: [BigInt(1)],
+        args: [1n],
       }),
     };
 
@@ -1140,7 +1140,7 @@ describe("Modules:Write", () => {
       data: encodeFunctionData({
         abi: setId,
         functionName: "setId",
-        args: [BigInt(1)],
+        args: [1n],
       }),
     };
 

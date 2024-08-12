@@ -1,7 +1,6 @@
-import { getPublicKeyAsync } from "@noble/ed25519"
-import { EOAAuth, EphAuth, type IBrowserWallet, NetworkSigner, WalletProviderServiceClient } from "@silencelaboratories/walletprovider-sdk"
+import { EOAAuth, EphAuth, type IBrowserWallet, NetworkSigner, WalletProviderServiceClient, computeAddress } from "@silencelaboratories/walletprovider-sdk"
 import type { Chain, Hex } from "viem"
-import { generatePrivateKey } from "viem/accounts"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { type Session, createDANSessionKeyManagerModule } from "../"
 import {
   type BiconomySmartAccountV2,
@@ -21,7 +20,6 @@ import {
 import {
   NodeWallet,
   type SessionSearchParam,
-  computeAddress,
   didProvideFullSession,
   hexToUint8Array,
   resumeSession
@@ -189,7 +187,7 @@ export type DanSessionKeyPayload = {
   /** Dan Session MPC key ID*/
   mpcKeyId: string;
   /** Dan Session ephemeral private key without 0x prefix */
-  hexEphSKWithout0x: string;
+  jwt: string;
   /** Number of nodes that participate in keygen operation. Also known as n. */
   partiesNumber: number;
   /** Number of nodes that needs to participate in protocol in order to generate valid signature. Also known as t. */
@@ -252,10 +250,10 @@ export const generateSessionKey = async ({
   const wallet = browserWallet ?? new NodeWallet(innerSigner)
 
   const hexEphSK = generatePrivateKey()
-  const hexEphSKWithout0x = hardcodedValues?.hexEphSKWithout0x ?? hexEphSK.slice(2)
+  const account = privateKeyToAccount(hexEphSK)
+  const jwt = hardcodedValues?.jwt ?? hexEphSK.slice(2);
 
-  const ephSK: Uint8Array = hexToUint8Array(hexEphSKWithout0x)
-  const ephPK: Uint8Array = await getPublicKeyAsync(ephSK);
+  const ephPK: Uint8Array = hexToUint8Array(account.address.slice(2))
 
   const wpClient = new WalletProviderServiceClient({
     walletProviderId: "WalletProvider",
@@ -280,7 +278,7 @@ export const generateSessionKey = async ({
   return {
     sessionKeyEOA,
     mpcKeyId,
-    hexEphSKWithout0x,
+    jwt,
     partiesNumber,
     threshold,
     eoaAddress,
@@ -364,11 +362,11 @@ export const getDanSessionTxParams = async (
  */
 export const signMessage = async (message: string, danParams: DanModuleInfo): Promise<Hex> => {
 
-  const { hexEphSKWithout0x, eoaAddress, threshold, partiesNumber, chainId, mpcKeyId } = danParams;
+  const { jwt, eoaAddress, threshold, partiesNumber, chainId, mpcKeyId } = danParams;
 
   if (!message) throw new Error("Missing message")
   if (
-    !hexEphSKWithout0x ||
+    !jwt ||
     !eoaAddress ||
     !threshold ||
     !partiesNumber ||
@@ -383,7 +381,7 @@ export const signMessage = async (message: string, danParams: DanModuleInfo): Pr
     walletProviderUrl: DAN_BACKEND_URL
   })
 
-  const ephSK = hexToUint8Array(hexEphSKWithout0x)
+  const ephSK = hexToUint8Array(jwt)
 
   const authModule = new EphAuth(eoaAddress, ephSK)
 

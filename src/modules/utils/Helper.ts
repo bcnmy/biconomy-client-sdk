@@ -1,4 +1,3 @@
-import { ProjectivePoint } from "@noble/secp256k1"
 import type { IBrowserWallet, TypedData } from "@silencelaboratories/walletprovider-sdk"
 import {
   type Address,
@@ -15,7 +14,6 @@ import {
 import {
   generatePrivateKey,
   privateKeyToAccount,
-  publicKeyToAddress
 } from "viem/accounts"
 import {
   ERROR_MESSAGES,
@@ -254,25 +252,6 @@ export const hexToUint8Array = (hex: string) => {
     array[i / 2] = Number.parseInt(hex.substr(i, 2), 16)
   }
   return array
-}
-
-export const computeAddress = (_publicKey: string): Address => {
-  let publicKey = _publicKey
-
-  if (publicKey.startsWith("0x")) {
-    publicKey = publicKey.slice(2)
-  }
-
-  if (publicKey.startsWith("04")) {
-    return publicKeyToAddress(`0x${publicKey} `)
-  }
-
-  if (publicKey.startsWith("02") || publicKey.startsWith("03")) {
-    const uncompressed = ProjectivePoint.fromHex(publicKey).toHex(false)
-    return publicKeyToAddress(`0x${uncompressed}`)
-  }
-
-  throw new Error("Invalid public key")
 }
 
 // Sign data using the secret key stored on Browser Wallet

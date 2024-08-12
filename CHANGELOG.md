@@ -1,5 +1,18 @@
 # @biconomy/account
 
+## 4.5.5
+
+### Patch Changes
+
+- Fix CJS builds
+
+## 4.5.4
+
+### Patch Changes
+
+- Distributed Session Keys
+
+## 4.5.3
 ## 4.6.0
 
 ### Minor Changes

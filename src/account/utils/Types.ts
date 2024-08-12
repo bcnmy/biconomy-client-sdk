@@ -565,7 +565,7 @@ export interface ISmartContractAccount<
    * @param params - {@link SignTypedDataParams}
    * @returns the signed hash for the message passed
    */
-  signTypedData(params: SignTypedDataParams): Promise<Hash>
+  // signTypedData(params: SignTypedDataParams): Promise<Hash>;
 
   /**
    * If the account is not deployed, it will sign the message and then wrap it in 6492 format
@@ -581,7 +581,7 @@ export interface ISmartContractAccount<
    * @param params - {@link SignTypedDataParams}
    * @returns the signed hash for the params passed in wrapped in 6492 format
    */
-  signTypedDataWith6492(params: SignTypedDataParams): Promise<Hash>
+  // signTypedDataWith6492(params: SignTypedDataParams): Promise<Hash>;
 
   /**
    * @returns the address of the account
