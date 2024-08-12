@@ -22,6 +22,7 @@ export const ENTRYPOINT_ADDRESSES: EntryPointAddresses = {
 }
 
 // will always be latest factory address
+export const TAIKO_FACTORY_ADDRESS = "0x000008B3078bA5ed444FFf7658F76385F6004e7A"; //https://biconomyworkspace.slack.com/archives/C061BSA9279/p1721234773541039
 export const DEFAULT_BICONOMY_FACTORY_ADDRESS =
   "0x000000a56Aaca3e9a4C479ea6b6CD0DbcB6634F5"
 export const DEFAULT_FALLBACK_HANDLER_ADDRESS =
@@ -46,11 +47,6 @@ export const ENTRYPOINT_ADDRESSES_BY_VERSION: EntryPointAddressesByVersion = {
   V0_0_5: "0x27a4db290b89ae3373ce4313cbeae72112ae7da9",
   V0_0_6: "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789"
 }
-
-export const BICONOMY_FACTORY_ADDRESSES_BY_VERSION: BiconomyFactoriesByVersion =
-  Object.fromEntries(
-    Object.entries(BICONOMY_FACTORY_ADDRESSES).map(([k, v]) => [v, k])
-  )
 
 export const BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION: BiconomyImplementationsByVersion =
   Object.fromEntries(

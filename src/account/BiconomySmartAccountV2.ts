@@ -5,6 +5,7 @@ import {
   type GetContractReturnType,
   type Hex,
   type PublicClient,
+  type WalletClient,
   concat,
   concatHex,
   createPublicClient,
@@ -21,6 +22,7 @@ import {
   toBytes,
   toHex,
 } from "viem";
+import { taikoHekla } from "viem/chains";
 import type { IBundler } from "../bundler/IBundler.js";
 import {
   Bundler,
@@ -75,6 +77,7 @@ import {
   MAGIC_BYTES,
   NATIVE_TOKEN_ALIAS,
   PROXY_CREATION_CODE,
+  TAIKO_FACTORY_ADDRESS,
 } from "./utils/Constants.js";
 import type {
   BalancePayload,
@@ -146,23 +149,31 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   private constructor(
     readonly biconomySmartAccountConfig: BiconomySmartAccountV2ConfigConstructorProps,
   ) {
+
+    const chain = biconomySmartAccountConfig.viemChain ??
+      biconomySmartAccountConfig.customChain ??
+      getChain(biconomySmartAccountConfig.chainId)
+
+    const rpcClient = biconomySmartAccountConfig.rpcUrl ||
+      getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0]
+
+    const defaultedFactoryAddress = chain?.id === taikoHekla.id ? TAIKO_FACTORY_ADDRESS :
+      biconomySmartAccountConfig.factoryAddress ??
+      DEFAULT_BICONOMY_FACTORY_ADDRESS;
+
+    const isDefaultFactory = [DEFAULT_BICONOMY_FACTORY_ADDRESS, TAIKO_FACTORY_ADDRESS].some(address => addressEquals(defaultedFactoryAddress, address));
+
     super({
       ...biconomySmartAccountConfig,
-      chain:
-        biconomySmartAccountConfig.viemChain ??
-        biconomySmartAccountConfig.customChain ??
-        getChain(biconomySmartAccountConfig.chainId),
-      rpcClient:
-        biconomySmartAccountConfig.rpcUrl ||
-        getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0],
+      chain,
+      rpcClient,
       entryPointAddress:
         (biconomySmartAccountConfig.entryPointAddress as Hex) ??
         DEFAULT_ENTRYPOINT_ADDRESS,
       accountAddress:
         (biconomySmartAccountConfig.accountAddress as Hex) ?? undefined,
       factoryAddress:
-        biconomySmartAccountConfig.factoryAddress ??
-        DEFAULT_BICONOMY_FACTORY_ADDRESS,
+        defaultedFactoryAddress,
     });
 
     this.sessionData = biconomySmartAccountConfig.sessionData
@@ -194,10 +205,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     this.bundler = biconomySmartAccountConfig.bundler;
 
+
     const defaultFallbackHandlerAddress =
-      this.factoryAddress === DEFAULT_BICONOMY_FACTORY_ADDRESS
+      isDefaultFactory
         ? DEFAULT_FALLBACK_HANDLER_ADDRESS
         : biconomySmartAccountConfig.defaultFallbackHandler;
+
     if (!defaultFallbackHandlerAddress) {
       throw new Error("Default Fallback Handler address is not provided");
     }
@@ -212,14 +225,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       biconomySmartAccountConfig.activeValidationModule!;
 
     this.provider = createPublicClient({
-      chain:
-        biconomySmartAccountConfig.viemChain ??
-        biconomySmartAccountConfig.customChain ??
-        getChain(biconomySmartAccountConfig.chainId),
-      transport: http(
-        biconomySmartAccountConfig.rpcUrl ||
-        getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0]
-      )
+      chain,
+      transport: http(rpcClient)
     })
 
     this.scanForUpgradedAccountsFromV1 =
@@ -705,10 +712,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       }
     }
 
-    const counterFactualAddressV2 = await this.getCounterFactualAddressV2({
-      validationModule,
-      index,
-    });
+    const counterFactualAddressV2 = await this.getCounterFactualAddressV2({ validationModule, index });
     return counterFactualAddressV2;
   }
 
@@ -720,13 +724,31 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const index = params?.index ?? this.index;
 
     try {
+
+      const owner = validationModule.getAddress()
+      const moduleSetupData = (await validationModule.getInitData()) as Hex
+
+      if (this.chainId === taikoHekla.id) {
+
+        const factoryContract = getContract({
+          address: TAIKO_FACTORY_ADDRESS,
+          abi: BiconomyFactoryAbi,
+          client: { public: this.provider, wallet: this.getSigner() as unknown as WalletClient }
+        })
+
+        const smartAccountAddressFromContracts =
+          await factoryContract.read.getAddressForCounterFactualAccount([owner, moduleSetupData, BigInt(index)])
+
+        return smartAccountAddressFromContracts
+      }
+
       const initCalldata = encodeFunctionData({
         abi: BiconomyAccountAbi,
         functionName: "init",
         args: [
           this.defaultFallbackHandlerAddress,
-          validationModule.getAddress() as Hex,
-          (await validationModule.getInitData()) as Hex,
+          owner,
+          moduleSetupData,
         ],
       });
 
@@ -845,15 +867,15 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * Return the value to put into the "initCode" field, if the account is not yet deployed.
    * This value holds the "factory" address, followed by this account's information
    */
-  async getAccountInitCode(): Promise<Hex> {
+  public override async getAccountInitCode(): Promise<Hex> {
+
     this.isDefaultValidationModuleDefined();
 
     if (await this.isAccountDeployed()) return "0x";
 
-    return concatHex([
-      this.factoryAddress as Hex,
-      (await this.getFactoryData()) ?? "0x",
-    ]);
+    const factoryData = await this.getFactoryData() as Hex;
+
+    return concatHex([this.factoryAddress, factoryData]);
   }
 
   /**
@@ -1317,6 +1339,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     userOp: Partial<UserOperationStruct>,
     stateOverrideSet?: StateOverrideSet,
   ): Promise<Partial<UserOperationStruct>> {
+
     if (!this.bundler) throw new Error("Bundler is not provided");
     const requiredFields: UserOperationKey[] = [
       "sender",
@@ -1336,12 +1359,17 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       maxFeePerGas,
       maxPriorityFeePerGas,
     } = await this.bundler.estimateUserOpGas(userOp, stateOverrideSet);
+
+
+
     // if neither user sent gas fee nor the bundler, estimate gas from provider
     if (
       !userOp.maxFeePerGas &&
       !userOp.maxPriorityFeePerGas &&
       (!maxFeePerGas || !maxPriorityFeePerGas)
     ) {
+
+
       const feeData = await this.provider.estimateFeesPerGas();
       if (feeData.maxFeePerGas?.toString()) {
         finalUserOp.maxFeePerGas = `0x${feeData.maxFeePerGas.toString(
@@ -1694,6 +1722,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       dummySignatureFetchPromise,
     ]);
 
+    const sender = await this.getAccountAddress() as Hex
+
     if (transactions.length === 0) {
       throw new Error("Transactions array cannot be empty");
     }
@@ -1708,7 +1738,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
 
     let userOp: Partial<UserOperationStruct> = {
-      sender: (await this.getAccountAddress()) as Hex,
+      sender,
       nonce: toHex(nonceFromFetch),
       initCode,
       callData,
@@ -2115,14 +2145,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     this.isDefaultValidationModuleDefined();
 
+    const defaultValidationModuleAddress = this.defaultValidationModule.getAddress();
+    const defaultValidationInitData = await this.defaultValidationModule.getInitData();
+
     return encodeFunctionData({
       abi: BiconomyFactoryAbi,
       functionName: "deployCounterFactualAccount",
-      args: [
-        this.defaultValidationModule.getAddress() as Hex,
-        (await this.defaultValidationModule.getInitData()) as Hex,
-        BigInt(this.index),
-      ],
+      args: [defaultValidationModuleAddress, defaultValidationInitData, BigInt(this.index)],
     });
   }
 

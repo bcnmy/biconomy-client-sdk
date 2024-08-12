@@ -28,8 +28,7 @@ export enum DeploymentState {
 
 export abstract class BaseSmartContractAccount<
   TSigner extends SmartAccountSigner = SmartAccountSigner
-> implements ISmartContractAccount<TSigner>
-{
+> implements ISmartContractAccount<TSigner> {
   protected factoryAddress: Address
 
   protected deploymentState: DeploymentState = DeploymentState.UNDEFINED
@@ -209,6 +208,9 @@ export abstract class BaseSmartContractAccount<
   }
 
   async getInitCode(): Promise<Hex> {
+
+    const address = await this.getAddress();
+
     if (this.deploymentState === DeploymentState.DEPLOYED) {
       return "0x"
     }
@@ -228,12 +230,14 @@ export abstract class BaseSmartContractAccount<
   }
 
   async getAddress(): Promise<Address> {
+
     if (!this.accountAddress) {
       const initCode = await this._getAccountInitCode()
       Logger.log("[BaseSmartContractAccount](getAddress) initCode: ", initCode)
       try {
         await this.entryPoint.simulate.getSenderAddress([initCode])
       } catch (err: any) {
+
         Logger.log(
           "[BaseSmartContractAccount](getAddress) getSenderAddress err: ",
           err

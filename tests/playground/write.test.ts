@@ -1,17 +1,20 @@
-import { http, type Hex, createWalletClient, encodeFunctionData, parseAbi } from "viem"
+import { http, type Hex, createPublicClient, createWalletClient, encodeFunctionData, getContract, parseAbi } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { polygonAmoy } from "viem/chains"
+import { polygonAmoy, taikoHekla } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
-import { PaymasterMode, type PolicyLeaf } from "../../src"
+import { DEFAULT_BICONOMY_FACTORY_ADDRESS, PaymasterMode, type PolicyLeaf, TAIKO_FACTORY_ADDRESS, createECDSAOwnershipValidationModule } from "../../src"
 import {
   type BiconomySmartAccountV2,
   createSmartAccountClient,
+  DEFAULT_ENTRYPOINT_ADDRESS,
   getChain,
   getCustomChain
 } from "../../src/account"
+import { BiconomyFactoryAbi } from "../../src/account/abi/Factory"
 import { createSession } from "../../src/modules/sessions/abi"
 import { createSessionSmartAccountClient } from "../../src/modules/sessions/sessionSmartAccountClient"
-import { getBundlerUrl, getConfig, getPaymasterUrl } from "../utils"
+import { checkBalance, getBundlerUrl, getConfig, getPaymasterUrl } from "../utils"
+import { EntryPointAbi } from "../../src/account/abi/EntryPointAbi"
 
 const withSponsorship = {
   paymasterServiceData: { mode: PaymasterMode.SPONSORED },
@@ -19,96 +22,91 @@ const withSponsorship = {
 
 describe("Playground:Write", () => {
 
+
   test.concurrent(
-    "should quickly run a write test in the playground ",
+    "should check taiko",
     async () => {
 
-      const { privateKey } = getConfig();
-      const incrementCountContractAdd = "0xcf29227477393728935BdBB86770f8F81b698F1A";
+      const { privateKey, privateKeyTwo } = getConfig();
 
-      // const customChain = getCustomChain(
-      //   "Bera",
-      //   80084,
-      //   "https://bartio.rpc.b-harvest.io",
-      //   "https://bartio.beratrail.io/tx"
-      // )
-
-      // Switch to this line to test against Amoy
-      const customChain = polygonAmoy;
+      const customChain = taikoHekla
       const chainId = customChain.id;
       const bundlerUrl = getBundlerUrl(chainId);
 
-      const paymasterUrls = {
-        80002: getPaymasterUrl(chainId, "_sTfkyAEp.552504b5-9093-4d4b-94dd-701f85a267ea"),
-        80084: getPaymasterUrl(chainId, "9ooHeMdTl.aa829ad6-e07b-4fcb-afc2-584e3400b4f5")
-      }
-
-      const paymasterUrl = paymasterUrls[chainId];
       const account = privateKeyToAccount(`0x${privateKey}`);
+      const recipientAccount = privateKeyToAccount(`0x${privateKeyTwo}`);
 
       const walletClientWithCustomChain = createWalletClient({
         account,
         chain: customChain,
-        transport: http()
+        transport: http(),
+      })
+
+      const publicClient = createPublicClient({
+        chain: customChain,
+        transport: http(),
       })
 
       const smartAccount = await createSmartAccountClient({
         signer: walletClientWithCustomChain,
         bundlerUrl,
-        paymasterUrl,
-        customChain
+        customChain,
       })
 
       const smartAccountAddress: Hex = await smartAccount.getAddress();
-
       const [balance] = await smartAccount.getBalances();
-      if (balance.amount <= 0) console.warn("Smart account balance is zero");
+      if (balance.amount <= 1n) console.warn("Insufficient balance in smart account")
 
-      const policy: PolicyLeaf[] = [
+      const recipientBalanceBefore = await checkBalance(recipientAccount.address, undefined, customChain);
+
+      const userOp = await smartAccount.buildUserOp([
         {
-          contractAddress: incrementCountContractAdd,
-          functionSelector: "increment()",
-          rules: [],
-          interval: {
-            validUntil: 0,
-            validAfter: 0,
-          },
-          valueLimit: BigInt(0),
-        },
-      ];
+          to: recipientAccount.address,
+          value: 1n
+        }
+      ])
 
-      const { wait } = await createSession(smartAccount, policy, null, withSponsorship);
-      const { success } = await wait();
+      userOp.signature = undefined
 
-      expect(success).toBe("true");
+      const signedUserOp = await smartAccount.signUserOp(userOp)
 
-      const smartAccountWithSession = await createSessionSmartAccountClient(
-        {
-          accountAddress: smartAccountAddress, // Set the account address on behalf of the user
-          bundlerUrl,
-          paymasterUrl,
-          chainId,
-        },
-        "DEFAULT_STORE" // Storage client, full Session or smartAccount address if using default storage
-      );
+      const entrypointContract = getContract({
+        address: DEFAULT_ENTRYPOINT_ADDRESS,
+        abi: EntryPointAbi,
+        client: { public: publicClient, wallet: walletClientWithCustomChain }
+      })
 
-      const { wait: mintWait } = await smartAccountWithSession.sendTransaction(
-        {
-          to: incrementCountContractAdd,
-          data: encodeFunctionData({
-            abi: parseAbi(["function increment()"]),
-            functionName: "increment",
-            args: [],
-          }),
-        },
-        { paymasterServiceData: { mode: PaymasterMode.SPONSORED } },
-        { leafIndex: "LAST_LEAF" },
-      );
+      const hash = await entrypointContract.write.handleOps([
+        [
+          {
+            sender: signedUserOp.sender as Hex,
+            nonce: BigInt(signedUserOp.nonce ?? 0),
+            callGasLimit: BigInt(signedUserOp.callGasLimit ?? 0),
+            verificationGasLimit: BigInt(signedUserOp.verificationGasLimit ?? 0),
+            preVerificationGas: BigInt(signedUserOp.preVerificationGas ?? 0),
+            maxFeePerGas: BigInt(signedUserOp.maxFeePerGas ?? 0),
+            maxPriorityFeePerGas: BigInt(signedUserOp.maxPriorityFeePerGas ?? 0),
+            initCode: signedUserOp.initCode as Hex,
+            callData: signedUserOp.callData as Hex,
+            paymasterAndData: signedUserOp.paymasterAndData as Hex,
+            signature: signedUserOp.signature as Hex
+          }
+        ],
+        account.address
+      ])
 
-      const { success: mintSuccess, receipt } = await mintWait();
-      expect(mintSuccess).toBe("true");
+      const { status, transactionHash } =
+        await publicClient.waitForTransactionReceipt({ hash })
+
+      const recipientBalanceAfter = await checkBalance(recipientAccount.address, undefined, customChain);
+
+      expect(status).toBe("success")
+      expect(transactionHash).toBeTruthy()
+
+      expect(recipientBalanceAfter).toBe(recipientBalanceBefore + 1n)
 
     },
-    30000
+    70000
   )
+
 })
