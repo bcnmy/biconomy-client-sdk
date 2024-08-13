@@ -12,6 +12,7 @@ import {
 import { createSession } from "../../src/modules/sessions/abi"
 import { createSessionSmartAccountClient } from "../../src/modules/sessions/sessionSmartAccountClient"
 import { getBundlerUrl, getConfig, getPaymasterUrl } from "../utils"
+import { JsonRpcProvider, Wallet } from "ethers"
 
 const withSponsorship = {
   paymasterServiceData: { mode: PaymasterMode.SPONSORED },
@@ -24,7 +25,7 @@ describe("Playground:Write", () => {
     async () => {
 
       const { privateKey } = getConfig();
-      const incrementCountContractAdd = "0xcf29227477393728935BdBB86770f8F81b698F1A";
+      const incrementCountContractAdd = "0xfeec89eC2afD503FF359487967D02285f7DaA9aD";
 
       // const customChain = getCustomChain(
       //   "Bera",
@@ -44,16 +45,19 @@ describe("Playground:Write", () => {
       }
 
       const paymasterUrl = paymasterUrls[chainId];
-      const account = privateKeyToAccount(`0x${privateKey}`);
+      // const account = privateKeyToAccount(`0x${privateKey}`);
 
-      const walletClientWithCustomChain = createWalletClient({
-        account,
-        chain: customChain,
-        transport: http()
-      })
+      const provider = new JsonRpcProvider("https://rpc-amoy.polygon.technology/");
+      const signer = new Wallet(privateKey || "", provider);
+
+      // const walletClientWithCustomChain = createWalletClient({
+      //   account,
+      //   chain: customChain,
+      //   transport: http()
+      // })
 
       const smartAccount = await createSmartAccountClient({
-        signer: walletClientWithCustomChain,
+        signer,
         bundlerUrl,
         paymasterUrl,
         customChain
@@ -109,6 +113,6 @@ describe("Playground:Write", () => {
       expect(mintSuccess).toBe("true");
 
     },
-    30000
+    100000
   )
 })
