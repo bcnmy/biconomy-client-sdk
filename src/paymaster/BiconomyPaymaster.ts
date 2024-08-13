@@ -335,7 +335,7 @@ export class BiconomyPaymaster
       paymasterServiceData?.smartAccountInfo ?? smartAccountInfo
     expiryDuration = paymasterServiceData?.expiryDuration ?? expiryDuration
 
-    // Note: The idea is before calling this below rpc, userOp values presense and types should be in accordance with how we call eth_estimateUseropGas on the bundler
+    // Note: The idea is before calling this below rpc, userOp values presence and types should be in accordance with how we call eth_estimateUseropGas on the bundler
 
     try {
       const response: JsonRpcResponse = await sendRequest(

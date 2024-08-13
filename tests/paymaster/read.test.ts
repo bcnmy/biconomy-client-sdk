@@ -72,7 +72,7 @@ describe("Paymaster:Read", () => {
   })
 
   test.concurrent(
-    "should expect several feeQuotes in resonse to empty tokenInfo fields",
+    "should expect several feeQuotes in response to empty tokenInfo fields",
     async () => {
       const encodedCall = encodeFunctionData({
         abi: parseAbi(["function safeMint(address _to)"]),

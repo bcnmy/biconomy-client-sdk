@@ -43,9 +43,9 @@ export type FeeQuotesOrDataDto = {
   expiryDuration?: number
   /** Always recommended, especially when using token paymaster */
   calculateGasLimits?: boolean
-  /** List of tokens to be used for fee quotes, if ommitted fees for all supported will be returned */
+  /** List of tokens to be used for fee quotes, if omitted fees for all supported will be returned */
   tokenList?: string[]
-  /** preferredToken: Can be ommitted to return all quotes */
+  /** preferredToken: Can be omitted to return all quotes */
   preferredToken?: string
   /** Webhooks to be fired after user op is sent */
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>

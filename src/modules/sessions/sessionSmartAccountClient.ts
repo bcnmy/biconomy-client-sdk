@@ -81,7 +81,7 @@ export type SendSessionTransactionFunction = (
  *     paymasterUrl,
  *     chainId
  *   },
- *   "DEFAULT_STORE" // Can be ommitted if using default session storage (localStorage in browser, fileStorage in node backend)
+ *   "DEFAULT_STORE" // Can be omitted if using default session storage (localStorage in browser, fileStorage in node backend)
  * )
  *
  * // The smartAccountWithSession instance can now be used to interact with the blockchain on behalf of the user in the same manner as a regular smart account instance.
