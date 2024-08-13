@@ -114,7 +114,7 @@ describe("Account:Write", async () => {
     }, 60000)
 
     // test("Use enable mode", async () => {
-    //   const counterAddress = "0x6BFE41FF0605a87911c0542bF958691ea2ac77f8" // base sepolia
+    //   const counterAddress = "0x6BFE41FF0605a87911c0542bF958691ea2ac77f8" // base baseSepolia
 
     //   const counterBefore = await publicClient.readContract({
     //     address: counterAddress,

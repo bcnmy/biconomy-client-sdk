@@ -4,7 +4,7 @@ import type { ModuleVersion } from "./Types.js"
 export const DEFAULT_MODULE_VERSION: ModuleVersion = "1.0.0-beta"
 
 // VALIDATORS
-export const K1_VALIDATOR = "0x0839518b94038b0B6044f71830b0c79D2fD8D07d"
+export const K1_VALIDATOR = "0x663E709f60477f07885230E213b8149a7027239B"
 export const OWNABLE_VALIDATOR = "0xBf2137a23F439Ca5Aa4360cC6970D70b24D07ea2"
 
 // EXECUTORS

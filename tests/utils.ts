@@ -11,7 +11,7 @@ import {
   parseAbiParameters
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { sepolia } from "viem/chains"
+import { baseSepolia } from "viem/chains"
 import type { EIP712DomainReturn } from "../src"
 import { Logger } from "../src/account/utils/Logger"
 import { getChain } from "../src/account/utils/getChain"
@@ -107,7 +107,7 @@ export const checkBalance = (
   // const { chain: chainFromConfig } = getConfig()
   // const chain = _chain || chainFromConfig
   const publicClient = createPublicClient({
-    chain: sepolia,
+    chain: baseSepolia,
     transport: http()
   })
 

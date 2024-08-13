@@ -1,6 +1,6 @@
 import { http, createWalletClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { sepolia } from "viem/chains"
+import { baseSepolia } from "viem/chains"
 import { describe, expect, test } from "vitest"
 import {
   ModuleType,
@@ -19,7 +19,7 @@ describe("Account:Modules:OwnableValidator", async () => {
   const [walletClient] = [
     createWalletClient({
       account,
-      chain: sepolia,
+      chain: baseSepolia,
       transport: http()
     })
   ]

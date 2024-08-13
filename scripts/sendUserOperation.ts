@@ -10,7 +10,6 @@ const {
     privateKey,
     privateKeyTwo,
     bundlerUrl,
-    paymasterUrl
   } = getConfig()
 
   const account = privateKeyToAccount(`0x${privateKey}`)
@@ -29,14 +28,10 @@ const {
     chainId,
     signer: walletClient,
     bundlerUrl,
-    paymasterUrl
   })
 
 const sendUserOperation = async () => {
     const k1ValidatorModule = await createK1ValidatorModule(smartAccount.getSigner())
-
-    const isInstalled = await smartAccount.isModuleInstalled({moduleType: ModuleType.Validation, moduleAddress: k1ValidatorModule.moduleAddress});
-    console.log("Is k1ValidatorModule installed: ", isInstalled);
 
     smartAccount.setActiveValidationModule(k1ValidatorModule);
 
@@ -45,9 +40,9 @@ const sendUserOperation = async () => {
         data: "0x",
         value: parseEther("0.0001")
     }
-
+    console.log("Your smart account will be deployed at address, make sure it has some funds to pay for user ops: ", await smartAccount.getAddress());
+    
     const response = await smartAccount.sendTransaction([transaction])
-    console.log(response, "response")
 
     const receipt = await response.wait()
     console.log("Receipt: ", receipt)

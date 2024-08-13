@@ -1409,7 +1409,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    * 
    * let walletClient = createWalletClient({
         account,
-        chain: sepolia,
+        chain: baseSepolia,
         transport: http()
       });
 
@@ -1423,7 +1423,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       
       walletClient = createWalletClient({
         newOwnerAccount,
-        chain: sepolia,
+        chain: baseSepolia,
         transport: http()
       })
       
@@ -1538,7 +1538,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
         : [manyOrOneTransactions],
       buildUseropDto
     )
-
+    
     return this.sendUserOp(userOp)
   }
 

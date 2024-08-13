@@ -18,7 +18,7 @@ import {
   toHex
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { bsc, sepolia } from "viem/chains"
+import { bsc, baseSepolia } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
 import {
   DEFAULT_BICONOMY_FACTORY_ADDRESS,
@@ -682,7 +682,7 @@ describe("Account:Read", () => {
         const DOMAIN_TYPEHASH =
           "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
         const PARENT_TYPEHASH = "PersonalSign(bytes prefixed)"
-        const chainId = sepolia.id
+        const chainId = baseSepolia.id
 
         // Calculate the domain separator
         const domainSeparator = keccak256(
@@ -745,7 +745,7 @@ describe("Account:Read", () => {
           "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
         const PARENT_TYPEHASH =
           "TypedDataSign(Contents contents,bytes1 fields,string name,string version,uint256 chainId,address verifyingContract,bytes32 salt,uint256[] extensions) Contents(bytes32 stuff)"
-        const chainId = sepolia.id
+        const chainId = baseSepolia.id
 
         // Calculate the domain separator
         const domainSeparator = keccak256(
