@@ -1,7 +1,6 @@
 import type { Hex } from "viem"
 import type {
   BiconomyFactories,
-  BiconomyFactoriesByVersion,
   BiconomyImplementations,
   BiconomyImplementationsByVersion,
   EntryPointAddresses,

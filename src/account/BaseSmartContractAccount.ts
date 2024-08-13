@@ -209,8 +209,6 @@ export abstract class BaseSmartContractAccount<
 
   async getInitCode(): Promise<Hex> {
 
-    const address = await this.getAddress();
-
     if (this.deploymentState === DeploymentState.DEPLOYED) {
       return "0x"
     }
