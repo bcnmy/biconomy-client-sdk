@@ -24,13 +24,11 @@ import {
 } from "../../src/account";
 import { Logger, getChain } from "../../src/account";
 import {
-  BrowserWallet,
   type CreateSessionDataParams,
   DEFAULT_BATCHED_SESSION_ROUTER_MODULE,
   DEFAULT_ECDSA_OWNERSHIP_MODULE,
   DEFAULT_MULTICHAIN_MODULE,
   DEFAULT_SESSION_KEY_MANAGER_MODULE,
-  DanModuleInfo,
   ECDSA_OWNERSHIP_MODULE_ADDRESSES_BY_VERSION,
   NodeWallet,
   type PolicyLeaf,
