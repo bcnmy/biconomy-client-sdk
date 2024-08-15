@@ -402,7 +402,7 @@ export type UserOperationStruct = {
   paymasterPostOpGasLimit?: bigint
   paymasterData?: Hex
   signature: Hex
-  initCode?: never
+  // initCode?: never
   paymasterAndData?: never
 }
 //#endregion UserOperationStruct

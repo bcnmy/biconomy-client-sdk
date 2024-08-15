@@ -939,7 +939,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   async getDummySignatures(): Promise<Hex> {
     // const params = { ...(this.sessionData ? this.sessionData : {}), ..._params }
     this.isActiveValidationModuleDefined()
-    return (await this.activeValidationModule.getDummySignature()) as Hex
+    return (this.activeValidationModule.getDummySignature()) as Hex
   }
 
   // TODO: review this
@@ -1538,7 +1538,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
         : [manyOrOneTransactions],
       buildUseropDto
     )
-    
+
     return this.sendUserOp(userOp)
   }
 
@@ -1599,7 +1599,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     buildUseropDto?: BuildUserOpOptions
   ): Promise<Partial<UserOperationStruct>> {
     const dummySignatureFetchPromise = this.getDummySignatures()
-    const [nonceFromFetch, signature] = await Promise.all([
+    const [nonceFromFetch, dummySignature] = await Promise.all([
       this.getBuildUserOpNonce(buildUseropDto?.nonceOptions),
       dummySignatureFetchPromise
     ])
@@ -1628,7 +1628,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     }
 
     // for this Smart Account current validation module dummy signature will be used to estimate gas
-    userOp.signature = signature
+    userOp.signature = dummySignature
     // userOp.paymasterAndData = buildUseropDto?.dummyPndOverride ?? "0x"
 
     // if (
@@ -2073,26 +2073,6 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     })
   }
 
-  // async enableModule(moduleAddress: Hex): Promise<UserOpResponse> {
-  //   const tx: Transaction = await this.getEnableModuleData(moduleAddress)
-  //   const partialUserOp = await this.buildUserOp([tx])
-  //   return this.sendUserOp(partialUserOp)
-  // }
-
-  // async getEnableModuleData(moduleAddress: Hex, value?: bigint): Promise<Transaction> {
-  //   const callData = encodeFunctionData({
-  //     abi: NexusAccountAbi,
-  //     functionName: "enableModule",
-  //     args: [moduleAddress]
-  //   })
-  //   const tx: Transaction = {
-  //     to: await this.getAddress(),
-  //     value: value ?? 0n,
-  //     data: callData
-  //   }
-  //   return tx
-  // }
-
   async getSetupAndEnableModuleData(
     moduleAddress: Hex,
     moduleSetupData: Hex
@@ -2110,35 +2090,6 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     return tx
   }
 
-  // async disableModule(
-  //   prevModule: Hex,
-  //   moduleAddress: Hex
-  // ): Promise<UserOpResponse> {
-  //   const tx: Transaction = await this.getDisableModuleData(
-  //     prevModule,
-  //     moduleAddress
-  //   )
-  //   const partialUserOp = await this.buildUserOp([tx])
-  //   return this.sendUserOp(partialUserOp)
-  // }
-
-  // async getDisableModuleData(
-  //   prevModule: Hex,
-  //   moduleAddress: Hex
-  // ): Promise<Transaction> {
-  //   const callData = encodeFunctionData({
-  //     abi: NexusAccountAbi,
-  //     functionName: "disableModule",
-  //     args: [prevModule, moduleAddress]
-  //   })
-  //   const tx: Transaction = {
-  //     to: await this.getAddress(),
-  //     value: "0x00",
-  //     data: callData
-  //   }
-  //   return tx
-  // }
-
   async isModuleInstalled({
     moduleType,
     moduleAddress,
@@ -2152,33 +2103,13 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
         data ?? "0x"
       ])) as boolean
     }
-    throw new Error("Account is not deployed")
+    Logger.warn("A module cannot be installed on an undeployed account")
+    return false
   }
 
   getSmartAccountOwner(): SmartAccountSigner {
     return this.signer
   }
-
-  // async installOwnableExecutor(): Promise<UserOpReceipt> {
-  //   const ownableExecutor = await OwnableExecutorModule.create(this);
-  //   const installModuleData = encodeFunctionData({
-  //     abi: NexusAccountAbi,
-  //     functionName: "installModule",
-  //     args: [ModuleType.Execution, ownableExecutor.moduleInfo.module, ownableExecutor.moduleInfo.data ?? "0x"]
-  //   })
-  //   const response = await this.sendTransaction({
-  //     to: await this.getAddress(),
-  //     data: installModuleData
-  //   })
-  //   console.log("Got response: ", response);
-
-  //   const receipt = await response.wait();
-  //   if(receipt.success) {
-  //     this.installedExecutors.push(ownableExecutor);
-  //     this.activeExecutionModule = ownableExecutor;
-  //   }
-  //   return receipt;
-  // }
 
   async installModule({
     moduleAddress,

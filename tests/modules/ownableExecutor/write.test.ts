@@ -19,7 +19,7 @@ import type { NexusSmartAccount } from "../../../src/account/NexusSmartAccount"
 import { getConfig } from "../../utils"
 
 describe("Account:Modules:OwnableExecutor", async () => {
-  const token = "0x5a80620D47e4b786C4eC070837cb712486FEE857"
+  const token = "0xfA5E6d39e46328961d625f6334726F057c94812A"
   const { privateKey, privateKeyTwo, bundlerUrl } = getConfig()
   const account = privateKeyToAccount(`0x${privateKey}`)
   const accountTwo = privateKeyToAccount(`0x${privateKeyTwo}`)
@@ -42,42 +42,32 @@ describe("Account:Modules:OwnableExecutor", async () => {
     bundlerUrl
   })
 
+  console.log(await smartAccount.getAddress(), "smartAccount.getAddress()");
+
   const ownableExecutorModule = await createOwnableExecutorModule(smartAccount)
 
   describe("Ownable Executor Module Tests", async () => {
-    // test("install Ownable Executor", async () => {
-    //   let isInstalled = await smartAccount.isModuleInstalled({
-    //     moduleType: ModuleType.Execution,
-    //     moduleAddress: OWNABLE_EXECUTOR
-    //   })
+    test("install Ownable Executor", async () => {
+      let isInstalled = await smartAccount.isModuleInstalled({
+        moduleType: ModuleType.Execution,
+        moduleAddress: OWNABLE_EXECUTOR
+      })
 
-    //   console.log("init data", encodePacked(
-    //     ["address"],
-    //     [await smartAccount.getAddress()]
-    //   ));
+      if (!isInstalled) {
+        const receipt = await smartAccount.installModule({
+          moduleAddress: OWNABLE_EXECUTOR,
+          moduleType: ModuleType.Execution,
+          data: encodePacked(
+            ["address"],
+            [await smartAccount.getAddress()]
+          )
+        })
 
-    //   if (!isInstalled) {
-    //     const receipt = await smartAccount.installModule({
-    //       moduleAddress: OWNABLE_EXECUTOR,
-    //       moduleType: ModuleType.Execution,
-    //       data: encodePacked(
-    //         ["address"],
-    //         [await smartAccount.getAddress()]
-    //       )
-    //     })
+        smartAccount.setActiveExecutionModule(ownableExecutorModule)
 
-    //     isInstalled = await smartAccount.isModuleInstalled({
-    //       moduleType: ModuleType.Execution,
-    //       moduleAddress: OWNABLE_EXECUTOR
-    //     })
-
-    //     smartAccount.setActiveExecutionModule(ownableExecutorModule)
-
-    //     expect(receipt.success).toBe(true)
-    //     expect(isInstalled).toBeTruthy()
-    //   }
-    //   expect(isInstalled).toBeTruthy()
-    // }, 60000)
+        expect(receipt.success).toBe(true)
+      }
+    }, 60000)
 
     test("Ownable Executor Module should be installed", async () => {
       const isInstalled = await smartAccount.isModuleInstalled({
@@ -88,54 +78,7 @@ describe("Account:Modules:OwnableExecutor", async () => {
       expect(isInstalled).toBeTruthy()
     }, 60000)
 
-    // test("uninstall Ownable Executor Module", async () => {
-    //   let isInstalled = await smartAccount.isModuleInstalled({
-    //     moduleType: ModuleType.Execution,
-    //     moduleAddress: OWNABLE_EXECUTOR
-    //   })
-
-    //   if (isInstalled) {
-    //     const userOpReceipt = await smartAccount.uninstallModule({
-    //       moduleAddress: OWNABLE_EXECUTOR,
-    //       moduleType: ModuleType.Execution
-    //     })
-
-    //     isInstalled = await smartAccount.isModuleInstalled({
-    //       moduleType: ModuleType.Execution,
-    //       moduleAddress: OWNABLE_EXECUTOR
-    //     })
-
-    //     expect(userOpReceipt.success).toBe(true)
-    //     expect(isInstalled).toBeFalsy()
-    //     expect(userOpReceipt).toBeTruthy()
-    //   }
-    //   expect(isInstalled).toBeFalsy()
-    // }, 60000)
-
     test("should add an owner to the module", async () => {
-      let isInstalled = await smartAccount.isModuleInstalled({
-        moduleType: ModuleType.Execution,
-        moduleAddress: OWNABLE_EXECUTOR
-      })
-
-      // if (!isInstalled) {
-      //   await smartAccount.installModule({
-      //     moduleAddress: OWNABLE_EXECUTOR,
-      //     moduleType: ModuleType.Execution,
-      //     data: encodePacked(
-      //       ["address"],
-      //       [await smartAccount.getAccountAddress()]
-      //     )
-      //   })
-      // }
-
-      isInstalled = await smartAccount.isModuleInstalled({
-        moduleType: ModuleType.Execution,
-        moduleAddress: OWNABLE_EXECUTOR
-      })
-
-      expect(isInstalled).to.be.true
-
       const ownersBefore = await ownableExecutorModule.getOwners()
       const isOwnerBefore = ownersBefore.includes(accountTwo.address)
 
@@ -199,15 +142,15 @@ describe("Account:Modules:OwnableExecutor", async () => {
       expect(txHash).toBeTruthy()
     }, 60000)
 
-    // test("should remove an owner from the module", async () => {
-    //   const userOpReceipt = await ownableExecutorModule.removeOwner(
-    //     accountTwo.address
-    //   )
-    //   const owners = await ownableExecutorModule.getOwners()
-    //   const isOwner = owners.includes(accountTwo.address)
+    test("should remove an owner from the module", async () => {
+      const userOpReceipt = await ownableExecutorModule.removeOwner(
+        accountTwo.address
+      )
+      const owners = await ownableExecutorModule.getOwners()
+      const isOwner = owners.includes(accountTwo.address)
 
-    //   expect(isOwner).toBeFalsy()
-    //   expect(userOpReceipt.success).toBeTruthy()
-    // }, 60000)
+      expect(isOwner).toBeFalsy()
+      expect(userOpReceipt.success).toBeTruthy()
+    }, 60000)
   })
 })

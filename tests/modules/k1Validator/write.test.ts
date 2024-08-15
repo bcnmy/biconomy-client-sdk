@@ -1,8 +1,9 @@
 import {
   http,
   createWalletClient,
-  encodeAbiParameters,
-  encodePacked
+  encodePacked,
+  encodeFunctionData,
+  parseAbi
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { baseSepolia } from "viem/chains"
@@ -13,7 +14,7 @@ import {
   ModuleType,
   OWNABLE_VALIDATOR,
   createK1ValidatorModule,
-  createOwnableValidatorModule
+  getRandomSigner,
 } from "../../../src"
 import { createSmartAccountClient } from "../../../src/account"
 import type { NexusSmartAccount } from "../../../src/account/NexusSmartAccount"
@@ -23,7 +24,7 @@ import { getConfig } from "../../utils"
 describe("Account:Modules:OwnableValidator", async () => {
   const { privateKey, privateKeyTwo, bundlerUrl } = getConfig()
   const account = privateKeyToAccount(`0x${privateKey}`)
-  const accountTwo = privateKeyToAccount(`0x${privateKeyTwo}`)
+  const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
 
   const [walletClient] = [
     createWalletClient({
@@ -38,11 +39,11 @@ describe("Account:Modules:OwnableValidator", async () => {
     bundlerUrl
   })
 
-  const owners = [walletClient.account.address, accountTwo.address]
-
   const k1ValidationModule = await createK1ValidatorModule(
     smartAccount.getSigner()
   )
+
+  smartAccount.setActiveValidationModule(k1ValidationModule);
 
   describe("K1 Validator Module Tests", async () => {
     test("install k1 Validator with 1 owner", async () => {
@@ -60,17 +61,9 @@ describe("Account:Modules:OwnableValidator", async () => {
           data: encodePacked(["address"], [await smartAccount.getAddress()])
         })
 
-        // const isInstalled = await smartAccount.isModuleInstalled(
-        //   {
-        //     moduleType: ModuleType.Validation,
-        //     moduleAddress: K1_VALIDATOR
-        //   }
-        // )
-
         smartAccount.setActiveValidationModule(k1ValidationModule)
 
         expect(userOpReceipt.success).toBe(true)
-        // expect(isInstalled).toBeTruthy()
       }
     }, 60000)
 
@@ -80,6 +73,29 @@ describe("Account:Modules:OwnableValidator", async () => {
         moduleAddress: OWNABLE_VALIDATOR
       })
       expect(isInstalled).toBeTruthy()
+    }, 60000)
+
+    test("Mint an NFT using K1Validator as Validation Module", async () => {
+      const randomAccount = getRandomSigner();
+      
+      const encodedCall = encodeFunctionData({
+        abi: parseAbi(["function safeMint(address _to)"]),
+        functionName: "safeMint",
+        args: [randomAccount.pbKey]
+      })
+
+      const transaction = {
+        to: nftAddress, 
+        data: encodedCall
+      }
+
+      const response = await smartAccount.sendTransaction([transaction])
+      console.log(response, "response")
+
+      const receipt = await response.wait()
+      console.log(receipt, "receipt")
+
+      expect(receipt.success).toBe(true)
     }, 60000)
   })
 })
