@@ -1,5 +1,11 @@
 # @biconomy/account
 
+## 4.6.1
+
+### Patch Changes
+
+- Taiko testnet fix
+
 ## 4.5.5
 
 ### Patch Changes
@@ -13,6 +19,7 @@
 - Distributed Session Keys
 
 ## 4.5.3
+
 ## 4.6.0
 
 ### Minor Changes
