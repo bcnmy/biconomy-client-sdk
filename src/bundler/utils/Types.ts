@@ -1,4 +1,4 @@
-import { ParamType } from "ethers"
+import { ParamType, Transaction } from "ethers"
 import type { Address, Chain, Hash, Hex, Log } from "viem"
 import type { UserOperationStruct } from "../../account"
 
@@ -20,6 +20,21 @@ export type BundlerConfigWithChainId = Bundlerconfig & { chainId: number }
 
 export type TStatus = "success" | "reverted"
 
+export type UserOpReceiptTransaction = {
+  transactionHash: Hex
+  transactionIndex: bigint
+  blockHash: Hash
+  blockNumber: bigint
+  from: Address
+  to: Address | null
+  cumulativeGasUsed: bigint
+  status: TStatus
+  gasUsed: bigint
+  contractAddress: Address | null
+  logsBloom: Hex
+  effectiveGasPrice: bigint
+}
+
 export type UserOpReceipt = {
   userOpHash: Hash
   entryPoint: Address
@@ -30,20 +45,7 @@ export type UserOpReceipt = {
   actualGasCost: bigint
   success: boolean
   reason?: string
-  receipt: {
-    transactionHash: Hex
-    transactionIndex: bigint
-    blockHash: Hash
-    blockNumber: bigint
-    from: Address
-    to: Address | null
-    cumulativeGasUsed: bigint
-    status: TStatus
-    gasUsed: bigint
-    contractAddress: Address | null
-    logsBloom: Hex
-    effectiveGasPrice: bigint
-  }
+  receipt: UserOpReceiptTransaction
   logs: Log[]
 }
 

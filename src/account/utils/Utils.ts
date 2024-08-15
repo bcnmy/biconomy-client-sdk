@@ -148,7 +148,7 @@ export const compareChainIds = async (
 }
 
 export const isValidRpcUrl = (url: string): boolean => {
-  const regex = /^(https:\/\/|wss:\/\/).*/
+  const regex = /^(http:\/\/|wss:\/\/|https:\/\/).*/
   return regex.test(url)
 }
 

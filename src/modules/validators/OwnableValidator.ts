@@ -125,7 +125,7 @@ export class OwnableValidator extends BaseValidationModule {
 
   public async getOwners(): Promise<Address[]> {
     try {
-      const owners = (await this.smartAccount.publicClient.readContract({
+      const owners = (await this.smartAccount.rpcProvider.readContract({
         address: OWNABLE_VALIDATOR,
         abi: parseAbi([
           "function getOwners(address account) external view returns (address[])"

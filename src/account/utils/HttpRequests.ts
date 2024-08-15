@@ -20,6 +20,7 @@ export async function sendRequest<T>(
   service: Service
 ): Promise<T> {
   const stringifiedBody = JSON.stringify(body)
+
   Logger.log(`${service} RPC Request`, { url, body: stringifiedBody })
 
   const response = await fetch(url, {

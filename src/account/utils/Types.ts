@@ -206,6 +206,7 @@ export type BuildUserOpOptions = {
   dummyPndOverride?: BytesLike
   useEmptyDeployCallData?: boolean
   useExecutor?: boolean
+  skipBundler?: boolean
 }
 
 export type NonceOptions = {
@@ -381,7 +382,7 @@ export type StateOverrideSet = {
 }
 
 export type BigNumberish = Hex | number | bigint
-export type BytesLike = Uint8Array | Hex
+export type BytesLike = Uint8Array | Hex | string
 
 //#region UserOperationStruct
 // based on @account-abstraction/common
@@ -641,4 +642,28 @@ export type EIP712DomainReturn = [
   Address,
   Hex,
   bigint[]
+]
+
+export interface PackedUserOperation {
+  sender: Hex
+  nonce: bigint
+  initCode: Hex
+  callData: Hex
+  accountGasLimits: Hex
+  preVerificationGas: bigint
+  gasFees: Hex
+  paymasterAndData: Hex
+  signature: Hex
+}
+
+export type PackedUserOperationAsArray = [
+  Hex,
+  bigint,
+  Hex,
+  Hex,
+  Hex,
+  bigint,
+  Hex,
+  Hex,
+  Hex
 ]

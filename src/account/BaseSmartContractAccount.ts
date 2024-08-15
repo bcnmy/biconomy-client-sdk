@@ -9,7 +9,7 @@ import {
   getContract,
   trim
 } from "viem"
-import { EntryPointAbi } from "./abi/EntryPointAbi.js"
+import { EntryPointV07Abi } from "./abi/EntryPointV07Abi.js"
 import { Logger, type SmartAccountSigner, getChain } from "./index.js"
 import {
   DEFAULT_ENTRYPOINT_ADDRESS,
@@ -46,7 +46,7 @@ export abstract class BaseSmartContractAccount<
   protected signer: TSigner
 
   protected entryPoint: GetContractReturnType<
-    typeof EntryPointAbi,
+    typeof EntryPointV07Abi,
     PublicClient
   >
 
@@ -72,7 +72,7 @@ export abstract class BaseSmartContractAccount<
 
     this.entryPoint = getContract({
       address: this.entryPointAddress,
-      abi: EntryPointAbi,
+      abi: EntryPointV07Abi,
       client: this.rpcProvider as PublicClient
     })
   }

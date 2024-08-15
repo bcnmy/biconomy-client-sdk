@@ -5,111 +5,31 @@ import {
   type Hex,
   type PublicClient,
   createPublicClient,
+  createTestClient,
   createWalletClient,
   encodeAbiParameters,
   parseAbi,
-  parseAbiParameters
+  parseAbiParameters,
+  publicActions,
+  walletActions
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { baseSepolia } from "viem/chains"
 import type { EIP712DomainReturn } from "../src"
 import { Logger } from "../src/account/utils/Logger"
-import { getChain } from "../src/account/utils/getChain"
+import { pKey } from "./testSetup"
 
-export const getEnvVars = () => {
-  const fields = [
-    "BUNDLER_URL",
-    "E2E_PRIVATE_KEY_ONE",
-    "E2E_PRIVATE_KEY_TWO",
-    "E2E_BICO_PAYMASTER_KEY_AMOY",
-    "E2E_BICO_PAYMASTER_KEY_BASE",
-    "CHAIN_ID"
-  ]
+export const checkBalance = (owner: Hex, chain: Chain, tokenAddress?: Hex) => {
+  const account = privateKeyToAccount(pKey)
 
-  const errorFields = fields.filter((field) => !process?.env?.[field])
-  if (errorFields.length) {
-    throw new Error(
-      `Missing environment variable${
-        errorFields.length > 1 ? "s" : ""
-      }: ${errorFields.join(", ")}`
-    )
-  }
-  return {
-    bundlerUrl: process.env.BUNDLER_URL || "",
-    bundlerUrlTwo: getBundlerUrl(84532) || "",
-    privateKey: process.env.E2E_PRIVATE_KEY_ONE || "",
-    privateKeyTwo: process.env.E2E_PRIVATE_KEY_TWO || "",
-    paymasterUrl: `https://paymaster.biconomy.io/api/v1/11155111/${
-      process.env.E2E_BICO_PAYMASTER_KEY_AMOY || ""
-    }`,
-    paymasterUrlTwo: `https://paymaster.biconomy.io/api/v1/84532/${
-      process.env.E2E_BICO_PAYMASTER_KEY_BASE || ""
-    }`,
-    chainId: process.env.CHAIN_ID || "0"
-  }
-}
-
-export type TestConfig = {
-  chain: Chain
-  chainId: number
-  paymasterUrl: string
-  paymasterUrlTwo: string
-  bundlerUrl: string
-  privateKey: string
-  privateKeyTwo: string
-}
-export const getConfig = (): TestConfig => {
-  const {
-    paymasterUrl,
-    paymasterUrlTwo,
-    bundlerUrl,
-    chainId: chainIdFromEnv,
-    privateKey,
-    privateKeyTwo
-  } = getEnvVars()
-  const chains = [Number.parseInt(chainIdFromEnv)]
-  const chainId = chains[0]
-  const chain = getChain(chainId)
-
-  // try {
-  //   const chainIdFromBundlerUrl = extractChainIdFromBundlerUrl(bundlerUrl)
-  //   chains.push(chainIdFromBundlerUrl)
-  // } catch (e) {}
-
-  // try {
-  //   const chainIdFromPaymasterUrl = extractChainIdFromPaymasterUrl(paymasterUrl)
-  //   chains.push(chainIdFromPaymasterUrl)
-  // } catch (e) {}
-
-  // COMMNETED in order to use pimlico bundler url
-  // const allChainsMatch = chains.every((chain) => chain === chains[0])
-
-  // if (!allChainsMatch) {
-  //   throw new Error("Chain IDs do not match")
-  // }
-
-  return {
-    chain,
-    chainId,
-    paymasterUrl,
-    paymasterUrlTwo,
-    bundlerUrl,
-    privateKey,
-    privateKeyTwo
-  }
-}
-
-export const checkBalance = (
-  owner: Hex,
-  tokenAddress?: Hex,
-  _chain?: Chain
-) => {
   // const { chain: chainFromConfig } = getConfig()
-  // const chain = _chain || chainFromConfig
-  const publicClient = createPublicClient({
-    chain: baseSepolia,
-    transport: http()
+  const publicClient = createTestClient({
+    mode: "anvil",
+    chain,
+    transport: http(),
+    account
   })
+    .extend(publicActions)
+    .extend(walletActions)
 
   if (!tokenAddress) {
     return publicClient.getBalance({ address: owner })
@@ -124,8 +44,12 @@ export const checkBalance = (
   })
 }
 
-export const nonZeroBalance = async (address: Hex, tokenAddress?: Hex) => {
-  const balance = await checkBalance(address, tokenAddress)
+export const nonZeroBalance = async (
+  address: Hex,
+  chain: Chain,
+  tokenAddress?: Hex
+) => {
+  const balance = await checkBalance(address, chain, tokenAddress)
   if (balance > BigInt(0)) return
   throw new Error(
     `Insufficient balance ${
@@ -136,20 +60,24 @@ export const nonZeroBalance = async (address: Hex, tokenAddress?: Hex) => {
 
 export const topUp = async (
   recipient: Hex,
-  amount = BigInt(1000000),
+  chain: Chain,
+  amount = 100000000000000000000n,
   token?: Hex
 ) => {
-  const { chain, privateKey } = getConfig()
-  const account = privateKeyToAccount(`0x${privateKey}`)
+  const account = privateKeyToAccount(pKey)
   const sender = account.address
 
-  const publicClient = createPublicClient({
+  const publicClient = createTestClient({
+    mode: "anvil",
     chain,
-    transport: http()
+    transport: http(),
+    account
   })
+    .extend(publicActions)
+    .extend(walletActions)
 
-  const balanceOfSender = await checkBalance(sender, token)
-  const balanceOfRecipient = await checkBalance(recipient, token)
+  const balanceOfSender = await checkBalance(sender, chain, token)
+  const balanceOfRecipient = await checkBalance(recipient, chain, token)
 
   if (balanceOfRecipient > amount) {
     Logger.log(
@@ -177,7 +105,7 @@ export const topUp = async (
   })
 
   if (token) {
-    const hash = await walletClient.writeContract({
+    const hash = await publicClient.writeContract({
       address: token,
       abi: parseAbi([
         "function transfer(address recipient, uint256 amount) external"
@@ -187,11 +115,14 @@ export const topUp = async (
     })
     await publicClient.waitForTransactionReceipt({ hash })
   } else {
-    const hash = await walletClient.sendTransaction({
+    const hash = await publicClient.sendTransaction({
       to: recipient,
-      value: amount
+      value: amount,
+      chain
     })
-    // await publicClient.waitForTransactionReceipt({ hash })
+    const result = await publicClient.waitForTransactionReceipt({ hash })
+    console.log({ hash })
+    return result
   }
 }
 

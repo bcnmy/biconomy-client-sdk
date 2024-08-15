@@ -20,8 +20,10 @@ function isPrivateKeyAccount(
   return (signer as PrivateKeyAccount).type === "local"
 }
 
-function isWalletClient(signer: SupportedSigner): signer is WalletClient {
-  return (signer as WalletClient).transport !== undefined
+export function isWalletClient(
+  signer: SupportedSigner
+): signer is WalletClient {
+  return (signer as WalletClient).name === "Wallet Client"
 }
 
 function isEthersSigner(signer: SupportedSigner): signer is Signer {

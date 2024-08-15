@@ -154,19 +154,15 @@ export class OwnableExecutorModule extends BaseExecutionModule {
   }
 
   public async getOwners(accountAddress?: Address): Promise<Address[]> {
-    try {
-      const owners = await this.smartAccount.publicClient.readContract({
-        address: OWNABLE_EXECUTOR,
-        abi: parseAbi([
-          "function getOwners(address account) external view returns (address[])"
-        ]),
-        functionName: "getOwners",
-        args: [accountAddress ?? (await this.smartAccount.getAccountAddress())]
-      })
+    const owners = await this.smartAccount.publicClient.readContract({
+      address: OWNABLE_EXECUTOR,
+      abi: parseAbi([
+        "function getOwners(address account) external view returns (address[])"
+      ]),
+      functionName: "getOwners",
+      args: [accountAddress ?? (await this.smartAccount.getAccountAddress())]
+    })
 
-      return owners as Address[]
-    } catch (err) {
-      return []
-    }
+    return owners as Address[]
   }
 }
