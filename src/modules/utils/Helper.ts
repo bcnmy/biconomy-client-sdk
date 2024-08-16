@@ -105,12 +105,11 @@ function packUserOp(
   if (forSignature) {
     return encodeAbiParameters(
       parseAbiParameters(
-        "address, uint256, bytes32, bytes32, uint256, uint256, uint256, uint256, uint256, bytes32"
+        "address, uint256, bytes32, uint256, uint256, uint256, uint256, uint256, bytes32"
       ),
       [
         op.sender ?? "0x",
         BigInt(op.nonce ?? 0n),
-        keccak256(op.initCode ?? "0x"),
         keccak256(op.callData),
         BigInt(op.callGasLimit ?? 0n),
         BigInt(op.verificationGasLimit ?? 0n),
@@ -124,12 +123,11 @@ function packUserOp(
   // for the purpose of calculating gas cost encode also signature (and no keccak of bytes)
   return encodeAbiParameters(
     parseAbiParameters(
-      "address, uint256, bytes, bytes, uint256, uint256, uint256, uint256, uint256, bytes"
+      "address, uint256, bytes, uint256, uint256, uint256, uint256, uint256, bytes"
     ),
     [
       op.sender ?? "0x",
       BigInt(op.nonce ?? 0n),
-      keccak256(op.initCode ?? "0x"),
       keccak256(op.callData),
       BigInt(op.callGasLimit ?? 0n),
       BigInt(op.verificationGasLimit ?? 0n),
