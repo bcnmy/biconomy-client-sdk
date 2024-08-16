@@ -1,7 +1,7 @@
 import { privateKeyToAccount } from "viem/accounts"
 import { getConfig } from "../tests/utils"
 import { createWalletClient, http, parseEther } from "viem"
-import { createK1ValidatorModule, createSmartAccountClient, ModuleType } from "../src"
+import { createK1ValidatorModule, createSmartAccountClient } from "../src"
 
 
 const {

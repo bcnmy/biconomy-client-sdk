@@ -17,7 +17,7 @@ import {
   type Transaction,
   createK1ValidatorModule,
   createOwnableExecutorModule,
-  createOwnableValidatorModule
+  // createOwnableValidatorModule
 } from "../../index.js"
 import type { BaseModule } from "../base/BaseModule.js"
 
@@ -250,12 +250,12 @@ export const createModuleInstace = async (
   if (module === Module.OwnableExecutor) {
     return await createOwnableExecutorModule(smartAccount)
   }
-  if (module === Module.OwnableValidator) {
-    return await createOwnableValidatorModule(
-      smartAccount,
-      config.threshold,
-      config.owners
-    )
-  }
+  // if (module === Module.OwnableValidator) {
+  //   return await createOwnableValidatorModule(
+  //     smartAccount,
+  //     config.threshold,
+  //     config.owners
+  //   )
+  // }
   return await createK1ValidatorModule(smartAccount.getSigner())
 }
