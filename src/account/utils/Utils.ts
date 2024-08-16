@@ -15,14 +15,9 @@ import {
 import type { UserOperationStruct } from "../../account"
 import {
   MOCK_MULTI_MODULE_ADDRESS,
-  MODULE_ENABLE_MODE_TYPE_HASH,
-  type ModuleType,
-  type SupportedSigner,
-  convertSigner
+  MODULE_ENABLE_MODE_TYPE_HASH
 } from "../../account"
-import { extractChainIdFromBundlerUrl } from "../../bundler"
-import { extractChainIdFromPaymasterUrl } from "../../bundler"
-import type { NexusSmartAccountConfig } from "./Types.js"
+import type { ModuleType } from "../../modules/utils/Types"
 
 /**
  * pack the userOperation
@@ -91,60 +86,6 @@ export function packUserOp(
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
 export const isNullOrUndefined = (value: any): value is undefined => {
   return value === null || value === undefined
-}
-
-export const compareChainIds = async (
-  signer: SupportedSigner,
-  biconomySmartAccountConfig: NexusSmartAccountConfig,
-  skipChainIdCalls: boolean
-  // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
-): Promise<Error | void> => {
-  const signerResult = await convertSigner(
-    signer,
-    skipChainIdCalls,
-    biconomySmartAccountConfig.rpcUrl
-  )
-
-  const chainIdFromBundler = biconomySmartAccountConfig.bundlerUrl
-    ? extractChainIdFromBundlerUrl(biconomySmartAccountConfig.bundlerUrl)
-    : biconomySmartAccountConfig.bundler
-      ? extractChainIdFromBundlerUrl(
-          biconomySmartAccountConfig.bundler.getBundlerUrl()
-        )
-      : undefined
-
-  const chainIdFromPaymasterUrl = biconomySmartAccountConfig.paymasterUrl
-    ? extractChainIdFromPaymasterUrl(biconomySmartAccountConfig.paymasterUrl)
-    : undefined
-
-  if (!isNullOrUndefined(signerResult.chainId)) {
-    if (
-      chainIdFromBundler !== undefined &&
-      signerResult.chainId !== chainIdFromBundler
-    ) {
-      throw new Error(
-        `Chain IDs from signer (${signerResult.chainId}) and bundler (${chainIdFromBundler}) do not match.`
-      )
-    }
-    if (
-      chainIdFromPaymasterUrl !== undefined &&
-      signerResult.chainId !== chainIdFromPaymasterUrl
-    ) {
-      throw new Error(
-        `Chain IDs from signer (${signerResult.chainId}) and paymaster (${chainIdFromPaymasterUrl}) do not match.`
-      )
-    }
-  } else {
-    if (
-      chainIdFromBundler !== undefined &&
-      chainIdFromPaymasterUrl !== undefined &&
-      chainIdFromBundler !== chainIdFromPaymasterUrl
-    ) {
-      throw new Error(
-        `Chain IDs from bundler (${chainIdFromBundler}) and paymaster (${chainIdFromPaymasterUrl}) do not match.`
-      )
-    }
-  }
 }
 
 export const isValidRpcUrl = (url: string): boolean => {

@@ -1,5 +1,5 @@
 import type { Address, Hex } from "viem"
-import { ModuleType, type SmartAccountSigner } from "../../account/index.js"
+import type { SmartAccountSigner } from "../../account/index.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
 import type { V3ModuleInfo } from "../utils/Types.js"
 
@@ -15,7 +15,7 @@ export class ValidationModule extends BaseValidationModule {
   ): Promise<ValidationModule> {
     const moduleInfo: V3ModuleInfo = {
       module: moduleAddress,
-      type: ModuleType.Validation,
+      type: "validator",
       data,
       additionalContext: "0x"
     }

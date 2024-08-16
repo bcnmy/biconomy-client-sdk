@@ -16,9 +16,9 @@ import { fundAndDeploy, getTestAccount, toTestClient } from "../test.utils"
 import type { ChainConfig, MasterClient } from "../test.utils"
 import { type TestFileNetworkType, toNetwork } from "../testSetup"
 
-const NETWORK_TYPE: TestFileNetworkType = "GLOBAL"
+const NETWORK_TYPE: TestFileNetworkType = "LOCAL"
 
-describe("account", () => {
+describe("modules", () => {
   let network: ChainConfig
   let chain: Chain
   let bundlerUrl: string

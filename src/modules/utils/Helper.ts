@@ -8,18 +8,13 @@ import {
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { type UserOperationStruct, getChain } from "../../account"
-import type { NexusSmartAccount } from "../../account/NexusSmartAccount.js"
-import {
-  type ChainInfo,
-  type Execution,
-  Module,
-  type SignerData,
-  type Transaction,
-  createK1ValidatorModule,
-  createOwnableExecutorModule,
-  createOwnableValidatorModule
+import type {
+  ChainInfo,
+  Execution,
+  SignerData,
+  Transaction
+  // createOwnableValidatorModule
 } from "../../index.js"
-import type { BaseModule } from "../base/BaseModule.js"
 
 /**
  * Rule
@@ -105,12 +100,11 @@ function packUserOp(
   if (forSignature) {
     return encodeAbiParameters(
       parseAbiParameters(
-        "address, uint256, bytes32, bytes32, uint256, uint256, uint256, uint256, uint256, bytes32"
+        "address, uint256, bytes32, uint256, uint256, uint256, uint256, uint256, bytes32"
       ),
       [
         op.sender ?? "0x",
         BigInt(op.nonce ?? 0n),
-        keccak256(op.initCode ?? "0x"),
         keccak256(op.callData),
         BigInt(op.callGasLimit ?? 0n),
         BigInt(op.verificationGasLimit ?? 0n),
@@ -124,12 +118,11 @@ function packUserOp(
   // for the purpose of calculating gas cost encode also signature (and no keccak of bytes)
   return encodeAbiParameters(
     parseAbiParameters(
-      "address, uint256, bytes, bytes, uint256, uint256, uint256, uint256, uint256, bytes"
+      "address, uint256, bytes, uint256, uint256, uint256, uint256, uint256, bytes"
     ),
     [
       op.sender ?? "0x",
       BigInt(op.nonce ?? 0n),
-      keccak256(op.initCode ?? "0x"),
       keccak256(op.callData),
       BigInt(op.callGasLimit ?? 0n),
       BigInt(op.verificationGasLimit ?? 0n),
@@ -240,22 +233,4 @@ export const toTransaction = (execution: Execution): Transaction => {
     value: Number(execution.value),
     data: execution.callData
   }
-}
-
-export const createModuleInstace = async (
-  module: Module,
-  smartAccount: NexusSmartAccount,
-  config?: any
-): Promise<BaseModule> => {
-  if (module === Module.OwnableExecutor) {
-    return await createOwnableExecutorModule(smartAccount)
-  }
-  if (module === Module.OwnableValidator) {
-    return await createOwnableValidatorModule(
-      smartAccount,
-      config.threshold,
-      config.owners
-    )
-  }
-  return await createK1ValidatorModule(smartAccount.getSigner())
 }

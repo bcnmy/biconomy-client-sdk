@@ -1,22 +1,18 @@
-import { ParamType, Transaction } from "ethers"
+import { ParamType } from "ethers"
 import type { Address, Chain, Hash, Hex, Log } from "viem"
 import type { UserOperationStruct } from "../../account"
 
-export type Bundlerconfig = {
+export type BundlerConfig = {
   bundlerUrl: string
   entryPointAddress?: string
-  chainId?: number
+  chain: Chain
   // eslint-disable-next-line no-unused-vars
   userOpReceiptIntervals?: { [key in number]?: number }
   userOpWaitForTxHashIntervals?: { [key in number]?: number }
   userOpReceiptMaxDurationIntervals?: { [key in number]?: number }
   userOpWaitForTxHashMaxDurationIntervals?: { [key in number]?: number }
-  /** Can be used to optionally override the chain with a custom chain if it doesn't already exist in viems list of supported chains. Alias of customChain */
-  viemChain?: Chain
-  /** Can be used to optionally override the chain with a custom chain if it doesn't already exist in viems list of supported chains. Alias of viemChain */
-  customChain?: Chain
 }
-export type BundlerConfigWithChainId = Bundlerconfig & { chainId: number }
+export type BundlerConfigWithChainId = BundlerConfig & { chainId: number }
 
 export type TStatus = "success" | "reverted"
 

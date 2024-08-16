@@ -1,19 +1,5 @@
-import type { Hex } from "viem"
 import type { ModuleVersion } from "./Types.js"
 
+export const OWNABLE_EXECUTOR = "0x"
+export const OWNABLE_VALIDATOR = "0x"
 export const DEFAULT_MODULE_VERSION: ModuleVersion = "1.0.0-beta"
-
-// VALIDATORS
-export const K1_VALIDATOR = "0x663E709f60477f07885230E213b8149a7027239B"
-export const OWNABLE_VALIDATOR = "0xBf2137a23F439Ca5Aa4360cC6970D70b24D07ea2"
-
-// EXECUTORS
-export const MOCK_EXECUTOR: Hex = "0xA975e69917A4c856b17Fc8Cc4C352f326Ef21C6B"
-export const OWNABLE_EXECUTOR = "0xc98B026383885F41d9a995f85FC480E9bb8bB891"
-
-// FALLBACKS
-export const MOCK_FALLBACK_HANDLER: Hex =
-  "0x56B7080ef4221FdBE210160efFd33F81B19926E0"
-
-// HOOKS
-export const MOCK_HOOK: Hex = "0x64587c60A3D19B0D73EFfd7660ee07cb76Ca465C"

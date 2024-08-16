@@ -9,15 +9,12 @@ import {
   getContract,
   trim
 } from "viem"
-import { EntryPointV07Abi } from "./abi/EntryPointV07Abi.js"
-import { Logger, type SmartAccountSigner, getChain } from "./index.js"
-import {
-  DEFAULT_ENTRYPOINT_ADDRESS,
-  type MODE_MODULE_ENABLE,
-  type MODE_VALIDATION
-} from "./utils/Constants.js"
+import { contracts } from "../contracts"
+import { EntrypointAbi } from "../contracts/abi/EntryPointABI.js"
+import { Logger, type SmartAccountSigner } from "./index.js"
+import type { MODE_MODULE_ENABLE, MODE_VALIDATION } from "./utils/Constants.js"
 import type {
-  BasSmartContractAccountProps,
+  BaseSmartContractAccountProps,
   BatchUserOperationCallData,
   ISmartContractAccount,
   SignTypedDataParams,
@@ -46,24 +43,22 @@ export abstract class BaseSmartContractAccount<
   protected signer: TSigner
 
   protected entryPoint: GetContractReturnType<
-    typeof EntryPointV07Abi,
+    typeof contracts.EntryPoint.abi,
     PublicClient
   >
 
   protected entryPointAddress: Address
 
-  readonly rpcProvider: PublicClient
+  public publicClient: PublicClient
 
-  constructor(params: BasSmartContractAccountProps) {
+  constructor(params: BaseSmartContractAccountProps) {
     this.entryPointAddress =
-      params.entryPointAddress ?? DEFAULT_ENTRYPOINT_ADDRESS
+      params.entryPointAddress ?? contracts.EntryPoint.address
 
-    this.rpcProvider = createPublicClient({
-      chain: params.viemChain ?? params.customChain ?? getChain(params.chainId),
-      transport: http(
-        params.rpcUrl || getChain(params.chainId).rpcUrls.default.http[0]
-      )
-    }) as PublicClient
+    this.publicClient = createPublicClient({
+      chain: params.chain,
+      transport: http(params.rpcUrl)
+    })
 
     this.accountAddress = params.accountAddress
     this.factoryAddress = params.factoryAddress
@@ -72,8 +67,8 @@ export abstract class BaseSmartContractAccount<
 
     this.entryPoint = getContract({
       address: this.entryPointAddress,
-      abi: EntryPointV07Abi,
-      client: this.rpcProvider as PublicClient
+      abi: EntrypointAbi,
+      client: this.publicClient as PublicClient
     })
   }
 
@@ -211,7 +206,7 @@ export abstract class BaseSmartContractAccount<
       return "0x"
     }
 
-    const contractCode = await this.rpcProvider.getBytecode({
+    const contractCode = await this.publicClient.getBytecode({
       address: await this.getAddress()
     })
 
@@ -310,7 +305,7 @@ export abstract class BaseSmartContractAccount<
   protected async getImplementationAddress(): Promise<"0x0" | Address> {
     const accountAddress = await this.getAddress()
 
-    const storage = await this.rpcProvider.getStorageAt({
+    const storage = await this.publicClient.getStorageAt({
       address: accountAddress,
       // This is the default slot for the implementation address for Proxies
       slot: "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc"

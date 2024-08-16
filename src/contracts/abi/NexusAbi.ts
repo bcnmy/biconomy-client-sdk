@@ -1,4 +1,4 @@
-export const NexusAccountAbi = [
+export const NexusAbi = [
   {
     inputs: [
       {
@@ -18,6 +18,11 @@ export const NexusAccountAbi = [
   {
     inputs: [],
     name: "CannotRemoveLastValidator",
+    type: "error"
+  },
+  {
+    inputs: [],
+    name: "EnableModeSigError",
     type: "error"
   },
   {
@@ -91,6 +96,11 @@ export const NexusAccountAbi = [
   {
     inputs: [],
     name: "InvalidImplementationAddress",
+    type: "error"
+  },
+  {
+    inputs: [],
+    name: "InvalidInput",
     type: "error"
   },
   {
@@ -269,6 +279,19 @@ export const NexusAccountAbi = [
     anonymous: false,
     inputs: [
       {
+        indexed: true,
+        internalType: "contract IERC7484",
+        name: "registry",
+        type: "address"
+      }
+    ],
+    name: "ERC7484RegistryConfigured",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         components: [
           {
             internalType: "address",
@@ -367,6 +390,25 @@ export const NexusAccountAbi = [
       }
     ],
     name: "ModuleUninstalled",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "batchExecutionindex",
+        type: "uint256"
+      },
+      {
+        indexed: false,
+        internalType: "bytes",
+        name: "result",
+        type: "bytes"
+      }
+    ],
+    name: "TryDelegateCallUnsuccessful",
     type: "event"
   },
   {
@@ -863,22 +905,39 @@ export const NexusAccountAbi = [
     type: "function"
   },
   {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "hash",
-        type: "bytes32"
-      }
-    ],
-    name: "replaySafeHash",
+    inputs: [],
+    name: "registry",
     outputs: [
       {
-        internalType: "bytes32",
+        internalType: "contract IERC7484",
         name: "",
-        type: "bytes32"
+        type: "address"
       }
     ],
     stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "contract IERC7484",
+        name: "newRegistry",
+        type: "address"
+      },
+      {
+        internalType: "address[]",
+        name: "attesters",
+        type: "address[]"
+      },
+      {
+        internalType: "uint8",
+        name: "threshold",
+        type: "uint8"
+      }
+    ],
+    name: "setRegistry",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function"
   },
   {
@@ -917,6 +976,19 @@ export const NexusAccountAbi = [
       }
     ],
     stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "supportsNestedTypedDataSign",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "result",
+        type: "bytes32"
+      }
+    ],
+    stateMutability: "pure",
     type: "function"
   },
   {
@@ -1011,7 +1083,7 @@ export const NexusAccountAbi = [
           }
         ],
         internalType: "struct PackedUserOperation",
-        name: "userOp",
+        name: "op",
         type: "tuple"
       },
       {
@@ -1058,4 +1130,4 @@ export const NexusAccountAbi = [
     stateMutability: "payable",
     type: "receive"
   }
-]
+] as const

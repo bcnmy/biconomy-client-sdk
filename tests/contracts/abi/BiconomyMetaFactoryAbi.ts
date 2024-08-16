@@ -1,29 +1,9 @@
-export const BiconomyFactoryAbi = [
+export const BiconomyMetaFactoryAbi = [
   {
     inputs: [
       {
         internalType: "address",
-        name: "implementation",
-        type: "address"
-      },
-      {
-        internalType: "address",
-        name: "factoryOwner",
-        type: "address"
-      },
-      {
-        internalType: "address",
-        name: "k1Validator",
-        type: "address"
-      },
-      {
-        internalType: "contract Bootstrap",
-        name: "bootstrapper",
-        type: "address"
-      },
-      {
-        internalType: "contract IERC7484",
-        name: "registry",
+        name: "owner_",
         type: "address"
       }
     ],
@@ -37,7 +17,22 @@ export const BiconomyFactoryAbi = [
   },
   {
     inputs: [],
+    name: "CallToDeployWithFactoryFailed",
+    type: "error"
+  },
+  {
+    inputs: [],
+    name: "FactoryNotWhitelisted",
+    type: "error"
+  },
+  {
+    inputs: [],
     name: "InvalidEntryPointAddress",
+    type: "error"
+  },
+  {
+    inputs: [],
+    name: "InvalidFactoryAddress",
     type: "error"
   },
   {
@@ -59,31 +54,6 @@ export const BiconomyFactoryAbi = [
     inputs: [],
     name: "ZeroAddressNotAllowed",
     type: "error"
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "account",
-        type: "address"
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "owner",
-        type: "address"
-      },
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "index",
-        type: "uint256"
-      }
-    ],
-    name: "AccountCreated",
-    type: "event"
   },
   {
     anonymous: false,
@@ -131,55 +101,16 @@ export const BiconomyFactoryAbi = [
     type: "event"
   },
   {
-    inputs: [],
-    name: "ACCOUNT_IMPLEMENTATION",
-    outputs: [
+    inputs: [
       {
         internalType: "address",
-        name: "",
+        name: "factory",
         type: "address"
       }
     ],
-    stateMutability: "view",
-    type: "function"
-  },
-  {
-    inputs: [],
-    name: "BOOTSTRAPPER",
-    outputs: [
-      {
-        internalType: "contract Bootstrap",
-        name: "",
-        type: "address"
-      }
-    ],
-    stateMutability: "view",
-    type: "function"
-  },
-  {
-    inputs: [],
-    name: "K1_VALIDATOR",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address"
-      }
-    ],
-    stateMutability: "view",
-    type: "function"
-  },
-  {
-    inputs: [],
-    name: "REGISTRY",
-    outputs: [
-      {
-        internalType: "contract IERC7484",
-        name: "",
-        type: "address"
-      }
-    ],
-    stateMutability: "view",
+    name: "addFactoryToWhitelist",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function"
   },
   {
@@ -224,31 +155,40 @@ export const BiconomyFactoryAbi = [
     inputs: [
       {
         internalType: "address",
-        name: "",
+        name: "factory",
         type: "address"
       },
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256"
-      },
-      {
-        internalType: "address[]",
-        name: "",
-        type: "address[]"
-      },
-      {
-        internalType: "uint8",
-        name: "",
-        type: "uint8"
+        internalType: "bytes",
+        name: "factoryData",
+        type: "bytes"
       }
     ],
-    name: "computeAccountAddress",
+    name: "deployWithFactory",
     outputs: [
       {
         internalType: "address payable",
-        name: "expectedAddress",
+        name: "createdAccount",
         type: "address"
+      }
+    ],
+    stateMutability: "payable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address"
+      }
+    ],
+    name: "factoryWhitelist",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool"
       }
     ],
     stateMutability: "view",
@@ -258,34 +198,19 @@ export const BiconomyFactoryAbi = [
     inputs: [
       {
         internalType: "address",
-        name: "eoaOwner",
+        name: "factory",
         type: "address"
-      },
-      {
-        internalType: "uint256",
-        name: "index",
-        type: "uint256"
-      },
-      {
-        internalType: "address[]",
-        name: "attesters",
-        type: "address[]"
-      },
-      {
-        internalType: "uint8",
-        name: "threshold",
-        type: "uint8"
       }
     ],
-    name: "createAccount",
+    name: "isFactoryWhitelisted",
     outputs: [
       {
-        internalType: "address payable",
+        internalType: "bool",
         name: "",
-        type: "address"
+        type: "bool"
       }
     ],
-    stateMutability: "payable",
+    stateMutability: "view",
     type: "function"
   },
   {
@@ -318,6 +243,19 @@ export const BiconomyFactoryAbi = [
       }
     ],
     stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "factory",
+        type: "address"
+      }
+    ],
+    name: "removeFactoryFromWhitelist",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function"
   },
   {
@@ -378,4 +316,4 @@ export const BiconomyFactoryAbi = [
     stateMutability: "nonpayable",
     type: "function"
   }
-]
+] as const

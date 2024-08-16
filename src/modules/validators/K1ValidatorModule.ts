@@ -1,6 +1,6 @@
-import { ModuleType, type SmartAccountSigner } from "../../account/index.js"
+import type { Address } from "viem"
+import type { SmartAccountSigner } from "../../account/index.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
-import { K1_VALIDATOR } from "../utils/Constants.js"
 import type { V3ModuleInfo } from "../utils/Types.js"
 
 export class K1ValidatorModule extends BaseValidationModule {
@@ -9,11 +9,12 @@ export class K1ValidatorModule extends BaseValidationModule {
   }
 
   public static async create(
-    signer: SmartAccountSigner
+    signer: SmartAccountSigner,
+    k1ValidatorAddress: Address
   ): Promise<K1ValidatorModule> {
     const moduleInfo: V3ModuleInfo = {
-      module: K1_VALIDATOR,
-      type: ModuleType.Validation,
+      module: k1ValidatorAddress,
+      type: "validator",
       data: await signer.getAddress(),
       additionalContext: "0x"
     }

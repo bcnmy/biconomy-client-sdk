@@ -51,7 +51,7 @@
     "README.md"
   ],
   "scripts": {
-    "nexus:deploy": "./scripts/deploy-nexus.sh",
+    "fetch:deployment": "bun run ./scripts/fetch:deployment.ts && bun run lint --apply-unsafe",
     "format": "biome format . --write",
     "lint": "biome check .",
     "lint:fix": "bun run lint --apply",
@@ -103,7 +103,8 @@
     "hardhat": "^2.22.8",
     "hardhat-deploy": "^0.12.4",
     "hardhat-storage-layout": "^0.1.7",
-    "nexus": "github:bcnmy/nexus#dev",
+    "lodash": "^4.17.21",
+    "nexus": "link:nexus",
     "prool": "^0.0.16",
     "rimraf": "^5.0.5",
     "simple-git-hooks": "^2.9.0",

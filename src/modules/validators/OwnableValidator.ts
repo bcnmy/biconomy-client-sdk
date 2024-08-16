@@ -9,7 +9,7 @@ import {
 } from "viem"
 import type { Hex } from "viem"
 import type { NexusSmartAccount } from "../../account/NexusSmartAccount.js"
-import { ModuleType, SENTINEL_ADDRESS } from "../../account/index.js"
+import { SENTINEL_ADDRESS } from "../../account/index.js"
 import type { UserOpReceipt } from "../../bundler/index.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
 import { OWNABLE_VALIDATOR } from "../utils/Constants.js"
@@ -53,8 +53,8 @@ export class OwnableValidator extends BaseValidationModule {
       [BigInt(threshold), owners]
     )
     const moduleInfo: V3ModuleInfo = {
-      module: OWNABLE_VALIDATOR,
-      type: ModuleType.Validation,
+      module: "0x",
+      type: "validator",
       data: installData,
       additionalContext: "0x",
       hook
@@ -125,13 +125,13 @@ export class OwnableValidator extends BaseValidationModule {
 
   public async getOwners(): Promise<Address[]> {
     try {
-      const owners = (await this.smartAccount.rpcProvider.readContract({
+      const owners = (await this.smartAccount.publicClient.readContract({
         address: OWNABLE_VALIDATOR,
         abi: parseAbi([
           "function getOwners(address account) external view returns (address[])"
         ]),
         functionName: "getOwners",
-        args: [await this.smartAccount.getAccountAddress()]
+        args: [await this.smartAccount.getAddress()]
       })) as Address[]
 
       return owners

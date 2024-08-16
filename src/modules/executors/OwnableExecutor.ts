@@ -7,7 +7,7 @@ import {
   getAddress,
   parseAbi
 } from "viem"
-import { ModuleType, SENTINEL_ADDRESS } from "../../account"
+import { SENTINEL_ADDRESS } from "../../account"
 import type { NexusSmartAccount } from "../../account/NexusSmartAccount"
 import type { UserOpReceipt } from "../../bundler"
 import { BaseExecutionModule } from "../base/BaseExecutionModule"
@@ -29,8 +29,8 @@ export class OwnableExecutorModule extends BaseExecutionModule {
   ): Promise<OwnableExecutorModule> {
     const signer = smartAccount.getSigner()
     const moduleInfo: V3ModuleInfo = {
-      module: OWNABLE_EXECUTOR,
-      type: ModuleType.Execution,
+      module: "0x",
+      type: "executor",
       data: await signer.getAddress(),
       additionalContext: "0x"
     }
@@ -50,7 +50,7 @@ export class OwnableExecutorModule extends BaseExecutionModule {
           "function executeBatchOnOwnedAccount(address ownedAccount, bytes callData)"
         ]),
         args: [
-          accountAddress ?? (await this.smartAccount.getAccountAddress()),
+          accountAddress ?? (await this.smartAccount.getAddress()),
           encodeAbiParameters(
             [
               {
@@ -84,7 +84,7 @@ export class OwnableExecutorModule extends BaseExecutionModule {
           "function executeOnOwnedAccount(address ownedAccount, bytes callData)"
         ]),
         args: [
-          accountAddress ?? (await this.smartAccount.getAccountAddress()),
+          accountAddress ?? (await this.smartAccount.getAddress()),
           encodePacked(
             ["address", "uint256", "bytes"],
             [
@@ -160,7 +160,7 @@ export class OwnableExecutorModule extends BaseExecutionModule {
         "function getOwners(address account) external view returns (address[])"
       ]),
       functionName: "getOwners",
-      args: [accountAddress ?? (await this.smartAccount.getAccountAddress())]
+      args: [accountAddress ?? (await this.smartAccount.getAddress())]
     })
 
     return owners as Address[]
