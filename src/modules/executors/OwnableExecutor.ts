@@ -16,12 +16,16 @@ import type { Execution, V3ModuleInfo } from "../utils/Types"
 
 export class OwnableExecutorModule extends BaseExecutionModule {
   smartAccount!: NexusSmartAccount
+  public owners: Address[]
+
   public constructor(
     moduleInfo: V3ModuleInfo,
-    smartAccount: NexusSmartAccount
+    smartAccount: NexusSmartAccount,
+    owners: Address[]
   ) {
     super(moduleInfo, smartAccount.getSigner())
     this.smartAccount = smartAccount
+    this.owners = owners
   }
 
   public static async create(
@@ -34,11 +38,19 @@ export class OwnableExecutorModule extends BaseExecutionModule {
       data: await signer.getAddress(),
       additionalContext: "0x"
     }
-    const instance = new OwnableExecutorModule(moduleInfo, smartAccount)
+    const owners = await smartAccount.publicClient.readContract({
+      address: OWNABLE_EXECUTOR,
+      abi: parseAbi([
+        "function getOwners(address account) external view returns (address[])"
+      ]),
+      functionName: "getOwners",
+      args: [await smartAccount.getAddress()]
+    })
+    const instance = new OwnableExecutorModule(moduleInfo, smartAccount, owners as Address[])
     return instance
   }
 
-  public async executeFromExecutor(
+  public async execute(
     execution: Execution | Execution[],
     accountAddress?: Address
   ): Promise<UserOpReceipt> {
@@ -117,6 +129,9 @@ export class OwnableExecutorModule extends BaseExecutionModule {
       value: 0n
     })
     const receipt = await response.wait()
+    if (receipt.success) {
+      this.owners.push(newOwner)
+    }
     return receipt
   }
 
@@ -150,6 +165,9 @@ export class OwnableExecutorModule extends BaseExecutionModule {
     })
 
     const receipt = await response.wait()
+    if (receipt.success) {
+      this.owners = this.owners.filter((o: Address) => o !== ownerToRemove)
+    }
     return receipt
   }
 

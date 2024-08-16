@@ -2350,7 +2350,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
               value: BigInt(tx.value ?? 0n)
             }
           })
-        return await this.activeExecutionModule?.executeFromExecutor(
+        return await this.activeExecutionModule?.execute(
           executions,
           ownedAccountAddress
         )
@@ -2360,7 +2360,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
         callData: (transactions[0].data ?? "0x") as Hex,
         value: BigInt(transactions[0].value ?? 0n)
       }
-      return await this.activeExecutionModule.executeFromExecutor(
+      return await this.activeExecutionModule.execute( 
         execution,
         ownedAccountAddress
       )
@@ -2370,11 +2370,20 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     )
   }
 
-  async supportsExecutionMode(mode: Hex): Promise<boolean> {
+    /**
+   * Checks if the account contract supports a specific execution mode.
+   * @param mode - The execution mode to check, represented as a viem Address.
+   * @returns A promise that resolves to a boolean indicating whether the execution mode is supported.
+   */
+  async supportsExecutionMode(mode: Address): Promise<boolean> {
     const accountContract = await this._getAccountContract()
     return (await accountContract.read.supportsExecutionMode([mode])) as boolean
   }
 
+  /**
+   * Retrieves the list of installed validators for the account.
+   * @returns A promise that resolves to an array of validator addresses.
+   */
   async getInstalledValidators(): Promise<Address[]> {
     const accountContract = await this._getAccountContract()
     return (
@@ -2385,6 +2394,10 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     )[0] as Address[]
   }
 
+  /**
+   * Retrieves the list of installed executors for the account.
+   * @returns A promise that resolves to an array of executor addresses.
+   */
   async getInstalledExecutors(): Promise<Address[]> {
     const accountContract = await this._getAccountContract()
     return (
@@ -2395,6 +2408,10 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     )[0] as Address[]
   }
 
+  /**
+   * Retrieves all installed modules for the account, including validators, executors, active hook, and fallback handler.
+   * @returns A promise that resolves to an array of addresses representing all installed modules.
+   */
   async getInstalledModules(): Promise<Address[]> {
     const validators = await this.getInstalledValidators()
     const executors = await this.getInstalledExecutors()
@@ -2404,11 +2421,20 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     return [...validators, ...executors, hook, fallbackHandler]
   }
 
+  /**
+   * Retrieves the active hook for the account.
+   * @returns A promise that resolves to the address of the active hook.
+   */
   async getActiveHook(): Promise<Address> {
     const accountContract = await this._getAccountContract()
     return (await accountContract.read.getActiveHook()) as Address
   }
 
+  /**
+   * Retrieves the fallback handler for a given selector.
+   * @param selector - Optional hexadecimal selector. If not provided, uses a generic fallback selector.
+   * @returns A promise that resolves to the address of the fallback handler.
+   */
   async getFallbackBySelector(selector?: Hex): Promise<Address> {
     const accountContract = await this._getAccountContract()
     return (await accountContract.read.getFallbackHandlerBySelector([
@@ -2416,6 +2442,11 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     ])) as Address
   }
 
+  /**
+   * Checks if the account supports a specific module type.
+   * @param moduleType - The type of module to check for support.
+   * @returns A promise that resolves to a boolean indicating whether the module type is supported.
+   */
   async supportsModule(moduleType: ModuleType): Promise<boolean> {
     const accountContract = await this._getAccountContract()
     return (await accountContract.read.supportsModule([moduleType])) as boolean
