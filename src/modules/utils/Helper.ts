@@ -8,18 +8,13 @@ import {
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { type UserOperationStruct, getChain } from "../../account"
-import type { NexusSmartAccount } from "../../account/NexusSmartAccount.js"
 import {
   type ChainInfo,
   type Execution,
-  Module,
   type SignerData,
   type Transaction,
-  createK1ValidatorModule,
-  createOwnableExecutorModule,
   // createOwnableValidatorModule
 } from "../../index.js"
-import type { BaseModule } from "../base/BaseModule.js"
 
 /**
  * Rule
@@ -238,22 +233,4 @@ export const toTransaction = (execution: Execution): Transaction => {
     value: Number(execution.value),
     data: execution.callData
   }
-}
-
-export const createModuleInstace = async (
-  module: Module,
-  smartAccount: NexusSmartAccount,
-  config?: any
-): Promise<BaseModule> => {
-  if (module === Module.OwnableExecutor) {
-    return await createOwnableExecutorModule(smartAccount)
-  }
-  // if (module === Module.OwnableValidator) {
-  //   return await createOwnableValidatorModule(
-  //     smartAccount,
-  //     config.threshold,
-  //     config.owners
-  //   )
-  // }
-  return await createK1ValidatorModule(smartAccount.getSigner())
 }

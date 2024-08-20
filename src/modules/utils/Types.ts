@@ -1,6 +1,6 @@
 import type { Address, Chain, Hex } from "viem"
 import type {
-  ModuleType,
+  CallType,
   SimulationType,
   SmartAccountSigner,
   SupportedSigner,
@@ -192,17 +192,52 @@ export type V3ModuleInfo = {
   hook?: Address
 }
 
-export enum Module {
-  OwnableExecutor = 0,
-  MockExecutor = 1,
-  K1Validator = 2,
-  MockHook = 3,
-  MockFallbackHandler = 4,
-  OwnableValidator = 5
-}
-
 export type Execution = {
   target: Address
   value: bigint
   callData: Hex
+}
+
+
+export enum SafeHookType {
+  GLOBAL = 0,
+  SIG = 1,
+}
+
+export type Module = {
+  module: Address
+  data?: Hex
+  additionalContext?: Hex
+  type: ModuleType
+
+  /* ---- kernel module params ---- */
+  // these param needed for installing validator, executor, fallback handler
+  hook?: Address
+  /* ---- end kernel module params ---- */
+
+  /* ---- safe module params ---- */
+
+  // these two params needed for installing hooks
+  hookType?: SafeHookType
+  selector?: Hex
+
+  // these two params needed for installing fallback handlers
+  functionSig?: Hex
+  callType?: CallType
+
+  /* ---- end safe module params ---- */
+}
+
+
+export type ModuleType = 'validator' | 'executor' | 'fallback' | 'hook'
+
+type ModuleTypeIds = {
+  [index in ModuleType]: 1 | 2 | 3 | 4
+}
+
+export const moduleTypeIds: ModuleTypeIds = {
+  validator: 1,
+  executor: 2,
+  fallback: 3,
+  hook: 4,
 }

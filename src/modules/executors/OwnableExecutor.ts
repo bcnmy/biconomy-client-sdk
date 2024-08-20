@@ -7,35 +7,36 @@ import {
   getAddress,
   parseAbi
 } from "viem"
-import { ModuleType, SENTINEL_ADDRESS } from "../../account"
+import { SENTINEL_ADDRESS } from "../../account"
 import type { NexusSmartAccount } from "../../account/NexusSmartAccount"
 import type { UserOpReceipt } from "../../bundler"
 import { BaseExecutionModule } from "../base/BaseExecutionModule"
 import { OWNABLE_EXECUTOR } from "../utils/Constants"
-import type { Execution, V3ModuleInfo } from "../utils/Types"
+import type { Execution, Module } from "../utils/Types"
 
 export class OwnableExecutorModule extends BaseExecutionModule {
   smartAccount!: NexusSmartAccount
   public owners: Address[]
 
   public constructor(
-    moduleInfo: V3ModuleInfo,
+    module: Module,
     smartAccount: NexusSmartAccount,
-    owners: Address[]
+    owners: Address[],
   ) {
-    super(moduleInfo, smartAccount.getSigner())
+    super(module, smartAccount.getSigner())
     this.smartAccount = smartAccount
     this.owners = owners
+    this.data = module.data ?? "0x"
   }
 
   public static async create(
-    smartAccount: NexusSmartAccount
+    smartAccount: NexusSmartAccount,
+    data?: Hex
   ): Promise<OwnableExecutorModule> {
-    const signer = smartAccount.getSigner()
-    const moduleInfo: V3ModuleInfo = {
+    const module: Module = {
       module: OWNABLE_EXECUTOR,
-      type: ModuleType.Execution,
-      data: await signer.getAddress(),
+      type: 'executor',
+      data: data ?? "0x",
       additionalContext: "0x"
     }
     const owners = await smartAccount.publicClient.readContract({
@@ -46,7 +47,7 @@ export class OwnableExecutorModule extends BaseExecutionModule {
       functionName: "getOwners",
       args: [await smartAccount.getAddress()]
     })
-    const instance = new OwnableExecutorModule(moduleInfo, smartAccount, owners as Address[])
+    const instance = new OwnableExecutorModule(module, smartAccount, owners as Address[])
     return instance
   }
 

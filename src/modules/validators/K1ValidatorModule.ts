@@ -1,23 +1,23 @@
-import { ModuleType, type SmartAccountSigner } from "../../account/index.js"
+import { type SmartAccountSigner } from "../../account/index.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
 import { K1_VALIDATOR } from "../utils/Constants.js"
-import type { V3ModuleInfo } from "../utils/Types.js"
+import type { Module } from "../utils/Types.js"
 
 export class K1ValidatorModule extends BaseValidationModule {
-  private constructor(moduleConfig: V3ModuleInfo, signer: SmartAccountSigner) {
+  private constructor(moduleConfig: Module, signer: SmartAccountSigner) {
     super(moduleConfig, signer)
   }
 
   public static async create(
     signer: SmartAccountSigner
   ): Promise<K1ValidatorModule> {
-    const moduleInfo: V3ModuleInfo = {
+    const module: Module = {
       module: K1_VALIDATOR,
-      type: ModuleType.Validation,
+      type: 'validator',
       data: await signer.getAddress(),
       additionalContext: "0x"
     }
-    const instance = new K1ValidatorModule(moduleInfo, signer)
+    const instance = new K1ValidatorModule(module, signer)
     return instance
   }
 }

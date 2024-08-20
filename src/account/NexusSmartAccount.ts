@@ -35,10 +35,12 @@ import type { BaseExecutionModule } from "../modules/base/BaseExecutionModule.js
 import { BaseValidationModule } from "../modules/base/BaseValidationModule.js"
 import {
   type Execution,
+  type Module,
   type ModuleInfo,
   type SendUserOpParams,
   createK1ValidatorModule,
-  createValidationModule
+  createValidationModule,
+  moduleTypeIds
 } from "../modules/index.js"
 import type { K1ValidatorModule } from "../modules/validators/K1ValidatorModule.js"
 import {
@@ -54,7 +56,6 @@ import { BaseSmartContractAccount } from "./BaseSmartContractAccount.js"
 import { NexusAccountAbi } from "./abi/SmartAccount.js"
 import {
   Logger,
-  ModuleType,
   type SmartAccountSigner,
   type StateOverrideSet,
   type UserOperationStruct,
@@ -81,7 +82,6 @@ import type {
   BiconomyTokenPaymasterRequest,
   BuildUserOpOptions,
   CounterFactualAddressParam,
-  ModuleInfoParams,
   NexusSmartAccountConfig,
   NexusSmartAccountConfigConstructorProps,
   NonceOptions,
@@ -2090,17 +2090,13 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     return tx
   }
 
-  async isModuleInstalled({
-    moduleType,
-    moduleAddress,
-    data
-  }: ModuleInfoParams): Promise<boolean> {
+  async isModuleInstalled(module: Module): Promise<boolean> {
     if (await this.isAccountDeployed()) {
       const accountContract = await this._getAccountContract()
       return (await accountContract.read.isModuleInstalled([
-        moduleType,
-        moduleAddress,
-        data ?? "0x"
+        BigInt(moduleTypeIds[module.type]),
+        module.module,
+        module.data ?? "0x"
       ])) as boolean
     }
     Logger.warn("A module cannot be installed on an undeployed account")
@@ -2111,21 +2107,16 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     return this.signer
   }
 
-  async installModule({
-    moduleAddress,
-    moduleType,
-    moduleSelector,
-    data
-  }: ModuleInfoParams): Promise<UserOpReceipt> {
+  async installModule(module: Module): Promise<UserOpReceipt> {
     let execution: Execution
-    switch (moduleType) {
-      case ModuleType.Validation:
-      case ModuleType.Execution:
-      case ModuleType.Hook:
+    switch (module.type) {
+      case 'validator':
+      case 'executor':
+      case 'hook':
         execution = await this._installModule({
-          moduleAddress,
-          moduleType,
-          data
+          module: module.module,
+          type: module.type,
+          data: module.data
         })
         return (
           await this.sendTransaction({
@@ -2134,18 +2125,13 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
             value: execution.value
           })
         ).wait()
-      case ModuleType.Fallback:
-        if (!moduleSelector) {
+      case 'fallback':
+        if (!module.selector || !module.callType) {
           throw new Error(
             "Selector param is required for a Fallback Handler Module"
           )
         }
-        execution = await this._uninstallFallback({
-          moduleAddress,
-          moduleType: ModuleType.Fallback,
-          moduleSelector: moduleSelector ?? "0x",
-          data
-        })
+        execution = await this._uninstallFallback(module)
         return (
           await this.sendTransaction({
             to: execution.target,
@@ -2154,20 +2140,12 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
           })
         ).wait()
       default:
-        throw new Error(`Unknown module type ${moduleType}`)
+        throw new Error(`Unknown module type ${module.type}`)
     }
   }
 
-  async _installModule({
-    moduleAddress,
-    moduleType,
-    data
-  }: ModuleInfoParams): Promise<Execution> {
-    const isInstalled = await this.isModuleInstalled({
-      moduleAddress,
-      moduleType,
-      data
-    })
+  async _installModule(module: Module): Promise<Execution> {
+    const isInstalled = await this.isModuleInstalled(module)
 
     if (!isInstalled) {
       const execution = {
@@ -2178,7 +2156,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
           abi: parseAbi([
             "function installModule(uint256 moduleTypeId, address module, bytes calldata initData) external payable"
           ]),
-          args: [BigInt(moduleType), moduleAddress, data || "0x"]
+          args: [BigInt(moduleTypeIds[module.type]), module.module, module.data || "0x"]
         })
       }
       return execution
@@ -2186,18 +2164,13 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     throw new Error("Module already installed")
   }
 
-  async uninstallModule({
-    moduleAddress,
-    moduleType,
-    moduleSelector,
-    data
-  }: ModuleInfoParams): Promise<UserOpReceipt> {
+  async uninstallModule(module: Module): Promise<UserOpReceipt> {
     let execution: Execution
-    switch (moduleType) {
-      case ModuleType.Validation:
-      case ModuleType.Execution:
-      case ModuleType.Hook:
-        execution = await this._uninstallModule(moduleAddress, moduleType, data)
+    switch (module.type) {
+      case 'validator':
+      case 'executor':
+      case 'hook':
+        execution = await this._uninstallModule(module)
         return (
           await this.sendTransaction({
             to: execution.target,
@@ -2205,18 +2178,13 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
             value: execution.value
           })
         ).wait()
-      case ModuleType.Fallback:
-        if (!moduleSelector) {
+      case 'fallback':
+        if (!module.selector) {
           throw new Error(
-            `Selector param is required for module type ${moduleType}`
+            `Selector param is required for module type ${module.type}`
           )
         }
-        execution = await this._uninstallFallback({
-          moduleAddress,
-          moduleType: ModuleType.Fallback,
-          moduleSelector: moduleSelector,
-          data
-        })
+        execution = await this._uninstallFallback(module)
         return (
           await this.sendTransaction({
             to: execution.target,
@@ -2225,46 +2193,32 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
           })
         ).wait()
       default:
-        throw new Error(`Unknown module type ${moduleType}`)
+        throw new Error(`Unknown module type ${module.type}`)
     }
   }
 
-  async getPreviousModule({
-    moduleAddress,
-    moduleType
-  }: { moduleAddress: Address; moduleType: ModuleType }) {
+  async getPreviousModule(module: Module) {
     let installedModules: Address[] = []
-    if (moduleType === ModuleType.Validation) {
+    if (module.type === 'validator') {
       installedModules = await this.getInstalledValidators()
     }
-    if (moduleType === ModuleType.Execution) {
+    if (module.type === 'executor') {
       installedModules = await this.getInstalledExecutors()
     }
-    const index = installedModules.indexOf(getAddress(moduleAddress))
+    const index = installedModules.indexOf(getAddress(module.module))
     if (index === 0) {
       return SENTINEL_ADDRESS
     }
     if (index > 0) {
       return installedModules[index - 1]
     }
-    throw new Error(`Module ${moduleAddress} not found in installed modules`)
+    throw new Error(`Module ${module.module} not found in installed modules`)
   }
 
-  private async _uninstallFallback({
-    moduleAddress,
-    moduleSelector,
-    data
-  }: ModuleInfoParams): Promise<Execution> {
+  private async _uninstallFallback(module: Module): Promise<Execution> {
     let execution: Execution
 
-    const isInstalled = await this.isModuleInstalled({
-      moduleType: ModuleType.Fallback,
-      moduleAddress,
-      data: encodeAbiParameters(
-        [{ name: "functionSignature", type: "bytes4" }],
-        [moduleSelector ?? "0x"]
-      )
-    })
+    const isInstalled = await this.isModuleInstalled(module)
 
     if (isInstalled) {
       execution = {
@@ -2276,11 +2230,11 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
             "function uninstallModule(uint256 moduleTypeId, address module, bytes deInitData)"
           ]),
           args: [
-            BigInt(ModuleType.Fallback),
-            moduleAddress,
+            BigInt(moduleTypeIds[module.type]),
+            module.module,
             encodePacked(
               ["bytes4", "bytes"],
-              [moduleSelector ?? "0x", data ?? "0x"]
+              [module.selector ?? "0x", module.data ?? "0x"]
             )
           ]
         })
@@ -2290,27 +2244,17 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     throw new Error("Module is not installed")
   }
 
-  private async _uninstallModule(
-    moduleAddress: Address,
-    moduleType: ModuleType,
-    data?: Hex
-  ): Promise<Execution> {
+  private async _uninstallModule(module: Module): Promise<Execution> {
     let execution: Execution
-    const isInstalled = await this.isModuleInstalled({
-      moduleType,
-      moduleAddress
-    })
+    const isInstalled = await this.isModuleInstalled(module)
 
     if (isInstalled) {
-      let moduleData = data || "0x"
+      let moduleData = module.data || "0x"
       if (
-        moduleType === ModuleType.Validation ||
-        moduleType === ModuleType.Execution
+        module.type === 'validator' ||
+        module.type === 'executor'
       ) {
-        const prev = await this.getPreviousModule({
-          moduleAddress,
-          moduleType: moduleType
-        })
+        const prev = await this.getPreviousModule(module)
         moduleData = encodeAbiParameters(
           [
             { name: "prev", type: "address" },
@@ -2327,7 +2271,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
           abi: parseAbi([
             "function uninstallModule(uint256 moduleTypeId, address module, bytes deInitData)"
           ]),
-          args: [BigInt(moduleType), moduleAddress, moduleData]
+          args: [BigInt(moduleTypeIds[module.type]), module.module, moduleData]
         })
       }
       return execution
@@ -2447,8 +2391,8 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    * @param moduleType - The type of module to check for support.
    * @returns A promise that resolves to a boolean indicating whether the module type is supported.
    */
-  async supportsModule(moduleType: ModuleType): Promise<boolean> {
+  async supportsModule(module: Module): Promise<boolean> {
     const accountContract = await this._getAccountContract()
-    return (await accountContract.read.supportsModule([moduleType])) as boolean
+    return (await accountContract.read.supportsModule([module.type])) as boolean
   }
 }

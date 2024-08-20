@@ -16,13 +16,13 @@ import type { UserOperationStruct } from "../../account"
 import {
   MOCK_MULTI_MODULE_ADDRESS,
   MODULE_ENABLE_MODE_TYPE_HASH,
-  type ModuleType,
   type SupportedSigner,
   convertSigner
 } from "../../account"
 import { extractChainIdFromBundlerUrl } from "../../bundler"
 import { extractChainIdFromPaymasterUrl } from "../../bundler"
 import type { NexusSmartAccountConfig } from "./Types.js"
+import { type ModuleType, moduleTypeIds } from "../../modules/index.js"
 
 /**
  * pack the userOperation
@@ -206,9 +206,9 @@ export function makeInstallDataAndHash(
   accountOwner: Address,
   modules: { moduleType: ModuleType; config: Hex }[]
 ): [string, string] {
-  const types = modules.map((module) => BigInt(module.moduleType))
+  const types = modules.map((module) => BigInt(moduleTypeIds[module.moduleType]))
   const initDatas = modules.map((module) =>
-    toHex(concat([toBytes(module.moduleType), module.config]))
+    toHex(concat([toBytes(BigInt(moduleTypeIds[module.moduleType])), module.config]))
   )
 
   const multiInstallData = encodeAbiParameters(

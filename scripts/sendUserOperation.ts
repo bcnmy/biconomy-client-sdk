@@ -3,7 +3,6 @@ import { getConfig } from "../tests/utils"
 import { createWalletClient, http, parseEther } from "viem"
 import { createK1ValidatorModule, createSmartAccountClient } from "../src"
 
-
 const {
     chain,
     chainId,

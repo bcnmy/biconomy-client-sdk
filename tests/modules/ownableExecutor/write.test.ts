@@ -10,7 +10,6 @@ import { privateKeyToAccount } from "viem/accounts"
 import { baseSepolia } from "viem/chains"
 import { describe, expect, test } from "vitest"
 import {
-  ModuleType,
   OWNABLE_EXECUTOR,
   createOwnableExecutorModule
 } from "../../../src"
@@ -47,14 +46,14 @@ describe("Account:Modules:OwnableExecutor", async () => {
   describe("Ownable Executor Module Tests", async () => {
     test.skip("install Ownable Executor", async () => {
       let isInstalled = await smartAccount.isModuleInstalled({
-        moduleType: ModuleType.Execution,
-        moduleAddress: OWNABLE_EXECUTOR
+        type: 'executor',
+        module: OWNABLE_EXECUTOR
       })
 
       if (!isInstalled) {
         const receipt = await smartAccount.installModule({
-          moduleAddress: OWNABLE_EXECUTOR,
-          moduleType: ModuleType.Execution,
+          module: OWNABLE_EXECUTOR,
+          type: 'executor',
           data: encodePacked(
             ["address"],
             [await smartAccount.getAddress()]
@@ -69,8 +68,8 @@ describe("Account:Modules:OwnableExecutor", async () => {
 
     test.skip("Ownable Executor Module should be installed", async () => {
       const isInstalled = await smartAccount.isModuleInstalled({
-        moduleType: ModuleType.Execution,
-        moduleAddress: OWNABLE_EXECUTOR
+        type: 'executor',
+        module: OWNABLE_EXECUTOR
       })
       console.log(isInstalled, "isInstalled")
       expect(isInstalled).toBeTruthy()
@@ -151,14 +150,14 @@ describe("Account:Modules:OwnableExecutor", async () => {
 
       // First, we need to install the OwnableExecutor module on SA 2
       let isInstalled = await smartAccount2.isModuleInstalled({
-        moduleType: ModuleType.Execution,
-        moduleAddress: OWNABLE_EXECUTOR
+        type: 'executor',
+        module: OWNABLE_EXECUTOR
       })
 
       if (!isInstalled) {
         await smartAccount2.installModule({
-          moduleAddress: OWNABLE_EXECUTOR,
-          moduleType: ModuleType.Execution,
+          module: OWNABLE_EXECUTOR,
+          type: 'executor',
           data: encodePacked(
             ["address"],
             [await smartAccount2.getAddress()]
@@ -202,29 +201,29 @@ describe("Account:Modules:OwnableExecutor", async () => {
       expect(receipt.success).toBe(true)
     }, 60000)
 
-    test.skip("SA 2 can execute actions on behalf of SA 1 using module instance instead of smart account instance", async () => {
-
+    test("SA 2 can execute actions on behalf of SA 1 using module instance instead of smart account instance", async () => {
       const smartAccount2: NexusSmartAccount = await createSmartAccountClient({
         signer: walletClientTwo,
         bundlerUrl
       })
 
-      const ownableExecutorModule2 = await createOwnableExecutorModule(smartAccount2)
+      const initData = encodePacked(
+        ["address"],
+        [await smartAccount2.getAddress()]
+      )
+      const ownableExecutorModule2 = await createOwnableExecutorModule(smartAccount2, initData)
 
       // First, we need to install the OwnableExecutor module on SA 2
       let isInstalled = await smartAccount2.isModuleInstalled({
-        moduleType: ModuleType.Execution,
-        moduleAddress: OWNABLE_EXECUTOR
+        type: 'executor',
+        module: OWNABLE_EXECUTOR
       })
 
       if (!isInstalled) {
         await smartAccount2.installModule({
-          moduleAddress: OWNABLE_EXECUTOR,
-          moduleType: ModuleType.Execution,
-          data: encodePacked(
-            ["address"],
-            [await smartAccount2.getAddress()]
-          )
+          module: ownableExecutorModule2.moduleAddress,
+          type: ownableExecutorModule2.type,
+          data: ownableExecutorModule2.data
         })
       }
 
@@ -274,5 +273,57 @@ describe("Account:Modules:OwnableExecutor", async () => {
       expect(isOwner).toBeFalsy()
       expect(userOpReceipt.success).toBeTruthy()
     }, 60000)
+
+    // test.skip("should use rhinestone to call ownable executor", async () => {
+    //   const smartAccount2: NexusSmartAccount = await createSmartAccountClient({
+    //     signer: walletClientTwo,
+    //     bundlerUrl
+    //   })
+
+    //   const initData = encodePacked(
+    //     ["address"],
+    //     [await smartAccount2.getAddress()]
+    //   )
+
+    //   const ownableExecutorModule2 = getOwnableExecuter({
+    //     owner: await smartAccount2.getAddress(),
+    //   });
+
+    //   // First, we need to install the OwnableExecutor module on SA 2
+    //   let isInstalled = await smartAccount2.isModuleInstalled({
+    //     type: 'executor',
+    //     module: OWNABLE_EXECUTOR
+    //   })
+
+    //   if (!isInstalled) {
+    //     await smartAccount2.installModule({
+    //       module: ownableExecutorModule2.module,
+    //       type: ownableExecutorModule2.type,
+    //       data: ownableExecutorModule2.initData
+    //     })
+    //   }
+
+    //   smartAccount2.setActiveExecutionModule(ownableExecutorModule)
+
+    //   const valueToTransfer = parseEther("0.1")
+    //   const recipient = accountTwo.address
+    //   const transferEncodedCall = encodeFunctionData({
+    //     abi: parseAbi(["function transfer(address to, uint256 value)"]),
+    //     functionName: "transfer",
+    //     args: [recipient, valueToTransfer]
+    //   })
+
+    //   const transferTransaction = {
+    //     target: token as `0x${string}`,
+    //     callData: transferEncodedCall,
+    //     value: 0n
+    //   }
+
+    //   const execution = getExecuteOnOwnedAccountAction({ownedAccount: await smartAccount.getAddress(), execution: transferTransaction})
+    //   const receipt = await smartAccount2.sendTransaction([{to: execution.target, data: execution.callData, value: 0n}]);
+    //   console.log(receipt, "receipt");
+
+    //   expect(receipt.userOpHash).toBeTruthy()
+    // }, 60000)
   })
 })

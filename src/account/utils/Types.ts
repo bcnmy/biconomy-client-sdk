@@ -12,7 +12,7 @@ import type {
   WalletClient
 } from "viem"
 import type { IBundler } from "../../bundler"
-import type { ModuleInfo } from "../../modules"
+import type { ModuleInfo, ModuleType } from "../../modules"
 import type { BaseValidationModule } from "../../modules/base/BaseValidationModule"
 import type {
   FeeQuotesOrDataDto,
@@ -619,12 +619,6 @@ export type TransferOwnershipCompatibleModule =
   | "0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e"
   | "0x000000824dc138db84FD9109fc154bdad332Aa8E"
 
-export enum ModuleType {
-  Validation = 1,
-  Execution = 2,
-  Fallback = 3,
-  Hook = 4
-}
 
 export type ModuleInfoParams = {
   moduleAddress: Address
@@ -642,3 +636,10 @@ export type EIP712DomainReturn = [
   Hex,
   bigint[]
 ]
+
+export enum CallType {
+  CALLTYPE_SINGLE = '0x00',
+  CALLTYPE_BATCH = '0x01',
+  CALLTYPE_STATIC = '0xFE',
+  CALLTYPE_DELEGATECALL = '0xFF',
+}

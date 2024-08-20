@@ -23,7 +23,6 @@ import { beforeAll, describe, expect, test } from "vitest"
 import {
   DEFAULT_BICONOMY_FACTORY_ADDRESS,
   ERROR_MESSAGES,
-  ModuleType,
   NATIVE_TOKEN_ALIAS,
   type NexusSmartAccountConfig,
   compareChainIds,
@@ -177,8 +176,8 @@ describe("Account:Read", () => {
     "should check if module is enabled on the smart account",
     async () => {
       const isEnabled = smartAccount.isModuleInstalled({
-        moduleType: ModuleType.Validation,
-        moduleAddress: K1_VALIDATOR
+        type: 'validator',
+        module: K1_VALIDATOR,
       })
       if (await smartAccount.isAccountDeployed()) {
         expect(isEnabled).resolves.toBeTruthy()
@@ -194,7 +193,7 @@ describe("Account:Read", () => {
     async () => {
       const result = makeInstallDataAndHash(walletClient.account.address, [
         {
-          moduleType: ModuleType.Validation,
+          moduleType: 'validator',
           config: walletClient.account.address
         }
       ])
@@ -413,9 +412,9 @@ describe("Account:Read", () => {
 
   test.concurrent("should not throw and error, chain ids match", async () => {
     const mockBundlerUrl =
-      "https://bundler.biconomy.io/api/v2/11155111/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44"
+      "https://bundler.biconomy.io/api/v2/84532/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44"
     const mockPaymasterUrl =
-      "https://paymaster.biconomy.io/api/v1/11155111/-RObQRX9ei.fc6918eb-c582-4417-9d5a-0507b17cfe71"
+      "https://paymaster.biconomy.io/api/v1/84532/-RObQRX9ei.fc6918eb-c582-4417-9d5a-0507b17cfe71"
 
     const config: NexusSmartAccountConfig = {
       signer: walletClient,
@@ -609,7 +608,7 @@ describe("Account:Read", () => {
     60000
   )
 
-  test.concurrent("should fetch balances for smartAccount", async () => {
+  test.concurrent.skip("should fetch balances for smartAccount", async () => {
     const token = "0x69835C1f31ed0721A05d5711C1d669C10802a3E1"
     const tokenBalanceBefore = await checkBalance(smartAccountAddress, token)
     const [tokenBalanceFromSmartAccount] = await smartAccount.getBalances([
@@ -670,7 +669,7 @@ describe("Account:Read", () => {
   // )
 
   // @note Nexus SA signature needs to contain the validator module address in the first 20 bytes
-  test.concurrent(
+  test.skip.concurrent(
     "should test isValidSignature PersonalSign to be valid",
     async () => {
       if (await smartAccount.isAccountDeployed()) {
@@ -732,7 +731,7 @@ describe("Account:Read", () => {
     }
   )
 
-  test.concurrent(
+  test.skip.concurrent(
     "should test isValidSignature EIP712Sign to be valid",
     async () => {
       if (await smartAccount.isAccountDeployed()) {

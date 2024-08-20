@@ -15,6 +15,7 @@ import {
   OWNABLE_VALIDATOR,
   createK1ValidatorModule,
   getRandomSigner,
+  moduleTypeIds,
 } from "../../../src"
 import { createSmartAccountClient } from "../../../src/account"
 import type { NexusSmartAccount } from "../../../src/account/NexusSmartAccount"
@@ -48,22 +49,22 @@ describe("Account:Modules:OwnableValidator", async () => {
   describe("K1 Validator Module Tests", async () => {
     test("install k1 Validator with 1 owner", async () => {
       const isInstalledBefore = await smartAccount.isModuleInstalled({
-        moduleType: ModuleType.Validation,
-        moduleAddress: K1_VALIDATOR
+        type: 'validator',
+        module: K1_VALIDATOR
       })
 
       console.log(isInstalledBefore, "isInstalledBefore")
 
       if (!isInstalledBefore) {
         const userOpReceipt: UserOpReceipt = await smartAccount.installModule({
-          moduleAddress: K1_VALIDATOR,
-          moduleType: ModuleType.Validation,
+          module: K1_VALIDATOR,
+          type: 'validator',
           data: encodePacked(["address"], [await smartAccount.getAddress()])
         })
 
         await smartAccount.uninstallModule({
-          moduleAddress: K1_VALIDATOR,
-          moduleType: ModuleType.Validation,
+          module: K1_VALIDATOR,
+          type: 'validator',
           data: encodePacked(["address"], [await smartAccount.getAddress()])
         })
 
@@ -75,8 +76,8 @@ describe("Account:Modules:OwnableValidator", async () => {
 
     test("Ownable Validator Module should be installed", async () => {
       const isInstalled = await smartAccount.isModuleInstalled({
-        moduleType: ModuleType.Validation,
-        moduleAddress: OWNABLE_VALIDATOR
+        type: 'validator',
+        module: OWNABLE_VALIDATOR
       })
       expect(isInstalled).toBeTruthy()
     }, 60000)
