@@ -84,8 +84,7 @@ export class OwnableExecutorModule extends BaseExecutionModule {
                 type: "tuple[]"
               }
             ],
-            // @ts-ignore
-            [executions]
+            [execution]
           )
         ]
       })

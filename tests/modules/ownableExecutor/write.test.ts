@@ -202,6 +202,68 @@ describe("Account:Modules:OwnableExecutor", async () => {
       expect(receipt.success).toBe(true)
     }, 60000)
 
+    test.skip("SA 2 can execute actions on behalf of SA 1 using module instance instead of smart account instance", async () => {
+
+      const smartAccount2: NexusSmartAccount = await createSmartAccountClient({
+        signer: walletClientTwo,
+        bundlerUrl
+      })
+
+      const ownableExecutorModule2 = await createOwnableExecutorModule(smartAccount2)
+
+      // First, we need to install the OwnableExecutor module on SA 2
+      let isInstalled = await smartAccount2.isModuleInstalled({
+        moduleType: ModuleType.Execution,
+        moduleAddress: OWNABLE_EXECUTOR
+      })
+
+      if (!isInstalled) {
+        await smartAccount2.installModule({
+          moduleAddress: OWNABLE_EXECUTOR,
+          moduleType: ModuleType.Execution,
+          data: encodePacked(
+            ["address"],
+            [await smartAccount2.getAddress()]
+          )
+        })
+      }
+
+      smartAccount2.setActiveExecutionModule(ownableExecutorModule)
+
+      const valueToTransfer = parseEther("0.1")
+      const recipient = accountTwo.address
+      const transferEncodedCall = encodeFunctionData({
+        abi: parseAbi(["function transfer(address to, uint256 value)"]),
+        functionName: "transfer",
+        args: [recipient, valueToTransfer]
+      })
+
+      const owners = await ownableExecutorModule2.getOwners()
+      
+      // check if SA 2 is as an owner of SA 1
+      const isOwner = owners.includes(await smartAccount2.getAddress())
+      if(!isOwner) {
+        const userOpReceipt = await ownableExecutorModule2.addOwner(
+          await smartAccount2.getAddress()
+        )
+        expect(userOpReceipt.success).toBeTruthy()
+      }
+
+      const transferTransaction = {
+        target: token as `0x${string}`,
+        callData: transferEncodedCall,
+        value: 0n
+      }
+
+      smartAccount2.setActiveExecutionModule(ownableExecutorModule2)
+      // SA 2 will execute the transferTransaction on behalf of SA 1 (smartAccount)
+      const receipt = await ownableExecutorModule2.execute(transferTransaction, await smartAccount.getAddress());
+      console.log(receipt, "receipt");
+
+      expect(receipt.userOpHash).toBeTruthy()
+      expect(receipt.success).toBe(true)
+    }, 60000)
+
     test.skip("should remove an owner from the module", async () => {
       const userOpReceipt = await ownableExecutorModule.removeOwner(
         accountTwo.address

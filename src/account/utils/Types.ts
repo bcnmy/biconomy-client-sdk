@@ -623,7 +623,7 @@ export enum ModuleType {
   Validation = 1,
   Execution = 2,
   Fallback = 3,
-  Hooks = 4
+  Hook = 4
 }
 
 export type ModuleInfoParams = {

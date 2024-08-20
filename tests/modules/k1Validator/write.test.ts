@@ -36,7 +36,7 @@ describe("Account:Modules:OwnableValidator", async () => {
 
   const smartAccount: NexusSmartAccount = await createSmartAccountClient({
     signer: walletClient,
-    bundlerUrl
+    bundlerUrl,
   })
 
   const k1ValidationModule = await createK1ValidatorModule(
@@ -56,6 +56,12 @@ describe("Account:Modules:OwnableValidator", async () => {
 
       if (!isInstalledBefore) {
         const userOpReceipt: UserOpReceipt = await smartAccount.installModule({
+          moduleAddress: K1_VALIDATOR,
+          moduleType: ModuleType.Validation,
+          data: encodePacked(["address"], [await smartAccount.getAddress()])
+        })
+
+        await smartAccount.uninstallModule({
           moduleAddress: K1_VALIDATOR,
           moduleType: ModuleType.Validation,
           data: encodePacked(["address"], [await smartAccount.getAddress()])

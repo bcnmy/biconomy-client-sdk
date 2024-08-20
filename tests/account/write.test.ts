@@ -233,16 +233,16 @@ describe("Account:Write", async () => {
   // test("should uninstall dummy K1Validator module", async () => {
   //   const newK1ValidatorContract =
   //     "0x26d3E02a086D5182F4921CF1917fe9E6462E0495"
-  //   const prevAddress: Hex = "0x9C08e1CE188C29bAaeBc64A08cF2Ec44207749B6"
-  //   const deInitData = encodeAbiParameters(
-  //     [
-  //       { name: "prev", type: "address" },
-  //       { name: "disableModuleData", type: "bytes" }
-  //     ],
-  //     [prevAddress, toHex(stringToBytes(""))]
-  //   )
-  //   console.log(deInitData, "deInitData");
-  // const userOpReceipt = await smartAccount.uninstallModule(newK1ValidatorContract, ModuleType.Validation, deInitData);
+    const prevAddress: Hex = "0x9C08e1CE188C29bAaeBc64A08cF2Ec44207749B6"
+    const deInitData = encodeAbiParameters(
+      [
+        { name: "prev", type: "address" },
+        { name: "disableModuleData", type: "bytes" }
+      ],
+      [prevAddress, toHex(stringToBytes(""))]
+    )
+    console.log(deInitData, "deInitData");
+  const userOpReceipt = await smartAccount.uninstallModule(newK1ValidatorContract, ModuleType.Validation, deInitData);
   // const isInstalled = await smartAccount.isModuleInstalled(
   //   ModuleType.Validation,
   //   newK1ValidatorContract
@@ -366,20 +366,20 @@ describe("Account:Write", async () => {
 
   // describe("Account:Hook Module Tests", async () => {
   //   test("install a mock Hook module", async () => {
-  //     const isSupported = await smartAccount.supportsModule(ModuleType.Hooks)
+  //     const isSupported = await smartAccount.supportsModule(ModuleType.Hook)
   //     console.log(isSupported, "is supported")
 
   //     const isInstalledBefore = await smartAccount.isModuleInstalled(
-  //       ModuleType.Hooks,
+  //       ModuleType.Hook,
   //       MOCK_HOOK
   //     )
   //     console.log(isInstalledBefore, "is installed before")
 
-  //     const userOpReceipt = await smartAccount.installModule(MOCK_HOOK, ModuleType.Hooks)
+  //     const userOpReceipt = await smartAccount.installModule(MOCK_HOOK, ModuleType.Hook)
   //     console.log(userOpReceipt, "user op receipt")
 
   //     const isInstalled = await smartAccount.isModuleInstalled(
-  //       ModuleType.Hooks,
+  //       ModuleType.Hook,
   //       MOCK_HOOK
   //     )
 
@@ -402,10 +402,10 @@ describe("Account:Write", async () => {
   //       ],
   //       [prevAddress, toHex(stringToBytes(""))]
   //     )
-  //     const userOpReceipt = await smartAccount.uninstallModule(MOCK_HOOK, ModuleType.Hooks, deInitData)
+  //     const userOpReceipt = await smartAccount.uninstallModule(MOCK_HOOK, ModuleType.Hook, deInitData)
 
   //     const isInstalled = await smartAccount.isModuleInstalled(
-  //       ModuleType.Hooks,
+  //       ModuleType.Hook,
   //       MOCK_HOOK
   //     )
 

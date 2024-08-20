@@ -2121,7 +2121,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     switch (moduleType) {
       case ModuleType.Validation:
       case ModuleType.Execution:
-      case ModuleType.Hooks:
+      case ModuleType.Hook:
         execution = await this._installModule({
           moduleAddress,
           moduleType,
@@ -2196,7 +2196,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     switch (moduleType) {
       case ModuleType.Validation:
       case ModuleType.Execution:
-      case ModuleType.Hooks:
+      case ModuleType.Hook:
         execution = await this._uninstallModule(moduleAddress, moduleType, data)
         return (
           await this.sendTransaction({
