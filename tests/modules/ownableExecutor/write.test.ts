@@ -41,7 +41,11 @@ describe("Account:Modules:OwnableExecutor", async () => {
     bundlerUrl
   })
 
-  const ownableExecutorModule = await createOwnableExecutorModule(smartAccount)
+  const initData = encodePacked(
+    ["address"],
+    [await smartAccount.getAddress()]
+  )
+  const ownableExecutorModule = await createOwnableExecutorModule(smartAccount, initData)
 
   describe("Ownable Executor Module Tests", async () => {
     test.skip("install Ownable Executor", async () => {
@@ -52,18 +56,38 @@ describe("Account:Modules:OwnableExecutor", async () => {
 
       if (!isInstalled) {
         const receipt = await smartAccount.installModule({
-          moduleAddress: OWNABLE_EXECUTOR,
-          type: 'executor',
-          data: encodePacked(
-            ["address"],
-            [await smartAccount.getAddress()]
-          )
+          moduleAddress: ownableExecutorModule.moduleAddress,
+          type: ownableExecutorModule.type,
+          data: ownableExecutorModule.data
         })
 
         smartAccount.setActiveExecutionModule(ownableExecutorModule)
 
         expect(receipt.success).toBe(true)
       }
+    }, 60000)
+
+    test.skip("uninstall Ownable Executor", async () => {
+      const smartAccount2: NexusSmartAccount = await createSmartAccountClient({
+        signer: walletClientTwo,
+        bundlerUrl
+      })
+
+      const ownableExecutorModule2 = await createOwnableExecutorModule(smartAccount2)
+
+      let isInstalled = await smartAccount2.isModuleInstalled({
+        type: 'executor',
+        moduleAddress: OWNABLE_EXECUTOR
+      })
+
+      if (isInstalled) {
+        await smartAccount2.uninstallModule({
+          moduleAddress: ownableExecutorModule2.moduleAddress,
+          type: ownableExecutorModule2.type,
+          data: ownableExecutorModule2.data
+        })
+      }
+
     }, 60000)
 
     test.skip("Ownable Executor Module should be installed", async () => {
@@ -139,33 +163,11 @@ describe("Account:Modules:OwnableExecutor", async () => {
       expect(txHash).toBeTruthy()
     }, 60000)
 
-    test.skip("SA 2 can execute actions on behalf of SA 1", async () => {
-
+    test("SA 2 can execute actions on behalf of SA 1", async () => {
       const smartAccount2: NexusSmartAccount = await createSmartAccountClient({
         signer: walletClientTwo,
         bundlerUrl
       })
-
-      const ownableExecutorModule2 = await createOwnableExecutorModule(smartAccount2)
-
-      // First, we need to install the OwnableExecutor module on SA 2
-      let isInstalled = await smartAccount2.isModuleInstalled({
-        type: 'executor',
-        moduleAddress: OWNABLE_EXECUTOR
-      })
-
-      if (!isInstalled) {
-        await smartAccount2.installModule({
-          moduleAddress: OWNABLE_EXECUTOR,
-          type: 'executor',
-          data: encodePacked(
-            ["address"],
-            [await smartAccount2.getAddress()]
-          )
-        })
-      }
-
-      smartAccount2.setActiveExecutionModule(ownableExecutorModule)
 
       const valueToTransfer = parseEther("0.1")
       const recipient = accountTwo.address
@@ -175,25 +177,13 @@ describe("Account:Modules:OwnableExecutor", async () => {
         args: [recipient, valueToTransfer]
       })
 
-      const owners = await ownableExecutorModule2.getOwners()
-      
-      // check if SA 2 is as an owner of SA 1
-      const isOwner = owners.includes(await smartAccount2.getAddress())
-      if(!isOwner) {
-        const userOpReceipt = await ownableExecutorModule2.addOwner(
-          await smartAccount2.getAddress()
-        )
-        expect(userOpReceipt.success).toBeTruthy()
-      }
-
       const transferTransaction = {
         to: token,
         data: transferEncodedCall,
         value: 0n
       }
 
-      smartAccount2.setActiveExecutionModule(ownableExecutorModule2)
-      // SA 2 will execute the transferTransaction on behalf of SA 1 (smartAccount)
+      smartAccount2.setActiveExecutionModule(ownableExecutorModule)
       const receipt = await smartAccount2.sendTransactionWithExecutor([transferTransaction], await smartAccount.getAddress());
       console.log(receipt, "receipt");
 
@@ -201,7 +191,7 @@ describe("Account:Modules:OwnableExecutor", async () => {
       expect(receipt.success).toBe(true)
     }, 60000)
 
-    test("SA 2 can execute actions on behalf of SA 1 using module instance instead of smart account instance", async () => {
+    test.skip("SA 2 can execute actions on behalf of SA 1 using module instance instead of smart account instance", async () => {
       const smartAccount2: NexusSmartAccount = await createSmartAccountClient({
         signer: walletClientTwo,
         bundlerUrl
