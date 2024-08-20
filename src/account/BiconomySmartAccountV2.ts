@@ -977,6 +977,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       defaultedParams
     )) as Hex
 
+    console.log({userOpHash})
+
     const signatureWithModuleAddress = this.getSignatureWithModuleAddress(
       moduleSig,
       this.activeValidationModule.getAddress() as Hex,

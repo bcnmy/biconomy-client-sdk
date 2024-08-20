@@ -75,13 +75,13 @@ describe("Playground:Write", () => {
       const [balance] = await smartAccount.getBalances();
       console.log({ smartAccountAddress, balance }); 
 
-      const incrementData: Transaction = { 
+      const incrementData: Transaction = {
         to: incrementCountContractAdd,
         data: encodeFunctionData({
           abi: parseAbi(["function increment()"]),
           functionName: "increment",
-        })
-    }
+        }),
+      }
 
       const hashOfIncrement = await signer.sendTransaction({
         to: incrementCountContractAdd,
@@ -154,8 +154,7 @@ describe("Playground:Write", () => {
       // const { success: mintSuccess, receipt } = await mintWait();
       // expect(mintSuccess).toBe("true");
 
-      const userOp = await smartAccount.buildUserOp([incrementData]);
-      const {wait: waitForNoSessionSend} = await smartAccount.sendUserOp(userOp);
+      const {wait: waitForNoSessionSend} = await smartAccount.sendTransaction(incrementData);
 
       const {receipt, success:noSessionSendSuccess} = await waitForNoSessionSend();
 
