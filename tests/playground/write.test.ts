@@ -1,6 +1,6 @@
 import { http, type Hex, createWalletClient, encodeFunctionData, parseAbi } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { polygonAmoy } from "viem/chains"
+import { berachainTestnet, berachainTestnetbArtio, polygonAmoy } from "viem/chains"
 import { beforeAll, describe, expect, test } from "vitest"
 import { PaymasterMode, type PolicyLeaf } from "../../src"
 import {
@@ -25,7 +25,8 @@ describe("Playground:Write", () => {
     async () => {
 
       const { privateKey } = getConfig();
-      const incrementCountContractAdd = "0xfeec89eC2afD503FF359487967D02285f7DaA9aD";
+      // const incrementCountContractAdd = "0xfeec89eC2afD503FF359487967D02285f7DaA9aD";
+      const incrementCountContractAdd = "0xcf29227477393728935BdBB86770f8F81b698F1A";
 
       // const customChain = getCustomChain(
       //   "Bera",
@@ -35,7 +36,8 @@ describe("Playground:Write", () => {
       // )
 
       // Switch to this line to test against Amoy
-      const customChain = polygonAmoy;
+      // const customChain = polygonAmoy;
+      const customChain = berachainTestnetbArtio;
       const chainId = customChain.id;
       const bundlerUrl = getBundlerUrl(chainId);
 
@@ -47,7 +49,7 @@ describe("Playground:Write", () => {
       const paymasterUrl = paymasterUrls[chainId];
       // const account = privateKeyToAccount(`0x${privateKey}`);
 
-      const provider = new JsonRpcProvider("https://rpc-amoy.polygon.technology/");
+      const provider = new JsonRpcProvider("https://bartio.drpc.org");
       const signer = new Wallet(privateKey || "", provider);
 
       // const walletClientWithCustomChain = createWalletClient({
