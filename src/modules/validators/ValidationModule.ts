@@ -14,7 +14,7 @@ export class ValidationModule extends BaseValidationModule {
     data: Hex
   ): Promise<ValidationModule> {
     const module: Module = {
-      module: moduleAddress,
+      moduleAddress,
       type: 'validator',
       data,
       additionalContext: "0x"

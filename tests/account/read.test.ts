@@ -177,7 +177,7 @@ describe("Account:Read", () => {
     async () => {
       const isEnabled = smartAccount.isModuleInstalled({
         type: 'validator',
-        module: K1_VALIDATOR,
+        moduleAddress: K1_VALIDATOR,
       })
       if (await smartAccount.isAccountDeployed()) {
         expect(isEnabled).resolves.toBeTruthy()

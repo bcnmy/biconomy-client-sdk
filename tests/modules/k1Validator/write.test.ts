@@ -50,20 +50,20 @@ describe("Account:Modules:OwnableValidator", async () => {
     test("install k1 Validator with 1 owner", async () => {
       const isInstalledBefore = await smartAccount.isModuleInstalled({
         type: 'validator',
-        module: K1_VALIDATOR
+        moduleAddress: K1_VALIDATOR
       })
 
       console.log(isInstalledBefore, "isInstalledBefore")
 
       if (!isInstalledBefore) {
         const userOpReceipt: UserOpReceipt = await smartAccount.installModule({
-          module: K1_VALIDATOR,
+          moduleAddress: K1_VALIDATOR,
           type: 'validator',
           data: encodePacked(["address"], [await smartAccount.getAddress()])
         })
 
         await smartAccount.uninstallModule({
-          module: K1_VALIDATOR,
+          moduleAddress: K1_VALIDATOR,
           type: 'validator',
           data: encodePacked(["address"], [await smartAccount.getAddress()])
         })
@@ -77,7 +77,7 @@ describe("Account:Modules:OwnableValidator", async () => {
     test("Ownable Validator Module should be installed", async () => {
       const isInstalled = await smartAccount.isModuleInstalled({
         type: 'validator',
-        module: OWNABLE_VALIDATOR
+        moduleAddress: OWNABLE_VALIDATOR
       })
       expect(isInstalled).toBeTruthy()
     }, 60000)

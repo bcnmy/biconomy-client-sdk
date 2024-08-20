@@ -205,7 +205,7 @@ export enum SafeHookType {
 }
 
 export type Module = {
-  module: Address
+  moduleAddress: Address
   data?: Hex
   additionalContext?: Hex
   type: ModuleType

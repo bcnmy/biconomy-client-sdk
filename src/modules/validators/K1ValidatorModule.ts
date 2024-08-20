@@ -12,7 +12,7 @@ export class K1ValidatorModule extends BaseValidationModule {
     signer: SmartAccountSigner
   ): Promise<K1ValidatorModule> {
     const module: Module = {
-      module: K1_VALIDATOR,
+      moduleAddress: K1_VALIDATOR,
       type: 'validator',
       data: await signer.getAddress(),
       additionalContext: "0x"

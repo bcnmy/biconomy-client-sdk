@@ -16,7 +16,7 @@ export abstract class BaseModule {
   signer: SmartAccountSigner
 
   constructor(module: Module, signer: SmartAccountSigner) {
-    this.moduleAddress = module.module
+    this.moduleAddress = module.moduleAddress
     this.data = module.data ?? "0x"
     this.additionalContext = module.additionalContext ?? "0x"
     this.hook = module.hook

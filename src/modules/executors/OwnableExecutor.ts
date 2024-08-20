@@ -34,7 +34,7 @@ export class OwnableExecutorModule extends BaseExecutionModule {
     data?: Hex
   ): Promise<OwnableExecutorModule> {
     const module: Module = {
-      module: OWNABLE_EXECUTOR,
+      moduleAddress: OWNABLE_EXECUTOR,
       type: 'executor',
       data: data ?? "0x",
       additionalContext: "0x"

@@ -102,7 +102,7 @@
 
 //       smartAccount.setActiveValidationModule(ownableValidatorModule)
 
-//       const isInstalled = await smartAccount.isModuleInstalled({moduleType: ModuleType.Validation, moduleAddress: ownableValidatorModule.moduleAddress});
+//       const isInstalled = await smartAccount.isModuleInstalled({moduleType: ModuleType.Validation, moduleAddress: ownableValidatormodule.moduleAddressAddress});
 //       console.log("Is the module installed ? ", isInstalled);
 
 //       const transaction = {

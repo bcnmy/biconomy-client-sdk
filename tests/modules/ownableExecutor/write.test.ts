@@ -47,12 +47,12 @@ describe("Account:Modules:OwnableExecutor", async () => {
     test.skip("install Ownable Executor", async () => {
       let isInstalled = await smartAccount.isModuleInstalled({
         type: 'executor',
-        module: OWNABLE_EXECUTOR
+        moduleAddress: OWNABLE_EXECUTOR
       })
 
       if (!isInstalled) {
         const receipt = await smartAccount.installModule({
-          module: OWNABLE_EXECUTOR,
+          moduleAddress: OWNABLE_EXECUTOR,
           type: 'executor',
           data: encodePacked(
             ["address"],
@@ -69,7 +69,7 @@ describe("Account:Modules:OwnableExecutor", async () => {
     test.skip("Ownable Executor Module should be installed", async () => {
       const isInstalled = await smartAccount.isModuleInstalled({
         type: 'executor',
-        module: OWNABLE_EXECUTOR
+        moduleAddress: OWNABLE_EXECUTOR
       })
       console.log(isInstalled, "isInstalled")
       expect(isInstalled).toBeTruthy()
@@ -151,12 +151,12 @@ describe("Account:Modules:OwnableExecutor", async () => {
       // First, we need to install the OwnableExecutor module on SA 2
       let isInstalled = await smartAccount2.isModuleInstalled({
         type: 'executor',
-        module: OWNABLE_EXECUTOR
+        moduleAddress: OWNABLE_EXECUTOR
       })
 
       if (!isInstalled) {
         await smartAccount2.installModule({
-          module: OWNABLE_EXECUTOR,
+          moduleAddress: OWNABLE_EXECUTOR,
           type: 'executor',
           data: encodePacked(
             ["address"],
@@ -216,12 +216,12 @@ describe("Account:Modules:OwnableExecutor", async () => {
       // First, we need to install the OwnableExecutor module on SA 2
       let isInstalled = await smartAccount2.isModuleInstalled({
         type: 'executor',
-        module: OWNABLE_EXECUTOR
+        moduleAddress: OWNABLE_EXECUTOR
       })
 
       if (!isInstalled) {
         await smartAccount2.installModule({
-          module: ownableExecutorModule2.moduleAddress,
+          moduleAddress: ownableExecutorModule2.moduleAddress,
           type: ownableExecutorModule2.type,
           data: ownableExecutorModule2.data
         })

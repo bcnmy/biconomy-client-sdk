@@ -2095,7 +2095,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       const accountContract = await this._getAccountContract()
       return (await accountContract.read.isModuleInstalled([
         BigInt(moduleTypeIds[module.type]),
-        module.module,
+        module.moduleAddress,
         module.data ?? "0x"
       ])) as boolean
     }
@@ -2114,7 +2114,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       case 'executor':
       case 'hook':
         execution = await this._installModule({
-          module: module.module,
+          moduleAddress: module.moduleAddress,
           type: module.type,
           data: module.data
         })
@@ -2156,7 +2156,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
           abi: parseAbi([
             "function installModule(uint256 moduleTypeId, address module, bytes calldata initData) external payable"
           ]),
-          args: [BigInt(moduleTypeIds[module.type]), module.module, module.data || "0x"]
+          args: [BigInt(moduleTypeIds[module.type]), module.moduleAddress, module.data || "0x"]
         })
       }
       return execution
@@ -2205,14 +2205,14 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     if (module.type === 'executor') {
       installedModules = await this.getInstalledExecutors()
     }
-    const index = installedModules.indexOf(getAddress(module.module))
+    const index = installedModules.indexOf(getAddress(module.moduleAddress))
     if (index === 0) {
       return SENTINEL_ADDRESS
     }
     if (index > 0) {
       return installedModules[index - 1]
     }
-    throw new Error(`Module ${module.module} not found in installed modules`)
+    throw new Error(`Module ${module.moduleAddress} not found in installed modules`)
   }
 
   private async _uninstallFallback(module: Module): Promise<Execution> {
@@ -2231,7 +2231,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
           ]),
           args: [
             BigInt(moduleTypeIds[module.type]),
-            module.module,
+            module.moduleAddress,
             encodePacked(
               ["bytes4", "bytes"],
               [module.selector ?? "0x", module.data ?? "0x"]
@@ -2271,7 +2271,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
           abi: parseAbi([
             "function uninstallModule(uint256 moduleTypeId, address module, bytes deInitData)"
           ]),
-          args: [BigInt(moduleTypeIds[module.type]), module.module, moduleData]
+          args: [BigInt(moduleTypeIds[module.type]), module.moduleAddress, moduleData]
         })
       }
       return execution

@@ -75,8 +75,7 @@ describe("Account:Write", async () => {
   const ownableExecutorModule = await createOwnableExecutorModule(smartAccount)
   smartAccount.setActiveExecutionModule(ownableExecutorModule)
 
-  const k1ValidatorInstance = await createK1ValidatorModule(smartAccount.getSigner())
-  const k1ValidatorModule = {type: k1ValidatorInstance.type, module: k1ValidatorInstance.moduleAddress, data: k1ValidatorInstance.data}
+  const k1Validator = await createK1ValidatorModule(smartAccount.getSigner())
 
   describe("Account:Basics", async () => {
     test("Build a user op with pimlico bundler", async () => {
@@ -100,7 +99,7 @@ describe("Account:Write", async () => {
         args: [recipient]
       })
 
-      const isInstalled = await smartAccount.isModuleInstalled(k1ValidatorModule);
+      const isInstalled = await smartAccount.isModuleInstalled({type: k1Validator.type, moduleAddress: k1Validator.moduleAddress, data: k1Validator.data});
       console.log(isInstalled);
 
       const transaction = {
