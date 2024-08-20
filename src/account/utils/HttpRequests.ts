@@ -1,3 +1,4 @@
+import { simulateContract } from "viem/actions"
 import { getAAError } from "../../bundler/utils/getAAError.js"
 import { Logger } from "./Logger.js"
 import type { Service } from "./Types.js"
@@ -46,6 +47,10 @@ export async function sendRequest<T>(
     return jsonResponse as T
   }
   if (jsonResponse.error) {
+    // simulateContract();
+
+    console.log({stringifiedBody});
+
     throw await getAAError(
       `Error coming from ${service}: ${jsonResponse.error.message}`
     )

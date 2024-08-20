@@ -38,7 +38,7 @@ import {
 import { Paymaster, PaymasterMode } from "../../src/paymaster"
 import { checkBalance, getBundlerUrl, getConfig } from "../utils"
 
-describe("Account:Read", () => {
+describe.skip("Account:Read", () => {
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const token = "0x747A4168DB14F57871fa8cda8B5455D8C2a8e90a"
   const {

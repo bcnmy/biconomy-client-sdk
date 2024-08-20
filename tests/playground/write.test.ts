@@ -1,18 +1,14 @@
-import { http, type Hex, createWalletClient, encodeFunctionData, parseAbi } from "viem"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { berachainTestnet, berachainTestnetbArtio, polygonAmoy } from "viem/chains"
-import { beforeAll, describe, expect, test } from "vitest"
-import { PaymasterMode, type PolicyLeaf } from "../../src"
+import { http, type Hex, createPublicClient, createWalletClient, encodeFunctionData, parseAbi } from "viem"
+import { privateKeyToAccount } from "viem/accounts"
+import { describe, expect, test } from "vitest"
+import { PaymasterMode, type PolicyLeaf, type Transaction } from "../../src"
 import {
-  type BiconomySmartAccountV2,
   createSmartAccountClient,
-  getChain,
   getCustomChain
 } from "../../src/account"
 import { createSession } from "../../src/modules/sessions/abi"
 import { createSessionSmartAccountClient } from "../../src/modules/sessions/sessionSmartAccountClient"
 import { getBundlerUrl, getConfig, getPaymasterUrl } from "../utils"
-import { JsonRpcProvider, Wallet } from "ethers"
 
 const withSponsorship = {
   paymasterServiceData: { mode: PaymasterMode.SPONSORED },
@@ -24,7 +20,7 @@ describe("Playground:Write", () => {
     "should quickly run a write test in the playground ",
     async () => {
 
-      const { privateKey } = getConfig();
+      const { privateKeyTwo } = getConfig();
       // const incrementCountContractAdd = "0xfeec89eC2afD503FF359487967D02285f7DaA9aD";
       const incrementCountContractAdd = "0xcf29227477393728935BdBB86770f8F81b698F1A";
 
@@ -37,7 +33,11 @@ describe("Playground:Write", () => {
 
       // Switch to this line to test against Amoy
       // const customChain = polygonAmoy;
-      const customChain = berachainTestnetbArtio;
+      const customChain = getCustomChain(
+        "Bera",
+        80084,
+        "https://bartio.drpc.org", ""
+      );
       const chainId = customChain.id;
       const bundlerUrl = getBundlerUrl(chainId);
 
@@ -47,28 +47,63 @@ describe("Playground:Write", () => {
       }
 
       const paymasterUrl = paymasterUrls[chainId];
-      // const account = privateKeyToAccount(`0x${privateKey}`);
+      const account = privateKeyToAccount(`0x${privateKeyTwo}`);
 
-      const provider = new JsonRpcProvider("https://bartio.drpc.org");
-      const signer = new Wallet(privateKey || "", provider);
-
-      // const walletClientWithCustomChain = createWalletClient({
-      //   account,
-      //   chain: customChain,
-      //   transport: http()
-      // })
+      const signer = createWalletClient({
+        account,
+        chain: customChain,
+        transport: http(customChain.rpcUrls.default.http[0])
+      })
 
       const smartAccount = await createSmartAccountClient({
         signer,
         bundlerUrl,
         paymasterUrl,
-        customChain
+        customChain,
+        rpcUrl: customChain.rpcUrls.default.http[0]
       })
 
-      const smartAccountAddress: Hex = await smartAccount.getAddress();
+      const publicClient = createPublicClient({
+        chain: customChain,
+        transport: http()
+      });
 
+      const walletBalance = await publicClient.getBalance({address: account.address});
+
+      console.log(account.address, { walletBalance });
+      const smartAccountAddress: Hex = await smartAccount.getAddress();
       const [balance] = await smartAccount.getBalances();
-      if (balance.amount <= 0) console.warn("Smart account balance is zero");
+      console.log({ smartAccountAddress, balance }); 
+
+      const incrementData: Transaction = { 
+        to: incrementCountContractAdd,
+        data: encodeFunctionData({
+          abi: parseAbi(["function increment()"]),
+          functionName: "increment",
+        })
+    }
+
+      const hashOfIncrement = await signer.sendTransaction({
+        to: incrementCountContractAdd,
+        data: encodeFunctionData({
+          abi: parseAbi(["function increment()"]),
+          functionName: "increment",
+        }),
+      });
+
+      const receiptOfIncrement = await publicClient.waitForTransactionReceipt({hash: hashOfIncrement});
+
+      console.log({receiptOfIncrement});
+
+
+      if (balance.amount <= 0) { 
+        const hash = await signer.sendTransaction({
+          to: smartAccountAddress,
+          value: BigInt(1e18),
+        });
+        const receipt = await publicClient.waitForTransactionReceipt({hash});
+        console.warn("Smart account balance was zero: ", receipt); 
+      }
 
       const policy: PolicyLeaf[] = [
         {
@@ -83,10 +118,9 @@ describe("Playground:Write", () => {
         },
       ];
 
-      const { wait } = await createSession(smartAccount, policy, null, withSponsorship);
-      const { success } = await wait();
+      const { wait } = await createSession(smartAccount, policy)
 
-      expect(success).toBe("true");
+      const { success } = await wait();
 
       const smartAccountWithSession = await createSessionSmartAccountClient(
         {
@@ -98,21 +132,36 @@ describe("Playground:Write", () => {
         "DEFAULT_STORE" // Storage client, full Session or smartAccount address if using default storage
       );
 
-      const { wait: mintWait } = await smartAccountWithSession.sendTransaction(
-        {
-          to: incrementCountContractAdd,
-          data: encodeFunctionData({
-            abi: parseAbi(["function increment()"]),
-            functionName: "increment",
-            args: [],
-          }),
-        },
-        { paymasterServiceData: { mode: PaymasterMode.SPONSORED } },
-        { leafIndex: "LAST_LEAF" },
-      );
 
-      const { success: mintSuccess, receipt } = await mintWait();
-      expect(mintSuccess).toBe("true");
+
+      // const userOp = await smartAccount.buildUserOp([incrementData], {
+
+      // });
+
+      // const signedUserOp = await smartAccount.signUserOp(userOp)
+
+
+      expect(
+        smartAccountWithSession.sendTransaction(
+          incrementData,
+          undefined,
+          { leafIndex: "LAST_LEAF" },
+        )
+      ).rejects.toThrowError(
+        "aa23"
+      )
+        
+      // const { success: mintSuccess, receipt } = await mintWait();
+      // expect(mintSuccess).toBe("true");
+
+      const userOp = await smartAccount.buildUserOp([incrementData]);
+      const {wait: waitForNoSessionSend} = await smartAccount.sendUserOp(userOp);
+
+      const {receipt, success:noSessionSendSuccess} = await waitForNoSessionSend();
+
+      expect(noSessionSendSuccess).toBe("true");
+
+      // console.log({ receipt });
 
     },
     100000

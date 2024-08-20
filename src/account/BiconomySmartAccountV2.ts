@@ -947,6 +947,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     userOp: Partial<UserOperationStruct>,
     params?: SendUserOpParams
   ): Promise<UserOperationStruct> {
+
     const defaultedParams = {
       ...(this.sessionData ? this.sessionData : {}),
       ...params,
@@ -968,6 +969,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     this.validateUserOp(userOp, requiredFields)
 
     const userOpHash = await this.getUserOpHash(userOp)
+
+    console.log({userOp, defaultedParams})
 
     const moduleSig = (await this.activeValidationModule.signUserOpHash(
       userOpHash,
@@ -1258,6 +1261,9 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     userOp: Partial<UserOperationStruct>,
     params?: SendUserOpParams,
   ): Promise<UserOpResponse> {
+
+
+
     // biome-ignore lint/performance/noDelete: <explanation>
     delete userOp.signature;
     const userOperation = await this.signUserOp(userOp, params);
@@ -1526,6 +1532,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         ...getSessionParameters
       }
     }
+
+    console.log('this.sessionData', this.sessionData)
+    console.log('this.sessionType', this.sessionType)
+    console.log('this.activeValidationModule', this.activeValidationModule)
+    console.log('defaultedBuildUseropDto', defaultedBuildUseropDto)
 
     const userOp = await this.buildUserOp(
       Array.isArray(manyOrOneTransactions)

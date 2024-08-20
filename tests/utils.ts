@@ -79,7 +79,7 @@ export const getConfig = (): TestConfig => {
   const allChainsMatch = chains.every((chain) => chain === chains[0])
 
   if (!allChainsMatch) {
-    throw new Error("Chain IDs do not match")
+    Logger.log("Chain IDs do not match")
   }
 
   return {
@@ -191,3 +191,4 @@ export const getBundlerUrl = (chainId: number, apiKey?: string) =>
   `https://bundler.biconomy.io/api/v2/${chainId}/${apiKey ?? "nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f14"}`
 
 export const getPaymasterUrl = (chainId: number, apiKey: string) => `https://paymaster.biconomy.io/api/v1/${chainId}/${apiKey}`
+

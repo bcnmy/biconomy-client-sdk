@@ -82,6 +82,8 @@ export const compareChainIds = async (
     biconomySmartAccountConfig.rpcUrl
   )
 
+  console.log(signerResult, biconomySmartAccountConfig.rpcUrl, biconomySmartAccountConfig.chainId)
+
   const chainIdFromBundler = biconomySmartAccountConfig.bundlerUrl
     ? extractChainIdFromBundlerUrl(biconomySmartAccountConfig.bundlerUrl)
     : biconomySmartAccountConfig.bundler

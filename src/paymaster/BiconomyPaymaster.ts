@@ -337,6 +337,8 @@ export class BiconomyPaymaster
 
     // Note: The idea is before calling this below rpc, userOp values presense and types should be in accordance with how we call eth_estimateUseropGas on the bundler
 
+    console.log({userOp})
+
     try {
       const response: JsonRpcResponse = await sendRequest(
         {

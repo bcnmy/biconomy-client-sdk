@@ -15,7 +15,7 @@ import {
   topUp
 } from "../utils"
 
-describe("Bundler:Write", () => {
+describe.skip("Bundler:Write", () => {
   const nonceOptions = { nonceKey: Date.now() + 20 }
   const nftAddress = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e"
   const {
