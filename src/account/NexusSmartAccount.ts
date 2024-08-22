@@ -20,7 +20,6 @@ import {
   parseAbiParameters,
   toBytes
 } from "viem"
-import { contracts } from "../../src/contracts"
 import {
   Bundler,
   Executions,
@@ -30,6 +29,7 @@ import {
 } from "../bundler/index.js"
 import type { IBundler } from "../bundler/interfaces/IBundler.js"
 import { EXECUTE_BATCH, EXECUTE_SINGLE } from "../bundler/utils/Constants.js"
+import contracts from "../contracts"
 import { NexusAbi } from "../contracts/abi"
 import type { BaseExecutionModule } from "../modules/base/BaseExecutionModule.js"
 import { BaseValidationModule } from "../modules/base/BaseValidationModule.js"

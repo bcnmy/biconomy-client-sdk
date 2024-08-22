@@ -9,7 +9,7 @@ import {
   getContract,
   trim
 } from "viem"
-import { contracts } from "../contracts"
+import contracts from "../contracts"
 import { EntrypointAbi } from "../contracts/abi/EntryPointABI.js"
 import { Logger, type SmartAccountSigner } from "./index.js"
 import type { MODE_MODULE_ENABLE, MODE_VALIDATION } from "./utils/Constants.js"
