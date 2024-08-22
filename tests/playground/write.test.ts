@@ -55,6 +55,12 @@ describe("Playground:Write", () => {
         transport: http(customChain.rpcUrls.default.http[0])
       })
 
+      // const walletClientWithCustomChain = createWalletClient({
+      //   account,
+      //   chain: customChain,
+      //   transport: http()
+      // })
+
       const smartAccount = await createSmartAccountClient({
         signer,
         bundlerUrl,
