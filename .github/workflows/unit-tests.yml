@@ -1,19 +1,18 @@
-name: test-read
+name: unit-tests
 on:
   workflow_dispatch:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
 jobs:
-  test-read:
-    name: test-read
+  unit-tests:
+    name: unit-tests
     permissions: write-all
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
+      group: ${{ github.workflow }}-${{ github.ref }}-unit-tests
       cancel-in-progress: true
     steps:
       - uses: actions/checkout@v3
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -21,8 +20,8 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/install-dependencies
 
-      - name: Run the tests
-        run: bun run test:ci -t=Read
+      - name: Run the account tests
+        run: bun run test:ci 
         env:
           E2E_PRIVATE_KEY_ONE: ${{ secrets.E2E_PRIVATE_KEY_ONE }}
           E2E_PRIVATE_KEY_TWO: ${{ secrets.E2E_PRIVATE_KEY_TWO }}
@@ -30,4 +29,3 @@ jobs:
           E2E_BICO_PAYMASTER_KEY_BASE: ${{ secrets.E2E_BICO_PAYMASTER_KEY_BASE }}
           E2E_BICO_PAYMASTER_KEY_AMOY: ${{ secrets.E2E_BICO_PAYMASTER_KEY_AMOY }}
           CHAIN_ID: 11155111
-          TESTING: true
