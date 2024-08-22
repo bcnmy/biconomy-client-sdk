@@ -797,7 +797,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   async getDummySignatures(): Promise<Hex> {
     // const params = { ...(this.sessionData ? this.sessionData : {}), ..._params }
     this.isActiveValidationModuleDefined()
-    return (await this.activeValidationModule.getDummySignature()) as Hex
+    return this.activeValidationModule.getDummySignature() as Hex
   }
 
   // TODO: review this
@@ -1375,7 +1375,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     buildUseropDto?: BuildUserOpOptions
   ): Promise<Partial<UserOperationStruct>> {
     const dummySignatureFetchPromise = this.getDummySignatures()
-    const [nonceFromFetch, signature] = await Promise.all([
+    const [nonceFromFetch, dummySignature] = await Promise.all([
       this.getBuildUserOpNonce(buildUseropDto?.nonceOptions),
       dummySignatureFetchPromise
     ])
@@ -1403,7 +1403,8 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       callData
     }
 
-    userOp.signature = signature
+    userOp.signature = dummySignature
+
     if (!buildUseropDto?.skipBundler) {
       const gasFeeValues: GetUserOperationGasPriceReturnType | undefined =
         await this.bundler?.getGasFeeValues()
@@ -1937,7 +1938,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
               value: BigInt(tx.value ?? 0n)
             }
           })
-        return await this.activeExecutionModule?.executeFromExecutor(
+        return await this.activeExecutionModule?.execute(
           executions,
           ownedAccountAddress
         )
@@ -1947,7 +1948,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
         callData: (transactions[0].data ?? "0x") as Hex,
         value: BigInt(transactions[0].value ?? 0n)
       }
-      return await this.activeExecutionModule.executeFromExecutor(
+      return await this.activeExecutionModule.execute(
         execution,
         ownedAccountAddress
       )
@@ -1957,7 +1958,12 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     )
   }
 
-  async supportsExecutionMode(mode: Hex): Promise<boolean> {
+  /**
+   * Checks if the account contract supports a specific execution mode.
+   * @param mode - The execution mode to check, represented as a viem Address.
+   * @returns A promise that resolves to a boolean indicating whether the execution mode is supported.
+   */
+  async supportsExecutionMode(mode: Address): Promise<boolean> {
     const accountContract = await this._getAccountContract()
     return (await accountContract.read.supportsExecutionMode([mode])) as boolean
   }

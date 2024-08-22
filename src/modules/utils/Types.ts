@@ -1,5 +1,6 @@
 import type { Address, Chain, Hex } from "viem"
 import type {
+  CallType,
   SimulationType,
   SmartAccountSigner,
   SupportedSigner,
@@ -221,7 +222,7 @@ export type Module = {
 
   // these two params needed for installing fallback handlers
   functionSig?: Hex
-  callType?: any
+  callType?: CallType
 
   /* ---- end safe module params ---- */
 }

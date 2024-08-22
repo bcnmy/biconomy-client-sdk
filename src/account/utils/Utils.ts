@@ -17,7 +17,7 @@ import {
   MOCK_MULTI_MODULE_ADDRESS,
   MODULE_ENABLE_MODE_TYPE_HASH
 } from "../../account"
-import type { ModuleType } from "../../modules/utils/Types"
+import { type ModuleType, moduleTypeIds } from "../../modules/utils/Types"
 
 /**
  * pack the userOperation
@@ -147,9 +147,13 @@ export function makeInstallDataAndHash(
   accountOwner: Address,
   modules: { moduleType: ModuleType; config: Hex }[]
 ): [string, string] {
-  const types = modules.map((module) => BigInt(module.moduleType))
+  const types = modules.map((module) =>
+    BigInt(moduleTypeIds[module.moduleType])
+  )
   const initDatas = modules.map((module) =>
-    toHex(concat([toBytes(module.moduleType), module.config]))
+    toHex(
+      concat([toBytes(BigInt(moduleTypeIds[module.moduleType])), module.config])
+    )
   )
 
   const multiInstallData = encodeAbiParameters(

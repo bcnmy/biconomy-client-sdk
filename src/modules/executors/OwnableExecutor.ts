@@ -12,33 +12,50 @@ import type { NexusSmartAccount } from "../../account/NexusSmartAccount"
 import type { UserOpReceipt } from "../../bundler"
 import { BaseExecutionModule } from "../base/BaseExecutionModule"
 import { OWNABLE_EXECUTOR } from "../utils/Constants"
-import type { Execution, V3ModuleInfo } from "../utils/Types"
+import type { Execution, Module } from "../utils/Types"
 
 export class OwnableExecutorModule extends BaseExecutionModule {
   smartAccount!: NexusSmartAccount
+  public owners: Address[]
+
   public constructor(
-    moduleInfo: V3ModuleInfo,
-    smartAccount: NexusSmartAccount
+    module: Module,
+    smartAccount: NexusSmartAccount,
+    owners: Address[]
   ) {
-    super(moduleInfo, smartAccount.getSigner())
+    super(module, smartAccount.getSigner())
     this.smartAccount = smartAccount
+    this.owners = owners
+    this.data = module.data ?? "0x"
   }
 
   public static async create(
-    smartAccount: NexusSmartAccount
+    smartAccount: NexusSmartAccount,
+    data?: Hex
   ): Promise<OwnableExecutorModule> {
-    const signer = smartAccount.getSigner()
-    const moduleInfo: V3ModuleInfo = {
-      module: "0x",
+    const module: Module = {
+      moduleAddress: OWNABLE_EXECUTOR,
       type: "executor",
-      data: await signer.getAddress(),
+      data: data ?? "0x",
       additionalContext: "0x"
     }
-    const instance = new OwnableExecutorModule(moduleInfo, smartAccount)
+    const owners = await smartAccount.publicClient.readContract({
+      address: OWNABLE_EXECUTOR,
+      abi: parseAbi([
+        "function getOwners(address account) external view returns (address[])"
+      ]),
+      functionName: "getOwners",
+      args: [await smartAccount.getAddress()]
+    })
+    const instance = new OwnableExecutorModule(
+      module,
+      smartAccount,
+      owners as Address[]
+    )
     return instance
   }
 
-  public async executeFromExecutor(
+  public async execute(
     execution: Execution | Execution[],
     accountAddress?: Address
   ): Promise<UserOpReceipt> {
@@ -72,8 +89,7 @@ export class OwnableExecutorModule extends BaseExecutionModule {
                 type: "tuple[]"
               }
             ],
-            // @ts-ignore
-            [executions]
+            [execution]
           )
         ]
       })
@@ -117,6 +133,9 @@ export class OwnableExecutorModule extends BaseExecutionModule {
       value: 0n
     })
     const receipt = await response.wait()
+    if (receipt.success) {
+      this.owners.push(newOwner)
+    }
     return receipt
   }
 
@@ -150,6 +169,9 @@ export class OwnableExecutorModule extends BaseExecutionModule {
     })
 
     const receipt = await response.wait()
+    if (receipt.success) {
+      this.owners = this.owners.filter((o: Address) => o !== ownerToRemove)
+    }
     return receipt
   }
 

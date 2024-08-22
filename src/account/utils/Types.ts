@@ -406,7 +406,7 @@ export type UserOperationStruct = {
   paymasterPostOpGasLimit?: bigint
   paymasterData?: Hex
   signature: Hex
-  initCode?: never
+  // initCode?: never
   paymasterAndData?: never
 }
 //#endregion UserOperationStruct
@@ -628,13 +628,6 @@ export type ModuleInfoParams = {
   data?: Hex
 }
 
-export enum CallType {
-  CALLTYPE_SINGLE = "0x00",
-  CALLTYPE_BATCH = "0x01",
-  CALLTYPE_STATIC = "0xFE",
-  CALLTYPE_DELEGATECALL = "0xFF"
-}
-
 export type EIP712DomainReturn = [
   Hex,
   string,
@@ -645,26 +638,9 @@ export type EIP712DomainReturn = [
   bigint[]
 ]
 
-export interface PackedUserOperation {
-  sender: Hex
-  nonce: bigint
-  initCode: Hex
-  callData: Hex
-  accountGasLimits: Hex
-  preVerificationGas: bigint
-  gasFees: Hex
-  paymasterAndData: Hex
-  signature: Hex
+export enum CallType {
+  CALLTYPE_SINGLE = "0x00",
+  CALLTYPE_BATCH = "0x01",
+  CALLTYPE_STATIC = "0xFE",
+  CALLTYPE_DELEGATECALL = "0xFF"
 }
-
-export type PackedUserOperationAsArray = [
-  Hex,
-  bigint,
-  Hex,
-  Hex,
-  Hex,
-  bigint,
-  Hex,
-  Hex,
-  Hex
-]

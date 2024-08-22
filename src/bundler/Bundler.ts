@@ -193,7 +193,8 @@ export class Bundler implements IBundler {
                 if (confirmations) {
                   const latestBlock = await this.publicClient.getBlockNumber()
                   const confirmedBlocks =
-                    latestBlock - userOpResponse.receipt.blockNumber
+                    BigInt(latestBlock) -
+                    BigInt(userOpResponse.receipt.blockNumber)
                   if (confirmations >= confirmedBlocks) {
                     clearInterval(intervalId)
                     resolve(userOpResponse)

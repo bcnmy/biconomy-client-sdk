@@ -1,10 +1,10 @@
 import type { Address, Hex } from "viem"
 import type { SmartAccountSigner } from "../../account/index.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
-import type { V3ModuleInfo } from "../utils/Types.js"
+import type { Module } from "../utils/Types.js"
 
 export class ValidationModule extends BaseValidationModule {
-  private constructor(moduleConfig: V3ModuleInfo, signer: SmartAccountSigner) {
+  private constructor(moduleConfig: Module, signer: SmartAccountSigner) {
     super(moduleConfig, signer)
   }
 
@@ -13,13 +13,13 @@ export class ValidationModule extends BaseValidationModule {
     moduleAddress: Address,
     data: Hex
   ): Promise<ValidationModule> {
-    const moduleInfo: V3ModuleInfo = {
-      module: moduleAddress,
+    const module: Module = {
+      moduleAddress,
       type: "validator",
       data,
       additionalContext: "0x"
     }
-    const instance = new ValidationModule(moduleInfo, signer)
+    const instance = new ValidationModule(module, signer)
     return instance
   }
 }
