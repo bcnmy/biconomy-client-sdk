@@ -235,7 +235,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * This method will create a BiconomySmartAccountV2 instance but will not deploy the Smart Account
    * Deployment of the Smart Account will be donewith the first user operation.
    *
-   * - Docs: https://docs.biconomy.io/Account/integration#integration-1
+   * - Docs: https://docs.biconomy.io/account/integration#integration-1
    *
    * @param biconomySmartAccountConfig - Configuration for initializing the BiconomySmartAccountV2 instance {@link BiconomySmartAccountV2Config}.
    * @returns A promise that resolves to a new instance of BiconomySmartAccountV2.

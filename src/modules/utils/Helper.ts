@@ -31,7 +31,7 @@ import { getDefaultStorageClient } from "../session-storage/utils"
 /**
  * Rule
  *
- * https://docs.biconomy.io/Modules/abiSessionValidationModule#rules
+ * https://docs.biconomy.io/modules/sessions/abiSessionValidationModule#rules
  *
  * Rules define permissions for the args of an allowed method. With rules, you can precisely define what should be the args of the transaction that is allowed for a given Session. Every Rule works with a single static arg or a 32-byte chunk of the dynamic arg.
  * Since the ABI Encoding translates every static param into a 32-bytes word, even the shorter ones (like address or uint8), every Rule defines a desired relation (Condition) between n-th 32bytes word of the calldata and a reference Value (that is obviously a 32-bytes word as well).
@@ -43,7 +43,7 @@ export interface Rule {
    *
    * offset
    *
-   * https://docs.biconomy.io/Modules/abiSessionValidationModule#rules
+   * https://docs.biconomy.io/modules/sessions/abiSessionValidationModule#rules
    *
    * The offset in the ABI SVM contract helps locate the relevant data within the function call data, it serves as a reference point from which to start reading or extracting specific information required for validation. When processing function call data, particularly in low-level languages like Solidity assembly, it's necessary to locate where specific parameters or arguments are stored. The offset is used to calculate the starting position within the calldata where the desired data resides. Suppose we have a function call with multiple arguments passed as calldata. Each argument occupies a certain number of bytes, and the offset helps determine where each argument begins within the calldata.
    * Using the offset to Extract Data: In the contract, the offset is used to calculate the position within the calldata where specific parameters or arguments are located. Since every arg is a 32-bytes word, offsets are always multiplier of 32 (or of 0x20 in hex).
