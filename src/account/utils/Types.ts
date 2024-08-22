@@ -179,9 +179,9 @@ export type NexusSmartAccountConfig = NexusSmartAccountConfigBaseProps &
 
 export type NexusSmartAccountConfigConstructorProps =
   NexusSmartAccountConfigBaseProps &
-    BaseSmartAccountConfig &
-    ResolvedBundlerProps &
-    ResolvedValidationProps
+  BaseSmartAccountConfig &
+  ResolvedBundlerProps &
+  ResolvedValidationProps
 
 /**
  * Represents options for building a user operation.
@@ -442,13 +442,13 @@ export interface SmartAccountSigner<Inner = any> {
 //#region UserOperationCallData
 export type UserOperationCallData =
   | {
-      /* the target of the call */
-      target: Address
-      /* the data passed to the target */
-      data: Hex
-      /* the amount of native token to send to the target (default: 0) */
-      value?: bigint
-    }
+    /* the target of the call */
+    target: Address
+    /* the data passed to the target */
+    data: Hex
+    /* the amount of native token to send to the target (default: 0) */
+    value?: bigint
+  }
   | Hex
 //#endregion UserOperationCallData
 
@@ -537,10 +537,10 @@ export interface ISmartContractAccount<
   /**
    * Signs a typed data object as per ERC-712
    *
-   * @param params - {@link SignTypedDataParams}
+   * @param typedData 
    * @returns the signed hash for the message passed
    */
-  signTypedData(params: SignTypedDataParams): Promise<Hash>
+  signTypedData(typedData: any): Promise<Hash>
 
   /**
    * If the account is not deployed, it will sign the message and then wrap it in 6492 format
@@ -643,3 +643,13 @@ export enum CallType {
   CALLTYPE_STATIC = '0xFE',
   CALLTYPE_DELEGATECALL = '0xFF',
 }
+
+export type NEXUS_VERSION_TYPE = "1.0.0-beta"
+
+export type AccountMetadata = {
+  name: string
+  version: string
+  chainId: bigint
+}
+
+export type WithRequired<T, K extends keyof T> = Required<Pick<T, K>>

@@ -1,13 +1,21 @@
 import {
   type Address,
+  type Client,
   type Hash,
   type Hex,
+  type TypedDataDomain,
+  type TypedDataParameter,
   concat,
+  concatHex,
+  decodeFunctionResult,
+  domainSeparator,
   encodeAbiParameters,
+  encodeFunctionData,
   hexToBytes,
   keccak256,
   pad,
   parseAbiParameters,
+  publicActions,
   stringToBytes,
   toBytes,
   toHex
@@ -16,13 +24,16 @@ import type { UserOperationStruct } from "../../account"
 import {
   MOCK_MULTI_MODULE_ADDRESS,
   MODULE_ENABLE_MODE_TYPE_HASH,
+  NEXUS_DOMAIN_NAME,
+  NEXUS_DOMAIN_VERSION,
   type SupportedSigner,
   convertSigner
 } from "../../account"
 import { extractChainIdFromBundlerUrl } from "../../bundler"
 import { extractChainIdFromPaymasterUrl } from "../../bundler"
-import type { NexusSmartAccountConfig } from "./Types.js"
+import type { AccountMetadata, NexusSmartAccountConfig, WithRequired } from "./Types.js"
 import { type ModuleType, moduleTypeIds } from "../../modules/index.js"
+import { EIP1271Abi } from "../abi/EIP1271Abi.js"
 
 /**
  * pack the userOperation
@@ -42,15 +53,15 @@ export function packUserOp(
   const hashedPaymasterAndData = keccak256(
     userOperation.paymaster
       ? concat([
-          userOperation.paymaster,
-          pad(toHex(userOperation.paymasterVerificationGasLimit || BigInt(0)), {
-            size: 16
-          }),
-          pad(toHex(userOperation.paymasterPostOpGasLimit || BigInt(0)), {
-            size: 16
-          }),
-          userOperation.paymasterData || "0x"
-        ])
+        userOperation.paymaster,
+        pad(toHex(userOperation.paymasterVerificationGasLimit || BigInt(0)), {
+          size: 16
+        }),
+        pad(toHex(userOperation.paymasterPostOpGasLimit || BigInt(0)), {
+          size: 16
+        }),
+        userOperation.paymasterData || "0x"
+      ])
       : "0x"
   )
 
@@ -109,8 +120,8 @@ export const compareChainIds = async (
     ? extractChainIdFromBundlerUrl(biconomySmartAccountConfig.bundlerUrl)
     : biconomySmartAccountConfig.bundler
       ? extractChainIdFromBundlerUrl(
-          biconomySmartAccountConfig.bundler.getBundlerUrl()
-        )
+        biconomySmartAccountConfig.bundler.getBundlerUrl()
+      )
       : undefined
 
   const chainIdFromPaymasterUrl = biconomySmartAccountConfig.paymasterUrl
@@ -271,4 +282,88 @@ export function _hashTypedData(
       hexToBytes(structHash)
     ])
   )
+}
+
+export function getTypesForEIP712Domain({
+  domain,
+}: { domain?: TypedDataDomain | undefined }): TypedDataParameter[] {
+  return [
+    typeof domain?.name === 'string' && { name: 'name', type: 'string' },
+    domain?.version && { name: 'version', type: 'string' },
+    typeof domain?.chainId === 'number' && {
+      name: 'chainId',
+      type: 'uint256',
+    },
+    domain?.verifyingContract && {
+      name: 'verifyingContract',
+      type: 'address',
+    },
+    domain?.salt && { name: 'salt', type: 'bytes32' },
+  ].filter(Boolean) as TypedDataParameter[]
+}
+export const accountMetadata = async (
+  client: Client,
+  accountAddress: Address,
+): Promise<AccountMetadata> => {
+  try {
+    const domain = await client.request({
+      method: "eth_call",
+      params: [
+        {
+          to: accountAddress,
+          data: encodeFunctionData({
+            abi: EIP1271Abi,
+            functionName: "eip712Domain"
+          })
+        },
+        "latest"
+      ]
+    })
+    if (domain !== "0x") {
+      const decoded = decodeFunctionResult({
+        abi: [...EIP1271Abi],
+        functionName: "eip712Domain",
+        data: domain
+      })
+      return {
+        name: decoded[1],
+        version: decoded[2],
+        chainId: decoded[3]
+      }
+    }
+  } catch (error) { }
+  return {
+    name: NEXUS_DOMAIN_NAME,
+    version: NEXUS_DOMAIN_VERSION,
+    chainId: client.chain
+      ? BigInt(client.chain.id)
+      : BigInt(await client.extend(publicActions).getChainId())
+  }
+}
+
+
+export const eip712WrapHash = async (
+  messageHash: Hex,
+  domain: WithRequired<
+    TypedDataDomain,
+    "name" | "chainId" | "verifyingContract" | "version"
+  >
+): Promise<Hex> => {
+  const { name, version, chainId, verifyingContract } = domain
+
+  const _domainSeparator = domainSeparator({
+    domain: {
+      name,
+      version,
+      chainId,
+      verifyingContract
+    }
+  })
+
+  let finalMessageHash = messageHash
+
+  const digest = keccak256(
+    concatHex(["0x1901", _domainSeparator, finalMessageHash])
+  )
+  return digest
 }

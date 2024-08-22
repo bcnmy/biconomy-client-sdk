@@ -6,15 +6,14 @@ import {
   type PublicClient,
   createPublicClient,
   createWalletClient,
-  encodeAbiParameters,
   parseAbi,
-  parseAbiParameters
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { baseSepolia } from "viem/chains"
 import type { EIP712DomainReturn } from "../src"
 import { Logger } from "../src/account/utils/Logger"
 import { getChain } from "../src/account/utils/getChain"
+import { ethers } from "ethers"
 
 export const getEnvVars = () => {
   const fields = [
@@ -29,8 +28,7 @@ export const getEnvVars = () => {
   const errorFields = fields.filter((field) => !process?.env?.[field])
   if (errorFields.length) {
     throw new Error(
-      `Missing environment variable${
-        errorFields.length > 1 ? "s" : ""
+      `Missing environment variable${errorFields.length > 1 ? "s" : ""
       }: ${errorFields.join(", ")}`
     )
   }
@@ -39,12 +37,10 @@ export const getEnvVars = () => {
     bundlerUrlTwo: getBundlerUrl(84532) || "",
     privateKey: process.env.E2E_PRIVATE_KEY_ONE || "",
     privateKeyTwo: process.env.E2E_PRIVATE_KEY_TWO || "",
-    paymasterUrl: `https://paymaster.biconomy.io/api/v1/11155111/${
-      process.env.E2E_BICO_PAYMASTER_KEY_AMOY || ""
-    }`,
-    paymasterUrlTwo: `https://paymaster.biconomy.io/api/v1/84532/${
-      process.env.E2E_BICO_PAYMASTER_KEY_BASE || ""
-    }`,
+    paymasterUrl: `https://paymaster.biconomy.io/api/v1/11155111/${process.env.E2E_BICO_PAYMASTER_KEY_AMOY || ""
+      }`,
+    paymasterUrlTwo: `https://paymaster.biconomy.io/api/v1/84532/${process.env.E2E_BICO_PAYMASTER_KEY_BASE || ""
+      }`,
     chainId: process.env.CHAIN_ID || "0"
   }
 }
@@ -128,8 +124,7 @@ export const nonZeroBalance = async (address: Hex, tokenAddress?: Hex) => {
   const balance = await checkBalance(address, tokenAddress)
   if (balance > BigInt(0)) return
   throw new Error(
-    `Insufficient balance ${
-      tokenAddress ? `of token ${tokenAddress}` : "of native token"
+    `Insufficient balance ${tokenAddress ? `of token ${tokenAddress}` : "of native token"
     } during test setup of owner: ${address}`
   )
 }
@@ -153,8 +148,7 @@ export const topUp = async (
 
   if (balanceOfRecipient > amount) {
     Logger.log(
-      `balanceOfRecipient (${recipient}) already has enough ${
-        token ?? "native token"
+      `balanceOfRecipient (${recipient}) already has enough ${token ?? "native token"
       } (${balanceOfRecipient}) during topUp`
     )
     return await Promise.resolve()
@@ -162,8 +156,7 @@ export const topUp = async (
 
   if (balanceOfSender < amount) {
     throw new Error(
-      `Insufficient ${
-        token ? token : ""
+      `Insufficient ${token ? token : ""
       }balance during test setup: ${balanceOfSender}`
     )
   }
@@ -211,19 +204,18 @@ export const getAccountDomainStructFields = async (
   const [fields, name, version, chainId, verifyingContract, salt, extensions] =
     accountDomainStructFields
 
-  const params = parseAbiParameters(
-    "bytes1, string, string, uint256, address, bytes32, uint256[]"
+  return ethers.AbiCoder.defaultAbiCoder().encode(
+    ["bytes1", "bytes32", "bytes32", "uint256", "address", "bytes32", "bytes32"],
+    [
+      fields,
+      ethers.keccak256(ethers.toUtf8Bytes(name)),
+      ethers.keccak256(ethers.toUtf8Bytes(version)),
+      chainId,
+      verifyingContract,
+      salt,
+      ethers.keccak256(ethers.solidityPacked(["uint256[]"], [extensions]))
+    ]
   )
-
-  return encodeAbiParameters(params, [
-    fields,
-    name,
-    version,
-    chainId,
-    verifyingContract,
-    salt,
-    extensions
-  ])
 }
 
 export const getBundlerUrl = (chainId: number) =>

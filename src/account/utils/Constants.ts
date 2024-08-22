@@ -132,3 +132,6 @@ export const MODULE_ENABLE_MODE_TYPE_HASH = keccak256(
 export const MOCK_MULTI_MODULE_ADDRESS =
   "0x9C992f91E7Cd4697B81E137007f446E826b8378b"
 export const MODULE_TYPE_MULTI = 0
+
+export const NEXUS_DOMAIN_NAME = "Nexus"
+export const NEXUS_DOMAIN_VERSION = "1.0.0-beta"

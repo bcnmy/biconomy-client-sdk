@@ -20,7 +20,11 @@ import {
   keccak256,
   parseAbi,
   parseAbiParameters,
-  toBytes
+  toBytes,
+  getTypesForEIP712Domain,
+  validateTypedData,
+  type TypedDataDefinition,
+  hashTypedData
 } from "viem"
 import {
   Bundler,
@@ -92,7 +96,9 @@ import type {
   WithdrawalRequest
 } from "./utils/Types.js"
 import {
+  accountMetadata,
   addressEquals,
+  eip712WrapHash,
   isNullOrUndefined,
   isValidRpcUrl,
   packUserOp
@@ -106,13 +112,11 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
 
   private chainId: number
 
-  private provider: PublicClient
+  publicClient: PublicClient
 
   paymaster?: IPaymaster
 
   bundler?: IBundler
-
-  publicClient!: PublicClient
 
   private accountContract?: GetContractReturnType<
     typeof NexusAccountAbi,
@@ -168,10 +172,6 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       transport: http()
     })
 
-    // this.implementationAddress =
-    //   nexusSmartAccountConfig.implementationAddress ??
-    //   (BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION.V2_0_0 as Hex)
-
     if (nexusSmartAccountConfig.paymasterUrl) {
       this.paymaster = new Paymaster({
         paymasterUrl: nexusSmartAccountConfig.paymasterUrl
@@ -203,14 +203,14 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       // biome-ignore lint/style/noNonNullAssertion: <explanation>
       nexusSmartAccountConfig.activeValidationModule!
 
-    this.provider = createPublicClient({
+    this.publicClient = createPublicClient({
       chain:
         nexusSmartAccountConfig.viemChain ??
         nexusSmartAccountConfig.customChain ??
         getChain(nexusSmartAccountConfig.chainId),
       transport: http(
         nexusSmartAccountConfig.rpcUrl ||
-          getChain(nexusSmartAccountConfig.chainId).rpcUrls.default.http[0]
+        getChain(nexusSmartAccountConfig.chainId).rpcUrls.default.http[0]
       )
     })
 
@@ -501,7 +501,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
         getContract({
           address,
           abi: parseAbi(ERC20_ABI),
-          client: this.provider
+          client: this.publicClient
         })
       )
 
@@ -527,7 +527,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       )
     }
 
-    const balance = await this.provider.getBalance({ address: accountAddress })
+    const balance = await this.publicClient.getBalance({ address: accountAddress })
 
     result.push({
       amount: balance,
@@ -646,7 +646,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       // get eth balance if not present in withdrawal requests
       const nativeTokenAmountToWithdraw =
         nativeTokenRequest?.amount ??
-        (await this.provider.getBalance({ address: accountAddress }))
+        (await this.publicClient.getBalance({ address: accountAddress }))
 
       txs.push({
         to: (nativeTokenRequest?.recipient ?? defaultRecipient) as Hex,
@@ -731,7 +731,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
         this.accountContract = getContract({
           address: await this.getAddress(),
           abi: NexusAccountAbi,
-          client: this.provider as PublicClient
+          client: this.publicClient as PublicClient
         })
       }
       return this.accountContract
@@ -823,7 +823,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   //     address: ADDRESS_RESOLVER_ADDRESS,
   //     abi: AccountResolverAbi,
   //     client: {
-  //       public: this.provider as PublicClient
+  //       public: this.publicClient as PublicClient
   //     }
   //   })
   //   // Note: depending on moduleAddress and moduleSetupData passed call this. otherwise could call resolveAddresses()
@@ -1321,15 +1321,15 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
 
     const finalUserOp = userOp
 
-    // if neither user sent gas fee nor the bundler, estimate gas from provider
+    // if neither user sent gas fee nor the bundler, estimate gas from publicClient
     if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas) {
-      const feeData = await this.provider.estimateFeesPerGas()
+      const feeData = await this.publicClient.estimateFeesPerGas()
       if (feeData.maxFeePerGas?.toString()) {
         finalUserOp.maxFeePerGas = feeData.maxFeePerGas
       } else if (feeData.gasPrice?.toString()) {
         finalUserOp.maxFeePerGas = feeData.gasPrice
       } else {
-        finalUserOp.maxFeePerGas = await this.provider.getGasPrice()
+        finalUserOp.maxFeePerGas = await this.publicClient.getGasPrice()
       }
 
       if (feeData.maxPriorityFeePerGas?.toString()) {
@@ -1337,7 +1337,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       } else if (feeData.gasPrice?.toString()) {
         finalUserOp.maxPriorityFeePerGas = feeData.gasPrice ?? 0n
       } else {
-        finalUserOp.maxPriorityFeePerGas = await this.provider.getGasPrice()
+        finalUserOp.maxPriorityFeePerGas = await this.publicClient.getGasPrice()
       }
     }
 
@@ -1976,7 +1976,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       this.accountAddress ?? (await this.getAccountAddress())
 
     // Check that the account has not already been deployed
-    const byteCode = await this.provider?.getBytecode({
+    const byteCode = await this.publicClient?.getBytecode({
       address: accountAddress as Hex
     })
     if (byteCode !== undefined) {
@@ -1985,7 +1985,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
 
     // Check that the account has enough native token balance to deploy, if not using a paymaster
     if (!buildUseropDto?.paymasterServiceData?.mode) {
-      const nativeTokenBalance = await this.provider?.getBalance({
+      const nativeTokenBalance = await this.publicClient?.getBalance({
         address: accountAddress
       })
       if (nativeTokenBalance === BigInt(0)) {
@@ -2030,7 +2030,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       ["address", "bytes"],
       [
         this.activeValidationModule.getAddress() ??
-          this.defaultValidationModule.getAddress(),
+        this.defaultValidationModule.getAddress(),
         signature
       ]
     )
@@ -2060,6 +2060,44 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       ]
     )
     return concat([abiEncodedMessage, MAGIC_BYTES])
+  }
+
+  /**
+   * If your contract supports signing and verifying typed data,
+   * you should implement this method.
+   *
+   * @param _params -- Typed Data params to sign
+   */
+  async signTypedData(typedData: any): Promise<`0x${string}`> {
+    const types = {
+      EIP712Domain: getTypesForEIP712Domain({
+        domain: typedData.domain
+      }),
+      ...typedData.types
+    }
+
+    validateTypedData({
+      domain: typedData.domain,
+      message: typedData.message,
+      primaryType: typedData.primaryType,
+      types: types
+    } as TypedDataDefinition)
+
+    const typedHash = hashTypedData(typedData)
+
+    const { name, chainId, version } = await accountMetadata(
+      this.publicClient,
+      await this.getAddress()
+    )
+
+    const wrappedMessageHash = await eip712WrapHash(typedHash, {
+      name,
+      chainId: Number(chainId),
+      version,
+      verifyingContract: await this.getAddress()
+    })
+
+    return await this.signMessage(wrappedMessageHash)
   }
 
   async getIsValidSignatureData(
@@ -2304,7 +2342,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
         callData: (transactions[0].data ?? "0x") as Hex,
         value: BigInt(transactions[0].value ?? 0n)
       }
-      return await this.activeExecutionModule.execute( 
+      return await this.activeExecutionModule.execute(
         execution,
         ownedAccountAddress
       )
@@ -2314,11 +2352,11 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     )
   }
 
-    /**
-   * Checks if the account contract supports a specific execution mode.
-   * @param mode - The execution mode to check, represented as a viem Address.
-   * @returns A promise that resolves to a boolean indicating whether the execution mode is supported.
-   */
+  /**
+ * Checks if the account contract supports a specific execution mode.
+ * @param mode - The execution mode to check, represented as a viem Address.
+ * @returns A promise that resolves to a boolean indicating whether the execution mode is supported.
+ */
   async supportsExecutionMode(mode: Address): Promise<boolean> {
     const accountContract = await this._getAccountContract()
     return (await accountContract.read.supportsExecutionMode([mode])) as boolean
