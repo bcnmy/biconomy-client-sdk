@@ -10,7 +10,7 @@ export type NetworkConfigWithTestClients = NetworkConfigWithBundler & {
   fundedTestClients: FundedTestClients
 }
 
-export const aaTest = test.extend<{
+export const scopedTest = test.extend<{
   config: NetworkConfigWithTestClients
 }>({
   // biome-ignore lint/correctness/noEmptyPattern: Needed in vitest :/
@@ -24,8 +24,3 @@ export const aaTest = test.extend<{
     ])
   }
 })
-
-export type TestFileNetworkType = "LOCAL" | "GLOBAL"
-export const toNetwork = async (networkType: TestFileNetworkType) =>
-  // @ts-ignore
-  await (networkType === "GLOBAL" ? inject("globalNetwork") : initNetwork())

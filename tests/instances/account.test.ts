@@ -15,6 +15,7 @@ import {
 import {
   fundAndDeploy,
   getTestAccount,
+  initNetwork,
   killNetwork,
   toTestClient
 } from "../test.utils"
@@ -23,9 +24,6 @@ import type {
   NetworkConfig,
   NetworkConfigWithBundler
 } from "../test.utils"
-import { type TestFileNetworkType, aaTest, toNetwork } from "../testSetup"
-
-const NETWORK_TYPE: TestFileNetworkType = "LOCAL"
 
 describe("account", () => {
   let network: NetworkConfig
@@ -42,7 +40,7 @@ describe("account", () => {
   let recipientSmartAccountAddress: Hex
 
   beforeAll(async () => {
-    network = await toNetwork(NETWORK_TYPE)
+    network = await initNetwork()
 
     const testConfig: Partial<NexusSmartAccountConfig> = {
       factoryAddress: network.deployment.k1FactoryAddress,

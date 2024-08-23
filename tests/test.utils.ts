@@ -89,7 +89,6 @@ export const killNetwork = (ids: number[]) =>
   Promise.all(
     ids.map(async (id) => {
       const instance = allInstances.get(id)
-
       if (instance) {
         await instance.stop()
         allInstances.delete(id)

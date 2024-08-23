@@ -26,14 +26,8 @@ export default defineConfig({
       }
     },
     include: ["tests/**/*.test.ts"],
-    globalSetup: [join(__dirname, "./globalSetup.ts")],
-    sequence: {
-      concurrent: false
-    },
-    fileParallelism: true,
     environment: "node",
     testTimeout: 60_000,
-    hookTimeout: 45_000,
-    pool: "forks"
+    hookTimeout: 60_000
   }
 })

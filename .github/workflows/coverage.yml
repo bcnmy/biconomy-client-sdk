@@ -14,17 +14,19 @@ jobs:
       group: ${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
 
       - name: Install dependencies
         uses: ./.github/actions/install-dependencies
 
       - name: Run the tests
-        run: bun run test
+        run: bun run test --coverage
         env:
           E2E_PRIVATE_KEY_ONE: ${{ secrets.E2E_PRIVATE_KEY_ONE }}
           BUNDLER_URL: https://api.pimlico.io/v2/84532/rpc?apikey=pim_im13GpaqtMDSiJFhXMxcVn
           CHAIN_ID: 84532
+          CI: true 
 
       - name: report coverage
         uses: davelosert/vitest-coverage-report-action@v2

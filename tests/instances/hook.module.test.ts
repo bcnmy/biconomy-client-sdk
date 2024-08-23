@@ -15,13 +15,11 @@ import {
 import {
   fundAndDeploy,
   getTestAccount,
+  initNetwork,
   killNetwork,
   toTestClient
 } from "../test.utils"
 import type { MasterClient, NetworkConfig } from "../test.utils"
-import { type TestFileNetworkType, toNetwork } from "../testSetup"
-
-const NETWORK_TYPE: TestFileNetworkType = "LOCAL"
 
 describe("hook.module", () => {
   let network: NetworkConfig
@@ -38,7 +36,7 @@ describe("hook.module", () => {
   let recipientSmartAccountAddress: Hex
 
   beforeAll(async () => {
-    network = await toNetwork(NETWORK_TYPE)
+    network = await initNetwork()
 
     const testConfig: Partial<NexusSmartAccountConfig> = {
       factoryAddress: network.deployment.k1FactoryAddress,
