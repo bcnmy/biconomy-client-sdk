@@ -23,7 +23,7 @@ import { type TestFileNetworkType, toNetwork } from "../testSetup"
 
 const NETWORK_TYPE: TestFileNetworkType = "LOCAL"
 
-describe.skip("hook.module", () => {
+describe("hook.module", () => {
   let network: ChainConfig
   let chain: Chain
   let bundlerUrl: string

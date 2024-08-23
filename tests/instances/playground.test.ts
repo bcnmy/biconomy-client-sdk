@@ -25,9 +25,8 @@ const privateKey = process.env.E2E_PRIVATE_KEY_ONE
 const chainId = process.env.CHAIN_ID
 const rpcUrl = process.env.RPC_URL //Optional, taken from chain (using chainId) if not provided
 const _bundlerUrl = process.env.BUNDLER_URL // Optional, taken from chain (using chainId) if not provided
-const conditionalDescribe = process.env.RUN_PLAYGROUND
-  ? describe
-  : describe.skip
+const conditionalDescribe =
+  process.env.RUN_PLAYGROUND === "true" ? describe : describe.skip
 
 if (!privateKey) throw new Error("Missing env var E2E_PRIVATE_KEY_ONE")
 if (!chainId) throw new Error("Missing env var CHAIN_ID")
@@ -142,6 +141,8 @@ conditionalDescribe("playground", () => {
     const balanceAfter = await publicClient.getBalance({
       address: ownerAddress
     })
+
+    console.log({ transactionHash })
 
     expect(balanceAfter - balanceBefore).toBe(1n)
   })

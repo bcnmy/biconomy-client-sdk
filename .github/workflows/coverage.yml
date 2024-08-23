@@ -23,6 +23,8 @@ jobs:
         run: bun run test
         env:
           E2E_PRIVATE_KEY_ONE: ${{ secrets.E2E_PRIVATE_KEY_ONE }}
+          BUNDLER_URL: https://api.pimlico.io/v2/84532/rpc?apikey=pim_im13GpaqtMDSiJFhXMxcVn
+          CHAIN_ID: 84532
 
       - name: report coverage
         uses: davelosert/vitest-coverage-report-action@v2
