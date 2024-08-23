@@ -226,7 +226,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    * This method will create a NexusSmartAccount instance but will not deploy the Smart Account
    * Deployment of the Smart Account will be donewith the first user operation.
    *
-   * - Docs: https://docs.biconomy.io/Account/integration#integration-1
+   * - Docs: https://docs.biconomy.io/account/integration#integration-1
    *
    * @param nexusSmartAccountConfig - Configuration for initializing the NexusSmartAccount instance {@link NexusSmartAccountConfig}.
    * @returns A promise that resolves to a new instance of NexusSmartAccount.
@@ -1221,7 +1221,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    * @returns Promise<Hash>
    * Sends a user operation
    *
-   * - Docs: https://docs.biconomy.io/Account/transactions/userpaid#send-useroperation
+   * - Docs: https://docs.biconomy.io/account/methods#senduserop-
    *
    * @param userOp Partial<{@link UserOperationStruct}> the userOp params to be sent.
    * @param params {@link SendUserOpParams}.
@@ -1460,7 +1460,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   /**
    * Sends a transaction (builds and sends a user op in sequence)
    *
-   * - Docs: https://docs.biconomy.io/Account/transactions/userpaid#send-transaction
+   * - Docs: https://docs.biconomy.io/account/methods#sendtransaction-
    *
    * @param manyOrOneTransactions Array of {@link Transaction} to be batched and sent. Can also be a single {@link Transaction}.
    * @param buildUseropDto {@link BuildUserOpOptions}.
@@ -1561,7 +1561,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    *
    * This method will also simulate the validation and execution of the user operation, telling the user if the user operation will be successful or not.
    *
-   * - Docs: https://docs.biconomy.io/Account/transactions/userpaid#build-useroperation
+   * - Docs: https://docs.biconomy.io/account/methods#builduserop-
    *
    * @param transactions Array of {@link Transaction} to be sent.
    * @param buildUseropDto {@link BuildUserOpOptions}.
