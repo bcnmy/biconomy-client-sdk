@@ -24,3 +24,8 @@ export const scopedTest = test.extend<{
     ])
   }
 })
+
+export type TestFileNetworkType = "LOCAL" | "GLOBAL"
+export const toNetwork = async (networkType: TestFileNetworkType) =>
+  // @ts-ignore
+  await (networkType === "GLOBAL" ? inject("globalNetwork") : initNetwork())

@@ -9,26 +9,34 @@ import {
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import {
   type NexusSmartAccount,
-  type NexusSmartAccountConfig,
   createSmartAccountClient
 } from "../../src/account"
 import {
   fundAndDeploy,
   getTestAccount,
-  initNetwork,
   killNetwork,
   toTestClient
 } from "../test.utils"
 import type { MasterClient, NetworkConfig } from "../test.utils"
 
+import { type TestFileNetworkType, toNetwork } from "../testSetup"
+
+const NETWORK_TYPE: TestFileNetworkType = "GLOBAL"
+
 describe("modules", () => {
   let network: NetworkConfig
+
+  // Nexus Config
   let chain: Chain
   let bundlerUrl: string
+  let factoryAddress: Hex
+  let k1ValidatorAddress: Hex
+  let walletClient: WalletClient
+
+  // Test utils
   let testClient: MasterClient
   let account: Account
   let recipientAccount: Account
-  let walletClient: WalletClient
   let recipientWalletClient: WalletClient
   let smartAccount: NexusSmartAccount
   let recipientSmartAccount: NexusSmartAccount
@@ -36,12 +44,9 @@ describe("modules", () => {
   let recipientSmartAccountAddress: Hex
 
   beforeAll(async () => {
-    network = await initNetwork()
-
-    const testConfig: Partial<NexusSmartAccountConfig> = {
-      factoryAddress: network.deployment.k1FactoryAddress,
-      k1ValidatorAddress: network.deployment.k1ValidatorAddress
-    }
+    network = await toNetwork(NETWORK_TYPE)
+    factoryAddress = network.deployment.k1FactoryAddress
+    k1ValidatorAddress = network.deployment.k1ValidatorAddress
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
@@ -67,14 +72,16 @@ describe("modules", () => {
       signer: walletClient,
       bundlerUrl,
       chain,
-      ...testConfig
+      factoryAddress,
+      k1ValidatorAddress
     })
 
     recipientSmartAccount = await createSmartAccountClient({
       signer: recipientWalletClient,
       bundlerUrl,
       chain,
-      ...testConfig
+      factoryAddress,
+      k1ValidatorAddress
     })
 
     smartAccountAddress = await smartAccount.getAddress()

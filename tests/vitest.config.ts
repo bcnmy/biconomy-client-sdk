@@ -26,6 +26,7 @@ export default defineConfig({
       }
     },
     include: ["tests/**/*.test.ts"],
+    globalSetup: join(__dirname, "globalSetup.ts"),
     environment: "node",
     testTimeout: 60_000,
     hookTimeout: 60_000

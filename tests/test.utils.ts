@@ -97,16 +97,16 @@ export const killNetwork = (ids: number[]) =>
   )
 
 export const initNetwork = async (): Promise<NetworkConfigWithBundler> => {
-  const configuredChain = await initAnvilPayload()
+  const configuredNetwork = await initAnvilPayload()
   const bundlerConfig = await initBundlerInstance({
-    rpcUrl: configuredChain.rpcUrl
+    rpcUrl: configuredNetwork.rpcUrl
   })
-  allInstances.set(configuredChain.instance.port, configuredChain.instance)
+  allInstances.set(configuredNetwork.instance.port, configuredNetwork.instance)
   allInstances.set(
     bundlerConfig.bundlerInstance.port,
     bundlerConfig.bundlerInstance
   )
-  return { ...configuredChain, ...bundlerConfig }
+  return { ...configuredNetwork, ...bundlerConfig }
 }
 
 export type MasterClient = ReturnType<typeof toTestClient>
@@ -206,11 +206,8 @@ export type FundedTestClients = Awaited<ReturnType<typeof toFundedTestClients>>
 export const toFundedTestClients = async (
   network: NetworkConfigWithBundler
 ) => {
-  const testConfig: Partial<NexusSmartAccountConfig> = {
-    factoryAddress: network.deployment.k1FactoryAddress,
-    k1ValidatorAddress: network.deployment.k1ValidatorAddress
-  }
-
+  const factoryAddress = network.deployment.k1FactoryAddress
+  const k1ValidatorAddress = network.deployment.k1ValidatorAddress
   const chain = network.chain
   const bundlerUrl = network.bundlerUrl
 
@@ -235,14 +232,16 @@ export const toFundedTestClients = async (
     signer: walletClient,
     bundlerUrl,
     chain,
-    ...testConfig
+    factoryAddress,
+    k1ValidatorAddress
   })
 
   const recipientSmartAccount = await createSmartAccountClient({
     signer: recipientWalletClient,
     bundlerUrl,
     chain,
-    ...testConfig
+    factoryAddress,
+    k1ValidatorAddress
   })
 
   const smartAccountAddress = await smartAccount.getAddress()

@@ -138,11 +138,11 @@ conditionalDescribe("playground", () => {
     } = await wait()
     expect(success).toBeTruthy()
 
+    console.log({ transactionHash })
+
     const balanceAfter = await publicClient.getBalance({
       address: ownerAddress
     })
-
-    console.log({ transactionHash })
 
     expect(balanceAfter - balanceBefore).toBe(1n)
   })

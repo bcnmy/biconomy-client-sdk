@@ -1,23 +1,20 @@
 const fs = require("node:fs")
+import yargs from "yargs"
+import { hideBin } from "yargs/helpers"
 
-const path =
-  process.argv.slice(2)?.[0]?.split("=")?.[1] ??
-  "../../nexus/deployments/localhost"
-const relativePath = `${__dirname}/${path}`
+const {
+  pathToDeployment = "../../nexus/deployments",
+  deploymentChainName = "localhost",
+  abisInSrc = ["K1ValidatorFactory", "Nexus", "MockExecutor", "K1Validator"]
+} = yargs(hideBin(process.argv)).argv
 
 type DeployedContract = {
   address: string
   bytecode: string
 }
 
-const ABIS_REQUIRED_IN_CORE = [
-  "K1ValidatorFactory",
-  "Nexus",
-  "MockExecutor",
-  "K1Validator"
-]
-
 export const getDeployments = async () => {
+  const relativePath = `${__dirname}/${pathToDeployment}/${deploymentChainName}`
   const files = fs.readdirSync(relativePath)
   const deployedContracts: Record<string, DeployedContract> = {}
 
@@ -34,7 +31,7 @@ export const getDeployments = async () => {
       )
       const { address, abi, bytecode } = JSON.parse(contents)
 
-      const isForCore = ABIS_REQUIRED_IN_CORE.includes(name)
+      const isForCore = abisInSrc.includes(name)
       if (isForCore) {
         coreFiles.push(name)
       } else {
