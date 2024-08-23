@@ -18,13 +18,13 @@ import {
   killNetwork,
   toTestClient
 } from "../test.utils"
-import type { ChainConfig, MasterClient } from "../test.utils"
+import type { MasterClient, NetworkConfig } from "../test.utils"
 import { type TestFileNetworkType, toNetwork } from "../testSetup"
 
 const NETWORK_TYPE: TestFileNetworkType = "LOCAL"
 
 describe("bundler", () => {
-  let network: ChainConfig
+  let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
   let testClient: MasterClient

@@ -9,6 +9,7 @@ import {
   type Hex,
   type SetCodeParameters,
   createTestClient,
+  createWalletClient,
   encodeAbiParameters,
   parseAbi,
   parseAbiParameters,
@@ -17,7 +18,12 @@ import {
 } from "viem"
 import { mnemonicToAccount } from "viem/accounts"
 import { anvil as anvilChain } from "viem/chains"
-import type { EIP712DomainReturn, NexusSmartAccount } from "../src"
+import {
+  type EIP712DomainReturn,
+  type NexusSmartAccount,
+  type NexusSmartAccountConfig,
+  createSmartAccountClient
+} from "../src"
 import { getCustomChain } from "../src/account/utils"
 import { Logger } from "../src/account/utils/Logger"
 import { ENTRYPOINT_ADDRESS, ENTRYPOINT_SIMULATIONS } from "../src/contracts"
@@ -55,9 +61,9 @@ export type AnvilDto = {
   instance: AnvilInstance
   deployment: Deployment
 }
-export type ChainConfigWithBundler = AnvilDto & BundlerDto
-export type ChainConfig = Omit<
-  ChainConfigWithBundler,
+export type NetworkConfigWithBundler = AnvilDto & BundlerDto
+export type NetworkConfig = Omit<
+  NetworkConfigWithBundler,
   "instance" | "bundlerInstance"
 >
 export const pKey =
@@ -91,7 +97,7 @@ export const killNetwork = (ids: number[]) =>
     })
   )
 
-export const initChain = async (): Promise<ChainConfigWithBundler> => {
+export const initNetwork = async (): Promise<NetworkConfigWithBundler> => {
   const configuredChain = await initAnvilPayload()
   const bundlerConfig = await initBundlerInstance({
     rpcUrl: configuredChain.rpcUrl
@@ -195,6 +201,66 @@ export const nonZeroBalance = async (
       tokenAddress ? `of token ${tokenAddress}` : "of native token"
     } during test setup of owner: ${address}`
   )
+}
+
+export type FundedTestClients = Awaited<ReturnType<typeof toFundedTestClients>>
+export const toFundedTestClients = async (
+  network: NetworkConfigWithBundler
+) => {
+  const testConfig: Partial<NexusSmartAccountConfig> = {
+    factoryAddress: network.deployment.k1FactoryAddress,
+    k1ValidatorAddress: network.deployment.k1ValidatorAddress
+  }
+
+  const chain = network.chain
+  const bundlerUrl = network.bundlerUrl
+
+  const account = getTestAccount(2)
+  const recipientAccount = getTestAccount(3)
+
+  const walletClient = createWalletClient({
+    account,
+    chain,
+    transport: http()
+  })
+
+  const recipientWalletClient = createWalletClient({
+    account: recipientAccount,
+    chain,
+    transport: http()
+  })
+
+  const testClient = toTestClient(chain, getTestAccount())
+
+  const smartAccount = await createSmartAccountClient({
+    signer: walletClient,
+    bundlerUrl,
+    chain,
+    ...testConfig
+  })
+
+  const recipientSmartAccount = await createSmartAccountClient({
+    signer: recipientWalletClient,
+    bundlerUrl,
+    chain,
+    ...testConfig
+  })
+
+  const smartAccountAddress = await smartAccount.getAddress()
+  const recipientSmartAccountAddress = await recipientSmartAccount.getAddress()
+  await fundAndDeploy(testClient, [smartAccount, recipientSmartAccount])
+
+  return {
+    account,
+    recipientAccount,
+    walletClient,
+    recipientWalletClient,
+    testClient,
+    smartAccount,
+    recipientSmartAccount,
+    smartAccountAddress,
+    recipientSmartAccountAddress
+  }
 }
 
 export const fundAndDeploy = async (

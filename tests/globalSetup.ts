@@ -1,7 +1,7 @@
-import { type ChainConfig, initChain, killAllNetworks } from "./test.utils"
+import { type NetworkConfig, initNetwork, killAllNetworks } from "./test.utils"
 
 export async function setup({ provide }) {
-  const network = await initChain()
+  const network = await initNetwork()
   const { bundlerInstance, instance, ...serializeableConfig } = network
   provide("globalNetwork", serializeableConfig)
 }
@@ -12,6 +12,6 @@ export async function teardown() {
 
 declare module "vitest" {
   export interface ProvidedContext {
-    globalNetwork: ChainConfig
+    globalNetwork: NetworkConfig
   }
 }

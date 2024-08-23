@@ -18,13 +18,17 @@ import {
   killNetwork,
   toTestClient
 } from "../test.utils"
-import type { ChainConfig, MasterClient } from "../test.utils"
-import { type TestFileNetworkType, toNetwork } from "../testSetup"
+import type {
+  MasterClient,
+  NetworkConfig,
+  NetworkConfigWithBundler
+} from "../test.utils"
+import { type TestFileNetworkType, aaTest, toNetwork } from "../testSetup"
 
 const NETWORK_TYPE: TestFileNetworkType = "LOCAL"
 
 describe("account", () => {
-  let network: ChainConfig
+  let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
   let testClient: MasterClient
@@ -103,7 +107,7 @@ describe("account", () => {
     ])
   })
 
-  test("should check bytecode at Counter contract", async () => {
+  test("should", async () => {
     const counterAddress = network.deployment.counterAddress
     const byteCode = await testClient.getBytecode({ address: counterAddress })
     expect(byteCode).toBeTruthy()
