@@ -1,6 +1,4 @@
-import { type BigNumberish, ethers } from "ethers"
 import getPort from "get-port"
-import _throttle from "lodash/throttle"
 import { alto, anvil } from "prool/instances"
 import {
   http,
@@ -48,9 +46,11 @@ type BundlerInstance = ReturnType<typeof alto>
 type BundlerDto = {
   bundlerInstance: BundlerInstance
   bundlerUrl: string
+  bundlerPort: number
 }
 export type AnvilDto = {
   rpcUrl: string
+  rpcPort: number
   chain: Chain
   instance: AnvilInstance
   deployment: Deployment
@@ -74,11 +74,33 @@ export const getTestAccount = (
   )
 }
 
+const allInstances = new Map<number, AnvilInstance>()
+
+export const killAllNetworks = () =>
+  killNetwork(Array.from(allInstances.keys()))
+
+export const killNetwork = (ids: number[]) =>
+  Promise.all(
+    ids.map(async (id) => {
+      const instance = allInstances.get(id)
+
+      if (instance) {
+        await instance.stop()
+        allInstances.delete(id)
+      }
+    })
+  )
+
 export const initChain = async (): Promise<ChainConfigWithBundler> => {
   const configuredChain = await initAnvilPayload()
   const bundlerConfig = await initBundlerInstance({
     rpcUrl: configuredChain.rpcUrl
   })
+  allInstances.set(configuredChain.instance.port, configuredChain.instance)
+  allInstances.set(
+    bundlerConfig.bundlerInstance.port,
+    bundlerConfig.bundlerInstance
+  )
   return { ...configuredChain, ...bundlerConfig }
 }
 
@@ -131,7 +153,7 @@ export const initAnvilPayload = async (): Promise<AnvilDto> => {
   const rpcUrl = `http://localhost:${rpcPort}`
   const chain = getTestChainFromPort(rpcPort)
   const { instance, deployment } = await toConfiguredAnvil({ rpcPort })
-  return { rpcUrl, chain, instance, deployment }
+  return { rpcUrl, chain, instance, deployment, rpcPort }
 }
 
 export const initBundlerInstance = async ({
@@ -140,7 +162,7 @@ export const initBundlerInstance = async ({
   const bundlerPort = await getPort()
   const bundlerUrl = `http://localhost:${bundlerPort}`
   const bundlerInstance = await toBundlerInstance({ rpcUrl, bundlerPort })
-  return { bundlerInstance, bundlerUrl }
+  return { bundlerInstance, bundlerUrl, bundlerPort }
 }
 
 export const checkBalance = (

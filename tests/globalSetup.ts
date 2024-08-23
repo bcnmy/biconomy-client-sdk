@@ -1,21 +1,13 @@
-import {
-  type ChainConfig,
-  type ChainConfigWithBundler,
-  initChain
-} from "./test.utils"
+import { type ChainConfig, initChain, killAllNetworks } from "./test.utils"
 
-let globalConfig: ChainConfigWithBundler
-export default async function setup({ provide }) {
-  globalConfig = await initChain()
-  const { bundlerInstance, instance, ...serializeableConfig } = globalConfig
+export async function setup({ provide }) {
+  const network = await initChain()
+  const { bundlerInstance, instance, ...serializeableConfig } = network
   provide("globalNetwork", serializeableConfig)
 }
 
-export const teardown = async () => {
-  await Promise.all([
-    globalConfig.instance.stop(),
-    globalConfig.bundlerInstance.stop()
-  ])
+export async function teardown() {
+  await killAllNetworks()
 }
 
 declare module "vitest" {

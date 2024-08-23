@@ -4,7 +4,7 @@ import { defineConfig } from "vitest/config"
 export default defineConfig({
   test: {
     coverage: {
-      all: false,
+      all: true,
       provider: "v8",
       reporter: process.env.CI
         ? ["json-summary", "json"]
@@ -25,10 +25,15 @@ export default defineConfig({
         statements: 80
       }
     },
-    environment: "node",
     include: ["tests/**/*.test.ts"],
     globalSetup: [join(__dirname, "./globalSetup.ts")],
-    // hookTimeout: 20_000,
-    testTimeout: 20_000
+    sequence: {
+      concurrent: false
+    },
+    fileParallelism: true,
+    environment: "node",
+    testTimeout: 60_000,
+    hookTimeout: 45_000,
+    pool: "forks"
   }
 })

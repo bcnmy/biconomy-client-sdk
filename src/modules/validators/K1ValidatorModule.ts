@@ -18,6 +18,7 @@ export class K1ValidatorModule extends BaseValidationModule {
       data: await signer.getAddress(),
       additionalContext: "0x"
     }
-    return new K1ValidatorModule(module, signer)
+    const instance = new K1ValidatorModule(module, signer)
+    return instance
   }
 }

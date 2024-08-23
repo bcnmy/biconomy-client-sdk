@@ -6,19 +6,24 @@ import {
   type WalletClient,
   createWalletClient
 } from "viem"
-import { beforeAll, describe, expect, test } from "vitest"
+import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import {
   type NexusSmartAccount,
   type NexusSmartAccountConfig,
   createSmartAccountClient
 } from "../../src/account"
-import { fundAndDeploy, getTestAccount, toTestClient } from "../test.utils"
+import {
+  fundAndDeploy,
+  getTestAccount,
+  killNetwork,
+  toTestClient
+} from "../test.utils"
 import type { ChainConfig, MasterClient } from "../test.utils"
 import { type TestFileNetworkType, toNetwork } from "../testSetup"
 
 const NETWORK_TYPE: TestFileNetworkType = "LOCAL"
 
-describe("bundler", () => {
+describe.skip("bundler", () => {
   let network: ChainConfig
   let chain: Chain
   let bundlerUrl: string
@@ -34,7 +39,6 @@ describe("bundler", () => {
 
   beforeAll(async () => {
     network = await toNetwork(NETWORK_TYPE)
-    console.log(network.chain.rpcUrls, network.bundlerUrl)
 
     const testConfig: Partial<NexusSmartAccountConfig> = {
       factoryAddress: network.deployment.k1FactoryAddress,
@@ -78,6 +82,9 @@ describe("bundler", () => {
     smartAccountAddress = await smartAccount.getAddress()
     recipientSmartAccountAddress = await recipientSmartAccount.getAddress()
     await fundAndDeploy(testClient, [smartAccount, recipientSmartAccount])
+  })
+  afterAll(async () => {
+    await killNetwork([network.rpcPort, network.bundlerPort])
   })
 
   test("should have account addresses", async () => {

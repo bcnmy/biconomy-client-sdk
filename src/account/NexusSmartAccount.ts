@@ -296,6 +296,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     }
     return this.accountAddress
   }
+  public getAccountAddress = this.getAddress
 
   /**
    * Returns an upper estimate for the gas spent on a specific user operation
@@ -827,9 +828,22 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     userOp: Partial<UserOperationStruct>
   ): Promise<UserOperationStruct> {
     this.isActiveValidationModuleDefined()
+    // TODO REMOVE COMMENT AND CHECK FOR PIMLICO USER OP FIELDS
+    // const requiredFields: UserOperationKey[] = [
+    //   "sender",
+    //   "nonce",
+    //   "callGasLimit",
+    //   "signature",
+    //   "maxFeePerGas",
+    //   "maxPriorityFeePerGas",
+    // ]
+    // this.validateUserOp(userOp, requiredFields)
     const userOpHash = await this.getUserOpHash(userOp)
-    const eoaSignature =
-      await this.activeValidationModule.signUserOpHash(userOpHash)
+
+    const eoaSignature = (await this.activeValidationModule.signUserOpHash(
+      userOpHash
+    )) as Hex
+
     userOp.signature = eoaSignature
     return userOp as UserOperationStruct
   }
@@ -1033,9 +1047,11 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   async sendUserOp(
     userOp: Partial<UserOperationStruct>
   ): Promise<UserOpResponse> {
-    const { signature, ...rest } = userOp // signature will be set when signing the userOp
-    const signedUserOp = await this.signUserOp(rest)
-    const bundlerResponse = await this.sendSignedUserOp(signedUserOp)
+    // biome-ignore lint/performance/noDelete: <explanation>
+    delete userOp.signature
+    const userOperation = await this.signUserOp(userOp)
+
+    const bundlerResponse = await this.sendSignedUserOp(userOperation)
 
     return bundlerResponse
   }

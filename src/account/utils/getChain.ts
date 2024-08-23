@@ -99,7 +99,7 @@ export const getCustomChain = (
   name: string,
   id: number,
   rpcUrl: StringOrStrings,
-  blockExplorer: StringOrStrings,
+  blockExplorer?: StringOrStrings,
   nativeCurrency?: Chain["nativeCurrency"],
   contracts?: Chain["contracts"]
 ): Chain => {
@@ -117,7 +117,7 @@ export const getCustomChain = (
     blockExplorers: {
       default: {
         name: "Explorer",
-        url: stringOrStringsToArray(blockExplorer)[0]
+        url: blockExplorer ? stringOrStringsToArray(blockExplorer)[0] : ""
       }
     },
     ...((contracts && { contracts }) || {})
