@@ -1,7 +1,7 @@
 import { http, type Hash, type PublicClient, createPublicClient } from "viem"
+import contracts from "../__contracts/index.js"
 import type { UserOperationStruct } from "../account"
 import { HttpMethod, isNullOrUndefined, sendRequest } from "../account"
-import contracts from "../contracts"
 import type { IBundler } from "./interfaces/IBundler.js"
 import {
   UserOpReceiptIntervals,
@@ -79,7 +79,7 @@ export class Bundler implements IBundler {
     }
 
     this.bundlerConfig.entryPointAddress =
-      bundlerConfig.entryPointAddress || contracts.EntryPoint.address
+      bundlerConfig.entryPointAddress || contracts.entryPoint.address
   }
 
   public getBundlerUrl(): string {

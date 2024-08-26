@@ -1,7 +1,7 @@
 export const BootstrapAbi = [
   {
     inputs: [],
-    name: "CannotRemoveLastValidator",
+    name: "CanNotRemoveLastValidator",
     type: "error"
   },
   {
@@ -18,6 +18,11 @@ export const BootstrapAbi = [
       }
     ],
     name: "FallbackAlreadyInstalledForSelector",
+    type: "error"
+  },
+  {
+    inputs: [],
+    name: "FallbackCallTypeInvalid",
     type: "error"
   },
   {
@@ -171,6 +176,11 @@ export const BootstrapAbi = [
     type: "error"
   },
   {
+    inputs: [],
+    name: "NoValidatorInstalled",
+    type: "error"
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -179,6 +189,17 @@ export const BootstrapAbi = [
       }
     ],
     name: "UnauthorizedOperation",
+    type: "error"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "module",
+        type: "address"
+      }
+    ],
+    name: "ValidatorNotInstalled",
     type: "error"
   },
   {

@@ -7,15 +7,18 @@ import {
   createWalletClient
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import contracts from "../../src/__contracts"
 import {
   type NexusSmartAccount,
+  type Transaction,
   createSmartAccountClient
 } from "../../src/account"
 import {
-  fundAndDeploy,
   getTestAccount,
   killNetwork,
-  toTestClient
+  toTestClient,
+  topUp,
+  writeToFile
 } from "../test.utils"
 import type { MasterClient, NetworkConfig } from "../test.utils"
 import { type TestFileNetworkType, toNetwork } from "../testSetup"
@@ -36,21 +39,16 @@ describe("account", () => {
   let testClient: MasterClient
   let account: Account
   let recipientAccount: Account
-  let recipientWalletClient: WalletClient
   let smartAccount: NexusSmartAccount
-  let recipientSmartAccount: NexusSmartAccount
   let smartAccountAddress: Hex
-  let recipientSmartAccountAddress: Hex
 
   beforeAll(async () => {
     network = await toNetwork(NETWORK_TYPE)
-    factoryAddress = network.deployment.k1FactoryAddress
-    k1ValidatorAddress = network.deployment.k1ValidatorAddress
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
 
-    account = getTestAccount(2)
+    account = getTestAccount(0)
     recipientAccount = getTestAccount(3)
 
     walletClient = createWalletClient({
@@ -59,51 +57,62 @@ describe("account", () => {
       transport: http()
     })
 
-    recipientWalletClient = createWalletClient({
-      account: recipientAccount,
-      chain,
-      transport: http()
-    })
-
-    testClient = toTestClient(chain, getTestAccount())
+    testClient = toTestClient(chain, getTestAccount(0))
 
     smartAccount = await createSmartAccountClient({
       signer: walletClient,
       bundlerUrl,
-      chain,
-      factoryAddress,
-      k1ValidatorAddress
-    })
-
-    recipientSmartAccount = await createSmartAccountClient({
-      signer: recipientWalletClient,
-      bundlerUrl,
-      chain,
-      factoryAddress,
-      k1ValidatorAddress
+      chain
     })
 
     smartAccountAddress = await smartAccount.getAddress()
-    recipientSmartAccountAddress = await recipientSmartAccount.getAddress()
-    await fundAndDeploy(testClient, [smartAccount, recipientSmartAccount])
+    // await fundAndDeploy(testClient, smartAccount)
   })
   afterAll(async () => {
     await killNetwork([network.rpcPort, network.bundlerPort])
   })
 
+  test("byteCodes", async () => {
+    const byteCodes = await Promise.all([
+      testClient.getBytecode({ address: contracts.k1ValidatorFactory.address }),
+      testClient.getBytecode({ address: contracts.k1Validator.address })
+    ])
+    const [k1ValidatorFactory, k1Validator] = byteCodes
+    writeToFile("byteCodes.json", { k1ValidatorFactory, k1Validator })
+    expect(byteCodes.every(Boolean)).toBe(true)
+  })
+
+  test("topUp", async () => {
+    const total = await testClient.getBalance({
+      address: testClient.account.address
+    })
+    await topUp(testClient, smartAccountAddress)
+    const [balance] = await smartAccount.getBalances()
+    expect(balance.amount > 0)
+  })
+
   test("should have account addresses", async () => {
     const addresses = await Promise.all([
       account.address,
-      smartAccount.getAddress(),
-      recipientAccount.address,
-      recipientSmartAccount.getAddress()
+      smartAccount.getAddress()
     ])
     expect(addresses.every(Boolean)).to.be.true
     expect(addresses).toStrictEqual([
-      "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
-      "0x2915317448Dd00158361dcBB47eacF26f774DdA8", // Sender smart account
-      "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
-      "0x89028E0fD7Af7F864878e0209118DF6A9229A9Ce" // Recipient smart account
+      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "0x473AecE3DE762252a9d47F5032133282c9615e28" // Sender smart account
     ])
+  })
+
+  test("send eth", async () => {
+    const tx: Transaction = {
+      to: account.address,
+      value: 1n
+    }
+
+    const { wait } = await smartAccount.sendTransaction(tx)
+
+    const { success, receipt } = await wait()
+
+    expect(success).toBe(true)
   })
 })

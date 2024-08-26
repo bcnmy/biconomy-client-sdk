@@ -9,8 +9,8 @@ import {
   getContract,
   trim
 } from "viem"
-import contracts from "../contracts"
-import { EntrypointAbi } from "../contracts/abi/EntryPointABI.js"
+import { EntrypointAbi } from "../__contracts/abi/EntryPointABI.js"
+import contracts from "../__contracts/index.js"
 import { Logger, type SmartAccountSigner } from "./index.js"
 import type { MODE_MODULE_ENABLE, MODE_VALIDATION } from "./utils/Constants.js"
 import type {
@@ -43,7 +43,7 @@ export abstract class BaseSmartContractAccount<
   protected signer: TSigner
 
   protected entryPoint: GetContractReturnType<
-    typeof contracts.EntryPoint.abi,
+    typeof contracts.entryPoint.abi,
     PublicClient
   >
 
@@ -53,7 +53,7 @@ export abstract class BaseSmartContractAccount<
 
   constructor(params: BaseSmartContractAccountProps) {
     this.entryPointAddress =
-      params.entryPointAddress ?? contracts.EntryPoint.address
+      params.entryPointAddress ?? contracts.entryPoint.address
 
     this.publicClient = createPublicClient({
       chain: params.chain,

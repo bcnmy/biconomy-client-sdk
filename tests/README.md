@@ -2,6 +2,9 @@
 
 ## Testing Setup
 
+> **Note**:  
+> - Tests now must be run with node version >= v22
+
 ### Network Agnostic Tests
 - Tests are executed against locally deployed ephemeral Anvil chains (chain ID: 31337) with relevant contracts pre-deployed for each test.
 - Bundlers for testing are instantiated using [prool](https://github.com/wevm/prool), currently utilizing alto instances. We plan to switch to Biconomy's bundlers when they become available via `prool`.
@@ -10,9 +13,9 @@
 A custom script `bun run fetch:deployment` is provided to search for the bytecode of deployed contracts from a customizable location (default: `../../nexus/deployments`). This folder is **auto-generated** in Nexus whenever a new Hardhat deployment is made, ensuring that the SDK remains up-to-date with the latest contract changes.
 
 The script performs the following:
-- **ABIs**: Moved to `./src/contracts/{name}Abi.ts`
+- **ABIs**: Moved to `./src/__contracts/{name}Abi.ts`
 - **Addresses**: Moved to `./src/addresses.ts`
-- **Additional Fixtures**: Copied to `tests/contracts`
+- **Additional Fixtures**: Copied to `tests__/contracts`
 
 > **Note**:  
 > - Do not edit these files manually; they will be overridden if/when a new Nexus deployment occurs.
@@ -23,7 +26,7 @@ The script performs the following:
 To prevent tests from conflicting with one another, networks can be scoped at three levels:
 
 ### Global Scope
-- Use by setting `const NETWORK_TYPE: TestFileNetworkType = "GLOBAL"` at the top of the test file.
+- Use by setting `const NETWORK_TYPE: TestFileNetworkType = "LOCAL"` at the top of the test file.
 - Suitable when you're sure that tests in the file will **not** conflict with other tests using the global network.
 
 ### Local Scope
@@ -55,4 +58,7 @@ scopedTest("should be used in the following way", async({ config: { bundlerUrl, 
 
 ## Debugging and Client Issues
 It is recommended to use the playground for debugging issues with clients. Please refer to the following guidelines for escalation and handover: [Debugging Client Issues](https://www.notion.so/biconomy/Debugging-Client-Issues-cc01c1cab0224c87b37a4d283370165b)
+
+## Testing Helpers
+A [testClient](https://viem.sh/docs/clients/test#extending-with-public--wallet-actions) is available (funded and extended with walletActions and publicActions) during testing. Please use it as a master Client for all things network related. 
 

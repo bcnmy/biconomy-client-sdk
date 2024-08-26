@@ -20,6 +20,8 @@ import {
   parseAbiParameters,
   toBytes
 } from "viem"
+import contracts from "../__contracts"
+import { NexusAbi } from "../__contracts/abi"
 import {
   Bundler,
   Executions,
@@ -29,8 +31,6 @@ import {
 } from "../bundler/index.js"
 import type { IBundler } from "../bundler/interfaces/IBundler.js"
 import { EXECUTE_BATCH, EXECUTE_SINGLE } from "../bundler/utils/Constants.js"
-import contracts from "../contracts"
-import { NexusAbi } from "../contracts/abi"
 import type { BaseExecutionModule } from "../modules/base/BaseExecutionModule.js"
 import { BaseValidationModule } from "../modules/base/BaseValidationModule.js"
 import {
@@ -126,7 +126,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   ) {
     const resolvedEntryPointAddress =
       (nexusSmartAccountConfig.entryPointAddress as Hex) ??
-      contracts.EntryPoint.address
+      contracts.entryPoint.address
 
     super({
       ...nexusSmartAccountConfig,
@@ -223,7 +223,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
 
     const defaultedEntryPointAddress =
       (nexusSmartAccountConfig.entryPointAddress ??
-        contracts.EntryPoint.address) as Hex
+        contracts.entryPoint.address) as Hex
 
     // Signer needs to be initialised here before defaultValidationModule is set
     if (nexusSmartAccountConfig.signer) {
@@ -247,10 +247,10 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
 
     const k1ValidatorAddress =
       nexusSmartAccountConfig.k1ValidatorAddress ??
-      (contracts.K1Validator.address as Hex)
+      (contracts.k1Validator.address as Hex)
     const factoryAddress =
       nexusSmartAccountConfig.factoryAddress ??
-      (contracts.K1ValidatorFactory.address as Hex)
+      (contracts.k1ValidatorFactory.address as Hex)
 
     if (!defaultValidationModule) {
       const newModule = await createK1ValidatorModule(
@@ -289,7 +289,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       const index = params?.index ?? this.index
       this.accountAddress = (await this.publicClient.readContract({
         address: this.factoryAddress,
-        abi: contracts.K1ValidatorFactory.abi,
+        abi: contracts.k1ValidatorFactory.abi,
         functionName: "computeAccountAddress",
         args: [signerAddress, index, [], 0]
       })) as Hex
@@ -1421,14 +1421,11 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
 
     userOp.signature = dummySignature
 
-    if (!buildUseropDto?.skipBundler) {
-      const gasFeeValues: GetUserOperationGasPriceReturnType | undefined =
-        await this.bundler?.getGasFeeValues()
+    const gasFeeValues: GetUserOperationGasPriceReturnType | undefined =
+      await this.bundler?.getGasFeeValues()
 
-      userOp.maxFeePerGas = gasFeeValues?.fast.maxFeePerGas ?? 0n
-      userOp.maxPriorityFeePerGas =
-        gasFeeValues?.fast.maxPriorityFeePerGas ?? 0n
-    }
+    userOp.maxFeePerGas = gasFeeValues?.fast.maxFeePerGas ?? 0n
+    userOp.maxPriorityFeePerGas = gasFeeValues?.fast.maxPriorityFeePerGas ?? 0n
 
     userOp = await this.estimateUserOpGas(userOp)
 
@@ -1648,7 +1645,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     return this.sendTransaction(
       {
         to: accountAddress,
-        data: "0x"
+        value: 1n
       },
       { ...buildUseropDto, useEmptyDeployCallData }
     )
@@ -1661,7 +1658,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     const signerAddress = await this.signer.getAddress()
 
     return encodeFunctionData({
-      abi: contracts.K1ValidatorFactory.abi,
+      abi: contracts.k1ValidatorFactory.abi,
       functionName: "createAccount",
       args: [signerAddress, this.index, [], 0]
     })

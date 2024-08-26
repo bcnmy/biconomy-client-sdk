@@ -1,3 +1,4 @@
+import fs from "node:fs"
 import getPort from "get-port"
 import { alto, anvil } from "prool/instances"
 import {
@@ -7,7 +8,6 @@ import {
   type Address,
   type Chain,
   type Hex,
-  type SetCodeParameters,
   createTestClient,
   createWalletClient,
   encodeAbiParameters,
@@ -17,36 +17,20 @@ import {
   walletActions
 } from "viem"
 import { mnemonicToAccount } from "viem/accounts"
-import { anvil as anvilChain } from "viem/chains"
 import {
   type EIP712DomainReturn,
   type NexusSmartAccount,
-  type NexusSmartAccountConfig,
   createSmartAccountClient
 } from "../src"
+import contracts from "../src/__contracts"
 import { getCustomChain } from "../src/account/utils"
 import { Logger } from "../src/account/utils/Logger"
-import { ENTRYPOINT_ADDRESS, ENTRYPOINT_SIMULATIONS } from "../src/contracts"
-import { K1ValidatorAbi, NexusAbi } from "../src/contracts/abi"
-import { K1ValidatorFactoryAbi } from "../src/contracts/abi/K1ValidatorFactoryAbi"
-import deployedContracts from "./contracts/deployment.json"
 import {
   ENTRY_POINT_SIMULATIONS_CREATECALL,
   ENTRY_POINT_V07_CREATECALL
 } from "./create.config"
+import { deployProcess } from "./deploy.nexus"
 
-import {
-  BiconomyMetaFactoryAbi,
-  BootstrapAbi,
-  BootstrapLibAbi,
-  MockRegistryAbi,
-  NexusAccountFactoryAbi
-} from "./contracts/abi"
-
-type AnvilPayload = {
-  instance: AnvilInstance
-  deployment: Deployment
-}
 type AnvilInstance = ReturnType<typeof anvil>
 type BundlerInstance = ReturnType<typeof alto>
 type BundlerDto = {
@@ -59,7 +43,6 @@ export type AnvilDto = {
   rpcPort: number
   chain: Chain
   instance: AnvilInstance
-  deployment: Deployment
 }
 export type NetworkConfigWithBundler = AnvilDto & BundlerDto
 export type NetworkConfig = Omit<
@@ -128,10 +111,10 @@ export const toBundlerInstance = async ({
   bundlerPort: number
 }): Promise<BundlerInstance> => {
   const instance = alto({
-    entrypoints: [ENTRYPOINT_ADDRESS],
+    entrypoints: [contracts.entryPoint.address],
     rpcUrl: rpcUrl,
     executorPrivateKeys: [pKey],
-    entrypointSimulationContract: ENTRYPOINT_SIMULATIONS,
+    entrypointSimulationContract: contracts.entryPointSimulations.address,
     safeMode: false,
     port: bundlerPort
   })
@@ -141,24 +124,27 @@ export const toBundlerInstance = async ({
 
 export const toConfiguredAnvil = async ({
   rpcPort
-}: { rpcPort: number }): Promise<AnvilPayload> => {
+}: { rpcPort: number }): Promise<AnvilInstance> => {
   const instance = anvil({
     hardfork: "Paris",
-    chainId: anvilChain.id,
-    port: rpcPort
+    chainId: rpcPort,
+    port: rpcPort,
+    codeSizeLimit: 1000000000000
     // forkUrl: "https://base-sepolia.gateway.tenderly.co/2oxlNZ7oiNCUpXzrWFuIHx"
   })
   await instance.start()
-  const deployment = await deploy(rpcPort)
-  return { instance, deployment }
+  await deployContracts(rpcPort)
+  return instance
 }
 
 export const initAnvilPayload = async (): Promise<AnvilDto> => {
-  const rpcPort = await getPort()
+  const rpcPort = await getPort({
+    port: [...Array.from({ length: 10 }, (_, i) => 55000 + i)]
+  })
   const rpcUrl = `http://localhost:${rpcPort}`
   const chain = getTestChainFromPort(rpcPort)
-  const { instance, deployment } = await toConfiguredAnvil({ rpcPort })
-  return { rpcUrl, chain, instance, deployment, rpcPort }
+  const instance = await toConfiguredAnvil({ rpcPort })
+  return { rpcUrl, chain, instance, rpcPort }
 }
 
 export const initBundlerInstance = async ({
@@ -206,8 +192,6 @@ export type FundedTestClients = Awaited<ReturnType<typeof toFundedTestClients>>
 export const toFundedTestClients = async (
   network: NetworkConfigWithBundler
 ) => {
-  const factoryAddress = network.deployment.k1FactoryAddress
-  const k1ValidatorAddress = network.deployment.k1ValidatorAddress
   const chain = network.chain
   const bundlerUrl = network.bundlerUrl
 
@@ -231,17 +215,13 @@ export const toFundedTestClients = async (
   const smartAccount = await createSmartAccountClient({
     signer: walletClient,
     bundlerUrl,
-    chain,
-    factoryAddress,
-    k1ValidatorAddress
+    chain
   })
 
   const recipientSmartAccount = await createSmartAccountClient({
     signer: recipientWalletClient,
     bundlerUrl,
-    chain,
-    factoryAddress,
-    k1ValidatorAddress
+    chain
   })
 
   const smartAccountAddress = await smartAccount.getAddress()
@@ -373,189 +353,28 @@ export const getBundlerUrl = (chainId: number) =>
   `https://bundler.biconomy.io/api/v2/${chainId}/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f14`
 
 const getTestChainFromPort = (port: number): Chain =>
-  getCustomChain(`Anvil-${port}`, anvilChain.id, `http://localhost:${port}`, "")
+  getCustomChain(`Anvil-${port}`, port, `http://localhost:${port}`, "")
 
-type Deployment = {
-  bootrapAddress: Address
-  nexusAddress: Address
-  bootstrapLibAddress: Address
-  k1ValidatorAddress: Address
-  mockRegistryAddress: Address
-  k1FactoryAddress: Address
-  biconomyMetaFactoryAddress: Address
-  // Mock Contracts for testing
-  counterAddress: Address
-  stakeableAddress: Address
-  mockExecutorAddress: Address
-  mockHandlerAddress: Address
-  mockTokenAddress: Address
-  mockValidatorAddress: Address
-  mockHookAddress: Address
-}
-
-const deploy = async (rpcPort: number): Promise<Deployment> => {
+const deployContracts = async (rpcPort: number): Promise<void> => {
   const DETERMINISTIC_DEPLOYER = "0x4e59b44847b379578588920ca78fbf26c0b4956c"
   const chain = getTestChainFromPort(rpcPort)
   const account = getTestAccount()
   const testClient = toTestClient(chain, account)
 
-  let nonce = await testClient.getTransactionCount({
-    address: account.address
+  const entrypointSimulationHash = await testClient.sendTransaction({
+    to: DETERMINISTIC_DEPLOYER,
+    data: ENTRY_POINT_SIMULATIONS_CREATECALL,
+    gas: 15_000_000n
   })
+  await testClient.waitForTransactionReceipt({ hash: entrypointSimulationHash })
 
-  await Promise.all([
-    testClient.sendTransaction({
-      to: DETERMINISTIC_DEPLOYER,
-      data: ENTRY_POINT_SIMULATIONS_CREATECALL,
-      gas: 15_000_000n,
-      nonce: nonce++
-    }),
-    testClient.sendTransaction({
-      to: DETERMINISTIC_DEPLOYER,
-      data: ENTRY_POINT_V07_CREATECALL,
-      gas: 15_000_000n,
-      nonce: nonce++
-    })
-  ])
-
-  const bootstrapHash = await testClient.deployContract({
-    bytecode: deployedContracts.Bootstrap.bytecode as Hex,
-    abi: BootstrapAbi
+  const entrypointHash = await testClient.sendTransaction({
+    to: DETERMINISTIC_DEPLOYER,
+    data: ENTRY_POINT_V07_CREATECALL,
+    gas: 15_000_000n
   })
-
-  const nexusHash = await testClient.deployContract({
-    bytecode: deployedContracts.Nexus.bytecode as Hex,
-    abi: NexusAbi,
-    args: [ENTRYPOINT_ADDRESS]
-  })
-
-  const bootstrapLibHash = await testClient.deployContract({
-    bytecode: deployedContracts.BootstrapLib.bytecode as Hex,
-    abi: BootstrapLibAbi
-  })
-
-  const k1ValidatorHash = await testClient.deployContract({
-    bytecode: deployedContracts.K1Validator.bytecode as Hex,
-    abi: K1ValidatorAbi
-  })
-
-  const mockRegistryHash = await testClient.deployContract({
-    bytecode: deployedContracts.MockRegistry.bytecode as Hex,
-    abi: MockRegistryAbi
-  })
-
-  const biconomyMetaFactoryHash = await testClient.deployContract({
-    bytecode: deployedContracts.BiconomyMetaFactory.bytecode as Hex,
-    abi: BiconomyMetaFactoryAbi as Abi,
-    args: [account.address]
-  })
-
-  const receipts = await Promise.all([
-    testClient.waitForTransactionReceipt({ hash: bootstrapHash }),
-    testClient.waitForTransactionReceipt({ hash: nexusHash }),
-    testClient.waitForTransactionReceipt({ hash: bootstrapLibHash }),
-    testClient.waitForTransactionReceipt({ hash: k1ValidatorHash }),
-    testClient.waitForTransactionReceipt({ hash: mockRegistryHash }),
-    testClient.waitForTransactionReceipt({ hash: biconomyMetaFactoryHash })
-  ])
-
-  // Setup the Mock Contracts
-  await Promise.all([
-    testClient.setCode(deployedContracts.Counter as SetCodeParameters),
-    testClient.setCode(deployedContracts.Stakeable as SetCodeParameters),
-    testClient.setCode(deployedContracts.MockExecutor as SetCodeParameters),
-    testClient.setCode(deployedContracts.MockHandler as SetCodeParameters),
-    testClient.setCode(deployedContracts.MockToken as SetCodeParameters),
-    testClient.setCode(deployedContracts.MockValidator as SetCodeParameters),
-    testClient.setCode(deployedContracts.MockHook as SetCodeParameters)
-  ])
-
-  const counterAddress = deployedContracts.Counter.address as Hex
-  const stakeableAddress = deployedContracts.Stakeable.address as Hex
-  const mockExecutorAddress = deployedContracts.MockExecutor.address as Hex
-  const mockHandlerAddress = deployedContracts.MockHandler.address as Hex
-  const mockTokenAddress = deployedContracts.MockToken.address as Hex
-  const mockValidatorAddress = deployedContracts.MockValidator.address as Hex
-  const mockHookAddress = deployedContracts.MockHook.address as Hex
-
-  const [
-    bootrapAddress,
-    nexusAddress,
-    bootstrapLibAddress,
-    k1ValidatorAddress,
-    mockRegistryAddress,
-    biconomyMetaFactoryAddress
-  ] = receipts.map((receipt) => receipt.contractAddress)
-
-  const k1ValidatorAddressHash = await testClient.deployContract({
-    bytecode: deployedContracts.K1ValidatorFactory.bytecode as Hex,
-    abi: K1ValidatorFactoryAbi as Abi,
-    args: [
-      nexusAddress,
-      account.address,
-      k1ValidatorAddress,
-      bootrapAddress,
-      mockRegistryAddress
-    ]
-  })
-
-  const nexusAccountFactoryHash = await testClient.deployContract({
-    bytecode: deployedContracts.NexusAccountFactory.bytecode as Hex,
-    abi: NexusAccountFactoryAbi as Abi,
-    args: [nexusAddress, account.address]
-  })
-
-  const [k1FactoryReceipt, nexusAccountFactoryReceipt] = await Promise.all([
-    testClient.waitForTransactionReceipt({
-      hash: k1ValidatorAddressHash
-    }),
-    testClient.waitForTransactionReceipt({
-      hash: nexusAccountFactoryHash
-    })
-  ])
-
-  const k1FactoryAddress = k1FactoryReceipt.contractAddress
-  const nexusAccountFactoryAddress = nexusAccountFactoryReceipt.contractAddress
-
-  if (
-    !biconomyMetaFactoryAddress ||
-    !nexusAccountFactoryAddress ||
-    !k1FactoryAddress ||
-    !k1FactoryAddress ||
-    !bootrapAddress ||
-    !nexusAddress ||
-    !bootstrapLibAddress ||
-    !k1ValidatorAddress ||
-    !mockRegistryAddress ||
-    !counterAddress ||
-    !stakeableAddress ||
-    !mockExecutorAddress ||
-    !mockHandlerAddress ||
-    !mockTokenAddress ||
-    !mockValidatorAddress ||
-    !mockHookAddress
-  ) {
-    throw new Error("Failed to deploy contracts")
-  }
-
-  const deployment: Deployment = {
-    biconomyMetaFactoryAddress,
-    bootrapAddress,
-    nexusAddress,
-    bootstrapLibAddress,
-    k1ValidatorAddress,
-    mockRegistryAddress,
-    k1FactoryAddress,
-    counterAddress,
-    stakeableAddress,
-    mockExecutorAddress,
-    mockHandlerAddress,
-    mockTokenAddress,
-    mockValidatorAddress,
-    mockHookAddress
-  }
-
-  return deployment
+  await testClient.waitForTransactionReceipt({ hash: entrypointHash })
+  await deployProcess(rpcPort) // hh deploy from nexus in node_modules
 }
 
 export const sleep = (ms: number) =>

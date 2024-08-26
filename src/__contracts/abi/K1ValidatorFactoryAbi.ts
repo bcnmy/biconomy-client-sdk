@@ -1,9 +1,29 @@
-export const StakeableAbi = [
+export const K1ValidatorFactoryAbi = [
   {
     inputs: [
       {
         internalType: "address",
-        name: "newOwner",
+        name: "implementation",
+        type: "address"
+      },
+      {
+        internalType: "address",
+        name: "factoryOwner",
+        type: "address"
+      },
+      {
+        internalType: "address",
+        name: "k1Validator",
+        type: "address"
+      },
+      {
+        internalType: "contract Bootstrap",
+        name: "bootstrapper",
+        type: "address"
+      },
+      {
+        internalType: "contract IERC7484",
+        name: "registry",
         type: "address"
       }
     ],
@@ -13,6 +33,11 @@ export const StakeableAbi = [
   {
     inputs: [],
     name: "AlreadyInitialized",
+    type: "error"
+  },
+  {
+    inputs: [],
+    name: "InnerCallFailed",
     type: "error"
   },
   {
@@ -34,6 +59,36 @@ export const StakeableAbi = [
     inputs: [],
     name: "Unauthorized",
     type: "error"
+  },
+  {
+    inputs: [],
+    name: "ZeroAddressNotAllowed",
+    type: "error"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "account",
+        type: "address"
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "owner",
+        type: "address"
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "index",
+        type: "uint256"
+      }
+    ],
+    name: "AccountCreated",
+    type: "event"
   },
   {
     anonymous: false,
@@ -81,6 +136,58 @@ export const StakeableAbi = [
     type: "event"
   },
   {
+    inputs: [],
+    name: "ACCOUNT_IMPLEMENTATION",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "BOOTSTRAPPER",
+    outputs: [
+      {
+        internalType: "contract Bootstrap",
+        name: "",
+        type: "address"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "K1_VALIDATOR",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "REGISTRY",
+    outputs: [
+      {
+        internalType: "contract IERC7484",
+        name: "",
+        type: "address"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -115,6 +222,74 @@ export const StakeableAbi = [
     ],
     name: "completeOwnershipHandover",
     outputs: [],
+    stateMutability: "payable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "eoaOwner",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "index",
+        type: "uint256"
+      },
+      {
+        internalType: "address[]",
+        name: "attesters",
+        type: "address[]"
+      },
+      {
+        internalType: "uint8",
+        name: "threshold",
+        type: "uint8"
+      }
+    ],
+    name: "computeAccountAddress",
+    outputs: [
+      {
+        internalType: "address payable",
+        name: "expectedAddress",
+        type: "address"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "eoaOwner",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "index",
+        type: "uint256"
+      },
+      {
+        internalType: "address[]",
+        name: "attesters",
+        type: "address[]"
+      },
+      {
+        internalType: "uint8",
+        name: "threshold",
+        type: "uint8"
+      }
+    ],
+    name: "createAccount",
+    outputs: [
+      {
+        internalType: "address payable",
+        name: "",
+        type: "address"
+      }
+    ],
     stateMutability: "payable",
     type: "function"
   },

@@ -209,7 +209,6 @@ export type BuildUserOpOptions = {
   dummyPndOverride?: BytesLike
   useEmptyDeployCallData?: boolean
   useExecutor?: boolean
-  skipBundler?: boolean
 }
 
 export type NonceOptions = {
@@ -285,8 +284,6 @@ export type InitializeV2Data = {
 
 export type EstimateUserOpGasParams = {
   userOp: Partial<UserOperationStruct>
-  /** Currrently has no effect */
-  // skipBundlerGasEstimation?: boolean;
   /**  paymasterServiceData: Options specific to transactions that involve a paymaster */
   paymasterServiceData?: SponsorUserOperationDto
 }

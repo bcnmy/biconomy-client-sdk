@@ -17,7 +17,7 @@ export const NexusAbi = [
   },
   {
     inputs: [],
-    name: "CannotRemoveLastValidator",
+    name: "CanNotRemoveLastValidator",
     type: "error"
   },
   {
@@ -44,6 +44,11 @@ export const NexusAbi = [
       }
     ],
     name: "FallbackAlreadyInstalledForSelector",
+    type: "error"
+  },
+  {
+    inputs: [],
+    name: "FallbackCallTypeInvalid",
     type: "error"
   },
   {
@@ -223,6 +228,11 @@ export const NexusAbi = [
   },
   {
     inputs: [],
+    name: "NoValidatorInstalled",
+    type: "error"
+  },
+  {
+    inputs: [],
     name: "UnauthorizedCallContext",
     type: "error"
   },
@@ -273,6 +283,17 @@ export const NexusAbi = [
   {
     inputs: [],
     name: "UpgradeFailed",
+    type: "error"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "module",
+        type: "address"
+      }
+    ],
+    name: "ValidatorNotInstalled",
     type: "error"
   },
   {
@@ -397,9 +418,9 @@ export const NexusAbi = [
     inputs: [
       {
         indexed: false,
-        internalType: "uint256",
-        name: "batchExecutionindex",
-        type: "uint256"
+        internalType: "bytes",
+        name: "callData",
+        type: "bytes"
       },
       {
         indexed: false,
@@ -416,9 +437,9 @@ export const NexusAbi = [
     inputs: [
       {
         indexed: false,
-        internalType: "uint256",
-        name: "batchExecutionindex",
-        type: "uint256"
+        internalType: "bytes",
+        name: "callData",
+        type: "bytes"
       },
       {
         indexed: false,
@@ -937,7 +958,7 @@ export const NexusAbi = [
     ],
     name: "setRegistry",
     outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "payable",
     type: "function"
   },
   {

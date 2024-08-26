@@ -1,6 +1,6 @@
 import { type Address, type Hex, encodeFunctionData, parseAbi } from "viem"
+import contracts from "../../__contracts/index.js"
 import type { SmartAccountSigner } from "../../account/index.js"
-import { ENTRYPOINT_ADDRESS } from "../../contracts/index.js"
 import {
   type Module,
   type ModuleType,
@@ -15,7 +15,7 @@ export abstract class BaseModule {
   type: ModuleType
   hook?: Address
   version: ModuleVersion = "1.0.0-beta"
-  entryPoint: Address = ENTRYPOINT_ADDRESS
+  entryPoint: Address = contracts.entryPoint.address
   signer: SmartAccountSigner
 
   constructor(module: Module, signer: SmartAccountSigner) {

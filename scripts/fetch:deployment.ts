@@ -1,20 +1,16 @@
-const fs = require("node:fs")
-import yargs from "yargs"
-import { hideBin } from "yargs/helpers"
+import fs from "node:fs"
 
-const {
-  pathToDeployment = "../../nexus/deployments",
-  deploymentChainName = "localhost",
-  abisInSrc = ["K1ValidatorFactory", "Nexus", "MockExecutor", "K1Validator"]
-} = yargs(hideBin(process.argv)).argv
+const pathToDeployment = "../../nexus/deployments"
+const deploymentChainName = "anvil-55000"
+const abisInSrc = ["K1ValidatorFactory", "Nexus", "K1Validator"]
+
+const relativePath = `${__dirname}/${pathToDeployment}/${deploymentChainName}`
 
 type DeployedContract = {
   address: string
-  bytecode: string
 }
 
 export const getDeployments = async () => {
-  const relativePath = `${__dirname}/${pathToDeployment}/${deploymentChainName}`
   const files = fs.readdirSync(relativePath)
   const deployedContracts: Record<string, DeployedContract> = {}
 
@@ -29,7 +25,7 @@ export const getDeployments = async () => {
         `${relativePath}/${jsonFileNameWithExtension}`,
         "utf8"
       )
-      const { address, abi, bytecode } = JSON.parse(contents)
+      const { address, abi } = JSON.parse(contents)
 
       const isForCore = abisInSrc.includes(name)
       if (isForCore) {
@@ -45,14 +41,13 @@ export const getDeployments = async () => {
       )} as const;\n`
 
       const tsAbiPath = isForCore
-        ? `${__dirname}/../src/contracts/abi/${name}Abi.ts`
-        : `${__dirname}/../tests/contracts/abi/${name}Abi.ts`
+        ? `${__dirname}/../src/__contracts/abi/${name}Abi.ts`
+        : `${__dirname}/../tests/__contracts/abi/${name}Abi.ts`
 
       fs.writeFileSync(tsAbiPath, tsAbiContent)
 
       deployedContracts[name] = {
-        address,
-        bytecode
+        address
       }
     }
   }
@@ -68,28 +63,40 @@ export const getDeployments = async () => {
     .join("\n")}`
 
   // Write the ABIs
-  const abiIndexPath = `${__dirname}/../src/contracts/abi/index.ts`
+  const abiIndexPath = `${__dirname}/../src/__contracts/abi/index.ts`
   fs.writeFileSync(abiIndexPath, abiIndexContent)
 
-  const testAbiIndexPath = `${__dirname}/../tests/contracts/abi/index.ts`
+  const testAbiIndexPath = `${__dirname}/../tests/__contracts/abi/index.ts`
   fs.writeFileSync(testAbiIndexPath, testAbiIndexContent)
 
-  // Write deployemts to tests folder
-  const writePath = `${__dirname}/../tests/contracts/deployment.json`
-  fs.writeFileSync(writePath, JSON.stringify(deployedContracts, null, 2))
-
   // Write addresses to src folder
-  const writeAddressesPath = `${__dirname}/../src/contracts/addresses.ts`
-  const addressesContent = `import type { Hex } from "viem"\nexport const deployedContracts: Record<string, Hex> = ${JSON.stringify(
-    Object.keys(deployedContracts).reduce((acc, key) => {
-      acc[key] = deployedContracts[key].address
-      return acc
-    }, {}),
+  const writeAddressesPath = `${__dirname}/../src/__contracts/addresses.ts`
+  const writeAddressesPathTest = `${__dirname}/../tests/__contracts/addresses.ts`
+
+  const addressesContent = `import type { Hex } from "viem"\nexport const addresses: Record<string, Hex> = ${JSON.stringify(
+    Object.keys(deployedContracts)
+      .filter((key) => coreFiles.includes(key))
+      .reduce((acc, key) => {
+        acc[key] = deployedContracts[key].address
+        return acc
+      }, {}),
     null,
     2
-  )}\n`
+  )} as const;\nexport default addresses\n`
+
+  const testAddressesContent = `import type { Hex } from "viem"\nexport const addresses: Record<string, Hex> = ${JSON.stringify(
+    Object.keys(deployedContracts)
+      .filter((key) => testFiles.includes(key))
+      .reduce((acc, key) => {
+        acc[key] = deployedContracts[key].address
+        return acc
+      }, {}),
+    null,
+    2
+  )} as const;\nexport default addresses\n`
 
   fs.writeFileSync(writeAddressesPath, addressesContent)
+  fs.writeFileSync(writeAddressesPathTest, testAddressesContent)
 }
 
 // We recommend this pattern to be able to use async/await everywhere
