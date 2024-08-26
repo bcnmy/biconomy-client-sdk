@@ -653,3 +653,12 @@ export type AccountMetadata = {
 }
 
 export type WithRequired<T, K extends keyof T> = Required<Pick<T, K>>
+
+export type TypeField = {
+  name: string;
+  type: string;
+}
+
+export type TypeDefinition = {
+  [key: string]: TypeField[];
+}

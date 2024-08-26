@@ -135,3 +135,5 @@ export const MODULE_TYPE_MULTI = 0
 
 export const NEXUS_DOMAIN_NAME = "Nexus"
 export const NEXUS_DOMAIN_VERSION = "1.0.0-beta"
+
+export const PARENT_TYPEHASH = "TypedDataSign(Contents contents,bytes1 fields,string name,string version,uint256 chainId,address verifyingContract,bytes32 salt,uint256[] extensions)Contents(bytes32 stuff)";

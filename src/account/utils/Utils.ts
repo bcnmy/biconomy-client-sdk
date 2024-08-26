@@ -31,7 +31,7 @@ import {
 } from "../../account"
 import { extractChainIdFromBundlerUrl } from "../../bundler"
 import { extractChainIdFromPaymasterUrl } from "../../bundler"
-import type { AccountMetadata, NexusSmartAccountConfig, WithRequired } from "./Types.js"
+import type { AccountMetadata, NexusSmartAccountConfig, TypeDefinition, WithRequired } from "./Types.js"
 import { type ModuleType, moduleTypeIds } from "../../modules/index.js"
 import { EIP1271Abi } from "../abi/EIP1271Abi.js"
 
@@ -319,6 +319,7 @@ export const accountMetadata = async (
         "latest"
       ]
     })
+
     if (domain !== "0x") {
       const decoded = decodeFunctionResult({
         abi: [...EIP1271Abi],
@@ -343,7 +344,7 @@ export const accountMetadata = async (
 
 
 export const eip712WrapHash = async (
-  messageHash: Hex,
+  typedHash: Hex,
   domain: WithRequired<
     TypedDataDomain,
     "name" | "chainId" | "verifyingContract" | "version"
@@ -360,10 +361,16 @@ export const eip712WrapHash = async (
     }
   })
 
-  let finalMessageHash = messageHash
-
   const digest = keccak256(
-    concatHex(["0x1901", _domainSeparator, finalMessageHash])
+    concat(["0x1901", _domainSeparator, typedHash])
   )
+
   return digest
+}
+
+export function typeToString(typeDef: TypeDefinition): string[] {
+  return Object.entries(typeDef).map(([key, fields]) => {
+    const fieldStrings = fields.map(field => `${field.type} ${field.name}`).join(',');
+    return `${key}(${fieldStrings})`;
+  });
 }

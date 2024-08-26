@@ -7,6 +7,11 @@ import {
   createPublicClient,
   createWalletClient,
   parseAbi,
+  parseAbiParameters,
+  keccak256,
+  toBytes,
+  encodePacked,
+  encodeAbiParameters,
 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { baseSepolia } from "viem/chains"
@@ -214,6 +219,37 @@ export const getAccountDomainStructFields = async (
       verifyingContract,
       salt,
       ethers.keccak256(ethers.solidityPacked(["uint256[]"], [extensions]))
+    ]
+  )
+}
+
+export const getAccountDomainStructFieldsViem = async (
+  publicClient: PublicClient,
+  accountAddress: Address
+) => {
+  const accountDomainStructFields = (await publicClient.readContract({
+    address: accountAddress,
+    abi: parseAbi([
+      "function eip712Domain() public view returns (bytes1 fields, string memory name, string memory version, uint256 chainId, address verifyingContract, bytes32 salt, uint256[] memory extensions)"
+    ]),
+    functionName: "eip712Domain"
+  })) as EIP712DomainReturn
+
+  const [fields, name, version, chainId, verifyingContract, salt, extensions] =
+    accountDomainStructFields
+
+  const params = parseAbiParameters(["bytes1, bytes32, bytes32, uint256, address, bytes32, bytes32"]);
+
+  return encodeAbiParameters(
+    params,
+    [
+      fields,
+      keccak256(toBytes(name)),
+      keccak256(toBytes(version)),
+      chainId,
+      verifyingContract,
+      salt,
+      keccak256(encodePacked(["uint256[]"], [extensions]))
     ]
   )
 }

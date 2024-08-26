@@ -24,7 +24,9 @@ import {
   getTypesForEIP712Domain,
   validateTypedData,
   type TypedDataDefinition,
-  hashTypedData
+  hashTypedData,
+  toHex,
+  domainSeparator
 } from "viem"
 import {
   Bundler,
@@ -69,7 +71,8 @@ import {
 import {
   GENERIC_FALLBACK_SELECTOR,
   type MODE_MODULE_ENABLE,
-  MODE_VALIDATION
+  MODE_VALIDATION,
+  PARENT_TYPEHASH
 } from "./utils/Constants.js"
 import {
   ADDRESS_ZERO,
@@ -101,8 +104,10 @@ import {
   eip712WrapHash,
   isNullOrUndefined,
   isValidRpcUrl,
-  packUserOp
+  packUserOp,
+  typeToString
 } from "./utils/Utils.js"
+import { getAccountDomainStructFieldsViem } from "../../tests/utils.js"
 
 // type UserOperationKey = keyof UserOperationStruct
 export class NexusSmartAccount extends BaseSmartContractAccount {
@@ -2090,14 +2095,54 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       await this.getAddress()
     )
 
-    const wrappedMessageHash = await eip712WrapHash(typedHash, {
+    const accountDomainStructFields = await getAccountDomainStructFieldsViem(this.publicClient, await this.getAddress());
+
+    const parentStructHash = keccak256(
+      encodePacked(["bytes", "bytes"], [
+        encodeAbiParameters(
+          parseAbiParameters(["bytes32, bytes32"]),
+          [keccak256(toBytes(PARENT_TYPEHASH)), typedHash]
+        ),
+        accountDomainStructFields
+      ])
+    );
+
+    const wrappedTypedHash = await eip712WrapHash(parentStructHash, {
       name,
       chainId: Number(chainId),
       version,
       verifyingContract: await this.getAddress()
     })
 
-    return await this.signMessage(wrappedMessageHash)
+    let signature = await this.activeValidationModule.signMessage(toBytes(wrappedTypedHash))
+
+    const contentsType = toBytes(typeToString(types)[1]);
+    const _domainSeparator = domainSeparator({
+      domain: {
+        name,
+        version,
+        chainId: this.chainId,
+        verifyingContract: await this.getAddress()
+      }
+    })
+    const signatureData = concatHex([
+      signature,
+      _domainSeparator,
+      typedHash,
+      toHex(contentsType),
+      toHex(contentsType.length, { size: 2 })
+    ]);
+
+    signature = encodePacked(
+      ["address", "bytes"],
+      [
+        this.activeValidationModule.getAddress() ??
+        this.defaultValidationModule.getAddress(),
+        signatureData
+      ]
+    )
+
+    return signature
   }
 
   async getIsValidSignatureData(

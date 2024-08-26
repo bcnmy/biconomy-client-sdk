@@ -14,8 +14,10 @@ import {
   parseAbi,
   parseAbiParameters,
   toBytes,
-  zeroAddress,
   hashTypedData,
+  encodePacked,
+  concatHex,
+  toHex,
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { bsc, baseSepolia } from "viem/chains"
@@ -37,7 +39,7 @@ import { K1_VALIDATOR, createK1ValidatorModule } from "../../src/modules"
 import {
   checkBalance,
   getAccountDomainStructFields,
-  getBundlerUrl,
+  getAccountDomainStructFieldsViem,
   getConfig
 } from "../utils"
 import { ethers } from "ethers"
@@ -733,7 +735,7 @@ describe("Account:Read", () => {
   )
 
   test.concurrent(
-    "should test isValidSignature EIP712Sign to be valid",
+    "should test isValidSignature EIP712Sign to be valid with ethers",
     async () => {
       if (await smartAccount.isAccountDeployed()) {
         const PARENT_TYPEHASH = "TypedDataSign(Contents contents,bytes1 fields,string name,string version,uint256 chainId,address verifyingContract,bytes32 salt,uint256[] extensions)Contents(bytes32 stuff)";
@@ -801,63 +803,165 @@ describe("Account:Read", () => {
           args: [contentsHash, finalSignature]
         })
 
-        // const viemResponse = await publicClient.verifyMessage({
-        //   address: smartAccountAddress,
-        //   message: contentsHash,
-        //   signature: finalSignature as Hex
-        // })
+        expect(contractResponse).toBe(eip1271MagicValue)
+      }
+    }
+  )
+
+  test.concurrent(
+    "should test isValidSignature EIP712Sign to be valid with viem",
+    async () => {
+      if (await smartAccount.isAccountDeployed()) {
+        const PARENT_TYPEHASH = "TypedDataSign(Contents contents,bytes1 fields,string name,string version,uint256 chainId,address verifyingContract,bytes32 salt,uint256[] extensions)Contents(bytes32 stuff)";
+
+        const domain = {
+          chainId: baseSepolia.id,
+          name: "Contents",
+          verifyingContract: smartAccountAddress
+        }
+
+        const primaryType = "Contents"
+        const types = {
+          Contents: [
+            {
+              name: "contents",
+              type: "bytes32"
+            }
+          ]
+        }
+        const message = {
+          contents: keccak256(toBytes("test", { size: 32 }))
+        }
+
+        const typedHash = hashTypedData({
+          domain,
+          primaryType,
+          types,
+          message
+        })
+
+        const domainSeparator = (await publicClient.readContract({
+          address: await smartAccount.getAddress(),
+          abi: parseAbi([
+            "function DOMAIN_SEPARATOR() external view returns (bytes32)"
+          ]),
+          functionName: "DOMAIN_SEPARATOR"
+        }))
+
+        const typedHashHashed = keccak256(
+          concat([
+            '0x1901',
+            domainSeparator,
+            typedHash
+          ])
+        );
+
+        const accountDomainStructFields = await getAccountDomainStructFieldsViem(publicClient, await smartAccount.getAddress());
+
+        const parentStructHash = keccak256(
+          encodePacked(["bytes", "bytes"], [
+            encodeAbiParameters(
+              parseAbiParameters(["bytes32, bytes32"]),
+              [keccak256(toBytes(PARENT_TYPEHASH)), typedHash]
+            ),
+            accountDomainStructFields
+          ])
+        );
+
+        const dataToSign = keccak256(
+          concat([
+            '0x1901',
+            domainSeparator,
+            parentStructHash
+          ])
+        );
+
+        const signature = await walletClient.signMessage({ message: { raw: toBytes(dataToSign) } });
+
+        const contentsType = toBytes("Contents(bytes32 stuff)");
+
+        const signatureData = concatHex([
+          signature,
+          domainSeparator,
+          typedHash,
+          toHex(contentsType),
+          toHex(contentsType.length, { size: 2 })
+        ]);
+
+        const finalSignature = encodePacked(["address", "bytes"], [
+          K1_VALIDATOR,
+          signatureData
+        ]);
+
+        const contractResponse = await publicClient.readContract({
+          address: await smartAccount.getAddress(),
+          abi: NexusAccountAbi,
+          functionName: "isValidSignature",
+          args: [typedHashHashed, finalSignature]
+        })
 
         expect(contractResponse).toBe(eip1271MagicValue)
-        // expect(viemResponse).toBe(true)
       }
     }
   )
 
   test("sign using signTypedData", async () => {
     const domain = {
-      chainId: chain.id,
-      name: "Test",
-      verifyingContract: zeroAddress
+      chainId: baseSepolia.id,
+      name: "Neuxs",
+      verifyingContract: smartAccountAddress
     }
-    const primaryType = "Test"
+
+    const primaryType = "Contents"
     const types = {
-      Test: [
+      Contents: [
         {
-          name: "test",
-          type: "string"
+          name: "stuff",
+          type: "bytes32"
         }
       ]
     }
     const message = {
-      test: "hello world"
+      stuff: keccak256(toBytes("test", { size: 32 }))
     }
-    const typedHash = hashTypedData({
+
+    let typedHash = hashTypedData({
       domain,
       primaryType,
       types,
       message
     })
 
-    const response = await smartAccount.signTypedData({
+    const domainSeparator = (await publicClient.readContract({
+      address: await smartAccount.getAddress(),
+      abi: parseAbi([
+        "function DOMAIN_SEPARATOR() external view returns (bytes32)"
+      ]),
+      functionName: "DOMAIN_SEPARATOR"
+    }))
+
+    const typedHashHashed = keccak256(
+      concat([
+        '0x1901',
+        domainSeparator,
+        typedHash
+      ])
+    );
+
+    const finalSignature = await smartAccount.signTypedData({
       domain,
       primaryType,
       types,
       message
     })
-
-    // const ethersSigner = new Wallet(privateKey, new JsonRpcProvider(chain.rpcUrls.default.http[0]))
-    // const sig = await ethersSigner.signMessage(ethers.getBytes("0x4c9c09d9309ecfd6ee71b194106607f610f209051ecae294f0e6837c3cbbdf72"));
-    // const finalSig = ethers.concat([K1_VALIDATOR, sig]);
-    // console.log(finalSig, "final sig from ethers");
 
     const nexusResponse = await publicClient.readContract({
       address: await smartAccount.getAddress(),
       abi: NexusAccountAbi,
       functionName: "isValidSignature",
-      args: [typedHash, response]
+      args: [typedHashHashed, finalSignature]
     })
 
-    console.log(nexusResponse, "nexusResponse");
     expect(nexusResponse).toEqual("0x1626ba7e")
   })
 
