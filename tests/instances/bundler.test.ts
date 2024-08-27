@@ -7,6 +7,7 @@ import {
   createWalletClient
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import contracts from "../../src/__contracts"
 import {
   type NexusSmartAccount,
   type Transaction,
@@ -24,11 +25,14 @@ describe("bundler", () => {
   // Nexus Config
   let chain: Chain
   let bundlerUrl: string
+  let factoryAddress: Hex
+  let k1ValidatorAddress: Hex
   let walletClient: WalletClient
 
   // Test utils
   let testClient: MasterClient
   let account: Account
+  let recipientAccount: Account
   let smartAccount: NexusSmartAccount
   let smartAccountAddress: Hex
 
@@ -39,6 +43,7 @@ describe("bundler", () => {
     bundlerUrl = network.bundlerUrl
 
     account = getTestAccount(0)
+    recipientAccount = getTestAccount(3)
 
     walletClient = createWalletClient({
       account,
@@ -55,9 +60,18 @@ describe("bundler", () => {
     })
 
     smartAccountAddress = await smartAccount.getAddress()
+    // await fundAndDeploy(testClient, smartAccount)
   })
   afterAll(async () => {
     await killNetwork([network.rpcPort, network.bundlerPort])
+  })
+
+  test("byteCodes", async () => {
+    const byteCodes = await Promise.all([
+      testClient.getBytecode({ address: contracts.k1ValidatorFactory.address }),
+      testClient.getBytecode({ address: contracts.k1Validator.address })
+    ])
+    expect(byteCodes.every(Boolean)).toBe(true)
   })
 
   test("topUp", async () => {
@@ -81,7 +95,7 @@ describe("bundler", () => {
     ])
   })
 
-  test("should send eth", async () => {
+  test("send eth", async () => {
     const tx: Transaction = {
       to: account.address,
       value: 1n
@@ -89,7 +103,7 @@ describe("bundler", () => {
 
     const { wait } = await smartAccount.sendTransaction(tx)
 
-    const { success } = await wait()
+    const { success, receipt } = await wait()
 
     expect(success).toBe(true)
   })

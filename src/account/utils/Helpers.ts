@@ -14,17 +14,3 @@ export const isDebugging = (): boolean => {
     return false
   }
 }
-
-export const pollFunction = async (
-  fn: () => Promise<boolean>,
-  interval: number,
-  timeout: number
-): Promise<boolean> => {
-  const start = Date.now()
-  let result = await fn()
-  while (!result && Date.now() - start < timeout) {
-    await new Promise((resolve) => setTimeout(resolve, interval))
-    result = await fn()
-  }
-  return result
-}

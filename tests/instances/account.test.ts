@@ -13,13 +13,7 @@ import {
   type Transaction,
   createSmartAccountClient
 } from "../../src/account"
-import {
-  getTestAccount,
-  killNetwork,
-  toTestClient,
-  topUp,
-  writeToFile
-} from "../test.utils"
+import { getTestAccount, killNetwork, toTestClient, topUp } from "../test.utils"
 import type { MasterClient, NetworkConfig } from "../test.utils"
 import { type TestFileNetworkType, toNetwork } from "../testSetup"
 
@@ -77,8 +71,6 @@ describe("account", () => {
       testClient.getBytecode({ address: contracts.k1ValidatorFactory.address }),
       testClient.getBytecode({ address: contracts.k1Validator.address })
     ])
-    const [k1ValidatorFactory, k1Validator] = byteCodes
-    writeToFile("byteCodes.json", { k1ValidatorFactory, k1Validator })
     expect(byteCodes.every(Boolean)).toBe(true)
   })
 

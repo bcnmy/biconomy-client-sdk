@@ -6,7 +6,7 @@
 > - Tests now must be run with node version >= v22
 
 ### Network Agnostic Tests
-- Tests are executed against locally deployed ephemeral Anvil chains (chain ID: 31337) with relevant contracts pre-deployed for each test.
+- Tests are executed against locally deployed ephemeral Anvil chains (each with a different ID) with relevant contracts pre-deployed for each test.
 - Bundlers for testing are instantiated using [prool](https://github.com/wevm/prool), currently utilizing alto instances. We plan to switch to Biconomy's bundlers when they become available via `prool`.
 
 ### Deployment Configuration
@@ -39,13 +39,14 @@ To prevent tests from conflicting with one another, networks can be scoped at th
 
 Example usage:
 ```typescript
-scopedTest("should be used in the following way", async({ config: { bundlerUrl, chain, deployment, fundedClients }}) => {
+scopedTest("should be used in the following way", async({ config: { bundlerUrl, chain, fundedClients }}) => {
     expect(await fundedClients.smartAccount.getAccountAddress()).toBeTruthy();
 });
 ```
 
 > **Note:** 
 > Please avoid using multiple nested describe() blocks in a single test file, as it is unnecessary and can lead to confusion regarding network scope.
+> Using *many* test files is preferable, as describe blocks run in parallel.
 
 ## Testing Custom/New Chains
 - There is one area where SDK tests can be run against a remote testnet: the playground.
