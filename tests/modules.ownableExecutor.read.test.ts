@@ -108,7 +108,7 @@ describe("modules.ownable.executor.read", () => {
       smartAccount,
       OWNABLE_EXECUTOR
     )
-    const owners = await ownableExecutorModule.getOwners()
+    const owners = await ownableExecutorModule.getOwners(OWNABLE_EXECUTOR)
     expect(owners).toStrictEqual(ownableExecutorModule.owners)
   })
 })
