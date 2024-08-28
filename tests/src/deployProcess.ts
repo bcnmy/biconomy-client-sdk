@@ -6,8 +6,13 @@ export const deployProcess = async (rpcPort: number) => {
   })`yarn install`
   await execa({
     cwd: "./node_modules/nexus"
-  })`rm -rf ./deployments`
+  })`rm -rf ./deployments/anvil-${rpcPort}`
   return await execa({
-    cwd: "./node_modules/nexus"
+    cwd: "./node_modules/nexus",
+    env: {
+      HH_RPC_URL: `http://localhost:${rpcPort}`,
+      HH_CHAIN_NAME: `anvil-${rpcPort}`,
+      HH_CHAIN_ID: rpcPort.toString()
+    }
   })`yarn deploy:hardhat --network anvil-${rpcPort}`
 }

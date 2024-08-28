@@ -42,7 +42,7 @@ export const getDeployments = async () => {
 
       const tsAbiPath = isForCore
         ? `${__dirname}/../src/__contracts/abi/${name}Abi.ts`
-        : `${__dirname}/../tests/__contracts/abi/${name}Abi.ts`
+        : `${__dirname}/../tests/src/__contracts/abi/${name}Abi.ts`
 
       fs.writeFileSync(tsAbiPath, tsAbiContent)
 
@@ -66,14 +66,15 @@ export const getDeployments = async () => {
   const abiIndexPath = `${__dirname}/../src/__contracts/abi/index.ts`
   fs.writeFileSync(abiIndexPath, abiIndexContent)
 
-  const testAbiIndexPath = `${__dirname}/../tests/__contracts/abi/index.ts`
+  const testAbiIndexPath = `${__dirname}/../tests/src/__contracts/abi/index.ts`
   fs.writeFileSync(testAbiIndexPath, testAbiIndexContent)
 
   // Write addresses to src folder
   const writeAddressesPath = `${__dirname}/../src/__contracts/addresses.ts`
-  const writeAddressesPathTest = `${__dirname}/../tests/__contracts/addresses.ts`
+  const writeAddressesPathTest = `${__dirname}/../tests/src/__contracts/mockAddresses.ts`
 
-  const addressesContent = `import type { Hex } from "viem"\nexport const addresses: Record<string, Hex> = ${JSON.stringify(
+  const addressesContent = `// The contents of this folder is auto-generated. Please do not edit as your changes are likely to be overwritten\n
+  import type { Hex } from "viem"\nexport const addresses: Record<string, Hex> = ${JSON.stringify(
     Object.keys(deployedContracts)
       .filter((key) => coreFiles.includes(key))
       .reduce((acc, key) => {
@@ -84,7 +85,8 @@ export const getDeployments = async () => {
     2
   )} as const;\nexport default addresses\n`
 
-  const testAddressesContent = `import type { Hex } from "viem"\nexport const addresses: Record<string, Hex> = ${JSON.stringify(
+  const testAddressesContent = `// The contents of this folder is auto-generated. Please do not edit as your changes are likely to be overwritten\n
+  import type { Hex } from "viem"\nexport const mockAddresses: Record<string, Hex> = ${JSON.stringify(
     Object.keys(deployedContracts)
       .filter((key) => testFiles.includes(key))
       .reduce((acc, key) => {
@@ -93,7 +95,7 @@ export const getDeployments = async () => {
       }, {}),
     null,
     2
-  )} as const;\nexport default addresses\n`
+  )} as const;\nexport default mockAddresses\n`
 
   fs.writeFileSync(writeAddressesPath, addressesContent)
   fs.writeFileSync(writeAddressesPathTest, testAddressesContent)

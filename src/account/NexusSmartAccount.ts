@@ -54,7 +54,7 @@ import {
 } from "../paymaster/index.js"
 import {
   BaseSmartContractAccount,
-  type DeploymentState
+  DeploymentState
 } from "./BaseSmartContractAccount.js"
 import {
   Logger,
@@ -168,16 +168,6 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     this.activeValidationModule =
       // biome-ignore lint/style/noNonNullAssertion: <explanation>
       nexusSmartAccountConfig.activeValidationModule!
-
-    // this.publicClient = createPublicClient({
-    //   chain,
-    //   transport: http(rpcClient)
-    // })
-
-    // this.scanForUpgradedAccountsFromV1 =
-    // nexusSmartAccountConfig.scanForUpgradedAccountsFromV1 ?? false
-    // this.maxIndexForScan = nexusSmartAccountConfig.maxIndexForScan ?? 10n
-    // this.getAddress()
   }
 
   /**
@@ -280,7 +270,9 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       entryPointAddress: defaultedEntryPointAddress
     }
 
-    return new NexusSmartAccount(config)
+    const smartAccount = new NexusSmartAccount(config)
+    await smartAccount.getDeploymentState()
+    return smartAccount
   }
 
   override async getAddress(params?: CounterFactualAddressParam): Promise<Hex> {
@@ -323,13 +315,13 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    *
    * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl, paymasterUrl }); // Retrieve bundler/paymaster url from dashboard
    * const encodedCall = encodeFunctionData({
-   *   abi: parseAbi(["function safeMint(address to) public"]),
-   *   functionName: "safeMint",
+   *   abi: CounterAbi,
+   *   functionName: "incrementNumber",
    *   args: ["0x..."],
    * });
    *
    * const tx = {
-   *   to: nftAddress,
+   *   to: mockAddresses.Counter,
    *   data: encodedCall
    * }
    *
@@ -591,14 +583,17 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   async _getAccountContract(): Promise<
     GetContractReturnType<typeof NexusAbi, PublicClient>
   > {
-    if (this.accountContract == null) {
-      this.accountContract = getContract({
-        address: await this.getAddress(),
-        abi: NexusAbi,
-        client: this.publicClient as PublicClient
-      })
+    if (await this.isAccountDeployed()) {
+      if (!this.accountContract) {
+        this.accountContract = getContract({
+          address: await this.getAddress(),
+          abi: NexusAbi,
+          client: this.publicClient as PublicClient
+        })
+      }
+      return this.accountContract
     }
-    return this.accountContract
+    throw new Error(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED)
   }
 
   isActiveValidationModuleDefined(): boolean {
@@ -674,10 +669,6 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       this.defaultValidationModule = validationModule
     }
     return this
-  }
-
-  setDeploymentState(deploymentState: DeploymentState) {
-    this.deploymentState = deploymentState
   }
 
   // async getV1AccountsUpgradedToV2(
@@ -899,13 +890,13 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    *
    * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dashboard
    * const encodedCall = encodeFunctionData({
-   *   abi: parseAbi(["function safeMint(address to) public"]),
-   *   functionName: "safeMint",
+   *   abi: CounterAbi,
+   *   functionName: "incrementNumber",
    *   args: ["0x..."],
    * });
    *
    * const transaction = {
-   *   to: nftAddress,
+   *   to: mockAddresses.Counter,
    *   data: encodedCall
    * }
    *
@@ -1028,13 +1019,13 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    *
    * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dashboard
    * const encodedCall = encodeFunctionData({
-   *   abi: parseAbi(["function safeMint(address to) public"]),
-   *   functionName: "safeMint",
+   *   abi: CounterAbi,
+   *   functionName: "incrementNumber",
    *   args: ["0x..."],
    * });
    *
    * const transaction = {
-   *   to: nftAddress,
+   *   to: mockAddresses.Counter,
    *   data: encodedCall
    * }
    *
@@ -1273,13 +1264,13 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    *
    * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dashboard
    * const encodedCall = encodeFunctionData({
-   *   abi: parseAbi(["function safeMint(address to) public"]),
-   *   functionName: "safeMint",
+   *   abi: CounterAbi,
+   *   functionName: "incrementNumber",
    *   args: ["0x..."],
    * });
    *
    * const transaction = {
-   *   to: nftAddress,
+   *   to: mockAddresses.Counter,
    *   data: encodedCall
    * }
    *
@@ -1302,13 +1293,13 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    *
    * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dashboard
    * const encodedCall = encodeFunctionData({
-   *   abi: parseAbi(["function safeMint(address to) public"]),
-   *   functionName: "safeMint",
+   *   abi: CounterAbi,
+   *   functionName: "incrementNumber",
    *   args: ["0x..."],
    * });
    *
    * const transaction = {
-   *   to: nftAddress,
+   *   to: mockAddresses.Counter,
    *   data: encodedCall
    * }
    *
@@ -1331,7 +1322,17 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
         : [manyOrOneTransactions],
       buildUseropDto
     )
-    return this.sendUserOp(userOp)
+    const payload = await this.sendUserOp(userOp)
+    this.setDeploymentState(payload) // Don't wait
+    return payload
+  }
+
+  private async setDeploymentState({ wait }: UserOpResponse) {
+    if (this.deploymentState === DeploymentState.DEPLOYED) return
+    const { success } = await wait()
+    if (success) {
+      this.deploymentState = DeploymentState.DEPLOYED
+    }
   }
 
   async sendTransactionWithExecutor(
@@ -1373,13 +1374,13 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    *
    * const smartAccount = await createSmartAccountClient({ signer, bundlerUrl }); // Retrieve bundler url from dashboard
    * const encodedCall = encodeFunctionData({
-   *   abi: parseAbi(["function safeMint(address to) public"]),
-   *   functionName: "safeMint",
+   *   abi: CounterAbi,
+   *   functionName: "incrementNumber",
    *   args: ["0x..."],
    * });
    *
    * const transaction = {
-   *   to: nftAddress,
+   *   to: mockAddresses.Counter,
    *   data: encodedCall
    * }
    *
@@ -1413,10 +1414,11 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       sender: (await this.getAddress()) as Hex,
       nonce: nonceFromFetch,
       factoryData,
-      factory: (await this.isAccountDeployed())
-        ? undefined
-        : this.factoryAddress,
       callData
+    }
+
+    if (!(await this.isAccountDeployed())) {
+      userOp.factory = this.factoryAddress
     }
 
     userOp.signature = dummySignature
@@ -1722,11 +1724,11 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   async isModuleInstalled(module: Module) {
     if (await this.isAccountDeployed()) {
       const accountContract = await this._getAccountContract()
-      return (await accountContract.read.isModuleInstalled([
+      return await accountContract.read.isModuleInstalled([
         BigInt(moduleTypeIds[module.type]),
         module.moduleAddress,
         module.data ?? "0x"
-      ])) as boolean
+      ])
     }
     Logger.warn("A module cannot be installed on an undeployed account")
     return false
@@ -2006,7 +2008,10 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     const executors = await this.getInstalledExecutors()
     const hook = await this.getActiveHook()
     const fallbackHandler = await this.getFallbackBySelector()
+
     return [...validators, ...executors, hook, fallbackHandler]
+      .flat()
+      .filter(Boolean)
   }
 
   /**

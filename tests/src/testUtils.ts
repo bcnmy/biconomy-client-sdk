@@ -21,15 +21,19 @@ import {
   type EIP712DomainReturn,
   type NexusSmartAccount,
   createSmartAccountClient
-} from "../src"
-import contracts from "../src/__contracts"
-import { getCustomChain } from "../src/account/utils"
-import { Logger } from "../src/account/utils/Logger"
+} from "../../src"
+import contracts from "../../src/__contracts"
+import { getCustomChain } from "../../src/account/utils"
+import { Logger } from "../../src/account/utils/Logger"
 import {
   ENTRY_POINT_SIMULATIONS_CREATECALL,
-  ENTRY_POINT_V07_CREATECALL
-} from "./create.config"
-import { deployProcess } from "./deploy.nexus"
+  ENTRY_POINT_V07_CREATECALL,
+  OWNABLE_EXECUTOR,
+  OWNABLE_EXECUTOR_BYTECODE,
+  OWNABLE_VALIDATOR,
+  OWNABLE_VALIDATOR_BYTECODE
+} from "./callDatas"
+import { deployProcess } from "./deployProcess"
 
 type AnvilInstance = ReturnType<typeof anvil>
 type BundlerInstance = ReturnType<typeof alto>
@@ -134,6 +138,7 @@ export const toConfiguredAnvil = async ({
   })
   await instance.start()
   await deployContracts(rpcPort)
+  await deployProcess(rpcPort) // hh deploy from nexus in node_modules
   return instance
 }
 
@@ -366,15 +371,27 @@ const deployContracts = async (rpcPort: number): Promise<void> => {
     data: ENTRY_POINT_SIMULATIONS_CREATECALL,
     gas: 15_000_000n
   })
-  await testClient.waitForTransactionReceipt({ hash: entrypointSimulationHash })
 
   const entrypointHash = await testClient.sendTransaction({
     to: DETERMINISTIC_DEPLOYER,
     data: ENTRY_POINT_V07_CREATECALL,
     gas: 15_000_000n
   })
-  await testClient.waitForTransactionReceipt({ hash: entrypointHash })
-  await deployProcess(rpcPort) // hh deploy from nexus in node_modules
+
+  await Promise.all([
+    testClient.waitForTransactionReceipt({ hash: entrypointSimulationHash }),
+    testClient.waitForTransactionReceipt({ hash: entrypointHash })
+  ])
+
+  await testClient.setCode({
+    bytecode: OWNABLE_EXECUTOR_BYTECODE,
+    address: OWNABLE_EXECUTOR
+  })
+
+  await testClient.setCode({
+    bytecode: OWNABLE_VALIDATOR_BYTECODE,
+    address: OWNABLE_VALIDATOR
+  })
 }
 
 export const sleep = (ms: number) =>

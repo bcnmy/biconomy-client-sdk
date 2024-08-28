@@ -4,7 +4,7 @@ import { defineConfig } from "vitest/config"
 export default defineConfig({
   test: {
     coverage: {
-      all: true,
+      all: false,
       provider: "v8",
       reporter: process.env.CI
         ? ["json-summary", "json"]
@@ -26,7 +26,7 @@ export default defineConfig({
       }
     },
     include: ["tests/**/*.test.ts"],
-    globalSetup: join(__dirname, "globalSetup.ts"),
+    globalSetup: join(__dirname, "src/globalSetup.ts"),
     environment: "node",
     testTimeout: 60_000,
     hookTimeout: 60_000

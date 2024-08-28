@@ -16,9 +16,9 @@ import {
   createSmartAccountClient,
   getChain,
   getCustomChain
-} from "../../src/account"
-import { createK1ValidatorModule } from "../../src/modules"
-import { getBundlerUrl } from "../test.utils"
+} from "../src/account"
+import { createK1ValidatorModule } from "../src/modules"
+import { getBundlerUrl } from "./src/testUtils"
 config()
 
 const privateKey = process.env.E2E_PRIVATE_KEY_ONE

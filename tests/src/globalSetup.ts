@@ -2,7 +2,7 @@ import {
   type NetworkConfig,
   type NetworkConfigWithBundler,
   initNetwork
-} from "./test.utils"
+} from "./testUtils"
 
 let globalConfig: NetworkConfigWithBundler
 export const setup = async ({ provide }) => {

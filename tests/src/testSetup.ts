@@ -4,7 +4,7 @@ import {
   type NetworkConfigWithBundler,
   initNetwork,
   toFundedTestClients
-} from "./test.utils"
+} from "./testUtils"
 
 export type NetworkConfigWithTestClients = NetworkConfigWithBundler & {
   fundedTestClients: FundedTestClients

@@ -11,48 +11,51 @@ import { SENTINEL_ADDRESS } from "../../account"
 import type { NexusSmartAccount } from "../../account/NexusSmartAccount"
 import type { UserOpReceipt } from "../../bundler"
 import { BaseExecutionModule } from "../base/BaseExecutionModule"
-import { OWNABLE_EXECUTOR } from "../utils/Constants"
 import type { Execution, Module } from "../utils/Types"
 
 export class OwnableExecutorModule extends BaseExecutionModule {
   smartAccount!: NexusSmartAccount
   public owners: Address[]
+  private address: Address
 
   public constructor(
     module: Module,
     smartAccount: NexusSmartAccount,
-    owners: Address[]
+    owners: Address[],
+    address: Address
   ) {
     super(module, smartAccount.getSigner())
     this.smartAccount = smartAccount
     this.owners = owners
     this.data = module.data ?? "0x"
+    this.address = address
   }
 
   public static async create(
     smartAccount: NexusSmartAccount,
+    address: Address,
     data?: Hex
   ): Promise<OwnableExecutorModule> {
     const module: Module = {
-      moduleAddress: OWNABLE_EXECUTOR,
+      moduleAddress: address,
       type: "executor",
       data: data ?? "0x",
       additionalContext: "0x"
     }
     const owners = await smartAccount.publicClient.readContract({
-      address: OWNABLE_EXECUTOR,
+      address,
       abi: parseAbi([
         "function getOwners(address account) external view returns (address[])"
       ]),
       functionName: "getOwners",
       args: [await smartAccount.getAddress()]
     })
-    const instance = new OwnableExecutorModule(
+    return new OwnableExecutorModule(
       module,
       smartAccount,
-      owners as Address[]
+      owners as Address[],
+      address
     )
-    return instance
   }
 
   public async execute(
@@ -140,7 +143,7 @@ export class OwnableExecutorModule extends BaseExecutionModule {
   }
 
   public async removeOwner(ownerToRemove: Address): Promise<UserOpReceipt> {
-    const owners = await this.getOwners()
+    const owners = await this.getOwners(this.address)
     let prevOwner: Address
 
     const currentOwnerIndex = owners.findIndex(
@@ -175,9 +178,12 @@ export class OwnableExecutorModule extends BaseExecutionModule {
     return receipt
   }
 
-  public async getOwners(accountAddress?: Address): Promise<Address[]> {
+  public async getOwners(
+    moduleAddress: Address,
+    accountAddress?: Address
+  ): Promise<Address[]> {
     const owners = await this.smartAccount.publicClient.readContract({
-      address: OWNABLE_EXECUTOR,
+      address: moduleAddress,
       abi: parseAbi([
         "function getOwners(address account) external view returns (address[])"
       ]),

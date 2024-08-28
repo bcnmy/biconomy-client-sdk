@@ -1,4 +1,4 @@
-import type { Address } from "viem"
+import addresses from "../../__contracts/addresses.js"
 import type { SmartAccountSigner } from "../../account/index.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
 import type { Module } from "../utils/Types.js"
@@ -10,7 +10,7 @@ export class K1ValidatorModule extends BaseValidationModule {
 
   public static async create(
     signer: SmartAccountSigner,
-    k1ValidatorAddress: Address
+    k1ValidatorAddress = addresses.K1Validator
   ): Promise<K1ValidatorModule> {
     const module: Module = {
       moduleAddress: k1ValidatorAddress,

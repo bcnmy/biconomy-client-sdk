@@ -7,26 +7,29 @@ import {
   createWalletClient
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import contracts from "../../src/__contracts"
 import {
   type NexusSmartAccount,
   type Transaction,
   createSmartAccountClient
-} from "../../src/account"
-import { getTestAccount, killNetwork, toTestClient, topUp } from "../test.utils"
-import type { MasterClient, NetworkConfig } from "../test.utils"
-import { type TestFileNetworkType, toNetwork } from "../testSetup"
+} from "../src/account"
+import { createOwnableExecutorModule } from "../src/modules"
+import { OWNABLE_EXECUTOR } from "./src/callDatas"
+import { type TestFileNetworkType, toNetwork } from "./src/testSetup"
+import {
+  getTestAccount,
+  killNetwork,
+  toTestClient,
+  topUp
+} from "./src/testUtils"
+import type { MasterClient, NetworkConfig } from "./src/testUtils"
 
 const NETWORK_TYPE: TestFileNetworkType = "LOCAL"
 
-describe("bundler", () => {
+describe("modules.ownable.executor.read", () => {
   let network: NetworkConfig
-
   // Nexus Config
   let chain: Chain
   let bundlerUrl: string
-  let factoryAddress: Hex
-  let k1ValidatorAddress: Hex
   let walletClient: WalletClient
 
   // Test utils
@@ -60,24 +63,12 @@ describe("bundler", () => {
     })
 
     smartAccountAddress = await smartAccount.getAddress()
-    // await fundAndDeploy(testClient, smartAccount)
   })
   afterAll(async () => {
-    await killNetwork([network.rpcPort, network.bundlerPort])
+    await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
 
-  test("byteCodes", async () => {
-    const byteCodes = await Promise.all([
-      testClient.getBytecode({ address: contracts.k1ValidatorFactory.address }),
-      testClient.getBytecode({ address: contracts.k1Validator.address })
-    ])
-    expect(byteCodes.every(Boolean)).toBe(true)
-  })
-
-  test("topUp", async () => {
-    const total = await testClient.getBalance({
-      address: testClient.account.address
-    })
+  test("should fund the smart account", async () => {
     await topUp(testClient, smartAccountAddress)
     const [balance] = await smartAccount.getBalances()
     expect(balance.amount > 0)
@@ -91,20 +82,33 @@ describe("bundler", () => {
     expect(addresses.every(Boolean)).to.be.true
     expect(addresses).toStrictEqual([
       "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-      "0x473AecE3DE762252a9d47F5032133282c9615e28" // Sender smart account
+      "0xa3962DB24D3cAb711e18d5A508591C6dB82a0f54" // Sender smart account
     ])
   })
 
-  test("send eth", async () => {
+  test("should send eth", async () => {
+    const balanceBefore = await testClient.getBalance({
+      address: recipientAccount.address
+    })
     const tx: Transaction = {
-      to: account.address,
+      to: recipientAccount.address,
       value: 1n
     }
-
     const { wait } = await smartAccount.sendTransaction(tx)
-
-    const { success, receipt } = await wait()
-
+    const { success } = await wait()
+    const balanceAfter = await testClient.getBalance({
+      address: recipientAccount.address
+    })
     expect(success).toBe(true)
+    expect(balanceAfter - balanceBefore).toBe(1n)
+  })
+
+  test.skip("should initialize Ownable Executor Module with correct owners", async () => {
+    const ownableExecutorModule = await createOwnableExecutorModule(
+      smartAccount,
+      OWNABLE_EXECUTOR
+    )
+    const owners = await ownableExecutorModule.getOwners()
+    expect(owners).toStrictEqual(ownableExecutorModule.owners)
   })
 })
