@@ -1,13 +1,16 @@
-import fs from "node:fs"
-import getPort from "get-port"
+import { config } from "dotenv"
+import getPort, { Options } from "get-port"
 import { alto, anvil } from "prool/instances"
 import {
   http,
-  type Abi,
   type Account,
   type Address,
   type Chain,
   type Hex,
+  type PrivateKeyAccount,
+  type PublicClient,
+  type WalletClient,
+  createPublicClient,
   createTestClient,
   createWalletClient,
   encodeAbiParameters,
@@ -16,15 +19,16 @@ import {
   publicActions,
   walletActions
 } from "viem"
-import { mnemonicToAccount } from "viem/accounts"
+import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts"
 import {
   type EIP712DomainReturn,
   type NexusSmartAccount,
   createSmartAccountClient
 } from "../../src"
 import contracts from "../../src/__contracts"
-import { getCustomChain } from "../../src/account/utils"
+import { getChain, getCustomChain } from "../../src/account/utils"
 import { Logger } from "../../src/account/utils/Logger"
+import { createBundler } from "../../src/bundler"
 import {
   ENTRY_POINT_SIMULATIONS_CREATECALL,
   ENTRY_POINT_V07_CREATECALL,
@@ -33,7 +37,9 @@ import {
   OWNABLE_VALIDATOR,
   OWNABLE_VALIDATOR_BYTECODE
 } from "./callDatas"
-import { deployProcess } from "./deployProcess"
+import { clean, deploy, init } from "./nexusExecutables"
+
+config()
 
 type AnvilInstance = ReturnType<typeof anvil>
 type BundlerInstance = ReturnType<typeof alto>
@@ -52,7 +58,9 @@ export type NetworkConfigWithBundler = AnvilDto & BundlerDto
 export type NetworkConfig = Omit<
   NetworkConfigWithBundler,
   "instance" | "bundlerInstance"
->
+> & {
+  account?: PrivateKeyAccount
+}
 export const pKey =
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" // This is a publicly available private key meant only for testing only
 
@@ -83,18 +91,57 @@ export const killNetwork = (ids: number[]) =>
     })
   )
 
-export const initNetwork = async (): Promise<NetworkConfigWithBundler> => {
-  const configuredNetwork = await initAnvilPayload()
-  const bundlerConfig = await initBundlerInstance({
-    rpcUrl: configuredNetwork.rpcUrl
-  })
-  allInstances.set(configuredNetwork.instance.port, configuredNetwork.instance)
-  allInstances.set(
-    bundlerConfig.bundlerInstance.port,
-    bundlerConfig.bundlerInstance
-  )
-  return { ...configuredNetwork, ...bundlerConfig }
+export const initTestnetNetwork = async (): Promise<NetworkConfig> => {
+  const privateKey = process.env.E2E_PRIVATE_KEY_ONE
+  const chainId = process.env.CHAIN_ID
+  const rpcUrl = process.env.RPC_URL //Optional, taken from chain (using chainId) if not provided
+  const _bundlerUrl = process.env.BUNDLER_URL // Optional, taken from chain (using chainId) if not provided
+
+  let chain: Chain
+
+  if (!privateKey) throw new Error("Missing env var E2E_PRIVATE_KEY_ONE")
+  if (!chainId) throw new Error("Missing env var CHAIN_ID")
+
+  try {
+    chain = getChain(+chainId)
+  } catch (e) {
+    if (!rpcUrl) throw new Error("Missing env var RPC_URL")
+    chain = getCustomChain("Custom Chain", +chainId, rpcUrl)
+  }
+  const bundlerUrl = _bundlerUrl ?? getBundlerUrl(+chainId)
+
+  return {
+    rpcUrl: chain.rpcUrls.default.http[0],
+    rpcPort: 0,
+    chain,
+    bundlerUrl,
+    bundlerPort: 0,
+    account: privateKeyToAccount(
+      privateKey?.startsWith("0x") ? (privateKey as Hex) : `0x${privateKey}`
+    )
+  }
 }
+
+export const initLocalhostNetwork =
+  async (): Promise<NetworkConfigWithBundler> => {
+    const configuredNetwork = await initAnvilPayload()
+    const bundlerConfig = await initBundlerInstance({
+      rpcUrl: configuredNetwork.rpcUrl
+    })
+    await ensureBundlerIsReady(
+      bundlerConfig.bundlerUrl,
+      getTestChainFromPort(configuredNetwork.rpcPort)
+    )
+    allInstances.set(
+      configuredNetwork.instance.port,
+      configuredNetwork.instance
+    )
+    allInstances.set(
+      bundlerConfig.bundlerInstance.port,
+      bundlerConfig.bundlerInstance
+    )
+    return { ...configuredNetwork, ...bundlerConfig }
+  }
 
 export type MasterClient = ReturnType<typeof toTestClient>
 export const toTestClient = (chain: Chain, account: Account) =>
@@ -126,6 +173,25 @@ export const toBundlerInstance = async ({
   return instance
 }
 
+export const ensureBundlerIsReady = async (
+  bundlerUrl: string,
+  chain: Chain
+) => {
+  const bundler = await createBundler({
+    chain,
+    bundlerUrl
+  })
+
+  while (true) {
+    try {
+      await bundler.getGasFeeValues()
+      return
+    } catch {
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+    }
+  }
+}
+
 export const toConfiguredAnvil = async ({
   rpcPort
 }: { rpcPort: number }): Promise<AnvilInstance> => {
@@ -138,14 +204,17 @@ export const toConfiguredAnvil = async ({
   })
   await instance.start()
   await deployContracts(rpcPort)
-  await deployProcess(rpcPort) // hh deploy from nexus in node_modules
+  await init()
+  await clean()
+  await deploy(rpcPort)
   return instance
 }
 
+export const STARTING_PORT = 55000
+const portOptions = { exclude: [] as number[] }
 export const initAnvilPayload = async (): Promise<AnvilDto> => {
-  const rpcPort = await getPort({
-    port: [...Array.from({ length: 10 }, (_, i) => 55000 + i)]
-  })
+  const rpcPort = await getPort(portOptions)
+  portOptions.exclude.push(rpcPort)
   const rpcUrl = `http://localhost:${rpcPort}`
   const chain = getTestChainFromPort(rpcPort)
   const instance = await toConfiguredAnvil({ rpcPort })
@@ -155,7 +224,8 @@ export const initAnvilPayload = async (): Promise<AnvilDto> => {
 export const initBundlerInstance = async ({
   rpcUrl
 }: { rpcUrl: string }): Promise<BundlerDto> => {
-  const bundlerPort = await getPort()
+  const bundlerPort = await getPort(portOptions)
+  portOptions.exclude.push(bundlerPort)
   const bundlerUrl = `http://localhost:${bundlerPort}`
   const bundlerInstance = await toBundlerInstance({ rpcUrl, bundlerPort })
   return { bundlerInstance, bundlerUrl, bundlerPort }
@@ -194,12 +264,10 @@ export const nonZeroBalance = async (
 }
 
 export type FundedTestClients = Awaited<ReturnType<typeof toFundedTestClients>>
-export const toFundedTestClients = async (
-  network: NetworkConfigWithBundler
-) => {
-  const chain = network.chain
-  const bundlerUrl = network.bundlerUrl
-
+export const toFundedTestClients = async ({
+  chain,
+  bundlerUrl
+}: { chain: Chain; bundlerUrl: string }) => {
   const account = getTestAccount(2)
   const recipientAccount = getTestAccount(3)
 

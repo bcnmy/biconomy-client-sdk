@@ -1,7 +1,8 @@
 import fs from "node:fs"
+import { STARTING_PORT } from "../tests/src/testUtils"
 
-const pathToDeployment = "../../nexus/deployments"
-const deploymentChainName = "anvil-55000"
+const pathToDeployment = "../node_modules/nexus/deployments" // "../../nexus/deployments" also potentially useful
+const deploymentChainName = `anvil-${STARTING_PORT}`
 const abisInSrc = ["K1ValidatorFactory", "Nexus", "K1Validator"]
 
 const relativePath = `${__dirname}/${pathToDeployment}/${deploymentChainName}`

@@ -201,16 +201,21 @@ export abstract class BaseSmartContractAccount<
     validationMode?: typeof MODE_VALIDATION | typeof MODE_MODULE_ENABLE
   ): Promise<bigint>
 
+  private async _isDeployed(): Promise<boolean> {
+    const contractCode = await this.publicClient.getBytecode({
+      address: await this.getAddress()
+    })
+    return (contractCode?.length ?? 0) > 2
+  }
+
   async getInitCode(): Promise<Hex> {
     if (this.deploymentState === DeploymentState.DEPLOYED) {
       return "0x"
     }
 
-    const contractCode = await this.publicClient.getBytecode({
-      address: await this.getAddress()
-    })
+    const isDeployed = await this._isDeployed()
 
-    if ((contractCode?.length ?? 0) > 2) {
+    if (isDeployed) {
       this.deploymentState = DeploymentState.DEPLOYED
       return "0x"
     }
@@ -273,7 +278,7 @@ export abstract class BaseSmartContractAccount<
     return this.entryPointAddress
   }
 
-  async isAccountDeployed(): Promise<boolean> {
+  async isAccountDeployed(forceFetch = false): Promise<boolean> {
     return (await this.getDeploymentState()) === DeploymentState.DEPLOYED
   }
 
@@ -284,9 +289,13 @@ export abstract class BaseSmartContractAccount<
         ? DeploymentState.DEPLOYED
         : DeploymentState.NOT_DEPLOYED
     }
+    if (this.deploymentState === DeploymentState.NOT_DEPLOYED) {
+      if (await this._isDeployed()) {
+        this.deploymentState = DeploymentState.DEPLOYED
+      }
+    }
     return this.deploymentState
   }
-
   /**
    * https://eips.ethereum.org/EIPS/eip-4337#first-time-account-creation
    * The initCode field (if non-zero length) is parsed as a 20-byte address,

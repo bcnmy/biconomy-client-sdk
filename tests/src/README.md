@@ -26,20 +26,21 @@ The script performs the following:
 To prevent tests from conflicting with one another, networks can be scoped at three levels:
 
 ### Global Scope
-- Use by setting `const NETWORK_TYPE: TestFileNetworkType = "LOCAL"` at the top of the test file.
+- Use by setting `const NETWORK_TYPE: TestFileNetworkType = "FILE_LOCALHOST"` at the top of the test file.
 - Suitable when you're sure that tests in the file will **not** conflict with other tests using the global network.
 
 ### Local Scope
-- Use by setting `const NETWORK_TYPE: TestFileNetworkType = "LOCAL"` for test files that may conflict with others.
+- Use by setting `const NETWORK_TYPE: TestFileNetworkType = "FILE_LOCALHOST"` for test files that may conflict with others.
 - Networks scoped locally are isolated to the file in which they are used.
 - Tests within the same file using a local network may conflict with each other. If needed, split tests into separate files or use the Test Scope.
 
 ### Test Scope
-- A network is spun up *only* for the individual test in which it is used. Access this via the `scopedTest` helper in the same file as `"GLOBAL"` or `"LOCAL"` network types.
+- A network is spun up *only* for the individual test in which it is used. Access this via the `isolatedTest` helper in the same file as `"COMMON_LOCALHOST"` or `"FILE_LOCALHOST"` network types.
 
 Example usage:
 ```typescript
-scopedTest("should be used in the following way", async({ config: { bundlerUrl, chain, fundedClients }}) => {
+isolatedTest("should be used in the following way", async({ config: { bundlerUrl, chain, fundedClients }}) => {
+    // chain, bundlerUrl spun up just in time for this test only...
     expect(await fundedClients.smartAccount.getAccountAddress()).toBeTruthy();
 });
 ```
@@ -49,7 +50,23 @@ scopedTest("should be used in the following way", async({ config: { bundlerUrl, 
 > Using *many* test files is preferable, as describe blocks run in parallel. 
 
 ## Testing Custom/New Chains
-- There is one area where SDK tests can be run against a remote testnet: the playground.
+- There is currently one area where SDK tests can be run against a remote testnet: the playground.
+- Additionally there are helpers for running tests on files on a public testnet:
+    - `const NETWORK_TYPE: TestFileNetworkType = "TESTNET"` will pick up relevant configuration from environment variables, and can be used at the top of a test file to have tests run against the specified testnet instead of the localhost
+    - If you want to run a single test on a public testnet *from inside a different describe block* you can use the: `testnetTest` helper:
+
+Example usage:
+```typescript
+testnetTest("should be used in the following way", async({ config: { bundlerUrl, chain, fundedClients }}) => {
+    // chain, bundlerUrl etc taken from environment variables...
+    expect(await fundedClients.smartAccount.getAccountAddress()).toBeTruthy();
+});
+```
+
+> **Note:** 
+> As testnetTest runs against a public testnet the account related to the privatekey (in your env var) must be funded, and the testnet is not 'ephemeral' meaning state is persisted on the testnet after the test teardown. 
+
+
 - The playground does not run in CI/CD but can be triggered manually from the GitHub Actions UI or locally via bun run playground.
 - The playground network is configured with environment variables:
     - E2E_PRIVATE_KEY_ONE

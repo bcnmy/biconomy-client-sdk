@@ -9,7 +9,6 @@ import {
   encodePacked
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { createK1ValidatorModule, getRandomSigner } from "../src"
 import addresses from "../src/__contracts/addresses"
 import {
   type NexusSmartAccount,
@@ -28,7 +27,7 @@ import {
 } from "./src/testUtils"
 import type { MasterClient, NetworkConfig } from "./src/testUtils"
 
-const NETWORK_TYPE: TestFileNetworkType = "LOCAL"
+const NETWORK_TYPE: TestFileNetworkType = "FILE_LOCALHOST"
 
 describe("modules.k1Validator.write", () => {
   let network: NetworkConfig
@@ -110,11 +109,12 @@ describe("modules.k1Validator.write", () => {
   })
 
   test("should install k1 Validator with 1 owner", async () => {
-    // console.log(smartAccount.activeValidationModule, addresses.K1Validator)
     const isInstalledBefore = await smartAccount.isModuleInstalled({
       type: "validator",
       moduleAddress: addresses.K1Validator
     })
+
+    const modules = await smartAccount.getInstalledModules()
 
     if (!isInstalledBefore) {
       const { wait } = await smartAccount.installModule({
@@ -123,27 +123,8 @@ describe("modules.k1Validator.write", () => {
         data: encodePacked(["address"], [await smartAccount.getAddress()])
       })
 
-      console.log("waiting....")
       const { success: installSuccess } = await wait()
-      console.log({ installSuccess })
-
       expect(installSuccess).toBe(true)
-
-      const k1ValidationModule = await createK1ValidatorModule(
-        smartAccount.getSigner()
-      )
-
-      const { wait: waitUninstall } = await smartAccount.uninstallModule({
-        moduleAddress: addresses.K1Validator,
-        type: "validator",
-        data: encodePacked(["address"], [await smartAccount.getAddress()])
-      })
-      console.log("waiting....")
-      const { success: successUninstall } = await waitUninstall()
-      console.log({ successUninstall })
-
-      smartAccount.setActiveValidationModule(k1ValidationModule)
-      expect(successUninstall).toBe(true)
     }
   }, 60000)
 

@@ -21,7 +21,7 @@ import {
 } from "./src/testUtils"
 import type { MasterClient, NetworkConfig } from "./src/testUtils"
 
-const NETWORK_TYPE: TestFileNetworkType = "LOCAL"
+const NETWORK_TYPE: TestFileNetworkType = "FILE_LOCALHOST"
 
 describe("modules.ownable.validator.install.write", () => {
   let network: NetworkConfig

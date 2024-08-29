@@ -58,7 +58,9 @@ function decodeErrorCode(errorCode: string) {
     "0x40d3d1a40000000000000000000000004d8249d21c9553b1bd23cabf611011376dd3416a":
       "LinkedList_EntryAlreadyInList",
     "0x40d3d1a40000000000000000000000004b8306128aed3d49a9d17b99bf8082d4e406fa1f":
-      "LinkedList_EntryAlreadyInList"
+      "LinkedList_EntryAlreadyInList",
+    "0x40d3d1a4000000000000000000000000d98238bbaea4f91683d250003799ead31d7f5c55":
+      "Error: Custom error message about the K1Validator contract"
     // Add more error codes and their corresponding human-readable messages here
   }
   const decodedError = errorMap[errorCode] || errorCode

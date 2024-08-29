@@ -49,7 +49,7 @@ import {
 } from "./src/testUtils"
 import type { MasterClient, NetworkConfig } from "./src/testUtils"
 
-const NETWORK_TYPE: TestFileNetworkType = "GLOBAL"
+const NETWORK_TYPE: TestFileNetworkType = "COMMON_LOCALHOST"
 
 describe("account.read", () => {
   let network: NetworkConfig
@@ -66,7 +66,7 @@ describe("account.read", () => {
   let smartAccountAddress: Hex
 
   beforeAll(async () => {
-    network = await toNetwork(NETWORK_TYPE)
+    network = (await toNetwork(NETWORK_TYPE)) as NetworkConfig
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl

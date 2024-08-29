@@ -1,9 +1,11 @@
 import { config } from "dotenv"
 import {
   http,
+  Account,
   type Address,
   type Chain,
   type Hex,
+  type PrivateKeyAccount,
   type PublicClient,
   type WalletClient,
   createPublicClient,
@@ -18,54 +20,67 @@ import {
   getCustomChain
 } from "../src/account"
 import { createK1ValidatorModule } from "../src/modules"
-import { getBundlerUrl } from "./src/testUtils"
-config()
+import {
+  type TestFileNetworkType,
+  describeWithPlaygroundGuard,
+  toNetwork
+} from "./src/testSetup"
+import {
+  type MasterClient,
+  type NetworkConfig,
+  getBundlerUrl,
+  getTestAccount,
+  toTestClient,
+  topUp
+} from "./src/testUtils"
 
-const privateKey = process.env.E2E_PRIVATE_KEY_ONE
-const chainId = process.env.CHAIN_ID
-const rpcUrl = process.env.RPC_URL //Optional, taken from chain (using chainId) if not provided
-const _bundlerUrl = process.env.BUNDLER_URL // Optional, taken from chain (using chainId) if not provided
-const conditionalDescribe =
-  process.env.RUN_PLAYGROUND === "true" ? describe : describe.skip
-
-if (!privateKey) throw new Error("Missing env var E2E_PRIVATE_KEY_ONE")
-if (!chainId) throw new Error("Missing env var CHAIN_ID")
+const NETWORK_TYPE: TestFileNetworkType = "PUBLIC_TESTNET"
 
 // Remove the following lines to use the default factory and validator addresses
 // These are relevant only for now on base sopelia chain and are likely to change
 const k1ValidatorAddress = "0x663E709f60477f07885230E213b8149a7027239B"
 const factoryAddress = "0x887Ca6FaFD62737D0E79A2b8Da41f0B15A864778"
 
-conditionalDescribe("playground", () => {
-  let ownerAddress: Address
-  let walletClient: WalletClient
-  let smartAccount: NexusSmartAccount
-  let smartAccountAddress: Address
+describeWithPlaygroundGuard("playground", () => {
+  let network: NetworkConfig
+  // Nexus Config
   let chain: Chain
   let bundlerUrl: string
-  let publicClient: PublicClient
+  let walletClient: WalletClient
+
+  // Test utils
+  let publicClient: PublicClient // testClient not available on public testnets
+  let account: PrivateKeyAccount
+  let smartAccount: NexusSmartAccount
+  let smartAccountAddress: Hex
 
   beforeAll(async () => {
-    try {
-      chain = getChain(+chainId)
-    } catch (e) {
-      if (!rpcUrl) throw new Error("Missing env var RPC_URL")
-      chain = getCustomChain("Custom Chain", +chainId, rpcUrl)
-    }
+    network = await toNetwork(NETWORK_TYPE)
+
+    chain = network.chain
+    bundlerUrl = network.bundlerUrl
+    account = network.account as PrivateKeyAccount
+
     walletClient = createWalletClient({
-      account: privateKeyToAccount(
-        (privateKey.startsWith("0x") ? privateKey : `0x${privateKey}`) as Hex
-      ),
+      account,
       chain,
       transport: http()
     })
-    ownerAddress = walletClient?.account?.address as Hex
+
     publicClient = createPublicClient({
       chain,
       transport: http()
     })
 
-    bundlerUrl = _bundlerUrl ?? getBundlerUrl(+chainId)
+    smartAccount = await createSmartAccountClient({
+      signer: walletClient,
+      bundlerUrl,
+      chain,
+      k1ValidatorAddress,
+      factoryAddress
+    })
+
+    smartAccountAddress = await smartAccount.getAddress()
   })
 
   test("should have factory and k1Validator deployed", async () => {
@@ -95,39 +110,43 @@ conditionalDescribe("playground", () => {
 
   test("should log relevant addresses", async () => {
     smartAccountAddress = await smartAccount.getAddress()
-    console.log({ ownerAddress, smartAccountAddress })
+    console.log({ smartAccountAddress })
   })
 
-  test("should check balances of relevant addresses", async () => {
+  test("should check balances and top up relevant addresses", async () => {
     const [ownerBalance, smartAccountBalance] = await Promise.all([
       publicClient.getBalance({
-        address: ownerAddress
+        address: account.address
       }),
       publicClient.getBalance({
         address: smartAccountAddress
       })
     ])
     console.log({ ownerBalance, smartAccountBalance })
+
     const balancesAreOfCorrectType = [ownerBalance, smartAccountBalance].every(
       (balance) => typeof balance === "bigint"
     )
+    if (smartAccountBalance === 0n) {
+      const hash = await walletClient.sendTransaction({
+        chain,
+        account,
+        to: smartAccountAddress,
+        value: 1000000000000000000n
+      })
+      const receipt = await publicClient.waitForTransactionReceipt({ hash })
+      console.log({ receipt })
+    }
     expect(balancesAreOfCorrectType).toBeTruthy()
   })
 
   test("should send some native token", async () => {
     const balanceBefore = await publicClient.getBalance({
-      address: ownerAddress
+      address: account.address
     })
 
-    const k1ValidatorModule = await createK1ValidatorModule(
-      smartAccount.getSigner(),
-      k1ValidatorAddress
-    )
-
-    smartAccount.setActiveValidationModule(k1ValidatorModule)
-
     const { wait } = await smartAccount.sendTransaction({
-      to: ownerAddress,
+      to: account.address,
       data: "0x",
       value: 1n
     })
@@ -141,7 +160,7 @@ conditionalDescribe("playground", () => {
     console.log({ transactionHash })
 
     const balanceAfter = await publicClient.getBalance({
-      address: ownerAddress
+      address: account.address
     })
 
     expect(balanceAfter - balanceBefore).toBe(1n)

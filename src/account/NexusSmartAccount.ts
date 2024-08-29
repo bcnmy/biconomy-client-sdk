@@ -723,6 +723,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     if (await this.isAccountDeployed()) return "0x"
 
     const factoryData = (await this.getFactoryData()) as Hex
+
     return concatHex([this.factoryAddress, factoryData])
   }
 
@@ -1035,16 +1036,12 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    * const { success, receipt } = await wait();
    *
    */
-  async sendUserOp(
-    userOp: Partial<UserOperationStruct>
-  ): Promise<UserOpResponse> {
-    // biome-ignore lint/performance/noDelete: <explanation>
-    delete userOp.signature
-    const userOperation = await this.signUserOp(userOp)
-
-    const bundlerResponse = await this.sendSignedUserOp(userOperation)
-
-    return bundlerResponse
+  async sendUserOp({
+    signature,
+    ...userOpWithoutSignature
+  }: Partial<UserOperationStruct>): Promise<UserOpResponse> {
+    const userOperation = await this.signUserOp(userOpWithoutSignature)
+    return await this.sendSignedUserOp(userOperation)
   }
 
   /**
@@ -1322,13 +1319,12 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
         : [manyOrOneTransactions],
       buildUseropDto
     )
-    const payload = await this.sendUserOp(userOp)
-    this.setDeploymentState(payload) // Don't wait
-    return payload
+    const response = await this.sendUserOp(userOp)
+    this.setDeploymentState(response) // don't wait for this to finish...
+    return response
   }
 
-  private async setDeploymentState({ wait }: UserOpResponse) {
-    if (this.deploymentState === DeploymentState.DEPLOYED) return
+  public async setDeploymentState({ wait }: UserOpResponse) {
     const { success } = await wait()
     if (success) {
       this.deploymentState = DeploymentState.DEPLOYED
@@ -1394,7 +1390,8 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     const dummySignatureFetchPromise = this.getDummySignatures()
     const [nonceFromFetch, dummySignature] = await Promise.all([
       this.getBuildUserOpNonce(buildUseropDto?.nonceOptions),
-      dummySignatureFetchPromise
+      dummySignatureFetchPromise,
+      this.getInitCode() // Not used, but necessary to determine if the account is deployed. Will return immediately if the account is already deployed
     ])
 
     if (transactions.length === 0) {
@@ -1724,13 +1721,13 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   async isModuleInstalled(module: Module) {
     if (await this.isAccountDeployed()) {
       const accountContract = await this._getAccountContract()
-      return await accountContract.read.isModuleInstalled([
+      const result = await accountContract.read.isModuleInstalled([
         BigInt(moduleTypeIds[module.type]),
         module.moduleAddress,
         module.data ?? "0x"
       ])
+      return result
     }
-    Logger.warn("A module cannot be installed on an undeployed account")
     return false
   }
 

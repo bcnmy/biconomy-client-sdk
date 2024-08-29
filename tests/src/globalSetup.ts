@@ -1,12 +1,12 @@
 import {
   type NetworkConfig,
   type NetworkConfigWithBundler,
-  initNetwork
+  initLocalhostNetwork
 } from "./testUtils"
 
 let globalConfig: NetworkConfigWithBundler
 export const setup = async ({ provide }) => {
-  globalConfig = await initNetwork()
+  globalConfig = await initLocalhostNetwork()
   const { bundlerInstance, instance, ...serializeableConfig } = globalConfig
   provide("globalNetwork", serializeableConfig)
 }
