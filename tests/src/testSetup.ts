@@ -12,7 +12,7 @@ export type NetworkConfigWithTestClients = NetworkConfigWithBundler & {
   fundedTestClients: FundedTestClients
 }
 
-export const isolatedTest = test.extend<{
+export const localhostTest = test.extend<{
   config: NetworkConfigWithTestClients
 }>({
   // biome-ignore lint/correctness/noEmptyPattern: Needed in vitest :/

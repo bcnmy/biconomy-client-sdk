@@ -1,4 +1,4 @@
-# @biconomy/sdk Testing Guide
+# @biconomy/sdk Testing Framework
 
 ## Testing Setup
 
@@ -35,11 +35,11 @@ To prevent tests from conflicting with one another, networks can be scoped at th
 - Tests within the same file using a local network may conflict with each other. If needed, split tests into separate files or use the Test Scope.
 
 ### Test Scope
-- A network is spun up *only* for the individual test in which it is used. Access this via the `isolatedTest` helper in the same file as `"COMMON_LOCALHOST"` or `"FILE_LOCALHOST"` network types.
+- A network is spun up *only* for the individual test in which it is used. Access this via the `localhostTest` helper in the same file as `"COMMON_LOCALHOST"` or `"FILE_LOCALHOST"` network types.
 
 Example usage:
 ```typescript
-isolatedTest("should be used in the following way", async({ config: { bundlerUrl, chain, fundedClients }}) => {
+localhostTest("should be used in the following way", async({ config: { bundlerUrl, chain, fundedClients }}) => {
     // chain, bundlerUrl spun up just in time for this test only...
     expect(await fundedClients.smartAccount.getAccountAddress()).toBeTruthy();
 });
@@ -57,9 +57,9 @@ isolatedTest("should be used in the following way", async({ config: { bundlerUrl
 
 Example usage:
 ```typescript
-testnetTest("should be used in the following way", async({ config: { bundlerUrl, chain, fundedClients }}) => {
+testnetTest("should be used in the following way", async({ config: { bundlerUrl, chain, account }}) => {
     // chain, bundlerUrl etc taken from environment variables...
-    expect(await fundedClients.smartAccount.getAccountAddress()).toBeTruthy();
+    expect(account).toBeTruthy(); // from private key, please ensure it is funded if sending txs
 });
 ```
 

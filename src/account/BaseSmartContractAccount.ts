@@ -278,7 +278,7 @@ export abstract class BaseSmartContractAccount<
     return this.entryPointAddress
   }
 
-  async isAccountDeployed(forceFetch = false): Promise<boolean> {
+  async isAccountDeployed(): Promise<boolean> {
     return (await this.getDeploymentState()) === DeploymentState.DEPLOYED
   }
 
