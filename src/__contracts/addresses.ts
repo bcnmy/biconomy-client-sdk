@@ -1,3 +1,5 @@
+// The contents of this folder is auto-generated. Please do not edit as your changes are likely to be overwritten
+
 import type { Hex } from "viem"
 export const addresses: Record<string, Hex> = {
   Nexus: "0x776d63154D2aa9256D72C420416c930F3B735464",

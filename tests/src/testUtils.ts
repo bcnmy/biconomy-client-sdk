@@ -211,7 +211,6 @@ export const toConfiguredAnvil = async ({
   return instance
 }
 
-export const STARTING_PORT = 55000
 const portOptions = { exclude: [] as number[] }
 export const initAnvilPayload = async (): Promise<AnvilDto> => {
   const rpcPort = await getPort(portOptions)

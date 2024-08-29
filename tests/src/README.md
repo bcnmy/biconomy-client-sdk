@@ -17,6 +17,17 @@ The script performs the following:
 - **Addresses**: Moved to `./src/addresses.ts`
 - **Additional Fixtures**: Copied to `tests__/contracts`
 
+The script accepts a number of args from the command line:
+  - nexusDeploymentPath (default: "../node_modules/nexus/deployments")
+  - chainName (default: "anvil-55000")
+  - forSrc (default: ["K1ValidatorFactory", "Nexus", "K1Validator"]);
+
+Example usage:
+```bash
+bun run fetch:deployment:raw --chainName="anvil-52878" -forSrc=K1Validator -forSrc=Nexus --nexusDeploymentPath=../../nexus/deployments
+bun run lint --apply-unsafe
+```
+
 > **Note**:  
 > - Do not edit these files manually; they will be overridden if/when a new Nexus deployment occurs.
 > - Avoid hardcoding important addresses (e.g., `const K1_VALIDATOR_ADDRESS = "0x"`). Use `./src/addresses.ts` instead.

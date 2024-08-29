@@ -1,17 +1,26 @@
 import fs from "node:fs"
-import { STARTING_PORT } from "../tests/src/testUtils"
 
-const pathToDeployment = "../node_modules/nexus/deployments" // "../../nexus/deployments" also potentially useful
-const deploymentChainName = `anvil-${STARTING_PORT}`
-const abisInSrc = ["K1ValidatorFactory", "Nexus", "K1Validator"]
+import { hideBin } from "yargs/helpers"
+import yargs from "yargs/yargs"
 
-const relativePath = `${__dirname}/${pathToDeployment}/${deploymentChainName}`
+type FetchDetails = {
+  nexusDeploymentPath: string
+  chainName: string
+  forSrc: string[]
+}
+const {
+  nexusDeploymentPath = "../node_modules/nexus/deployments",
+  chainName = "anvil-55000",
+  forSrc = ["K1ValidatorFactory", "Nexus", "K1Validator"]
+} = yargs(hideBin(process.argv)).argv as unknown as FetchDetails
 
 type DeployedContract = {
   address: string
 }
 
 export const getDeployments = async () => {
+  const relativePath = `${__dirname}/${nexusDeploymentPath}/${chainName}`
+  console.log("Fetching deployments from:", relativePath)
   const files = fs.readdirSync(relativePath)
   const deployedContracts: Record<string, DeployedContract> = {}
 
@@ -28,7 +37,7 @@ export const getDeployments = async () => {
       )
       const { address, abi } = JSON.parse(contents)
 
-      const isForCore = abisInSrc.includes(name)
+      const isForCore = forSrc.includes(name)
       if (isForCore) {
         coreFiles.push(name)
       } else {

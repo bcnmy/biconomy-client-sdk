@@ -1,3 +1,5 @@
+// The contents of this folder is auto-generated. Please do not edit as your changes are likely to be overwritten
+
 import type { Hex } from "viem"
 export const mockAddresses: Record<string, Hex> = {
   MockHook: "0xAB9733982E5b98bdDc4f00314E8EA4911A9D1BA5",
