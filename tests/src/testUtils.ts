@@ -1,5 +1,5 @@
 import { config } from "dotenv"
-import getPort, { Options } from "get-port"
+import getPort from "get-port"
 import { alto, anvil } from "prool/instances"
 import {
   http,
@@ -37,7 +37,8 @@ import {
   OWNABLE_VALIDATOR,
   OWNABLE_VALIDATOR_BYTECODE
 } from "./callDatas"
-import { clean, deploy, init } from "./nexusExecutables"
+
+import { clean, deploy, init } from "./executables"
 
 config()
 
