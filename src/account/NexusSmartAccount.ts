@@ -1325,6 +1325,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   }
 
   public async setDeploymentState({ wait }: UserOpResponse) {
+    if (this.deploymentState === DeploymentState.DEPLOYED) return
     const { success } = await wait()
     if (success) {
       this.deploymentState = DeploymentState.DEPLOYED
@@ -1644,7 +1645,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     return this.sendTransaction(
       {
         to: accountAddress,
-        value: 1n
+        data: "0x"
       },
       { ...buildUseropDto, useEmptyDeployCallData }
     )
