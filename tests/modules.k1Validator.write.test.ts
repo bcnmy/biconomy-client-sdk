@@ -114,8 +114,6 @@ describe("modules.k1Validator.write", () => {
       moduleAddress: addresses.K1Validator
     })
 
-    const modules = await smartAccount.getInstalledModules()
-
     if (!isInstalledBefore) {
       const { wait } = await smartAccount.installModule({
         moduleAddress: addresses.K1Validator,
@@ -125,6 +123,14 @@ describe("modules.k1Validator.write", () => {
 
       const { success: installSuccess } = await wait()
       expect(installSuccess).toBe(true)
+
+      const { wait: uninstallWait } = await smartAccount.uninstallModule({
+        moduleAddress: addresses.K1Validator,
+        type: "validator",
+        data: encodePacked(["address"], [await smartAccount.getAddress()])
+      })
+      const { success: uninstallSuccess } = await uninstallWait()
+      expect(uninstallSuccess).toBe(true)
     }
   }, 60000)
 
