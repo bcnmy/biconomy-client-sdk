@@ -1,5 +1,5 @@
-import { ethers } from "ethers"
 import {
+  type AbiParameter,
   type Address,
   type GetContractReturnType,
   type Hash,
@@ -16,15 +16,16 @@ import {
   getAddress,
   getContract,
   keccak256,
+  pad,
   parseAbi,
   parseAbiParameters,
-  toBytes
+  toBytes,
+  toHex
 } from "viem"
 import contracts from "../__contracts"
 import { NexusAbi } from "../__contracts/abi"
 import {
   Bundler,
-  Executions,
   type GetUserOperationGasPriceReturnType,
   type UserOpReceipt,
   type UserOpResponse
@@ -761,28 +762,32 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    * @returns encoded data for executeBatch function
    */
   async encodeExecuteBatch(transactions: Transaction[]): Promise<Hex> {
-    // return accountContract.interface.encodeFunctionData("execute_ncC", [to, value, data]) as Hex;
-    const mode = EXECUTE_BATCH
-    // TODO: Use viem instead of ethers
-    const execs: { target: Hex; value: bigint; callData: Hex }[] = []
-    for (const tx of transactions) {
-      execs.push({
-        target: tx.to as Hex,
-        callData: (tx.data ?? "0x") as Hex,
-        value: BigInt(tx.value ?? 0n)
-      })
+    const executionAbiParams: AbiParameter = {
+      type: "tuple[]",
+      components: [
+        { name: "target", type: "address" },
+        { name: "value", type: "uint256" },
+        { name: "callData", type: "bytes" }
+      ]
     }
-    const executionCalldataPrep = ethers.AbiCoder.defaultAbiCoder().encode(
-      [Executions],
-      [execs]
-    ) as Hex
+
+    const executions = transactions.map((tx) => ({
+      target: tx.to,
+      callData: tx.data ?? "0x",
+      value: BigInt(tx.value ?? 0n)
+    }))
+
+    const executionCalldataPrep = encodeAbiParameters(
+      [executionAbiParams],
+      [executions]
+    )
 
     return encodeFunctionData({
       abi: parseAbi([
         "function execute(bytes32 mode, bytes calldata executionCalldata) external"
       ]),
       functionName: "execute",
-      args: [mode, executionCalldataPrep]
+      args: [EXECUTE_BATCH, executionCalldataPrep]
     })
   }
 
@@ -1081,14 +1086,18 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     maxFeePerGas: BigNumberish,
     maxPriorityFeePerGas: BigNumberish
   ) {
-    const gasFees = ethers.solidityPacked(
-      ["uint128", "uint128"],
-      [maxPriorityFeePerGas, maxFeePerGas]
-    ) as Hex
-    const accountGasLimits = ethers.solidityPacked(
-      ["uint128", "uint128"],
-      [callGasLimit, verificationGasLimit]
-    ) as Hex
+    const gasFees = concat([
+      pad(toHex(maxPriorityFeePerGas ?? 0n), {
+        size: 16
+      }),
+      pad(toHex(maxFeePerGas ?? 0n), { size: 16 })
+    ])
+    const accountGasLimits = concat([
+      pad(toHex(verificationGasLimit ?? 0n), {
+        size: 16
+      }),
+      pad(toHex(callGasLimit ?? 0n), { size: 16 })
+    ])
 
     return { gasFees, accountGasLimits }
   }

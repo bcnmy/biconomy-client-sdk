@@ -1,6 +1,7 @@
-import { JsonRpcProvider, Wallet } from "ethers"
+import { JsonRpcProvider, ParamType, Wallet, ethers } from "ethers"
 import {
   http,
+  type AbiParameter,
   type Account,
   type Chain,
   type Hex,
@@ -47,7 +48,11 @@ import {
   toTestClient,
   topUp
 } from "./src/testUtils"
-import type { MasterClient, NetworkConfig } from "./src/testUtils"
+import type {
+  MasterClient,
+  NetworkConfig,
+  NetworkConfigWithBundler
+} from "./src/testUtils"
 
 const NETWORK_TYPE: TestFileNetworkType = "COMMON_LOCALHOST"
 
@@ -110,23 +115,6 @@ describe("account.read", () => {
       "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
       "0xa3962DB24D3cAb711e18d5A508591C6dB82a0f54" // Sender smart account
     ])
-  })
-
-  test("should send eth", async () => {
-    const balanceBefore = await testClient.getBalance({
-      address: recipientAccount.address
-    })
-    const tx: Transaction = {
-      to: recipientAccount.address,
-      value: 1n
-    }
-    const { wait } = await smartAccount.sendTransaction(tx)
-    const { success } = await wait()
-    const balanceAfter = await testClient.getBalance({
-      address: recipientAccount.address
-    })
-    expect(success).toBe(true)
-    expect(balanceAfter - balanceBefore).toBe(1n)
   })
 
   test.skip("should estimate gas for minting an NFT", async () => {
@@ -732,6 +720,56 @@ describe("account.read", () => {
       expect(contractResponse).toBe(eip1271MagicValue)
       expect(viemResponse).toBe(true)
     }
+  })
+
+  test("should have consistent behaviour between ethers.AbiCoder.defaultAbiCoder() and viem.encodeAbiParameters()", async () => {
+    const expectedResult =
+      "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000090f79bf6eb2c4f870365e785982e1f101e93b90600000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000000000000000000000000000090f79bf6eb2c4f870365e785982e1f101e93b906000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000000"
+
+    const Executions = ParamType.from({
+      type: "tuple(address,uint256,bytes)[]",
+      baseType: "tuple",
+      name: "executions",
+      arrayLength: null,
+      components: [
+        { name: "target", type: "address" },
+        { name: "value", type: "uint256" },
+        { name: "callData", type: "bytes" }
+      ]
+    })
+
+    const viemExecutions: AbiParameter = {
+      type: "tuple[]",
+      components: [
+        { name: "target", type: "address" },
+        { name: "value", type: "uint256" },
+        { name: "callData", type: "bytes" }
+      ]
+    }
+
+    const txs = [
+      {
+        target: "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+        callData: "0x",
+        value: 1n
+      },
+      {
+        target: "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+        callData: "0x",
+        value: 1n
+      }
+    ]
+
+    const executionCalldataPrepWithEthers =
+      ethers.AbiCoder.defaultAbiCoder().encode([Executions], [txs])
+
+    const executionCalldataPrepWithViem = encodeAbiParameters(
+      [viemExecutions],
+      [txs]
+    )
+
+    expect(executionCalldataPrepWithEthers).toBe(expectedResult)
+    expect(executionCalldataPrepWithViem).toBe(expectedResult)
   })
 
   // test.skip("should call isValidSignature for deployed smart account", async () => {

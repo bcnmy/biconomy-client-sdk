@@ -1,14 +1,17 @@
 import { concat, pad } from "viem"
-import {
-  CALLTYPE_BATCH,
-  CALLTYPE_SINGLE,
-  EXECTYPE_DEFAULT,
-  EXECTYPE_DELEGATE,
-  EXECTYPE_TRY,
-  MODE_DEFAULT,
-  MODE_PAYLOAD,
-  UNUSED
-} from "./Types"
+
+// define mode and exec type enums
+export const CALLTYPE_SINGLE = "0x00" // 1 byte
+export const CALLTYPE_BATCH = "0x01" // 1 byte
+export const EXECTYPE_DEFAULT = "0x00" // 1 byte
+export const EXECTYPE_TRY = "0x01" // 1 byte
+export const EXECTYPE_DELEGATE = "0xFF" // 1 byte
+export const MODE_DEFAULT = "0x00000000" // 4 bytes
+export const UNUSED = "0x00000000" // 4 bytes
+export const MODE_PAYLOAD = "0x00000000000000000000000000000000000000000000" // 22 bytes
+export const ERC1271_MAGICVALUE = "0x1626ba7e"
+export const ERC1271_INVALID = "0xffffffff"
+export const GENERIC_FALLBACK_SELECTOR = "0xcb5baf0f"
 
 export const UserOpReceiptIntervals: { [key in number]?: number } = {
   [1]: 10000

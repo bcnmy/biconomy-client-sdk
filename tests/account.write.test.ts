@@ -101,6 +101,23 @@ describe("account.write", () => {
     expect(balanceAfter - balanceBefore).toBe(1n)
   })
 
+  test("should send eth twice", async () => {
+    const balanceBefore = await testClient.getBalance({
+      address: recipientAccount.address
+    })
+    const tx: Transaction = {
+      to: recipientAccount.address,
+      value: 1n
+    }
+    const { wait } = await smartAccount.sendTransaction([tx, tx])
+    const { success } = await wait()
+    const balanceAfter = await testClient.getBalance({
+      address: recipientAccount.address
+    })
+    expect(success).toBe(true)
+    expect(balanceAfter - balanceBefore).toBe(2n)
+  })
+
   //   test("install a mock Hook module", async () => {
   //     const isSupported = await smartAccount.supportsModule(ModuleType.Hook)
   //     console.log(isSupported, "is supported")
