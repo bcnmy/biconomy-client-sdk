@@ -129,7 +129,7 @@
 //       this.owners = this.owners.filter((o: Address) => o !== owner)
 //     }
 //     return receipt
-   
+
 //   }
 
 //   public async addOwner(owner: Address): Promise<UserOpReceipt> {

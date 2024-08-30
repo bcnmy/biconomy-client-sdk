@@ -12,6 +12,7 @@
     "allowJs": false,
     "checkJs": false,
     "esModuleInterop": false,
+    "resolveJsonModule": true,
     "allowSyntheticDefaultImports": false,
     "forceConsistentCasingInFileNames": true,
     "verbatimModuleSyntax": true,

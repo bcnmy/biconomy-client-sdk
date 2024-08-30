@@ -1,9 +1,12 @@
 import { type Address, type Hex, encodeFunctionData, parseAbi } from "viem"
+import contracts from "../../__contracts/index.js"
+import type { SmartAccountSigner } from "../../account/index.js"
 import {
-  ENTRYPOINT_V07_ADDRESS,
-  type SmartAccountSigner
-} from "../../account/index.js"
-import { moduleTypeIds, type Module, type ModuleType, type ModuleVersion } from "../utils/Types.js"
+  type Module,
+  type ModuleType,
+  type ModuleVersion,
+  moduleTypeIds
+} from "../utils/Types.js"
 
 export abstract class BaseModule {
   moduleAddress: Address
@@ -12,7 +15,7 @@ export abstract class BaseModule {
   type: ModuleType
   hook?: Address
   version: ModuleVersion = "1.0.0-beta"
-  entryPoint: Address = ENTRYPOINT_V07_ADDRESS
+  entryPoint: Address = contracts.entryPoint.address
   signer: SmartAccountSigner
 
   constructor(module: Module, signer: SmartAccountSigner) {
@@ -30,7 +33,11 @@ export abstract class BaseModule {
         "function installModule(uint256 moduleTypeId, address module, bytes calldata initData) external"
       ]),
       functionName: "installModule",
-      args: [BigInt(moduleTypeIds[this.type]), this.moduleAddress, this.data ?? "0x"]
+      args: [
+        BigInt(moduleTypeIds[this.type]),
+        this.moduleAddress,
+        this.data ?? "0x"
+      ]
     })
 
     return installModuleData
@@ -42,7 +49,11 @@ export abstract class BaseModule {
         "function uninstallModule(uint256 moduleTypeId, address module, bytes calldata initData) external"
       ]),
       functionName: "uninstallModule",
-      args: [BigInt(moduleTypeIds[this.type]), this.moduleAddress, uninstallData ?? "0x"]
+      args: [
+        BigInt(moduleTypeIds[this.type]),
+        this.moduleAddress,
+        uninstallData ?? "0x"
+      ]
     })
     return uninstallModuleData
   }

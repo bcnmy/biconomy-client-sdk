@@ -8,11 +8,11 @@ import {
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { type UserOperationStruct, getChain } from "../../account"
-import {
-  type ChainInfo,
-  type Execution,
-  type SignerData,
-  type Transaction,
+import type {
+  ChainInfo,
+  Execution,
+  SignerData,
+  Transaction
   // createOwnableValidatorModule
 } from "../../index.js"
 
