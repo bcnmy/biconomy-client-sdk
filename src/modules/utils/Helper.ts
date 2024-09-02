@@ -3,13 +3,18 @@ import {
   type Chain,
   type Hex,
   encodeAbiParameters,
+  isHex,
   keccak256,
   pad,
   parseAbiParameters,
   toHex
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { type UserOperationStruct, getChain } from "../../account"
+import {
+  ERROR_MESSAGES,
+  type UserOperationStruct,
+  getChain
+} from "../../account"
 import type {
   ChainInfo,
   SignerData
@@ -178,21 +183,25 @@ export type AnyReferenceValue = BaseReferenceValue | HardcodedReference
  * @returns Hex
  */
 export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
-  try {
-    if ((referenceValue as HardcodedReference)?.raw) {
-      return (referenceValue as HardcodedReference)?.raw
-    }
-    if (typeof referenceValue === "bigint") {
-      return pad(toHex(referenceValue), { size: 32 }) as Hex
-    }
-    if (typeof referenceValue === "number") {
-      return pad(toHex(BigInt(referenceValue)), { size: 32 }) as Hex
-    }
-    if (typeof referenceValue === "boolean") {
-      return pad(toHex(referenceValue), { size: 32 }) as Hex
-    }
-    return pad(referenceValue as Hex, { size: 32 })
-  } catch (e) {
-    return pad(referenceValue as Hex, { size: 32 })
+  let result: Hex
+  if ((referenceValue as HardcodedReference)?.raw) {
+    result = (referenceValue as HardcodedReference)?.raw
+  } else if (typeof referenceValue === "bigint") {
+    result = pad(toHex(referenceValue), { size: 32 }) as Hex
+  } else if (typeof referenceValue === "number") {
+    result = pad(toHex(BigInt(referenceValue)), { size: 32 }) as Hex
+  } else if (typeof referenceValue === "boolean") {
+    result = pad(toHex(referenceValue), { size: 32 }) as Hex
+  } else if (isHex(referenceValue)) {
+    result = referenceValue
+  } else if (typeof referenceValue === "string") {
+    result = pad(referenceValue as Hex, { size: 32 })
+  } else {
+    // (typeof referenceValue === "object")
+    result = pad(toHex(referenceValue as ByteArray), { size: 32 }) as Hex
   }
+  if (!isHex(result) || result.length !== 66) {
+    throw new Error(ERROR_MESSAGES.INVALID_HEX)
+  }
+  return result
 }

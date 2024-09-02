@@ -11,7 +11,6 @@ import {
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { parseReferenceValue } from "../src"
-import contracts from "../src/__contracts"
 import {
   type NexusSmartAccount,
   createSmartAccountClient
@@ -85,7 +84,7 @@ describe("smart.sessions", () => {
       account.address,
       smartAccount.getAddress()
     ])
-    expect(addresses.every(Boolean)).to.be.true
+    expect(addresses.every(Boolean)).toBeTruthy()
     expect(addresses).toStrictEqual([
       "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
       "0xa3962DB24D3cAb711e18d5A508591C6dB82a0f54" // Sender smart account
@@ -98,25 +97,21 @@ describe("smart.sessions", () => {
         (address) => testClient.getBytecode(address)
       )
     )
-    expect(bytecodes.every((bytecode) => !!bytecode?.length)).to.be.true
+    expect(bytecodes.every((bytecode) => !!bytecode?.length)).toBeTruthy()
   })
 
   test("should parse a human friendly policy reference value to the hex version expected by the contracts", async () => {
     const TWO_THOUSAND_AS_HEX =
       "0x00000000000000000000000000000000000000000000000000000000000007d0"
 
-    const inputFromUser = [
-      BigInt(2000),
-      2000,
-      pad(toHex(BigInt(2000)), { size: 32 }),
-      "7d0"
-    ]
-
+    expect(parseReferenceValue(BigInt(2000))).toBe(TWO_THOUSAND_AS_HEX)
+    expect(parseReferenceValue(2000)).toBe(TWO_THOUSAND_AS_HEX)
+    expect(parseReferenceValue("7d0")).toBe(TWO_THOUSAND_AS_HEX)
     expect(
-      inputFromUser.every(
-        (ref) => parseReferenceValue(ref) === TWO_THOUSAND_AS_HEX
+      parseReferenceValue(
+        parseReferenceValue(pad(toHex(BigInt(2000)), { size: 32 }))
       )
-    ).to.be.true
+    ).toBe(TWO_THOUSAND_AS_HEX)
   })
 
   test("should get a universal action policy", async () => {
