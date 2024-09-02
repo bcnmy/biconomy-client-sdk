@@ -103,12 +103,12 @@ describe("modules.ownable.executor.read", () => {
     expect(balanceAfter - balanceBefore).toBe(1n)
   })
 
-  test.skip("should initialize Ownable Executor Module with correct owners", async () => {
-    const ownableExecutorModule = await createOwnableExecutorModule(
-      smartAccount,
-      OWNABLE_EXECUTOR
-    )
-    const owners = await ownableExecutorModule.getOwners(OWNABLE_EXECUTOR)
-    expect(owners).toStrictEqual(ownableExecutorModule.owners)
-  })
+  // test.skip("should initialize Ownable Executor Module with correct owners", async () => {
+  //   const ownableExecutorModule = await createOwnableExecutorModule(
+  //     smartAccount,
+  //     OWNABLE_EXECUTOR
+  //   )
+  //   const owners = await ownableExecutorModule.getOwners(OWNABLE_EXECUTOR)
+  //   expect(owners).toStrictEqual(ownableExecutorModule.owners)
+  // })
 })

@@ -63,7 +63,7 @@ export const getDeployments = async () => {
   }
 
   // Write ABI index file...
-  const abiIndexContent = `export * from "./EntryPointABI"\n${coreFiles
+  const abiIndexContent = `export * from "./UniActionPolicyAbi"\nexport * from "./EntryPointABI"\n${coreFiles
     .map((file) => `export * from "./${file}Abi"`)
     .join("\n")}`
 

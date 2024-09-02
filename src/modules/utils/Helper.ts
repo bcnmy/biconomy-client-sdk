@@ -1,18 +1,18 @@
 import {
-  type Address,
+  type ByteArray,
   type Chain,
   type Hex,
   encodeAbiParameters,
   keccak256,
-  parseAbiParameters
+  pad,
+  parseAbiParameters,
+  toHex
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { type UserOperationStruct, getChain } from "../../account"
 import type {
   ChainInfo,
-  Execution,
-  SignerData,
-  Transaction
+  SignerData
   // createOwnableValidatorModule
 } from "../../index.js"
 
@@ -160,77 +160,39 @@ export const parseChain = (chainInfo: ChainInfo): Chain => {
   if (typeof chainInfo === "number") return getChain(chainInfo)
   return chainInfo
 }
+
+export type HardcodedReference = {
+  raw: Hex
+}
+type BaseReferenceValue = string | number | bigint | boolean | ByteArray
+export type AnyReferenceValue = BaseReferenceValue | HardcodedReference
 /**
  *
- * SessionSearchParam - The arguments that can be used to reconstruct a session object
+ * parseReferenceValue
  *
- * It can be one of the following:
- * A session object {@link Session}
- * A session storage client {@link ISessionStorage}
- * A smart account address {@link Address}
+ * Parses the reference value to a hex string.
+ * The reference value can be hardcoded using the {@link HardcodedReference} type.
+ * Otherwise, it can be a string, number, bigint, boolean, or ByteArray.
  *
- * When a session object is provided, it is returned as is
- * When a session storage client is provided, the session object is reconstructed from the session storage client using **all** of the sessionIds found in the storage client
- * When a smart account address is provided, the default session storage client is used to reconstruct the session object using **all** of the sessionIds found in the storage client
- *
+ * @param referenceValue {@link AnyReferenceValue}
+ * @returns Hex
  */
-// export type SessionSearchParam = Session | ISessionStorage | Address
-// export const didProvideFullSession = (
-//   searchParam: SessionSearchParam
-// ): boolean => !!(searchParam as Session)?.sessionIDInfo?.length
-/**
- *
- * reconstructSession - Reconstructs a session object from the provided arguments
- *
- * If a session object is provided, it is returned as is
- * If a session storage client is provided, the session object is reconstructed from the session storage client using **all** of the sessionIds found in the storage client
- * If a smart account address is provided, the default session storage client is used to reconstruct the session object using **all** of the sessionIds found in the storage client
- *
- * @param searchParam - This can be a session object {@link Session}, a session storage client {@link ISessionStorage} or a smart account address {@link Address}
- * @returns A session object
- * @error If the provided arguments do not match any of the above cases
- */
-// export const resumeSession = async (
-//   searchParam: SessionSearchParam
-// ): Promise<Session> => {
-//   const providedFullSession = didProvideFullSession(searchParam)
-//   const providedStorageClient = !!(searchParam as ISessionStorage)
-//     .smartAccountAddress?.length
-//   const providedSmartAccountAddress = isAddress(searchParam as Address)
-
-//   if (providedFullSession) {
-//     const session = searchParam as Session
-//     return session
-//   }
-//   if (providedStorageClient) {
-//     const sessionStorageClient = searchParam as ISessionStorage
-//     const leafArray = await sessionStorageClient.getAllSessionData()
-//     const sessionIDInfo = leafArray.map(({ sessionID }) => sessionID as string)
-//     const session: Session = {
-//       sessionIDInfo,
-//       sessionStorageClient
-//     }
-//     return session
-//   }
-//   if (providedSmartAccountAddress) {
-//     const smartAccountAddress = searchParam as Address
-//     // Use the default session storage client
-//     const sessionStorageClient = getDefaultStorageClient(smartAccountAddress)
-//     const leafArray = await sessionStorageClient.getAllSessionData()
-//     const sessionIDInfo = leafArray.map(({ sessionID }) => sessionID as string)
-//     const session: Session = {
-//       sessionIDInfo,
-//       sessionStorageClient
-//     }
-//     return session
-//   }
-//   throw new Error(ERROR_MESSAGES.UNKNOW_SESSION_ARGUMENTS)
-// }
-
-export const toTransaction = (execution: Execution): Transaction => {
-  return {
-    to: execution.target,
-    value: Number(execution.value),
-    data: execution.callData
+export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
+  try {
+    if ((referenceValue as HardcodedReference)?.raw) {
+      return (referenceValue as HardcodedReference)?.raw
+    }
+    if (typeof referenceValue === "bigint") {
+      return pad(toHex(referenceValue), { size: 32 }) as Hex
+    }
+    if (typeof referenceValue === "number") {
+      return pad(toHex(BigInt(referenceValue)), { size: 32 }) as Hex
+    }
+    if (typeof referenceValue === "boolean") {
+      return pad(toHex(referenceValue), { size: 32 }) as Hex
+    }
+    return pad(referenceValue as Hex, { size: 32 })
+  } catch (e) {
+    return pad(referenceValue as Hex, { size: 32 })
   }
 }
