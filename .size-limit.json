@@ -30,7 +30,7 @@
     "name": "paymaster (tree-shaking)",
     "path": "./dist/_esm/paymaster/index.js",
     "limit": "15 kB",
-    "import": "{ createPaymaster }",
+    "import": "{ toPaymaster }",
     "ignore": ["node:fs", "fs"]
   }
 ]

@@ -1,8 +1,5 @@
-import { config } from "dotenv"
 import {
   http,
-  Account,
-  type Address,
   type Chain,
   type Hex,
   type PrivateKeyAccount,
@@ -11,28 +8,17 @@ import {
   createPublicClient,
   createWalletClient
 } from "viem"
-import { privateKeyToAccount } from "viem/accounts"
-import { beforeAll, describe, expect, test } from "vitest"
+import { beforeAll, expect, test } from "vitest"
 import {
   type NexusSmartAccount,
-  createSmartAccountClient,
-  getChain,
-  getCustomChain
+  createSmartAccountClient
 } from "../src/account"
-import { createK1ValidatorModule } from "../src/modules"
 import {
   type TestFileNetworkType,
   describeWithPlaygroundGuard,
   toNetwork
 } from "./src/testSetup"
-import {
-  type MasterClient,
-  type NetworkConfig,
-  getBundlerUrl,
-  getTestAccount,
-  toTestClient,
-  topUp
-} from "./src/testUtils"
+import type { NetworkConfig } from "./src/testUtils"
 
 const NETWORK_TYPE: TestFileNetworkType = "PUBLIC_TESTNET"
 
@@ -46,6 +32,7 @@ describeWithPlaygroundGuard("playground", () => {
   // Nexus Config
   let chain: Chain
   let bundlerUrl: string
+  let paymasterUrl: undefined | string
   let walletClient: WalletClient
 
   // Test utils
@@ -59,6 +46,7 @@ describeWithPlaygroundGuard("playground", () => {
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
+    paymasterUrl = network.paymasterUrl
     account = network.account as PrivateKeyAccount
 
     walletClient = createWalletClient({
@@ -164,5 +152,38 @@ describeWithPlaygroundGuard("playground", () => {
     })
 
     expect(balanceAfter - balanceBefore).toBe(1n)
+  })
+
+  test("should send a userOp using pm_sponsorUserOperation", async () => {
+    if (!paymasterUrl) {
+      console.log("No paymaster url provided")
+      return
+    }
+
+    const smartAccount = await createSmartAccountClient({
+      signer: walletClient,
+      chain,
+      paymasterUrl,
+      bundlerUrl,
+      // Remove the following lines to use the default factory and validator addresses
+      // These are relevant only for now on sopelia chain and are likely to change
+      k1ValidatorAddress,
+      factoryAddress
+    })
+
+    expect(async () =>
+      smartAccount.sendTransaction(
+        {
+          to: account.address,
+          data: "0x",
+          value: 1n
+        },
+        {
+          paymasterServiceData: {
+            mode: "SPONSORED"
+          }
+        }
+      )
+    ).rejects.toThrow("Error in generating paymasterAndData")
   })
 })
