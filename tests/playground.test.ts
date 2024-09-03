@@ -8,7 +8,9 @@ import {
   createPublicClient,
   createWalletClient
 } from "viem"
+import { createPaymasterClient } from "viem/account-abstraction"
 import { beforeAll, expect, test } from "vitest"
+import { createPaymaster } from "../src"
 import {
   type NexusSmartAccount,
   createSmartAccountClient
@@ -159,6 +161,12 @@ describeWithPlaygroundGuard("playground", () => {
       console.log("No paymaster url provided")
       return
     }
+
+    const paymasterClient = createPaymasterClient({
+      transport: http(paymasterUrl)
+    })
+
+    console.log({ paymasterClient })
 
     const smartAccount = await createSmartAccountClient({
       signer: walletClient,

@@ -12,7 +12,7 @@ import type {
   WalletClient
 } from "viem"
 import type { IBundler } from "../../bundler"
-import type { ModuleInfo, ModuleType } from "../../modules"
+import type { Module, ModuleInfo, ModuleType } from "../../modules"
 import type { BaseValidationModule } from "../../modules/base/BaseValidationModule"
 import type {
   FeeQuotesOrDataDto,
@@ -639,4 +639,10 @@ export enum CallType {
   CALLTYPE_BATCH = "0x01",
   CALLTYPE_STATIC = "0xFE",
   CALLTYPE_DELEGATECALL = "0xFF"
+}
+
+export type GetNonceArgs = {
+  key?: bigint | undefined
+  validationMode?: "0x00" | "0x01"
+  nonceOptions?: NonceOptions
 }

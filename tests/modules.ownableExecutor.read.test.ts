@@ -12,8 +12,6 @@ import {
   type Transaction,
   createSmartAccountClient
 } from "../src/account"
-import { createOwnableExecutorModule } from "../src/modules"
-import { OWNABLE_EXECUTOR } from "./src/callDatas"
 import { type TestFileNetworkType, toNetwork } from "./src/testSetup"
 import {
   getTestAccount,

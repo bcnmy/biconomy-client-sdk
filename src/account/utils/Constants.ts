@@ -70,8 +70,8 @@ export const GENERIC_FALLBACK_SELECTOR = "0xcb5baf0f"
 export const SENTINEL_ADDRESS: Hex =
   "0x0000000000000000000000000000000000000001"
 
-export const MODE_VALIDATION = "0x00" as Hex
-export const MODE_MODULE_ENABLE = "0x01" as Hex
+export const MODE_VALIDATION = "0x00"
+export const MODE_MODULE_ENABLE = "0x01"
 
 export const MODULE_ENABLE_MODE_TYPE_HASH = keccak256(
   toHex("ModuleEnableMode(address module, bytes32 initDataHash)")

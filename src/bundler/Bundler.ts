@@ -151,6 +151,7 @@ export class Bundler implements IBundler {
    */
   async sendUserOp(_userOp: UserOperationStruct): Promise<UserOpResponse> {
     const chainId = this.bundlerConfig.chainId
+
     const params = [deepHexlify(_userOp), this.bundlerConfig.entryPointAddress]
     const bundlerUrl = this.getBundlerUrl()
     const sendUserOperationResponse: {

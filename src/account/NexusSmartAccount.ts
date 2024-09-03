@@ -66,7 +66,8 @@ import {
 import {
   GENERIC_FALLBACK_SELECTOR,
   type MODE_MODULE_ENABLE,
-  MODE_VALIDATION
+  MODE_VALIDATION,
+  ModeType
 } from "./utils/Constants.js"
 import {
   ADDRESS_ZERO,
@@ -1040,8 +1041,9 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     signature,
     ...userOpWithoutSignature
   }: Partial<UserOperationStruct>): Promise<UserOpResponse> {
-    const userOperation = await this.signUserOp(userOpWithoutSignature)
-    return await this.sendSignedUserOp(userOperation)
+    const signedUserOp = await this.signUserOp(userOpWithoutSignature)
+
+    return await this.sendSignedUserOp(signedUserOp)
   }
 
   /**
@@ -1063,8 +1065,13 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     //   "signature",
     // ]
     // this.validateUserOp(userOp, requiredFields)
+
     if (!this.bundler) throw new Error("Bundler is not provided")
-    return await this.bundler.sendUserOp(userOp)
+
+    console.log("sendSignedUserOp", { userOp })
+
+    return { wait: () => {}, hash: undefined } as unknown as UserOpResponse
+    // return await this.bundler.sendUserOp(userOp)
   }
 
   /**
@@ -1118,7 +1125,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       const feeData = await this.publicClient.estimateFeesPerGas()
       if (feeData.maxFeePerGas?.toString()) {
         finalUserOp.maxFeePerGas = feeData.maxFeePerGas
-      } else if (feeData.gasPrice?.toString()) {
+      } else if (feeData.gasPrice) {
         finalUserOp.maxFeePerGas = feeData.gasPrice
       } else {
         finalUserOp.maxFeePerGas = await this.publicClient.getGasPrice()
@@ -1126,7 +1133,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
 
       if (feeData.maxPriorityFeePerGas?.toString()) {
         finalUserOp.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas
-      } else if (feeData.gasPrice?.toString()) {
+      } else if (feeData.gasPrice) {
         finalUserOp.maxPriorityFeePerGas = feeData.gasPrice ?? 0n
       } else {
         finalUserOp.maxPriorityFeePerGas = await this.publicClient.getGasPrice()
@@ -1144,9 +1151,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     return finalUserOp
   }
 
-  override async getNonce(
-    validationMode?: typeof MODE_VALIDATION | typeof MODE_MODULE_ENABLE
-  ): Promise<bigint> {
+  override async getNonce(validationMode?: "0x00" | "0x01"): Promise<bigint> {
     try {
       const vm =
         this.activeValidationModule.moduleAddress ??
@@ -1418,6 +1423,8 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       factoryData,
       callData
     }
+
+    console.log({ nonceFromFetch })
 
     if (!(await this.isAccountDeployed())) {
       userOp.factory = this.factoryAddress

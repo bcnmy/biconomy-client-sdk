@@ -4,7 +4,8 @@ import { BaseValidationModule } from "../base/BaseValidationModule.js"
 import type { Module } from "../utils/Types.js"
 
 export class K1ValidatorModule extends BaseValidationModule {
-  private constructor(moduleConfig: Module, signer: SmartAccountSigner) {
+  // biome-ignore lint/complexity/noUselessConstructor: <explanation>
+  public constructor(moduleConfig: Module, signer: SmartAccountSigner) {
     super(moduleConfig, signer)
   }
 
