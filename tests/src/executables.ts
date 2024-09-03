@@ -2,7 +2,8 @@ import { execa } from "execa"
 
 const cwd = "./node_modules/nexus"
 
-export const init = async () => await execa({ cwd })`yarn install`
+export const init = async () =>
+  await execa({ cwd })`yarn install --frozen-lockfile`
 
 export const cleanOne = async (rpcPort: number) =>
   await execa({ cwd })`rm -rf ./deployments/anvil-${rpcPort}`

@@ -10,10 +10,6 @@ runs:
     - name: Set up foundry
       uses: foundry-rs/foundry-toolchain@v1
 
-    - name: Installs with yarn
-      shell: bash
-      run: yarn install
-
     - name: Install dependencies
       shell: bash
       run: |
