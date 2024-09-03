@@ -21,6 +21,8 @@ export const DefaultGasLimit = {
 }
 
 export const ERROR_MESSAGES = {
+  INVALID_HEX:
+    "Invalid hex, if you are targeting a number, consider using pad() and toHex() from viem: pad(toHex(BigInt(2000))",
   ACCOUNT_NOT_DEPLOYED: "Account has not yet been deployed",
   ACCOUNT_ALREADY_DEPLOYED: "Account already deployed",
   NO_NATIVE_TOKEN_BALANCE_DURING_DEPLOY:

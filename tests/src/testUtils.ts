@@ -8,8 +8,6 @@ import {
   type Chain,
   type Hex,
   type PrivateKeyAccount,
-  type PublicClient,
-  type WalletClient,
   createPublicClient,
   createTestClient,
   createWalletClient,
@@ -32,12 +30,8 @@ import { createBundler } from "../../src/bundler"
 import {
   ENTRY_POINT_SIMULATIONS_CREATECALL,
   ENTRY_POINT_V07_CREATECALL,
-  OWNABLE_EXECUTOR,
-  OWNABLE_EXECUTOR_BYTECODE,
-  OWNABLE_VALIDATOR,
-  OWNABLE_VALIDATOR_BYTECODE
+  TEST_CONTRACTS
 } from "./callDatas"
-
 import { clean, deploy, init } from "./executables"
 
 config()
@@ -451,16 +445,40 @@ const deployContracts = async (rpcPort: number): Promise<void> => {
     testClient.waitForTransactionReceipt({ hash: entrypointHash })
   ])
 
-  await testClient.setCode({
-    bytecode: OWNABLE_EXECUTOR_BYTECODE,
-    address: OWNABLE_EXECUTOR
-  })
-
-  await testClient.setCode({
-    bytecode: OWNABLE_VALIDATOR_BYTECODE,
-    address: OWNABLE_VALIDATOR
-  })
+  await byteCodeDeployer(testClient, TEST_CONTRACTS)
 }
 
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms))
+
+export type DeployerParams = {
+  name?: string
+  chainId: number
+  address: Address
+}
+export const byteCodeDeployer = async (
+  testClient: MasterClient,
+  deployParams: Record<string, DeployerParams>
+) => {
+  const deployParamsArray = Object.values(deployParams)
+
+  const bytecodes = (await Promise.all(
+    deployParamsArray.map(({ chainId, address }) => {
+      const fetchChain = getChain(chainId)
+      const publicClient = createPublicClient({
+        chain: fetchChain,
+        transport: http()
+      })
+      return publicClient.getBytecode({ address })
+    })
+  )) as Hex[]
+
+  await Promise.all(
+    deployParamsArray.map(({ address }, index) =>
+      testClient.setCode({
+        bytecode: bytecodes[index],
+        address
+      })
+    )
+  )
+}
