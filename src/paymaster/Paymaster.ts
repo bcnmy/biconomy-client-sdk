@@ -6,20 +6,20 @@ import {
   type Transaction,
   type UserOperationStruct,
   sendRequest
-} from "../account"
+} from "../account/index.js"
+import { deepHexlify } from "../bundler/index.js"
 import type { IHybridPaymaster } from "./interfaces/IHybridPaymaster.js"
 import { ADDRESS_ZERO, ERC20_ABI, MAX_UINT256 } from "./utils/Constants.js"
 import { getTimestampInSeconds } from "./utils/Helpers.js"
-import {
-  type FeeQuotesOrDataDto,
-  type FeeQuotesOrDataResponse,
-  type Hex,
-  type JsonRpcResponse,
-  type PaymasterAndDataResponse,
-  type PaymasterConfig,
-  type PaymasterFeeQuote,
-  PaymasterMode,
-  type SponsorUserOperationDto
+import type {
+  FeeQuotesOrDataDto,
+  FeeQuotesOrDataResponse,
+  Hex,
+  JsonRpcResponse,
+  PaymasterAndDataResponse,
+  PaymasterConfig,
+  PaymasterFeeQuote,
+  SponsorUserOperationDto
 } from "./utils/Types.js"
 
 const defaultPaymasterConfig: PaymasterConfig = {
@@ -29,9 +29,7 @@ const defaultPaymasterConfig: PaymasterConfig = {
 /**
  * @dev Hybrid - Generic Gas Abstraction paymaster
  */
-export class BiconomyPaymaster
-  implements IHybridPaymaster<SponsorUserOperationDto>
-{
+export class Paymaster implements IHybridPaymaster<SponsorUserOperationDto> {
   paymasterConfig: PaymasterConfig
 
   constructor(config: PaymasterConfig) {
@@ -163,7 +161,7 @@ export class BiconomyPaymaster
   ): Promise<FeeQuotesOrDataResponse> {
     // const userOp = await this.prepareUserOperation(_userOp)
 
-    let mode: PaymasterMode | null = null
+    let mode: "SPONSORED" | "ERC20" | null = null
     let expiryDuration: number | null = null
     const calculateGasLimits = paymasterServiceData.calculateGasLimits ?? true
     let preferredToken: string | null = null
@@ -230,7 +228,7 @@ export class BiconomyPaymaster
       )
 
       if (response?.result) {
-        if (response.result.mode === PaymasterMode.ERC20) {
+        if (response.result.mode === "ERC20") {
           const feeQuotesResponse: Array<PaymasterFeeQuote> =
             response.result.feeQuotes
           const paymasterAddress: Hex = response.result.paymasterAddress
@@ -240,7 +238,7 @@ export class BiconomyPaymaster
             tokenPaymasterAddress: paymasterAddress
           }
         }
-        if (response.result.mode === PaymasterMode.SPONSORED) {
+        if (response.result.mode === "SPONSORED") {
           const paymasterAndData: Hex = response.result.paymasterAndData
           const preVerificationGas = response.result.preVerificationGas
           const verificationGasLimit = response.result.verificationGasLimit
@@ -267,7 +265,7 @@ export class BiconomyPaymaster
       // Note: we may not throw if we include strictMode off and return paymasterData '0x'.
       if (
         !this.paymasterConfig.strictMode &&
-        paymasterServiceData.mode === PaymasterMode.SPONSORED &&
+        paymasterServiceData.mode === "SPONSORED" &&
         (error?.message.includes("Smart contract data not found") ||
           error?.message.includes("No policies were set"))
         // can also check based on error.code being -32xxx
@@ -317,7 +315,7 @@ export class BiconomyPaymaster
     let webhookData: Record<string, any> | null = null
     let expiryDuration: number | null = null
 
-    if (mode === PaymasterMode.ERC20) {
+    if (mode === "ERC20") {
       if (
         !paymasterServiceData?.feeTokenAddress &&
         paymasterServiceData?.feeTokenAddress === ADDRESS_ZERO
@@ -336,6 +334,8 @@ export class BiconomyPaymaster
 
     // Note: The idea is before calling this below rpc, userOp values presense and types should be in accordance with how we call eth_estimateUseropGas on the bundler
 
+    const hexlifiedUserOp = deepHexlify(userOp)
+
     try {
       const response: JsonRpcResponse = await sendRequest(
         {
@@ -344,7 +344,7 @@ export class BiconomyPaymaster
           body: {
             method: "pm_sponsorUserOperation",
             params: [
-              userOp,
+              hexlifiedUserOp,
               {
                 mode: mode,
                 calculateGasLimits: calculateGasLimits,
@@ -401,9 +401,10 @@ export class BiconomyPaymaster
     return "0x"
   }
 
-  public static async create(
-    config: PaymasterConfig
-  ): Promise<BiconomyPaymaster> {
-    return new BiconomyPaymaster(config)
+  public static async create(config: PaymasterConfig): Promise<Paymaster> {
+    return new Paymaster(config)
   }
 }
+
+export const toPaymaster = Paymaster.create
+export default toPaymaster

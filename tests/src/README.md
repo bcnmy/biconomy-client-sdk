@@ -84,6 +84,7 @@ testnetTest("should be used in the following way", async({ config: { bundlerUrl,
     - CHAIN_ID
     - RPC_URL (optional, inferred if unset)
     - BUNDLER_URL (optional, inferred if unset)
+    - PAYMASTER_URL (tests skipped if unset)
 
 ## Debugging and Client Issues
 It is recommended to use the playground for debugging issues with clients. Please refer to the following guidelines for escalation and handover: [Debugging Client Issues](https://www.notion.so/biconomy/Debugging-Client-Issues-cc01c1cab0224c87b37a4d283370165b)

@@ -57,3 +57,7 @@ export const toNetwork = async (
 
 export const describeWithPlaygroundGuard =
   process.env.RUN_PLAYGROUND === "true" ? describe : describe.skip
+
+export const describeWithPaymasterGuard = process.env.PAYMASTER_URL
+  ? describe
+  : describe.skip

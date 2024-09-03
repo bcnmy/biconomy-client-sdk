@@ -18,7 +18,6 @@ import type {
   FeeQuotesOrDataDto,
   IPaymaster,
   PaymasterFeeQuote,
-  PaymasterMode,
   SmartAccountData,
   SponsorUserOperationDto
 } from "../../paymaster"
@@ -256,7 +255,7 @@ export type InitilizationData = {
 export type PaymasterUserOperationDto = SponsorUserOperationDto &
   FeeQuotesOrDataDto & {
     /** mode: sponsored or erc20 */
-    mode: PaymasterMode
+    mode: "SPONSORED" | "ERC20"
     /** Always recommended, especially when using token paymaster */
     calculateGasLimits?: boolean
     /** Expiry duration in seconds */

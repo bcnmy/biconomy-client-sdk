@@ -50,7 +50,6 @@ import {
   type IHybridPaymaster,
   type IPaymaster,
   Paymaster,
-  PaymasterMode,
   type SponsorUserOperationDto
 } from "../paymaster/index.js"
 import {
@@ -151,10 +150,6 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     if (nexusSmartAccountConfig.paymasterUrl) {
       this.paymaster = new Paymaster({
         paymasterUrl: nexusSmartAccountConfig.paymasterUrl
-      })
-    } else if (nexusSmartAccountConfig.biconomyPaymasterApiKey) {
-      this.paymaster = new Paymaster({
-        paymasterUrl: `https://paymaster.biconomy.io/api/v1/${nexusSmartAccountConfig.chain.id}/${nexusSmartAccountConfig.biconomyPaymasterApiKey}`
       })
     } else {
       this.paymaster = nexusSmartAccountConfig.paymaster
@@ -328,7 +323,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    *
    * const amountInWei = await smartAccount.getGasEstimates([tx, tx], {
    *    paymasterServiceData: {
-   *      mode: PaymasterMode.SPONSORED,
+   *      mode: "SPONSORED",
    *    },
    * });
    *
@@ -495,14 +490,14 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    *  ],
    *  account.address, // Default recipient used if no recipient is present in the withdrawal request
    *  {
-   *    paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+   *    paymasterServiceData: { mode: "SPONSORED" },
    *  }
    * );
    *
    * // OR to withdraw all of the native token, leaving no dust in the smart account
    *
    * const { wait } = await smartAccount.withdraw([], account.address, {
-   *  paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+   *  paymasterServiceData: { mode: "SPONSORED" },
    * });
    *
    * const { success } = await wait();
@@ -906,13 +901,13 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    *   data: encodedCall
    * }
    *
-   * const feeQuotesResponse: FeeQuotesOrDataResponse = await smartAccount.getTokenFees(transaction, { paymasterServiceData: { mode: PaymasterMode.ERC20 } });
+   * const feeQuotesResponse: FeeQuotesOrDataResponse = await smartAccount.getTokenFees(transaction, { paymasterServiceData: { mode: "ERC20" } });
    *
    * const userSeletedFeeQuote = feeQuotesResponse.feeQuotes?.[0];
    *
    * const { wait } = await smartAccount.sendTransaction(transaction, {
    *    paymasterServiceData: {
-   *      mode: PaymasterMode.ERC20,
+   *      mode: "ERC20",
    *      feeQuote: userSeletedFeeQuote,
    *      spender: feeQuotesResponse.tokenPaymasterAddress,
    *    },
@@ -976,7 +971,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
         to: await this.getAddress()
       },
       {
-        paymasterServiceData: { mode: PaymasterMode.ERC20 }
+        paymasterServiceData: { mode: "ERC20" }
       }
     )
 
@@ -1209,7 +1204,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
         bundlerUrl: `https://bundler.biconomy.io/api/v2/84532/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44`,
         chainId: 84532
       });
-      const response = await smartAccount.transferOwnership(newOwner, DEFAULT_ECDSA_OWNERSHIP_MODULE, {paymasterServiceData: {mode: PaymasterMode.SPONSORED}});
+      const response = await smartAccount.transferOwnership(newOwner, DEFAULT_ECDSA_OWNERSHIP_MODULE, {paymasterServiceData: {mode: "SPONSORED"}});
       
       walletClient = createWalletClient({
         newOwnerAccount,
@@ -1438,7 +1433,38 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
 
     userOp = await this.estimateUserOpGas(userOp)
 
+    if (buildUseropDto?.paymasterServiceData?.mode === "SPONSORED") {
+      userOp = await this.getPaymasterAndData(
+        userOp,
+        buildUseropDto?.paymasterServiceData
+      )
+    }
+
     return userOp
+  }
+
+  private async getPaymasterAndData(
+    userOp: Partial<UserOperationStruct>,
+    paymasterServiceData: PaymasterUserOperationDto
+  ): Promise<UserOperationStruct> {
+    const paymaster = this
+      .paymaster as IHybridPaymaster<PaymasterUserOperationDto>
+    const paymasterData = await paymaster.getPaymasterAndData(
+      userOp,
+      paymasterServiceData
+    )
+    const userOpStruct = {
+      ...userOp,
+      ...paymasterData,
+      callGasLimit: BigInt(userOp.callGasLimit ?? 0n),
+      verificationGasLimit: BigInt(userOp.verificationGasLimit ?? 0n),
+      preVerificationGas: BigInt(userOp.preVerificationGas ?? 0n),
+      sender: (await this.getAddress()) as Hex,
+      paymasterAndData: undefined
+      // paymasterAndData: paymasterData?.paymasterAndData as Hex
+    } as UserOperationStruct
+
+    return userOpStruct
   }
 
   private validateUserOpAndPaymasterRequest(
@@ -1612,7 +1638,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    *
    * // If you want to use a paymaster...
    * const { wait } = await smartAccount.deploy({
-   *   paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+   *   paymasterServiceData: { mode: "SPONSORED" },
    * });
    *
    * // Or if you can't use a paymaster send native token to this address:

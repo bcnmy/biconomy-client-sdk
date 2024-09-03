@@ -55,6 +55,7 @@ export type NetworkConfig = Omit<
   "instance" | "bundlerInstance"
 > & {
   account?: PrivateKeyAccount
+  paymasterUrl?: string
 }
 export const pKey =
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" // This is a publicly available private key meant only for testing only
@@ -91,11 +92,13 @@ export const initTestnetNetwork = async (): Promise<NetworkConfig> => {
   const chainId = process.env.CHAIN_ID
   const rpcUrl = process.env.RPC_URL //Optional, taken from chain (using chainId) if not provided
   const _bundlerUrl = process.env.BUNDLER_URL // Optional, taken from chain (using chainId) if not provided
+  const paymasterUrl = process.env.PAYMASTER_URL // Optional
 
   let chain: Chain
 
   if (!privateKey) throw new Error("Missing env var E2E_PRIVATE_KEY_ONE")
   if (!chainId) throw new Error("Missing env var CHAIN_ID")
+  if (!paymasterUrl) console.log("Missing env var PAYMASTER_URL")
 
   try {
     chain = getChain(+chainId)
@@ -110,6 +113,7 @@ export const initTestnetNetwork = async (): Promise<NetworkConfig> => {
     rpcPort: 0,
     chain,
     bundlerUrl,
+    paymasterUrl,
     bundlerPort: 0,
     account: privateKeyToAccount(
       privateKey?.startsWith("0x") ? (privateKey as Hex) : `0x${privateKey}`
