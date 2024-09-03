@@ -2,21 +2,14 @@
   {
     "name": "core (esm)",
     "path": "./dist/_esm/index.js",
-    "limit": "180 kB",
+    "limit": "25 kB",
     "import": "*",
     "ignore": ["node:fs", "fs"]
   },
   {
     "name": "core (cjs)",
     "path": "./dist/_cjs/index.js",
-    "limit": "180 kB",
-    "ignore": ["node:fs", "fs"]
-  },
-  {
-    "name": "account (tree-shaking)",
-    "path": "./dist/_esm/index.js",
-    "limit": "180 kB",
-    "import": "{ createSmartAccountClient }",
+    "limit": "25 kB",
     "ignore": ["node:fs", "fs"]
   },
   {
