@@ -202,6 +202,7 @@ export const toConfiguredAnvil = async ({
     // forkUrl: "https://base-sepolia.gateway.tenderly.co/2oxlNZ7oiNCUpXzrWFuIHx"
   })
   await instance.start()
+  console.log("deploying contracts...")
   await deployContracts(rpcPort)
   await init()
   await clean()
