@@ -80,7 +80,7 @@ describe("modules.ownable.validator.uninstall.write", () => {
     expect(addresses.every(Boolean)).to.be.true
     expect(addresses).toStrictEqual([
       "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-      "0xa3962DB24D3cAb711e18d5A508591C6dB82a0f54" // Sender smart account
+      "0x5c5125986F71970e582cc5044EC20d0F32BFA0BD" // Sender smart account
     ])
   })
 
