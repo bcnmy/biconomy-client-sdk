@@ -82,7 +82,7 @@ describe("modules.ownable.executor.read", () => {
     expect(addresses.every(Boolean)).to.be.true
     expect(addresses).toStrictEqual([
       "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-      "0xa3962DB24D3cAb711e18d5A508591C6dB82a0f54" // Sender smart account
+      "0x20d1d764a4c9Da746537be5C839f8A44b32E43dA" // Sender smart account
     ])
   })
 

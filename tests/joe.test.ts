@@ -37,6 +37,7 @@ import {
 } from "../src/account"
 import { CounterAbi } from "./src/__contracts/abi"
 import mockAddresses from "./src/__contracts/mockAddresses"
+import { TEST_CONTRACTS } from "./src/callDatas"
 import { type TestFileNetworkType, toNetwork } from "./src/testSetup"
 import {
   checkBalance,
@@ -56,7 +57,7 @@ import type {
 
 const NETWORK_TYPE: TestFileNetworkType = "COMMON_LOCALHOST"
 
-describe("account.read", () => {
+describe("joe", () => {
   let network: NetworkConfig
   // Nexus Config
   let chain: Chain
@@ -97,6 +98,15 @@ describe("account.read", () => {
   })
   afterAll(async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
+  })
+
+  test("check addresses", async () => {
+    expect(TEST_CONTRACTS.K1Validator.address).toStrictEqual(
+      smartAccount.activeValidationModule.getAddress()
+    )
+    expect(smartAccount.getFactoryAddress()).toStrictEqual(
+      TEST_CONTRACTS.k1ValidatorFactory.address
+    )
   })
 
   test("should fund the smart account", async () => {

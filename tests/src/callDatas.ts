@@ -1,7 +1,47 @@
 import type { Hex } from "viem"
 import type { DeployerParams } from "./testUtils"
 
+/**
+ * Nexus implementation deployed at: 0x2ecd86799137FA35De834Da03D876bcc363ec0c3
+Bootstrapper deployed at: 0x272cA3EEA4fB50e4bcdC63e80A2CAABdA62df5f9
+K1Validator deployed at: 0xBD654f9F8718840591A2964E2f0cA5b0bB743183
+BootstrapLib deployed at: 0x65e2389A0D7FFaBfAb75DA388fF07cF6fCeDAd14
+k1ValidatorFactory deployed at: 0xB0D70f13903f3Eb5D378dD6A5aC4E755Fc13dC1b
+BiconomyMetaFactory deployed at: 0xe1333784d3366370d99F75C7E28191a83E9188e3
+ */
+
 export const TEST_CONTRACTS: Record<string, DeployerParams> = {
+  // Nexus Contracts
+  Nexus: {
+    chainId: 84532,
+    name: "Nexus",
+    address: "0x2ecd86799137FA35De834Da03D876bcc363ec0c3"
+  },
+  // Bootstrapper: {
+  //   chainId: 84532,
+  //   name: "Bootstrapper",
+  //   address: "0x272cA3EEA4fB50e4bcdC63e80A2CAABdA62df5f9"
+  // },
+  K1Validator: {
+    chainId: 84532,
+    name: "K1Validator",
+    address: "0xBD654f9F8718840591A2964E2f0cA5b0bB743183"
+  },
+  // BootstrapLib: {
+  //   chainId: 84532,
+  //   name: "BootstrapLib",
+  //   address: "0x65e2389A0D7FFaBfAb75DA388fF07cF6fCeDAd14"
+  // },
+  k1ValidatorFactory: {
+    chainId: 84532,
+    name: "k1ValidatorFactory",
+    address: "0xB0D70f13903f3Eb5D378dD6A5aC4E755Fc13dC1b"
+  },
+  // BiconomyMetaFactory: {
+  //   chainId: 84532,
+  //   name: "BiconomyMetaFactory",
+  //   address: "0xe1333784d3366370d99F75C7E28191a83E9188e3"
+  // },
   // Rhinestone Ownables
   OwnableValidator: {
     chainId: 84532,

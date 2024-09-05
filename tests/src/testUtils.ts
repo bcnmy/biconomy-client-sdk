@@ -205,11 +205,11 @@ export const toConfiguredAnvil = async ({
   console.log("")
   console.log(`configuring module bytecode on http://localhost:${rpcPort}`)
   await deployContracts(rpcPort)
-  await init()
-  await clean()
-  console.log(`deploying nexus contracts to http://localhost:${rpcPort}`)
-  await deploy(rpcPort)
-  console.log("deployment complete")
+  // await init()
+  // await clean()
+  // console.log(`deploying nexus contracts to http://localhost:${rpcPort}`)
+  // await deploy(rpcPort)
+  // console.log("deployment complete")
   console.log("")
   return instance
 }
