@@ -4,7 +4,11 @@ import {
   type Chain,
   type Hex,
   type WalletClient,
-  createWalletClient
+  createWalletClient,
+  Address,
+  encodeAbiParameters,
+  stringToBytes,
+  toHex
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import {
@@ -20,8 +24,14 @@ import {
   topUp
 } from "./src/testUtils"
 import type { MasterClient, NetworkConfig } from "./src/testUtils"
+import { GENERIC_FALLBACK_SELECTOR_SELECTOR } from "../src/bundler/utils/Constants"
 
 const NETWORK_TYPE: TestFileNetworkType = "FILE_LOCALHOST"
+
+// todo
+// remove hard code and fetch from deployments
+const MOCK_HOOK = "0xAB9733982E5b98bdDc4f00314E8EA4911A9D1BA5"
+const MOCK_FALLBACK_HANDLER = "0xBE52B87DA68EC967e977191bE125584b98c1Ea04"
 
 describe("account.write", () => {
   let network: NetworkConfig
@@ -118,110 +128,103 @@ describe("account.write", () => {
     expect(balanceAfter - balanceBefore).toBe(2n)
   })
 
-  //   test("install a mock Hook module", async () => {
-  //     const isSupported = await smartAccount.supportsModule(ModuleType.Hook)
-  //     console.log(isSupported, "is supported")
+    test("install a mock Hook module", async () => {
+      const isSupported = await smartAccount.supportsModule("hook")
+      console.log(isSupported, "is supported")
 
-  //     const isInstalledBefore = await smartAccount.isModuleInstalled(
-  //       ModuleType.Hook,
-  //       MOCK_HOOK
-  //     )
-  //     console.log(isInstalledBefore, "is installed before")
+      const isInstalledBefore = await smartAccount.isModuleInstalled({
+        moduleAddress: MOCK_HOOK,
+        type: "hook"
+      })
 
-  //     const userOpReceipt = await smartAccount.installModule(MOCK_HOOK, ModuleType.Hook)
-  //     console.log(userOpReceipt, "user op receipt")
+      console.log(isInstalledBefore, "is installed before")
 
-  //     const isInstalled = await smartAccount.isModuleInstalled(
-  //       ModuleType.Hook,
-  //       MOCK_HOOK
-  //     )
+      const { wait } = await smartAccount.installModule({
+        moduleAddress: MOCK_HOOK,
+        type: "hook"
+      })
+      const { success } = await wait()
+     
+      const isInstalled = await smartAccount.isModuleInstalled({
+        moduleAddress: MOCK_HOOK,
+        type: "hook"
+      })
+      expect(success).toBe(true)
+      expect(isInstalled).toBeTruthy()
+    }, 60000)
 
-  //     expect(userOpReceipt.success).toBe(true)
-  //     expect(isInstalled).toBeTruthy()
-  //   }, 60000)
+    test("get active hook", async () => {
+      const activeHook: Address = await smartAccount.getActiveHook()
+      console.log(activeHook, "active hook")
+      expect(activeHook).toBe(MOCK_HOOK)
+    }, 60000)
 
-  //   test("get active hook", async () => {
-  //     const activeHook: Address = await smartAccount.getActiveHook()
-  //     console.log(activeHook, "active hook")
-  //     expect(activeHook).toBe(MOCK_HOOK)
-  //   }, 60000)
+    test("uninstall hook module", async () => {
+      const prevAddress: Hex = "0x0000000000000000000000000000000000000001"
+      const deInitData = encodeAbiParameters(
+        [
+          { name: "prev", type: "address" },
+          { name: "disableModuleData", type: "bytes" }
+        ],
+        [prevAddress, toHex(stringToBytes(""))]
+      )
+      const { wait }  = await smartAccount.uninstallModule(
+        {
+          moduleAddress: MOCK_HOOK,
+          type: "hook",
+          data: deInitData // review
+        }
+      )
 
-  //   test("uninstall hook module", async () => {
-  //     const prevAddress: Hex = "0x0000000000000000000000000000000000000001"
-  //     const deInitData = encodeAbiParameters(
-  //       [
-  //         { name: "prev", type: "address" },
-  //         { name: "disableModuleData", type: "bytes" }
-  //       ],
-  //       [prevAddress, toHex(stringToBytes(""))]
-  //     )
-  //     const userOpReceipt = await smartAccount.uninstallModule(MOCK_HOOK, ModuleType.Hook, deInitData)
+      const { success } = await wait()
 
-  //     const isInstalled = await smartAccount.isModuleInstalled(
-  //       ModuleType.Hook,
-  //       MOCK_HOOK
-  //     )
+      const isInstalled = await smartAccount.isModuleInstalled({
+        moduleAddress: MOCK_HOOK,
+        type: "hook"
+      })
 
-  //     expect(userOpReceipt.success).toBe(true)
-  //     expect(isInstalled).toBeFalsy()
-  //     expect(userOpReceipt).toBeTruthy()
-  //   }, 60000)
+      expect(success).toBe(true)
+      expect(isInstalled).toBeFalsy()
+    }, 60000)
 
-  //   test("install a fallback handler Hook module", async () => {
-  //     const isSupported = await smartAccount.supportsModule(ModuleType.Fallback)
-  //     console.log(isSupported, "is supported")
+    test("install a fallback handler Hook module", async () => {
+      const isSupported = await smartAccount.supportsModule("fallback")
+      console.log(isSupported, "is supported")
 
-  //     const isInstalledBefore = await smartAccount.isModuleInstalled(
-  //       ModuleType.Fallback,
-  //       MOCK_FALLBACK_HANDLER,
-  //       ethers.AbiCoder.defaultAbiCoder().encode(
-  //         ["bytes4"],
-  //         [GENERIC_FALLBACK_SELECTOR as Hex]
-  //       ) as Hex
-  //     )
-  //     console.log(isInstalledBefore, "is installed before")
+      const isInstalledBefore = await smartAccount.isModuleInstalled({
+        type: "fallback",
+        moduleAddress: MOCK_FALLBACK_HANDLER,
+        data: encodeAbiParameters(
+          [{ type: 'bytes4' }],
+          [ GENERIC_FALLBACK_SELECTOR_SELECTOR as Hex ]
+        )
+      })
+      console.log(isInstalledBefore, "is installed before")
+    }, 60000)
 
-  //     const userOpReceipt = await smartAccount.installModule(MOCK_FALLBACK_HANDLER, ModuleType.Fallback, ethers.AbiCoder.defaultAbiCoder().encode(
-  //       ["bytes4"],
-  //       [GENERIC_FALLBACK_SELECTOR as Hex]
-  //     ) as Hex)
+    // test("uninstall handler module", async () => {
+    //   const prevAddress: Hex = "0x0000000000000000000000000000000000000001"
+    //   const deInitData = ethers.AbiCoder.defaultAbiCoder().encode(
+    //     ["bytes4"],
+    //     [GENERIC_FALLBACK_SELECTOR_SELECTOR as Hex]
+    //   ) as Hex
+    //   const userOpReceipt = await smartAccount.uninstallModule(
+    //     MOCK_FALLBACK_HANDLER,
+    //     ModuleType.Fallback,
+    //     deInitData
+    //   )
 
-  //     const isInstalled = await smartAccount.isModuleInstalled(
-  //       ModuleType.Fallback,
-  //       MOCK_FALLBACK_HANDLER,
-  //       ethers.AbiCoder.defaultAbiCoder().encode(
-  //         ["bytes4"],
-  //         [GENERIC_FALLBACK_SELECTOR as Hex]
-  //       ) as Hex
-  //     )
+    //   const isInstalled = await smartAccount.isModuleInstalled(
+    //     ModuleType.Fallback,
+    //     MOCK_FALLBACK_HANDLER,
+    //     ethers.AbiCoder.defaultAbiCoder().encode(
+    //       ["bytes4"],
+    //       [GENERIC_FALLBACK_SELECTOR_SELECTOR as Hex]
+    //     ) as Hex
+    //   )
 
-  //     expect(userOpReceipt.success).toBe(true)
-  //     expect(isInstalled).toBeTruthy()
-  //   }, 60000)
-
-  //   test("uninstall handler module", async () => {
-  //     const prevAddress: Hex = "0x0000000000000000000000000000000000000001"
-  //     const deInitData = ethers.AbiCoder.defaultAbiCoder().encode(
-  //       ["bytes4"],
-  //       [GENERIC_FALLBACK_SELECTOR as Hex]
-  //     ) as Hex
-  //     const userOpReceipt = await smartAccount.uninstallModule(
-  //       MOCK_FALLBACK_HANDLER,
-  //       ModuleType.Fallback,
-  //       deInitData
-  //     )
-
-  //     const isInstalled = await smartAccount.isModuleInstalled(
-  //       ModuleType.Fallback,
-  //       MOCK_FALLBACK_HANDLER,
-  //       ethers.AbiCoder.defaultAbiCoder().encode(
-  //         ["bytes4"],
-  //         [GENERIC_FALLBACK_SELECTOR as Hex]
-  //       ) as Hex
-  //     )
-
-  //     expect(userOpReceipt.success).toBe(true)
-  //     expect(isInstalled).toBeFalsy()
-  //     expect(userOpReceipt).toBeTruthy()
-  //   }, 60000)
+    //   expect(userOpReceipt.success).toBe(true)
+    //   expect(isInstalled).toBeFalsy()
+    //   expect(userOpReceipt).toBeTruthy()
+    // }, 60000)
 })

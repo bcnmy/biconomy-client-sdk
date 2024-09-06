@@ -11,7 +11,7 @@ type FetchDetails = {
 const {
   nexusDeploymentPath = "../node_modules/nexus/deployments",
   chainName = "anvil-55000",
-  forSrc = ["K1ValidatorFactory", "Nexus", "K1Validator"]
+  forSrc = ["K1ValidatorFactory", "Nexus", "K1Validator", "MockHook", "MockHandler"]
 } = yargs(hideBin(process.argv)).argv as unknown as FetchDetails
 
 type DeployedContract = {

@@ -38,6 +38,7 @@ import {
   type Execution,
   type Module,
   type ModuleInfo,
+  ModuleType,
   type SendUserOpParams,
   createK1ValidatorModule,
   createValidationModule,
@@ -64,7 +65,7 @@ import {
   convertSigner
 } from "./index.js"
 import {
-  GENERIC_FALLBACK_SELECTOR,
+  GENERIC_FALLBACK_SELECTOR_SELECTOR,
   type MODE_MODULE_ENABLE,
   MODE_VALIDATION
 } from "./utils/Constants.js"
@@ -1799,6 +1800,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
             "Selector param is required for a Fallback Handler Module"
           )
         }
+        // Todo: correct below error
         execution = await this._uninstallFallback(module)
         return this.sendTransaction(
           {
@@ -1837,6 +1839,8 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     throw new Error("Module already installed")
   }
 
+  // Review in case of fallback and other kind
+  // Review against needed types by looking at the contracts repo & test cases
   async uninstallModule(
     module: Module,
     buildUserOpOptions?: BuildUserOpOptions
@@ -1906,6 +1910,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     throw new Error(`Unknown module type ${module.type}`)
   }
 
+  // Note: Why do we have _uninstallFallback separately? and not installFallback as well then?
   private async _uninstallFallback(module: Module): Promise<Execution> {
     let execution: Execution
 
@@ -2064,7 +2069,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   async getFallbackBySelector(selector?: Hex) {
     const accountContract = await this._getAccountContract()
     return await accountContract.read.getFallbackHandlerBySelector([
-      selector ?? GENERIC_FALLBACK_SELECTOR
+      selector ?? GENERIC_FALLBACK_SELECTOR_SELECTOR
     ])
   }
 
@@ -2073,16 +2078,18 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    * @param moduleType - The type of module to check for support.
    * @returns A promise that resolves to a boolean indicating whether the module type is supported.
    */
-  async supportsModule(module: Module): Promise<boolean> {
+  async supportsModule(moduleType: ModuleType): Promise<boolean> {
     const accountContract = await this._getAccountContract()
     const moduleIndex =
-      module.type === "validator"
+    moduleType === "validator"
         ? 1n
-        : module.type === "executor"
+        : moduleType === "executor"
           ? 2n
-          : module.type === "fallback"
+          : moduleType === "fallback"
             ? 3n
-            : 4n
+            : moduleType === "hook"
+              ? 4n
+              : 0n // review
     return await accountContract.read.supportsModule([moduleIndex])
   }
 }
