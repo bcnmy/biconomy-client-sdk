@@ -1459,9 +1459,9 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       callGasLimit: BigInt(userOp.callGasLimit ?? 0n),
       verificationGasLimit: BigInt(userOp.verificationGasLimit ?? 0n),
       preVerificationGas: BigInt(userOp.preVerificationGas ?? 0n),
+      paymasterVerificationGasLimit: BigInt(userOp.paymasterVerificationGasLimit ?? 0n),
+      paymasterPostOpGasLimit: BigInt(userOp.paymasterPostOpGasLimit ?? 0n),
       sender: (await this.getAddress()) as Hex,
-      paymasterAndData: undefined
-      // paymasterAndData: paymasterData?.paymasterAndData as Hex
     } as UserOperationStruct
 
     return userOpStruct

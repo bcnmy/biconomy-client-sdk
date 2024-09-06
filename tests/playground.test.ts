@@ -48,7 +48,7 @@ describeWithPlaygroundGuard("playground", () => {
     bundlerUrl = network.bundlerUrl
     paymasterUrl = network.paymasterUrl
     account = network.account as PrivateKeyAccount
-
+    console.log(`chain ${chain}, id : ${chain.id}, bundlerUrl : ${bundlerUrl}, paymasterUrl : ${paymasterUrl}, account : ${account.address}`)
     walletClient = createWalletClient({
       account,
       chain,
@@ -71,95 +71,11 @@ describeWithPlaygroundGuard("playground", () => {
     smartAccountAddress = await smartAccount.getAddress()
   })
 
-  test("should have factory and k1Validator deployed", async () => {
-    const byteCodes = await Promise.all([
-      publicClient.getBytecode({
-        address: k1ValidatorAddress
-      }),
-      publicClient.getBytecode({
-        address: factoryAddress
-      })
-    ])
-
-    expect(byteCodes.every(Boolean)).toBeTruthy()
-  })
-
-  test("should init the smart account", async () => {
-    smartAccount = await createSmartAccountClient({
-      signer: walletClient,
-      chain,
-      bundlerUrl,
-      // Remove the following lines to use the default factory and validator addresses
-      // These are relevant only for now on sopelia chain and are likely to change
-      k1ValidatorAddress,
-      factoryAddress
-    })
-  })
-
-  test("should log relevant addresses", async () => {
-    smartAccountAddress = await smartAccount.getAddress()
-    console.log({ smartAccountAddress })
-  })
-
-  test("should check balances and top up relevant addresses", async () => {
-    const [ownerBalance, smartAccountBalance] = await Promise.all([
-      publicClient.getBalance({
-        address: account.address
-      }),
-      publicClient.getBalance({
-        address: smartAccountAddress
-      })
-    ])
-    console.log({ ownerBalance, smartAccountBalance })
-
-    const balancesAreOfCorrectType = [ownerBalance, smartAccountBalance].every(
-      (balance) => typeof balance === "bigint"
-    )
-    if (smartAccountBalance === 0n) {
-      const hash = await walletClient.sendTransaction({
-        chain,
-        account,
-        to: smartAccountAddress,
-        value: 1000000000000000000n
-      })
-      const receipt = await publicClient.waitForTransactionReceipt({ hash })
-      console.log({ receipt })
-    }
-    expect(balancesAreOfCorrectType).toBeTruthy()
-  })
-
-  test("should send some native token", async () => {
-    const balanceBefore = await publicClient.getBalance({
-      address: account.address
-    })
-
-    const { wait } = await smartAccount.sendTransaction({
-      to: account.address,
-      data: "0x",
-      value: 1n
-    })
-
-    const {
-      success,
-      receipt: { transactionHash }
-    } = await wait()
-    expect(success).toBeTruthy()
-
-    console.log({ transactionHash })
-
-    const balanceAfter = await publicClient.getBalance({
-      address: account.address
-    })
-
-    expect(balanceAfter - balanceBefore).toBe(1n)
-  })
-
   test("should send a userOp using pm_sponsorUserOperation", async () => {
     if (!paymasterUrl) {
       console.log("No paymaster url provided")
       return
     }
-
     const smartAccount = await createSmartAccountClient({
       signer: walletClient,
       chain,

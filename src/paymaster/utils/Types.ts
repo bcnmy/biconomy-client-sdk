@@ -113,7 +113,14 @@ export type FeeQuotesOrDataResponse = {
 }
 
 export type PaymasterAndDataResponse = {
-  paymasterAndData: Hex
+  paymaster: Hex
+
+  paymasterData: Hex
+
+  paymasterVerificationGasLimit: number
+
+  paymasterPostOpGasLimit: number
+  
   /* Gas overhead of this UserOperation */
   preVerificationGas: number
   /* Actual gas used by the validation of this UserOperation */
