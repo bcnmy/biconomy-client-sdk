@@ -334,10 +334,16 @@ export class Paymaster implements IHybridPaymaster<SponsorUserOperationDto> {
 
     // Note: The idea is before calling this below rpc, userOp values presense and types should be in accordance with how we call eth_estimateUseropGas on the bundler
 
-    const hexlifiedUserOp = deepHexlify(userOp);
-    hexlifiedUserOp.callGasLimit = BigInt(hexlifiedUserOp.callGasLimit).toString(10);
-    hexlifiedUserOp.verificationGasLimit = BigInt(hexlifiedUserOp.verificationGasLimit).toString(10);
-    hexlifiedUserOp.preVerificationGas = BigInt(hexlifiedUserOp.preVerificationGas).toString(10);
+    const hexlifiedUserOp = deepHexlify(userOp)
+    hexlifiedUserOp.callGasLimit = BigInt(
+      hexlifiedUserOp.callGasLimit
+    ).toString(10)
+    hexlifiedUserOp.verificationGasLimit = BigInt(
+      hexlifiedUserOp.verificationGasLimit
+    ).toString(10)
+    hexlifiedUserOp.preVerificationGas = BigInt(
+      hexlifiedUserOp.preVerificationGas
+    ).toString(10)
 
     try {
       const response: JsonRpcResponse = await sendRequest(
@@ -369,8 +375,12 @@ export class Paymaster implements IHybridPaymaster<SponsorUserOperationDto> {
       if (response?.result) {
         const paymaster = response.result.paymaster
         const paymasterData = response.result.paymasterData
-        const paymasterPostOpGasLimit = response.result.paymasterPostOpGasLimit ?? userOp.paymasterPostOpGasLimit
-        const paymasterVerificationGasLimit = response.result.paymasterVerificationGasLimit ?? userOp.paymasterVerificationGasLimit
+        const paymasterPostOpGasLimit =
+          response.result.paymasterPostOpGasLimit ??
+          userOp.paymasterPostOpGasLimit
+        const paymasterVerificationGasLimit =
+          response.result.paymasterVerificationGasLimit ??
+          userOp.paymasterVerificationGasLimit
         const preVerificationGas =
           response.result.preVerificationGas ?? userOp.preVerificationGas
         const verificationGasLimit =

@@ -48,7 +48,9 @@ describeWithPlaygroundGuard("playground", () => {
     bundlerUrl = network.bundlerUrl
     paymasterUrl = network.paymasterUrl
     account = network.account as PrivateKeyAccount
-    console.log(`chain ${chain}, id : ${chain.id}, bundlerUrl : ${bundlerUrl}, paymasterUrl : ${paymasterUrl}, account : ${account.address}`)
+    console.log(
+      `chain ${chain}, id : ${chain.id}, bundlerUrl : ${bundlerUrl}, paymasterUrl : ${paymasterUrl}, account : ${account.address}`
+    )
     walletClient = createWalletClient({
       account,
       chain,
