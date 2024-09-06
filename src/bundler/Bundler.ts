@@ -335,7 +335,9 @@ export class Bundler implements IBundler {
         url: bundlerUrl,
         method: HttpMethod.Post,
         body: {
-          method: "pimlico_getUserOperationGasPrice",
+          method: process.env.BUNDLER_URL?.includes("pimlico")
+            ? "pimlico_getUserOperationGasPrice"
+            : "biconomy_getGasFeeValues",
           params: [],
           id: getTimestampInSeconds(),
           jsonrpc: "2.0"
