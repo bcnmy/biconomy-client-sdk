@@ -631,6 +631,7 @@ describe("account.read", () => {
     }
   })
 
+  // Review: Should not work the same way post removal of ERC7739
   test.skip("should test isValidSignature EIP712Sign to be valid", async () => {
     if (await smartAccount.isAccountDeployed()) {
       const data = keccak256("0x1234")

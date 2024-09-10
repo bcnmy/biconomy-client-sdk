@@ -17,7 +17,6 @@ import {
 } from "../src/account"
 import { CounterAbi } from "./src/__contracts/abi"
 import { mockAddresses } from "./src/__contracts/mockAddresses"
-import { OWNABLE_VALIDATOR } from "./src/callDatas"
 import { type TestFileNetworkType, toNetwork } from "./src/testSetup"
 import {
   getTestAccount,
@@ -106,8 +105,14 @@ describe("modules.k1Validator.write", () => {
     })
     expect(success).toBe(true)
     expect(balanceAfter - balanceBefore).toBe(1n)
+
+    const validators = await smartAccount.getInstalledValidators();
+    console.log("Installed validators")
+    console.log({ validators })
   })
 
+  // review this test
+  // Review if installing another new validator. check address
   test("should install k1 Validator with 1 owner", async () => {
     const isInstalledBefore = await smartAccount.isModuleInstalled({
       type: "validator",
@@ -134,13 +139,13 @@ describe("modules.k1Validator.write", () => {
     }
   }, 60000)
 
-  test.skip("should have the Ownable Validator Module installed", async () => {
-    const isInstalled = await smartAccount.isModuleInstalled({
-      type: "validator",
-      moduleAddress: OWNABLE_VALIDATOR
-    })
-    expect(isInstalled).toBeTruthy()
-  }, 60000)
+  // test.skip("should have the Ownable Validator Module installed", async () => {
+  //   const isInstalled = await smartAccount.isModuleInstalled({
+  //     type: "validator",
+  //     moduleAddress: OWNABLE_VALIDATOR
+  //   })
+  //   expect(isInstalled).toBeTruthy()
+  // }, 60000)
 
   test("should perform a contract interaction", async () => {
     const encodedCall = encodeFunctionData({

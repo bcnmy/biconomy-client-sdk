@@ -18,7 +18,7 @@ import {
 import policies, {
   ParamCondition,
   type ActionConfig
-} from "../src/modules/smartSessions"
+} from "../src/modules/utils/SmartSessionHelpers"
 import { TEST_CONTRACTS } from "./src/callDatas"
 import { type TestFileNetworkType, toNetwork } from "./src/testSetup"
 import {

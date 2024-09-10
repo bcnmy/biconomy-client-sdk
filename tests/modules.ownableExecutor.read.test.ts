@@ -86,6 +86,7 @@ describe("modules.ownable.executor.read", () => {
     ])
   })
 
+  // Note: I think these tests are not required here for module test file
   test("should send eth", async () => {
     const balanceBefore = await testClient.getBalance({
       address: recipientAccount.address

@@ -38,7 +38,7 @@ import {
   type Execution,
   type Module,
   type ModuleInfo,
-  ModuleType,
+  type ModuleType,
   type SendUserOpParams,
   createK1ValidatorModule,
   createValidationModule,
@@ -235,6 +235,8 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     const k1ValidatorAddress =
       nexusSmartAccountConfig.k1ValidatorAddress ??
       (contracts.k1Validator.address as Hex)
+    // Note: Should we allow different types of factories? by enumerating them? 
+    // That would affect how initCode is genrated in each case.  
     const factoryAddress =
       nexusSmartAccountConfig.factoryAddress ??
       (contracts.k1ValidatorFactory.address as Hex)
