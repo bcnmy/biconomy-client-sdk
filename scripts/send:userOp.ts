@@ -75,12 +75,32 @@ const sendUserOperation = async () => {
     data: "0x",
     value: parseEther("0.0001")
   }
-  console.log(
-    "Your smart account will be deployed at address, make sure it has some funds to pay for user ops: ",
-    await smartAccount.getAddress()
-  )
+  if (!paymasterUrl) {
+    console.log("No paymaster url provided")
+    return
+  }
+  const smartAccount = await createSmartAccountClient({
+    signer: walletClient,
+    chain,
+    paymasterUrl,
+    bundlerUrl,
+    // Remove the following lines to use the default factory and validator addresses
+    // These are relevant only for now on sopelia chain and are likely to change
+    k1ValidatorAddress,
+    factoryAddress
+  })
 
-  const response = await smartAccount.sendTransaction([transaction])
+
+  const response = await smartAccount.sendTransaction({
+    to: account.address,
+    data: "0x",
+    value: 1n
+  },
+  {
+    paymasterServiceData: {
+      mode: "SPONSORED"
+    }
+  })
 
   const receipt = await response.wait()
   console.log("Receipt: ", receipt)

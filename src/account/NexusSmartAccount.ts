@@ -1456,16 +1456,18 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     const userOpStruct = {
       ...userOp,
       ...paymasterData,
-      callGasLimit: BigInt(userOp.callGasLimit ?? 0n),
-      verificationGasLimit: BigInt(userOp.verificationGasLimit ?? 0n),
-      preVerificationGas: BigInt(userOp.preVerificationGas ?? 0n),
+      callGasLimit: BigInt(paymasterData.callGasLimit ?? 0n),
+      verificationGasLimit: BigInt(paymasterData.verificationGasLimit ?? 0n),
+      preVerificationGas: BigInt(paymasterData.preVerificationGas ?? 0n),
       paymasterVerificationGasLimit: BigInt(
-        userOp.paymasterVerificationGasLimit ?? 0n
+        paymasterData.paymasterVerificationGasLimit ?? 0n
       ),
-      paymasterPostOpGasLimit: BigInt(userOp.paymasterPostOpGasLimit ?? 0n),
+      paymasterPostOpGasLimit: BigInt(paymasterData.paymasterPostOpGasLimit ?? 0n),
       sender: (await this.getAddress()) as Hex
     } as UserOperationStruct
+    const customJSONStringify = (object) => JSON.stringify(object, (key, value) => (typeof value === 'bigint' ? value.toString() : value));
 
+    console.log("UserOpStruct", customJSONStringify(userOpStruct));
     return userOpStruct
   }
 

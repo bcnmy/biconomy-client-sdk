@@ -1,4 +1,4 @@
-import { encodeFunctionData, parseAbi } from "viem"
+import { encodeFunctionData, parseAbi, toHex } from "viem"
 import {
   type BiconomyTokenPaymasterRequest,
   HttpMethod,
@@ -375,17 +375,22 @@ export class Paymaster implements IHybridPaymaster<SponsorUserOperationDto> {
       if (response?.result) {
         const paymaster = response.result.paymaster
         const paymasterData = response.result.paymasterData
-        const paymasterPostOpGasLimit =
-          response.result.paymasterPostOpGasLimit ??
-          userOp.paymasterPostOpGasLimit
-        const paymasterVerificationGasLimit =
-          response.result.paymasterVerificationGasLimit ??
-          userOp.paymasterVerificationGasLimit
-        const preVerificationGas =
-          response.result.preVerificationGas ?? userOp.preVerificationGas
-        const verificationGasLimit =
-          response.result.verificationGasLimit ?? userOp.verificationGasLimit
-        const callGasLimit = response.result.callGasLimit ?? userOp.callGasLimit
+        const paymasterPostOpGasLimit = response.result.paymasterPostOpGasLimit
+        const paymasterVerificationGasLimit = response.result.paymasterVerificationGasLimit
+        const preVerificationGas = response.result.preVerificationGas
+        const verificationGasLimit = response.result.verificationGasLimit
+        const callGasLimit = response.result.callGasLimit
+        const customJSONStringify = (object) => JSON.stringify(object, (key, value) => (typeof value === 'bigint' ? value.toString() : value));
+
+        console.log("UserOpStruct", customJSONStringify({
+          paymaster: paymaster,
+          paymasterData: paymasterData,
+          paymasterPostOpGasLimit: paymasterPostOpGasLimit,
+          paymasterVerificationGasLimit: paymasterVerificationGasLimit,
+          preVerificationGas: preVerificationGas,
+          verificationGasLimit: verificationGasLimit,
+          callGasLimit: callGasLimit
+        }));
         return {
           paymaster: paymaster,
           paymasterData: paymasterData,
