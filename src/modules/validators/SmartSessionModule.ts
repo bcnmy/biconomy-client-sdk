@@ -1,12 +1,16 @@
-import { type Hex } from "viem"
+import { encodeFunctionData, parseAbi, type Hex } from "viem"
 import addresses from "../../__contracts/addresses.js"
 import type { SmartAccountSigner } from "../../account/index.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
-import { SmartSessionMode, type Module } from "../utils/Types.js"
+import { CreateSessionDataParams, SmartSessionMode, type Module } from "../utils/Types.js"
 import { encodeSmartSessionSignature } from "../utils/SmartSessionHelpers.js"
+import { type Session } from "../utils/Types.js"
 
 const DUMMY_ECDSA_SIG = "0xe8b94748580ca0b4993c9a1b86b5be851bfc076ff5ce3a1ff65bf16392acfcb800f9b4f1aef1555c7fce5599fffb17e7c635502154a0333ba21f3ae491839af51c";
 
+const UNIVERSAL_POLICY_ADDRESS = addresses.UniversalPolicy
+
+// Note: flows: use mode and enable mode both should be supported.
 export class SmartSessionModule extends BaseValidationModule {
   // Notice: For smart sessions signer could be anything. Which is an implementation of ISessionValidator interface
   // SmartAccountSigner works if session validator is K1 like single signer.
@@ -31,7 +35,8 @@ export class SmartSessionModule extends BaseValidationModule {
   // Note: this second argument is like ModuleInfo object which is needed for certain modules like SKM for v2 account sdk
   override async signUserOpHash(userOpHash: string, permissionId?: Hex): Promise<Hex>{
     const signature = await this.signer.signMessage({ raw: userOpHash as Hex })
-
+    
+    // Not this function is only implemented for USE mode.
     return encodeSmartSessionSignature({
       mode: SmartSessionMode.USE,
       permissionId: permissionId ? permissionId : '0x',
@@ -47,22 +52,9 @@ export class SmartSessionModule extends BaseValidationModule {
     }) as Hex 
   }
 
-  // Note:
-  // Needs more helpers to create a session struct. given constant validator, policies need to be built.
-  // Could be in helpers
-  // Todo:L
-  // Temp comment below
+  // To remind again how a session looks like..
 
-  /*Session memory session = Session({
-            sessionValidator: ISessionValidator(address(yesSigner)),
-            salt: salt,
-            sessionValidatorInitData: "mockInitData",
-            userOpPolicies: _getEmptyPolicyDatas(address(yesPolicy)),
-            erc7739Policies: _getEmptyERC7739Data("mockContent", _getEmptyPolicyDatas(address(yesPolicy))), // optional and default empty
-            actions: _getEmptyActionDatas(_target, MockTarget.setValue.selector, address(yesPolicy)) // mocks. but usually one universal policy is enough
-   });*/
-
-   /*
+  /*
    [
       {
         sessionValidator: OWNABLE_VALIDATOR_ADDRESS as Address,
@@ -90,7 +82,60 @@ export class SmartSessionModule extends BaseValidationModule {
         },
       },
     ]
-    */
+  */
+  
+  // Notice: 
+  // This is a USE mode so we need calldata to post on smart session module to make sessions enabled first.
+  // For enable mode we will just need to preapre digest to sign and then make a userOperation that has actual session tx.
+
+  // Note: can later create methods like 
+
+  createSessionData = async (
+    sessionRequestedInfo: CreateSessionDataParams[]
+  ): Promise<void> => {
+
+    // 1. iteraste over sessionRequestedInfo and make ActionConfig using the passed rules and value limit (calculate rules length and fit in object)
+
+    // 2. call getUniversalActionPolicy that will give you policy object
+
+    // 3. Build actionData from this policy object and contractAddress and func selector
+    // type is
+    /*export type ActionData = {
+      actionTargetSelector: Hex
+      actionTarget: Address
+      actionPolicies: PolicyData[]
+    }*/
+
+    // Build the session objects then apply below.  
+
+    // Review
+    const smartSessionBI = parseAbi([
+      "function enableSessions((address,bytes,bytes32,(address,bytes)[],(string[],(address,bytes)[]),(bytes4,address,(address,bytes)[])[])[])"
+    ])
+
+    const sessions: Session[] = [];
+
+    // const enableSessionsData = encodeFunctionData({
+    //   abi: smartSessionBI,
+    //   functionName: "enableSessions",
+    //   args: [sessions]
+    // })
+  }
 
 
+
+  // Note:
+  // Needs more helpers to create a session struct. given constant validator, policies need to be built.
+  // Could be in helpers
+  // Todo:L
+  // Temp comment below
+
+  /*Session memory session = Session({
+            sessionValidator: ISessionValidator(address(yesSigner)),
+            salt: salt,
+            sessionValidatorInitData: "mockInitData",
+            userOpPolicies: _getEmptyPolicyDatas(address(yesPolicy)),
+            erc7739Policies: _getEmptyERC7739Data("mockContent", _getEmptyPolicyDatas(address(yesPolicy))), // optional and default empty
+            actions: _getEmptyActionDatas(_target, MockTarget.setValue.selector, address(yesPolicy)) // mocks. but usually one universal policy is enough
+   });*/
 }

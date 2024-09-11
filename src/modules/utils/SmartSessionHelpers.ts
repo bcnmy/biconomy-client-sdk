@@ -4,7 +4,7 @@ import addresses from "../../__contracts/addresses.js"
 import { type AnyReferenceValue, parseReferenceValue } from "./Helper"
 import { type EnableSessionData, type Session, SmartSessionMode, type SmartSessionModeType } from "./Types"
 import { LibZip } from 'solady'
-import { abi, encodeEnableSessionSignatureAbi } from "./abi"
+import { smartSessionAbi, encodeEnableSessionSignatureAbi, universalActionPolicyAbi } from "./abi"
 
 export type Rule = {
   /**
@@ -169,7 +169,7 @@ export const formatPermissionEnableSig = ({
   }) => {
     return (await client.readContract({
       address: addresses.SmartSession, // Review address import
-      abi,
+      abi: smartSessionAbi,
       functionName: 'getPermissionId',
       args: [session],
     })) as string
@@ -244,5 +244,30 @@ export const encodeSmartSessionSignature = ({
         )
       default:
         throw new Error(`Unknown mode ${mode}`)
+    }
+  }
+
+  // Note: this helper gives you policy data for a universal action policy
+  // PolicyData is a struct that contains the policy address and the init data
+  // Action config requires param rules. we should have a way to build rules next
+  export const getUniversalActionPolicy = (
+    actionConfig: ActionConfig,
+  ): Policy => {
+    if (actionConfig.paramRules.rules.length > MAX_RULES) {
+      throw new Error(`Max number of rules is ${MAX_RULES}`)
+    }
+  
+    return {
+      address: addresses.UniActionPolicy,
+      initData: encodeAbiParameters(universalActionPolicyAbi, [
+        {
+          valueLimitPerUse: actionConfig.valueLimitPerUse,
+          paramRules: {
+            length: actionConfig.paramRules.length,
+            rules: actionConfig.paramRules.rules,
+          },
+        },
+      ]),
+      deInitData: '0x',
     }
   }

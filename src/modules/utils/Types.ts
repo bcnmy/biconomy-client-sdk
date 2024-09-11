@@ -1,4 +1,4 @@
-import type { Address, Chain, Hex } from "viem"
+import type { AbiFunction, Address, Chain, Hex } from "viem"
 import type {
   CallType,
   SimulationType,
@@ -6,6 +6,7 @@ import type {
   SupportedSigner,
   UserOperationStruct
 } from "../../account"
+import { Rule } from "./SmartSessionHelpers"
 export type ModuleVersion = "1.0.0-beta" // | 'V1_0_1'
 
 export interface BaseValidationModuleConfig {
@@ -245,12 +246,12 @@ export const moduleTypeIds: ModuleTypeIds = {
 // Note: can import from ModuleKit
 
 export type Session = {
-  sessionValidator: Address
-  sessionValidatorInitData: Hex
-  salt: Hex
-  userOpPolicies: PolicyData[]
-  erc7739Policies: ERC7739Data
-  actions: ActionData[]
+  sessionValidator: Address // deployed SimpleSigner
+  sessionValidatorInitData: Hex // abi.encodePacked sessionKeyEOA
+  salt: Hex // random salt
+  userOpPolicies: PolicyData[] // empty policies by default
+  erc7739Policies: ERC7739Data // empty policies by default
+  actions: ActionData[] // make uni action policy
 }
 
 export type SessionEIP712 = {
@@ -312,5 +313,61 @@ export type EnableSessionData = {
   enableSession: EnableSession
   validator: Address
   // accountType: AccountType // Temp
+}
+
+// Types for creating session with abi SVM
+
+// Note: keep Dan stuff for later
+export type DanModuleInfo = {
+  /** Ephemeral sk */
+  jwt: string
+  /** eoa address */
+  eoaAddress: Hex
+  /** threshold */
+  threshold: number
+  /** parties number */
+  partiesNumber: number
+  /** userOp to be signed */
+  userOperation?: Partial<UserOperationStruct>
+  /** chainId */
+  chainId: number
+  /** selected mpc key id */
+  mpcKeyId: string
+}
+
+export interface CreateSessionDataParams {
+  // TimeLimitPolicy?
+  // /** window end for the session key */
+  // validUntil: number
+  // /** window start for the session key */
+  // validAfter: number
+  // /** Address of the session validation module */
+
+  // Note: below is only taking information specific to universal policy.
+  // Other two fields of seesions object (7739 policy and userOp policy will be empty by default)
+  // We should have means to get information on how to build those too
+
+  sessionPublicKey: Hex
+
+  sessionValidatorAddress: Address // constant for a type of validator
+
+  sessionKeyData: Hex
+
+  /** The address of the contract to be included in the policy */
+  contractAddress: Hex;
+
+  /** The specific function selector from the contract to be included in the policy */
+  functionSelector: string | AbiFunction;
+
+  /** The rules  to be included in the policy */
+  rules: Rule[];
+
+  /** The maximum value that can be transferred in a single transaction */
+  valueLimit: bigint;
+
+  /** we generate uuid based sessionId. but if you prefer to track it on your side and attach custom session identifier this can be passed */
+  preferredSessionId?: string
+  /** Dan module info */
+  danModuleInfo?: DanModuleInfo
 }
 
