@@ -46,7 +46,7 @@ export type TestFileNetworkType =
   | "PUBLIC_TESTNET"
 
 export const toNetwork = async (
-  networkType: TestFileNetworkType
+  networkType: TestFileNetworkType = "FILE_LOCALHOST"
 ): Promise<NetworkConfig> =>
   await (networkType === "COMMON_LOCALHOST"
     ? // @ts-ignore

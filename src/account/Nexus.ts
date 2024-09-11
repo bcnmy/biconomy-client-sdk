@@ -1,4 +1,5 @@
 import {
+  http,
   type AbiParameter,
   type Account,
   type Address,
@@ -6,7 +7,9 @@ import {
   type ClientConfig,
   type Hex,
   type Prettify,
+  type RpcSchema,
   type SignableMessage,
+  type Transport,
   type TypedData,
   type TypedDataDefinition,
   type UnionPartialBy,
@@ -24,7 +27,11 @@ import {
   walletActions
 } from "viem"
 import {
+  type BundlerClientConfig,
+  type SmartAccount,
+  type SmartAccountImplementation,
   type UserOperation,
+  createBundlerClient,
   getUserOperationHash,
   toSmartAccount
 } from "viem/account-abstraction"
@@ -36,8 +43,6 @@ import {
   type GetNonceArgs,
   MAGIC_BYTES,
   MODE_VALIDATION,
-  type ModeType,
-  type NonceOptions,
   type UserOperationStruct,
   WalletClientSigner
 } from "../index"
@@ -53,36 +58,69 @@ export type ToNexusSmartAccountParameters = {
   activeModule?: BaseValidationModule
   factoryAddress?: Address
   k1ValidatorAddress?: Address
-}
+} & Prettify<
+  Pick<
+    ClientConfig<Transport, Chain, Account, RpcSchema>,
+    | "account"
+    | "cacheTime"
+    | "chain"
+    | "key"
+    | "name"
+    | "pollingInterval"
+    | "rpcSchema"
+  >
+>
 
-type Call = {
+export type Nexus = Prettify<SmartAccount<NexusSmartAccountImplementation>>
+
+export type NexusSmartAccountImplementation = SmartAccountImplementation<
+  typeof EntrypointAbi,
+  "0.7",
+  {
+    getCounterFactualAddress: () => Promise<Address>
+    isDeployed: () => Promise<boolean>
+    getInitCode: () => Hex
+    encodeExecute: (call: Call) => Promise<Hex>
+    encodeExecuteBatch: (calls: readonly Call[]) => Promise<Hex>
+    getUserOpHash: (userOp: Partial<UserOperationStruct>) => Promise<Hex>
+    factoryData: Hex
+    factoryAddress: Address
+  }
+>
+
+export type Call = {
   to: Hex
   data?: Hex | undefined
   value?: bigint | undefined
 }
 
-export type Nexus = Prettify<Awaited<ReturnType<typeof toNexus>>>
-export const toNexus = ({
-  chain,
-  transport,
-  owner,
-  index = 0n,
-  activeModule,
-  factoryAddress = contracts.k1ValidatorFactory.address,
-  k1ValidatorAddress = contracts.k1Validator.address
-}: ToNexusSmartAccountParameters) => {
+export const toNexusAccount = async (
+  parameters: ToNexusSmartAccountParameters
+): Promise<Nexus> => {
+  const {
+    chain,
+    transport,
+    owner,
+    index = 0n,
+    activeModule,
+    factoryAddress = contracts.k1ValidatorFactory.address,
+    k1ValidatorAddress = contracts.k1Validator.address,
+    key = "nexus",
+    name = "Nexus"
+  } = parameters
+
   const masterClient = createWalletClient({
     account: parseAccount(owner),
     chain,
-    transport
+    transport,
+    key,
+    name
   })
     .extend(walletActions)
     .extend(publicActions)
 
-  const signer = new WalletClientSigner(masterClient, "viem")
-
+  const moduleSigner = new WalletClientSigner(masterClient, "viem")
   const signerAddress = masterClient.account.address
-
   const entryPointContract = getContract({
     address: contracts.entryPoint.address,
     abi: EntrypointAbi,
@@ -107,24 +145,22 @@ export const toNexus = ({
         data: signerAddress,
         additionalContext: "0x"
       },
-      signer
+      moduleSigner
     )
 
   let _accountAddress: Address
   const getAddress = async () => {
     if (_accountAddress) return _accountAddress
-    const fetchedAddress = await masterClient.readContract({
+    _accountAddress = await masterClient.readContract({
       address: factoryAddress,
       abi: K1ValidatorFactoryAbi,
       functionName: "computeAccountAddress",
       args: [signerAddress, index, [], 0]
     })
-    _accountAddress = fetchedAddress as Address
     return _accountAddress
   }
   const getCounterFactualAddress = async (): Promise<Address> => {
     try {
-      // @ts-ignore
       await entryPointContract.simulate.getSenderAddress([getInitCode()])
     } catch (e) {
       if (e.cause?.data?.errorName === "SenderAddressResult") {
@@ -204,7 +240,6 @@ export const toNexus = ({
   }
 
   const getNonce = async ({
-    key: _key,
     validationMode: _validationMode = MODE_VALIDATION,
     nonceOptions
   }: GetNonceArgs = {}): Promise<bigint> => {
@@ -212,16 +247,13 @@ export const toNexus = ({
       if (nonceOptions?.nonceOverride) return BigInt(nonceOptions.nonceOverride)
       if (nonceOptions?.validationMode)
         _validationMode = nonceOptions.validationMode
-      if (nonceOptions?.nonceKey) _key = nonceOptions.nonceKey
     }
     try {
-      const key =
-        _key ??
-        concat([
-          "0x000000",
-          _validationMode,
-          defaultedActiveModule.moduleAddress
-        ])
+      const key = concat([
+        "0x000000",
+        _validationMode,
+        defaultedActiveModule.moduleAddress
+      ])
       const accountAddress = await getAddress()
       return await entryPointContract.read.getNonce([
         accountAddress,
@@ -230,6 +262,43 @@ export const toNexus = ({
     } catch (e) {
       return BigInt(0)
     }
+  }
+
+  const signMessage = async ({
+    message
+  }: { message: SignableMessage }): Promise<Hex> => {
+    const tempSignature = await defaultedActiveModule
+      .getSigner()
+      .signMessage(message)
+
+    const signature = encodePacked(
+      ["address", "bytes"],
+      [defaultedActiveModule.getAddress(), tempSignature]
+    )
+
+    const erc6492Signature = concat([
+      encodeAbiParameters(
+        [
+          {
+            type: "address",
+            name: "create2Factory"
+          },
+          {
+            type: "bytes",
+            name: "factoryCalldata"
+          },
+          {
+            type: "bytes",
+            name: "originalERC1271Signature"
+          }
+        ],
+        [factoryAddress, factoryData, signature]
+      ),
+      MAGIC_BYTES
+    ])
+
+    const accountIsDeployed = await isDeployed()
+    return accountIsDeployed ? signature : erc6492Signature
   }
 
   return toSmartAccount({
@@ -249,42 +318,7 @@ export const toNexus = ({
     getStubSignature: async (): Promise<Hex> => {
       return defaultedActiveModule.getDummySignature()
     },
-    signMessage: async ({
-      message
-    }: { message: SignableMessage }): Promise<Hex> => {
-      const tempSignature = await defaultedActiveModule
-        .getSigner()
-        .signMessage(message)
-
-      const signature = encodePacked(
-        ["address", "bytes"],
-        [defaultedActiveModule.getAddress(), tempSignature]
-      )
-
-      const erc6492Signature = concat([
-        encodeAbiParameters(
-          [
-            {
-              type: "address",
-              name: "create2Factory"
-            },
-            {
-              type: "bytes",
-              name: "factoryCalldata"
-            },
-            {
-              type: "bytes",
-              name: "originalERC1271Signature"
-            }
-          ],
-          [factoryAddress, factoryData, signature]
-        ),
-        MAGIC_BYTES
-      ])
-
-      const accountIsDeployed = await isDeployed()
-      return accountIsDeployed ? signature : erc6492Signature
-    },
+    signMessage,
     signTypedData: <
       const typedData extends TypedData | Record<string, unknown>,
       primaryType extends keyof typedData | "EIP712Domain" = keyof typedData
@@ -300,28 +334,17 @@ export const toNexus = ({
     ): Promise<Hex> => {
       const { chainId = masterClient.chain.id, ...userOpWithoutSender } =
         parameters
-
-      const nonce = await getNonce()
-
-      console.log("nexnus nonce", { nonce })
       const address = await getCounterFactualAddress()
-      const userOperation = { ...userOpWithoutSender, sender: address, nonce }
-
+      const userOperation = { ...userOpWithoutSender, sender: address }
       const hash = getUserOperationHash({
         chainId,
         entryPointAddress: contracts.entryPoint.address,
         entryPointVersion: "0.7",
         userOperation
       })
-
-      const signature = await defaultedActiveModule.signUserOpHash(hash)
-      return signature
+      return await defaultedActiveModule.signUserOpHash(hash)
     },
-    getNonce: async (parameters?: {
-      key?: bigint | undefined
-    }): Promise<bigint> => {
-      return getNonce()
-    },
+    getNonce,
     extend: {
       getCounterFactualAddress,
       isDeployed,
