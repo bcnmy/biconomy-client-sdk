@@ -12,13 +12,13 @@ import {
   createTestClient,
   createWalletClient,
   encodeAbiParameters,
+  encodePacked,
+  keccak256,
   parseAbi,
   parseAbiParameters,
   publicActions,
-  walletActions,
-  keccak256,
   toBytes,
-  encodePacked
+  walletActions
 } from "viem"
 import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts"
 import {
@@ -263,7 +263,8 @@ export const nonZeroBalance = async (
   const balance = await checkBalance(testClient, address, tokenAddress)
   if (balance > BigInt(0)) return
   throw new Error(
-    `Insufficient balance ${tokenAddress ? `of token ${tokenAddress}` : "of native token"
+    `Insufficient balance ${
+      tokenAddress ? `of token ${tokenAddress}` : "of native token"
     } during test setup of owner: ${address}`
   )
 }
@@ -369,7 +370,8 @@ export const topUp = async (
 
   if (balanceOfRecipient > amount) {
     Logger.log(
-      `balanceOfRecipient (${recipient}) already has enough ${token ?? "native token"
+      `balanceOfRecipient (${recipient}) already has enough ${
+        token ?? "native token"
       } (${balanceOfRecipient}) during safeTopUp`
     )
     return await Promise.resolve()
@@ -410,20 +412,19 @@ export const getAccountDomainStructFields = async (
   const [fields, name, version, chainId, verifyingContract, salt, extensions] =
     accountDomainStructFields
 
-  const params = parseAbiParameters(["bytes1, bytes32, bytes32, uint256, address, bytes32, bytes32"]);
+  const params = parseAbiParameters([
+    "bytes1, bytes32, bytes32, uint256, address, bytes32, bytes32"
+  ])
 
-  return encodeAbiParameters(
-    params,
-    [
-      fields,
-      keccak256(toBytes(name)),
-      keccak256(toBytes(version)),
-      chainId,
-      verifyingContract,
-      salt,
-      keccak256(encodePacked(["uint256[]"], [extensions]))
-    ]
-  )
+  return encodeAbiParameters(params, [
+    fields,
+    keccak256(toBytes(name)),
+    keccak256(toBytes(version)),
+    chainId,
+    verifyingContract,
+    salt,
+    keccak256(encodePacked(["uint256[]"], [extensions]))
+  ])
 }
 
 export const getBundlerUrl = (chainId: number) =>

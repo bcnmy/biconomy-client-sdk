@@ -5,24 +5,24 @@ import {
   type Account,
   type Chain,
   type Hex,
+  type PublicClient,
   type WalletClient,
   concat,
+  concatHex,
   createPublicClient,
   createWalletClient,
+  domainSeparator,
   encodeAbiParameters,
   encodeFunctionData,
   encodePacked,
   getContract,
   hashMessage,
   keccak256,
-  parseAbiParameters,
-  toBytes,
-  toHex,
   parseAbi,
-  PublicClient,
-  concatHex,
+  parseAbiParameters,
   parseEther,
-  domainSeparator,
+  toBytes,
+  toHex
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { baseSepolia } from "viem/chains"
@@ -39,7 +39,7 @@ import {
   getChain,
   makeInstallDataAndHash
 } from "../src/account"
-import { CounterAbi, MockPermitTokenAbi } from "./src/__contracts/abi"
+import { CounterAbi, TokenWithPermitAbi } from "./src/__contracts/abi"
 import mockAddresses from "./src/__contracts/mockAddresses"
 import { type TestFileNetworkType, toNetwork } from "./src/testSetup"
 import {
@@ -52,12 +52,9 @@ import {
   toTestClient,
   topUp
 } from "./src/testUtils"
-import type {
-  MasterClient,
-  NetworkConfig,
-} from "./src/testUtils"
+import type { MasterClient, NetworkConfig } from "./src/testUtils"
 
-const NETWORK_TYPE: TestFileNetworkType = "PUBLIC_TESTNET"
+const NETWORK_TYPE: TestFileNetworkType = "FILE_LOCALHOST"
 
 describe("account.read", () => {
   let network: NetworkConfig
@@ -146,7 +143,7 @@ describe("account.read", () => {
     expect(balance.amount > 0)
   })
 
-  // @note @todo this test is only valid for anvil 
+  // @note @todo this test is only valid for anvil
   test.skip("should have account addresses", async () => {
     const addresses = await Promise.all([
       account.address,
@@ -234,7 +231,7 @@ describe("account.read", () => {
       rpcUrl: chain.rpcUrls.default.http[0]
     })
 
-    expect(smartAccount).toBeTruthy();
+    expect(smartAccount).toBeTruthy()
   })
 
   test.skip("should pickup the rpcUrl from viem wallet and ethers", async () => {
@@ -372,14 +369,11 @@ describe("account.read", () => {
     ).rejects.toThrow("Cannot consume a viem wallet without an account")
   })
 
-  test.skip(
-    "should create a smart account with paymaster with an api key",
-    async () => {
-      const paymaster = smartAccount.paymaster
-      expect(paymaster).not.toBeNull()
-      expect(paymaster).not.toBeUndefined()
-    }
-  )
+  test.skip("should create a smart account with paymaster with an api key", async () => {
+    const paymaster = smartAccount.paymaster
+    expect(paymaster).not.toBeNull()
+    expect(paymaster).not.toBeUndefined()
+  })
 
   test("should return chain object for chain id 1", async () => {
     const chainId = 1
@@ -535,18 +529,14 @@ describe("account.read", () => {
     expect(ethBalanceFromSmartAccount.decimals).toBe(18)
   }, 60000)
 
-  test.skip(
-    "should check balance of supported token",
-    async () => {
-      const tokens = await smartAccount.getSupportedTokens()
-      const [firstToken] = tokens
+  test.skip("should check balance of supported token", async () => {
+    const tokens = await smartAccount.getSupportedTokens()
+    const [firstToken] = tokens
 
-      expect(tokens.length).toBeGreaterThan(0)
-      expect(tokens[0]).toHaveProperty("balance")
-      expect(firstToken.balance.amount).toBeGreaterThanOrEqual(0n)
-    },
-    60000
-  )
+    expect(tokens.length).toBeGreaterThan(0)
+    expect(tokens[0]).toHaveProperty("balance")
+    expect(firstToken.balance.amount).toBeGreaterThanOrEqual(0n)
+  }, 60000)
 
   // @note Nexus SA signature needs to contain the validator module address in the first 20 bytes
   test("should test isValidSignature PersonalSign to be valid", async () => {
@@ -559,7 +549,6 @@ describe("account.read", () => {
       const DOMAIN_TYPEHASH =
         "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
       const PARENT_TYPEHASH = "PersonalSign(bytes prefixed)"
-      const chainId = baseSepolia.id
 
       // Calculate the domain separator
       const domainSeparator = keccak256(
@@ -569,7 +558,7 @@ describe("account.read", () => {
             keccak256(toBytes(DOMAIN_TYPEHASH)),
             keccak256(toBytes(DOMAIN_NAME)),
             keccak256(toBytes(DOMAIN_VERSION)),
-            BigInt(chainId),
+            BigInt(chain.id),
             smartAccountAddress
           ]
         )
@@ -662,51 +651,53 @@ describe("account.read", () => {
     "should test isValidSignature EIP712Sign to be valid with viem",
     async () => {
       if (await smartAccount.isAccountDeployed()) {
-        const PARENT_TYPEHASH = "TypedDataSign(Contents contents,bytes1 fields,string name,string version,uint256 chainId,address verifyingContract,bytes32 salt,uint256[] extensions)Contents(bytes32 stuff)";
+        const PARENT_TYPEHASH =
+          "TypedDataSign(Contents contents,bytes1 fields,string name,string version,uint256 chainId,address verifyingContract,bytes32 salt,uint256[] extensions)Contents(bytes32 stuff)"
 
         const message = {
           contents: keccak256(toBytes("test", { size: 32 }))
         }
 
-        const domainSeparator = (await publicClient.readContract({
+        const domainSeparator = await publicClient.readContract({
           address: await smartAccount.getAddress(),
           abi: parseAbi([
             "function DOMAIN_SEPARATOR() external view returns (bytes32)"
           ]),
           functionName: "DOMAIN_SEPARATOR"
-        }))
+        })
 
         const typedHashHashed = keccak256(
-          concat([
-            '0x1901',
-            domainSeparator,
-            message.contents
-          ])
-        );
+          concat(["0x1901", domainSeparator, message.contents])
+        )
 
-        const accountDomainStructFields = await getAccountDomainStructFields(testClient, await smartAccount.getAddress());
+        const accountDomainStructFields = await getAccountDomainStructFields(
+          testClient,
+          await smartAccount.getAddress()
+        )
 
         const parentStructHash = keccak256(
-          encodePacked(["bytes", "bytes"], [
-            encodeAbiParameters(
-              parseAbiParameters(["bytes32, bytes32"]),
-              [keccak256(toBytes(PARENT_TYPEHASH)), message.contents]
-            ),
-            accountDomainStructFields
-          ])
-        );
+          encodePacked(
+            ["bytes", "bytes"],
+            [
+              encodeAbiParameters(parseAbiParameters(["bytes32, bytes32"]), [
+                keccak256(toBytes(PARENT_TYPEHASH)),
+                message.contents
+              ]),
+              accountDomainStructFields
+            ]
+          )
+        )
 
         const dataToSign = keccak256(
-          concat([
-            '0x1901',
-            domainSeparator,
-            parentStructHash
-          ])
-        );
+          concat(["0x1901", domainSeparator, parentStructHash])
+        )
 
-        const signature = await walletClient.signMessage({ message: { raw: toBytes(dataToSign) }, account });
+        const signature = await walletClient.signMessage({
+          message: { raw: toBytes(dataToSign) },
+          account
+        })
 
-        const contentsType = toBytes("Contents(bytes32 stuff)");
+        const contentsType = toBytes("Contents(bytes32 stuff)")
 
         const signatureData = concatHex([
           signature,
@@ -714,12 +705,12 @@ describe("account.read", () => {
           message.contents,
           toHex(contentsType),
           toHex(contentsType.length, { size: 2 })
-        ]);
+        ])
 
-        const finalSignature = encodePacked(["address", "bytes"], [
-          addresses.K1Validator,
-          signatureData
-        ]);
+        const finalSignature = encodePacked(
+          ["address", "bytes"],
+          [addresses.K1Validator, signatureData]
+        )
 
         const contractResponse = await publicClient.readContract({
           address: await smartAccount.getAddress(),
@@ -736,10 +727,10 @@ describe("account.read", () => {
   )
 
   test("should sign using signTypedData SDK method", async () => {
-    const permitTestTokenAddress = "0xd8a978B9a0e1Af5579314E626D77fc1C9fF76c7D" as Hex;
+    const permitTestTokenAddress = mockAddresses.TokenWithPermit;
     const appDomain = {
       chainId: network.chain.id,
-      name: "TestToken",
+      name: "TokenWithPermit",
       verifyingContract: permitTestTokenAddress,
       version: "1"
     }
@@ -754,38 +745,45 @@ describe("account.read", () => {
       ]
     }
 
-    const permitTypehash = keccak256(toBytes("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"));
-    const nonce = await publicClient.readContract({
+    const permitTypehash = keccak256(
+      toBytes(
+        "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
+      )
+    )
+    const nonce = (await publicClient.readContract({
       address: permitTestTokenAddress,
-      abi: MockPermitTokenAbi,
+      abi: TokenWithPermitAbi,
       functionName: "nonces",
       args: [smartAccountAddress]
-    }) as bigint;
+    })) as bigint
 
-    const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600); // 1 hour from now
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600) // 1 hour from now
 
     const message = {
       stuff: keccak256(
         encodeAbiParameters(
-          parseAbiParameters("bytes32, address, address, uint256, uint256, uint256"),
-          [permitTypehash, smartAccountAddress, smartAccountAddress, parseEther("2"), nonce, deadline]
+          parseAbiParameters(
+            "bytes32, address, address, uint256, uint256, uint256"
+          ),
+          [
+            permitTypehash,
+            smartAccountAddress,
+            smartAccountAddress,
+            parseEther("2"),
+            nonce,
+            deadline
+          ]
         )
       )
-    };
+    }
 
-    const appDomainSeparator = domainSeparator(
-      {
-        domain: appDomain
-      }
-    )
+    const appDomainSeparator = domainSeparator({
+      domain: appDomain
+    })
 
     const contentsHash = keccak256(
-      concat([
-        '0x1901',
-        appDomainSeparator,
-        message.stuff
-      ])
-    );
+      concat(["0x1901", appDomainSeparator, message.stuff])
+    )
 
     const finalSignature = await smartAccount.signTypedData({
       domain: appDomain,
@@ -804,22 +802,28 @@ describe("account.read", () => {
     const permitTokenResponse = await walletClient.writeContract({
       account: account,
       address: permitTestTokenAddress,
-      abi: MockPermitTokenAbi,
+      abi: TokenWithPermitAbi,
       functionName: "permitWith1271",
       chain: network.chain,
-      args: [await smartAccount.getAddress(), await smartAccount.getAddress(), parseEther("2"), deadline, finalSignature]
+      args: [
+        await smartAccount.getAddress(),
+        await smartAccount.getAddress(),
+        parseEther("2"),
+        deadline,
+        finalSignature
+      ]
     })
 
-    await publicClient.waitForTransactionReceipt({ hash: permitTokenResponse });
+    await publicClient.waitForTransactionReceipt({ hash: permitTokenResponse })
 
     const allowance = await publicClient.readContract({
       address: permitTestTokenAddress,
-      abi: MockPermitTokenAbi,
+      abi: TokenWithPermitAbi,
       functionName: "allowance",
       args: [await smartAccount.getAddress(), await smartAccount.getAddress()]
     })
 
-    expect(allowance).toEqual(parseEther("2"));
+    expect(allowance).toEqual(parseEther("2"))
     expect(nexusResponse).toEqual("0x1626ba7e")
   })
 })

@@ -7,7 +7,7 @@ import {
   type PublicClient,
   createPublicClient,
   getContract,
-  trim,
+  trim
 } from "viem"
 import { EntrypointAbi } from "../__contracts/abi/EntryPointABI.js"
 import contracts from "../__contracts/index.js"
@@ -29,7 +29,8 @@ export enum DeploymentState {
 
 export abstract class BaseSmartContractAccount<
   TSigner extends SmartAccountSigner = SmartAccountSigner
-> implements ISmartContractAccount<TSigner> {
+> implements ISmartContractAccount<TSigner>
+{
   protected factoryAddress: Address
 
   protected deploymentState: DeploymentState = DeploymentState.UNDEFINED
@@ -152,9 +153,7 @@ export abstract class BaseSmartContractAccount<
    *
    * @param params -- Typed Data params to sign
    */
-  async signTypedDataWith6492(
-    typedData: any
-  ): Promise<`0x${string}`> {
+  async signTypedDataWith6492(typedData: any): Promise<`0x${string}`> {
     const [isDeployed, signature] = await Promise.all([
       this.isAccountDeployed(),
       this.signTypedData(typedData)

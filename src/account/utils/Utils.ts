@@ -21,7 +21,13 @@ import {
   toBytes,
   toHex
 } from "viem"
-import type { AccountMetadata, EIP712DomainReturn, TypeDefinition, UserOperationStruct } from "../../account"
+import { EIP1271Abi } from "../../__contracts/abi/EIP1271Abi"
+import type {
+  AccountMetadata,
+  EIP712DomainReturn,
+  TypeDefinition,
+  UserOperationStruct
+} from "../../account"
 import {
   MOCK_MULTI_MODULE_ADDRESS,
   MODULE_ENABLE_MODE_TYPE_HASH,
@@ -29,7 +35,6 @@ import {
   NEXUS_DOMAIN_VERSION
 } from "../../account"
 import { type ModuleType, moduleTypeIds } from "../../modules/utils/Types"
-import { EIP1271Abi } from "../../__contracts/abi/EIP1271Abi"
 
 /**
  * pack the userOperation
@@ -49,15 +54,15 @@ export function packUserOp(
   const hashedPaymasterAndData = keccak256(
     userOperation.paymaster
       ? concat([
-        userOperation.paymaster,
-        pad(toHex(userOperation.paymasterVerificationGasLimit || BigInt(0)), {
-          size: 16
-        }),
-        pad(toHex(userOperation.paymasterPostOpGasLimit || BigInt(0)), {
-          size: 16
-        }),
-        userOperation.paymasterData || "0x"
-      ])
+          userOperation.paymaster,
+          pad(toHex(userOperation.paymasterVerificationGasLimit || BigInt(0)), {
+            size: 16
+          }),
+          pad(toHex(userOperation.paymasterPostOpGasLimit || BigInt(0)), {
+            size: 16
+          }),
+          userOperation.paymasterData || "0x"
+        ])
       : "0x"
   )
 
@@ -231,25 +236,25 @@ export function _hashTypedData(
 }
 
 export function getTypesForEIP712Domain({
-  domain,
+  domain
 }: { domain?: TypedDataDomain | undefined }): TypedDataParameter[] {
   return [
-    typeof domain?.name === 'string' && { name: 'name', type: 'string' },
-    domain?.version && { name: 'version', type: 'string' },
-    typeof domain?.chainId === 'number' && {
-      name: 'chainId',
-      type: 'uint256',
+    typeof domain?.name === "string" && { name: "name", type: "string" },
+    domain?.version && { name: "version", type: "string" },
+    typeof domain?.chainId === "number" && {
+      name: "chainId",
+      type: "uint256"
     },
     domain?.verifyingContract && {
-      name: 'verifyingContract',
-      type: 'address',
+      name: "verifyingContract",
+      type: "address"
     },
-    domain?.salt && { name: 'salt', type: 'bytes32' },
+    domain?.salt && { name: "salt", type: "bytes32" }
   ].filter(Boolean) as TypedDataParameter[]
 }
 export const accountMetadata = async (
   client: Client,
-  accountAddress: Address,
+  accountAddress: Address
 ): Promise<AccountMetadata> => {
   try {
     const domain = await client.request({
@@ -278,7 +283,7 @@ export const accountMetadata = async (
         chainId: decoded[3]
       }
     }
-  } catch (error) { }
+  } catch (error) {}
   return {
     name: NEXUS_DOMAIN_NAME,
     version: NEXUS_DOMAIN_VERSION,
@@ -288,23 +293,22 @@ export const accountMetadata = async (
   }
 }
 
-
 export const eip712WrapHash = async (
   typedHash: Hex,
   appDomainSeparator: Hex
 ): Promise<Hex> => {
-  const digest = keccak256(
-    concat(["0x1901", appDomainSeparator, typedHash])
-  )
+  const digest = keccak256(concat(["0x1901", appDomainSeparator, typedHash]))
 
   return digest
 }
 
 export function typeToString(typeDef: TypeDefinition): string[] {
   return Object.entries(typeDef).map(([key, fields]) => {
-    const fieldStrings = fields.map(field => `${field.type} ${field.name}`).join(',');
-    return `${key}(${fieldStrings})`;
-  });
+    const fieldStrings = fields
+      .map((field) => `${field.type} ${field.name}`)
+      .join(",")
+    return `${key}(${fieldStrings})`
+  })
 }
 
 export const getAccountDomainStructFields = async (
@@ -322,18 +326,17 @@ export const getAccountDomainStructFields = async (
   const [fields, name, version, chainId, verifyingContract, salt, extensions] =
     accountDomainStructFields
 
-  const params = parseAbiParameters(["bytes1, bytes32, bytes32, uint256, address, bytes32, bytes32"]);
+  const params = parseAbiParameters([
+    "bytes1, bytes32, bytes32, uint256, address, bytes32, bytes32"
+  ])
 
-  return encodeAbiParameters(
-    params,
-    [
-      fields,
-      keccak256(toBytes(name)),
-      keccak256(toBytes(version)),
-      chainId,
-      verifyingContract,
-      salt,
-      keccak256(encodePacked(["uint256[]"], [extensions]))
-    ]
-  )
+  return encodeAbiParameters(params, [
+    fields,
+    keccak256(toBytes(name)),
+    keccak256(toBytes(version)),
+    chainId,
+    verifyingContract,
+    salt,
+    keccak256(encodePacked(["uint256[]"], [extensions]))
+  ])
 }

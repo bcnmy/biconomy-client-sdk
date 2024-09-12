@@ -180,10 +180,10 @@ export type NexusSmartAccountConfig = NexusSmartAccountConfigBaseProps &
 
 export type NexusSmartAccountConfigConstructorProps =
   NexusSmartAccountConfigBaseProps &
-  BaseSmartAccountConfig &
-  ResolvedBundlerProps &
-  ResolvedValidationProps &
-  ConfigurationAddresses
+    BaseSmartAccountConfig &
+    ResolvedBundlerProps &
+    ResolvedValidationProps &
+    ConfigurationAddresses
 
 /**
  * Represents options for building a user operation.
@@ -442,13 +442,13 @@ export interface SmartAccountSigner<Inner = any> {
 //#region UserOperationCallData
 export type UserOperationCallData =
   | {
-    /* the target of the call */
-    target: Address
-    /* the data passed to the target */
-    data: Hex
-    /* the amount of native token to send to the target (default: 0) */
-    value?: bigint
-  }
+      /* the target of the call */
+      target: Address
+      /* the data passed to the target */
+      data: Hex
+      /* the amount of native token to send to the target (default: 0) */
+      value?: bigint
+    }
   | Hex
 //#endregion UserOperationCallData
 
@@ -535,7 +535,7 @@ export interface ISmartContractAccount<
   /**
    * Signs a typed data object as per ERC-712
    *
-   * @param typedData 
+   * @param typedData
    * @returns the signed hash for the message passed
    */
   signTypedData(typedData: any): Promise<Hash>
@@ -652,10 +652,10 @@ export type AccountMetadata = {
 export type WithRequired<T, K extends keyof T> = Required<Pick<T, K>>
 
 export type TypeField = {
-  name: string;
-  type: string;
+  name: string
+  type: string
 }
 
 export type TypeDefinition = {
-  [key: string]: TypeField[];
+  [key: string]: TypeField[]
 }

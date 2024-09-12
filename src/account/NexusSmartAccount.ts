@@ -5,26 +5,26 @@ import {
   type Hash,
   type Hex,
   type PublicClient,
+  type TypedDataDefinition,
   type WalletClient,
   concat,
   concatHex,
   decodeFunctionData,
+  domainSeparator,
   encodeAbiParameters,
   encodeFunctionData,
   encodePacked,
   formatUnits,
   getAddress,
   getContract,
+  getTypesForEIP712Domain,
   keccak256,
   pad,
   parseAbi,
   parseAbiParameters,
   toBytes,
-  getTypesForEIP712Domain,
-  validateTypedData,
-  type TypedDataDefinition,
   toHex,
-  domainSeparator
+  validateTypedData
 } from "viem"
 import contracts from "../__contracts"
 import { NexusAbi } from "../__contracts/abi"
@@ -96,10 +96,7 @@ import type {
   TransferOwnershipCompatibleModule,
   WithdrawalRequest
 } from "./utils/Types.js"
-import {
-  eip712WrapHash,
-  typeToString
-} from "./utils/Utils.js"
+import { eip712WrapHash, typeToString } from "./utils/Utils.js"
 import { getAccountDomainStructFields } from "./utils/Utils.js"
 import { addressEquals, isNullOrUndefined, packUserOp } from "./utils/Utils.js"
 
@@ -1721,7 +1718,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       ["address", "bytes"],
       [
         this.activeValidationModule.getAddress() ??
-        this.defaultValidationModule.getAddress(),
+          this.defaultValidationModule.getAddress(),
         signature
       ]
     )
@@ -1783,23 +1780,34 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       }
     })
 
-    const accountDomainStructFields = await getAccountDomainStructFields(this.publicClient, await this.getAddress());
+    const accountDomainStructFields = await getAccountDomainStructFields(
+      this.publicClient,
+      await this.getAddress()
+    )
 
     const parentStructHash = keccak256(
-      encodePacked(["bytes", "bytes"], [
-        encodeAbiParameters(
-          parseAbiParameters(["bytes32, bytes32"]),
-          [keccak256(toBytes(PARENT_TYPEHASH)), typedData.message.stuff]
-        ),
-        accountDomainStructFields
-      ])
-    );
+      encodePacked(
+        ["bytes", "bytes"],
+        [
+          encodeAbiParameters(parseAbiParameters(["bytes32, bytes32"]), [
+            keccak256(toBytes(PARENT_TYPEHASH)),
+            typedData.message.stuff
+          ]),
+          accountDomainStructFields
+        ]
+      )
+    )
 
-    const wrappedTypedHash = await eip712WrapHash(parentStructHash, appDomainSeparator)
+    const wrappedTypedHash = await eip712WrapHash(
+      parentStructHash,
+      appDomainSeparator
+    )
 
-    let signature = await this.activeValidationModule.signMessage(toBytes(wrappedTypedHash))
+    let signature = await this.activeValidationModule.signMessage(
+      toBytes(wrappedTypedHash)
+    )
 
-    const contentsType = toBytes(typeToString(types)[1]);
+    const contentsType = toBytes(typeToString(types)[1])
 
     const signatureData = concatHex([
       signature,
@@ -1807,13 +1815,13 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       typedData.message.stuff,
       toHex(contentsType),
       toHex(contentsType.length, { size: 2 })
-    ]);
+    ])
 
     signature = encodePacked(
       ["address", "bytes"],
       [
         this.activeValidationModule.getAddress() ??
-        this.defaultValidationModule.getAddress(),
+          this.defaultValidationModule.getAddress(),
         signatureData
       ]
     )

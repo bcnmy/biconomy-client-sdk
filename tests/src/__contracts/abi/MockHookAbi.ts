@@ -105,17 +105,17 @@ export const MockHookAbi = [
     inputs: [
       {
         internalType: "address",
-        name: "",
+        name: "sender",
         type: "address"
       },
       {
         internalType: "uint256",
-        name: "",
+        name: "value",
         type: "uint256"
       },
       {
         internalType: "bytes",
-        name: "",
+        name: "data",
         type: "bytes"
       }
     ],
