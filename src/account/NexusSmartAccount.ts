@@ -23,7 +23,6 @@ import {
   getTypesForEIP712Domain,
   validateTypedData,
   type TypedDataDefinition,
-  hashTypedData,
   toHex,
   domainSeparator
 } from "viem"
@@ -98,11 +97,10 @@ import type {
   WithdrawalRequest
 } from "./utils/Types.js"
 import {
-  accountMetadata,
   eip712WrapHash,
   typeToString
 } from "./utils/Utils.js"
-import { getAccountDomainStructFieldsViem } from "../../tests/utils.js"
+import { getAccountDomainStructFields } from "./utils/Utils.js"
 import { addressEquals, isNullOrUndefined, packUserOp } from "./utils/Utils.js"
 
 export class NexusSmartAccount extends BaseSmartContractAccount {
@@ -1778,47 +1776,37 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       types: types
     } as TypedDataDefinition)
 
-    const typedHash = hashTypedData(typedData)
+    const appDomainSeparator = domainSeparator({
+      domain: {
+        name: typedData.domain.name,
+        version: typedData.domain.version,
+        chainId: typedData.domain.chainId,
+        verifyingContract: typedData.domain.verifyingContract
+      }
+    })
 
-    const { name, chainId, version } = await accountMetadata(
-      this.publicClient,
-      await this.getAddress()
-    )
-
-    const accountDomainStructFields = await getAccountDomainStructFieldsViem(this.publicClient, await this.getAddress());
+    const accountDomainStructFields = await getAccountDomainStructFields(this.publicClient, await this.getAddress());
 
     const parentStructHash = keccak256(
       encodePacked(["bytes", "bytes"], [
         encodeAbiParameters(
           parseAbiParameters(["bytes32, bytes32"]),
-          [keccak256(toBytes(PARENT_TYPEHASH)), typedHash]
+          [keccak256(toBytes(PARENT_TYPEHASH)), typedData.message.stuff]
         ),
         accountDomainStructFields
       ])
     );
 
-    const wrappedTypedHash = await eip712WrapHash(parentStructHash, {
-      name,
-      chainId: Number(chainId),
-      version,
-      verifyingContract: await this.getAddress()
-    })
+    const wrappedTypedHash = await eip712WrapHash(parentStructHash, appDomainSeparator)
 
     let signature = await this.activeValidationModule.signMessage(toBytes(wrappedTypedHash))
 
     const contentsType = toBytes(typeToString(types)[1]);
-    const _domainSeparator = domainSeparator({
-      domain: {
-        name,
-        version,
-        chainId: this.chainId,
-        verifyingContract: await this.getAddress()
-      }
-    })
+
     const signatureData = concatHex([
       signature,
-      _domainSeparator,
-      typedHash,
+      appDomainSeparator,
+      typedData.message.stuff,
       toHex(contentsType),
       toHex(contentsType.length, { size: 2 })
     ]);

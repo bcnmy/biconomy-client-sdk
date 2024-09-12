@@ -3,24 +3,25 @@ import {
   type Client,
   type Hash,
   type Hex,
+  PublicClient,
   type TypedDataDomain,
   type TypedDataParameter,
   concat,
-  concatHex,
   decodeFunctionResult,
-  domainSeparator,
   encodeAbiParameters,
   encodeFunctionData,
+  encodePacked,
   hexToBytes,
   keccak256,
   pad,
+  parseAbi,
   parseAbiParameters,
   publicActions,
   stringToBytes,
   toBytes,
   toHex
 } from "viem"
-import type { AccountMetadata, TypeDefinition, UserOperationStruct, WithRequired } from "../../account"
+import type { AccountMetadata, EIP712DomainReturn, TypeDefinition, UserOperationStruct, WithRequired } from "../../account"
 import {
   MOCK_MULTI_MODULE_ADDRESS,
   MODULE_ENABLE_MODE_TYPE_HASH,
@@ -290,24 +291,10 @@ export const accountMetadata = async (
 
 export const eip712WrapHash = async (
   typedHash: Hex,
-  domain: WithRequired<
-    TypedDataDomain,
-    "name" | "chainId" | "verifyingContract" | "version"
-  >
+  appDomainSeparator: Hex
 ): Promise<Hex> => {
-  const { name, version, chainId, verifyingContract } = domain
-
-  const _domainSeparator = domainSeparator({
-    domain: {
-      name,
-      version,
-      chainId,
-      verifyingContract
-    }
-  })
-
   const digest = keccak256(
-    concat(["0x1901", _domainSeparator, typedHash])
+    concat(["0x1901", appDomainSeparator, typedHash])
   )
 
   return digest
@@ -318,4 +305,35 @@ export function typeToString(typeDef: TypeDefinition): string[] {
     const fieldStrings = fields.map(field => `${field.type} ${field.name}`).join(',');
     return `${key}(${fieldStrings})`;
   });
+}
+
+export const getAccountDomainStructFields = async (
+  publicClient: PublicClient,
+  accountAddress: Address
+) => {
+  const accountDomainStructFields = (await publicClient.readContract({
+    address: accountAddress,
+    abi: parseAbi([
+      "function eip712Domain() public view returns (bytes1 fields, string memory name, string memory version, uint256 chainId, address verifyingContract, bytes32 salt, uint256[] memory extensions)"
+    ]),
+    functionName: "eip712Domain"
+  })) as EIP712DomainReturn
+
+  const [fields, name, version, chainId, verifyingContract, salt, extensions] =
+    accountDomainStructFields
+
+  const params = parseAbiParameters(["bytes1, bytes32, bytes32, uint256, address, bytes32, bytes32"]);
+
+  return encodeAbiParameters(
+    params,
+    [
+      fields,
+      keccak256(toBytes(name)),
+      keccak256(toBytes(version)),
+      chainId,
+      verifyingContract,
+      salt,
+      keccak256(encodePacked(["uint256[]"], [extensions]))
+    ]
+  )
 }
