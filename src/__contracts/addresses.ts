@@ -8,5 +8,6 @@ export const addresses: Record<string, Hex> = {
   UniActionPolicy: "0x28120dC008C36d95DE5fa0603526f219c1Ba80f6",
   // Review: adding
   // SmartSession: "",
+  // SimpleSessionValidator: "",
 } as const
 export default addresses
