@@ -3,7 +3,7 @@ import {
   type Client,
   type Hash,
   type Hex,
-  PublicClient,
+  type PublicClient,
   type TypedDataDomain,
   type TypedDataParameter,
   concat,
@@ -21,7 +21,7 @@ import {
   toBytes,
   toHex
 } from "viem"
-import type { AccountMetadata, EIP712DomainReturn, TypeDefinition, UserOperationStruct, WithRequired } from "../../account"
+import type { AccountMetadata, EIP712DomainReturn, TypeDefinition, UserOperationStruct } from "../../account"
 import {
   MOCK_MULTI_MODULE_ADDRESS,
   MODULE_ENABLE_MODE_TYPE_HASH,

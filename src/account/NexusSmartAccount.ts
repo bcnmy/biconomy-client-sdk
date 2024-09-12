@@ -108,8 +108,6 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
 
   private chainId: number
 
-  publicClient: PublicClient
-
   paymaster?: IPaymaster
 
   bundler?: IBundler
