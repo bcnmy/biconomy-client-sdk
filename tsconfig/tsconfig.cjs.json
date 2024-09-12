@@ -6,5 +6,10 @@
         "removeComments": true,
         "verbatimModuleSyntax": false,
         "noEmit": false
+    },
+    "exclude": [
+        "../packages/tests/**/*.*",
+        "../packages/sdk/**/*.test.*",
+        "../packages/sdk/**/*.spec.*",
+      ]
     }
-}

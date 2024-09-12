@@ -164,7 +164,7 @@ Particle Auth Fix
 - E2E tests for session validation modules ([4ad7ea7](https://github.com/bcnmy/biconomy-client-sdk/pull/401/commits/4ad7ea7f8eb6a28854dcce83834b2b7ff9ad3287))
 - Added [TSDoc](https://bcnmy.github.io/biconomy-client-sdk) ([638dae](https://github.com/bcnmy/biconomy-client-sdk/pull/401/commits/638daee0ed6924f67c5151a2d0e5a02d32e4bf23))
 - Make txs more typesafe and default with valueOrData ([b1e5b5e](https://github.com/bcnmy/biconomy-client-sdk/pull/401/commits/b1e5b5e02ab3a7fb99faa1d45b55e3cbe8d6bc93))
-- Added createSmartAccountClient alias ([232472](https://github.com/bcnmy/biconomy-client-sdk/pull/401/commits/232472c788bed0619cf6295ade076b6ec3a9e0f8))
+- Added toNexusClient alias ([232472](https://github.com/bcnmy/biconomy-client-sdk/pull/401/commits/232472c788bed0619cf6295ade076b6ec3a9e0f8))
 - Improve dx of using paymster to build userOps ([bb54888](https://github.com/bcnmy/biconomy-client-sdk/pull/401/commits/bb548884e76a94a20329e49b18994503de9e3888))
 - Add ethers v6 signer support ([9727fd](https://github.com/bcnmy/biconomy-client-sdk/pull/401/commits/9727fd51e47d62904399d17d48f5c9d6b9e591e5))
 - Improved dx of using gas payments with erc20 ([741806](https://github.com/bcnmy/biconomy-client-sdk/pull/401/commits/741806da68457eba262e1a49be77fcc24360ba36))

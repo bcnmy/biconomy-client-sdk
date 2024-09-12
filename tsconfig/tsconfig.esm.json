@@ -4,5 +4,10 @@
     "module": "es2015",
     "outDir": "../dist/_esm",
     "noEmit": false
-  }
+  },
+  "exclude": [
+    "../packages/tests/**/*.*",
+    "../packages/sdk/**/*.test.*",
+    "../packages/sdk/**/*.spec.*",
+  ]
 }

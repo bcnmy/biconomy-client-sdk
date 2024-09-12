@@ -1,18 +1,16 @@
 {
     "extends": "./tsconfig.base.json",
     "include": [
-        "../src/"
+        "../packages/"
     ],
     "exclude": [
-        "../src/**/*.spec.ts",
-        "../src/**/*.test.ts",
-        "../src/**/*.test-d.ts",
-        "../src/**/*.bench.ts",
-        "../tests/**/*.*"
+        "../packages/**/*.test.ts",
+        "../packages/**/*.test-d.ts",
+        "../packages/**/*.bench.ts",
     ],
     "compilerOptions": {
         "moduleResolution": "node",
         "sourceMap": true,
-        "rootDir": "../src"
+        "rootDir": "../packages"
     }
 }

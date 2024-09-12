@@ -1,10 +1,7 @@
-import { http, createWalletClient, parseEther } from "viem"
+import { http, type PublicClient, parseEther } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import {
-  createK1ValidatorModule,
-  createSmartAccountClient,
-  getChain
-} from "../src"
+import { getChain } from "../packages/sdk/account/utils/getChain"
+import { toNexusClient } from "../packages/sdk/clients/toNexusClient"
 
 const k1ValidatorAddress = "0x663E709f60477f07885230E213b8149a7027239B"
 const factoryAddress = "0x887Ca6FaFD62737D0E79A2b8Da41f0B15A864778"
@@ -51,37 +48,40 @@ const account = privateKeyToAccount(`0x${privateKey}`)
 const accountTwo = privateKeyToAccount(`0x${privateKeyTwo}`)
 const recipient = accountTwo.address
 
-const [walletClient] = [
-  createWalletClient({
-    account,
-    chain,
-    transport: http()
-  })
-]
-
-const smartAccount = await createSmartAccountClient({
+const nexusClient = await toNexusClient({
+  owner: account,
   chain,
-  signer: walletClient,
-  bundlerUrl,
+  transport: http(),
+  bundlerTransport: http(bundlerUrl),
   k1ValidatorAddress,
   factoryAddress
 })
 
-const sendUserOperation = async () => {
-  const transaction = {
-    to: recipient, // NFT address
-    data: "0x",
-    value: parseEther("0.0001")
-  }
+const main = async () => {
   console.log(
     "Your smart account will be deployed at address, make sure it has some funds to pay for user ops: ",
-    await smartAccount.getAddress()
+    await nexusClient.account.getAddress()
   )
 
-  const response = await smartAccount.sendTransaction([transaction])
+  const hash = await nexusClient.sendTransaction({
+    calls: [
+      {
+        to: recipient,
+        value: parseEther("0.0001")
+      }
+    ]
+  })
 
-  const receipt = await response.wait()
-  console.log("Receipt: ", receipt)
+  const receipt = await (
+    nexusClient.account.client as PublicClient
+  ).waitForTransactionReceipt({ hash })
 }
 
-sendUserOperation()
+main()
+  .then(() => {
+    process.exit(0)
+  })
+  .catch((error) => {
+    console.error(error)
+    process.exitCode = 1
+  })

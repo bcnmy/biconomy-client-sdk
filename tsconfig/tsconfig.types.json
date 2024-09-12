@@ -8,5 +8,10 @@
     "declaration": true,
     "declarationMap": true,
     "noEmit": false
-  }
+  },
+  "exclude": [
+    "../packages/tests/**/*.*",
+    "../packages/sdk/**/*.test.*",
+    "../packages/sdk/**/*.spec.*",
+  ]
 }

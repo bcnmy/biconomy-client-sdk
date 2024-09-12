@@ -52,7 +52,7 @@ export const getDeployments = async () => {
 
       const tsAbiPath = isForCore
         ? `${__dirname}/../src/__contracts/abi/${name}Abi.ts`
-        : `${__dirname}/../tests/src/__contracts/abi/${name}Abi.ts`
+        : `${__dirname}/../tests/__contracts/abi/${name}Abi.ts`
 
       fs.writeFileSync(tsAbiPath, tsAbiContent)
 
@@ -76,12 +76,12 @@ export const getDeployments = async () => {
   const abiIndexPath = `${__dirname}/../src/__contracts/abi/index.ts`
   fs.writeFileSync(abiIndexPath, abiIndexContent)
 
-  const testAbiIndexPath = `${__dirname}/../tests/src/__contracts/abi/index.ts`
+  const testAbiIndexPath = `${__dirname}/../tests/__contracts/abi/index.ts`
   fs.writeFileSync(testAbiIndexPath, testAbiIndexContent)
 
   // Write addresses to src folder
   const writeAddressesPath = `${__dirname}/../src/__contracts/addresses.ts`
-  const writeAddressesPathTest = `${__dirname}/../tests/src/__contracts/mockAddresses.ts`
+  const writeAddressesPathTest = `${__dirname}/../tests/__contracts/mockAddresses.ts`
 
   const addressesContent = `// The contents of this folder is auto-generated. Please do not edit as your changes are likely to be overwritten\n
   import type { Hex } from "viem"\nexport const addresses: Record<string, Hex> = ${JSON.stringify(
