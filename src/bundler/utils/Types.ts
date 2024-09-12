@@ -1,24 +1,34 @@
-import { ParamType } from "ethers"
 import type { Address, Chain, Hash, Hex, Log } from "viem"
 import type { UserOperationStruct } from "../../account"
 
-export type Bundlerconfig = {
+export type BundlerConfig = {
   bundlerUrl: string
   entryPointAddress?: string
-  chainId?: number
+  chain: Chain
   // eslint-disable-next-line no-unused-vars
   userOpReceiptIntervals?: { [key in number]?: number }
   userOpWaitForTxHashIntervals?: { [key in number]?: number }
   userOpReceiptMaxDurationIntervals?: { [key in number]?: number }
   userOpWaitForTxHashMaxDurationIntervals?: { [key in number]?: number }
-  /** Can be used to optionally override the chain with a custom chain if it doesn't already exist in viems list of supported chains. Alias of customChain */
-  viemChain?: Chain
-  /** Can be used to optionally override the chain with a custom chain if it doesn't already exist in viems list of supported chains. Alias of viemChain */
-  customChain?: Chain
 }
-export type BundlerConfigWithChainId = Bundlerconfig & { chainId: number }
+export type BundlerConfigWithChainId = BundlerConfig & { chainId: number }
 
 export type TStatus = "success" | "reverted"
+
+export type UserOpReceiptTransaction = {
+  transactionHash: Hex
+  transactionIndex: bigint
+  blockHash: Hash
+  blockNumber: bigint
+  from: Address
+  to: Address | null
+  cumulativeGasUsed: bigint
+  status: TStatus
+  gasUsed: bigint
+  contractAddress: Address | null
+  logsBloom: Hex
+  effectiveGasPrice: bigint
+}
 
 export type UserOpReceipt = {
   userOpHash: Hash
@@ -30,20 +40,7 @@ export type UserOpReceipt = {
   actualGasCost: bigint
   success: boolean
   reason?: string
-  receipt: {
-    transactionHash: Hex
-    transactionIndex: bigint
-    blockHash: Hash
-    blockNumber: bigint
-    from: Address
-    to: Address | null
-    cumulativeGasUsed: bigint
-    status: TStatus
-    gasUsed: bigint
-    contractAddress: Address | null
-    logsBloom: Hex
-    effectiveGasPrice: bigint
-  }
+  receipt: UserOpReceiptTransaction
   logs: Log[]
 }
 
@@ -152,29 +149,3 @@ export type BundlerEstimateUserOpGasResponse = {
   paymasterVerificationGasLimit?: Hex | null
   paymasterPostOpGasLimit?: Hex | null
 }
-
-// define mode and exec type enums
-export const CALLTYPE_SINGLE = "0x00" // 1 byte
-export const CALLTYPE_BATCH = "0x01" // 1 byte
-export const EXECTYPE_DEFAULT = "0x00" // 1 byte
-export const EXECTYPE_TRY = "0x01" // 1 byte
-export const EXECTYPE_DELEGATE = "0xFF" // 1 byte
-export const MODE_DEFAULT = "0x00000000" // 4 bytes
-export const UNUSED = "0x00000000" // 4 bytes
-export const MODE_PAYLOAD = "0x00000000000000000000000000000000000000000000" // 22 bytes
-export const ERC1271_MAGICVALUE = "0x1626ba7e"
-export const ERC1271_INVALID = "0xffffffff"
-
-export const GENERIC_FALLBACK_SELECTOR = "0xcb5baf0f"
-
-export const Executions = ParamType.from({
-  type: "tuple(address,uint256,bytes)[]",
-  baseType: "tuple",
-  name: "executions",
-  arrayLength: null,
-  components: [
-    { name: "target", type: "address" },
-    { name: "value", type: "uint256" },
-    { name: "callData", type: "bytes" }
-  ]
-})

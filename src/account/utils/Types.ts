@@ -18,7 +18,6 @@ import type {
   FeeQuotesOrDataDto,
   IPaymaster,
   PaymasterFeeQuote,
-  PaymasterMode,
   SmartAccountData,
   SponsorUserOperationDto
 } from "../../paymaster"
@@ -26,14 +25,12 @@ import type { MODE_MODULE_ENABLE, MODE_VALIDATION } from "../utils/Constants"
 
 export type EntryPointAddresses = Record<string, string>
 export type BiconomyFactories = Record<string, string>
-export type BiconomyImplementations = Record<string, string>
 export type EntryPointAddressesByVersion = Record<string, string>
 export type BiconomyFactoriesByVersion = Record<string, string>
-export type BiconomyImplementationsByVersion = Record<string, string>
 
 export type SmartAccountConfig = {
   /** entryPointAddress: address of the entry point */
-  entryPointAddress: string
+  entryPointAddress: Address
   /** factoryAddress: address of the smart account factory */
   bundler?: IBundler
 }
@@ -90,8 +87,6 @@ export type BaseSmartAccountConfig = {
   overheads?: Partial<GasOverheads>
   /** paymaster: {@link IPaymaster} interface */
   paymaster?: IPaymaster
-  /** chainId: chainId of the network */
-  chainId?: number
 }
 
 export type BiconomyTokenPaymasterRequest = {
@@ -138,21 +133,31 @@ export type ResolvedValidationProps = {
   activeValidationModule: BaseValidationModule
   /** signer: ethers Wallet, viemWallet or alchemys SmartAccountSigner */
   signer: SmartAccountSigner
-  /** chainId: chainId of the network */
-  chainId: number
+  /** rpcUrl */
+  rpcUrl: string
+}
+
+export type ConfigurationAddresses = {
+  factoryAddress: Hex
+  k1ValidatorAddress: Hex
+  entryPointAddress: Hex
 }
 
 export type NexusSmartAccountConfigBaseProps = {
+  /** chain: The chain from viem */
+  chain: Chain
   /** Factory address of biconomy factory contract or some other contract you have deployed on chain */
   factoryAddress?: Hex
+  /** K1Validator Address */
+  k1ValidatorAddress?: Hex
   /** Sender address: If you want to override the Signer address with some other address and get counterfactual address can use this to pass the EOA and get SA address */
   senderAddress?: Hex
   /** implementation of smart contract address or some other contract you have deployed and want to override */
   implementationAddress?: Hex
   /** defaultFallbackHandler: override the default fallback contract address */
   defaultFallbackHandler?: Hex
-  /** rpcUrl: Rpc url, optional, we set default rpc url if not passed. */
-  rpcUrl?: string // as good as Provider
+  /** rpcUrl */
+  rpcUrl?: string
   /** paymasterUrl: The Paymaster URL retrieved from the Biconomy dashboard */
   paymasterUrl?: string
   /** biconomyPaymasterApiKey: The API key retrieved from the Biconomy dashboard */
@@ -163,10 +168,6 @@ export type NexusSmartAccountConfigBaseProps = {
   scanForUpgradedAccountsFromV1?: boolean
   /** the index of SA the EOA have generated and till which indexes the upgraded SA should scan */
   maxIndexForScan?: bigint
-  /** Can be used to optionally override the chain with a custom chain if it doesn't already exist in viems list of supported chains. Alias of customChain */
-  viemChain?: Chain
-  /** Can be used to optionally override the chain with a custom chain if it doesn't already exist in viems list of supported chain. Alias of viemChain */
-  customChain?: Chain
   /** The initial code to be used for the smart account */
   initCode?: Hex
   /** Used for session key manager module */
@@ -181,7 +182,8 @@ export type NexusSmartAccountConfigConstructorProps =
   NexusSmartAccountConfigBaseProps &
   BaseSmartAccountConfig &
   ResolvedBundlerProps &
-  ResolvedValidationProps
+  ResolvedValidationProps &
+  ConfigurationAddresses
 
 /**
  * Represents options for building a user operation.
@@ -253,7 +255,7 @@ export type InitilizationData = {
 export type PaymasterUserOperationDto = SponsorUserOperationDto &
   FeeQuotesOrDataDto & {
     /** mode: sponsored or erc20 */
-    mode: PaymasterMode
+    mode: "SPONSORED" | "ERC20"
     /** Always recommended, especially when using token paymaster */
     calculateGasLimits?: boolean
     /** Expiry duration in seconds */
@@ -281,8 +283,6 @@ export type InitializeV2Data = {
 
 export type EstimateUserOpGasParams = {
   userOp: Partial<UserOperationStruct>
-  /** Currrently has no effect */
-  // skipBundlerGasEstimation?: boolean;
   /**  paymasterServiceData: Options specific to transactions that involve a paymaster */
   paymasterServiceData?: SponsorUserOperationDto
 }
@@ -381,7 +381,7 @@ export type StateOverrideSet = {
 }
 
 export type BigNumberish = Hex | number | bigint
-export type BytesLike = Uint8Array | Hex
+export type BytesLike = Uint8Array | Hex | string
 
 //#region UserOperationStruct
 // based on @account-abstraction/common
@@ -458,12 +458,10 @@ export type BatchUserOperationCallData = Exclude<UserOperationCallData, Hex>[]
 
 export type SignTypedDataParams = Omit<SignTypedDataParameters, "privateKey">
 
-export type BasSmartContractAccountProps =
+export type BaseSmartContractAccountProps =
   NexusSmartAccountConfigConstructorProps & {
     /** chain: The chain from viem */
     chain: Chain
-    /** rpcClient: The rpc url string */
-    rpcClient: string
     /** factoryAddress: The address of the factory */
     factoryAddress: Hex
     /** entryPointAddress: The address of the entry point */
@@ -478,7 +476,7 @@ export interface ISmartContractAccount<
   /**
    * The RPC provider the account uses to make RPC calls
    */
-  readonly rpcProvider: PublicClient
+  publicClient: PublicClient
 
   /**
    * @returns the init code for the account
@@ -619,7 +617,6 @@ export type TransferOwnershipCompatibleModule =
   | "0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e"
   | "0x000000824dc138db84FD9109fc154bdad332Aa8E"
 
-
 export type ModuleInfoParams = {
   moduleAddress: Address
   moduleType: ModuleType
@@ -638,10 +635,10 @@ export type EIP712DomainReturn = [
 ]
 
 export enum CallType {
-  CALLTYPE_SINGLE = '0x00',
-  CALLTYPE_BATCH = '0x01',
-  CALLTYPE_STATIC = '0xFE',
-  CALLTYPE_DELEGATECALL = '0xFF',
+  CALLTYPE_SINGLE = "0x00",
+  CALLTYPE_BATCH = "0x01",
+  CALLTYPE_STATIC = "0xFE",
+  CALLTYPE_DELEGATECALL = "0xFF"
 }
 
 export type NEXUS_VERSION_TYPE = "1.0.0-beta"

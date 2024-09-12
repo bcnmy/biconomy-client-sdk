@@ -1,0 +1,29 @@
+name: playground
+on:
+  workflow_dispatch:
+jobs:
+  playground:
+    name: playground
+    permissions: write-all
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-playground
+      cancel-in-progress: true
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependencies
+
+      - name: Run the playground
+        run: bun run test -t=playground
+        env:
+          E2E_PRIVATE_KEY_ONE: ${{ secrets.E2E_PRIVATE_KEY_ONE }}
+          BUNDLER_URL: https://api.pimlico.io/v2/84532/rpc?apikey=pim_im13GpaqtMDSiJFhXMxcVn
+          CHAIN_ID: 84532
+          RUN_PLAYGROUND: true
+          CI: true 

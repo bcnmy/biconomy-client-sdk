@@ -1,14 +1,9 @@
 import { http, type Hash, type PublicClient, createPublicClient } from "viem"
+import contracts from "../__contracts/index.js"
 import type { UserOperationStruct } from "../account"
-import {
-  HttpMethod,
-  getChain,
-  isNullOrUndefined,
-  sendRequest
-} from "../account"
+import { HttpMethod, isNullOrUndefined, sendRequest } from "../account"
 import type { IBundler } from "./interfaces/IBundler.js"
 import {
-  DEFAULT_ENTRYPOINT_ADDRESS,
   UserOpReceiptIntervals,
   UserOpReceiptMaxDurationIntervals,
   UserOpWaitForTxHashIntervals,
@@ -19,9 +14,9 @@ import {
   getTimestampInSeconds
 } from "./utils/HelperFunction.js"
 import type {
+  BundlerConfig,
   BundlerConfigWithChainId,
   BundlerEstimateUserOpGasResponse,
-  Bundlerconfig,
   GetUserOpByHashResponse,
   GetUserOperationGasPriceReturnType,
   GetUserOperationReceiptResponse,
@@ -51,25 +46,16 @@ export class Bundler implements IBundler {
 
   UserOpWaitForTxHashMaxDurationIntervals!: { [key in number]?: number }
 
-  private provider: PublicClient
+  private publicClient: PublicClient
 
-  constructor(bundlerConfig: Bundlerconfig) {
-    const parsedChainId: number = bundlerConfig?.chainId ?? 11155111 // TODO: remove hardcoded chainId
+  constructor(bundlerConfig: BundlerConfig) {
+    const parsedChainId: number = bundlerConfig.chain.id
     // || extractChainIdFromBundlerUrl(bundlerConfig.bundlerUrl)
     this.bundlerConfig = { ...bundlerConfig, chainId: parsedChainId }
 
-    this.provider = createPublicClient({
-      chain:
-        bundlerConfig.viemChain ??
-        bundlerConfig.customChain ??
-        getChain(parsedChainId),
-      transport: http(
-        (
-          bundlerConfig.viemChain ||
-          bundlerConfig.customChain ||
-          getChain(parsedChainId)
-        ).rpcUrls.default.http[0]
-      )
+    this.publicClient = createPublicClient({
+      chain: bundlerConfig.chain,
+      transport: http()
     })
 
     this.UserOpReceiptIntervals = {
@@ -93,7 +79,7 @@ export class Bundler implements IBundler {
     }
 
     this.bundlerConfig.entryPointAddress =
-      bundlerConfig.entryPointAddress || DEFAULT_ENTRYPOINT_ADDRESS
+      bundlerConfig.entryPointAddress || contracts.entryPoint.address
   }
 
   public getBundlerUrl(): string {
@@ -205,9 +191,10 @@ export class Bundler implements IBundler {
               )
               if (userOpResponse?.receipt?.blockNumber) {
                 if (confirmations) {
-                  const latestBlock = await this.provider.getBlockNumber()
+                  const latestBlock = await this.publicClient.getBlockNumber()
                   const confirmedBlocks =
-                    BigInt(latestBlock) - BigInt(userOpResponse.receipt.blockNumber)
+                    BigInt(latestBlock) -
+                    BigInt(userOpResponse.receipt.blockNumber)
                   if (confirmations >= confirmedBlocks) {
                     clearInterval(intervalId)
                     resolve(userOpResponse)
@@ -347,7 +334,9 @@ export class Bundler implements IBundler {
         url: bundlerUrl,
         method: HttpMethod.Post,
         body: {
-          method: "pimlico_getUserOperationGasPrice",
+          method: process.env.BUNDLER_URL?.includes("pimlico")
+            ? "pimlico_getUserOperationGasPrice"
+            : "biconomy_getGasFeeValues",
           params: [],
           id: getTimestampInSeconds(),
           jsonrpc: "2.0"
@@ -378,7 +367,7 @@ export class Bundler implements IBundler {
     }
   }
 
-  public static async create(config: Bundlerconfig): Promise<Bundler> {
+  public static async create(config: BundlerConfig): Promise<Bundler> {
     return new Bundler(config)
   }
 }

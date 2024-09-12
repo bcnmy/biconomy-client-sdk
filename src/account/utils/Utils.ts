@@ -20,20 +20,15 @@ import {
   toBytes,
   toHex
 } from "viem"
-import type { UserOperationStruct } from "../../account"
+import type { AccountMetadata, TypeDefinition, UserOperationStruct, WithRequired } from "../../account"
 import {
   MOCK_MULTI_MODULE_ADDRESS,
   MODULE_ENABLE_MODE_TYPE_HASH,
   NEXUS_DOMAIN_NAME,
-  NEXUS_DOMAIN_VERSION,
-  type SupportedSigner,
-  convertSigner
+  NEXUS_DOMAIN_VERSION
 } from "../../account"
-import { extractChainIdFromBundlerUrl } from "../../bundler"
-import { extractChainIdFromPaymasterUrl } from "../../bundler"
-import type { AccountMetadata, NexusSmartAccountConfig, TypeDefinition, WithRequired } from "./Types.js"
-import { type ModuleType, moduleTypeIds } from "../../modules/index.js"
-import { EIP1271Abi } from "../abi/EIP1271Abi.js"
+import { type ModuleType, moduleTypeIds } from "../../modules/utils/Types"
+import { EIP1271Abi } from "../../__contracts/abi/EIP1271Abi"
 
 /**
  * pack the userOperation
@@ -104,62 +99,8 @@ export const isNullOrUndefined = (value: any): value is undefined => {
   return value === null || value === undefined
 }
 
-export const compareChainIds = async (
-  signer: SupportedSigner,
-  biconomySmartAccountConfig: NexusSmartAccountConfig,
-  skipChainIdCalls: boolean
-  // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
-): Promise<Error | void> => {
-  const signerResult = await convertSigner(
-    signer,
-    skipChainIdCalls,
-    biconomySmartAccountConfig.rpcUrl
-  )
-
-  const chainIdFromBundler = biconomySmartAccountConfig.bundlerUrl
-    ? extractChainIdFromBundlerUrl(biconomySmartAccountConfig.bundlerUrl)
-    : biconomySmartAccountConfig.bundler
-      ? extractChainIdFromBundlerUrl(
-        biconomySmartAccountConfig.bundler.getBundlerUrl()
-      )
-      : undefined
-
-  const chainIdFromPaymasterUrl = biconomySmartAccountConfig.paymasterUrl
-    ? extractChainIdFromPaymasterUrl(biconomySmartAccountConfig.paymasterUrl)
-    : undefined
-
-  if (!isNullOrUndefined(signerResult.chainId)) {
-    if (
-      chainIdFromBundler !== undefined &&
-      signerResult.chainId !== chainIdFromBundler
-    ) {
-      throw new Error(
-        `Chain IDs from signer (${signerResult.chainId}) and bundler (${chainIdFromBundler}) do not match.`
-      )
-    }
-    if (
-      chainIdFromPaymasterUrl !== undefined &&
-      signerResult.chainId !== chainIdFromPaymasterUrl
-    ) {
-      throw new Error(
-        `Chain IDs from signer (${signerResult.chainId}) and paymaster (${chainIdFromPaymasterUrl}) do not match.`
-      )
-    }
-  } else {
-    if (
-      chainIdFromBundler !== undefined &&
-      chainIdFromPaymasterUrl !== undefined &&
-      chainIdFromBundler !== chainIdFromPaymasterUrl
-    ) {
-      throw new Error(
-        `Chain IDs from bundler (${chainIdFromBundler}) and paymaster (${chainIdFromPaymasterUrl}) do not match.`
-      )
-    }
-  }
-}
-
 export const isValidRpcUrl = (url: string): boolean => {
-  const regex = /^(https:\/\/|wss:\/\/).*/
+  const regex = /^(http:\/\/|wss:\/\/|https:\/\/).*/
   return regex.test(url)
 }
 
@@ -217,9 +158,13 @@ export function makeInstallDataAndHash(
   accountOwner: Address,
   modules: { moduleType: ModuleType; config: Hex }[]
 ): [string, string] {
-  const types = modules.map((module) => BigInt(moduleTypeIds[module.moduleType]))
+  const types = modules.map((module) =>
+    BigInt(moduleTypeIds[module.moduleType])
+  )
   const initDatas = modules.map((module) =>
-    toHex(concat([toBytes(BigInt(moduleTypeIds[module.moduleType])), module.config]))
+    toHex(
+      concat([toBytes(BigInt(moduleTypeIds[module.moduleType])), module.config])
+    )
   )
 
   const multiInstallData = encodeAbiParameters(

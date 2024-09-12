@@ -2,35 +2,28 @@
   {
     "name": "core (esm)",
     "path": "./dist/_esm/index.js",
-    "limit": "65 kB",
+    "limit": "25 kB",
     "import": "*",
     "ignore": ["node:fs", "fs"]
   },
   {
     "name": "core (cjs)",
     "path": "./dist/_cjs/index.js",
-    "limit": "65 kB",
-    "ignore": ["node:fs", "fs"]
-  },
-  {
-    "name": "account (tree-shaking)",
-    "path": "./dist/_esm/index.js",
-    "limit": "65 kB",
-    "import": "{ createSmartAccountClient }",
+    "limit": "25 kB",
     "ignore": ["node:fs", "fs"]
   },
   {
     "name": "bundler (tree-shaking)",
     "path": "./dist/_esm/bundler/index.js",
-    "limit": "5 kB",
+    "limit": "15 kB",
     "import": "{ createBundler }",
     "ignore": ["node:fs", "fs"]
   },
   {
     "name": "paymaster (tree-shaking)",
     "path": "./dist/_esm/paymaster/index.js",
-    "limit": "5 kB",
-    "import": "{ createPaymaster }",
+    "limit": "15 kB",
+    "import": "{ toPaymaster }",
     "ignore": ["node:fs", "fs"]
   }
 ]

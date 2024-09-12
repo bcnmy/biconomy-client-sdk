@@ -198,10 +198,9 @@ export type Execution = {
   callData: Hex
 }
 
-
 export enum SafeHookType {
   GLOBAL = 0,
-  SIG = 1,
+  SIG = 1
 }
 
 export type Module = {
@@ -228,8 +227,7 @@ export type Module = {
   /* ---- end safe module params ---- */
 }
 
-
-export type ModuleType = 'validator' | 'executor' | 'fallback' | 'hook'
+export type ModuleType = "validator" | "executor" | "fallback" | "hook"
 
 type ModuleTypeIds = {
   [index in ModuleType]: 1 | 2 | 3 | 4
@@ -239,5 +237,5 @@ export const moduleTypeIds: ModuleTypeIds = {
   validator: 1,
   executor: 2,
   fallback: 3,
-  hook: 4,
+  hook: 4
 }

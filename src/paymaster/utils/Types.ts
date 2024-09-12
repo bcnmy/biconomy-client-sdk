@@ -23,7 +23,7 @@ export type PaymasterConfig = {
 
 export type SponsorUserOperationDto = {
   /** mode: sponsored or erc20 */
-  mode: PaymasterMode
+  mode: "SPONSORED" | "ERC20"
   /** Always recommended, especially when using token paymaster */
   calculateGasLimits?: boolean
   /** Expiry duration in seconds */
@@ -38,7 +38,7 @@ export type SponsorUserOperationDto = {
 
 export type FeeQuotesOrDataDto = {
   /** mode: sponsored or erc20 */
-  mode?: PaymasterMode
+  mode?: "SPONSORED" | "ERC20"
   /** Expiry duration in seconds */
   expiryDuration?: number
   /** Always recommended, especially when using token paymaster */
@@ -120,9 +120,4 @@ export type PaymasterAndDataResponse = {
   verificationGasLimit: number
   /* Value used by inner account execution */
   callGasLimit: number
-}
-
-export enum PaymasterMode {
-  ERC20 = "ERC20",
-  SPONSORED = "SPONSORED"
 }
