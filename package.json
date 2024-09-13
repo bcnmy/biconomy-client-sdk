@@ -98,7 +98,7 @@
     "execa": "^9.3.1",
     "get-port": "^7.1.0",
     "gh-pages": "^6.1.1",
-    "nexus": "git@github.com:bcnmy/nexus.git#b8085a3d688afb9149c129a34b4bb9cefb93ae38",
+    "nexus": "github:bcnmy/nexus#7f8410d6f8037b698b9dd08e6da9008cbd30418a",
     "prool": "^0.0.16",
     "rimraf": "^5.0.5",
     "simple-git-hooks": "^2.9.0",

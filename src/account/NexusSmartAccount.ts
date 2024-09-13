@@ -5,22 +5,26 @@ import {
   type Hash,
   type Hex,
   type PublicClient,
+  type TypedDataDefinition,
   type WalletClient,
   concat,
   concatHex,
   decodeFunctionData,
+  domainSeparator,
   encodeAbiParameters,
   encodeFunctionData,
   encodePacked,
   formatUnits,
   getAddress,
   getContract,
+  getTypesForEIP712Domain,
   keccak256,
   pad,
   parseAbi,
   parseAbiParameters,
   toBytes,
-  toHex
+  toHex,
+  validateTypedData
 } from "viem"
 import contracts from "../__contracts"
 import { NexusAbi } from "../__contracts/abi"
@@ -67,7 +71,8 @@ import {
 import {
   GENERIC_FALLBACK_SELECTOR_SELECTOR,
   type MODE_MODULE_ENABLE,
-  MODE_VALIDATION
+  MODE_VALIDATION,
+  PARENT_TYPEHASH
 } from "./utils/Constants.js"
 import {
   ADDRESS_ZERO,
@@ -92,6 +97,8 @@ import type {
   TransferOwnershipCompatibleModule,
   WithdrawalRequest
 } from "./utils/Types.js"
+import { eip712WrapHash, typeToString } from "./utils/Utils.js"
+import { getAccountDomainStructFields } from "./utils/Utils.js"
 import { addressEquals, isNullOrUndefined, packUserOp } from "./utils/Utils.js"
 
 export class NexusSmartAccount extends BaseSmartContractAccount {
@@ -1744,6 +1751,85 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       ]
     )
     return concat([abiEncodedMessage, MAGIC_BYTES])
+  }
+
+  /**
+   * If your contract supports signing and verifying typed data,
+   * you should implement this method.
+   *
+   * @param _params -- Typed Data params to sign
+   */
+  async signTypedData(typedData: any): Promise<`0x${string}`> {
+    const types = {
+      EIP712Domain: getTypesForEIP712Domain({
+        domain: typedData.domain
+      }),
+      ...typedData.types
+    }
+
+    validateTypedData({
+      domain: typedData.domain,
+      message: typedData.message,
+      primaryType: typedData.primaryType,
+      types: types
+    } as TypedDataDefinition)
+
+    const appDomainSeparator = domainSeparator({
+      domain: {
+        name: typedData.domain.name,
+        version: typedData.domain.version,
+        chainId: typedData.domain.chainId,
+        verifyingContract: typedData.domain.verifyingContract
+      }
+    })
+
+    const accountDomainStructFields = await getAccountDomainStructFields(
+      this.publicClient,
+      await this.getAddress()
+    )
+
+    const parentStructHash = keccak256(
+      encodePacked(
+        ["bytes", "bytes"],
+        [
+          encodeAbiParameters(parseAbiParameters(["bytes32, bytes32"]), [
+            keccak256(toBytes(PARENT_TYPEHASH)),
+            typedData.message.stuff
+          ]),
+          accountDomainStructFields
+        ]
+      )
+    )
+
+    const wrappedTypedHash = await eip712WrapHash(
+      parentStructHash,
+      appDomainSeparator
+    )
+
+    let signature = await this.activeValidationModule.signMessage(
+      toBytes(wrappedTypedHash)
+    )
+
+    const contentsType = toBytes(typeToString(types)[1])
+
+    const signatureData = concatHex([
+      signature,
+      appDomainSeparator,
+      typedData.message.stuff,
+      toHex(contentsType),
+      toHex(contentsType.length, { size: 2 })
+    ])
+
+    signature = encodePacked(
+      ["address", "bytes"],
+      [
+        this.activeValidationModule.getAddress() ??
+          this.defaultValidationModule.getAddress(),
+        signatureData
+      ]
+    )
+
+    return signature
   }
 
   async getIsValidSignatureData(
