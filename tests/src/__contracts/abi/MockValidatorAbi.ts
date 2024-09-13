@@ -112,6 +112,35 @@ export const MockValidatorAbi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "",
+        type: "address"
+      },
+      {
+        internalType: "bytes32",
+        name: "hash",
+        type: "bytes32"
+      },
+      {
+        internalType: "bytes",
+        name: "signature",
+        type: "bytes"
+      }
+    ],
+    name: "isValidSignatureWithSenderLegacy",
+    outputs: [
+      {
+        internalType: "bytes4",
+        name: "",
+        type: "bytes4"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
         internalType: "bytes",
         name: "data",
         type: "bytes"
@@ -149,6 +178,48 @@ export const MockValidatorAbi = [
         internalType: "address",
         name: "",
         type: "address"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "supportsNestedTypedDataSign",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "result",
+        type: "bytes32"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "hash",
+        type: "bytes32"
+      },
+      {
+        internalType: "bytes",
+        name: "sig",
+        type: "bytes"
+      },
+      {
+        internalType: "bytes",
+        name: "data",
+        type: "bytes"
+      }
+    ],
+    name: "validateSignatureWithData",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "validSig",
+        type: "bool"
       }
     ],
     stateMutability: "view",

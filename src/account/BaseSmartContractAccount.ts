@@ -17,7 +17,6 @@ import type {
   BaseSmartContractAccountProps,
   BatchUserOperationCallData,
   ISmartContractAccount,
-  SignTypedDataParams,
   Transaction
 } from "./utils/Types.js"
 import { wrapSignatureWith6492 } from "./utils/Utils.js"
@@ -130,9 +129,7 @@ export abstract class BaseSmartContractAccount<
    *
    * @param _params -- Typed Data params to sign
    */
-  async signTypedData(_params: SignTypedDataParams): Promise<`0x${string}`> {
-    throw new Error("signTypedData not supported")
-  }
+  abstract signTypedData(typedData: any): Promise<`0x${string}`>
 
   /**
    * This method should wrap the result of `signMessage` as per
@@ -156,12 +153,10 @@ export abstract class BaseSmartContractAccount<
    *
    * @param params -- Typed Data params to sign
    */
-  async signTypedDataWith6492(
-    params: SignTypedDataParams
-  ): Promise<`0x${string}`> {
+  async signTypedDataWith6492(typedData: any): Promise<`0x${string}`> {
     const [isDeployed, signature] = await Promise.all([
       this.isAccountDeployed(),
-      this.signTypedData(params)
+      this.signTypedData(typedData)
     ])
 
     return this.create6492Signature(isDeployed, signature)

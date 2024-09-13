@@ -535,10 +535,10 @@ export interface ISmartContractAccount<
   /**
    * Signs a typed data object as per ERC-712
    *
-   * @param params - {@link SignTypedDataParams}
+   * @param typedData
    * @returns the signed hash for the message passed
    */
-  signTypedData(params: SignTypedDataParams): Promise<Hash>
+  signTypedData(typedData: any): Promise<Hash>
 
   /**
    * If the account is not deployed, it will sign the message and then wrap it in 6492 format
@@ -639,4 +639,23 @@ export enum CallType {
   CALLTYPE_BATCH = "0x01",
   CALLTYPE_STATIC = "0xFE",
   CALLTYPE_DELEGATECALL = "0xFF"
+}
+
+export type NEXUS_VERSION_TYPE = "1.0.0-beta"
+
+export type AccountMetadata = {
+  name: string
+  version: string
+  chainId: bigint
+}
+
+export type WithRequired<T, K extends keyof T> = Required<Pick<T, K>>
+
+export type TypeField = {
+  name: string
+  type: string
+}
+
+export type TypeDefinition = {
+  [key: string]: TypeField[]
 }
