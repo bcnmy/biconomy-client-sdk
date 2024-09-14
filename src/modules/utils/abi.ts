@@ -75,7 +75,7 @@ export const installSmartSessionsAbi = [
     },
   ]
   
-  export const enableSessionAbi = {
+export const enableSessionAbi = [{
     components: [
       {
         type: 'uint8',
@@ -180,8 +180,9 @@ export const installSmartSessionsAbi = [
     name: 'enableSession',
     type: 'tuple',
   }
+]
   
-  export const encodeEnableSessionSignatureAbi = [
+export const encodeEnableSessionSignatureAbi = [
     {
       components: [
         {
@@ -304,9 +305,9 @@ export const installSmartSessionsAbi = [
       type: 'tuple',
     },
     { type: 'bytes' },
-  ]
+]
   
-  export const smartSessionAbi = [
+export const smartSessionAbi = [
     {
       inputs: [{ internalType: 'uint256', name: 'index', type: 'uint256' }],
       name: 'AssociatedArray_OutOfBounds',
@@ -1132,10 +1133,10 @@ export const installSmartSessionsAbi = [
       stateMutability: 'nonpayable',
       type: 'function',
     },
-  ]
+]
 
   // Review redundancy
-  export const universalActionPolicyAbi = [
+export const universalActionPolicyAbi = [
     {
       components: [
         {

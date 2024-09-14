@@ -18,7 +18,7 @@ export const TEST_CONTRACTS: Record<string, DeployerParams> = {
   SmartSession: {
     chainId: 84532,
     name: "SmartSession",
-    address: "0x0ce452fD9d0a20BCC14A2C4830E22bEB7EA4C8ee"
+    address: "0xF54612Ac26dE6a1230Fd1755d27b92207e38Be67"
   },
   SimpleSigner: {
     chainId: 84532,
