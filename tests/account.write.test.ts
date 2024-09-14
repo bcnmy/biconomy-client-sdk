@@ -25,13 +25,14 @@ import {
 } from "./src/testUtils"
 import type { MasterClient, NetworkConfig } from "./src/testUtils"
 import { GENERIC_FALLBACK_SELECTOR_SELECTOR } from "../src/bundler/utils/Constants"
+import { TEST_CONTRACTS } from "./src/callDatas"
 
 const NETWORK_TYPE: TestFileNetworkType = "FILE_LOCALHOST"
 
 // todo
 // remove hard code and fetch from deployments
-const MOCK_HOOK = "0xAB9733982E5b98bdDc4f00314E8EA4911A9D1BA5"
-const MOCK_FALLBACK_HANDLER = "0xBE52B87DA68EC967e977191bE125584b98c1Ea04"
+const MOCK_HOOK = TEST_CONTRACTS.MockHook.address
+const MOCK_FALLBACK_HANDLER = TEST_CONTRACTS.MockFallback.address
 
 describe("account.write", () => {
   let network: NetworkConfig

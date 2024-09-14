@@ -64,6 +64,17 @@ export const TEST_CONTRACTS: Record<string, DeployerParams> = {
     chainId: 84532,
     name: "UserOperationBuilder",
     address: "0xb07D7605a1AAeE4e56915363418229c127fF7C3D"
+  },
+  // Mocks
+  MockHook: {
+    chainId: 84532,
+    name: "MockHook",
+    address: "0x77Ab54631BfBAE40383c62044dC30B229c7df9f5"
+  },
+  MockFallback: {
+    chainId: 84532,
+    name: "MockFallback",
+    address: "0x6E0508F2ebB8f383269A02f03FC51dF66757be53"
   }
 }
 

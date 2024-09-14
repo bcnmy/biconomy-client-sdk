@@ -13,7 +13,7 @@ import {
   createSmartAccountClient
 } from "../src/account"
 import { createOwnableExecutorModule } from "../src/modules"
-import { OWNABLE_EXECUTOR } from "./src/callDatas"
+import { TEST_CONTRACTS } from "./src/callDatas"
 import { type TestFileNetworkType, toNetwork } from "./src/testSetup"
 import {
   getTestAccount,
@@ -104,12 +104,12 @@ describe("modules.ownable.executor.read", () => {
     expect(balanceAfter - balanceBefore).toBe(1n)
   })
 
-  // test.skip("should initialize Ownable Executor Module with correct owners", async () => {
-  //   const ownableExecutorModule = await createOwnableExecutorModule(
-  //     smartAccount,
-  //     OWNABLE_EXECUTOR
-  //   )
-  //   const owners = await ownableExecutorModule.getOwners(OWNABLE_EXECUTOR)
-  //   expect(owners).toStrictEqual(ownableExecutorModule.owners)
-  // })
+  test.skip("should initialize Ownable Executor Module with correct owners", async () => {
+    const ownableExecutorModule = await createOwnableExecutorModule(
+      smartAccount,
+      TEST_CONTRACTS.OWNABLE_EXECUTOR.address
+    )
+    const owners = await ownableExecutorModule.getOwners(TEST_CONTRACTS.OWNABLE_EXECUTOR.address)
+    expect(owners).toStrictEqual(ownableExecutorModule.owners)
+  })
 })
