@@ -1,10 +1,10 @@
 import { type Address, type Hex, type PublicClient, encodeAbiParameters, encodePacked } from "viem"
 import { UniActionPolicyAbi } from "../../__contracts/abi"
-import addresses from "../../__contracts/addresses.js"
 import { type AnyReferenceValue, parseReferenceValue } from "./Helper"
 import { type EnableSessionData, type Session, SmartSessionMode, type SmartSessionModeType } from "./Types"
 import { LibZip } from 'solady'
 import { smartSessionAbi, encodeEnableSessionSignatureAbi, universalActionPolicyAbi } from "./abi"
+import { TEST_CONTRACTS } from "../../../tests/src/callDatas.js"
 
 export type Rule = {
   /**
@@ -167,8 +167,9 @@ export const formatPermissionEnableSig = ({
     client: PublicClient
     session: Session
   }) => {
+    // Review address population
     return (await client.readContract({
-      address: addresses.SmartSession, // Review address import
+      address: TEST_CONTRACTS.SmartSession.address, // Review address import
       abi: smartSessionAbi,
       functionName: 'getPermissionId',
       args: [session],
@@ -257,8 +258,9 @@ export const encodeSmartSessionSignature = ({
       throw new Error(`Max number of rules is ${MAX_RULES}`)
     }
   
+    // Review address population
     return {
-      address: addresses.UniActionPolicy,
+      address: TEST_CONTRACTS.UniActionPolicy.address,
       initData: encodeAbiParameters(universalActionPolicyAbi, [
         {
           valueLimitPerUse: actionConfig.valueLimitPerUse,

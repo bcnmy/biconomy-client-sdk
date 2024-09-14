@@ -1,14 +1,15 @@
 import { encodeFunctionData, parseAbi, type Hex } from "viem"
-import addresses from "../../__contracts/addresses.js"
 import type { SmartAccountSigner } from "../../account/index.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
 import { CreateSessionDataParams, SmartSessionMode, type Module } from "../utils/Types.js"
 import { encodeSmartSessionSignature } from "../utils/SmartSessionHelpers.js"
 import { type Session } from "../utils/Types.js"
+import { TEST_CONTRACTS } from "../../../tests/src/callDatas.js"
 
 const DUMMY_ECDSA_SIG = "0xe8b94748580ca0b4993c9a1b86b5be851bfc076ff5ce3a1ff65bf16392acfcb800f9b4f1aef1555c7fce5599fffb17e7c635502154a0333ba21f3ae491839af51c";
 
-const UNIVERSAL_POLICY_ADDRESS = addresses.UniversalPolicy
+const UNIVERSAL_POLICY_ADDRESS = TEST_CONTRACTS.UniversalPolicy.address
+const SMART_SESSION_ADDRESS = TEST_CONTRACTS.SmartSession.address
 
 // Note: flows: use mode and enable mode both should be supported.
 export class SmartSessionModule extends BaseValidationModule {
@@ -20,7 +21,7 @@ export class SmartSessionModule extends BaseValidationModule {
   
   public static async create(
     signer: SmartAccountSigner,
-    smartSessionAddress = addresses.SmartSession,
+    smartSessionAddress = SMART_SESSION_ADDRESS,
   ): Promise<SmartSessionModule> {
     const module: Module = {
       moduleAddress: smartSessionAddress,
