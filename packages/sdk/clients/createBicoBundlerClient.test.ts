@@ -1,19 +1,19 @@
 import { http, type Account, type Address, type Chain, isHex } from "viem"
 import type { BundlerClient } from "viem/account-abstraction"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { toNetwork } from "../../tests/testSetup"
+import { toNetwork } from "../../test/testSetup"
 import {
   getTestAccount,
   killNetwork,
   toTestClient,
   topUp
-} from "../../tests/testUtils"
-import type { MasterClient, NetworkConfig } from "../../tests/testUtils"
+} from "../../test/testUtils"
+import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import contracts from "../__contracts"
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
-import { toBicoBundlerClient } from "./toBicoBundlerClient"
+import { createBicoBundlerClient } from "./createBicoBundlerClient"
 
-describe("bico.bundler", () => {
+describe("bico.bundler", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
@@ -31,7 +31,7 @@ describe("bico.bundler", () => {
     chain = network.chain
     bundlerUrl = network.bundlerUrl
     account = getTestAccount(0)
-    testClient = toTestClient(chain, getTestAccount(0))
+    testClient = toTestClient(chain, getTestAccount(5))
 
     nexusAccount = await toNexusAccount({
       owner: account,
@@ -39,7 +39,7 @@ describe("bico.bundler", () => {
       transport: http()
     })
 
-    bicoBundler = toBicoBundlerClient({ bundlerUrl, account: nexusAccount })
+    bicoBundler = createBicoBundlerClient({ bundlerUrl, account: nexusAccount })
     nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
     await topUp(testClient, nexusAccountAddress)
   })

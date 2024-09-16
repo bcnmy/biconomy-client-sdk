@@ -19,7 +19,7 @@ type BicoBundlerClientConfig = Omit<BundlerClientConfig, "transport"> &
       }
   >
 
-export const toBicoBundlerClient = (
+export const createBicoBundlerClient = (
   parameters: BicoBundlerClientConfig
 ): BundlerClient =>
   createBundlerClient({

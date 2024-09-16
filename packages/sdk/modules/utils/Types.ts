@@ -4,7 +4,7 @@ import type {
   SmartAccountSigner,
   SupportedSigner,
   UserOperationStruct
-} from "../../account"
+} from "../../account/utils/Types"
 export type ModuleVersion = "1.0.0-beta" // | 'V1_0_1'
 
 export interface BaseValidationModuleConfig {

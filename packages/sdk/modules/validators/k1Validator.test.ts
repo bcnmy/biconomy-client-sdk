@@ -1,18 +1,21 @@
 import { http, type Account, type Address, type Chain } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { toNetwork } from "../../../tests/testSetup"
+import { toNetwork } from "../../../test/testSetup"
 import {
-  fundAndDeploy,
+  fundAndDeployClients,
   getBalance,
   getTestAccount,
   killNetwork,
   toTestClient
-} from "../../../tests/testUtils"
-import type { MasterClient, NetworkConfig } from "../../../tests/testUtils"
+} from "../../../test/testUtils"
+import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
 import addresses from "../../__contracts/addresses"
-import { type NexusClient, toNexusClient } from "../../clients/toNexusClient"
+import {
+  type NexusClient,
+  createNexusClient
+} from "../../clients/createNexusClient"
 
-describe("modules.k1Validator.write", () => {
+describe("modules.k1Validator.write", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
@@ -34,9 +37,9 @@ describe("modules.k1Validator.write", () => {
     recipient = getTestAccount(1)
     recipientAddress = recipient.address
 
-    testClient = toTestClient(chain, getTestAccount(0))
+    testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await toNexusClient({
+    nexusClient = await createNexusClient({
       owner: account,
       chain,
       transport: http(),
@@ -44,7 +47,7 @@ describe("modules.k1Validator.write", () => {
     })
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
-    await fundAndDeploy(testClient, [nexusClient])
+    await fundAndDeployClients(testClient, [nexusClient])
   })
 
   afterAll(async () => {
@@ -53,7 +56,7 @@ describe("modules.k1Validator.write", () => {
 
   test.skip("should send eth", async () => {
     const balanceBefore = await getBalance(testClient, recipientAddress)
-    const hash = await nexusClient.sendUserOperation({
+    const hash = await nexusClient.sendTransaction({
       calls: [
         {
           to: recipientAddress,
@@ -75,8 +78,6 @@ describe("modules.k1Validator.write", () => {
         context: "0x"
       }
     })
-
-    console.log({ isInstalledBefore })
 
     if (!isInstalledBefore) {
       const hash = await nexusClient.installModule({

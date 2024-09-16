@@ -10,9 +10,10 @@ import {
   getAddress,
   parseAbi
 } from "viem"
-import { SENTINEL_ADDRESS, WalletClientSigner } from "../../account"
+import { WalletClientSigner } from "../../account/signers/wallet-client"
+import { SENTINEL_ADDRESS } from "../../account/utils/Constants"
+import type { NexusClient } from "../../clients/createNexusClient"
 import type { Module } from "../../clients/decorators/erc7579"
-import type { NexusClient } from "../../clients/toNexusClient"
 import { BaseExecutionModule } from "../base/BaseExecutionModule"
 import type { Execution } from "../utils/Types"
 

@@ -64,7 +64,7 @@ type StringOrStrings = string | string[]
  *
  * @example
  *
- * import { getCustomChain, toNexusClient } from "@biconomy/account"
+ * import { getCustomChain, createNexusClient } from "@biconomy/account"
  *
  * const customChain = getCustomChain(
  *   "My Custom Chain",
@@ -80,7 +80,7 @@ type StringOrStrings = string | string[]
  *   transport: http()
  * })
  *
- * const smartAccountCustomChain = await toNexusClient({
+ * const smartAccountCustomChain = await createNexusClient({
  *   signer: walletClientWithCustomChain,
  *   bundlerUrl,
  *   customChain

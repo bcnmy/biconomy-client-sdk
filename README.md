@@ -38,9 +38,9 @@ bun i
 ```
 
 ```typescript
-import { toNexusClient } from "@biconomy/account";
+import { createNexusClient } from "@biconomy/account";
 
-const smartAccount = await toNexusClient({
+const smartAccount = await createNexusClient({
   signer: viemWalletOrEthersSigner,
   bundlerUrl: "", // From dashboard.biconomy.io
   paymasterUrl: "", // From dashboard.biconomy.io

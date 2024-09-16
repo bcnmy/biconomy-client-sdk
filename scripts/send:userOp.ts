@@ -1,7 +1,7 @@
 import { http, type PublicClient, parseEther } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { getChain } from "../packages/sdk/account/utils/getChain"
-import { toNexusClient } from "../packages/sdk/clients/toNexusClient"
+import { createNexusClient } from "../packages/sdk/clients/createNexusClient"
 
 const k1ValidatorAddress = "0x663E709f60477f07885230E213b8149a7027239B"
 const factoryAddress = "0x887Ca6FaFD62737D0E79A2b8Da41f0B15A864778"
@@ -48,7 +48,7 @@ const account = privateKeyToAccount(`0x${privateKey}`)
 const accountTwo = privateKeyToAccount(`0x${privateKeyTwo}`)
 const recipient = accountTwo.address
 
-const nexusClient = await toNexusClient({
+const nexusClient = await createNexusClient({
   owner: account,
   chain,
   transport: http(),

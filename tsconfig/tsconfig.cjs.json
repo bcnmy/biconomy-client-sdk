@@ -5,10 +5,11 @@
         "outDir": "../dist/_cjs",
         "removeComments": true,
         "verbatimModuleSyntax": false,
-        "noEmit": false
+        "noEmit": false,
+        "rootDir": "../packages/sdk"
     },
     "exclude": [
-        "../packages/tests/**/*.*",
+        "../packages/test/**/*.*",
         "../packages/sdk/**/*.test.*",
         "../packages/sdk/**/*.spec.*",
       ]

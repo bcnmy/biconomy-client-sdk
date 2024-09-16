@@ -1,19 +1,22 @@
 import { http, type Account, type Address, type Chain, pad, toHex } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { parseReferenceValue } from ".."
-import { TEST_CONTRACTS } from "../../tests/callDatas"
-import { toNetwork } from "../../tests/testSetup"
+import { TEST_CONTRACTS } from "../../test/callDatas"
+import { toNetwork } from "../../test/testSetup"
 import {
-  fundAndDeploy,
+  fundAndDeployClients,
   getTestAccount,
   killNetwork,
   toTestClient
-} from "../../tests/testUtils"
-import type { MasterClient, NetworkConfig } from "../../tests/testUtils"
-import { type NexusClient, toNexusClient } from "../clients/toNexusClient"
+} from "../../test/testUtils"
+import type { MasterClient, NetworkConfig } from "../../test/testUtils"
+import {
+  type NexusClient,
+  createNexusClient
+} from "../clients/createNexusClient"
 import policies, { ParamCondition } from "./smartSessions"
 
-describe("smart.sessions", () => {
+describe("smart.sessions", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
@@ -34,9 +37,9 @@ describe("smart.sessions", () => {
     account = getTestAccount(0)
     recipient = getTestAccount(1)
     recipientAddress = recipient.address
-    testClient = toTestClient(chain, getTestAccount(0))
+    testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await toNexusClient({
+    nexusClient = await createNexusClient({
       owner: account,
       chain,
       transport: http(),
@@ -44,7 +47,7 @@ describe("smart.sessions", () => {
     })
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
-    await fundAndDeploy(testClient, [nexusClient])
+    await fundAndDeployClients(testClient, [nexusClient])
   })
 
   afterAll(async () => {

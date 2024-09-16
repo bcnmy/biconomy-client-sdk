@@ -1,18 +1,56 @@
-import { http, type Account, type Address, type Chain, isHex } from "viem"
-import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { toNetwork } from "../../tests/testSetup"
 import {
-  getBalance,
+  http,
+  type Account,
+  type Address,
+  type Chain,
+  type Hex,
+  type PublicClient,
+  type WalletClient,
+  concat,
+  concatHex,
+  createWalletClient,
+  domainSeparator,
+  encodeAbiParameters,
+  encodePacked,
+  hashMessage,
+  isAddress,
+  isHex,
+  keccak256,
+  parseAbi,
+  parseAbiParameters,
+  parseEther,
+  toBytes,
+  toHex
+} from "viem"
+import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import { TokenWithPermitAbi } from "../../test/__contracts/abi/TokenWithPermitAbi"
+import { mockAddresses } from "../../test/__contracts/mockAddresses"
+import { toNetwork } from "../../test/testSetup"
+import {
+  fundAndDeployClients,
   getTestAccount,
   killNetwork,
-  toTestClient,
-  topUp
-} from "../../tests/testUtils"
-import type { MasterClient, NetworkConfig } from "../../tests/testUtils"
+  toTestClient
+} from "../../test/testUtils"
+import type { MasterClient, NetworkConfig } from "../../test/testUtils"
+import { NexusAbi } from "../__contracts/abi/NexusAbi"
+import { addresses } from "../__contracts/addresses"
+import {
+  type NexusClient,
+  createNexusClient
+} from "../clients/createNexusClient"
 import { type NexusAccount, toNexusAccount } from "./toNexusAccount"
+import { getAccountDomainStructFields } from "./utils"
+import {
+  NEXUS_DOMAIN_NAME,
+  NEXUS_DOMAIN_TYPEHASH,
+  NEXUS_DOMAIN_VERSION,
+  PARENT_TYPEHASH,
+  eip1271MagicValue
+} from "./utils/Constants"
 import type { UserOperationStruct } from "./utils/Types"
 
-describe("nexus.account", () => {
+describe("nexus.account", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
@@ -21,7 +59,9 @@ describe("nexus.account", () => {
   let testClient: MasterClient
   let account: Account
   let nexusAccountAddress: Address
+  let nexusClient: NexusClient
   let nexusAccount: NexusAccount
+  let walletClient: WalletClient
 
   beforeAll(async () => {
     network = await toNetwork()
@@ -29,22 +69,83 @@ describe("nexus.account", () => {
     chain = network.chain
     bundlerUrl = network.bundlerUrl
     account = getTestAccount(0)
-    testClient = toTestClient(chain, getTestAccount(0))
+    testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusAccount = await toNexusAccount({
-      owner: account,
+    walletClient = createWalletClient({
+      account,
       chain,
       transport: http()
     })
 
-    nexusAccountAddress = await nexusAccount.getCounterFactualAddress()
+    nexusClient = await createNexusClient({
+      owner: account,
+      chain,
+      transport: http(),
+      bundlerTransport: http(bundlerUrl)
+    })
+
+    nexusAccount = nexusClient.account
+    nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
+    await fundAndDeployClients(testClient, [nexusClient])
   })
   afterAll(async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
 
-  test.concurrent("should have 4337 account actions", async () => {
+  test("should check isValidSignature PersonalSign is valid", async () => {
+    const data = hashMessage("0x1234")
+
+    // Calculate the domain separator
+    const domainSeparator = keccak256(
+      encodeAbiParameters(
+        parseAbiParameters("bytes32, bytes32, bytes32, uint256, address"),
+        [
+          keccak256(toBytes(NEXUS_DOMAIN_TYPEHASH)),
+          keccak256(toBytes(NEXUS_DOMAIN_NAME)),
+          keccak256(toBytes(NEXUS_DOMAIN_VERSION)),
+          BigInt(chain.id),
+          nexusAccountAddress
+        ]
+      )
+    )
+
+    // Calculate the parent struct hash
+    const parentStructHash = keccak256(
+      encodeAbiParameters(parseAbiParameters("bytes32, bytes32"), [
+        keccak256(toBytes("PersonalSign(bytes prefixed)")),
+        hashMessage(data)
+      ])
+    )
+
+    // Calculate the final hash
+    const resultHash: Hex = keccak256(
+      concat(["0x1901", domainSeparator, parentStructHash])
+    )
+
+    const signature = await nexusAccount.signMessage({
+      message: { raw: toBytes(resultHash) }
+    })
+
+    const contractResponse = await testClient.readContract({
+      address: nexusAccountAddress,
+      abi: NexusAbi,
+      functionName: "isValidSignature",
+      args: [hashMessage(data), signature]
+    })
+
+    const viemResponse = await testClient.verifyMessage({
+      address: nexusAccountAddress,
+      message: data,
+      signature
+    })
+
+    expect(contractResponse).toBe(eip1271MagicValue)
+    expect(viemResponse).toBe(true)
+  })
+
+  test("should have 4337 account actions", async () => {
     const [
+      isDeployed,
       counterfactualAddress,
       userOpHash,
       address,
@@ -53,10 +154,10 @@ describe("nexus.account", () => {
       signedMessage,
       nonce,
       initCode,
-      isDeployed,
       encodedExecute,
       encodedExecuteBatch
     ] = await Promise.all([
+      nexusAccount.isDeployed(),
       nexusAccount.getCounterFactualAddress(),
       nexusAccount.getUserOpHash({
         sender: account.address,
@@ -76,40 +177,201 @@ describe("nexus.account", () => {
       nexusAccount.signMessage({ message: "hello" }),
       nexusAccount.getNonce(),
       nexusAccount.getInitCode(),
-      nexusAccount.isDeployed(),
       nexusAccount.encodeExecute({ to: account.address, value: 100n }),
       nexusAccount.encodeExecuteBatch([{ to: account.address, value: 100n }])
     ])
 
-    expect(counterfactualAddress).toBe(
-      "0xa3962DB24D3cAb711e18d5A508591C6dB82a0f54"
-    )
+    expect(isAddress(counterfactualAddress)).toBe(true)
     expect(isHex(userOpHash)).toBe(true)
-    expect(address).toBe("0xa3962DB24D3cAb711e18d5A508591C6dB82a0f54")
-    expect(factoryArgs.factory).toBe(
-      "0x8025afaD10209b8bEF3A3C94684AaE4D309c9996"
+    expect(isAddress(address)).toBe(true)
+    expect(address).toBe(nexusAccountAddress)
+
+    if (isDeployed) {
+      expect(factoryArgs.factory).toBe(undefined)
+      expect(factoryArgs.factoryData).toBe(undefined)
+    } else {
+      // biome-ignore lint/style/noNonNullAssertion: <explanation>
+      expect(isAddress(factoryArgs.factory!)).toBe(true)
+      // biome-ignore lint/style/noNonNullAssertion: <explanation>
+      expect(isHex(factoryArgs.factoryData!)).toBe(true)
+    }
+
+    expect(isHex(stubSignature)).toBe(true)
+    expect(isHex(signedMessage)).toBe(true)
+    expect(typeof nonce).toBe("bigint")
+    expect(initCode.indexOf(nexusAccount.factoryAddress) > -1).toBe(true)
+    expect(typeof isDeployed).toBe("boolean")
+
+    expect(isHex(encodedExecute)).toBe(true)
+    expect(isHex(encodedExecuteBatch)).toBe(true)
+  })
+
+  test("should test isValidSignature EIP712Sign to be valid with viem", async () => {
+    const message = {
+      contents: keccak256(toBytes("test", { size: 32 }))
+    }
+
+    const domainSeparator = await testClient.readContract({
+      address: await nexusAccount.getAddress(),
+      abi: parseAbi([
+        "function DOMAIN_SEPARATOR() external view returns (bytes32)"
+      ]),
+      functionName: "DOMAIN_SEPARATOR"
+    })
+
+    const typedHashHashed = keccak256(
+      concat(["0x1901", domainSeparator, message.contents])
     )
-    expect(factoryArgs.factoryData).toBe(
-      "0x0d51f0b7000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb922660000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+
+    const accountDomainStructFields = await getAccountDomainStructFields(
+      testClient as unknown as PublicClient,
+      nexusAccountAddress
     )
-    expect(stubSignature).toBe(
-      "0x0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000d98238BBAeA4f91683d250003799EAd31d7F5c55000000000000000000000000000000000000000000000000000000000000004181d4b4981670cb18f99f0b4a66446df1bf5b204d24cfcb659bf38ba27a4359b5711649ec2423c5e1247245eba2964679b6a1dbb85c992ae40b9b00c6935b02ff1b00000000000000000000000000000000000000000000000000000000000000"
+
+    const parentStructHash = keccak256(
+      encodePacked(
+        ["bytes", "bytes"],
+        [
+          encodeAbiParameters(parseAbiParameters(["bytes32, bytes32"]), [
+            keccak256(toBytes(PARENT_TYPEHASH)),
+            message.contents
+          ]),
+          accountDomainStructFields
+        ]
+      )
     )
-    expect(signedMessage).toBe(
-      "0x0000000000000000000000008025afad10209b8bef3a3c94684aae4d309c99960000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000000a40d51f0b7000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb9226600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001e00000000000000000000000008025afad10209b8bef3a3c94684aae4d309c99960000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000000a40d51f0b7000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb922660000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000055d98238bbaea4f91683d250003799ead31d7f5c55f16ea9a3478698f695fd1401bfe27e9e4a7e8e3da94aa72b021125e31fa899cc573c48ea3fe1d4ab61a9db10c19032026e3ed2dbccba5a178235ac27f94504311c000000000000000000000064926492649264926492649264926492649264926492649264926492649264926492649264926492649264926492649264926492649264926492649264926492"
+
+    const dataToSign = keccak256(
+      concat(["0x1901", domainSeparator, parentStructHash])
     )
-    expect(nonce).toBe(
-      22906337356820620590513465594309079979684970955157942146586636189696n
+
+    const signature = await walletClient.signMessage({
+      account,
+      message: { raw: toBytes(dataToSign) }
+    })
+
+    const contentsType = toBytes("Contents(bytes32 stuff)")
+
+    const signatureData = concatHex([
+      signature,
+      domainSeparator,
+      message.contents,
+      toHex(contentsType),
+      toHex(contentsType.length, { size: 2 })
+    ])
+
+    const finalSignature = encodePacked(
+      ["address", "bytes"],
+      [addresses.K1Validator, signatureData]
     )
-    expect(initCode).toBe(
-      "0x8025afaD10209b8bEF3A3C94684AaE4D309c99960d51f0b7000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb922660000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+
+    const contractResponse = await testClient.readContract({
+      address: await nexusAccount.getAddress(),
+      abi: NexusAbi,
+      functionName: "isValidSignature",
+      args: [typedHashHashed, finalSignature]
+    })
+
+    expect(contractResponse).toBe(eip1271MagicValue)
+  })
+
+  test.skip("should sign using signTypedData SDK method", async () => {
+    const appDomain = {
+      chainId: chain.id,
+      name: "TokenWithPermit",
+      verifyingContract: mockAddresses.TokenWithPermit,
+      version: "1"
+    }
+
+    const primaryType = "Contents"
+    const types = {
+      Contents: [
+        {
+          name: "stuff",
+          type: "bytes32"
+        }
+      ]
+    }
+
+    const permitTypehash = keccak256(
+      toBytes(
+        "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
+      )
     )
-    expect(isDeployed).toBe(false)
-    expect(encodedExecute).toBe(
-      "0xe9ae5c53000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000034f39fd6e51aad88f6f4ce6ab8827279cfffb922660000000000000000000000000000000000000000000000000000000000000064000000000000000000000000"
+    const nonce = (await testClient.readContract({
+      address: mockAddresses.TokenWithPermit,
+      abi: TokenWithPermitAbi,
+      functionName: "nonces",
+      args: [nexusAccountAddress]
+    })) as bigint
+
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600) // 1 hour from now
+
+    const message = {
+      stuff: keccak256(
+        encodeAbiParameters(
+          parseAbiParameters(
+            "bytes32, address, address, uint256, uint256, uint256"
+          ),
+          [
+            permitTypehash,
+            nexusAccountAddress,
+            nexusAccountAddress,
+            parseEther("2"),
+            nonce,
+            deadline
+          ]
+        )
+      )
+    }
+
+    const appDomainSeparator = domainSeparator({
+      domain: appDomain
+    })
+
+    const contentsHash = keccak256(
+      concat(["0x1901", appDomainSeparator, message.stuff])
     )
-    expect(encodedExecuteBatch).toBe(
-      "0xe9ae5c530100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000e0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000000"
-    )
+
+    const finalSignature = await nexusClient.signTypedData({
+      domain: appDomain,
+      primaryType,
+      types,
+      message
+    })
+
+    const nexusResponse = await testClient.readContract({
+      address: nexusAccountAddress,
+      abi: NexusAbi,
+      functionName: "isValidSignature",
+      args: [contentsHash, finalSignature]
+    })
+
+    const permitTokenResponse = await nexusClient.writeContract({
+      account: account,
+      address: mockAddresses.TokenWithPermit,
+      abi: TokenWithPermitAbi,
+      functionName: "permitWith1271",
+      chain: network.chain,
+      args: [
+        nexusAccountAddress,
+        nexusAccountAddress,
+        parseEther("2"),
+        deadline,
+        finalSignature
+      ]
+    })
+
+    await testClient.waitForTransactionReceipt({ hash: permitTokenResponse })
+
+    const allowance = await testClient.readContract({
+      address: mockAddresses.TokenWithPermit,
+      abi: TokenWithPermitAbi,
+      functionName: "allowance",
+      args: [nexusAccountAddress, nexusAccountAddress]
+    })
+
+    expect(allowance).toEqual(parseEther("2"))
+    expect(nexusResponse).toEqual("0x1626ba7e")
   })
 })

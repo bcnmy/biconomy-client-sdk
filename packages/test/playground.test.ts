@@ -9,8 +9,11 @@ import {
   createWalletClient
 } from "viem"
 import { beforeAll, describe, expect, test } from "vitest"
-import { toBicoPaymasterClient } from "../sdk/clients/toBicoPaymasterClient"
-import { type NexusClient, toNexusClient } from "../sdk/clients/toNexusClient"
+import { createBicoPaymasterClient } from "../sdk/clients/createBicoPaymasterClient"
+import {
+  type NexusClient,
+  createNexusClient
+} from "../sdk/clients/createNexusClient"
 import { playgroundTrue, toNetwork } from "./testSetup"
 import type { NetworkConfig } from "./testUtils"
 
@@ -70,7 +73,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
   })
 
   test("should init the smart account", async () => {
-    nexusClient = await toNexusClient({
+    nexusClient = await createNexusClient({
       owner: account,
       chain,
       transport: http(),
@@ -137,14 +140,14 @@ describe.skipIf(!playgroundTrue)("playground", () => {
       return
     }
 
-    nexusClient = await toNexusClient({
+    nexusClient = await createNexusClient({
       owner: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
       k1ValidatorAddress,
       factoryAddress,
-      paymaster: toBicoPaymasterClient({
+      paymaster: createBicoPaymasterClient({
         paymasterUrl
       })
     })

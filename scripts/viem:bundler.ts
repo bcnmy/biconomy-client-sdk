@@ -2,7 +2,7 @@ import { http, type PublicClient, createPublicClient, parseEther } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { toNexusAccount } from "../packages/sdk/account/toNexusAccount"
 import { getChain } from "../packages/sdk/account/utils/getChain"
-import { toBicoBundlerClient } from "../packages/sdk/clients/toBicoBundlerClient"
+import { createBicoBundlerClient } from "../packages/sdk/clients/createBicoBundlerClient"
 
 const k1ValidatorAddress = "0x663E709f60477f07885230E213b8149a7027239B"
 const factoryAddress = "0x887Ca6FaFD62737D0E79A2b8Da41f0B15A864778"
@@ -68,7 +68,7 @@ const main = async () => {
     factoryAddress
   })
 
-  const bicoBundler = toBicoBundlerClient({
+  const bicoBundler = createBicoBundlerClient({
     bundlerUrl,
     account: nexusAccount,
     userOperation: {
@@ -124,7 +124,6 @@ const main = async () => {
   })
   const userOpReceipt = await bicoBundler.waitForUserOperationReceipt({ hash })
   console.timeEnd("write methods")
-  console.log({ userOpReceipt, hash })
 }
 
 main()

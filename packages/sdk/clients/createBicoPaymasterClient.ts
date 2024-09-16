@@ -19,7 +19,7 @@ type BicoPaymasterClientConfig = Omit<PaymasterClientConfig, "transport"> &
       }
   >
 
-export const toBicoPaymasterClient = (
+export const createBicoPaymasterClient = (
   parameters: BicoPaymasterClientConfig
 ): PaymasterClient =>
   createPaymasterClient({

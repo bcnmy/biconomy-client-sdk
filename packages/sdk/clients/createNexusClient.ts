@@ -20,9 +20,10 @@ import {
   createBundlerClient
 } from "viem/account-abstraction"
 import contracts from "../__contracts"
-import type { Call } from "../account"
+import type { Call } from "../account/utils/Types"
 
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
+import type { BaseExecutionModule } from "../modules/base/BaseExecutionModule"
 import type { BaseValidationModule } from "../modules/base/BaseValidationModule"
 import { type Erc7579Actions, erc7579Actions } from "./decorators/erc7579"
 import {
@@ -114,13 +115,14 @@ export type NexusClientConfig<
     /** Active module of the account. */
     activeModule?: BaseValidationModule
     /** Factory address of the account. */
+    executorModule?: BaseExecutionModule
     factoryAddress?: Address
     /** Owner module */
     k1ValidatorAddress?: Address
   }
 >
 
-export async function toNexusClient(
+export async function createNexusClient(
   parameters: NexusClientConfig
 ): Promise<NexusClient> {
   const {
@@ -128,9 +130,10 @@ export async function toNexusClient(
     chain = parameters.chain ?? client_?.chain,
     owner,
     index = 0n,
-    key = "biconomy",
-    name = "Bicononomy Client",
+    key = "nexus client",
+    name = "Nexus Client",
     activeModule,
+    executorModule,
     factoryAddress = contracts.k1ValidatorFactory.address,
     k1ValidatorAddress = contracts.k1Validator.address,
     bundlerTransport,
@@ -152,22 +155,21 @@ export async function toNexusClient(
 
   if (!chain) throw new Error("Missing chain")
 
-  const account = await toNexusAccount({
-    ...parameters,
+  const nexusAccount = await toNexusAccount({
     transport,
     chain,
     owner,
     index,
     activeModule,
+    executorModule,
     factoryAddress,
     k1ValidatorAddress
   })
 
   const bundler = createBundlerClient({
-    ...parameters,
     key,
     name,
-    account: account as Account,
+    account: nexusAccount,
     paymaster,
     paymasterContext,
     transport:

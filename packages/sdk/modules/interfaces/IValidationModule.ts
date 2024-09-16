@@ -1,5 +1,5 @@
 import type { Hex } from "viem"
-import type { SmartAccountSigner } from "../../account"
+import type { SmartAccountSigner } from "../../account/utils/Types"
 
 export interface IValidationModule {
   getAddress(): Hex

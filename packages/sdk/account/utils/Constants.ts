@@ -26,7 +26,7 @@ export const ERROR_MESSAGES = {
   ACCOUNT_NOT_DEPLOYED: "Account has not yet been deployed",
   ACCOUNT_ALREADY_DEPLOYED: "Account already deployed",
   NO_NATIVE_TOKEN_BALANCE_DURING_DEPLOY:
-    "Native token balance is not available during deploy",
+    "Smart Account does not have sufficient funds to execute the User Operation.",
   SPENDER_REQUIRED: "spender is required for ERC20 mode",
   NO_FEE_QUOTE:
     "FeeQuote was not provided, please call smartAccount.getTokenFees() to get feeQuote",
@@ -79,6 +79,14 @@ export const MODULE_ENABLE_MODE_TYPE_HASH = keccak256(
 export const MOCK_MULTI_MODULE_ADDRESS =
   "0x9C992f91E7Cd4697B81E137007f446E826b8378b"
 export const MODULE_TYPE_MULTI = 0
+
+export const NEXUS_DOMAIN_NAME = "Nexus"
+export const NEXUS_DOMAIN_VERSION = "1.0.0-beta"
+export const NEXUS_DOMAIN_TYPEHASH =
+  "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+
+export const PARENT_TYPEHASH =
+  "TypedDataSign(Contents contents,bytes1 fields,string name,string version,uint256 chainId,address verifyingContract,bytes32 salt,uint256[] extensions)Contents(bytes32 stuff)"
 export const eip1271MagicValue: Hex = "0x1626ba7e"
 
 export const EXECUTE_SINGLE = concat([

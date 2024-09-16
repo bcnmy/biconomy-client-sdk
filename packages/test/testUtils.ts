@@ -13,22 +13,25 @@ import {
   createTestClient,
   createWalletClient,
   encodeAbiParameters,
+  encodePacked,
+  keccak256,
   parseAbi,
   parseAbiParameters,
   publicActions,
+  toBytes,
   walletActions,
   zeroAddress
 } from "viem"
 import { createBundlerClient } from "viem/account-abstraction"
 import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts"
 import contracts from "../sdk/__contracts"
-import {
-  type EIP712DomainReturn,
-  getChain,
-  getCustomChain
-} from "../sdk/account/utils"
+import { getChain, getCustomChain } from "../sdk/account/utils"
 import { Logger } from "../sdk/account/utils/Logger"
-import { type NexusClient, toNexusClient } from "../sdk/clients/toNexusClient"
+import {
+  type NexusClient,
+  createNexusClient
+} from "../sdk/clients/createNexusClient"
+
 import {
   ENTRY_POINT_SIMULATIONS_CREATECALL,
   ENTRY_POINT_V07_CREATECALL,
@@ -204,18 +207,33 @@ export const toConfiguredAnvil = async ({
     // forkUrl: "https://base-sepolia.gateway.tenderly.co/2oxlNZ7oiNCUpXzrWFuIHx"
   })
   await instance.start()
-  console.log("")
-  console.log(`configuring module bytecode on http://localhost:${rpcPort}`)
-  // Set code with a test client
-  await deployContracts(rpcPort)
-  // Hardhat deployment
+  await initDeployments(rpcPort)
+  return instance
+}
+
+export const initDeployments = async (rpcPort: number) => {
+  // Hardhat deployment of nexus repo:
+  console.log(
+    `using hardhat to deploy nexus contracts to http://localhost:${rpcPort}`
+  )
   await hardhatExec.init()
   await hardhatExec.clean()
-  console.log(`deploying nexus contracts to http://localhost:${rpcPort}`)
   await hardhatExec.deploy(rpcPort)
-  console.log("deployment complete")
+  console.log("hardhat deployment complete.")
+
+  // Hardcoded bytecode deployment of contracts using setCode:
+  console.log("setting bytecode with hardcoded calldata.")
+  const chain = getTestChainFromPort(rpcPort)
+  const account = getTestAccount()
+  const testClient = toTestClient(chain, account)
+
+  // Dynamic bytecode deployment of contracts using setCode:
+  console.log("setting bytecode with dynamic calldata from a testnet")
+  await setByteCodeHardcoded(testClient)
+  await setByteCodeDynamic(testClient, TEST_CONTRACTS)
+
+  console.log("bytecode deployment complete.")
   console.log("")
-  return instance
 }
 
 const portOptions = { exclude: [] as number[] }
@@ -291,7 +309,7 @@ export const toFundedTestClients = async ({
 
   const testClient = toTestClient(chain, getTestAccount())
 
-  const nexus = await toNexusClient({
+  const nexus = await createNexusClient({
     owner: account,
     transport: http(),
     bundlerTransport: http(bundlerUrl),
@@ -299,7 +317,7 @@ export const toFundedTestClients = async ({
   })
 
   const smartAccountAddress = await nexus.account.getAddress()
-  await fundAndDeploy(testClient, [nexus])
+  await fundAndDeployClients(testClient, [nexus])
 
   return {
     account,
@@ -312,39 +330,44 @@ export const toFundedTestClients = async ({
   }
 }
 
-export const fundAndDeploy = async (
+export const fundAndDeployClients = async (
   testClient: MasterClient,
   nexusClients: NexusClient[]
 ) => {
-  return Promise.all(
+  return await Promise.all(
     nexusClients.map((nexusClient) =>
-      fundAndDeploySingleAccount(testClient, nexusClient)
+      fundAndDeploySingleClient(testClient, nexusClient)
     )
   )
 }
 
-export const fundAndDeploySingleAccount = async (
+export const fundAndDeploySingleClient = async (
   testClient: MasterClient,
   nexusClient: NexusClient
 ) => {
   try {
     const accountAddress = await nexusClient.account.getAddress()
     await topUp(testClient, accountAddress)
-    const hash = await nexusClient.sendUserOperation({
+
+    const hash = await nexusClient.sendTransaction({
       calls: [
         {
           to: zeroAddress,
-          value: 1n
+          value: 0n
         }
       ]
     })
-    const receipt = await nexusClient.waitForUserOperationReceipt({ hash })
-    if (!receipt.success) {
+    const { status, transactionHash } =
+      await testClient.waitForTransactionReceipt({
+        hash
+      })
+
+    if (status !== "success") {
       throw new Error("Failed to deploy smart account")
     }
-    return receipt
+    return transactionHash
   } catch (e) {
-    Logger.error(`Error initializing smart account: ${e}`)
+    console.error(`Error initializing smart account: ${e}`)
     return Promise.resolve()
   }
 }
@@ -399,48 +422,16 @@ export const topUp = async (
   return await testClient.waitForTransactionReceipt({ hash })
 }
 
-// Returns the encoded EIP-712 domain struct fields.
-export const getAccountDomainStructFields = async (
-  testClient: MasterClient,
-  accountAddress: Address
-) => {
-  const accountDomainStructFields = (await testClient.readContract({
-    address: accountAddress,
-    abi: parseAbi([
-      "function eip712Domain() public view returns (bytes1 fields, string memory name, string memory version, uint256 chainId, address verifyingContract, bytes32 salt, uint256[] memory extensions)"
-    ]),
-    functionName: "eip712Domain"
-  })) as EIP712DomainReturn
-
-  const [fields, name, version, chainId, verifyingContract, salt, extensions] =
-    accountDomainStructFields
-
-  const params = parseAbiParameters(
-    "bytes1, string, string, uint256, address, bytes32, uint256[]"
-  )
-
-  return encodeAbiParameters(params, [
-    fields,
-    name,
-    version,
-    chainId,
-    verifyingContract,
-    salt,
-    extensions
-  ])
-}
-
 export const getBundlerUrl = (chainId: number) =>
   `https://bundler.biconomy.io/api/v2/${chainId}/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f14`
 
 const getTestChainFromPort = (port: number): Chain =>
   getCustomChain(`Anvil-${port}`, port, `http://localhost:${port}`, "")
 
-const deployContracts = async (rpcPort: number): Promise<void> => {
+const setByteCodeHardcoded = async (
+  testClient: MasterClient
+): Promise<void> => {
   const DETERMINISTIC_DEPLOYER = "0x4e59b44847b379578588920ca78fbf26c0b4956c"
-  const chain = getTestChainFromPort(rpcPort)
-  const account = getTestAccount()
-  const testClient = toTestClient(chain, account)
 
   const entrypointSimulationHash = await testClient.sendTransaction({
     to: DETERMINISTIC_DEPLOYER,
@@ -458,8 +449,6 @@ const deployContracts = async (rpcPort: number): Promise<void> => {
     testClient.waitForTransactionReceipt({ hash: entrypointSimulationHash }),
     testClient.waitForTransactionReceipt({ hash: entrypointHash })
   ])
-
-  await byteCodeDeployer(testClient, TEST_CONTRACTS)
 }
 
 export const sleep = (ms: number) =>
@@ -470,7 +459,7 @@ export type DeployerParams = {
   chainId: number
   address: Address
 }
-export const byteCodeDeployer = async (
+export const setByteCodeDynamic = async (
   testClient: MasterClient,
   deployParams: Record<string, DeployerParams>
 ) => {

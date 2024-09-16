@@ -22,6 +22,11 @@ export const NexusAbi = [
   },
   {
     inputs: [],
+    name: "EmergencyTimeLockNotExpired",
+    type: "error"
+  },
+  {
+    inputs: [],
     name: "EnableModeSigError",
     type: "error"
   },
@@ -313,6 +318,25 @@ export const NexusAbi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "address",
+        name: "hook",
+        type: "address"
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "timestamp",
+        type: "uint256"
+      }
+    ],
+    name: "EmergencyHookUninstallRequest",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         components: [
           {
             internalType: "address",
@@ -542,6 +566,24 @@ export const NexusAbi = [
       }
     ],
     stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "hook",
+        type: "address"
+      },
+      {
+        internalType: "bytes",
+        name: "deInitData",
+        type: "bytes"
+      }
+    ],
+    name: "emergencyUninstallHook",
+    outputs: [],
+    stateMutability: "payable",
     type: "function"
   },
   {
@@ -878,7 +920,7 @@ export const NexusAbi = [
       },
       {
         internalType: "bytes",
-        name: "data",
+        name: "signature",
         type: "bytes"
       }
     ],
@@ -1005,11 +1047,30 @@ export const NexusAbi = [
     outputs: [
       {
         internalType: "bytes32",
-        name: "result",
+        name: "",
         type: "bytes32"
       }
     ],
-    stateMutability: "pure",
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "validator",
+        type: "address"
+      }
+    ],
+    name: "supportsNestedTypedDataSignWithValidator",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32"
+      }
+    ],
+    stateMutability: "view",
     type: "function"
   },
   {

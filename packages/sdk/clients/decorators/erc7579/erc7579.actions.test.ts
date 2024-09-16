@@ -1,19 +1,19 @@
 import { textSpanOverlapsWith } from "typescript"
 import { http, type Account, type Address, type Chain, isHex } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { toNetwork } from "../../../../tests/testSetup"
+import { toNetwork } from "../../../../test/testSetup"
 import {
   type MasterClient,
   type NetworkConfig,
-  fundAndDeploy,
+  fundAndDeployClients,
   getTestAccount,
   killNetwork,
   toTestClient
-} from "../../../../tests/testUtils"
+} from "../../../../test/testUtils"
 import contracts from "../../../__contracts"
-import { type NexusClient, toNexusClient } from "../../toNexusClient"
+import { type NexusClient, createNexusClient } from "../../createNexusClient"
 
-describe("erc7579.decorators", () => {
+describe("erc7579.decorators", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
@@ -34,9 +34,9 @@ describe("erc7579.decorators", () => {
     account = getTestAccount(0)
     recipient = getTestAccount(1)
     recipientAddress = recipient.address
-    testClient = toTestClient(chain, getTestAccount(0))
+    testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await toNexusClient({
+    nexusClient = await createNexusClient({
       owner: account,
       chain,
       transport: http(),
@@ -44,7 +44,7 @@ describe("erc7579.decorators", () => {
     })
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
-    await fundAndDeploy(testClient, [nexusClient])
+    await fundAndDeployClients(testClient, [nexusClient])
   })
 
   afterAll(async () => {

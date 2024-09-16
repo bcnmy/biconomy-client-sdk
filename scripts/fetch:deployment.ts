@@ -10,7 +10,7 @@ type FetchDetails = {
 }
 const {
   nexusDeploymentPath = "../node_modules/nexus/deployments",
-  chainName = "anvil-55000",
+  chainName = "anvil-51139",
   forSrc = ["K1ValidatorFactory", "Nexus", "K1Validator"]
 } = yargs(hideBin(process.argv)).argv as unknown as FetchDetails
 
@@ -52,7 +52,7 @@ export const getDeployments = async () => {
 
       const tsAbiPath = isForCore
         ? `${__dirname}/../src/__contracts/abi/${name}Abi.ts`
-        : `${__dirname}/../tests/__contracts/abi/${name}Abi.ts`
+        : `${__dirname}/../test/__contracts/abi/${name}Abi.ts`
 
       fs.writeFileSync(tsAbiPath, tsAbiContent)
 
@@ -63,7 +63,7 @@ export const getDeployments = async () => {
   }
 
   // Write ABI index file...
-  const abiIndexContent = `export * from "./UniActionPolicyAbi"\nexport * from "./EntryPointABI"\n${coreFiles
+  const abiIndexContent = `export * from "./EIP1271Abi"\nexport * from "./UniActionPolicyAbi"\nexport * from "./EntryPointABI"\n${coreFiles
     .map((file) => `export * from "./${file}Abi"`)
     .join("\n")}`
 
@@ -76,15 +76,15 @@ export const getDeployments = async () => {
   const abiIndexPath = `${__dirname}/../src/__contracts/abi/index.ts`
   fs.writeFileSync(abiIndexPath, abiIndexContent)
 
-  const testAbiIndexPath = `${__dirname}/../tests/__contracts/abi/index.ts`
+  const testAbiIndexPath = `${__dirname}/../test/__contracts/abi/index.ts`
   fs.writeFileSync(testAbiIndexPath, testAbiIndexContent)
 
   // Write addresses to src folder
   const writeAddressesPath = `${__dirname}/../src/__contracts/addresses.ts`
-  const writeAddressesPathTest = `${__dirname}/../tests/__contracts/mockAddresses.ts`
+  const writeAddressesPathTest = `${__dirname}/../test/__contracts/mockAddresses.ts`
 
   const addressesContent = `// The contents of this folder is auto-generated. Please do not edit as your changes are likely to be overwritten\n
-  import type { Hex } from "viem"\nexport const addresses: Record<string, Hex> = ${JSON.stringify(
+  export const addresses = ${JSON.stringify(
     Object.keys(deployedContracts)
       .filter((key) => coreFiles.includes(key))
       .reduce((acc, key) => {
@@ -96,7 +96,7 @@ export const getDeployments = async () => {
   )} as const;\nexport default addresses\n`
 
   const testAddressesContent = `// The contents of this folder is auto-generated. Please do not edit as your changes are likely to be overwritten\n
-  import type { Hex } from "viem"\nexport const mockAddresses: Record<string, Hex> = ${JSON.stringify(
+  export const mockAddresses = ${JSON.stringify(
     Object.keys(deployedContracts)
       .filter((key) => testFiles.includes(key))
       .reduce((acc, key) => {

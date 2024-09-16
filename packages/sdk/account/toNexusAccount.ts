@@ -6,15 +6,16 @@ import {
   type ClientConfig,
   type Hex,
   type Prettify,
+  type PublicClient,
   type RpcSchema,
   type SignableMessage,
   type Transport,
-  type TypedData,
   type TypedDataDefinition,
   type UnionPartialBy,
   concat,
   concatHex,
   createWalletClient,
+  domainSeparator,
   encodeAbiParameters,
   encodeFunctionData,
   encodePacked,
@@ -23,6 +24,9 @@ import {
   parseAbi,
   parseAbiParameters,
   publicActions,
+  toBytes,
+  toHex,
+  validateTypedData,
   walletActions
 } from "viem"
 import {
@@ -42,14 +46,21 @@ import {
   EXECUTE_BATCH,
   EXECUTE_SINGLE,
   MAGIC_BYTES,
-  MODE_VALIDATION
+  MODE_VALIDATION,
+  PARENT_TYPEHASH
 } from "./utils/Constants"
 
 import type { BaseExecutionModule } from "../modules/base/BaseExecutionModule"
 import type { BaseValidationModule } from "../modules/base/BaseValidationModule"
 import { K1ValidatorModule } from "../modules/validators/K1ValidatorModule"
 import { WalletClientSigner } from "./signers/wallet-client"
-import { packUserOp } from "./utils/Utils"
+import {
+  eip712WrapHash,
+  getAccountDomainStructFields,
+  getTypesForEIP712Domain,
+  packUserOp,
+  typeToString
+} from "./utils/Utils"
 
 export type ToNexusSmartAccountParameters = {
   chain: Chain
@@ -57,7 +68,7 @@ export type ToNexusSmartAccountParameters = {
   owner: Account | Address
   index?: bigint | undefined
   activeModule?: BaseValidationModule
-  exectutorModule?: BaseExecutionModule
+  executorModule?: BaseExecutionModule
   factoryAddress?: Address
   k1ValidatorAddress?: Address
 } & Prettify<
@@ -100,9 +111,9 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
  * @property {Account | Address} owner - The owner account or address
  * @property {bigint} [index] - Optional index for the account
  * @property {BaseValidationModule} [activeModule] - Optional active validation module
- * @property {BaseExecutionModule} [exectutorModule] - Optional executor module
  * @property {Address} [factoryAddress] - Optional factory address
  * @property {Address} [k1ValidatorAddress] - Optional K1 validator address
+ * @property {string} [executorModule] - Optional Executor module
  * @property {string} [key] - Optional key for the wallet client
  * @property {string} [name] - Optional name for the wallet client
  */
@@ -115,10 +126,11 @@ export const toNexusAccount = async (
     owner,
     index = 0n,
     activeModule,
+    executorModule: _,
     factoryAddress = contracts.k1ValidatorFactory.address,
     k1ValidatorAddress = contracts.k1Validator.address,
-    key = "nexus",
-    name = "Nexus"
+    key = "nexus account",
+    name = "Nexus Account"
   } = parameters
 
   const masterClient = createWalletClient({
@@ -185,6 +197,7 @@ export const toNexusAccount = async (
         _accountAddress = e?.cause.data.args[0] as Address
         return _accountAddress
       }
+      console.log("Im in here", e)
     }
     throw new Error("Failed to get counterfactual account address")
   }
@@ -357,6 +370,78 @@ export const toNexusAccount = async (
     return accountIsDeployed ? signature : erc6492Signature
   }
 
+  const signTypedData = async (
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    typedData: any
+  ): Promise<Hex> => {
+    const types = {
+      EIP712Domain: getTypesForEIP712Domain({
+        domain: typedData.domain
+      }),
+      ...typedData.types
+    }
+
+    validateTypedData({
+      domain: typedData.domain,
+      message: typedData.message,
+      primaryType: typedData.primaryType,
+      types
+    } as TypedDataDefinition)
+
+    const appDomainSeparator = domainSeparator({
+      domain: {
+        name: typedData.domain.name,
+        version: typedData.domain.version,
+        chainId: typedData.domain.chainId,
+        verifyingContract: typedData.domain.verifyingContract
+      }
+    })
+
+    const accountDomainStructFields = await getAccountDomainStructFields(
+      masterClient as unknown as PublicClient,
+      await getAddress()
+    )
+
+    const parentStructHash = keccak256(
+      encodePacked(
+        ["bytes", "bytes"],
+        [
+          encodeAbiParameters(parseAbiParameters(["bytes32, bytes32"]), [
+            keccak256(toBytes(PARENT_TYPEHASH)),
+            typedData.message.stuff
+          ]),
+          accountDomainStructFields
+        ]
+      )
+    )
+
+    const wrappedTypedHash = await eip712WrapHash(
+      parentStructHash,
+      appDomainSeparator
+    )
+
+    let signature = await defaultedActiveModule.signMessage(
+      toBytes(wrappedTypedHash)
+    )
+
+    const contentsType = toBytes(typeToString(types)[1])
+
+    const signatureData = concatHex([
+      signature,
+      appDomainSeparator,
+      typedData.message.stuff,
+      toHex(contentsType),
+      toHex(contentsType.length, { size: 2 })
+    ])
+
+    signature = encodePacked(
+      ["address", "bytes"],
+      [defaultedActiveModule.getAddress(), signatureData]
+    )
+
+    return signature
+  }
+
   return toSmartAccount({
     client: masterClient,
     entryPoint: {
@@ -370,19 +455,14 @@ export const toNexusAccount = async (
         ? encodeExecute(calls[0])
         : encodeExecuteBatch(calls)
     },
-    getFactoryArgs: async () => ({ factory: factoryAddress, factoryData }),
+    getFactoryArgs: async () => {
+      return { factory: factoryAddress, factoryData }
+    },
     getStubSignature: async (): Promise<Hex> => {
       return defaultedActiveModule.getDummySignature()
     },
     signMessage,
-    signTypedData: <
-      const typedData extends TypedData | Record<string, unknown>,
-      primaryType extends keyof typedData | "EIP712Domain" = keyof typedData
-    >(
-      _: TypedDataDefinition<typedData, primaryType>
-    ): Promise<Hex> => {
-      throw new Error("signTypedData not supported")
-    },
+    signTypedData,
     signUserOperation: async (
       parameters: UnionPartialBy<UserOperation, "sender"> & {
         chainId?: number | undefined

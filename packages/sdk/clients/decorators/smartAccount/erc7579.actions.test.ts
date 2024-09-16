@@ -1,20 +1,20 @@
 import { http, type Account, type Address, type Chain, isHex } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { CounterAbi } from "../../../../tests/__contracts/abi"
-import { mockAddresses } from "../../../../tests/__contracts/mockAddresses"
-import { toNetwork } from "../../../../tests/testSetup"
+import { CounterAbi } from "../../../../test/__contracts/abi"
+import { mockAddresses } from "../../../../test/__contracts/mockAddresses"
+import { toNetwork } from "../../../../test/testSetup"
 import {
   type MasterClient,
   type NetworkConfig,
-  fundAndDeploy,
+  fundAndDeployClients,
   getBalance,
   getTestAccount,
   killNetwork,
   toTestClient
-} from "../../../../tests/testUtils"
-import { type NexusClient, toNexusClient } from "../../toNexusClient"
+} from "../../../../test/testUtils"
+import { type NexusClient, createNexusClient } from "../../createNexusClient"
 
-describe("account.decorators", () => {
+describe("account.decorators", async () => {
   let network: NetworkConfig
   let chain: Chain
   let bundlerUrl: string
@@ -35,9 +35,9 @@ describe("account.decorators", () => {
     account = getTestAccount(0)
     recipient = getTestAccount(1)
     recipientAddress = recipient.address
-    testClient = toTestClient(chain, getTestAccount(0))
+    testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await toNexusClient({
+    nexusClient = await createNexusClient({
       owner: account,
       chain,
       transport: http(),
@@ -45,7 +45,7 @@ describe("account.decorators", () => {
     })
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
-    await fundAndDeploy(testClient, [nexusClient])
+    await fundAndDeployClients(testClient, [nexusClient])
   })
 
   afterAll(async () => {
@@ -56,7 +56,7 @@ describe("account.decorators", () => {
     const signedMessage = await nexusClient.signMessage({ message: "hello" })
 
     expect(signedMessage).toEqual(
-      "0xd98238bbaea4f91683d250003799ead31d7f5c55f16ea9a3478698f695fd1401bfe27e9e4a7e8e3da94aa72b021125e31fa899cc573c48ea3fe1d4ab61a9db10c19032026e3ed2dbccba5a178235ac27f94504311c"
+      "0x6854688d3d9a87a33addd5f4deb5cea1b97fa5b7f16ea9a3478698f695fd1401bfe27e9e4a7e8e3da94aa72b021125e31fa899cc573c48ea3fe1d4ab61a9db10c19032026e3ed2dbccba5a178235ac27f94504311c"
     )
   })
 

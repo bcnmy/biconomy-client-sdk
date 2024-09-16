@@ -2,7 +2,7 @@ import { ParamType, ethers } from "ethers"
 import { type AbiParameter, encodeAbiParameters } from "viem"
 import { describe, expect, test } from "vitest"
 
-describe("utils", () => {
+describe("utils", async () => {
   test.concurrent(
     "should have consistent behaviour between ethers.AbiCoder.defaultAbiCoder() and viem.encodeAbiParameters()",
     async () => {
