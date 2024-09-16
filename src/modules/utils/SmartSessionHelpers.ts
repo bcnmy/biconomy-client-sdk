@@ -27,7 +27,7 @@ export type Rule = {
    * https://docs.soliditylang.org/en/develop/abi-spec.html#use-of-dynamic-types
    *
    * */
-  offsetIndex: number
+  offsetIndex: bigint
   /**
    * If the rule is limited, the usage object will contain the limit and the used values.
    */

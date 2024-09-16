@@ -124,21 +124,7 @@ export type CreateSessionDataResponse = {
   sessionIDInfo: Array<string>
 }
 
-export interface CreateSessionDataParams {
-  /** window end for the session key */
-  validUntil: number
-  /** window start for the session key */
-  validAfter: number
-  /** Address of the session validation module */
-  sessionValidationModule: Hex
-  /** Public key of the session */
-  sessionPublicKey: Hex
-  /** The hex of the rules {@link Rule} that make up the policy */
-  sessionKeyData: Hex
-  /** we generate uuid based sessionId. but if you prefer to track it on your side and attach custom session identifier this can be passed */
-  preferredSessionId?: string
-}
-
+// Todo: marked for deletion
 export interface MultiChainValidationModuleConfig
   extends BaseValidationModuleConfig {
   /** Address of the module */
@@ -365,6 +351,7 @@ export interface CreateSessionDataParams {
   /** The maximum value that can be transferred in a single transaction */
   valueLimit: bigint;
 
+  // Review
   /** we generate uuid based sessionId. but if you prefer to track it on your side and attach custom session identifier this can be passed */
   preferredSessionId?: string
   /** Dan module info */

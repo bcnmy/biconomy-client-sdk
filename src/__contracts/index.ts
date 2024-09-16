@@ -7,6 +7,8 @@ export const ENTRYPOINT_SIMULATIONS: Hex =
 export const ENTRYPOINT_ADDRESS: Hex =
   "0x0000000071727De22E5E9d8BAf0edAc6f37da032"
 
+// Review: maybe need to add more contracts here  
+
 const entryPoint = {
   address: ENTRYPOINT_ADDRESS,
   abi: EntrypointAbi

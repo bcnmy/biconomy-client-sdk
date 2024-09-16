@@ -1,15 +1,18 @@
-import { encodeFunctionData, parseAbi, type Hex } from "viem"
+import { AbiFunction, Address, encodeAbiParameters, encodeFunctionData, type Hex } from "viem"
+import addresses from "../../__contracts/addresses.js"
 import type { SmartAccountSigner } from "../../account/index.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
-import { CreateSessionDataParams, SmartSessionMode, type Module } from "../utils/Types.js"
-import { encodeSmartSessionSignature } from "../utils/SmartSessionHelpers.js"
+import { ActionData, CreateSessionDataParams, PolicyData, SmartSessionMode, type Module } from "../utils/Types.js"
+import { ActionConfig, encodeSmartSessionSignature, Rule } from "../utils/SmartSessionHelpers.js"
 import { type Session } from "../utils/Types.js"
-import { TEST_CONTRACTS } from "../../../tests/src/callDatas.js"
+import { smartSessionAbi, universalActionPolicyAbi } from "../utils/abi.js"
 
 const DUMMY_ECDSA_SIG = "0xe8b94748580ca0b4993c9a1b86b5be851bfc076ff5ce3a1ff65bf16392acfcb800f9b4f1aef1555c7fce5599fffb17e7c635502154a0333ba21f3ae491839af51c";
 
-const UNIVERSAL_POLICY_ADDRESS = TEST_CONTRACTS.UniversalPolicy.address
-const SMART_SESSION_ADDRESS = TEST_CONTRACTS.SmartSession.address
+// Todo: review and discuss importing and naming between addresses and TEST_CONTRACTS
+const UNIVERSAL_POLICY_ADDRESS = addresses.UniActionPolicy
+const SMART_SESSION_ADDRESS = addresses.SmartSession
+const SIMPLE_SESSION_VALIDATOR_ADDRESS = addresses.SimpleSigner
 
 // Note: flows: use mode and enable mode both should be supported.
 export class SmartSessionModule extends BaseValidationModule {
@@ -19,6 +22,7 @@ export class SmartSessionModule extends BaseValidationModule {
     super(moduleConfig, signer)
   }
   
+  // review: if it should get a signer object or just session key EOA address to be used with SimpleSessionValidator contract
   public static async create(
     signer: SmartAccountSigner,
     smartSessionAddress = SMART_SESSION_ADDRESS,
@@ -45,6 +49,7 @@ export class SmartSessionModule extends BaseValidationModule {
     }) as Hex
   }
 
+  // Note: depends on the mode. based on the mode additional infromation is required and will need to use other read methods.
   override getDummySignature(permissionId?: Hex): Hex {
     return encodeSmartSessionSignature({
       mode: SmartSessionMode.USE,
@@ -93,50 +98,135 @@ export class SmartSessionModule extends BaseValidationModule {
 
   createSessionData = async (
     sessionRequestedInfo: CreateSessionDataParams[]
-  ): Promise<void> => {
-
-    // 1. iteraste over sessionRequestedInfo and make ActionConfig using the passed rules and value limit (calculate rules length and fit in object)
-
-    // 2. call getUniversalActionPolicy that will give you policy object
-
-    // 3. Build actionData from this policy object and contractAddress and func selector
-    // type is
-    /*export type ActionData = {
-      actionTargetSelector: Hex
-      actionTarget: Address
-      actionPolicies: PolicyData[]
-    }*/
-
-    // Build the session objects then apply below.  
-
-    // Review
-    const smartSessionBI = parseAbi([
-      "function enableSessions((address,bytes,bytes32,(address,bytes)[],(string[],(address,bytes)[]),(bytes4,address,(address,bytes)[])[])[])"
-    ])
+  ): Promise<Hex> => {
 
     const sessions: Session[] = [];
 
-    // const enableSessionsData = encodeFunctionData({
-    //   abi: smartSessionBI,
-    //   functionName: "enableSessions",
-    //   args: [sessions]
-    // })
+    // Function to generate a random salt
+    const generateSalt = (): Hex => {
+      const randomBytes = new Uint8Array(32);
+      crypto.getRandomValues(randomBytes);
+    return `0x${Array.from(randomBytes, byte => byte.toString(16).padStart(2, '0')).join('')}` as Hex;
+    };
+    
+    // Helper function to create ActionConfig
+    const createActionConfig = (rules: Rule[], valueLimit: bigint): ActionConfig => {
+      return {
+        paramRules: {
+          length: rules.length,
+          rules: rules
+        },
+        valueLimitPerUse: valueLimit
+      };
+    };
+
+    // Helper function to create ActionData
+    const createActionData = (contractAddress: Address, functionSelector: string | AbiFunction, policies: PolicyData[]): ActionData => {
+      return {
+        actionTarget: contractAddress,
+        actionTargetSelector: (typeof functionSelector === 'string' ? functionSelector : functionSelector.name) as Hex,
+        actionPolicies: policies
+      };
+    };
+
+    for (const sessionInfo of sessionRequestedInfo) {
+      // Create ActionConfig from already prepared rules
+      const actionConfig = createActionConfig(sessionInfo.rules, sessionInfo.valueLimit);
+      
+      // Review
+      // What we need to do is below
+      // solidity code
+      // ActionConfig memory config = ActionConfig({ valueLimitPerUse: 1e21, paramRules: paramRules });
+      // policyInitData = abi.encode(config);
+
+      // Build initData for UniversalActionPolicy
+      const encodedActionConfig = encodeAbiParameters(
+        [
+            { type: 'uint256', name: 'valueLimitPerUse' },
+            {
+                type: 'tuple',
+                name: 'paramRules',
+                components: [
+                    { type: 'uint256', name: 'length' },
+                    {
+                        type: 'tuple[]',
+                        name: 'rules',
+                        components: [
+                            { type: 'uint8', name: 'condition' },
+                            { type: 'uint256', name: 'offsetIndex' },
+                            { type: 'bool', name: 'isLimited' },
+                            { type: 'bytes32', name: 'ref' },
+                            {
+                                type: 'tuple',
+                                name: 'usage',
+                                components: [
+                                  { type: 'uint256', name: 'limit' }, // Limit in LimitUsage
+                                  { type: 'uint256', name: 'used' }    // Used in LimitUsage
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        [
+          actionConfig.valueLimitPerUse,
+            {
+                length: BigInt(actionConfig.paramRules.length),
+                rules: actionConfig.paramRules.rules.map(rule => ({
+                  condition: rule.condition,
+                  offsetIndex: rule.offsetIndex,
+                  isLimited: rule.isLimited,
+                  ref: typeof rule.ref === 'string' 
+                  ? (rule.ref.startsWith('0x') ? rule.ref as Hex : `0x${rule.ref}` as Hex)
+                  : `0x${rule.ref.toString(16)}` as Hex,
+                  usage: rule.usage
+                }))
+            }
+        ]
+    );
+
+      // Build PolicyData
+      const policyData: PolicyData = {
+        policy: UNIVERSAL_POLICY_ADDRESS,
+        initData: encodedActionConfig
+      };
+
+      // Create policyDataArray with single element
+      const policyDataArray: PolicyData[] = [policyData];
+
+
+      // Build ActionData
+      const actionData = createActionData(
+        sessionInfo.contractAddress,
+        sessionInfo.functionSelector,
+        policyDataArray
+      );
+
+      // Build Session object
+      const session: Session = {
+        sessionValidator: sessionInfo.sessionValidatorAddress ?? SIMPLE_SESSION_VALIDATOR_ADDRESS,
+        sessionValidatorInitData: sessionInfo.sessionKeyData, // sessionValidatorInitData: abi.encodePacked(sessionSigner1.addr),
+        salt: generateSalt(),
+        userOpPolicies: [],
+        actions: [actionData],
+        erc7739Policies: {
+          allowedERC7739Content: [],
+          erc1271Policies: []
+        }
+      };
+
+      // Push to sessions array
+      sessions.push(session);
+    }
+
+    // Prepare enableSessions data
+    const enableSessionsData = encodeFunctionData({
+      abi: smartSessionAbi,
+      functionName: "enableSessions",
+      args: [sessions]
+    });
+
+    return enableSessionsData;
   }
-
-
-
-  // Note:
-  // Needs more helpers to create a session struct. given constant validator, policies need to be built.
-  // Could be in helpers
-  // Todo:L
-  // Temp comment below
-
-  /*Session memory session = Session({
-            sessionValidator: ISessionValidator(address(yesSigner)),
-            salt: salt,
-            sessionValidatorInitData: "mockInitData",
-            userOpPolicies: _getEmptyPolicyDatas(address(yesPolicy)),
-            erc7739Policies: _getEmptyERC7739Data("mockContent", _getEmptyPolicyDatas(address(yesPolicy))), // optional and default empty
-            actions: _getEmptyActionDatas(_target, MockTarget.setValue.selector, address(yesPolicy)) // mocks. but usually one universal policy is enough
-   });*/
 }

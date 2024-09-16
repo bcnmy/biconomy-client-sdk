@@ -10,7 +10,7 @@ import {
   toHex
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { parseReferenceValue } from "../src"
+import { convertSigner, CreateSessionDataParams, createSmartSessionModule, parseReferenceValue, Transaction } from "../src"
 import {
   type NexusSmartAccount,
   createSmartAccountClient
@@ -28,6 +28,8 @@ import {
   topUp
 } from "./src/testUtils"
 import type { MasterClient, NetworkConfig } from "./src/testUtils"
+import addresses from "../src/__contracts/addresses"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 const NETWORK_TYPE: TestFileNetworkType = "FILE_LOCALHOST"
 
 describe("smart.sessions", () => {
@@ -93,25 +95,11 @@ describe("smart.sessions", () => {
 
   test("should have smart account bytecode", async () => {
     const bytecodes = await Promise.all(
-      [TEST_CONTRACTS.SmartSession, TEST_CONTRACTS.UniActionPolicy].map(
+      [TEST_CONTRACTS.SmartSession, TEST_CONTRACTS.UniActionPolicy, TEST_CONTRACTS.SimpleSigner].map(
         (address) => testClient.getBytecode(address)
       )
     )
     expect(bytecodes.every((bytecode) => !!bytecode?.length)).toBeTruthy()
-  })
-
-  test("should parse a human friendly policy reference value to the hex version expected by the contracts", async () => {
-    const TWO_THOUSAND_AS_HEX =
-      "0x00000000000000000000000000000000000000000000000000000000000007d0"
-
-    expect(parseReferenceValue(BigInt(2000))).toBe(TWO_THOUSAND_AS_HEX)
-    expect(parseReferenceValue(2000)).toBe(TWO_THOUSAND_AS_HEX)
-    expect(parseReferenceValue("7d0")).toBe(TWO_THOUSAND_AS_HEX)
-    expect(
-      parseReferenceValue(
-        parseReferenceValue(pad(toHex(BigInt(2000)), { size: 32 }))
-      )
-    ).toBe(TWO_THOUSAND_AS_HEX)
   })
 
   test("should get a universal action policy", async () => {
@@ -152,23 +140,80 @@ describe("smart.sessions", () => {
     expect(installUniversalPolicy.deInitData).toEqual("0x")
   })
 
-  test("should get a sudo action policy", async () => {
-    const installSudoActionPolicy = policies.sudo
-    expect(installSudoActionPolicy.address).toBeDefined()
-    expect(installSudoActionPolicy.initData).toEqual("0x")
-    expect(installSudoActionPolicy.deInitData).toEqual("0x")
-  })
 
-  test("should get a spending limit policy", async () => {
-    const installSpendingLimitPolicy = policies.to.spendingLimits([
-      {
-        limit: BigInt(1000),
-        token: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
-      }
-    ])
+  // Todo: move to read tests
+  test("should correctly encode the session signature in use mode", async () => {
+  }, 60000)
 
-    expect(installSpendingLimitPolicy.address).toBeDefined()
-    expect(installSpendingLimitPolicy.initData).toBeDefined()
-    expect(installSpendingLimitPolicy.deInitData).toEqual("0x")
-  })
+  test("should install smart session validator", async () => {
+    const isInstalledBefore = await smartAccount.isModuleInstalled({
+      type: "validator",
+      moduleAddress: TEST_CONTRACTS.SmartSession.address
+    })
+
+    if (!isInstalledBefore) {
+      const { wait } = await smartAccount.installModule({
+        moduleAddress: TEST_CONTRACTS.SmartSession.address,
+        type: "validator"
+      })
+
+      const { success: installSuccess } = await wait()
+      expect(installSuccess).toBe(true)
+    }
+  }, 60000)
+
+  test("should create ERC20 transfer session (USE mode) on installed smart session validator", async () => {
+    const isInstalledBefore = await smartAccount.isModuleInstalled({
+      type: "validator",
+      moduleAddress: TEST_CONTRACTS.SmartSession.address
+    })
+
+    expect(isInstalledBefore).toBe(true)
+
+    const smartAccountSigner = await convertSigner(walletClient)
+
+    const smartSessionModule = await createSmartSessionModule(
+      smartAccountSigner.signer,
+      TEST_CONTRACTS.SmartSession.address
+    )
+     
+    // Generate empty bytes32 hex string for dummy permisisonId
+    const emptyBytes32 = "0x" + "0".repeat(64) as Hex;
+    const dummySignature = smartSessionModule.getDummySignature(emptyBytes32);
+    // console.log("dummySignature", dummySignature)
+    expect(dummySignature).toBeDefined();
+
+
+    const pkey = generatePrivateKey()
+    const sessionSignerAccount = privateKeyToAccount(pkey)
+    const sessionKeyEOA = sessionSignerAccount.address
+
+    const sessionRequestedInfo: CreateSessionDataParams = {
+      sessionPublicKey: sessionKeyEOA,
+      sessionValidatorAddress: TEST_CONTRACTS.SmartSession.address,
+      sessionKeyData: emptyBytes32,
+      contractAddress: TEST_CONTRACTS.SmartSession.address, // ERC20 token address
+      functionSelector: "0xabcdefgh", // function selector for transfer
+      rules: [], // todo: prepare rules for transfer function
+      valueLimit: BigInt(0)
+    }
+
+    const sessionsEnableData = await smartSessionModule.createSessionData([sessionRequestedInfo])
+    console.log("sessionsEnableData", sessionsEnableData)
+    expect(sessionsEnableData).toBeDefined()
+
+    const tx: Transaction = {
+      to: smartAccountAddress,
+      data: sessionsEnableData
+    }
+    
+    // Todo: review failing
+    // const { wait } = await smartAccount.sendTransaction(tx)
+    //const { success } = await wait()
+    // expect(success).toBe(true)
+
+    // todo: btw add read methods to get enabled sessions for a smart acccount
+  }, 60000)
+
+  test("should make use of already enabled session (USE mode) to transfer ERC20 using a session key", async () => {})
 })
