@@ -37,7 +37,6 @@ import {
   type SessionType,
   createECDSAOwnershipValidationModule,
   getBatchSessionTxParams,
-  getDanSessionTxParams,
   getSingleSessionTxParams
 } from "../modules"
 import type { ISessionStorage } from "../modules/interfaces/ISessionStorage.js"
@@ -1637,11 +1636,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     if (!defaultedChain) throw new Error("Chain is not provided")
 
     if (this.sessionType === "DISTRIBUTED_KEY") {
-      return getDanSessionTxParams(
-        defaultedConditionalSession,
-        defaultedChain,
-        correspondingIndex
-      )
+      // return getDanSessionTxParams(
+      //   defaultedConditionalSession,
+      //   defaultedChain,
+      //   correspondingIndex
+      // )
     }
     if (this.sessionType === "BATCHED") {
       return getBatchSessionTxParams(
