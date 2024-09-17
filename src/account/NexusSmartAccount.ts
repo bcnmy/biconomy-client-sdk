@@ -1331,7 +1331,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
         : [manyOrOneTransactions],
       buildUseropDto
     )
-    const response = await this.sendUserOp(userOp)
+    const response = await this.sendUserOp(userOp, buildUseropDto?.signatureOverride)
     this.setDeploymentState(response) // don't wait for this to finish...
     return response
   }
