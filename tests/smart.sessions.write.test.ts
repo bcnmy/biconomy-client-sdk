@@ -5,9 +5,8 @@ import {
   type Hex,
   type WalletClient,
   createWalletClient,
-  pad,
   toBytes,
-  toHex
+  toHex,
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { convertSigner, CreateSessionDataParams, createSmartSessionModule, parseReferenceValue, Transaction } from "../src"
@@ -190,11 +189,11 @@ describe("smart.sessions", () => {
 
     const sessionRequestedInfo: CreateSessionDataParams = {
       sessionPublicKey: sessionKeyEOA,
-      sessionValidatorAddress: TEST_CONTRACTS.SmartSession.address,
-      sessionKeyData: emptyBytes32,
-      contractAddress: TEST_CONTRACTS.SmartSession.address, // ERC20 token address
-      functionSelector: "0xabcdefgh", // function selector for transfer
-      rules: [], // todo: prepare rules for transfer function
+      sessionValidatorAddress: TEST_CONTRACTS.SimpleSigner.address,
+      sessionKeyData: toHex(toBytes(sessionKeyEOA)),
+      contractAddress: TEST_CONTRACTS.Counter.address, // counter address
+      functionSelector: "0x273ea3e3" as Hex, // function selector for increment count
+      rules: [], // no other rules and conditions applied
       valueLimit: BigInt(0)
     }
 
@@ -203,14 +202,13 @@ describe("smart.sessions", () => {
     expect(sessionsEnableData).toBeDefined()
 
     const tx: Transaction = {
-      to: smartAccountAddress,
+      to: TEST_CONTRACTS.SmartSession.address,
       data: sessionsEnableData
     }
     
-    // Todo: review failing
-    // const { wait } = await smartAccount.sendTransaction(tx)
-    //const { success } = await wait()
-    // expect(success).toBe(true)
+    const { wait } = await smartAccount.sendTransaction(tx)
+    const { success } = await wait()
+    expect(success).toBe(true)
 
     // todo: btw add read methods to get enabled sessions for a smart acccount
   }, 60000)

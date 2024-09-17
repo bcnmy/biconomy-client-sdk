@@ -3,7 +3,7 @@ import addresses from "../../__contracts/addresses.js"
 import type { SmartAccountSigner } from "../../account/index.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
 import { ActionData, CreateSessionDataParams, PolicyData, SmartSessionMode, type Module } from "../utils/Types.js"
-import { ActionConfig, encodeSmartSessionSignature, Rule } from "../utils/SmartSessionHelpers.js"
+import { ActionConfig, encodeSmartSessionSignature, Rule, toActionConfig } from "../utils/SmartSessionHelpers.js"
 import { type Session } from "../utils/Types.js"
 import { smartSessionAbi, universalActionPolicyAbi } from "../utils/abi.js"
 
@@ -41,7 +41,7 @@ export class SmartSessionModule extends BaseValidationModule {
   override async signUserOpHash(userOpHash: string, permissionId?: Hex): Promise<Hex>{
     const signature = await this.signer.signMessage({ raw: userOpHash as Hex })
     
-    // Not this function is only implemented for USE mode.
+    // Note this function is only implemented for USE mode.
     return encodeSmartSessionSignature({
       mode: SmartSessionMode.USE,
       permissionId: permissionId ? permissionId : '0x',
@@ -57,44 +57,14 @@ export class SmartSessionModule extends BaseValidationModule {
       signature: DUMMY_ECDSA_SIG,
     }) as Hex 
   }
-
-  // To remind again how a session looks like..
-
-  /*
-   [
-      {
-        sessionValidator: OWNABLE_VALIDATOR_ADDRESS as Address,
-        sessionValidatorInitData: encodeValidationData({
-          threshold: 1,
-          owners: [privateKeyToAccount(process.env.PRIVATE_KEY as Hex).address],
-        }),
-        salt: toHex(toBytes('1', { size: 32 })),
-        userOpPolicies: [],
-        actions: [
-          {
-            actionTarget: account.address,
-            actionTargetSelector: '0x9cfd7cff' as Hex,
-            actionPolicies: [
-              {
-                policy: getSudoPolicy().address,
-                initData: getSudoPolicy().initData,
-              },
-            ],
-          },
-        ],
-        erc7739Policies: {
-          allowedERC7739Content: [],
-          erc1271Policies: [],
-        },
-      },
-    ]
-  */
   
   // Notice: 
   // This is a USE mode so we need calldata to post on smart session module to make sessions enabled first.
   // For enable mode we will just need to preapre digest to sign and then make a userOperation that has actual session tx.
-
-  // Note: can later create methods like 
+  // Note: can later create methods like directly enabling sessions by sending userop if we have SA instance
+  // Todo: more methods to be created for enable mode.
+  // Todo: more methods to be created for read methods.
+  // Todo: more types can be added to incoporate time limit and userop policy.
 
   createSessionData = async (
     sessionRequestedInfo: CreateSessionDataParams[]
@@ -132,67 +102,19 @@ export class SmartSessionModule extends BaseValidationModule {
     for (const sessionInfo of sessionRequestedInfo) {
       // Create ActionConfig from already prepared rules
       const actionConfig = createActionConfig(sessionInfo.rules, sessionInfo.valueLimit);
-      
-      // Review
-      // What we need to do is below
-      // solidity code
-      // ActionConfig memory config = ActionConfig({ valueLimitPerUse: 1e21, paramRules: paramRules });
-      // policyInitData = abi.encode(config);
-
-      // Build initData for UniversalActionPolicy
-      const encodedActionConfig = encodeAbiParameters(
-        [
-            { type: 'uint256', name: 'valueLimitPerUse' },
-            {
-                type: 'tuple',
-                name: 'paramRules',
-                components: [
-                    { type: 'uint256', name: 'length' },
-                    {
-                        type: 'tuple[]',
-                        name: 'rules',
-                        components: [
-                            { type: 'uint8', name: 'condition' },
-                            { type: 'uint256', name: 'offsetIndex' },
-                            { type: 'bool', name: 'isLimited' },
-                            { type: 'bytes32', name: 'ref' },
-                            {
-                                type: 'tuple',
-                                name: 'usage',
-                                components: [
-                                  { type: 'uint256', name: 'limit' }, // Limit in LimitUsage
-                                  { type: 'uint256', name: 'used' }    // Used in LimitUsage
-                                ]
-                            }
-                        ]
-                    }
-                ]
-            }
-        ],
-        [
-          actionConfig.valueLimitPerUse,
-            {
-                length: BigInt(actionConfig.paramRules.length),
-                rules: actionConfig.paramRules.rules.map(rule => ({
-                  condition: rule.condition,
-                  offsetIndex: rule.offsetIndex,
-                  isLimited: rule.isLimited,
-                  ref: typeof rule.ref === 'string' 
-                  ? (rule.ref.startsWith('0x') ? rule.ref as Hex : `0x${rule.ref}` as Hex)
-                  : `0x${rule.ref.toString(16)}` as Hex,
-                  usage: rule.usage
-                }))
-            }
-        ]
-    );
 
       // Build PolicyData
       const policyData: PolicyData = {
         policy: UNIVERSAL_POLICY_ADDRESS,
-        initData: encodedActionConfig
+        // Build initData for UniversalActionPolicy
+        initData: encodeAbiParameters(universalActionPolicyAbi, [
+          toActionConfig(actionConfig)
+        ])
+        
       };
 
       // Create policyDataArray with single element
+      // here and above policies can be stacked.
       const policyDataArray: PolicyData[] = [policyData];
 
 
