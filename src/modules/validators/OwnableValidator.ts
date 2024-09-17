@@ -1,10 +1,10 @@
 import {
     type Address,
     concat,
-    concatHex,
     decodeAbiParameters,
     encodeAbiParameters,
     encodeFunctionData,
+    encodePacked,
     getAddress,
     parseAbi,
     parseAbiParameters
@@ -12,7 +12,6 @@ import {
 import type { Hex } from "viem"
 import type { NexusSmartAccount } from "../../account/NexusSmartAccount.js"
 import { OWNABLE_VALIDATOR_ADDRESS, SENTINEL_ADDRESS, UserOperationStruct } from "../../account/index.js"
-import type { UserOpReceipt } from "../../bundler/index.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
 import type { Module } from "../utils/Types.js"
 
@@ -20,7 +19,6 @@ export class OwnableValidator extends BaseValidationModule {
     public smartAccount: NexusSmartAccount
     public owners: Address[]
     public threshold: number
-    private _multiSignature: Hex | null = null
 
     private constructor(
         moduleConfig: Module,
@@ -68,26 +66,6 @@ export class OwnableValidator extends BaseValidationModule {
         return instance
     }
 
-    private async executeTransaction(transaction: { to: Address, data: Hex, value: bigint }): Promise<UserOpReceipt> {
-        let receipt: UserOpReceipt
-
-        if (this.isMultiSig()) {
-            if (!this._multiSignature) {
-                throw new Error("Multi-signature required but not set. Use setMultiSignature() before executing the transaction.")
-            }
-            const userOp = await this.smartAccount.buildUserOp([transaction])
-            userOp.signature = this._multiSignature
-            const response = await this.smartAccount.sendUserOp(userOp)
-            receipt = await response.wait()
-            this._multiSignature = null // Reset after use
-        } else {
-            const response = await this.smartAccount.sendTransaction([transaction])
-            receipt = await response.wait()
-        }
-
-        return receipt
-    }
-
     /**
      * Sets the threshold locally on the instance without executing a transaction.
      * This method should be used when the threshold has been updated on-chain but the local instance hasn't been updated.
@@ -101,25 +79,7 @@ export class OwnableValidator extends BaseValidationModule {
         this.threshold = threshold
     }
 
-    public async setThreshold(threshold: number): Promise<UserOpReceipt> {
-        const calldata = encodeFunctionData({
-            functionName: "setThreshold",
-            abi: parseAbi(["function setThreshold(uint256 _threshold) external"]),
-            args: [BigInt(threshold)]
-        })
-        const transaction = {
-            to: this.moduleAddress,
-            data: calldata,
-            value: 0n
-        }
-        const receipt = await this.executeTransaction(transaction)
-        if (receipt.success) {
-            this.threshold = threshold
-        }
-        return receipt
-    }
-
-    public async getSetThresholdUserOp(threshold: number): Promise<Partial<UserOperationStruct>> {
+    public async setThresholdUserOp(threshold: number): Promise<Partial<UserOperationStruct>> {
         const calldata = encodeFunctionData({
             functionName: "setThreshold",
             abi: parseAbi(["function setThreshold(uint256 _threshold) external"]),
@@ -135,42 +95,7 @@ export class OwnableValidator extends BaseValidationModule {
         return userOp
     }
 
-    public async removeOwner(owner: Address): Promise<UserOpReceipt> {
-        const owners = await this.getOwners()
-        let prevOwner: Address
-
-        const currentOwnerIndex = owners.findIndex((o: Address) => o === owner)
-
-        if (currentOwnerIndex === -1) {
-            throw new Error("Owner not found")
-        }
-        if (currentOwnerIndex === 0) {
-            prevOwner = SENTINEL_ADDRESS
-        } else {
-            prevOwner = getAddress(owners[currentOwnerIndex - 1])
-        }
-
-        const calldata = encodeFunctionData({
-            functionName: "removeOwner",
-            abi: parseAbi(["function removeOwner(address prevOwner, address owner)"]),
-            args: [prevOwner, owner]
-        })
-
-        const transaction = {
-            to: this.moduleAddress,
-            data: calldata,
-            value: 0n
-        }
-
-        const receipt = await this.executeTransaction(transaction)
-
-        if (receipt.success) {
-            this.owners = this.owners.filter((o: Address) => o !== owner)
-        }
-        return receipt
-    }
-
-    public async getRemoveOwnerUserOp(owner: Address): Promise<Partial<UserOperationStruct>> {
+    public async removeOwnerUserOp(owner: Address): Promise<Partial<UserOperationStruct>> {
         const owners = await this.getOwners()
         let prevOwner: Address
 
@@ -201,28 +126,7 @@ export class OwnableValidator extends BaseValidationModule {
         return userOp
     }
 
-    public async addOwner(owner: Address): Promise<UserOpReceipt> {
-        const calldata = encodeFunctionData({
-            functionName: "addOwner",
-            abi: parseAbi(["function addOwner(address owner)"]),
-            args: [owner]
-        })
-
-        const transaction = {
-            to: this.moduleAddress,
-            data: calldata,
-            value: 0n
-        }
-
-        const receipt = await this.executeTransaction(transaction)
-
-        if (receipt.success) {
-            this.owners.push(owner)
-        }
-        return receipt
-    }
-
-    public async getAddOwnerUserOp(owner: Address): Promise<Partial<UserOperationStruct>> {
+    public async addOwnerUserOp(owner: Address): Promise<Partial<UserOperationStruct>> {
         const calldata = encodeFunctionData({
             functionName: "addOwner",
             abi: parseAbi(["function addOwner(address owner)"]),
@@ -269,11 +173,7 @@ export class OwnableValidator extends BaseValidationModule {
 
     async signUserOpHash(userOpHash: string): Promise<Hex> {
         if (this.isMultiSig()) {
-            console.log("Is multi sig");
-            if (!this._multiSignature) {
-                throw new Error("Multi-signature required but not set")
-            }
-            return this._multiSignature;
+            throw new Error("Multi-signature required, please pass the multi-signature to the sendUserOp function")
         } else {
             return await this.signer.signMessage({ raw: userOpHash as Hex }) as Hex;
         }
@@ -283,14 +183,8 @@ export class OwnableValidator extends BaseValidationModule {
         return this.threshold > 1;
     }
 
-    public setMultiSignature(signature: Hex): void {
-        if (!this.isMultiSig()) {
-            throw new Error("Cannot set multi-signature for non-multi-sig account")
-        }
-        this._multiSignature = signature;
-    }
-
-    public getMultiSignature(): Hex | null {
-        return this._multiSignature;
+    public getMultiSignature(signatures: Hex[]): Hex {
+        const types = Array(signatures.length).fill('bytes');
+        return encodePacked(types, signatures) as Hex;
     }
 }
