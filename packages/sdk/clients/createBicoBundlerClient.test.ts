@@ -34,7 +34,7 @@ describe("bico.bundler", async () => {
     testClient = toTestClient(chain, getTestAccount(5))
 
     nexusAccount = await toNexusAccount({
-      owner: account,
+      holder: account,
       chain,
       transport: http()
     })

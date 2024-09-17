@@ -1,8 +1,11 @@
 import {
+  type Account,
   type Address,
+  type Chain,
   type Hash,
   type Hex,
   type PublicClient,
+  type Transport,
   type WalletClient,
   encodeAbiParameters,
   encodeFunctionData,
@@ -10,13 +13,12 @@ import {
   getAddress,
   parseAbi
 } from "viem"
-import { WalletClientSigner } from "../../account/signers/wallet-client"
 import { SENTINEL_ADDRESS } from "../../account/utils/Constants"
+import { type Holder, toHolder } from "../../account/utils/toHolder"
 import type { NexusClient } from "../../clients/createNexusClient"
 import type { Module } from "../../clients/decorators/erc7579"
 import { BaseExecutionModule } from "../base/BaseExecutionModule"
 import type { Execution } from "../utils/Types"
-
 export class OwnableExecutorModule extends BaseExecutionModule {
   public nexusClient: NexusClient
   public owners: Address[]
@@ -26,12 +28,10 @@ export class OwnableExecutorModule extends BaseExecutionModule {
     module: Module,
     nexusClient: NexusClient,
     owners: Address[],
-    address: Address
+    address: Address,
+    holder: Holder
   ) {
-    super(
-      module,
-      new WalletClientSigner(nexusClient.account.client as WalletClient, "viem")
-    )
+    super(module, holder)
     this.nexusClient = nexusClient
     this.owners = owners
     this.context = module.context ?? "0x"
@@ -59,11 +59,15 @@ export class OwnableExecutorModule extends BaseExecutionModule {
       functionName: "getOwners",
       args: [await nexusClient.account.getAddress()]
     })
+    const holder = await toHolder({ holder: nexusClient.account.client } as {
+      holder: WalletClient<Transport, Chain | undefined, Account>
+    })
     return new OwnableExecutorModule(
       module,
       nexusClient,
       owners as Address[],
-      address
+      address,
+      holder
     )
   }
 

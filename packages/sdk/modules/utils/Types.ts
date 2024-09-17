@@ -1,10 +1,7 @@
 import type { Address, Chain, Hex } from "viem"
-import type {
-  SimulationType,
-  SmartAccountSigner,
-  SupportedSigner,
-  UserOperationStruct
-} from "../../account/utils/Types"
+import type { SimulationType } from "../../account/utils/Types"
+import type { Holder, UnknownHolder } from "../../account/utils/toHolder"
+
 export type ModuleVersion = "1.0.0-beta" // | 'V1_0_1'
 
 export interface BaseValidationModuleConfig {
@@ -18,7 +15,7 @@ export interface K1ValidationModuleConfig extends BaseValidationModuleConfig {
   /** Version of the module */
   version?: ModuleVersion
   /** Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
-  signer: SupportedSigner
+  signer: UnknownHolder
 }
 
 export interface K1ValidatorModuleConfigConstructorProps
@@ -27,41 +24,8 @@ export interface K1ValidatorModuleConfigConstructorProps
   moduleAddress?: Hex
   /** Version of the module */
   version?: ModuleVersion
-  /** Signer: Converted from viemWallet or ethers signer to SmartAccountSigner */
-  signer: SmartAccountSigner
-}
-
-// export interface SessionKeyManagerModuleConfig
-//   extends BaseValidationModuleConfig {
-//   /** Address of the module */
-//   moduleAddress?: Hex
-//   /** Version of the module */
-//   version?: ModuleVersion
-//   /** SmartAccount address */
-//   smartAccountAddress: Hex
-//   storageType?: StorageType
-//   sessionStorageClient?: ISessionStorage
-// }
-
-// export interface BatchedSessionRouterModuleConfig
-//   extends BaseValidationModuleConfig {
-//   /** Address of the module */
-//   moduleAddress?: Hex
-//   /** Version of the module */
-//   version?: ModuleVersion
-//   /** Session Key Manager module: Could be BaseValidationModule */
-//   sessionKeyManagerModule?: SessionKeyManagerModule
-//   /** Session Key Manager module address */
-//   sessionManagerModuleAddress?: Hex
-//   /** Address of the associated smart account */
-//   smartAccountAddress: Hex
-//   /** Storage type, e.g. local storage */
-//   storageType?: StorageType
-// }
-
-export enum StorageType {
-  LOCAL_STORAGE = 0,
-  MEMORY_STORAGE = 1
+  /** Signer: Converted from viemWallet or ethers signer to Holder */
+  holder: Holder
 }
 
 export type SessionDataTuple = [
@@ -77,7 +41,7 @@ export type SessionParams = {
   /** ID of the session */
   sessionID?: string
   /** Session Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
-  sessionSigner: SupportedSigner
+  sessionSigner: UnknownHolder
   /** The session validation module is a sub-module smart-contract which works with session key manager validation module. It validates the userop calldata against the defined session permissions (session key data) within the contract. */
   sessionValidationModule?: Hex
   /** Additional info if needed to be appended in signature */
@@ -86,7 +50,7 @@ export type SessionParams = {
 
 export type StrictSessionParams = {
   sessionID: string
-  sessionSigner: SupportedSigner
+  sessionSigner: UnknownHolder
 }
 
 export type ModuleInfo = {
@@ -94,7 +58,7 @@ export type ModuleInfo = {
   // sessionParams?: SessionParams[] // where SessionParams is below four
   sessionID?: string
   /** Session Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
-  sessionSigner?: SupportedSigner
+  sessionHolder?: UnknownHolder
   /** The session validation module is a sub-module smart-contract which works with session key manager validation module. It validates the userop calldata against the defined session permissions (session key data) within the contract. */
   sessionValidationModule?: Hex
   /** Additional info if needed to be appended in signature */
@@ -144,7 +108,7 @@ export interface MultiChainValidationModuleConfig
   /** Version of the module */
   version?: ModuleVersion
   /** Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
-  signer: SupportedSigner
+  signer: UnknownHolder
 }
 export interface MultiChainValidationModuleConfigConstructorProps
   extends BaseValidationModuleConfig {
@@ -153,16 +117,7 @@ export interface MultiChainValidationModuleConfigConstructorProps
   /** Version of the module */
   version?: ModuleVersion
   /** Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
-  signer: SmartAccountSigner
-}
-
-export type MultiChainUserOpDto = {
-  /** window end timestamp */
-  validUntil?: number
-  /** window start timestamp */
-  validAfter?: number
-  chainId: number
-  userOp: Partial<UserOperationStruct>
+  holder: Holder
 }
 
 export interface BaseSessionKeyData {

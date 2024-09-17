@@ -74,7 +74,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
 
   test("should init the smart account", async () => {
     nexusClient = await createNexusClient({
-      owner: account,
+      holder: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),
@@ -141,7 +141,7 @@ describe.skipIf(!playgroundTrue)("playground", () => {
     }
 
     nexusClient = await createNexusClient({
-      owner: account,
+      holder: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl),

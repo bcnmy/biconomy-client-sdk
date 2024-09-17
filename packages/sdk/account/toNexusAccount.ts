@@ -10,6 +10,7 @@ import {
   type RpcSchema,
   type SignableMessage,
   type Transport,
+  type TypedData,
   type TypedDataDefinition,
   type UnionPartialBy,
   concat,
@@ -37,7 +38,6 @@ import {
   getUserOperationHash,
   toSmartAccount
 } from "viem/account-abstraction"
-import { parseAccount } from "viem/accounts"
 import contracts from "../__contracts"
 import { EntrypointAbi, K1ValidatorFactoryAbi } from "../__contracts/abi"
 import type { Call, GetNonceArgs, UserOperationStruct } from "./utils/Types"
@@ -53,19 +53,20 @@ import {
 import type { BaseExecutionModule } from "../modules/base/BaseExecutionModule"
 import type { BaseValidationModule } from "../modules/base/BaseValidationModule"
 import { K1ValidatorModule } from "../modules/validators/K1ValidatorModule"
-import { WalletClientSigner } from "./signers/wallet-client"
 import {
+  type TypedDataWith712,
   eip712WrapHash,
   getAccountDomainStructFields,
   getTypesForEIP712Domain,
   packUserOp,
   typeToString
 } from "./utils/Utils"
+import { type UnknownHolder, toHolder } from "./utils/toHolder"
 
 export type ToNexusSmartAccountParameters = {
   chain: Chain
   transport: ClientConfig["transport"]
-  owner: Account | Address
+  holder: UnknownHolder
   index?: bigint | undefined
   activeModule?: BaseValidationModule
   executorModule?: BaseExecutionModule
@@ -123,7 +124,7 @@ export const toNexusAccount = async (
   const {
     chain,
     transport,
-    owner,
+    holder: holder_,
     index = 0n,
     activeModule,
     executorModule: _,
@@ -133,8 +134,10 @@ export const toNexusAccount = async (
     name = "Nexus Account"
   } = parameters
 
+  const holder = await toHolder({ holder: holder_ })
+
   const masterClient = createWalletClient({
-    account: parseAccount(owner),
+    account: holder,
     chain,
     transport,
     key,
@@ -143,7 +146,6 @@ export const toNexusAccount = async (
     .extend(walletActions)
     .extend(publicActions)
 
-  const moduleSigner = new WalletClientSigner(masterClient, "viem")
   const signerAddress = masterClient.account.address
   const entryPointContract = getContract({
     address: contracts.entryPoint.address,
@@ -169,7 +171,7 @@ export const toNexusAccount = async (
         context: signerAddress,
         additionalContext: "0x"
       },
-      moduleSigner
+      holder
     )
 
   let _accountAddress: Address
@@ -337,8 +339,8 @@ export const toNexusAccount = async (
     message
   }: { message: SignableMessage }): Promise<Hex> => {
     const tempSignature = await defaultedActiveModule
-      .getSigner()
-      .signMessage(message)
+      .getHolder()
+      .signMessage({ message })
 
     const signature = encodePacked(
       ["address", "bytes"],
@@ -370,33 +372,32 @@ export const toNexusAccount = async (
     return accountIsDeployed ? signature : erc6492Signature
   }
 
-  const signTypedData = async (
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    typedData: any
-  ): Promise<Hex> => {
+  async function signTypedData<
+    const typedData extends TypedData | Record<string, unknown>,
+    primaryType extends keyof typedData | "EIP712Domain" = keyof typedData
+  >(parameters: TypedDataDefinition<typedData, primaryType>): Promise<Hex> {
+    const { message, primaryType, types: _types, domain } = parameters
+
+    if (!domain) throw new Error("Missing domain")
+    if (!message) throw new Error("Missing message")
+
     const types = {
-      EIP712Domain: getTypesForEIP712Domain({
-        domain: typedData.domain
-      }),
-      ...typedData.types
+      EIP712Domain: getTypesForEIP712Domain({ domain }),
+      ..._types
     }
 
-    validateTypedData({
-      domain: typedData.domain,
-      message: typedData.message,
-      primaryType: typedData.primaryType,
-      types
-    } as TypedDataDefinition)
+    // @ts-ignore: Comes from nexus parent typehash
+    const messageStuff: Hex = message.stuff
 
-    const appDomainSeparator = domainSeparator({
-      domain: {
-        name: typedData.domain.name,
-        version: typedData.domain.version,
-        chainId: typedData.domain.chainId,
-        verifyingContract: typedData.domain.verifyingContract
-      }
+    // @ts-ignore
+    validateTypedData({
+      domain,
+      message,
+      primaryType,
+      types
     })
 
+    const appDomainSeparator = domainSeparator({ domain })
     const accountDomainStructFields = await getAccountDomainStructFields(
       masterClient as unknown as PublicClient,
       await getAddress()
@@ -408,14 +409,14 @@ export const toNexusAccount = async (
         [
           encodeAbiParameters(parseAbiParameters(["bytes32, bytes32"]), [
             keccak256(toBytes(PARENT_TYPEHASH)),
-            typedData.message.stuff
+            messageStuff
           ]),
           accountDomainStructFields
         ]
       )
     )
 
-    const wrappedTypedHash = await eip712WrapHash(
+    const wrappedTypedHash = eip712WrapHash(
       parentStructHash,
       appDomainSeparator
     )
@@ -424,12 +425,12 @@ export const toNexusAccount = async (
       toBytes(wrappedTypedHash)
     )
 
-    const contentsType = toBytes(typeToString(types)[1])
+    const contentsType = toBytes(typeToString(types as TypedDataWith712)[1])
 
     const signatureData = concatHex([
       signature,
       appDomainSeparator,
-      typedData.message.stuff,
+      messageStuff,
       toHex(contentsType),
       toHex(contentsType.length, { size: 2 })
     ])

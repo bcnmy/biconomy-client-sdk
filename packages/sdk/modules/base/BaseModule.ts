@@ -1,6 +1,6 @@
 import { type Address, type Hex, encodeFunctionData, parseAbi } from "viem"
 import contracts from "../../__contracts/index.js"
-import type { SmartAccountSigner } from "../../account/index.js"
+import type { Holder } from "../../account/utils/toHolder.js"
 import type { Module } from "../../clients/decorators/erc7579/index.js"
 import {
   type ModuleType,
@@ -16,15 +16,15 @@ export abstract class BaseModule {
   hook?: Address
   version: ModuleVersion = "1.0.0-beta"
   entryPoint: Address = contracts.entryPoint.address
-  signer: SmartAccountSigner
+  holder: Holder
 
-  constructor(module: Module, signer: SmartAccountSigner) {
+  constructor(module: Module, holder: Holder) {
     this.address = module.address
     this.context = module.context ?? "0x"
     this.additionalContext = module.additionalContext ?? "0x"
     this.hook = module.hook
     this.type = module.type
-    this.signer = signer
+    this.holder = holder
   }
 
   public installModule(): Hex {

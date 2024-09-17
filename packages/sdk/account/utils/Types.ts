@@ -1,20 +1,8 @@
-import type {
-  Address,
-  Chain,
-  Hash,
-  Hex,
-  Log,
-  PrivateKeyAccount,
-  PublicClient,
-  SignTypedDataParameters,
-  SignableMessage,
-  TypedData,
-  TypedDataDefinition,
-  WalletClient
-} from "viem"
+import type { Address, Hash, Hex, Log, SignTypedDataParameters } from "viem"
 import type { ModuleInfo, ModuleType } from "../../modules"
 import type { BaseValidationModule } from "../../modules/base/BaseValidationModule"
 import type { MODE_MODULE_ENABLE, MODE_VALIDATION } from "./Constants"
+import type { Holder } from "./toHolder"
 
 export type EntryPointAddresses = Record<string, string>
 export type BiconomyFactories = Record<string, string>
@@ -235,8 +223,6 @@ export interface GasOverheads {
 export type BaseSmartAccountConfig = {
   /** index: helps to not conflict with other smart account instances */
   index?: bigint
-  /** provider: WalletClientSigner from viem */
-  provider?: WalletClient
   /** entryPointAddress: address of the smart account entry point */
   entryPointAddress?: string
   /** accountAddress: address of the smart account, potentially counterfactual */
@@ -276,21 +262,14 @@ export type ConditionalBundlerProps = RequireAtLeastOne<
 export type ResolvedBundlerProps = {
   bundler: IBundler
 }
-export type ConditionalValidationProps = RequireAtLeastOne<
-  {
-    defaultValidationModule: BaseValidationModule
-    signer: SupportedSigner
-  },
-  "defaultValidationModule" | "signer"
->
 
 export type ResolvedValidationProps = {
   /** defaultValidationModule: {@link BaseValidationModule} */
   defaultValidationModule: BaseValidationModule
   /** activeValidationModule: {@link BaseValidationModule}. The active validation module. Will default to the defaultValidationModule */
   activeValidationModule: BaseValidationModule
-  /** signer: ethers Wallet, viemWallet or alchemys SmartAccountSigner */
-  signer: SmartAccountSigner
+  /** holder */
+  holder: Holder
   /** rpcUrl */
   rpcUrl: string
 }
@@ -300,48 +279,6 @@ export type ConfigurationAddresses = {
   k1ValidatorAddress: Hex
   entryPointAddress: Hex
 }
-
-export type NexusSmartAccountConfigBaseProps = {
-  /** chain: The chain from viem */
-  chain: Chain
-  /** Factory address of biconomy factory contract or some other contract you have deployed on chain */
-  factoryAddress?: Hex
-  /** K1Validator Address */
-  k1ValidatorAddress?: Hex
-  /** Sender address: If you want to override the Signer address with some other address and get counterfactual address can use this to pass the EOA and get SA address */
-  senderAddress?: Hex
-  /** implementation of smart contract address or some other contract you have deployed and want to override */
-  implementationAddress?: Hex
-  /** defaultFallbackHandler: override the default fallback contract address */
-  defaultFallbackHandler?: Hex
-  /** rpcUrl */
-  rpcUrl?: string
-  /** paymasterUrl: The Paymaster URL retrieved from the Biconomy dashboard */
-  paymasterUrl?: string
-  /** biconomyPaymasterApiKey: The API key retrieved from the Biconomy dashboard */
-  biconomyPaymasterApiKey?: string
-  /** activeValidationModule: The active validation module. Will default to the defaultValidationModule */
-  activeValidationModule?: BaseValidationModule
-  /** scanForUpgradedAccountsFromV1: set to true if you you want the userwho was using biconomy SA v1 to upgrade to biconomy SA v2 */
-  scanForUpgradedAccountsFromV1?: boolean
-  /** the index of SA the EOA have generated and till which indexes the upgraded SA should scan */
-  maxIndexForScan?: bigint
-  /** The initial code to be used for the smart account */
-  initCode?: Hex
-  /** Used for session key manager module */
-  sessionData?: ModuleInfo
-}
-export type NexusSmartAccountConfig = NexusSmartAccountConfigBaseProps &
-  BaseSmartAccountConfig &
-  ConditionalBundlerProps &
-  ConditionalValidationProps
-
-export type NexusSmartAccountConfigConstructorProps =
-  NexusSmartAccountConfigBaseProps &
-    BaseSmartAccountConfig &
-    ResolvedBundlerProps &
-    ResolvedValidationProps &
-    ConfigurationAddresses
 
 /**
  * Represents options for building a user operation.
@@ -530,12 +467,6 @@ export type Signer = LightSigner & {
   provider: any
 }
 export type SupportedSignerName = "alchemy" | "ethers" | "viem"
-export type SupportedSigner =
-  | SmartAccountSigner
-  | WalletClient
-  | Signer
-  | LightSigner
-  | PrivateKeyAccount
 export type Service = "Bundler" | "Paymaster"
 
 export interface LightSigner {
@@ -580,38 +511,6 @@ export type UserOperationStruct = {
 }
 //#endregion UserOperationStruct
 
-//#region SmartAccountSigner
-/**
- * A signer that can sign messages and typed data.
- *
- * @template Inner - the generic type of the inner client that the signer wraps to provide functionality such as signing, etc.
- *
- * @var signerType - the type of the signer (e.g. local, hardware, etc.)
- * @var inner - the inner client of @type {Inner}
- *
- * @method getAddress - get the address of the signer
- * @method signMessage - sign a message
- * @method signTypedData - sign typed data
- */
-
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-export interface SmartAccountSigner<Inner = any> {
-  signerType: string
-  inner: Inner
-
-  getAddress: () => Promise<Address>
-
-  signMessage: (message: SignableMessage) => Promise<Hex>
-
-  signTypedData: <
-    const TTypedData extends TypedData | { [key: string]: unknown },
-    TPrimaryType extends string = string
-  >(
-    params: TypedDataDefinition<TTypedData, TPrimaryType>
-  ) => Promise<Hex>
-}
-//#endregion SmartAccountSigner
-
 //#region UserOperationCallData
 export type UserOperationCallData =
   | {
@@ -630,162 +529,6 @@ export type BatchUserOperationCallData = Exclude<UserOperationCallData, Hex>[]
 //#endregion BatchUserOperationCallData
 
 export type SignTypedDataParams = Omit<SignTypedDataParameters, "privateKey">
-
-export type BaseSmartContractAccountProps =
-  NexusSmartAccountConfigConstructorProps & {
-    /** chain: The chain from viem */
-    chain: Chain
-    /** factoryAddress: The address of the factory */
-    factoryAddress: Hex
-    /** entryPointAddress: The address of the entry point */
-    entryPointAddress: Hex
-    /** accountAddress: The address of the account */
-    accountAddress?: Address
-  }
-
-export interface ISmartContractAccount<
-  TSigner extends SmartAccountSigner = SmartAccountSigner
-> {
-  /**
-   * The RPC provider the account uses to make RPC calls
-   */
-  publicClient: PublicClient
-
-  /**
-   * @returns the init code for the account
-   */
-  getInitCode(): Promise<Hex>
-
-  /**
-   * This is useful for estimating gas costs. It should return a signature that doesn't cause the account to revert
-   * when validation is run during estimation.
-   *
-   * @returns a dummy signature that doesn't cause the account to revert during estimation
-   */
-  getDummySignature(): Hex
-
-  /**
-   * Encodes a call to the account's execute function.
-   *
-   * @param target - the address receiving the call data
-   * @param value - optionally the amount of native token to send
-   * @param data - the call data or "0x" if empty
-   */
-  encodeExecute(transaction: Call, useExecutor: boolean): Promise<Hex>
-
-  /**
-   * Encodes a batch of transactions to the account's batch execute function.
-   * NOTE: not all accounts support batching.
-   * @param txs - An Array of objects containing the target, value, and data for each transaction
-   * @returns the encoded callData for a UserOperation
-   */
-  encodeBatchExecute(txs: BatchUserOperationCallData): Promise<Hex>
-
-  /**
-   * @returns the nonce of the account
-   */
-  getNonce(
-    validationMode?: typeof MODE_VALIDATION | typeof MODE_MODULE_ENABLE
-  ): Promise<bigint>
-
-  /**
-   * If your account handles 1271 signatures of personal_sign differently
-   * than it does UserOperations, you can implement two different approaches to signing
-   *
-   * @param uoHash -- The hash of the UserOperation to sign
-   * @returns the signature of the UserOperation
-   */
-  signUserOperationHash(uoHash: Hash): Promise<Hash>
-
-  /**
-   * Returns a signed and prefixed message.
-   *
-   * @param msg - the message to sign
-   * @returns the signature of the message
-   */
-  signMessage(msg: string | Uint8Array | Hex): Promise<Hex>
-
-  /**
-   * Signs a typed data object as per ERC-712
-   *
-   * @param typedData
-   * @returns the signed hash for the message passed
-   */
-
-  signTypedData(typedData: SignTypedDataParams): Promise<Hash>
-
-  /**
-   * If the account is not deployed, it will sign the message and then wrap it in 6492 format
-   *
-   * @param msg - the message to sign
-   * @returns ths signature wrapped in 6492 format
-   */
-  signMessageWith6492(msg: string | Uint8Array | Hex): Promise<Hex>
-
-  /**
-   * If the account is not deployed, it will sign the typed data blob and then wrap it in 6492 format
-   *
-   * @param params - {@link SignTypedDataParams}
-   * @returns the signed hash for the params passed in wrapped in 6492 format
-   */
-  signTypedDataWith6492(params: SignTypedDataParams): Promise<Hash>
-
-  /**
-   * @returns the address of the account
-   */
-  getAddress(): Promise<Address>
-
-  /**
-   * @returns the current account signer instance that the smart account client
-   * operations are being signed with.
-   *
-   * The signer is expected to be the owner or one of the owners of the account
-   * for the signatures to be valid for the acting account.
-   */
-  getSigner(): TSigner
-
-  /**
-   * @returns the address of the factory contract for the smart account
-   */
-  getFactoryAddress(): Address
-
-  /**
-   * @returns the address of the entry point contract for the smart account
-   */
-  getEntryPointAddress(): Address
-
-  /**
-   * Allows you to add additional functionality and utility methods to this account
-   * via a decorator pattern.
-   *
-   * NOTE: this method does not allow you to override existing methods on the account.
-   *
-   * @example
-   * ```ts
-   * const account = new BaseSmartCobntractAccount(...).extend((account) => ({
-   *  readAccountState: async (...args) => {
-   *    return this.rpcProvider.readContract({
-   *        address: await this.getAddress(),
-   *        abi: ThisContractsAbi
-   *        args: args
-   *    });
-   *  }
-   * }));
-   *
-   * account.debugSendUserOperation(...);
-   * ```
-   *
-   * @param extendFn -- this function gives you access to the created account instance and returns an object
-   * with the extension methods
-   * @returns -- the account with the extension methods added
-   */
-  extend: <R>(extendFn: (self: this) => R) => this & R
-
-  encodeUpgradeToAndCall: (
-    upgradeToImplAddress: Address,
-    upgradeToInitData: Hex
-  ) => Promise<Hex>
-}
 
 export type TransferOwnershipCompatibleModule =
   | "0x0000001c5b32F37F5beA87BDD5374eB2aC54eA8e"

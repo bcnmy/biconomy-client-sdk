@@ -23,11 +23,7 @@ import {
   toTestClient,
   topUp
 } from "../../test/testUtils"
-import {
-  type MasterClient,
-  type NetworkConfig,
-  fundAndDeployClients
-} from "../../test/testUtils"
+import type { MasterClient, NetworkConfig } from "../../test/testUtils"
 import { pKey } from "../../test/testUtils"
 import { addresses } from "../__contracts/addresses"
 import { ERROR_MESSAGES } from "../account/utils/Constants"
@@ -60,14 +56,13 @@ describe("nexus.client", async () => {
     testClient = toTestClient(chain, getTestAccount(5))
 
     nexusClient = await createNexusClient({
-      owner: account,
+      holder: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
     })
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
-    await fundAndDeployClients(testClient, [nexusClient])
   })
   afterAll(async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
@@ -129,31 +124,27 @@ describe("nexus.client", async () => {
     ])
   })
 
-  test.concurrent(
-    "should estimate gas for writing to a contract",
-    async () => {
-      const encodedCall = encodeFunctionData({
-        abi: CounterAbi,
-        functionName: "incrementNumber"
-      })
-      const call = {
-        to: mockAddresses.Counter,
-        data: encodedCall
-      }
-      const results = await Promise.all([
-        nexusClient.estimateUserOperationGas({ calls: [call] }),
-        nexusClient.estimateUserOperationGas({ calls: [call, call] })
-      ])
+  test("should estimate gas for writing to a contract", async () => {
+    const encodedCall = encodeFunctionData({
+      abi: CounterAbi,
+      functionName: "incrementNumber"
+    })
+    const call = {
+      to: mockAddresses.Counter,
+      data: encodedCall
+    }
+    const results = await Promise.all([
+      nexusClient.estimateUserOperationGas({ calls: [call] }),
+      nexusClient.estimateUserOperationGas({ calls: [call, call] })
+    ])
 
-      const increasingGasExpenditure = results.every(
-        ({ preVerificationGas }, i) =>
-          preVerificationGas > (results[i - 1]?.preVerificationGas ?? 0)
-      )
+    const increasingGasExpenditure = results.every(
+      ({ preVerificationGas }, i) =>
+        preVerificationGas > (results[i - 1]?.preVerificationGas ?? 0)
+    )
 
-      expect(increasingGasExpenditure).toBeTruthy()
-    },
-    60000
-  )
+    expect(increasingGasExpenditure).toBeTruthy()
+  }, 60000)
 
   test("should check enable mode", async () => {
     const result = makeInstallDataAndHash(account.address, [
@@ -229,58 +220,6 @@ describe("nexus.client", async () => {
   test("should throw an error, chain id not found", async () => {
     const chainId = 0
     expect(() => getChain(chainId)).toThrow(ERROR_MESSAGES.CHAIN_NOT_FOUND)
-  })
-
-  test("should have consistent behaviour between ethers.AbiCoder.defaultAbiCoder() and viem.encodeAbiParameters()", async () => {
-    const expectedResult =
-      "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000090f79bf6eb2c4f870365e785982e1f101e93b90600000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000000000000000000000000000090f79bf6eb2c4f870365e785982e1f101e93b906000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000000"
-
-    const Executions = ParamType.from({
-      type: "tuple(address,uint256,bytes)[]",
-      baseType: "tuple",
-      name: "executions",
-      arrayLength: null,
-      components: [
-        { name: "target", type: "address" },
-        { name: "value", type: "uint256" },
-        { name: "callData", type: "bytes" }
-      ]
-    })
-
-    const viemExecutions: AbiParameter = {
-      type: "tuple[]",
-      components: [
-        { name: "target", type: "address" },
-        { name: "value", type: "uint256" },
-        { name: "callData", type: "bytes" }
-      ]
-    }
-
-    const txs = [
-      {
-        target: "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
-        callData: "0x",
-        value: 1n
-      },
-      {
-        target: "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
-        callData: "0x",
-        value: 1n
-      }
-    ]
-
-    const executionCalldataPrepWithEthers = AbiCoder.defaultAbiCoder().encode(
-      [Executions],
-      [txs]
-    )
-
-    const executionCalldataPrepWithViem = encodeAbiParameters(
-      [viemExecutions],
-      [txs]
-    )
-
-    expect(executionCalldataPrepWithEthers).toBe(expectedResult)
-    expect(executionCalldataPrepWithViem).toBe(expectedResult)
   })
 
   test("should have attached erc757 actions", async () => {

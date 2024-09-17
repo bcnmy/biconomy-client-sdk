@@ -4,6 +4,7 @@ import {
   type Hash,
   type Hex,
   type PublicClient,
+  type TypedData,
   type TypedDataDomain,
   type TypedDataParameter,
   concat,
@@ -33,7 +34,6 @@ import { type ModuleType, moduleTypeIds } from "../../modules/utils/Types"
 import type {
   AccountMetadata,
   EIP712DomainReturn,
-  TypeDefinition,
   UserOperationStruct
 } from "./Types"
 
@@ -289,13 +289,22 @@ export const accountMetadata = async (
 export const eip712WrapHash = (typedHash: Hex, appDomainSeparator: Hex): Hex =>
   keccak256(concat(["0x1901", appDomainSeparator, typedHash]))
 
-export function typeToString(typeDef: TypeDefinition): string[] {
+export type TypedDataWith712 = {
+  EIP712Domain: TypedDataParameter[]
+} & TypedData
+
+export function typeToString(typeDef: TypedDataWith712): string[] {
   return Object.entries(typeDef).map(([key, fields]) => {
-    const fieldStrings = fields
+    const fieldStrings = (fields ?? [])
       .map((field) => `${field.type} ${field.name}`)
       .join(",")
     return `${key}(${fieldStrings})`
   })
+}
+
+/** @ignore */
+export function bigIntReplacer(_key: string, value: any): any {
+  return typeof value === "bigint" ? value.toString() : value
 }
 
 export const getAccountDomainStructFields = async (

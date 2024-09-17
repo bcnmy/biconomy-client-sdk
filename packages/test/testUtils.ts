@@ -310,7 +310,7 @@ export const toFundedTestClients = async ({
   const testClient = toTestClient(chain, getTestAccount())
 
   const nexus = await createNexusClient({
-    owner: account,
+    holder: account,
     transport: http(),
     bundlerTransport: http(bundlerUrl),
     chain
@@ -423,7 +423,7 @@ export const topUp = async (
 }
 
 export const getBundlerUrl = (chainId: number) =>
-  `https://bundler.biconomy.io/api/v2/${chainId}/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f14`
+  `https://bundler.biconomy.io/api/v3/${chainId}/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f14`
 
 const getTestChainFromPort = (port: number): Chain =>
   getCustomChain(`Anvil-${port}`, port, `http://localhost:${port}`, "")

@@ -40,7 +40,7 @@ describe("modules.k1Validator.write", async () => {
     testClient = toTestClient(chain, getTestAccount(5))
 
     nexusClient = await createNexusClient({
-      owner: account,
+      holder: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
@@ -109,7 +109,6 @@ describe("modules.k1Validator.write", async () => {
       const byteCode = await testClient.getCode({
         address: addresses.K1Validator
       })
-      console.log({ byteCode })
 
       const hash = await nexusClient.uninstallModule({
         module: {

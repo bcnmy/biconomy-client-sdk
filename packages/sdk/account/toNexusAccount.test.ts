@@ -78,7 +78,7 @@ describe("nexus.account", async () => {
     })
 
     nexusClient = await createNexusClient({
-      owner: account,
+      holder: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
@@ -275,7 +275,7 @@ describe("nexus.account", async () => {
     expect(contractResponse).toBe(eip1271MagicValue)
   })
 
-  test.skip("should sign using signTypedData SDK method", async () => {
+  test("should sign using signTypedData SDK method", async () => {
     const appDomain = {
       chainId: chain.id,
       name: "TokenWithPermit",
@@ -348,7 +348,6 @@ describe("nexus.account", async () => {
     })
 
     const permitTokenResponse = await nexusClient.writeContract({
-      account: account,
       address: mockAddresses.TokenWithPermit,
       abi: TokenWithPermitAbi,
       functionName: "permitWith1271",

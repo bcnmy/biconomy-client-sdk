@@ -28,6 +28,6 @@ export const createBicoPaymasterClient = (
       parameters.transport ?? parameters.paymasterUrl
         ? http(parameters.paymasterUrl)
         : http(
-            `https://paymaster.biconomy.io/api/v2/${parameters.chainId}/${parameters.apiKey}`
+            `https://paymaster.biconomy.io/api/v3/${parameters.chainId}/${parameters.apiKey}`
           )
   })

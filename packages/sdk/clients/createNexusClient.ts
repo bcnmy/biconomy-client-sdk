@@ -1,30 +1,29 @@
-import {
-  http,
-  type Account,
-  type Address,
-  type Chain,
-  type Client,
-  type ClientConfig,
-  type EstimateFeesPerGasReturnType,
-  type Prettify,
-  type PublicClient,
-  type RpcSchema,
-  type Transport
+import type {
+  Address,
+  Chain,
+  Client,
+  ClientConfig,
+  EstimateFeesPerGasReturnType,
+  Prettify,
+  PublicClient,
+  RpcSchema,
+  Transport
 } from "viem"
-import {
-  type BundlerActions,
-  type BundlerClientConfig,
-  type PaymasterActions,
-  type SmartAccount,
-  type UserOperationRequest,
-  createBundlerClient
+import type {
+  BundlerActions,
+  BundlerClientConfig,
+  PaymasterActions,
+  SmartAccount,
+  UserOperationRequest
 } from "viem/account-abstraction"
 import contracts from "../__contracts"
 import type { Call } from "../account/utils/Types"
 
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
+import type { UnknownHolder } from "../account/utils/toHolder"
 import type { BaseExecutionModule } from "../modules/base/BaseExecutionModule"
 import type { BaseValidationModule } from "../modules/base/BaseValidationModule"
+import { createBicoBundlerClient } from "./createBicoBundlerClient"
 import { type Erc7579Actions, erc7579Actions } from "./decorators/erc7579"
 import {
   type SmartAccountActions,
@@ -109,7 +108,7 @@ export type NexusClientConfig<
         }
       | undefined
     /** Owner of the account. */
-    owner: Address | Account
+    holder: UnknownHolder
     /** Index of the account. */
     index?: bigint
     /** Active module of the account. */
@@ -128,7 +127,7 @@ export async function createNexusClient(
   const {
     client: client_,
     chain = parameters.chain ?? client_?.chain,
-    owner,
+    holder,
     index = 0n,
     key = "nexus client",
     name = "Nexus Client",
@@ -158,7 +157,7 @@ export async function createNexusClient(
   const nexusAccount = await toNexusAccount({
     transport,
     chain,
-    owner,
+    holder,
     index,
     activeModule,
     executorModule,
@@ -166,17 +165,14 @@ export async function createNexusClient(
     k1ValidatorAddress
   })
 
-  const bundler = createBundlerClient({
+  const bundler = createBicoBundlerClient({
+    ...parameters,
     key,
     name,
     account: nexusAccount,
     paymaster,
     paymasterContext,
-    transport:
-      bundlerTransport ??
-      http(
-        `https://bundler.biconomy.io/api/v2/${chain.id}/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f14`
-      ),
+    transport: bundlerTransport,
     userOperation
   })
     .extend(erc7579Actions())
