@@ -9,12 +9,13 @@ import {
   toHex,
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { convertSigner, CreateSessionDataParams, createSmartSessionModule, parseReferenceValue, Transaction } from "../src"
+import { convertSigner, CreateSessionDataParams, createSmartSessionModule, parseReferenceValue, Session, Transaction } from "../src"
 import {
   type NexusSmartAccount,
   createSmartAccountClient
 } from "../src/account"
 import policies, {
+  getPermissionId,
   ParamCondition,
   type ActionConfig
 } from "../src/modules/utils/SmartSessionHelpers"
@@ -161,7 +162,7 @@ describe("smart.sessions", () => {
     }
   }, 60000)
 
-  test("should create ERC20 transfer session (USE mode) on installed smart session validator", async () => {
+  test("should create Counter increment session (USE mode) on installed smart session validator", async () => {
     const isInstalledBefore = await smartAccount.isModuleInstalled({
       type: "validator",
       moduleAddress: TEST_CONTRACTS.SmartSession.address
@@ -210,8 +211,32 @@ describe("smart.sessions", () => {
     const { success } = await wait()
     expect(success).toBe(true)
 
-    // todo: btw add read methods to get enabled sessions for a smart acccount
+    // temp notes
+    // TBD
+    // in order to get permissionId session object information need to be returned / maintained somewhere
+    // Note: could be return param of createSessionData or stored in some storage client along with permissionId
+    // const session: Session = {
+    //   sessionValidator: TEST_CONTRACTS.SimpleSigner.address,
+    //   sessionValidatorInitData: toHex(toBytes(sessionKeyEOA)),
+    //   salt: "0x",
+    //   userOpPolicies: [],
+    //   erc7739Policies: { 
+    //   allowedERC7739Content: [],
+    //   erc1271Policies: [] },
+    //   actions: []
+    // }
+
+    // const permissionId = await getPermissionId({ client: testClient, session })
+
+    // todo: add read methods to get enabled sessions for a smart acccount
+    // todo: verify session has been added on-chain
   }, 60000)
 
-  test("should make use of already enabled session (USE mode) to transfer ERC20 using a session key", async () => {})
+  test("should make use of already enabled session (USE mode) to increment a counter using a session key", async () => {
+
+    // need signer
+    // need permissionId from session object
+    // set active validation module
+    // make userop to increase counter 
+  }, 60000)
 })

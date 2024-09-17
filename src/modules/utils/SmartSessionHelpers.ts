@@ -196,6 +196,14 @@ export const formatPermissionEnableSig = ({
     })) as string
   }
 
+  // getter
+  // getSessionDigest
+  // getActionId
+  // getSessionNonce
+  // isSessionEnabled
+  // getSessionDigest
+  
+
 export const encodeEnableSessionSignature = ({
     enableSessionData,
     signature,
