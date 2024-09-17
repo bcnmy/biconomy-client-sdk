@@ -60,7 +60,11 @@ function decodeErrorCode(errorCode: string) {
     "0x40d3d1a40000000000000000000000004b8306128aed3d49a9d17b99bf8082d4e406fa1f":
       "LinkedList_EntryAlreadyInList",
     "0x40d3d1a4000000000000000000000000d98238bbaea4f91683d250003799ead31d7f5c55":
-      "Error: Custom error message about the K1Validator contract"
+      "Error: Custom error message about the K1Validator contract",
+    "0x8baa579f":
+      "Invalid Signature",
+    "0x1e6d14ea":
+      "Cannot Remove Owner (Number of owners needs to be bigger or equal to the threshold, consider setting a lower threshold)"
     // Add more error codes and their corresponding human-readable messages here
   }
   const decodedError = errorMap[errorCode] || errorCode

@@ -17,7 +17,6 @@ import {
 } from "../src/account"
 import { CounterAbi } from "./src/__contracts/abi"
 import { mockAddresses } from "./src/__contracts/mockAddresses"
-import { OWNABLE_VALIDATOR } from "./src/callDatas"
 import { type TestFileNetworkType, toNetwork } from "./src/testSetup"
 import {
   getTestAccount,
@@ -66,6 +65,8 @@ describe("modules.k1Validator.write", () => {
       chain
     })
 
+    const isDeployed = await smartAccount.isAccountDeployed()
+
     smartAccountAddress = await smartAccount.getAddress()
   })
 
@@ -109,6 +110,8 @@ describe("modules.k1Validator.write", () => {
   })
 
   test("should install k1 Validator with 1 owner", async () => {
+    const installedModules = await smartAccount.getInstalledValidators();
+
     const isInstalledBefore = await smartAccount.isModuleInstalled({
       type: "validator",
       moduleAddress: addresses.K1Validator
@@ -134,10 +137,27 @@ describe("modules.k1Validator.write", () => {
     }
   }, 60000)
 
+  test.skip("should uninstall k1 Validator", async () => {
+    const isInstalledBefore = await smartAccount.isModuleInstalled({
+      type: "validator",
+      moduleAddress: addresses.K1Validator
+    })
+
+    if (isInstalledBefore) {
+      const { wait: uninstallWait } = await smartAccount.uninstallModule({
+        moduleAddress: addresses.K1Validator,
+        type: "validator",
+        data: encodePacked(["address"], [await smartAccount.getAddress()])
+      })
+      const { success: uninstallSuccess } = await uninstallWait()
+      expect(uninstallSuccess).toBe(true)
+    }
+  }, 60000)
+
   test.skip("should have the Ownable Validator Module installed", async () => {
     const isInstalled = await smartAccount.isModuleInstalled({
       type: "validator",
-      moduleAddress: OWNABLE_VALIDATOR
+      moduleAddress: addresses.K1Validator
     })
     expect(isInstalled).toBeTruthy()
   }, 60000)

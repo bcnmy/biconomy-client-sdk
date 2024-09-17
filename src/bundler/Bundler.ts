@@ -217,10 +217,8 @@ export class Bundler implements IBundler {
               clearInterval(intervalId)
               reject(
                 new Error(
-                  `Exceeded maximum duration (${
-                    maxDuration / 1000
-                  } sec) waiting to get receipt for userOpHash ${
-                    sendUserOperationResponse.result
+                  `Exceeded maximum duration (${maxDuration / 1000
+                  } sec) waiting to get receipt for userOpHash ${sendUserOperationResponse.result
                   }. Try getting the receipt manually using eth_getUserOperationReceipt rpc method on bundler`
                 )
               )

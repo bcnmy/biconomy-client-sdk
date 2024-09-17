@@ -1039,9 +1039,17 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   async sendUserOp({
     signature,
     ...userOpWithoutSignature
-  }: Partial<UserOperationStruct>): Promise<UserOpResponse> {
-    const userOperation = await this.signUserOp(userOpWithoutSignature)
-    return await this.sendSignedUserOp(userOperation)
+  }: Partial<UserOperationStruct>, userOpSignature?: Hex): Promise<UserOpResponse> {
+    if (!userOpSignature) {
+      const userOperation = await this.signUserOp(userOpWithoutSignature)
+      return await this.sendSignedUserOp(userOperation)
+    } else {
+      const userOperation = {
+        ...userOpWithoutSignature,
+        signature: userOpSignature
+      } as UserOperationStruct
+      return await this.sendSignedUserOp(userOperation)
+    }
   }
 
   /**
@@ -1711,7 +1719,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       ["address", "bytes"],
       [
         this.activeValidationModule.getAddress() ??
-          this.defaultValidationModule.getAddress(),
+        this.defaultValidationModule.getAddress(),
         signature
       ]
     )
@@ -1881,13 +1889,13 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       | Awaited<ReturnType<typeof this.getInstalledExecutors>>,
     module: Module
   ): Hex {
-    const index = installedModules.indexOf(getAddress(module.moduleAddress))
+    const index = installedModules[0].indexOf(getAddress(module.moduleAddress))
     if (index === 0) {
       return SENTINEL_ADDRESS
     }
     if (index > 0) {
       // @ts-ignore: TODO: Gabi This looks wrong
-      return installedModules[index - 1]
+      return installedModules[0][index - 1]
     }
     throw new Error(
       `Module ${module.moduleAddress} not found in installed modules`

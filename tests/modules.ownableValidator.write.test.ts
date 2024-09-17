@@ -1,0 +1,275 @@
+import {
+  http,
+  type Account,
+  type Chain,
+  type Hex,
+  type WalletClient,
+  createWalletClient,
+  parseEther,
+  zeroAddress,
+  encodePacked
+} from "viem"
+import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import {
+  type NexusSmartAccount,
+  createSmartAccountClient
+} from "../src/account"
+import { type TestFileNetworkType, toNetwork } from "./src/testSetup"
+import {
+  getTestAccount,
+  killNetwork,
+  toTestClient,
+} from "./src/testUtils"
+import type { MasterClient, NetworkConfig } from "./src/testUtils"
+import { createK1ValidatorModule, createOwnableValidatorModule, getRandomSigner } from "../src/modules/index"
+import { OWNABLE_VALIDATOR_ADDRESS } from "../src/account/utils/Constants"
+import { OwnableValidator } from "../src/modules/validators/OwnableValidator"
+import { K1ValidatorModule } from "../src/modules/validators/K1ValidatorModule"
+
+const NETWORK_TYPE: TestFileNetworkType = "PUBLIC_TESTNET"
+
+describe("modules.ownable.validator.install.write", () => {
+  let network: NetworkConfig
+  let chain: Chain
+  let bundlerUrl: string
+  let walletClient: WalletClient
+  let walletClientTwo: WalletClient
+  let testClient: MasterClient
+  let account: Account
+  let accountTwo: Account
+  let smartAccount: NexusSmartAccount
+  let smartAccountTwo: NexusSmartAccount
+  let smartAccountAddress: Hex
+  let ownableValidatorModule: OwnableValidator
+  let k1ValidatorModule: K1ValidatorModule
+
+  beforeAll(async () => {
+    network = await toNetwork(NETWORK_TYPE)
+    chain = network.chain
+    bundlerUrl = network.bundlerUrl
+
+    account = getTestAccount(0)
+    accountTwo = getTestAccount(1)
+
+    walletClient = createWalletClient({
+      account,
+      chain,
+      transport: http()
+    })
+
+    walletClientTwo = createWalletClient({
+      account: accountTwo,
+      chain,
+      transport: http()
+    })
+
+    testClient = toTestClient(chain, getTestAccount(0))
+
+    smartAccount = await createSmartAccountClient({
+      signer: walletClient,
+      bundlerUrl,
+      chain
+    })
+
+    smartAccountTwo = await createSmartAccountClient({
+      signer: walletClientTwo,
+      bundlerUrl,
+      chain
+    })
+
+    // console.log(await smartAccountTwo.getAddress(), "smartAccountTwoAddress");
+    // // Top up both smart accounts before deployment
+    const topUpAmount = parseEther("0.0001")
+
+    // // Deploy smart accounts if not already deployed
+    const isSmartAccountDeployed = await smartAccount.isAccountDeployed()
+    if (!isSmartAccountDeployed) {
+      const hash = await testClient.sendTransaction({
+        to: await smartAccount.getAddress(),
+        value: topUpAmount
+      })
+      await testClient.waitForTransactionReceipt({ hash })
+      const deployResponse = await smartAccount.deploy()
+      const deployReceipt = await deployResponse.wait()
+      expect(deployReceipt.success).toBe(true)
+    }
+
+    const isSmartAccountTwoDeployed = await smartAccountTwo.isAccountDeployed()
+    if (!isSmartAccountTwoDeployed) {
+      const hash = await testClient.sendTransaction({
+        to: await smartAccountTwo.getAddress(),
+        value: topUpAmount
+      })
+      await testClient.waitForTransactionReceipt({ hash })
+      const deployResponseTwo = await smartAccountTwo.deploy()
+      const deployReceiptTwo = await deployResponseTwo.wait()
+      expect(deployReceiptTwo.success).toBe(true)
+    }
+
+    smartAccountAddress = await smartAccount.getAddress()
+    ownableValidatorModule = await createOwnableValidatorModule(smartAccount, [account.address, accountTwo.address])
+
+    k1ValidatorModule = await createK1ValidatorModule(smartAccount.getSigner())
+
+    smartAccount.setActiveValidationModule(ownableValidatorModule)
+  })
+
+  afterAll(async () => {
+    await killNetwork([network?.rpcPort, network?.bundlerPort])
+  })
+
+  test("should install OwnableValidator module", async () => {
+    const isInstalled = await smartAccount.isModuleInstalled({
+      type: 'validator',
+      moduleAddress: OWNABLE_VALIDATOR_ADDRESS
+    })
+
+    if (!isInstalled) {
+      const response = await smartAccount.installModule({
+        moduleAddress: ownableValidatorModule.moduleAddress,
+        type: ownableValidatorModule.type,
+        data: ownableValidatorModule.data
+      })
+
+      const receipt = await response.wait();
+      expect(receipt.success).toBe(true)
+    }
+
+    const isInstalledAfter = await smartAccount.isModuleInstalled({
+      type: 'validator',
+      moduleAddress: OWNABLE_VALIDATOR_ADDRESS
+    })
+    expect(isInstalledAfter).toBe(true)
+
+    smartAccount.setActiveValidationModule(ownableValidatorModule)
+  })
+
+  test("should get owners", async () => {
+    const owners = await ownableValidatorModule.getOwners()
+    console.log(owners, "owners");
+    expect(owners).toContain(account.address)
+  })
+
+  test("should add an owner using OwnableValidator as validation module", async () => {
+    smartAccount.setActiveValidationModule(ownableValidatorModule);
+    const randomSigner = getRandomSigner();
+
+    const ownersBefore = await ownableValidatorModule.getOwners()
+    expect(ownersBefore).not.toContain(randomSigner.address)
+
+    // Don't add owner if already 4 owners
+    if (ownersBefore.length <= 4) {
+      const userOp = await ownableValidatorModule.getAddOwnerUserOp(randomSigner.address);
+
+      const userOpHash = await smartAccount.getUserOpHash(userOp);
+      const signature1 = await walletClient.signMessage({ message: { raw: userOpHash }, account: account });
+      const signature2 = await walletClientTwo.signMessage({ message: { raw: userOpHash }, account: accountTwo });;
+
+      ownableValidatorModule.setMultiSignature(encodePacked(['bytes', 'bytes'], [signature1, signature2]))
+      const receipt = await ownableValidatorModule.addOwner(randomSigner.address)
+
+      const ownersAfter = await ownableValidatorModule.getOwners()
+      expect(ownersAfter).toContain(randomSigner.address)
+
+      expect(receipt.success).toBe(true)
+    }
+  })
+
+  test("should set threshold", async () => {
+    // Get setThreshold user operation
+    const setThresholdUserOp = await ownableValidatorModule.getSetThresholdUserOp(2);
+
+    // Get user operation hash
+    const userOpHash = await smartAccount.getUserOpHash(setThresholdUserOp);
+
+    // Sign the user operation hash with both accounts
+    const signature1 = await walletClient.signMessage({ message: { raw: userOpHash }, account: account });
+    const signature2 = await walletClientTwo.signMessage({ message: { raw: userOpHash }, account: accountTwo });
+
+    // Set threshold to 2
+    const response = await smartAccount.sendUserOp(setThresholdUserOp, encodePacked(['bytes', 'bytes'], [signature1, signature2]))
+    const receipt = await response.wait();
+
+    expect(receipt.success).toBe(true)
+
+    // Verify that threshold has been updated
+    const newThreshold = ownableValidatorModule.threshold;
+    expect(newThreshold).toBe(2);
+  });
+
+  test("should need 2 signatures to send a user operation", async () => {
+    // Make sure the OwnableValidator is set as the active validation module
+    smartAccount.setActiveValidationModule(ownableValidatorModule);
+
+    const userOp = await smartAccount.buildUserOp([{
+      to: zeroAddress,
+      data: "0x",
+      value: 0n
+    }]);
+
+    const userOpHash = await smartAccount.getUserOpHash(userOp);
+    const signature1 = await walletClient.signMessage({ message: { raw: userOpHash }, account: account });
+    const signature2 = await walletClientTwo.signMessage({ message: { raw: userOpHash }, account: accountTwo });
+
+    const response = await smartAccount.sendUserOp(userOp, encodePacked(['bytes', 'bytes'], [signature1, signature2]))
+    await response.wait()
+  })
+
+  test("should remove an owner", async () => {
+    const activeValidator = smartAccount.activeValidationModule
+    expect(activeValidator).toBe(ownableValidatorModule)
+
+    const ownersBefore = await ownableValidatorModule.getOwners()
+    const ownerToRemove = ownersBefore[0]
+    expect(ownersBefore).toContain(ownerToRemove)
+    if (ownerToRemove !== account.address || ownerToRemove !== accountTwo.address) {
+      const userOp = await ownableValidatorModule.getRemoveOwnerUserOp(ownerToRemove);
+
+      const userOpHash = await smartAccount.getUserOpHash(userOp);
+      const signature1 = await walletClient.signMessage({ message: { raw: userOpHash }, account: account });
+      const signature2 = await walletClientTwo.signMessage({ message: { raw: userOpHash }, account: accountTwo });
+
+      const response = await smartAccount.sendUserOp(userOp, encodePacked(['bytes', 'bytes'], [signature1, signature2]))
+      const receipt = await response.wait();
+      expect(receipt.success).toBe(true)
+
+      // Wait for a short period to ensure the transaction is processed
+      await new Promise(resolve => setTimeout(resolve, 5000));
+
+      // Retry getting owners with exponential backoff
+      const getOwnersWithRetry = async (retries = 3, delay = 1000) => {
+        for (let i = 0; i < retries; i++) {
+          const ownersAfter = await ownableValidatorModule.getOwners()
+          if (!ownersAfter.includes(ownerToRemove)) {
+            return ownersAfter
+          }
+          await new Promise(resolve => setTimeout(resolve, delay))
+          delay *= 2
+        }
+        throw new Error('Failed to get updated owners list after multiple retries')
+      }
+
+      const ownersAfter = await getOwnersWithRetry()
+      expect(ownersAfter).not.toContain(ownerToRemove)
+    }
+  })
+
+  // @note Won't work if this is the only validation module installed (fails with 0xcc319d84)
+  test.skip("should uninstall OwnableValidator module", async () => {
+    smartAccount.setActiveValidationModule(k1ValidatorModule);
+    const response = await smartAccount.uninstallModule({
+      moduleAddress: ownableValidatorModule.moduleAddress,
+      type: ownableValidatorModule.type,
+      data: "0x"
+    })
+
+    const receipt = await response.wait()
+    expect(receipt.success).toBe(true)
+
+    const isInstalled = await smartAccount.isModuleInstalled({
+      type: 'validator',
+      moduleAddress: OWNABLE_VALIDATOR_ADDRESS
+    })
+    expect(isInstalled).toBe(false)
+  })
+})

@@ -2,6 +2,7 @@ import {
   type ByteArray,
   type Chain,
   type Hex,
+  PrivateKeyAccount,
   encodeAbiParameters,
   isHex,
   keccak256,
@@ -152,13 +153,10 @@ export const getUserOpHash = (
   return keccak256(enc)
 }
 
-export const getRandomSigner = (): SignerData => {
+export const getRandomSigner = (): PrivateKeyAccount => {
   const pkey = generatePrivateKey()
   const account = privateKeyToAccount(pkey)
-  return {
-    pvKey: pkey,
-    pbKey: account.address
-  }
+  return account
 }
 
 export const parseChain = (chainInfo: ChainInfo): Chain => {
