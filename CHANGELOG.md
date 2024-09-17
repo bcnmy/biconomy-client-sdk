@@ -1,5 +1,11 @@
 # @biconomy/account
 
+## 4.6.2
+
+### Patch Changes
+
+- Temporary removal of DAN
+
 ## 4.6.1
 
 ### Patch Changes
