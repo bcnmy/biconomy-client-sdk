@@ -30,8 +30,7 @@ export enum DeploymentState {
 
 export abstract class BaseSmartContractAccount<
   TSigner extends SmartAccountSigner = SmartAccountSigner
-> implements ISmartContractAccount<TSigner>
-{
+> implements ISmartContractAccount<TSigner> {
   protected factoryAddress: Address
 
   protected deploymentState: DeploymentState = DeploymentState.UNDEFINED

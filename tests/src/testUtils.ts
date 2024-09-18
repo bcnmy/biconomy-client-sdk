@@ -15,7 +15,8 @@ import {
   parseAbi,
   parseAbiParameters,
   publicActions,
-  walletActions
+  walletActions,
+  parseEther
 } from "viem"
 import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts"
 import {
@@ -69,6 +70,62 @@ export const getTestAccount = (
       addressIndex
     }
   )
+}
+
+/**
+ * Creates a test smart account for testing purposes.
+ * 
+ * @param account - The account to use as the signer for the smart account.
+ * @param chain - The chain on which to deploy the smart account.
+ * @param bundlerUrl - The URL of the bundler service to use.
+ * @param index - Optional index to use for account derivation. Defaults to 0 if not provided.
+ * @returns A Promise that resolves to a NexusSmartAccount instance.
+ * 
+ * @remarks
+ * This function creates a smart account, funds it and deploys it if not already deployed,
+ * and returns the instance. It's useful for setting up test environments
+ * that require a deployed smart account.
+ * 
+ * @throws Will throw an error if the smart account deployment fails.
+ */
+
+export const getTestSmartAccount = async (
+  account: Account,
+  chain: Chain,
+  bundlerUrl: string,
+  index?: bigint
+): Promise<NexusSmartAccount> => {
+  const walletClient = createWalletClient({
+    account,
+    chain,
+    transport: http()
+  })
+
+  const smartAccount = await createSmartAccountClient({
+    signer: walletClient,
+    chain,
+    bundlerUrl,
+    index
+  })
+
+  const isDeployed = await smartAccount.isAccountDeployed();
+  console.log("isDeployed", isDeployed);
+
+  const smartAccountBalance = await smartAccount.getBalances();
+  if (smartAccountBalance[0].amount === 0n) {
+    const masterClient = toTestClient(chain, account);
+    await topUp(masterClient, await smartAccount.getAddress(), parseEther("0.1"))
+  }
+
+  if (!isDeployed) {
+    const response = await smartAccount.deploy()
+    const receipt = await response.wait()
+    if (!receipt.success) {
+      throw new Error("Smart account deployment failed")
+    }
+  }
+
+  return smartAccount
 }
 
 const allInstances = new Map<number, AnvilInstance>()
@@ -195,7 +252,7 @@ export const toConfiguredAnvil = async ({
   rpcPort
 }: { rpcPort: number }): Promise<AnvilInstance> => {
   const instance = anvil({
-    hardfork: "Paris",
+    hardfork: "Cancun",
     chainId: rpcPort,
     port: rpcPort,
     codeSizeLimit: 1000000000000
@@ -260,8 +317,7 @@ export const nonZeroBalance = async (
   const balance = await checkBalance(testClient, address, tokenAddress)
   if (balance > BigInt(0)) return
   throw new Error(
-    `Insufficient balance ${
-      tokenAddress ? `of token ${tokenAddress}` : "of native token"
+    `Insufficient balance ${tokenAddress ? `of token ${tokenAddress}` : "of native token"
     } during test setup of owner: ${address}`
   )
 }
@@ -367,8 +423,7 @@ export const topUp = async (
 
   if (balanceOfRecipient > amount) {
     Logger.log(
-      `balanceOfRecipient (${recipient}) already has enough ${
-        token ?? "native token"
+      `balanceOfRecipient (${recipient}) already has enough ${token ?? "native token"
       } (${balanceOfRecipient}) during safeTopUp`
     )
     return await Promise.resolve()

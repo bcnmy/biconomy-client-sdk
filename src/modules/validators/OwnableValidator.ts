@@ -11,7 +11,7 @@ import {
 } from "viem"
 import type { Hex } from "viem"
 import type { NexusSmartAccount } from "../../account/NexusSmartAccount.js"
-import { OWNABLE_VALIDATOR_ADDRESS, SENTINEL_ADDRESS, UserOperationStruct } from "../../account/index.js"
+import { SENTINEL_ADDRESS, type UserOperationStruct } from "../../account/index.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
 import type { Module } from "../utils/Types.js"
 
@@ -35,28 +35,66 @@ export class OwnableValidator extends BaseValidationModule {
         this.threshold = Number(moduleData[0])
         this.owners = [...moduleData[1]] as Address[]
         this.smartAccount = smartAccount
+        this.moduleAddress = moduleConfig.moduleAddress
     }
 
     public static async create(
         smartAccount: NexusSmartAccount,
+        address: Address,
         owners: Address[],
         threshold?: number,
         hook?: Address
     ): Promise<OwnableValidator> {
+        let moduleInfo: Module
+        let installData: Hex
         if (
             !owners.includes(await smartAccount.getSmartAccountOwner().getAddress())
         ) {
             throw Error("Signer needs to be one of the owners")
         }
-        const installData = encodeAbiParameters(
-            [
-                { name: "threshold", type: "uint256" },
-                { name: "owners", type: "address[]" }
-            ],
-            [BigInt(threshold ?? owners.length), owners]
-        )
-        const moduleInfo: Module = {
-            moduleAddress: OWNABLE_VALIDATOR_ADDRESS,
+        const isInitialized = await smartAccount.publicClient.readContract({
+            address, // @todo: change to real module address
+            abi: parseAbi([
+                "function isInitialized(address smartAccount) public view returns (bool)"
+            ]),
+            functionName: "isInitialized",
+            args: [await smartAccount.getAddress()]
+        })
+        if (isInitialized) {
+            const _owners = await smartAccount.publicClient.readContract({
+                address, // @todo: change to real module address
+                abi: parseAbi([
+                    "function getOwners(address account) external view returns (address[])"
+                ]),
+                functionName: "getOwners",
+                args: [await smartAccount.getAddress()]
+            })
+            const _threshold = await smartAccount.publicClient.readContract({
+                address, // @todo: change to real module address
+                abi: parseAbi([
+                    "function getThreshold() external view returns (uint256)"
+                ]),
+                functionName: "getThreshold",
+                args: []
+            })
+            installData = encodeAbiParameters(
+                [
+                    { name: "threshold", type: "uint256" },
+                    { name: "owners", type: "address[]" }
+                ],
+                [BigInt(_threshold), _owners]
+            )
+        } else {
+            installData = encodeAbiParameters(
+                [
+                    { name: "threshold", type: "uint256" },
+                    { name: "owners", type: "address[]" }
+                ],
+                [BigInt(threshold ?? owners.length), owners]
+            )
+        }
+        moduleInfo = {
+            moduleAddress: address, // @todo: change to real module address
             type: "validator",
             data: installData,
             additionalContext: "0x",
@@ -145,7 +183,7 @@ export class OwnableValidator extends BaseValidationModule {
     public async getOwners(): Promise<Address[]> {
         try {
             const owners = (await this.smartAccount.publicClient.readContract({
-                address: OWNABLE_VALIDATOR_ADDRESS,
+                address: this.moduleAddress,
                 abi: parseAbi([
                     "function getOwners(address account) external view returns (address[])"
                 ]),
@@ -165,13 +203,13 @@ export class OwnableValidator extends BaseValidationModule {
         return owners.includes(address);
     }
 
-    public getDummySignature(): Hex {
+    public override getDummySignature(): Hex {
         const dummySignature = "0xe8b94748580ca0b4993c9a1b86b5be851bfc076ff5ce3a1ff65bf16392acfcb800f9b4f1aef1555c7fce5599fffb17e7c635502154a0333ba21f3ae491839af51c";
         const signatures = Array(this.threshold).fill(dummySignature);
         return concat(signatures) as Hex;
     }
 
-    async signUserOpHash(userOpHash: string): Promise<Hex> {
+    override async signUserOpHash(userOpHash: string): Promise<Hex> {
         if (this.isMultiSig()) {
             throw new Error("Multi-signature required, please pass the multi-signature to the sendUserOp function")
         } else {

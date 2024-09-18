@@ -82,5 +82,3 @@ export const MODULE_TYPE_MULTI = 0
 export const eip1271MagicValue: Hex = "0x1626ba7e"
 
 // Module addresses for base sepolia tests
-export const OWNABLE_VALIDATOR_ADDRESS = "0xfb11d7ca9161F1DF508787BA45951225B6C0a681";
-export const K1_VALIDATOR_ADDRESS = "0xBD654f9F8718840591A2964E2f0cA5b0bB743183";

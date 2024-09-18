@@ -2,7 +2,7 @@ import {
   type ByteArray,
   type Chain,
   type Hex,
-  PrivateKeyAccount,
+  type PrivateKeyAccount,
   encodeAbiParameters,
   isHex,
   keccak256,
@@ -18,7 +18,6 @@ import {
 } from "../../account"
 import type {
   ChainInfo,
-  SignerData
   // createOwnableValidatorModule
 } from "../../index.js"
 

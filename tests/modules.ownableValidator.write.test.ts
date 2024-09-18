@@ -5,30 +5,29 @@ import {
   type Hex,
   type WalletClient,
   createWalletClient,
-  parseEther,
   zeroAddress,
   encodePacked
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import {
   type NexusSmartAccount,
-  createSmartAccountClient
 } from "../src/account"
 import { type TestFileNetworkType, toNetwork } from "./src/testSetup"
 import {
   getTestAccount,
+  getTestSmartAccount,
   killNetwork,
   toTestClient,
 } from "./src/testUtils"
 import type { MasterClient, NetworkConfig } from "./src/testUtils"
 import { createK1ValidatorModule, createOwnableValidatorModule, getRandomSigner } from "../src/modules/index"
-import { OWNABLE_VALIDATOR_ADDRESS } from "../src/account/utils/Constants"
 import { OwnableValidator } from "../src/modules/validators/OwnableValidator"
 import { K1ValidatorModule } from "../src/modules/validators/K1ValidatorModule"
+import { TEST_CONTRACTS } from "./src/callDatas"
+import addresses from "../src/__contracts/addresses"
 
-const NETWORK_TYPE: TestFileNetworkType = "PUBLIC_TESTNET"
+const NETWORK_TYPE: TestFileNetworkType = "FILE_LOCALHOST"
 
-// @note Before runing this test, make sure that the smart accounts have enough balance to be deployed and to send transactions
 // @note Make sure the addresses used based on NETWORK_TYPE are valid
 describe("modules.ownable.validator.install.write", () => {
   let network: NetworkConfig
@@ -44,6 +43,8 @@ describe("modules.ownable.validator.install.write", () => {
   let smartAccountAddress: Hex
   let ownableValidatorModule: OwnableValidator
   let k1ValidatorModule: K1ValidatorModule
+
+  const OWNABLE_VALIDATOR_ADDRESS = TEST_CONTRACTS.OwnableValidator.address;
 
   beforeAll(async () => {
     network = await toNetwork(NETWORK_TYPE)
@@ -67,50 +68,14 @@ describe("modules.ownable.validator.install.write", () => {
 
     testClient = toTestClient(chain, getTestAccount(0))
 
-    smartAccount = await createSmartAccountClient({
-      signer: walletClient,
-      bundlerUrl,
-      chain
-    })
+    const code = await testClient.getBytecode({ address: addresses.K1ValidatorFactory });
+    console.log(code, "code");
 
-    smartAccountTwo = await createSmartAccountClient({
-      signer: walletClientTwo,
-      bundlerUrl,
-      chain
-    })
-
-    // console.log(await smartAccountTwo.getAddress(), "smartAccountTwoAddress");
-    // // Top up both smart accounts before deployment
-    const topUpAmount = parseEther("0.001")
-
-    // // Deploy smart accounts if not already deployed
-    const isSmartAccountDeployed = await smartAccount.isAccountDeployed()
-    if (!isSmartAccountDeployed) {
-      const hash = await testClient.sendTransaction({
-        to: await smartAccount.getAddress(),
-        value: topUpAmount
-      })
-      await testClient.waitForTransactionReceipt({ hash })
-      const deployResponse = await smartAccount.deploy()
-      const deployReceipt = await deployResponse.wait()
-      expect(deployReceipt.success).toBe(true)
-    }
-
-    const isSmartAccountTwoDeployed = await smartAccountTwo.isAccountDeployed()
-    if (!isSmartAccountTwoDeployed) {
-      const hash = await testClient.sendTransaction({
-        to: await smartAccountTwo.getAddress(),
-        value: topUpAmount
-      })
-      await testClient.waitForTransactionReceipt({ hash })
-      const deployResponseTwo = await smartAccountTwo.deploy()
-      const deployReceiptTwo = await deployResponseTwo.wait()
-      expect(deployReceiptTwo.success).toBe(true)
-    }
-
+    smartAccount = await getTestSmartAccount(account, chain, bundlerUrl)
+    smartAccountTwo = await getTestSmartAccount(accountTwo, chain, bundlerUrl)
     smartAccountAddress = await smartAccount.getAddress()
-    ownableValidatorModule = await createOwnableValidatorModule(smartAccount, [account.address, accountTwo.address])
 
+    ownableValidatorModule = await createOwnableValidatorModule(smartAccount, OWNABLE_VALIDATOR_ADDRESS, [account.address, accountTwo.address])
     k1ValidatorModule = await createK1ValidatorModule(smartAccount.getSigner())
     smartAccount.setActiveValidationModule(k1ValidatorModule)
   })
