@@ -197,6 +197,7 @@ export type NexusSmartAccountConfigConstructorProps =
  * @property {StateOverrideSet} [stateOverrideSet] - For overriding the state.
  * @property {boolean} [useEmptyDeployCallData] - Set to true if the transaction is being used only to deploy the smart contract, so "0x" is set as the user operation call data.
  */
+// Review and lock on how to passadditional moduleInfo
 export type BuildUserOpOptions = {
   gasOffset?: GasOffsetPct
   params?: ModuleInfo
@@ -208,6 +209,7 @@ export type BuildUserOpOptions = {
   dummyPndOverride?: BytesLike
   useEmptyDeployCallData?: boolean
   useExecutor?: boolean
+  moduleInfo?: ModuleInfo
 }
 
 export type NonceOptions = {

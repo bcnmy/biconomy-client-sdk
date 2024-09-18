@@ -1,9 +1,9 @@
-import { AbiFunction, Address, encodeAbiParameters, encodeFunctionData, type Hex } from "viem"
+import { AbiFunction, Address, encodeAbiParameters, encodeFunctionData, PublicClient, type Hex } from "viem"
 import addresses from "../../__contracts/addresses.js"
 import type { SmartAccountSigner } from "../../account/index.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
-import { ActionData, CreateSessionDataParams, PolicyData, SmartSessionMode, type Module } from "../utils/Types.js"
-import { ActionConfig, encodeSmartSessionSignature, Rule, toActionConfig } from "../utils/SmartSessionHelpers.js"
+import { ActionData, CreateSessionDataParams, CreateSessionDataResponse, ModuleInfo, PolicyData, SmartSessionMode, type Module } from "../utils/Types.js"
+import { ActionConfig, encodeSmartSessionSignature, getPermissionId, Rule, toActionConfig } from "../utils/SmartSessionHelpers.js"
 import { type Session } from "../utils/Types.js"
 import { smartSessionAbi, universalActionPolicyAbi } from "../utils/abi.js"
 
@@ -16,14 +16,18 @@ const SIMPLE_SESSION_VALIDATOR_ADDRESS = addresses.SimpleSigner
 
 // Note: flows: use mode and enable mode both should be supported.
 export class SmartSessionModule extends BaseValidationModule {
+  private client: PublicClient
   // Notice: For smart sessions signer could be anything. Which is an implementation of ISessionValidator interface
   // SmartAccountSigner works if session validator is K1 like single signer.
-  private constructor(moduleConfig: Module, signer: SmartAccountSigner) {
+  // Todo: Review instead of a client smart account instance can be passed to the module.
+  private constructor(moduleConfig: Module, signer: SmartAccountSigner, client: PublicClient) {
     super(moduleConfig, signer)
+    this.client = client
   }
   
   // review: if it should get a signer object or just session key EOA address to be used with SimpleSessionValidator contract
   public static async create(
+    client: PublicClient,
     signer: SmartAccountSigner,
     smartSessionAddress = SMART_SESSION_ADDRESS,
   ): Promise<SmartSessionModule> {
@@ -33,27 +37,25 @@ export class SmartSessionModule extends BaseValidationModule {
       data: await signer.getAddress(),
       additionalContext: "0x"
     }
-    const instance = new SmartSessionModule(module, signer)
-    return instance
+    return new SmartSessionModule(module, signer, client)
   }
 
   // Note: this second argument is like ModuleInfo object which is needed for certain modules like SKM for v2 account sdk
-  override async signUserOpHash(userOpHash: string, permissionId?: Hex): Promise<Hex>{
-    const signature = await this.signer.signMessage({ raw: userOpHash as Hex })
-    
+  override async signUserOpHash(userOpHash: string, moduleInfo?: ModuleInfo): Promise<Hex>{
+    const signature = await this.signer.signMessage({ raw: userOpHash as Hex })    
     // Note this function is only implemented for USE mode.
     return encodeSmartSessionSignature({
       mode: SmartSessionMode.USE,
-      permissionId: permissionId ? permissionId : '0x',
+      permissionId: moduleInfo?.permissionId ? moduleInfo.permissionId : '0x',
       signature,
     }) as Hex
   }
 
   // Note: depends on the mode. based on the mode additional infromation is required and will need to use other read methods.
-  override getDummySignature(permissionId?: Hex): Hex {
+  override getDummySignature(params?: ModuleInfo): Hex {
     return encodeSmartSessionSignature({
       mode: SmartSessionMode.USE,
-      permissionId: permissionId ? permissionId : '0x',
+      permissionId: params?.permissionId ? params.permissionId : '0x',
       signature: DUMMY_ECDSA_SIG,
     }) as Hex 
   }
@@ -68,9 +70,10 @@ export class SmartSessionModule extends BaseValidationModule {
 
   createSessionData = async (
     sessionRequestedInfo: CreateSessionDataParams[]
-  ): Promise<Hex> => {
+  ): Promise<CreateSessionDataResponse> => {
 
     const sessions: Session[] = [];
+    const permissionIds: Hex[] = [];
 
     // Function to generate a random salt
     const generateSalt = (): Hex => {
@@ -138,6 +141,10 @@ export class SmartSessionModule extends BaseValidationModule {
         }
       };
 
+      const permissionId = await getPermissionId({ client: this.client, session: session });
+      // push permissionId to the array
+      permissionIds.push(permissionId);
+
       // Push to sessions array
       sessions.push(session);
     }
@@ -149,6 +156,6 @@ export class SmartSessionModule extends BaseValidationModule {
       args: [sessions]
     });
 
-    return enableSessionsData;
+    return { permissionIds: permissionIds, sessionsEnableData: enableSessionsData };
   }
 }

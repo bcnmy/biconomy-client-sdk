@@ -1,4 +1,4 @@
-import { type Address, type Hex, type PublicClient, encodeAbiParameters, encodePacked } from "viem"
+import { type Address, type Hex, type PublicClient, encodeAbiParameters, encodePacked, keccak256 } from "viem"
 import { UniActionPolicyAbi } from "../../__contracts/abi"
 import { type AnyReferenceValue, parseReferenceValue } from "./Helper"
 import { type EnableSessionData, type Session, SmartSessionMode, type SmartSessionModeType } from "./Types"
@@ -180,6 +180,9 @@ export const formatPermissionEnableSig = ({
       return encodePacked(['address', 'bytes'], [validator, signature])
   }
 
+  // Note:
+  // Requires public client so TestClient or MasterClient doesn't work
+  // public cliekt can be supplied from smartAccount instance
   export const getPermissionId = async ({
     client,
     session,
@@ -193,16 +196,81 @@ export const formatPermissionEnableSig = ({
       abi: smartSessionAbi,
       functionName: 'getPermissionId',
       args: [session],
-    })) as string
+    })) as Hex
   }
 
-  // getter
-  // getSessionDigest
-  // getActionId
-  // getSessionNonce
-  // isSessionEnabled
-  // getSessionDigest
-  
+  // getters
+
+export const isSessionEnabled = async ({
+    client,
+    smartAccountAddress,
+    permissionId,
+  }: {
+    client: PublicClient
+    smartAccountAddress: Address
+    permissionId: Hex
+  }) => {
+    return (await client.readContract({
+      address: TEST_CONTRACTS.SmartSession.address,
+      abi: smartSessionAbi,
+      functionName: 'isSessionEnabled',
+      args: [permissionId, smartAccountAddress],
+    })) as boolean
+} 
+
+export const getSessionDigest = async ({
+  client,
+  smartAccountAddress,
+  session,
+  permissionId,
+  mode,
+}: {
+  client: PublicClient
+  smartAccountAddress: Address
+  session: Session
+  permissionId: Hex
+  mode: SmartSessionModeType
+}) => {
+  return (await client.readContract({
+    address: TEST_CONTRACTS.SmartSession.address,
+    abi: smartSessionAbi,
+    functionName: 'getSessionDigest',
+    args: [permissionId, smartAccountAddress, session, mode],
+  })) as Hex
+}
+
+export const getSessionNonce = async ({
+  client,
+  smartAccountAddress,
+  permissionId,
+}: {
+  client: PublicClient
+  smartAccountAddress: Address
+  permissionId: Hex
+}) => {
+  return (await client.readContract({
+    address: TEST_CONTRACTS.SmartSession.address,
+    abi: smartSessionAbi,
+    functionName: 'getNonce',
+    args: [permissionId, smartAccountAddress],
+  })) as bigint
+}
+
+// action policy utils
+
+export const getActionId = async ({
+  target,
+  selector,
+}: {
+  target: Address
+  selector: Hex
+}) => {
+  return keccak256(encodePacked(['address', 'bytes4'], [target, selector]))
+}
+
+
+
+// sig utils
 
 export const encodeEnableSessionSignature = ({
     enableSessionData,

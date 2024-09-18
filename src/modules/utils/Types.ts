@@ -91,6 +91,7 @@ export type StrictSessionParams = {
   sessionSigner: SupportedSigner
 }
 
+// Review all ModuleInfo params and remove unnecessary ones
 export type ModuleInfo = {
   // Could be a full object of below params and that way it can be an array too!
   // sessionParams?: SessionParams[] // where SessionParams is below four
@@ -103,8 +104,11 @@ export type ModuleInfo = {
   additionalSessionData?: string
   /** Batch session params */
   batchSessionParams?: SessionParams[]
+
+  permissionId?: Hex
 }
 
+// Review and put in Nexus account
 export interface SendUserOpParams extends ModuleInfo {
   /** "validation_and_execution" is recommended during development for improved debugging & devEx, but will add some additional latency to calls. "validation" can be used in production ro remove this latency once flows have been tested. */
   simulationType?: SimulationType
@@ -118,11 +122,6 @@ export type SignerData = {
 }
 
 export type ChainInfo = number | Chain
-
-export type CreateSessionDataResponse = {
-  data: string
-  sessionIDInfo: Array<string>
-}
 
 // Todo: marked for deletion
 export interface MultiChainValidationModuleConfig
@@ -321,6 +320,7 @@ export type DanModuleInfo = {
   mpcKeyId: string
 }
 
+// Review: can make type
 export interface CreateSessionDataParams {
   // TimeLimitPolicy?
   // /** window end for the session key */
@@ -356,5 +356,12 @@ export interface CreateSessionDataParams {
   preferredSessionId?: string
   /** Dan module info */
   danModuleInfo?: DanModuleInfo
+}
+
+// todo remove old unnecessary types
+
+export type CreateSessionDataResponse = {
+  permissionIds: Hex[]
+  sessionsEnableData: Hex
 }
 

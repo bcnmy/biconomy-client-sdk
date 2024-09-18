@@ -796,11 +796,12 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     })
   }
 
+  // Review and lock on how to passadditional moduleInfo
   // dummy signature depends on the validation module supplied.
-  async getDummySignatures(): Promise<Hex> {
+  async getDummySignatures(params?: ModuleInfo): Promise<Hex> {
     // const params = { ...(this.sessionData ? this.sessionData : {}), ..._params }
     this.isActiveValidationModuleDefined()
-    return this.activeValidationModule.getDummySignature() as Hex
+    return this.activeValidationModule.getDummySignature(params) as Hex
   }
 
   // TODO: review this
@@ -826,8 +827,10 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     return true
   }
 
+  // Review and lock on how to passadditional moduleInfo
   async signUserOp(
-    userOp: Partial<UserOperationStruct>
+    userOp: Partial<UserOperationStruct>,
+    moduleInfo?: ModuleInfo
   ): Promise<UserOperationStruct> {
     this.isActiveValidationModuleDefined()
     // TODO REMOVE COMMENT AND CHECK FOR PIMLICO USER OP FIELDS
@@ -842,8 +845,10 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     // this.validateUserOp(userOp, requiredFields)
     const userOpHash = await this.getUserOpHash(userOp)
 
+    // Review and lock on how to passadditional moduleInfo
     const eoaSignature = (await this.activeValidationModule.signUserOpHash(
-      userOpHash
+      userOpHash,
+      moduleInfo
     )) as Hex
 
     userOp.signature = eoaSignature
@@ -1046,11 +1051,12 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    * const { success, receipt } = await wait();
    *
    */
+  // Review and lock on how to passadditional moduleInfo
   async sendUserOp({
     signature,
     ...userOpWithoutSignature
-  }: Partial<UserOperationStruct>): Promise<UserOpResponse> {
-    const userOperation = await this.signUserOp(userOpWithoutSignature)
+  }: Partial<UserOperationStruct>, moduleInfo?: ModuleInfo): Promise<UserOpResponse> {
+    const userOperation = await this.signUserOp(userOpWithoutSignature, moduleInfo)
     return await this.sendSignedUserOp(userOperation)
   }
 
@@ -1323,6 +1329,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    * const { transactionHash, userOperationReceipt } = await wait();
    *
    */
+  //   // Review and lock on how to passadditional moduleInfo for buildUserOpdto, sendUserOpDto and sendTransactionDto
   async sendTransaction(
     manyOrOneTransactions: Transaction | Transaction[],
     buildUseropDto?: BuildUserOpOptions
@@ -1333,7 +1340,9 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
         : [manyOrOneTransactions],
       buildUseropDto
     )
-    const response = await this.sendUserOp(userOp)
+    // Review and lock on how to pass additional moduleInfo for buildUserOpdto, sendUserOpDto and sendTransactionDto
+    const moduleInfo = buildUseropDto?.moduleInfo
+    const response = await this.sendUserOp(userOp, moduleInfo)
     this.setDeploymentState(response) // don't wait for this to finish...
     return response
   }
@@ -1398,11 +1407,12 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    * const userOp = await smartAccount.buildUserOp([{ to: "0x...", data: encodedCall }]);
    *
    */
+  // Review and lock on how to passadditional moduleInfo
   async buildUserOp(
     transactions: Transaction[],
     buildUseropDto?: BuildUserOpOptions
   ): Promise<Partial<UserOperationStruct>> {
-    const dummySignatureFetchPromise = this.getDummySignatures()
+    const dummySignatureFetchPromise = this.getDummySignatures(buildUseropDto?.moduleInfo)
     const [nonceFromFetch, dummySignature] = await Promise.all([
       this.getBuildUserOpNonce(buildUseropDto?.nonceOptions),
       dummySignatureFetchPromise,

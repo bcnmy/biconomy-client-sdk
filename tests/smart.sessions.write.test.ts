@@ -7,6 +7,8 @@ import {
   createWalletClient,
   toBytes,
   toHex,
+  encodeFunctionData,
+  parseAbi,
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { convertSigner, CreateSessionDataParams, createSmartSessionModule, parseReferenceValue, Session, Transaction } from "../src"
@@ -16,6 +18,7 @@ import {
 } from "../src/account"
 import policies, {
   getPermissionId,
+  isSessionEnabled,
   ParamCondition,
   type ActionConfig
 } from "../src/modules/utils/SmartSessionHelpers"
@@ -28,8 +31,9 @@ import {
   topUp
 } from "./src/testUtils"
 import type { MasterClient, NetworkConfig } from "./src/testUtils"
-import addresses from "../src/__contracts/addresses"
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+// import addresses from "../src/__contracts/addresses"
+// import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import { CounterAbi } from "./src/__contracts/abi"
 const NETWORK_TYPE: TestFileNetworkType = "FILE_LOCALHOST"
 
 describe("smart.sessions", () => {
@@ -45,6 +49,8 @@ describe("smart.sessions", () => {
   let recipientAccount: Account
   let smartAccount: NexusSmartAccount
   let smartAccountAddress: Hex
+  // Note: need to cache permissionId currently for further use
+  let permissionIdCached: Hex
 
   beforeAll(async () => {
     network = (await toNetwork(NETWORK_TYPE)) as NetworkConfig
@@ -173,20 +179,19 @@ describe("smart.sessions", () => {
     const smartAccountSigner = await convertSigner(walletClient)
 
     const smartSessionModule = await createSmartSessionModule(
+      smartAccount.publicClient,
       smartAccountSigner.signer,
       TEST_CONTRACTS.SmartSession.address
     )
      
     // Generate empty bytes32 hex string for dummy permisisonId
     const emptyBytes32 = "0x" + "0".repeat(64) as Hex;
-    const dummySignature = smartSessionModule.getDummySignature(emptyBytes32);
+    const dummySignature = smartSessionModule.getDummySignature({ permissionId: emptyBytes32 });
     // console.log("dummySignature", dummySignature)
     expect(dummySignature).toBeDefined();
 
-
-    const pkey = generatePrivateKey()
-    const sessionSignerAccount = privateKeyToAccount(pkey)
-    const sessionKeyEOA = sessionSignerAccount.address
+    // make EOA owner of SA session key as well
+    const sessionKeyEOA = account.address
 
     const sessionRequestedInfo: CreateSessionDataParams = {
       sessionPublicKey: sessionKeyEOA,
@@ -198,45 +203,83 @@ describe("smart.sessions", () => {
       valueLimit: BigInt(0)
     }
 
-    const sessionsEnableData = await smartSessionModule.createSessionData([sessionRequestedInfo])
-    console.log("sessionsEnableData", sessionsEnableData)
-    expect(sessionsEnableData).toBeDefined()
+    const createSessionDataResponse = await smartSessionModule.createSessionData([sessionRequestedInfo])
+    // console.log("sessionsEnableData", createSessionDataResponse.sessionsEnableData)
+    expect(createSessionDataResponse.sessionsEnableData).toBeDefined()
+
+    const permissionIds = createSessionDataResponse.permissionIds
+    expect(permissionIds.length).toBe(1)
+    const permissionId = permissionIds[0]
+    permissionIdCached = permissionId
 
     const tx: Transaction = {
       to: TEST_CONTRACTS.SmartSession.address,
-      data: sessionsEnableData
+      data: createSessionDataResponse.sessionsEnableData
     }
     
     const { wait } = await smartAccount.sendTransaction(tx)
     const { success } = await wait()
     expect(success).toBe(true)
 
-    // temp notes
-    // TBD
-    // in order to get permissionId session object information need to be returned / maintained somewhere
-    // Note: could be return param of createSessionData or stored in some storage client along with permissionId
-    // const session: Session = {
-    //   sessionValidator: TEST_CONTRACTS.SimpleSigner.address,
-    //   sessionValidatorInitData: toHex(toBytes(sessionKeyEOA)),
-    //   salt: "0x",
-    //   userOpPolicies: [],
-    //   erc7739Policies: { 
-    //   allowedERC7739Content: [],
-    //   erc1271Policies: [] },
-    //   actions: []
-    // }
-
-    // const permissionId = await getPermissionId({ client: testClient, session })
-
-    // todo: add read methods to get enabled sessions for a smart acccount
-    // todo: verify session has been added on-chain
+    const isEnabled = await isSessionEnabled({
+      client: smartAccount.publicClient,
+      smartAccountAddress,
+      permissionId
+    })
+    expect(isEnabled).toBe(true)
   }, 60000)
 
   test("should make use of already enabled session (USE mode) to increment a counter using a session key", async () => {
 
-    // need signer
-    // need permissionId from session object
+    const isEnabled = await isSessionEnabled({
+      client: smartAccount.publicClient,
+      smartAccountAddress,
+      permissionId:permissionIdCached
+    })
+    expect(isEnabled).toBe(true)
+
+    // same signer for session key eoa above
+    const smartAccountSigner = await convertSigner(walletClient)
+
+    // same as eoa owner of SA.
+    const smartSessionModule = await createSmartSessionModule(
+      smartAccount.publicClient,
+      smartAccountSigner.signer,
+      TEST_CONTRACTS.SmartSession.address
+    )
     // set active validation module
-    // make userop to increase counter 
+    smartAccount.setActiveValidationModule(smartSessionModule)
+
+    // need permissionId from session object (both from some cache)
+    
+    const tx: Transaction = {
+      to: TEST_CONTRACTS.Counter.address,
+      data: encodeFunctionData({
+        abi: CounterAbi,
+        functionName: "incrementNumber",
+        args: []
+      })
+    }
+
+    const counterBefore = await smartAccount.publicClient.readContract({
+      address: TEST_CONTRACTS.Counter.address,
+      abi: CounterAbi,
+      functionName: "getNumber",
+      args: []
+    })
+
+    // Make userop to increase counter
+    const { wait } = await smartAccount.sendTransaction(tx, { moduleInfo: { permissionId: permissionIdCached } })
+    const { success } = await wait()
+    expect(success).toBe(true)
+
+    const counterAfter = await smartAccount.publicClient.readContract({
+      address: TEST_CONTRACTS.Counter.address,
+      abi: CounterAbi,
+      functionName: "getNumber",
+      args: []
+    })
+
+    expect(counterAfter).toBe(counterBefore + BigInt(1))
   }, 60000)
 })
