@@ -90,7 +90,7 @@ export class OwnableValidator extends BaseValidationModule {
                     { name: "threshold", type: "uint256" },
                     { name: "owners", type: "address[]" }
                 ],
-                [BigInt(threshold ?? owners.length), owners]
+                [BigInt(threshold ?? owners.length), owners.sort()]
             )
         }
         moduleInfo = {
