@@ -29,8 +29,7 @@ export enum DeploymentState {
 
 export abstract class BaseSmartContractAccount<
   TSigner extends SmartAccountSigner = SmartAccountSigner
-> implements ISmartContractAccount<TSigner>
-{
+> implements ISmartContractAccount<TSigner> {
   protected factoryAddress: Address
 
   protected deploymentState: DeploymentState = DeploymentState.UNDEFINED
@@ -197,7 +196,7 @@ export abstract class BaseSmartContractAccount<
   ): Promise<bigint>
 
   private async _isDeployed(): Promise<boolean> {
-    const contractCode = await this.publicClient.getBytecode({
+    const contractCode = await this.publicClient.getCode({
       address: await this.getAddress()
     })
     return (contractCode?.length ?? 0) > 2

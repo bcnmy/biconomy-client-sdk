@@ -73,10 +73,10 @@ describeWithPlaygroundGuard("playground", () => {
 
   test("should have factory and k1Validator deployed", async () => {
     const byteCodes = await Promise.all([
-      publicClient.getBytecode({
+      publicClient.getCode({
         address: k1ValidatorAddress
       }),
-      publicClient.getBytecode({
+      publicClient.getCode({
         address: factoryAddress
       })
     ])

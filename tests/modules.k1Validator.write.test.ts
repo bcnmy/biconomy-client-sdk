@@ -13,14 +13,13 @@ import addresses from "../src/__contracts/addresses"
 import {
   type NexusSmartAccount,
   type Transaction,
-  createSmartAccountClient
 } from "../src/account"
 import { CounterAbi } from "./src/__contracts/abi"
 import { mockAddresses } from "./src/__contracts/mockAddresses"
-import { OWNABLE_VALIDATOR } from "./src/callDatas"
 import { type TestFileNetworkType, toNetwork } from "./src/testSetup"
 import {
   getTestAccount,
+  getTestSmartAccount,
   killNetwork,
   toTestClient,
   topUp
@@ -60,11 +59,7 @@ describe("modules.k1Validator.write", () => {
 
     testClient = toTestClient(chain, getTestAccount(0))
 
-    smartAccount = await createSmartAccountClient({
-      signer: walletClient,
-      bundlerUrl,
-      chain
-    })
+    smartAccount = await getTestSmartAccount(account, chain, bundlerUrl)
 
     smartAccountAddress = await smartAccount.getAddress()
   })
@@ -132,14 +127,6 @@ describe("modules.k1Validator.write", () => {
       const { success: uninstallSuccess } = await uninstallWait()
       expect(uninstallSuccess).toBe(true)
     }
-  }, 60000)
-
-  test.skip("should have the Ownable Validator Module installed", async () => {
-    const isInstalled = await smartAccount.isModuleInstalled({
-      type: "validator",
-      moduleAddress: OWNABLE_VALIDATOR
-    })
-    expect(isInstalled).toBeTruthy()
   }, 60000)
 
   test("should perform a contract interaction", async () => {

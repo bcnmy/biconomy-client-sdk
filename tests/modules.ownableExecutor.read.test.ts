@@ -7,22 +7,23 @@ import {
   createWalletClient,
   Address
 } from "viem"
-import { afterAll, beforeAll, beforeEach, describe, expect, test } from "vitest"
+import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import {
   type NexusSmartAccount,
-  createSmartAccountClient
 } from "../src/account"
 import { type TestFileNetworkType, toNetwork } from "./src/testSetup"
 import {
   getTestAccount,
+  getTestSmartAccount,
   killNetwork,
   toTestClient,
 } from "./src/testUtils"
 import type { MasterClient, NetworkConfig } from "./src/testUtils"
 import { createOwnableExecutorModule } from "../src"
 import { OwnableExecutorModule } from "../src/modules/executors/OwnableExecutor"
+import { TEST_CONTRACTS } from "./src/callDatas"
 
-const NETWORK_TYPE: TestFileNetworkType = "PUBLIC_TESTNET"
+const NETWORK_TYPE: TestFileNetworkType = "FILE_LOCALHOST"
 
 describe("modules.ownable.executor.read", () => {
   let network: NetworkConfig
@@ -40,7 +41,7 @@ describe("modules.ownable.executor.read", () => {
 
   let ownableExecutorModule: OwnableExecutorModule
 
-  const OWNABLE_EXECUTOR_MODULE_ADDRESS = "0x989110e958902f619148b8171fbDF1Dca0c5AE0B";
+  const OWNABLE_EXECUTOR_MODULE_ADDRESS = TEST_CONTRACTS.OwnableExecutor.address;
 
   beforeAll(async () => {
     network = await toNetwork(NETWORK_TYPE)
@@ -59,11 +60,7 @@ describe("modules.ownable.executor.read", () => {
 
     testClient = toTestClient(chain, getTestAccount(0))
 
-    smartAccount = await createSmartAccountClient({
-      signer: walletClient,
-      bundlerUrl,
-      chain
-    })
+    smartAccount = await getTestSmartAccount(account, chain, bundlerUrl)
 
     smartAccountAddress = await smartAccount.getAddress()
 

@@ -16,19 +16,17 @@ import type { Execution, Module } from "../utils/Types"
 export class OwnableExecutorModule extends BaseExecutionModule {
   smartAccount!: NexusSmartAccount
   public owners: Address[]
-  private address: Address
 
   public constructor(
     module: Module,
     smartAccount: NexusSmartAccount,
     owners: Address[],
-    address: Address,
   ) {
     super(module, smartAccount.getSigner())
     this.smartAccount = smartAccount
     this.owners = owners
     this.data = module.data ?? "0x"
-    this.address = address
+    this.moduleAddress = module.moduleAddress
   }
 
   public static async create(
@@ -63,14 +61,12 @@ export class OwnableExecutorModule extends BaseExecutionModule {
         module,
         smartAccount,
         owners as Address[],
-        address,
       )
     } else {
       return new OwnableExecutorModule(
         module,
         smartAccount,
         [owner],
-        address,
       )
     }
   }
@@ -145,7 +141,7 @@ export class OwnableExecutorModule extends BaseExecutionModule {
   }
 
   public async removeOwnerUserOp(ownerToRemove: Address): Promise<Partial<UserOperationStruct>> {
-    const owners = await this.getOwners(this.address)
+    const owners = await this.getOwners()
     let prevOwner: Address
 
     const currentOwnerIndex = owners.findIndex(
@@ -197,7 +193,7 @@ export class OwnableExecutorModule extends BaseExecutionModule {
         "function isInitialized(address smartAccount) public view returns (bool)"
       ]),
       functionName: "isInitialized",
-      args: [await this.smartAccount.getAddress()]
+      args: [smartAccount ?? await this.smartAccount.getAddress()]
     })
   }
 }

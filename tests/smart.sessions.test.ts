@@ -23,6 +23,7 @@ import { TEST_CONTRACTS } from "./src/callDatas"
 import { type TestFileNetworkType, toNetwork } from "./src/testSetup"
 import {
   getTestAccount,
+  getTestSmartAccount,
   killNetwork,
   toTestClient,
   topUp
@@ -61,12 +62,7 @@ describe("smart.sessions", () => {
 
     testClient = toTestClient(chain, getTestAccount(0))
 
-    smartAccount = await createSmartAccountClient({
-      signer: walletClient,
-      bundlerUrl,
-      chain
-    })
-
+    smartAccount = await getTestSmartAccount(account, chain, bundlerUrl)
     smartAccountAddress = await smartAccount.getAddress()
   })
   afterAll(async () => {
@@ -94,7 +90,7 @@ describe("smart.sessions", () => {
   test("should have smart account bytecode", async () => {
     const bytecodes = await Promise.all(
       [TEST_CONTRACTS.SmartSession, TEST_CONTRACTS.UniActionPolicy].map(
-        (address) => testClient.getBytecode(address)
+        (address) => testClient.getCode(address)
       )
     )
     expect(bytecodes.every((bytecode) => !!bytecode?.length)).toBeTruthy()

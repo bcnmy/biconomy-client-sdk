@@ -47,6 +47,7 @@ import {
   getAccountDomainStructFields,
   getBundlerUrl,
   getTestAccount,
+  getTestSmartAccount,
   killNetwork,
   pKey,
   toTestClient,
@@ -93,11 +94,7 @@ describe("account.read", () => {
 
     testClient = toTestClient(chain, getTestAccount(0))
 
-    smartAccount = await createSmartAccountClient({
-      signer: walletClient,
-      bundlerUrl,
-      chain
-    })
+    smartAccount = await getTestSmartAccount(account, chain, bundlerUrl)
 
     smartAccountAddress = await smartAccount.getAddress()
   })
@@ -438,7 +435,7 @@ describe("account.read", () => {
 
   test("should be deployed to counterfactual address", async () => {
     const accountAddress = await smartAccount.getAccountAddress()
-    const byteCode = await testClient.getBytecode({
+    const byteCode = await testClient.getCode({
       address: accountAddress as Hex
     })
     if (await smartAccount.isAccountDeployed()) {

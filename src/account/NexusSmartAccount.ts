@@ -6,7 +6,6 @@ import {
   type Hex,
   type PublicClient,
   type TypedDataDefinition,
-  type WalletClient,
   concat,
   concatHex,
   decodeFunctionData,
@@ -31,7 +30,6 @@ import { NexusAbi } from "../__contracts/abi"
 import {
   Bundler,
   type GetUserOperationGasPriceReturnType,
-  type UserOpReceipt,
   type UserOpResponse
 } from "../bundler/index.js"
 import type { IBundler } from "../bundler/interfaces/IBundler.js"
@@ -109,10 +107,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
 
   bundler?: IBundler
 
-  private accountContract?: GetContractReturnType<
-    typeof NexusAbi,
-    PublicClient | WalletClient
-  >
+  private accountContract?: GetContractReturnType<typeof NexusAbi, PublicClient>;
 
   // private scanForUpgradedAccountsFromV1!: boolean
 
@@ -582,20 +577,18 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     return this.sendTransaction(txs, buildUseropDto)
   }
 
-  async _getAccountContract(): Promise<
-    GetContractReturnType<typeof NexusAbi, PublicClient>
-  > {
+  async _getAccountContract(): Promise<GetContractReturnType<typeof NexusAbi, PublicClient>> {
     if (await this.isAccountDeployed()) {
       if (!this.accountContract) {
         this.accountContract = getContract({
           address: await this.getAddress(),
           abi: NexusAbi,
-          client: this.publicClient as PublicClient
-        })
+          client: this.publicClient
+        }) as GetContractReturnType<typeof NexusAbi, PublicClient>;
       }
-      return this.accountContract
+      return this.accountContract;
     }
-    throw new Error(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED)
+    throw new Error(ERROR_MESSAGES.ACCOUNT_NOT_DEPLOYED);
   }
 
   isActiveValidationModuleDefined(): boolean {
@@ -1108,18 +1101,18 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
 
     if (!userOp.maxFeePerGas && !userOp.maxPriorityFeePerGas) {
       const feeData = await this.publicClient.estimateFeesPerGas()
-      if (feeData.maxFeePerGas?.toString()) {
+      if (feeData.maxFeePerGas) {
         finalUserOp.maxFeePerGas = feeData.maxFeePerGas
-      } else if (feeData.gasPrice?.toString()) {
+      } else if (feeData.gasPrice) {
         finalUserOp.maxFeePerGas = feeData.gasPrice
       } else {
         finalUserOp.maxFeePerGas = await this.publicClient.getGasPrice()
       }
 
-      if (feeData.maxPriorityFeePerGas?.toString()) {
+      if (feeData.maxPriorityFeePerGas) {
         finalUserOp.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas
-      } else if (feeData.gasPrice?.toString()) {
-        finalUserOp.maxPriorityFeePerGas = feeData.gasPrice ?? 0n
+      } else if (feeData.gasPrice) {
+        finalUserOp.maxPriorityFeePerGas = feeData.gasPrice
       } else {
         finalUserOp.maxPriorityFeePerGas = await this.publicClient.getGasPrice()
       }
@@ -1648,7 +1641,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     const accountAddress = this.accountAddress ?? (await this.getAddress())
 
     // Check that the account has not already been deployed
-    const byteCode = await this.publicClient?.getBytecode({
+    const byteCode = await this.publicClient?.getCode({
       address: accountAddress as Hex
     })
 
@@ -2043,41 +2036,6 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     }
     throw new Error("Module is not installed")
   }
-
-  // private async executeFromExecutor(
-  //   transactions: Transaction[],
-  //   ownedAccountAddress?: Address
-  //   // buildUseropDto?: BuildUserOpOptions
-  // ): Promise<UserOpReceipt> {
-  //   if (this.activeExecutionModule) {
-  //     if (transactions.length > 1) {
-  //       const executions: { target: Hex; value: bigint; callData: Hex }[] =
-  //         transactions.map((tx) => {
-  //           return {
-  //             target: tx.to as Hex,
-  //             callData: (tx.data ?? "0x") as Hex,
-  //             value: BigInt(tx.value ?? 0n)
-  //           }
-  //         })
-  //       return await this.activeExecutionModule?.execute(
-  //         executions,
-  //         ownedAccountAddress
-  //       )
-  //     }
-  //     const execution = {
-  //       target: transactions[0].to as Hex,
-  //       callData: (transactions[0].data ?? "0x") as Hex,
-  //       value: BigInt(transactions[0].value ?? 0n)
-  //     }
-  //     return await this.activeExecutionModule.execute(
-  //       execution,
-  //       ownedAccountAddress
-  //     )
-  //   }
-  //   throw new Error(
-  //     "Please set an active executor module before running this method."
-  //   )
-  // }
 
   /**
    * Checks if the account contract supports a specific execution mode.

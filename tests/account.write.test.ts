@@ -10,11 +10,11 @@ import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import {
   type NexusSmartAccount,
   type Transaction,
-  createSmartAccountClient
 } from "../src/account"
 import { type TestFileNetworkType, toNetwork } from "./src/testSetup"
 import {
   getTestAccount,
+  getTestSmartAccount,
   killNetwork,
   toTestClient,
   topUp
@@ -54,11 +54,7 @@ describe("account.write", () => {
 
     testClient = toTestClient(chain, getTestAccount(0))
 
-    smartAccount = await createSmartAccountClient({
-      signer: walletClient,
-      bundlerUrl,
-      chain
-    })
+    smartAccount = await getTestSmartAccount(account, chain, bundlerUrl)
 
     smartAccountAddress = await smartAccount.getAddress()
   })
