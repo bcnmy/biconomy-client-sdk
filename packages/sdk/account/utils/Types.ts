@@ -551,13 +551,6 @@ export type EIP712DomainReturn = [
   bigint[]
 ]
 
-export enum CallType {
-  CALLTYPE_SINGLE = "0x00",
-  CALLTYPE_BATCH = "0x01",
-  CALLTYPE_STATIC = "0xFE",
-  CALLTYPE_DELEGATECALL = "0xFF"
-}
-
 export type NEXUS_VERSION_TYPE = "1.0.0-beta"
 
 export type AccountMetadata = {

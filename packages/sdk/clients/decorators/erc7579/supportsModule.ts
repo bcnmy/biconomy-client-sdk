@@ -14,8 +14,7 @@ import { call, readContract } from "viem/actions"
 import { getAction } from "viem/utils"
 import { parseAccount } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
-
-export type ModuleType = "validator" | "executor" | "fallback" | "hook"
+import type { ModuleType } from "../../../modules/utils/Types"
 
 export type SupportsModuleParameters<
   TSmartAccount extends SmartAccount | undefined

@@ -34,8 +34,9 @@ export const createBicoBundlerClient = (
 
   return createBundlerClient({
     ...parameters,
-    transport:
-      parameters.transport ? parameters.transport : parameters.bundlerUrl
+    transport: parameters.transport
+      ? parameters.transport
+      : parameters.bundlerUrl
         ? http(parameters.bundlerUrl)
         : http(
             // @ts-ignore: Type saftey provided by the if statement above

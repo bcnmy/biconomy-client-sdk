@@ -3,7 +3,7 @@ import type {
   GetSmartAccountParameter,
   SmartAccount
 } from "viem/account-abstraction"
-import type { SafeHookType } from "../../../modules/utils/Types.js"
+import type { ModuleType, SafeHookType } from "../../../modules/utils/Types.js"
 import { accountId } from "./accountId.js"
 import { type GetActiveHookParameters, getActiveHook } from "./getActiveHook.js"
 import {
@@ -36,7 +36,6 @@ import {
   type SupportsModuleParameters,
   supportsModule
 } from "./supportsModule.js"
-import type { ModuleType } from "./supportsModule.js"
 import {
   type UninstallModuleParameters,
   uninstallModule
