@@ -125,7 +125,6 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   activeValidationModule!: BaseValidationModule
 
   installedExecutors: BaseExecutionModule[] = []
-  activeExecutionModule?: BaseExecutionModule
   k1ValidatorAddress: Address
 
   private constructor(
@@ -649,20 +648,6 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       return this.activeValidationModule
     }
     throw new Error("Validation module address is required")
-  }
-
-  /**
-   * Sets the active executor module on the NexusSmartAccount instance
-   * @param executorModule - Address of the executor module
-   * @param data - Initialization data for the executor module
-   *
-   * @returns Promise<BaseExecutionModule> - The BaseExecutionModule instance.
-   */
-  setActiveExecutionModule(
-    executorModule: BaseExecutionModule
-  ): BaseExecutionModule {
-    this.activeExecutionModule = executorModule
-    return this.activeExecutionModule
   }
 
   setDefaultValidationModule(
@@ -1343,19 +1328,19 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     }
   }
 
-  async sendTransactionWithExecutor(
-    manyOrOneTransactions: Transaction | Transaction[],
-    ownedAccountAddress?: Address
-    // buildUseropDto?: BuildUserOpOptions
-  ): Promise<UserOpReceipt> {
-    return await this.executeFromExecutor(
-      Array.isArray(manyOrOneTransactions)
-        ? manyOrOneTransactions
-        : [manyOrOneTransactions],
-      ownedAccountAddress
-      // buildUseropDto
-    )
-  }
+  // async sendTransactionWithExecutor(
+  //   manyOrOneTransactions: Transaction | Transaction[],
+  //   ownedAccountAddress?: Address
+  //   // buildUseropDto?: BuildUserOpOptions
+  // ): Promise<UserOpReceipt> {
+  //   return await this.executeFromExecutor(
+  //     Array.isArray(manyOrOneTransactions)
+  //       ? manyOrOneTransactions
+  //       : [manyOrOneTransactions],
+  //     ownedAccountAddress
+  //     // buildUseropDto
+  //   )
+  // }
 
   /**
    * Builds a user operation
@@ -1718,7 +1703,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       ["address", "bytes"],
       [
         this.activeValidationModule.getAddress() ??
-          this.defaultValidationModule.getAddress(),
+        this.defaultValidationModule.getAddress(),
         signature
       ]
     )
@@ -1821,7 +1806,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       ["address", "bytes"],
       [
         this.activeValidationModule.getAddress() ??
-          this.defaultValidationModule.getAddress(),
+        this.defaultValidationModule.getAddress(),
         signatureData
       ]
     )
@@ -1866,6 +1851,8 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       case "validator":
       case "executor":
       case "hook":
+        console.log(module.data, "module.data");
+
         execution = await this._installModule({
           moduleAddress: module.moduleAddress,
           type: module.type,
@@ -2057,40 +2044,40 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     throw new Error("Module is not installed")
   }
 
-  private async executeFromExecutor(
-    transactions: Transaction[],
-    ownedAccountAddress?: Address
-    // buildUseropDto?: BuildUserOpOptions
-  ): Promise<UserOpReceipt> {
-    if (this.activeExecutionModule) {
-      if (transactions.length > 1) {
-        const executions: { target: Hex; value: bigint; callData: Hex }[] =
-          transactions.map((tx) => {
-            return {
-              target: tx.to as Hex,
-              callData: (tx.data ?? "0x") as Hex,
-              value: BigInt(tx.value ?? 0n)
-            }
-          })
-        return await this.activeExecutionModule?.execute(
-          executions,
-          ownedAccountAddress
-        )
-      }
-      const execution = {
-        target: transactions[0].to as Hex,
-        callData: (transactions[0].data ?? "0x") as Hex,
-        value: BigInt(transactions[0].value ?? 0n)
-      }
-      return await this.activeExecutionModule.execute(
-        execution,
-        ownedAccountAddress
-      )
-    }
-    throw new Error(
-      "Please set an active executor module before running this method."
-    )
-  }
+  // private async executeFromExecutor(
+  //   transactions: Transaction[],
+  //   ownedAccountAddress?: Address
+  //   // buildUseropDto?: BuildUserOpOptions
+  // ): Promise<UserOpReceipt> {
+  //   if (this.activeExecutionModule) {
+  //     if (transactions.length > 1) {
+  //       const executions: { target: Hex; value: bigint; callData: Hex }[] =
+  //         transactions.map((tx) => {
+  //           return {
+  //             target: tx.to as Hex,
+  //             callData: (tx.data ?? "0x") as Hex,
+  //             value: BigInt(tx.value ?? 0n)
+  //           }
+  //         })
+  //       return await this.activeExecutionModule?.execute(
+  //         executions,
+  //         ownedAccountAddress
+  //       )
+  //     }
+  //     const execution = {
+  //       target: transactions[0].to as Hex,
+  //       callData: (transactions[0].data ?? "0x") as Hex,
+  //       value: BigInt(transactions[0].value ?? 0n)
+  //     }
+  //     return await this.activeExecutionModule.execute(
+  //       execution,
+  //       ownedAccountAddress
+  //     )
+  //   }
+  //   throw new Error(
+  //     "Please set an active executor module before running this method."
+  //   )
+  // }
 
   /**
    * Checks if the account contract supports a specific execution mode.

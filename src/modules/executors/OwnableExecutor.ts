@@ -5,11 +5,11 @@ import {
   encodeFunctionData,
   encodePacked,
   getAddress,
-  parseAbi
+  parseAbi,
 } from "viem"
 import { SENTINEL_ADDRESS } from "../../account"
 import type { NexusSmartAccount } from "../../account/NexusSmartAccount"
-import type { UserOpReceipt } from "../../bundler"
+import type { UserOperationStruct } from "../../account"
 import { BaseExecutionModule } from "../base/BaseExecutionModule"
 import type { Execution, Module } from "../utils/Types"
 
@@ -22,7 +22,7 @@ export class OwnableExecutorModule extends BaseExecutionModule {
     module: Module,
     smartAccount: NexusSmartAccount,
     owners: Address[],
-    address: Address
+    address: Address,
   ) {
     super(module, smartAccount.getSigner())
     this.smartAccount = smartAccount
@@ -34,34 +34,51 @@ export class OwnableExecutorModule extends BaseExecutionModule {
   public static async create(
     smartAccount: NexusSmartAccount,
     address: Address,
-    data?: Hex
+    owner: Address
   ): Promise<OwnableExecutorModule> {
     const module: Module = {
       moduleAddress: address,
       type: "executor",
-      data: data ?? "0x",
+      data: encodePacked(["address"], [owner]),
       additionalContext: "0x"
     }
-    const owners = await smartAccount.publicClient.readContract({
+    const isInitialized = await smartAccount.publicClient.readContract({
       address,
       abi: parseAbi([
-        "function getOwners(address account) external view returns (address[])"
+        "function isInitialized(address smartAccount) public view returns (bool)"
       ]),
-      functionName: "getOwners",
+      functionName: "isInitialized",
       args: [await smartAccount.getAddress()]
     })
-    return new OwnableExecutorModule(
-      module,
-      smartAccount,
-      owners as Address[],
-      address
-    )
+    if (isInitialized) {
+      const owners = await smartAccount.publicClient.readContract({
+        address,
+        abi: parseAbi([
+          "function getOwners(address account) external view returns (address[])"
+        ]),
+        functionName: "getOwners",
+        args: [await smartAccount.getAddress()]
+      })
+      return new OwnableExecutorModule(
+        module,
+        smartAccount,
+        owners as Address[],
+        address,
+      )
+    } else {
+      return new OwnableExecutorModule(
+        module,
+        smartAccount,
+        [owner],
+        address,
+      )
+    }
   }
 
-  public async execute(
+  public async getExecuteUserOp(
     execution: Execution | Execution[],
-    accountAddress?: Address
-  ): Promise<UserOpReceipt> {
+    senderSmartAccount?: NexusSmartAccount
+  ): Promise<Partial<UserOperationStruct>> {
     let calldata: Hex
     if (Array.isArray(execution)) {
       calldata = encodeFunctionData({
@@ -70,23 +87,14 @@ export class OwnableExecutorModule extends BaseExecutionModule {
           "function executeBatchOnOwnedAccount(address ownedAccount, bytes callData)"
         ]),
         args: [
-          accountAddress ?? (await this.smartAccount.getAddress()),
+          await this.smartAccount.getAddress(),
           encodeAbiParameters(
             [
               {
                 components: [
-                  {
-                    name: "target",
-                    type: "address"
-                  },
-                  {
-                    name: "value",
-                    type: "uint256"
-                  },
-                  {
-                    name: "callData",
-                    type: "bytes"
-                  }
+                  { name: "target", type: "address" },
+                  { name: "value", type: "uint256" },
+                  { name: "callData", type: "bytes" }
                 ],
                 name: "Execution",
                 type: "tuple[]"
@@ -103,46 +111,40 @@ export class OwnableExecutorModule extends BaseExecutionModule {
           "function executeOnOwnedAccount(address ownedAccount, bytes callData)"
         ]),
         args: [
-          accountAddress ?? (await this.smartAccount.getAddress()),
+          await this.smartAccount.getAddress(),
           encodePacked(
             ["address", "uint256", "bytes"],
-            [
-              execution.target,
-              BigInt(Number(execution.value)),
-              execution.callData
-            ]
+            [execution.target, BigInt(Number(execution.value)), execution.callData]
           )
         ]
       })
     }
-    const response = await this.smartAccount.sendTransaction({
+    const transaction = {
       to: this.moduleAddress,
       data: calldata,
       value: 0n
-    })
-    const receipt = await response.wait()
-    return receipt
+    }
+    if (senderSmartAccount) {
+      return await senderSmartAccount.buildUserOp([transaction])
+    }
+    return await this.smartAccount.buildUserOp([transaction])
   }
 
-  public async addOwner(newOwner: Address): Promise<UserOpReceipt> {
+  public async addOwnerUserOp(newOwner: Address): Promise<Partial<UserOperationStruct>> {
     const callData = encodeFunctionData({
       functionName: "addOwner",
       abi: parseAbi(["function addOwner(address owner)"]),
       args: [newOwner]
     })
-    const response = await this.smartAccount.sendTransaction({
+    const transaction = {
       to: this.moduleAddress,
       data: callData,
       value: 0n
-    })
-    const receipt = await response.wait()
-    if (receipt.success) {
-      this.owners.push(newOwner)
     }
-    return receipt
+    return await this.smartAccount.buildUserOp([transaction])
   }
 
-  public async removeOwner(ownerToRemove: Address): Promise<UserOpReceipt> {
+  public async removeOwnerUserOp(ownerToRemove: Address): Promise<Partial<UserOperationStruct>> {
     const owners = await this.getOwners(this.address)
     let prevOwner: Address
 
@@ -165,25 +167,19 @@ export class OwnableExecutorModule extends BaseExecutionModule {
       args: [prevOwner, ownerToRemove]
     })
 
-    const response = await this.smartAccount.sendTransaction({
+    const transaction = {
       to: this.moduleAddress,
       data: calldata,
       value: 0n
-    })
-
-    const receipt = await response.wait()
-    if (receipt.success) {
-      this.owners = this.owners.filter((o: Address) => o !== ownerToRemove)
     }
-    return receipt
+    return await this.smartAccount.buildUserOp([transaction])
   }
 
   public async getOwners(
-    moduleAddress: Address,
     accountAddress?: Address
   ): Promise<Address[]> {
     const owners = await this.smartAccount.publicClient.readContract({
-      address: moduleAddress,
+      address: this.moduleAddress,
       abi: parseAbi([
         "function getOwners(address account) external view returns (address[])"
       ]),
@@ -192,5 +188,16 @@ export class OwnableExecutorModule extends BaseExecutionModule {
     })
 
     return owners as Address[]
+  }
+
+  public async isModuleInitialized(smartAccount?: Address): Promise<any> {
+    return await this.smartAccount.publicClient.readContract({
+      address: this.moduleAddress,
+      abi: parseAbi([
+        "function isInitialized(address smartAccount) public view returns (bool)"
+      ]),
+      functionName: "isInitialized",
+      args: [await this.smartAccount.getAddress()]
+    })
   }
 }

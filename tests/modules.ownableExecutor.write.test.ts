@@ -4,7 +4,11 @@ import {
   type Chain,
   type Hex,
   type WalletClient,
-  createWalletClient
+  createWalletClient,
+  parseEther,
+  encodePacked,
+  encodeFunctionData,
+  parseAbi
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import {
@@ -20,8 +24,12 @@ import {
   topUp
 } from "./src/testUtils"
 import type { MasterClient, NetworkConfig } from "./src/testUtils"
+import { createK1ValidatorModule, createOwnableExecutorModule } from "../src"
+import { OwnableExecutorModule } from "../src/modules/executors/OwnableExecutor"
+import { K1ValidatorModule } from "../src/modules/validators/K1ValidatorModule"
+import { waitForTransactionReceipt } from "viem/actions"
 
-const NETWORK_TYPE: TestFileNetworkType = "FILE_LOCALHOST"
+const NETWORK_TYPE: TestFileNetworkType = "PUBLIC_TESTNET"
 
 describe("modules.ownable.executor.write", () => {
   let network: NetworkConfig
@@ -29,13 +37,22 @@ describe("modules.ownable.executor.write", () => {
   let chain: Chain
   let bundlerUrl: string
   let walletClient: WalletClient
+  let walletClientTwo: WalletClient
 
   // Test utils
   let testClient: MasterClient
   let account: Account
+  let accountTwo: Account
   let recipientAccount: Account
   let smartAccount: NexusSmartAccount
+  let smartAccountTwo: NexusSmartAccount
   let smartAccountAddress: Hex
+  let smartAccountAddressTwo: Hex
+
+  let ownableExecutorModule: OwnableExecutorModule
+  let k1ValidationModule: K1ValidatorModule
+
+  const OWNABLE_EXECUTOR_MODULE_ADDRESS = "0x989110e958902f619148b8171fbDF1Dca0c5AE0B";
 
   beforeAll(async () => {
     network = await toNetwork(NETWORK_TYPE)
@@ -43,11 +60,18 @@ describe("modules.ownable.executor.write", () => {
     chain = network.chain
     bundlerUrl = network.bundlerUrl
 
-    account = getTestAccount(0)
+    account = getTestAccount(5)
+    accountTwo = getTestAccount(1)
     recipientAccount = getTestAccount(3)
 
     walletClient = createWalletClient({
       account,
+      chain,
+      transport: http()
+    })
+
+    walletClientTwo = createWalletClient({
+      account: accountTwo,
       chain,
       transport: http()
     })
@@ -60,65 +84,58 @@ describe("modules.ownable.executor.write", () => {
       chain
     })
 
+    smartAccountTwo = await createSmartAccountClient({
+      signer: walletClientTwo,
+      bundlerUrl,
+      chain
+    })
+
     smartAccountAddress = await smartAccount.getAddress()
+    smartAccountAddressTwo = await smartAccountTwo.getAddress()
+
+    ownableExecutorModule = await createOwnableExecutorModule(
+      smartAccount,
+      OWNABLE_EXECUTOR_MODULE_ADDRESS,
+      account.address
+    )
+
+    k1ValidationModule = await createK1ValidatorModule(smartAccount.getSigner(), encodePacked(["address"], [account.address]))
+    const isDeployed = await smartAccount.isAccountDeployed();
+    const installedValidators = await smartAccount.getInstalledValidators();
+    const isInstalled = await smartAccount.isModuleInstalled(k1ValidationModule);
+    smartAccount.setActiveValidationModule(k1ValidationModule)
   })
   afterAll(async () => {
     await killNetwork([network?.rpcPort, network?.bundlerPort])
   })
 
-  test("should fund the smart account", async () => {
-    await topUp(testClient, smartAccountAddress)
-    const [balance] = await smartAccount.getBalances()
-    expect(balance.amount > 0)
-  })
-
-  test("should have account addresses", async () => {
-    const addresses = await Promise.all([
-      account.address,
-      smartAccount.getAddress()
-    ])
-    expect(addresses.every(Boolean)).to.be.true
-    expect(addresses).toStrictEqual([
-      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-      "0x9faF274EB7cc2D342d786Ad0995dB3c0d641446d" // Sender smart account
-    ])
-  })
-
-  test("should send eth", async () => {
-    const balanceBefore = await testClient.getBalance({
-      address: recipientAccount.address
+  test("should install k1 validator", async () => {
+    const isInstalled = await smartAccount.isModuleInstalled({
+      type: 'validator',
+      moduleAddress: k1ValidationModule.moduleAddress,
+      data: encodePacked(["address"], [account.address])
     })
-    const tx: Transaction = {
-      to: recipientAccount.address,
-      value: 1n
+    if (!isInstalled) {
+      const response = await smartAccount.installModule(k1ValidationModule)
+      const receipt = await response.wait()
+      smartAccount.setActiveValidationModule(k1ValidationModule)
+      expect(receipt.success).toBe(true)
     }
-    const { wait } = await smartAccount.sendTransaction(tx)
-    const { success } = await wait()
-    const balanceAfter = await testClient.getBalance({
-      address: recipientAccount.address
-    })
-    expect(success).toBe(true)
-    expect(balanceAfter - balanceBefore).toBe(1n)
   })
 
-  // test.skip("install Ownable Executor", async () => {
-  //   let isInstalled = await smartAccount.isModuleInstalled({
-  //     type: 'executor',
-  //     moduleAddress: OWNABLE_EXECUTOR
-  //   })
+  test("install Ownable Executor", async () => {
+    let isInstalled = await smartAccount.isModuleInstalled({
+      type: 'executor',
+      moduleAddress: OWNABLE_EXECUTOR_MODULE_ADDRESS
+    })
 
-  //   if (!isInstalled) {
-  //     const receipt = await smartAccount.installModule({
-  //       moduleAddress: ownableExecutorModule.moduleAddress,
-  //       type: ownableExecutorModule.type,
-  //       data: ownableExecutorModule.data
-  //     })
+    if (!isInstalled) {
+      const response = await smartAccount.installModule(ownableExecutorModule)
+      const receipt = await response.wait()
 
-  //     smartAccount.setActiveExecutionModule(ownableExecutorModule)
-
-  //     expect(receipt.success).toBe(true)
-  //   }
-  // }, 60000)
+      expect(receipt.success).toBe(true)
+    }
+  }, 60000)
 
   // test.skip("uninstall Ownable Executor", async () => {
   //   const smartAccount2: NexusSmartAccount = await createSmartAccountClient({
@@ -143,229 +160,151 @@ describe("modules.ownable.executor.write", () => {
 
   // }, 60000)
 
-  // test.skip("Ownable Executor Module should be installed", async () => {
-  //   const isInstalled = await smartAccount.isModuleInstalled({
-  //     type: 'executor',
-  //     moduleAddress: OWNABLE_EXECUTOR
-  //   })
-  //   console.log(isInstalled, "isInstalled")
-  //   expect(isInstalled).toBeTruthy()
-  // }, 60000)
+  test("Ownable Executor Module should be installed", async () => {
+    const isInstalled = await smartAccount.isModuleInstalled({
+      type: 'executor',
+      moduleAddress: OWNABLE_EXECUTOR_MODULE_ADDRESS
+    })
+    expect(isInstalled).toBeTruthy()
+  }, 60000)
 
-  // test.skip("should add an owner to the module", async () => {
-  //   const ownersBefore = await ownableExecutorModule.getOwners()
-  //   const isOwnerBefore = ownersBefore.includes(accountTwo.address)
+  test("should add an owner to the module", async () => {
+    const ownersBefore = await ownableExecutorModule.getOwners()
+    const isOwnerBefore = ownersBefore.includes(accountTwo.address)
 
-  //   if (isOwnerBefore) {
-  //     console.log("Owner already exists in list, skipping test case ...")
-  //     return
-  //   }
+    if (isOwnerBefore) {
+      console.log("Owner already exists in list, skipping test case ...")
+      return
+    }
 
-  //   const userOpReceipt = await ownableExecutorModule.addOwner(
-  //     accountTwo.address
-  //   )
+    const userop = await ownableExecutorModule.addOwnerUserOp(
+      accountTwo.address
+    )
+    const response = await smartAccount.sendUserOp(userop)
+    const receipt = await response.wait()
 
-  //   const owners = await ownableExecutorModule.getOwners()
-  //   const isOwner = owners.includes(accountTwo.address)
+    const owners = await ownableExecutorModule.getOwners()
+    const isOwner = owners.includes(accountTwo.address)
 
-  //   expect(isOwner).toBeTruthy()
-  //   expect(userOpReceipt.success).toBeTruthy()
-  // }, 60000)
+    expect(isOwner).toBeTruthy()
+    expect(receipt.success).toBeTruthy()
+  }, 60000)
 
-  // test.skip("EOA 2 can execute actions on behalf of SA 1", async () => {
-  //   const valueToTransfer = parseEther("0.1")
-  //   const recipient = accountTwo.address
-  //   const transferEncodedCall = encodeFunctionData({
-  //     abi: parseAbi(["function transfer(address to, uint256 value)"]),
-  //     functionName: "transfer",
-  //     args: [recipient, valueToTransfer]
-  //   })
+  test.skip("EOA 2 can execute actions on behalf of SA 1", async () => {
+    const valueToTransfer = parseEther("0.1")
+    const token = "0x32bC432524DAcd05a2f5Ae7F08781385bfFe6ECE" // base sepolia address
+    const recipient = accountTwo.address
+    const transferEncodedCall = encodeFunctionData({
+      abi: parseAbi(["function transfer(address to, uint256 value)"]),
+      functionName: "transfer",
+      args: [recipient, valueToTransfer]
+    })
 
-  //   const owners = await ownableExecutorModule.getOwners()
-  //   const isOwner = owners.includes(accountTwo.address)
-  //   expect(isOwner).toBeTruthy()
+    const owners = await ownableExecutorModule.getOwners()
+    const isOwner = owners.includes(accountTwo.address)
+    expect(isOwner).toBeTruthy()
 
-  //   const balanceBefore = await smartAccount.getBalances([token])
-  //   console.log("balanceBefore", balanceBefore)
+    const balanceBefore = await smartAccount.getBalances([token])
 
-  //   const calldata = encodeFunctionData({
-  //     abi: parseAbi([
-  //       "function executeOnOwnedAccount(address ownedAccount, bytes callData)"
-  //     ]),
-  //     functionName: "executeOnOwnedAccount",
-  //     args: [
-  //       await smartAccount.getAddress(),
-  //       encodePacked(
-  //         ["address", "uint256", "bytes"],
-  //         [token, BigInt(Number(0)), transferEncodedCall]
-  //       )
-  //     ]
-  //   })
+    const calldata = encodeFunctionData({
+      abi: parseAbi([
+        "function executeOnOwnedAccount(address ownedAccount, bytes callData)"
+      ]),
+      functionName: "executeOnOwnedAccount",
+      args: [
+        await smartAccount.getAddress(),
+        encodePacked(
+          ["address", "uint256", "bytes"],
+          [token, BigInt(Number(0)), transferEncodedCall]
+        )
+      ]
+    })
 
-  //   // EOA 2 (walletClientTwo) executes an action on behalf of SA 1 which is owned by EOA 1 (walletClientOne)
-  //   const txHash = await walletClientTwo.sendTransaction({
-  //     account: accountTwo, // Called by delegated EOA owner
-  //     to: ownableExecutorModule.moduleAddress,
-  //     data: calldata,
-  //     value: 0n
-  //   })
+    // EOA 2 (walletClientTwo) executes an action on behalf of SA 1 which is owned by EOA 1 (walletClientOne)
+    const txHash = await walletClientTwo.sendTransaction({
+      account: accountTwo, // Called by delegated EOA owner
+      to: ownableExecutorModule.moduleAddress,
+      data: calldata,
+      value: 0n,
+      chain
+    })
 
-  //   const balanceAfter = await smartAccount.getBalances([token])
-  //   console.log("balanceAfter", balanceAfter)
+    const receipt = await waitForTransactionReceipt(walletClientTwo, { hash: txHash })
+    expect(receipt.status).toBe("success")
 
-  //   expect(txHash).toBeTruthy()
-  // }, 60000)
+    const balanceAfter = await smartAccount.getBalances([token])
+    expect(balanceAfter[0].amount).toBeLessThan(balanceBefore[0].amount)
 
-  // test("SA 2 can execute actions on behalf of SA 1", async () => {
-  //   const smartAccount2: NexusSmartAccount = await createSmartAccountClient({
-  //     signer: walletClientTwo,
-  //     bundlerUrl
-  //   })
+    expect(txHash).toBeTruthy()
+  }, 60000)
 
-  //   const valueToTransfer = parseEther("0.1")
-  //   const recipient = accountTwo.address
-  //   const transferEncodedCall = encodeFunctionData({
-  //     abi: parseAbi(["function transfer(address to, uint256 value)"]),
-  //     functionName: "transfer",
-  //     args: [recipient, valueToTransfer]
-  //   })
+  test("SA 2 can execute actions on behalf of SA 1", async () => {
+    // If SA 2 is not added as an owner of SA 1, add it as an owner
+    const owners = await ownableExecutorModule.getOwners()
+    const isOwner = owners.includes(smartAccountAddressTwo)
+    if (!isOwner) {
+      const userOp = await ownableExecutorModule.addOwnerUserOp(smartAccountAddressTwo)
+      const response = await smartAccount.sendUserOp(userOp)
+      const receipt = await response.wait()
+      expect(receipt.success).toBeTruthy()
+    }
 
-  //   const transferTransaction = {
-  //     to: token,
-  //     data: transferEncodedCall,
-  //     value: 0n
-  //   }
+    const valueToTransfer = parseEther("0.1")
+    const recipient = accountTwo.address
+    const token: Hex = "0x32bC432524DAcd05a2f5Ae7F08781385bfFe6ECE" // base sepolia address
+    const transferEncodedCall = encodeFunctionData({
+      abi: parseAbi(["function transfer(address to, uint256 value)"]),
+      functionName: "transfer",
+      args: [recipient, valueToTransfer]
+    })
 
-  //   smartAccount2.setActiveExecutionModule(ownableExecutorModule)
-  //   const receipt = await smartAccount2.sendTransactionWithExecutor([transferTransaction], await smartAccount.getAddress());
-  //   console.log(receipt, "receipt");
+    const transferTransaction = {
+      target: token,
+      callData: transferEncodedCall,
+      value: 0n
+    }
 
-  //   expect(receipt.userOpHash).toBeTruthy()
-  //   expect(receipt.success).toBe(true)
-  // }, 60000)
+    const userop = await ownableExecutorModule.getExecuteUserOp(transferTransaction, smartAccountTwo);
 
-  // test.skip("SA 2 can execute actions on behalf of SA 1 using module instance instead of smart account instance", async () => {
-  //   const smartAccount2: NexusSmartAccount = await createSmartAccountClient({
-  //     signer: walletClientTwo,
-  //     bundlerUrl
-  //   })
+    const response = await smartAccountTwo.sendUserOp(userop)
+    const receipt = await response.wait()
 
-  //   const initData = encodePacked(
-  //     ["address"],
-  //     [await smartAccount2.getAddress()]
-  //   )
-  //   const ownableExecutorModule2 = await createOwnableExecutorModule(smartAccount2, OWNABLE_EXECUTOR, initData)
+    expect(receipt.userOpHash).toBeTruthy()
+    expect(receipt.success).toBe(true)
+  }, 60000)
 
-  //   // First, we need to install the OwnableExecutor module on SA 2
-  //   let isInstalled = await smartAccount2.isModuleInstalled({
-  //     type: 'executor',
-  //     moduleAddress: OWNABLE_EXECUTOR
-  //   })
+  test("SA 2 can execute batch of actions on behalf of SA 1", async () => {
+    // If SA 2 is not added as an owner of SA 1, add it as an owner
+    const owners = await ownableExecutorModule.getOwners()
+    const isOwner = owners.includes(smartAccountAddressTwo)
+    if (!isOwner) {
+      const userOp = await ownableExecutorModule.addOwnerUserOp(smartAccountAddressTwo)
+      const response = await smartAccount.sendUserOp(userOp)
+      const receipt = await response.wait()
+      expect(receipt.success).toBeTruthy()
+    }
 
-  //   if (!isInstalled) {
-  //     await smartAccount2.installModule({
-  //       moduleAddress: ownableExecutorModule2.moduleAddress,
-  //       type: ownableExecutorModule2.type,
-  //       data: ownableExecutorModule2.data
-  //     })
-  //   }
+    const valueToTransfer = parseEther("0.1")
+    const recipient = accountTwo.address
+    const token: Hex = "0x32bC432524DAcd05a2f5Ae7F08781385bfFe6ECE" // base sepolia address
+    const transferEncodedCall = encodeFunctionData({
+      abi: parseAbi(["function transfer(address to, uint256 value)"]),
+      functionName: "transfer",
+      args: [recipient, valueToTransfer]
+    })
 
-  //   smartAccount2.setActiveExecutionModule(ownableExecutorModule)
+    const transferTransaction = {
+      target: token,
+      callData: transferEncodedCall,
+      value: 0n
+    }
 
-  //   const valueToTransfer = parseEther("0.1")
-  //   const recipient = accountTwo.address
-  //   const transferEncodedCall = encodeFunctionData({
-  //     abi: parseAbi(["function transfer(address to, uint256 value)"]),
-  //     functionName: "transfer",
-  //     args: [recipient, valueToTransfer]
-  //   })
+    const userop = await ownableExecutorModule.getExecuteUserOp([transferTransaction, transferTransaction], smartAccountTwo);
 
-  //   const owners = await ownableExecutorModule2.getOwners()
+    const response = await smartAccountTwo.sendUserOp(userop)
+    const receipt = await response.wait()
 
-  //   // check if SA 2 is as an owner of SA 1
-  //   const isOwner = owners.includes(await smartAccount2.getAddress())
-  //   if(!isOwner) {
-  //     const userOpReceipt = await ownableExecutorModule2.addOwner(
-  //       await smartAccount2.getAddress()
-  //     )
-  //     expect(userOpReceipt.success).toBeTruthy()
-  //   }
-
-  //   const transferTransaction = {
-  //     target: token as `0x${string}`,
-  //     callData: transferEncodedCall,
-  //     value: 0n
-  //   }
-
-  //   smartAccount2.setActiveExecutionModule(ownableExecutorModule2)
-  //   // SA 2 will execute the transferTransaction on behalf of SA 1 (smartAccount)
-  //   const receipt = await ownableExecutorModule2.execute(transferTransaction, await smartAccount.getAddress());
-  //   console.log(receipt, "receipt");
-
-  //   expect(receipt.userOpHash).toBeTruthy()
-  //   expect(receipt.success).toBe(true)
-  // }, 60000)
-
-  // test.skip("should remove an owner from the module", async () => {
-  //   const userOpReceipt = await ownableExecutorModule.removeOwner(
-  //     accountTwo.address
-  //   )
-  //   const owners = await ownableExecutorModule.getOwners()
-  //   const isOwner = owners.includes(accountTwo.address)
-
-  //   expect(isOwner).toBeFalsy()
-  //   expect(userOpReceipt.success).toBeTruthy()
-  // }, 60000)
-
-  // test.skip("should use rhinestone to call ownable executor", async () => {
-  //   const smartAccount2: NexusSmartAccount = await createSmartAccountClient({
-  //     signer: walletClientTwo,
-  //     bundlerUrl
-  //   })
-
-  //   const initData = encodePacked(
-  //     ["address"],
-  //     [await smartAccount2.getAddress()]
-  //   )
-
-  //   const ownableExecutorModule2 = getOwnableExecuter({
-  //     owner: await smartAccount2.getAddress(),
-  //   });
-
-  //   // First, we need to install the OwnableExecutor module on SA 2
-  //   let isInstalled = await smartAccount2.isModuleInstalled({
-  //     type: 'executor',
-  //     module: OWNABLE_EXECUTOR
-  //   })
-
-  //   if (!isInstalled) {
-  //     await smartAccount2.installModule({
-  //       module: ownableExecutorModule2.module,
-  //       type: ownableExecutorModule2.type,
-  //       data: ownableExecutorModule2.initData
-  //     })
-  //   }
-
-  //   smartAccount2.setActiveExecutionModule(ownableExecutorModule)
-
-  //   const valueToTransfer = parseEther("0.1")
-  //   const recipient = accountTwo.address
-  //   const transferEncodedCall = encodeFunctionData({
-  //     abi: parseAbi(["function transfer(address to, uint256 value)"]),
-  //     functionName: "transfer",
-  //     args: [recipient, valueToTransfer]
-  //   })
-
-  //   const transferTransaction = {
-  //     target: token as `0x${string}`,
-  //     callData: transferEncodedCall,
-  //     value: 0n
-  //   }
-
-  //   const execution = getExecuteOnOwnedAccountAction({ownedAccount: await smartAccount.getAddress(), execution: transferTransaction})
-  //   const receipt = await smartAccount2.sendTransaction([{to: execution.target, data: execution.callData, value: 0n}]);
-  //   console.log(receipt, "receipt");
-
-  //   expect(receipt.userOpHash).toBeTruthy()
-  // }, 60000)
+    expect(receipt.userOpHash).toBeTruthy()
+    expect(receipt.success).toBe(true)
+  }, 60000)
 })

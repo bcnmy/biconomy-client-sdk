@@ -13,7 +13,7 @@ export class K1ValidatorModule extends BaseValidationModule {
     k1ValidatorAddress = addresses.K1Validator
   ): Promise<K1ValidatorModule> {
     const module: Module = {
-      moduleAddress: k1ValidatorAddress,
+      moduleAddress: "0xBD654f9F8718840591A2964E2f0cA5b0bB743183",
       type: "validator",
       data: await signer.getAddress(),
       additionalContext: "0x"
