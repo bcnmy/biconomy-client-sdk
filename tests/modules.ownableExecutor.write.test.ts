@@ -114,6 +114,9 @@ describe("modules.ownable.executor.write", () => {
   //       data: ownableExecutorModule.data
   //     })
 
+  // Review: What is the transaction path for invoking executor modules?
+  // Note: Also, imo there is no concept of active executor module as such.
+
   //     smartAccount.setActiveExecutionModule(ownableExecutorModule)
 
   //     expect(receipt.success).toBe(true)

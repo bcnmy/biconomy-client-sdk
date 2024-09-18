@@ -18,7 +18,7 @@ import {
 import policies, {
   ParamCondition,
   type ActionConfig
-} from "../src/modules/smartSessions"
+} from "../src/modules/utils/SmartSessionHelpers"
 import { TEST_CONTRACTS } from "./src/callDatas"
 import { type TestFileNetworkType, toNetwork } from "./src/testSetup"
 import {
@@ -122,7 +122,7 @@ describe("smart.sessions", () => {
         rules: [
           {
             condition: ParamCondition.EQUAL,
-            offsetIndex: 0,
+            offsetIndex: BigInt(0),
             isLimited: true,
             ref: 1000,
             usage: {
@@ -132,7 +132,7 @@ describe("smart.sessions", () => {
           },
           {
             condition: ParamCondition.LESS_THAN,
-            offsetIndex: 1,
+            offsetIndex: BigInt(1),
             isLimited: false,
             ref: 2000,
             usage: {

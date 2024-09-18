@@ -124,6 +124,7 @@
     "commit-msg": "npx --no -- commitlint --edit ${1}"
   },
   "dependencies": {
-    "merkletreejs": "^0.3.11"
+    "merkletreejs": "^0.3.11",
+    "solady": "^0.0.237"
   }
 }

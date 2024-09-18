@@ -11,7 +11,7 @@ export const UNUSED = "0x00000000" // 4 bytes
 export const MODE_PAYLOAD = "0x00000000000000000000000000000000000000000000" // 22 bytes
 export const ERC1271_MAGICVALUE = "0x1626ba7e"
 export const ERC1271_INVALID = "0xffffffff"
-export const GENERIC_FALLBACK_SELECTOR = "0xcb5baf0f"
+export const GENERIC_FALLBACK_SELECTOR_SELECTOR = "0xcb5baf0f"
 
 export const UserOpReceiptIntervals: { [key in number]?: number } = {
   [1]: 10000

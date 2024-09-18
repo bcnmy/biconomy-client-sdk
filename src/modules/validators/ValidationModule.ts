@@ -3,6 +3,7 @@ import type { SmartAccountSigner } from "../../account/index.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
 import type { Module } from "../utils/Types.js"
 
+// Review: purpose of this file.
 export class ValidationModule extends BaseValidationModule {
   private constructor(moduleConfig: Module, signer: SmartAccountSigner) {
     super(moduleConfig, signer)

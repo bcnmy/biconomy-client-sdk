@@ -1,6 +1,7 @@
 import type { Hex } from "viem"
 import type { DeployerParams } from "./testUtils"
 
+// Review: Why is this file called callDatas.ts?
 export const TEST_CONTRACTS: Record<string, DeployerParams> = {
   // Rhinestone Ownables
   OwnableValidator: {
@@ -17,7 +18,7 @@ export const TEST_CONTRACTS: Record<string, DeployerParams> = {
   SmartSession: {
     chainId: 84532,
     name: "SmartSession",
-    address: "0x0ce452fD9d0a20BCC14A2C4830E22bEB7EA4C8ee"
+    address: "0x3834aD7f5f73fAd19C089a924F18e6F3417d1ac2"
   },
   SimpleSigner: {
     chainId: 84532,
@@ -63,6 +64,22 @@ export const TEST_CONTRACTS: Record<string, DeployerParams> = {
     chainId: 84532,
     name: "UserOperationBuilder",
     address: "0xb07D7605a1AAeE4e56915363418229c127fF7C3D"
+  },
+  // Mocks
+  MockHook: {
+    chainId: 84532,
+    name: "MockHook",
+    address: "0x77Ab54631BfBAE40383c62044dC30B229c7df9f5"
+  },
+  MockFallback: {
+    chainId: 84532,
+    name: "MockFallback",
+    address: "0x6E0508F2ebB8f383269A02f03FC51dF66757be53"
+  },
+  Counter: {
+    chainId: 84532,
+    name: "Counter",
+    address: "0x14e4829E655F0b3a1793838dDd47273D5341d416"
   }
 }
 

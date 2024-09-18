@@ -42,6 +42,7 @@ import {
   type Execution,
   type Module,
   type ModuleInfo,
+  type ModuleType,
   type SendUserOpParams,
   createK1ValidatorModule,
   createValidationModule,
@@ -68,7 +69,7 @@ import {
   convertSigner
 } from "./index.js"
 import {
-  GENERIC_FALLBACK_SELECTOR,
+  GENERIC_FALLBACK_SELECTOR_SELECTOR,
   type MODE_MODULE_ENABLE,
   MODE_VALIDATION,
   PARENT_TYPEHASH
@@ -241,6 +242,8 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     const k1ValidatorAddress =
       nexusSmartAccountConfig.k1ValidatorAddress ??
       (contracts.k1Validator.address as Hex)
+    // Note: Should we allow different types of factories? by enumerating them? 
+    // That would affect how initCode is genrated in each case.  
     const factoryAddress =
       nexusSmartAccountConfig.factoryAddress ??
       (contracts.k1ValidatorFactory.address as Hex)
@@ -793,11 +796,12 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     })
   }
 
+  // Review and lock on how to passadditional moduleInfo
   // dummy signature depends on the validation module supplied.
-  async getDummySignatures(): Promise<Hex> {
+  async getDummySignatures(params?: ModuleInfo): Promise<Hex> {
     // const params = { ...(this.sessionData ? this.sessionData : {}), ..._params }
     this.isActiveValidationModuleDefined()
-    return this.activeValidationModule.getDummySignature() as Hex
+    return this.activeValidationModule.getDummySignature(params) as Hex
   }
 
   // TODO: review this
@@ -823,8 +827,10 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     return true
   }
 
+  // Review and lock on how to passadditional moduleInfo
   async signUserOp(
-    userOp: Partial<UserOperationStruct>
+    userOp: Partial<UserOperationStruct>,
+    moduleInfo?: ModuleInfo
   ): Promise<UserOperationStruct> {
     this.isActiveValidationModuleDefined()
     // TODO REMOVE COMMENT AND CHECK FOR PIMLICO USER OP FIELDS
@@ -839,8 +845,10 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     // this.validateUserOp(userOp, requiredFields)
     const userOpHash = await this.getUserOpHash(userOp)
 
+    // Review and lock on how to passadditional moduleInfo
     const eoaSignature = (await this.activeValidationModule.signUserOpHash(
-      userOpHash
+      userOpHash,
+      moduleInfo
     )) as Hex
 
     userOp.signature = eoaSignature
@@ -1043,11 +1051,12 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    * const { success, receipt } = await wait();
    *
    */
+  // Review and lock on how to passadditional moduleInfo
   async sendUserOp({
     signature,
     ...userOpWithoutSignature
-  }: Partial<UserOperationStruct>): Promise<UserOpResponse> {
-    const userOperation = await this.signUserOp(userOpWithoutSignature)
+  }: Partial<UserOperationStruct>, moduleInfo?: ModuleInfo): Promise<UserOpResponse> {
+    const userOperation = await this.signUserOp(userOpWithoutSignature, moduleInfo)
     return await this.sendSignedUserOp(userOperation)
   }
 
@@ -1320,6 +1329,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    * const { transactionHash, userOperationReceipt } = await wait();
    *
    */
+  //   // Review and lock on how to passadditional moduleInfo for buildUserOpdto, sendUserOpDto and sendTransactionDto
   async sendTransaction(
     manyOrOneTransactions: Transaction | Transaction[],
     buildUseropDto?: BuildUserOpOptions
@@ -1330,7 +1340,9 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
         : [manyOrOneTransactions],
       buildUseropDto
     )
-    const response = await this.sendUserOp(userOp)
+    // Review and lock on how to pass additional moduleInfo for buildUserOpdto, sendUserOpDto and sendTransactionDto
+    const moduleInfo = buildUseropDto?.moduleInfo
+    const response = await this.sendUserOp(userOp, moduleInfo)
     this.setDeploymentState(response) // don't wait for this to finish...
     return response
   }
@@ -1395,11 +1407,12 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    * const userOp = await smartAccount.buildUserOp([{ to: "0x...", data: encodedCall }]);
    *
    */
+  // Review and lock on how to passadditional moduleInfo
   async buildUserOp(
     transactions: Transaction[],
     buildUseropDto?: BuildUserOpOptions
   ): Promise<Partial<UserOperationStruct>> {
-    const dummySignatureFetchPromise = this.getDummySignatures()
+    const dummySignatureFetchPromise = this.getDummySignatures(buildUseropDto?.moduleInfo)
     const [nonceFromFetch, dummySignature] = await Promise.all([
       this.getBuildUserOpNonce(buildUseropDto?.nonceOptions),
       dummySignatureFetchPromise,
@@ -1885,6 +1898,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
             "Selector param is required for a Fallback Handler Module"
           )
         }
+        // Todo: correct below error
         execution = await this._uninstallFallback(module)
         return this.sendTransaction(
           {
@@ -1923,6 +1937,8 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     throw new Error("Module already installed")
   }
 
+  // Review in case of fallback and other kind
+  // Review against needed types by looking at the contracts repo & test cases
   async uninstallModule(
     module: Module,
     buildUserOpOptions?: BuildUserOpOptions
@@ -1992,6 +2008,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     throw new Error(`Unknown module type ${module.type}`)
   }
 
+  // Note: Why do we have _uninstallFallback separately? and not installFallback as well then?
   private async _uninstallFallback(module: Module): Promise<Execution> {
     let execution: Execution
 
@@ -2150,7 +2167,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
   async getFallbackBySelector(selector?: Hex) {
     const accountContract = await this._getAccountContract()
     return await accountContract.read.getFallbackHandlerBySelector([
-      selector ?? GENERIC_FALLBACK_SELECTOR
+      selector ?? GENERIC_FALLBACK_SELECTOR_SELECTOR
     ])
   }
 
@@ -2159,16 +2176,18 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    * @param moduleType - The type of module to check for support.
    * @returns A promise that resolves to a boolean indicating whether the module type is supported.
    */
-  async supportsModule(module: Module): Promise<boolean> {
+  async supportsModule(moduleType: ModuleType): Promise<boolean> {
     const accountContract = await this._getAccountContract()
     const moduleIndex =
-      module.type === "validator"
+    moduleType === "validator"
         ? 1n
-        : module.type === "executor"
+        : moduleType === "executor"
           ? 2n
-          : module.type === "fallback"
+          : moduleType === "fallback"
             ? 3n
-            : 4n
+            : moduleType === "hook"
+              ? 4n
+              : 0n // review
     return await accountContract.read.supportsModule([moduleIndex])
   }
 }
