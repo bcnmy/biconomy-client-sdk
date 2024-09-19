@@ -25,7 +25,7 @@ import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
  *
  * @example
  * import { accountId } from '@biconomy/sdk'
- * 
+ *
  * const id = await accountId(nexusClient)
  * console.log(id) // 'example_account_id'
  */
