@@ -41,17 +41,12 @@ export class OwnableValidator extends BaseValidationModule {
     public static async create(
         smartAccount: NexusSmartAccount,
         address: Address,
-        owners: Address[],
+        owners?: Address[],
         threshold?: number,
         hook?: Address
     ): Promise<OwnableValidator> {
         let moduleInfo: Module
         let installData: Hex
-        if (
-            !owners.includes(await smartAccount.getSmartAccountOwner().getAddress())
-        ) {
-            throw Error("Signer needs to be one of the owners")
-        }
         const isInitialized = await smartAccount.publicClient.readContract({
             address, // @todo: change to real module address
             abi: parseAbi([
@@ -72,10 +67,10 @@ export class OwnableValidator extends BaseValidationModule {
             const _threshold = await smartAccount.publicClient.readContract({
                 address, // @todo: change to real module address
                 abi: parseAbi([
-                    "function getThreshold() external view returns (uint256)"
+                    "function threshold(address account) external view returns (uint256)"
                 ]),
-                functionName: "getThreshold",
-                args: []
+                functionName: "threshold",
+                args: [await smartAccount.getAddress()]
             })
             installData = encodeAbiParameters(
                 [
@@ -85,6 +80,9 @@ export class OwnableValidator extends BaseValidationModule {
                 [BigInt(_threshold), _owners]
             )
         } else {
+            if (!owners) {
+                throw new Error("Owners are required if the module is not yet initialized")
+            }
             installData = encodeAbiParameters(
                 [
                     { name: "threshold", type: "uint256" },
@@ -224,5 +222,17 @@ export class OwnableValidator extends BaseValidationModule {
     public getMultiSignature(signatures: Hex[]): Hex {
         const types = Array(signatures.length).fill('bytes');
         return encodePacked(types, signatures) as Hex;
+    }
+
+    public async isModuleInitialized(): Promise<boolean> {
+        const isInitialized = await this.smartAccount.publicClient.readContract({
+            address: this.moduleAddress,
+            abi: parseAbi([
+                "function isInitialized(address account) external view returns (bool)"
+            ]),
+            functionName: "isInitialized",
+            args: [await this.smartAccount.getAccountAddress()]
+        })
+        return isInitialized
     }
 }

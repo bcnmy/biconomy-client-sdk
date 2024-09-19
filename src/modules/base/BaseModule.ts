@@ -82,14 +82,14 @@ export abstract class BaseModule {
    * @returns True if the module is initialized for the given smart account, false otherwise.
    */
   public isInitialized(smartAccount: Address): Hex {
-    const isInitializedeData = encodeFunctionData({
+    const isInitializedData = encodeFunctionData({
       abi: parseAbi([
         "function isInitialized(address smartAccount) external view returns (bool)"
       ]),
       functionName: "isInitialized",
       args: [smartAccount]
     })
-    return isInitializedeData
+    return isInitializedData
   }
 
   public getAddress(): Hex {

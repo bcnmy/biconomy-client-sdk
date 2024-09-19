@@ -230,10 +230,21 @@ describe("modules.ownable.validator.install.write", () => {
 
   // @note Won't work if this is the only validation module installed (fails with 0xcc319d84)
   test("should uninstall OwnableValidator module", async () => {
+    const ownableValidatorModuleInitialized = await createOwnableValidatorModule(smartAccount, OWNABLE_VALIDATOR_ADDRESS)
+    const owners = await ownableValidatorModuleInitialized.getOwners()
+    expect(owners).toHaveLength(2)
+
+    const threshold = ownableValidatorModuleInitialized.threshold
+    expect(threshold).toBe(2)
+
+    const isInitialized = await ownableValidatorModuleInitialized.isModuleInitialized()
+    expect(isInitialized).toBe(true)
+
+    // We set the active validation module to K1ValidatorModule to be able to uninstall the OwnableValidator module with just 1 signature, using the K1ValidatorModule
     smartAccount.setActiveValidationModule(k1ValidatorModule);
     const response = await smartAccount.uninstallModule({
-      moduleAddress: ownableValidatorModule.moduleAddress,
-      type: ownableValidatorModule.type,
+      moduleAddress: ownableValidatorModuleInitialized.moduleAddress,
+      type: ownableValidatorModuleInitialized.type,
       data: "0x"
     })
 
