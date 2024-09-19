@@ -130,11 +130,11 @@ const main = async () => {
     account: nexusAccount
   })
   const userOpReceipt = await bicoBundler.waitForUserOperationReceipt({ hash })
-  const txHash = await publicClient.waitForTransactionReceipt({
+  const { transactionHash } = await publicClient.waitForTransactionReceipt({
     hash: userOpReceipt.receipt.transactionHash
   })
   console.timeEnd("write methods")
-  console.log({ txHash })
+  console.log({ transactionHash })
 }
 
 main()

@@ -1,5 +1,8 @@
 import { BaseError } from "viem"
 
+/**
+ * @ignore
+ */
 export class AccountNotFoundError extends BaseError {
   constructor({ docsPath }: { docsPath?: string | undefined } = {}) {
     super(
