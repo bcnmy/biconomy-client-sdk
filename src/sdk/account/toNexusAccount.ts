@@ -63,14 +63,25 @@ import {
 } from "./utils/Utils"
 import { type UnknownHolder, toHolder } from "./utils/toHolder"
 
+/**
+ * Parameters for creating a Nexus Smart Account
+ */
 export type ToNexusSmartAccountParameters = {
+  /** The blockchain network */
   chain: Chain
+  /** The transport configuration */
   transport: ClientConfig["transport"]
+  /** The holder account or address */
   holder: UnknownHolder
+  /** Optional index for the account */
   index?: bigint | undefined
+  /** Optional active validation module */
   activeModule?: BaseValidationModule
+  /** Optional executor module */
   executorModule?: BaseExecutionModule
+  /** Optional factory address */
   factoryAddress?: Address
+  /** Optional K1 validator address */
   k1ValidatorAddress?: Address
 } & Prettify<
   Pick<
@@ -85,10 +96,16 @@ export type ToNexusSmartAccountParameters = {
   >
 >
 
+/**
+ * Nexus Smart Account type
+ */
 export type NexusAccount = Prettify<
   SmartAccount<NexusSmartAccountImplementation>
 >
 
+/**
+ * Nexus Smart Account Implementation
+ */
 export type NexusSmartAccountImplementation = SmartAccountImplementation<
   typeof EntrypointAbi,
   "0.7",
@@ -105,18 +122,21 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
 >
 
 /**
- * Parameters for creating a Nexus Smart Account
- * @typedef {Object} ToNexusSmartAccountParameters
- * @property {Chain} chain - The blockchain network
- * @property {ClientConfig["transport"]} transport - The transport configuration
- * @property {Account | Address} owner - The owner account or address
- * @property {bigint} [index] - Optional index for the account
- * @property {BaseValidationModule} [activeModule] - Optional active validation module
- * @property {Address} [factoryAddress] - Optional factory address
- * @property {Address} [k1ValidatorAddress] - Optional K1 validator address
- * @property {string} [executorModule] - Optional Executor module
- * @property {string} [key] - Optional key for the wallet client
- * @property {string} [name] - Optional name for the wallet client
+ * @description Create a Nexus Smart Account.
+ *
+ * @param parameters - {@link ToNexusSmartAccountParameters}
+ * @returns Nexus Smart Account. {@link NexusAccount}
+ *
+ * @example
+ * import { toNexusAccount } from '@biconomy/sdk'
+ * import { createWalletClient, http } from 'viem'
+ * import { mainnet } from 'viem/chains'
+ *
+ * const account = await toNexusAccount({
+ *   chain: mainnet,
+ *   transport: http(),
+ *   holder: '0x...',
+ * })
  */
 export const toNexusAccount = async (
   parameters: ToNexusSmartAccountParameters
@@ -187,8 +207,8 @@ export const toNexusAccount = async (
   }
 
   /**
-   * Gets the counterfactual address of the account
-   * @returns {Promise<Address>} A promise that resolves to the counterfactual address
+   * @description Gets the counterfactual address of the account
+   * @returns The counterfactual address
    * @throws {Error} If unable to get the counterfactual address
    */
   const getCounterFactualAddress = async (): Promise<Address> => {
@@ -205,14 +225,14 @@ export const toNexusAccount = async (
   }
 
   /**
-   * Gets the init code for the account
-   * @returns {Hex} The init code as a hexadecimal string
+   * @description Gets the init code for the account
+   * @returns The init code as a hexadecimal string
    */
   const getInitCode = () => concatHex([factoryAddress, factoryData])
 
   /**
-   * Checks if the account is deployed
-   * @returns {Promise<boolean>} A promise that resolves to true if the account is deployed, false otherwise
+   * @description Checks if the account is deployed
+   * @returns True if the account is deployed, false otherwise
    */
   const isDeployed = async (): Promise<boolean> => {
     const address = await getCounterFactualAddress()
@@ -221,9 +241,9 @@ export const toNexusAccount = async (
   }
 
   /**
-   * Calculates the hash of a user operation
-   * @param {Partial<UserOperationStruct>} userOp - The user operation
-   * @returns {Promise<Hex>} A promise that resolves to the hash of the user operation
+   * @description Calculates the hash of a user operation
+   * @param userOp - The user operation
+   * @returns The hash of the user operation
    */
   const getUserOpHash = async (
     userOp: Partial<UserOperationStruct>
@@ -238,10 +258,10 @@ export const toNexusAccount = async (
   }
 
   /**
-   * Encodes a batch of calls for execution
-   * @param {readonly Call[]} calls - An array of calls to encode
-   * @param {Hex} [mode=EXECUTE_BATCH] - The execution mode
-   * @returns {Promise<Hex>} A promise that resolves to the encoded calls
+   * @description Encodes a batch of calls for execution
+   * @param calls - An array of calls to encode
+   * @param mode - The execution mode
+   * @returns The encoded calls
    */
   const encodeExecuteBatch = async (
     calls: readonly Call[],
@@ -276,10 +296,10 @@ export const toNexusAccount = async (
   }
 
   /**
-   * Encodes a single call for execution
-   * @param {Call} call - The call to encode
-   * @param {Hex} [mode=EXECUTE_SINGLE] - The execution mode
-   * @returns {Promise<Hex>} A promise that resolves to the encoded call
+   * @description Encodes a single call for execution
+   * @param call - The call to encode
+   * @param mode - The execution mode
+   * @returns The encoded call
    */
   const encodeExecute = async (
     call: Call,
@@ -300,9 +320,9 @@ export const toNexusAccount = async (
   }
 
   /**
-   * Gets the nonce for the account
-   * @param {GetNonceArgs} [args] - Optional arguments for getting the nonce
-   * @returns {Promise<bigint>} A promise that resolves to the nonce
+   * @description Gets the nonce for the account
+   * @param args - Optional arguments for getting the nonce
+   * @returns The nonce
    */
   const getNonce = async ({
     validationMode: _validationMode = MODE_VALIDATION,
@@ -330,10 +350,10 @@ export const toNexusAccount = async (
   }
 
   /**
-   * Signs a message
-   * @param {Object} params - The parameters for signing
-   * @param {SignableMessage} params.message - The message to sign
-   * @returns {Promise<Hex>} A promise that resolves to the signature
+   * @description Signs a message
+   * @param params - The parameters for signing
+   * @param params.message - The message to sign
+   * @returns The signature
    */
   const signMessage = async ({
     message
@@ -372,6 +392,11 @@ export const toNexusAccount = async (
     return accountIsDeployed ? signature : erc6492Signature
   }
 
+  /**
+   * @description Signs typed data
+   * @param parameters - The typed data parameters
+   * @returns The signature
+   */
   async function signTypedData<
     const typedData extends TypedData | Record<string, unknown>,
     primaryType extends keyof typedData | "EIP712Domain" = keyof typedData
