@@ -12,9 +12,12 @@ import {
   createTestClient,
   createWalletClient,
   encodeAbiParameters,
+  encodePacked,
+  keccak256,
   parseAbi,
   parseAbiParameters,
   publicActions,
+  toBytes,
   walletActions,
   parseEther
 } from "viem"
@@ -449,7 +452,6 @@ export const topUp = async (
   return testClient.waitForTransactionReceipt({ hash })
 }
 
-// Returns the encoded EIP-712 domain struct fields.
 export const getAccountDomainStructFields = async (
   testClient: MasterClient,
   accountAddress: Address
@@ -465,18 +467,18 @@ export const getAccountDomainStructFields = async (
   const [fields, name, version, chainId, verifyingContract, salt, extensions] =
     accountDomainStructFields
 
-  const params = parseAbiParameters(
-    "bytes1, string, string, uint256, address, bytes32, uint256[]"
-  )
+  const params = parseAbiParameters([
+    "bytes1, bytes32, bytes32, uint256, address, bytes32, bytes32"
+  ])
 
   return encodeAbiParameters(params, [
     fields,
-    name,
-    version,
+    keccak256(toBytes(name)),
+    keccak256(toBytes(version)),
     chainId,
     verifyingContract,
     salt,
-    extensions
+    keccak256(encodePacked(["uint256[]"], [extensions]))
   ])
 }
 

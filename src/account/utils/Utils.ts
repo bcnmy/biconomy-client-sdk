@@ -1,21 +1,38 @@
 import {
   type Address,
+  type Client,
   type Hash,
   type Hex,
+  type PublicClient,
+  type TypedDataDomain,
+  type TypedDataParameter,
   concat,
+  decodeFunctionResult,
   encodeAbiParameters,
+  encodeFunctionData,
+  encodePacked,
   hexToBytes,
   keccak256,
   pad,
+  parseAbi,
   parseAbiParameters,
+  publicActions,
   stringToBytes,
   toBytes,
   toHex
 } from "viem"
-import type { UserOperationStruct } from "../../account"
+import { EIP1271Abi } from "../../__contracts/abi/EIP1271Abi"
+import type {
+  AccountMetadata,
+  EIP712DomainReturn,
+  TypeDefinition,
+  UserOperationStruct
+} from "../../account"
 import {
   MOCK_MULTI_MODULE_ADDRESS,
-  MODULE_ENABLE_MODE_TYPE_HASH
+  MODULE_ENABLE_MODE_TYPE_HASH,
+  NEXUS_DOMAIN_NAME,
+  NEXUS_DOMAIN_VERSION
 } from "../../account"
 import { type ModuleType, moduleTypeIds } from "../../modules/utils/Types"
 
@@ -216,4 +233,110 @@ export function _hashTypedData(
       hexToBytes(structHash)
     ])
   )
+}
+
+export function getTypesForEIP712Domain({
+  domain
+}: { domain?: TypedDataDomain | undefined }): TypedDataParameter[] {
+  return [
+    typeof domain?.name === "string" && { name: "name", type: "string" },
+    domain?.version && { name: "version", type: "string" },
+    typeof domain?.chainId === "number" && {
+      name: "chainId",
+      type: "uint256"
+    },
+    domain?.verifyingContract && {
+      name: "verifyingContract",
+      type: "address"
+    },
+    domain?.salt && { name: "salt", type: "bytes32" }
+  ].filter(Boolean) as TypedDataParameter[]
+}
+export const accountMetadata = async (
+  client: Client,
+  accountAddress: Address
+): Promise<AccountMetadata> => {
+  try {
+    const domain = await client.request({
+      method: "eth_call",
+      params: [
+        {
+          to: accountAddress,
+          data: encodeFunctionData({
+            abi: EIP1271Abi,
+            functionName: "eip712Domain"
+          })
+        },
+        "latest"
+      ]
+    })
+
+    if (domain !== "0x") {
+      const decoded = decodeFunctionResult({
+        abi: [...EIP1271Abi],
+        functionName: "eip712Domain",
+        data: domain
+      })
+      return {
+        name: decoded[1],
+        version: decoded[2],
+        chainId: decoded[3]
+      }
+    }
+  } catch (error) {}
+  return {
+    name: NEXUS_DOMAIN_NAME,
+    version: NEXUS_DOMAIN_VERSION,
+    chainId: client.chain
+      ? BigInt(client.chain.id)
+      : BigInt(await client.extend(publicActions).getChainId())
+  }
+}
+
+export const eip712WrapHash = async (
+  typedHash: Hex,
+  appDomainSeparator: Hex
+): Promise<Hex> => {
+  const digest = keccak256(concat(["0x1901", appDomainSeparator, typedHash]))
+
+  return digest
+}
+
+export function typeToString(typeDef: TypeDefinition): string[] {
+  return Object.entries(typeDef).map(([key, fields]) => {
+    const fieldStrings = fields
+      .map((field) => `${field.type} ${field.name}`)
+      .join(",")
+    return `${key}(${fieldStrings})`
+  })
+}
+
+export const getAccountDomainStructFields = async (
+  publicClient: PublicClient,
+  accountAddress: Address
+) => {
+  const accountDomainStructFields = (await publicClient.readContract({
+    address: accountAddress,
+    abi: parseAbi([
+      "function eip712Domain() public view returns (bytes1 fields, string memory name, string memory version, uint256 chainId, address verifyingContract, bytes32 salt, uint256[] memory extensions)"
+    ]),
+    functionName: "eip712Domain"
+  })) as EIP712DomainReturn
+
+  const [fields, name, version, chainId, verifyingContract, salt, extensions] =
+    accountDomainStructFields
+
+  const params = parseAbiParameters([
+    "bytes1, bytes32, bytes32, uint256, address, bytes32, bytes32"
+  ])
+
+  return encodeAbiParameters(params, [
+    fields,
+    keccak256(toBytes(name)),
+    keccak256(toBytes(version)),
+    chainId,
+    verifyingContract,
+    salt,
+    keccak256(encodePacked(["uint256[]"], [extensions]))
+  ])
 }

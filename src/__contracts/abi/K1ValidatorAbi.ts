@@ -1,6 +1,11 @@
 export const K1ValidatorAbi = [
   {
     inputs: [],
+    name: "InvalidDataLength",
+    type: "error"
+  },
+  {
+    inputs: [],
     name: "ModuleAlreadyInitialized",
     type: "error"
   },
@@ -87,6 +92,35 @@ export const K1ValidatorAbi = [
     type: "function"
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address"
+      },
+      {
+        internalType: "bytes32",
+        name: "hash",
+        type: "bytes32"
+      },
+      {
+        internalType: "bytes",
+        name: "signature",
+        type: "bytes"
+      }
+    ],
+    name: "isValidSignatureWithSenderLegacy",
+    outputs: [
+      {
+        internalType: "bytes4",
+        name: "",
+        type: "bytes4"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
     inputs: [],
     name: "name",
     outputs: [
@@ -145,6 +179,19 @@ export const K1ValidatorAbi = [
     type: "function"
   },
   {
+    inputs: [],
+    name: "supportsNestedTypedDataSign",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "result",
+        type: "bytes32"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -155,6 +202,35 @@ export const K1ValidatorAbi = [
     name: "transferOwnership",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "hash",
+        type: "bytes32"
+      },
+      {
+        internalType: "bytes",
+        name: "sig",
+        type: "bytes"
+      },
+      {
+        internalType: "bytes",
+        name: "data",
+        type: "bytes"
+      }
+    ],
+    name: "validateSignatureWithData",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "validSig",
+        type: "bool"
+      }
+    ],
+    stateMutability: "view",
     type: "function"
   },
   {

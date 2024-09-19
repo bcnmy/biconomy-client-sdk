@@ -10,7 +10,7 @@ type FetchDetails = {
 }
 const {
   nexusDeploymentPath = "../node_modules/nexus/deployments",
-  chainName = "anvil-55000",
+  chainName = "anvil-51139",
   forSrc = ["K1ValidatorFactory", "Nexus", "K1Validator"]
 } = yargs(hideBin(process.argv)).argv as unknown as FetchDetails
 
