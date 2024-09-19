@@ -8,11 +8,11 @@
     "declaration": true,
     "declarationMap": true,
     "noEmit": false,
-    "rootDir": "../packages/sdk"
+    "rootDir": "../src/sdk"
   },
   "exclude": [
-    "../packages/test/**/*.*",
-    "../packages/sdk/**/*.test.*",
-    "../packages/sdk/**/*.spec.*",
+    "../src/test/**/*.*",
+    "../src/sdk/**/*.test.*",
+    "../src/sdk/**/*.spec.*",
   ]
 }

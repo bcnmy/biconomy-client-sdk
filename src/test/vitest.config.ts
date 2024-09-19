@@ -17,7 +17,7 @@ export default defineConfig({
         "**/*.test.ts",
         "**/test/**"
       ],
-      include: ["./packages/test/**/*.test.ts", "./packages/sdk/**/*.test.ts"],
+      include: ["./src/test/**/*.test.ts", "./src/sdk/**/*.test.ts"],
       thresholds: {
         lines: 80,
         functions: 50,
@@ -25,7 +25,7 @@ export default defineConfig({
         statements: 80
       }
     },
-    include: ["./packages/test/**/*.test.ts", "./packages/sdk/**/*.test.ts"],
+    include: ["./src/test/**/*.test.ts", "./src/sdk/**/*.test.ts"],
     globalSetup: join(__dirname, "globalSetup.ts"),
     environment: "node",
     testTimeout: 60_000,

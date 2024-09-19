@@ -1,9 +1,9 @@
 import { config } from "dotenv"
 import { http, type PublicClient, createPublicClient } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
-import { toNexusAccount } from "../packages/sdk/account/toNexusAccount"
-import { getChain } from "../packages/sdk/account/utils/getChain"
-import { createBicoBundlerClient } from "../packages/sdk/clients/createBicoBundlerClient"
+import { toNexusAccount } from "../src/sdk/account/toNexusAccount"
+import { getChain } from "../src/sdk/account/utils/getChain"
+import { createBicoBundlerClient } from "../src/sdk/clients/createBicoBundlerClient"
 
 config()
 
