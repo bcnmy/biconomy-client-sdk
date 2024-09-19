@@ -7,7 +7,6 @@
         "../src/**/*.test.ts",
         "../src/**/*.test-d.ts",
         "../src/**/*.bench.ts",
-        "../tests/**/*.*"
     ],
     "compilerOptions": {
         "moduleResolution": "node",

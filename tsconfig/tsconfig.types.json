@@ -7,6 +7,12 @@
     "emitDeclarationOnly": true,
     "declaration": true,
     "declarationMap": true,
-    "noEmit": false
-  }
+    "noEmit": false,
+    "rootDir": "../src/sdk"
+  },
+  "exclude": [
+    "../src/test/**/*.*",
+    "../src/sdk/**/*.test.*",
+    "../src/sdk/**/*.spec.*",
+  ]
 }
