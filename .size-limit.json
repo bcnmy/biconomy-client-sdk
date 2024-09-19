@@ -14,16 +14,16 @@
   },
   {
     "name": "bundler (tree-shaking)",
-    "path": "./dist/_esm/bundler/index.js",
+    "path": "./dist/_esm/clients/createBicoBundlerClient.js",
     "limit": "15 kB",
-    "import": "{ createBundler }",
+    "import": "{ createBicoBundlerClient }",
     "ignore": ["node:fs", "fs"]
   },
   {
     "name": "paymaster (tree-shaking)",
-    "path": "./dist/_esm/paymaster/index.js",
+    "path": "./dist/_esm/clients/createBicoPaymasterClient.js",
     "limit": "15 kB",
-    "import": "{ toPaymaster }",
+    "import": "{ createBicoPaymasterClient }",
     "ignore": ["node:fs", "fs"]
   }
 ]

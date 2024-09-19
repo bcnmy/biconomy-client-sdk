@@ -1,5 +1,4 @@
 import type { Address, Chain, Hex } from "viem"
-import type { SimulationType } from "../../account/utils/Types"
 import type { Holder, UnknownHolder } from "../../account/utils/toHolder"
 
 export type ModuleVersion = "1.0.0-beta" // | 'V1_0_1'
@@ -67,10 +66,7 @@ export type ModuleInfo = {
   batchSessionParams?: SessionParams[]
 }
 
-export interface SendUserOpParams extends ModuleInfo {
-  /** "validation_and_execution" is recommended during development for improved debugging & devEx, but will add some additional latency to calls. "validation" can be used in production ro remove this latency once flows have been tested. */
-  simulationType?: SimulationType
-}
+export interface SendUserOpParams extends ModuleInfo {}
 
 export type SignerData = {
   /** This is not the public as provided by viem, key but address for the given pvKey */

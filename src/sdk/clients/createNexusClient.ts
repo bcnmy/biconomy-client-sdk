@@ -30,10 +30,16 @@ import {
   smartAccountActions
 } from "./decorators/smartAccount"
 
+/**
+ * Parameters for sending a transaction
+ */
 export type SendTransactionParameters = {
   calls: Call | Call[]
 }
 
+/**
+ * Nexus Client type
+ */
 export type NexusClient<
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined,
@@ -48,15 +54,36 @@ export type NexusClient<
     BundlerActions<NexusAccount> &
     Erc7579Actions<NexusAccount> &
     SmartAccountActions<chain, NexusAccount> & {
+      /**
+       * The Nexus account associated with this client
+       */
       account: NexusAccount
+      /**
+       * Optional client for additional functionality
+       */
       client?: client | Client | undefined
+      /**
+       * Transport configuration for the bundler
+       */
       bundlerTransport?: BundlerClientConfig["transport"]
+      /**
+       * Optional paymaster configuration
+       */
       paymaster?: BundlerClientConfig["paymaster"] | undefined
+      /**
+       * Optional paymaster context
+       */
       paymasterContext?: BundlerClientConfig["paymasterContext"] | undefined
+      /**
+       * Optional user operation configuration
+       */
       userOperation?: BundlerClientConfig["userOperation"] | undefined
     }
 >
 
+/**
+ * Configuration for creating a Nexus Client
+ */
 export type NexusClientConfig<
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined,
@@ -113,14 +140,33 @@ export type NexusClientConfig<
     index?: bigint
     /** Active module of the account. */
     activeModule?: BaseValidationModule
-    /** Factory address of the account. */
+    /** Executor module of the account. */
     executorModule?: BaseExecutionModule
+    /** Factory address of the account. */
     factoryAddress?: Address
     /** Owner module */
     k1ValidatorAddress?: Address
   }
 >
 
+/**
+ * Creates a Nexus Client for interacting with the Nexus smart account system.
+ *
+ * @param parameters - {@link NexusClientConfig}
+ * @returns Nexus Client. {@link NexusClient}
+ *
+ * @example
+ * import { createNexusClient } from '@biconomy/sdk'
+ * import { http } from 'viem'
+ * import { mainnet } from 'viem/chains'
+ *
+ * const nexusClient = await createNexusClient({
+ *   chain: mainnet,
+ *   transport: http('https://mainnet.infura.io/v3/YOUR-PROJECT-ID'),
+ *   bundlerTransport: http('https://api.biconomy.io'),
+ *   holder: '0x...',
+ * })
+ */
 export async function createNexusClient(
   parameters: NexusClientConfig
 ): Promise<NexusClient> {
