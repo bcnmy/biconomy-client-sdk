@@ -15,6 +15,22 @@ export type GetInstalledValidatorsParameters<
   cursor?: Hex
 }
 
+/**
+ * Retrieves the installed validators for a given smart account.
+ *
+ * @param client - The client instance.
+ * @param parameters - Parameters including the smart account, page size, and cursor.
+ * @returns A tuple containing an array of validator addresses and the next cursor.
+ * @throws {AccountNotFoundError} If the account is not found.
+ *
+ * @example
+ * import { getInstalledValidators } from '@biconomy/sdk'
+ *
+ * const [validators, nextCursor] = await getInstalledValidators(nexusClient, {
+ *   pageSize: 10n
+ * })
+ * console.log(validators, nextCursor) // ['0x...', '0x...'], '0x...'
+ */
 export async function getInstalledValidators<
   TSmartAccount extends SmartAccount | undefined
 >(
