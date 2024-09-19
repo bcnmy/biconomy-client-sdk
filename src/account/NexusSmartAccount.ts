@@ -1798,7 +1798,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
             "Selector param is required for a Fallback Handler Module"
           )
         }
-        execution = await this._uninstallFallback(module)
+        execution = await this._installFallback(module)
         return this.sendTransaction(
           {
             to: execution.target,
@@ -1810,6 +1810,37 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       default:
         throw new Error(`Unknown module type ${module.type}`)
     }
+  }
+
+  private async _installFallback(module: Module): Promise<Execution> {
+
+    if (!module.selector || !module.callType) {
+      throw new Error(
+        "Selector param is required for a Fallback Handler Module"
+      )
+    }
+
+    const isInstalled = await this.isModuleInstalled(module)
+
+    if (!isInstalled) {
+      const execution = {
+        target: await this.getAddress(),
+        value: BigInt(0),
+        callData: encodeFunctionData({
+          functionName: "installModule",
+          abi: parseAbi([
+            "function installModule(uint256 moduleTypeId, address module, bytes calldata initData) external payable"
+          ]),
+          args: [
+            BigInt(moduleTypeIds[module.type]),
+            module.moduleAddress,
+            encodePacked(['bytes4', 'bytes1', 'bytes'], [module.selector, module.callType, module.data ?? '0x'])
+          ]
+        })
+      }
+      return execution
+    }
+    throw new Error("Module already installed")
   }
 
   async _installModule(module: Module): Promise<Execution> {
@@ -1880,13 +1911,13 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
       | Awaited<ReturnType<typeof this.getInstalledExecutors>>,
     module: Module
   ): Hex {
-    const index = installedModules[0].indexOf(getAddress(module.moduleAddress))
+    const index = installedModules.indexOf(getAddress(module.moduleAddress))
     if (index === 0) {
       return SENTINEL_ADDRESS
     }
     if (index > 0) {
       // @ts-ignore: TODO: Gabi This looks wrong
-      return installedModules[0][index - 1]
+      return installedModules[index - 1]
     }
     throw new Error(
       `Module ${module.moduleAddress} not found in installed modules`
@@ -2015,20 +2046,22 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
     return (await accountContract.read.supportsExecutionMode([mode])) as boolean
   }
 
-  async getInstalledValidators() {
+  async getInstalledValidators(): Promise<Address[]> {
     const accountContract = await this._getAccountContract()
-    return await accountContract.read.getValidatorsPaginated([
+    const [validators] = await accountContract.read.getValidatorsPaginated([
       SENTINEL_ADDRESS,
       100n
     ])
+    return validators as Address[]
   }
 
-  async getInstalledExecutors() {
+  async getInstalledExecutors(): Promise<Address[]> {
     const accountContract = await this._getAccountContract()
-    return await accountContract.read.getExecutorsPaginated([
+    const [executors] = await accountContract.read.getExecutorsPaginated([
       SENTINEL_ADDRESS,
       100n
     ])
+    return executors as Address[]
   }
 
   /**

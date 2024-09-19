@@ -229,7 +229,7 @@ describe("modules.ownable.validator.install.write", () => {
   })
 
   // @note Won't work if this is the only validation module installed (fails with 0xcc319d84)
-  test.skip("should uninstall OwnableValidator module", async () => {
+  test("should uninstall OwnableValidator module", async () => {
     smartAccount.setActiveValidationModule(k1ValidatorModule);
     const response = await smartAccount.uninstallModule({
       moduleAddress: ownableValidatorModule.moduleAddress,
