@@ -30,6 +30,25 @@ export type InstallModulesParameters<
   nonce?: bigint
 }
 
+/**
+ * Installs multiple modules on a given smart account.
+ *
+ * @param client - The client instance.
+ * @param parameters - Parameters including the smart account, modules to install, and optional gas settings.
+ * @returns The hash of the user operation as a hexadecimal string.
+ * @throws {AccountNotFoundError} If the account is not found.
+ *
+ * @example
+ * import { installModules } from '@biconomy/sdk'
+ *
+ * const userOpHash = await installModules(nexusClient, {
+ *   modules: [
+ *     { type: 'executor', address: '0x...', context: '0x' },
+ *     { type: 'validator', address: '0x...', context: '0x' }
+ *   ]
+ * })
+ * console.log(userOpHash) // '0x...'
+ */
 export async function installModules<
   TSmartAccount extends SmartAccount | undefined
 >(
