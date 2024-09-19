@@ -6,10 +6,10 @@ import {
   type WalletClient,
   createWalletClient,
   zeroAddress,
-  encodePacked
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import {
+  UserOperationStruct,
   type NexusSmartAccount,
 } from "../src/account"
 import { type TestFileNetworkType, toNetwork } from "./src/testSetup"
@@ -124,13 +124,15 @@ describe("modules.ownable.validator.install.write", () => {
 
     // Don't add owner if already 4 owners
     if (ownersBefore.length <= 4) {
-      const userOp = await ownableValidatorModule.addOwnerUserOp(randomSigner.address);
+      let userOp = await ownableValidatorModule.addOwnerUserOp(randomSigner.address);
 
       const userOpHash = await smartAccount.getUserOpHash(userOp);
       const signature1 = await walletClient.signMessage({ message: { raw: userOpHash }, account: account });
       const signature2 = await walletClientTwo.signMessage({ message: { raw: userOpHash }, account: accountTwo });
 
-      const response = await smartAccount.sendUserOp(userOp, ownableValidatorModule.getMultiSignature([signature1, signature2]))
+      const finalSignature = ownableValidatorModule.getMultiSignature([signature1, signature2])
+      userOp.signature = finalSignature
+      const response = await smartAccount.sendSignedUserOp(userOp as UserOperationStruct)
       const receipt = await response.wait();
 
       const ownersAfter = await ownableValidatorModule.getOwners()
@@ -142,7 +144,7 @@ describe("modules.ownable.validator.install.write", () => {
 
   test("should set threshold", async () => {
     // Get setThreshold user operation
-    const setThresholdUserOp = await ownableValidatorModule.setThresholdUserOp(2);
+    let setThresholdUserOp = await ownableValidatorModule.setThresholdUserOp(2);
 
     // Get user operation hash
     const userOpHash = await smartAccount.getUserOpHash(setThresholdUserOp);
@@ -152,7 +154,9 @@ describe("modules.ownable.validator.install.write", () => {
     const signature2 = await walletClientTwo.signMessage({ message: { raw: userOpHash }, account: accountTwo });
 
     // Set threshold to 2
-    const response = await smartAccount.sendUserOp(setThresholdUserOp, ownableValidatorModule.getMultiSignature([signature1, signature2]))
+    const finalSignature = ownableValidatorModule.getMultiSignature([signature1, signature2])
+    setThresholdUserOp.signature = finalSignature
+    const response = await smartAccount.sendSignedUserOp(setThresholdUserOp as UserOperationStruct)
     const receipt = await response.wait();
 
     expect(receipt.success).toBe(true)
@@ -166,7 +170,7 @@ describe("modules.ownable.validator.install.write", () => {
     // Make sure the OwnableValidator is set as the active validation module
     smartAccount.setActiveValidationModule(ownableValidatorModule);
 
-    const userOp = await smartAccount.buildUserOp([{
+    let userOp = await smartAccount.buildUserOp([{
       to: zeroAddress,
       data: "0x",
       value: 0n
@@ -176,8 +180,11 @@ describe("modules.ownable.validator.install.write", () => {
     const signature1 = await walletClient.signMessage({ message: { raw: userOpHash }, account: account });
     const signature2 = await walletClientTwo.signMessage({ message: { raw: userOpHash }, account: accountTwo });
 
-    const response = await smartAccount.sendUserOp(userOp, encodePacked(['bytes', 'bytes'], [signature1, signature2]))
-    await response.wait()
+    const finalSignature = ownableValidatorModule.getMultiSignature([signature1, signature2])
+    userOp.signature = finalSignature
+    const response = await smartAccount.sendSignedUserOp(userOp as UserOperationStruct)
+    const receipt = await response.wait();
+    expect(receipt.success).toBe(true)
   })
 
   test("should remove an owner", async () => {
@@ -188,13 +195,15 @@ describe("modules.ownable.validator.install.write", () => {
     const ownerToRemove = ownersBefore[0]
     expect(ownersBefore).toContain(ownerToRemove)
     if (ownerToRemove !== account.address || ownerToRemove !== accountTwo.address) {
-      const userOp = await ownableValidatorModule.removeOwnerUserOp(ownerToRemove);
+      let userOp = await ownableValidatorModule.removeOwnerUserOp(ownerToRemove);
 
       const userOpHash = await smartAccount.getUserOpHash(userOp);
       const signature1 = await walletClient.signMessage({ message: { raw: userOpHash }, account: account });
       const signature2 = await walletClientTwo.signMessage({ message: { raw: userOpHash }, account: accountTwo });
 
-      const response = await smartAccount.sendUserOp(userOp, ownableValidatorModule.getMultiSignature([signature1, signature2]))
+      const finalSignature = ownableValidatorModule.getMultiSignature([signature1, signature2])
+      userOp.signature = finalSignature
+      const response = await smartAccount.sendSignedUserOp(userOp as UserOperationStruct)
       const receipt = await response.wait();
       expect(receipt.success).toBe(true)
 

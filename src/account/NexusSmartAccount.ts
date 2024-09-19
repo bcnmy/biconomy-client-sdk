@@ -1037,19 +1037,10 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
    *
    */
   async sendUserOp({
-    signature,
     ...userOpWithoutSignature
-  }: Partial<UserOperationStruct>, userOpSignature?: Hex): Promise<UserOpResponse> {
-    if (!userOpSignature) {
-      const userOperation = await this.signUserOp(userOpWithoutSignature)
-      return await this.sendSignedUserOp(userOperation)
-    } else {
-      const userOperation = {
-        ...userOpWithoutSignature,
-        signature: userOpSignature
-      } as UserOperationStruct
-      return await this.sendSignedUserOp(userOperation)
-    }
+  }: Partial<UserOperationStruct>): Promise<UserOpResponse> {
+    const userOperation = await this.signUserOp(userOpWithoutSignature)
+    return await this.sendSignedUserOp(userOperation)
   }
 
   /**
@@ -1331,7 +1322,7 @@ export class NexusSmartAccount extends BaseSmartContractAccount {
         : [manyOrOneTransactions],
       buildUseropDto
     )
-    const response = await this.sendUserOp(userOp, buildUseropDto?.signatureOverride)
+    const response = await this.sendUserOp(userOp)
     this.setDeploymentState(response) // don't wait for this to finish...
     return response
   }

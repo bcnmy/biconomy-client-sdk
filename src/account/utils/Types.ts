@@ -208,7 +208,6 @@ export type BuildUserOpOptions = {
   dummyPndOverride?: BytesLike
   useEmptyDeployCallData?: boolean
   useExecutor?: boolean
-  signatureOverride?: Hex
 }
 
 export type NonceOptions = {
