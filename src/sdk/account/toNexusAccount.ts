@@ -50,7 +50,6 @@ import {
   PARENT_TYPEHASH
 } from "./utils/Constants"
 
-import type { BaseExecutionModule } from "../modules/base/BaseExecutionModule"
 import type { BaseValidationModule } from "../modules/base/BaseValidationModule"
 import { K1ValidatorModule } from "../modules/validators/K1ValidatorModule"
 import {
@@ -77,8 +76,6 @@ export type ToNexusSmartAccountParameters = {
   index?: bigint | undefined
   /** Optional active validation module */
   activeModule?: BaseValidationModule
-  /** Optional executor module */
-  executorModule?: BaseExecutionModule
   /** Optional factory address */
   factoryAddress?: Address
   /** Optional K1 validator address */
@@ -147,7 +144,6 @@ export const toNexusAccount = async (
     holder: holder_,
     index = 0n,
     activeModule,
-    executorModule: _,
     factoryAddress = contracts.k1ValidatorFactory.address,
     k1ValidatorAddress = contracts.k1Validator.address,
     key = "nexus account",

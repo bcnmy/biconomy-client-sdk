@@ -178,7 +178,6 @@ export async function createNexusClient(
     key = "nexus client",
     name = "Nexus Client",
     activeModule,
-    executorModule,
     factoryAddress = contracts.k1ValidatorFactory.address,
     k1ValidatorAddress = contracts.k1Validator.address,
     bundlerTransport,
@@ -206,7 +205,6 @@ export async function createNexusClient(
     holder,
     index,
     activeModule,
-    executorModule,
     factoryAddress,
     k1ValidatorAddress
   })
