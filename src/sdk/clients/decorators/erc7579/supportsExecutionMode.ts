@@ -44,6 +44,12 @@ function parseCallType(callType: CallType) {
   }
 }
 
+/**
+ * Encodes the execution mode for a smart account operation.
+ *
+ * @param mode - The execution mode parameters.
+ * @returns The encoded execution mode as a hexadecimal string.
+ */
 export function encodeExecutionMode<callType extends CallType>({
   type,
   revertOnError,
@@ -62,6 +68,24 @@ export function encodeExecutionMode<callType extends CallType>({
   )
 }
 
+/**
+ * Checks if a smart account supports a specific execution mode.
+ *
+ * @param client - The client instance.
+ * @param args - Parameters including the smart account and execution mode details.
+ * @returns A boolean indicating whether the execution mode is supported.
+ * @throws {AccountNotFoundError} If the account is not found.
+ *
+ * @example
+ * import { supportsExecutionMode } from '@biconomy/sdk'
+ *
+ * const isSupported = await supportsExecutionMode(nexusClient, {
+ *   type: 'call',
+ *   revertOnError: true,
+ *   selector: '0x12345678'
+ * })
+ * console.log(isSupported) // true or false
+ */
 export async function supportsExecutionMode<
   TSmartAccount extends SmartAccount | undefined,
   callType extends CallType = CallType
