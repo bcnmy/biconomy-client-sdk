@@ -18,6 +18,18 @@ type BicoBundlerClientConfig = Omit<BundlerClientConfig, "transport"> &
       }
   >
 
+/**
+ * Creates a Bico Bundler Client with a given Transport configured for a Chain.
+ *
+ * @param parameters - Configuration for the Bico Bundler Client
+ * @returns A Bico Bundler Client
+ *
+ * @example
+ * import { createBicoBundlerClient, http } from '@biconomy/sdk'
+ * import { mainnet } from 'viem/chains'
+ *
+ * const bundlerClient = createBicoBundlerClient({ chain: mainnet });
+ */
 export const createBicoBundlerClient = (
   parameters: BicoBundlerClientConfig
 ): BundlerClient => {
