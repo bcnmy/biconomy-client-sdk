@@ -33,7 +33,7 @@ jobs:
         with:
           json-summary-path: ./coverage/coverage-summary.json
           json-final-path: "./coverage/coverage-final.json"
-          vite-config-path: ./tests/vitest.config.ts
+          vite-config-path: ./test/vitest.config.ts
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload coverage reports to Codecov

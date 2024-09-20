@@ -3,6 +3,12 @@
   "compilerOptions": {
     "module": "es2015",
     "outDir": "../dist/_esm",
-    "noEmit": false
-  }
+    "noEmit": false,
+    "rootDir": "../src/sdk"
+  },
+  "exclude": [
+    "../src/test/**/*.*",
+    "../src/sdk/**/*.test.*",
+    "../src/sdk/**/*.spec.*",
+  ]
 }
