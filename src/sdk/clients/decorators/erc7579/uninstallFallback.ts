@@ -57,7 +57,7 @@ export async function uninstallFallback<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    module: { address, context, type }
+    module: { address, data, type }
   } = parameters
 
   if (!account_) {
@@ -101,7 +101,7 @@ export async function uninstallFallback<
             }
           ],
           functionName: "uninstallFallback",
-          args: [parseModuleTypeId(type), getAddress(address), context]
+          args: [parseModuleTypeId(type), getAddress(address), data ?? "0x"]
         })
       }
     ],

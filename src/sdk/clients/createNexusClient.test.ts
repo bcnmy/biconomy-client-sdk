@@ -19,6 +19,7 @@ import { toNetwork } from "../../test/testSetup"
 import {
   getBalance,
   getTestAccount,
+  getTestSmartAccountClient,
   killNetwork,
   toTestClient,
   topUp
@@ -55,11 +56,10 @@ describe("nexus.client", async () => {
 
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
-      holder: account,
+    nexusClient = await getTestSmartAccountClient({
+      account,
       chain,
-      transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerUrl
     })
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
@@ -157,19 +157,19 @@ describe("nexus.client", async () => {
     expect(result).toBeTruthy()
   }, 30000)
 
-  test.skip("should create a nexusAccount from an ethers signer", async () => {
-    const ethersProvider = new JsonRpcProvider(chain.rpcUrls.default.http[0])
-    const ethersSigner = new Wallet(pKey, ethersProvider)
+  // test("should create a nexusAccount from an ethers signer", async () => {
+  //   const ethersProvider = new JsonRpcProvider(chain.rpcUrls.default.http[0])
+  //   const ethersSigner = new Wallet(pKey, ethersProvider)
 
-    const ethOwnerNexusClient = await createNexusClient({
-      chain,
-      owner: (await ethersSigner.getAddress()) as Hex,
-      bundlerTransport: http(bundlerUrl),
-      transport: http(chain.rpcUrls.default.http[0])
-    })
+  //   const ethOwnerNexusClient = await createNexusClient({
+  //     chain,
+  //     bundlerTransport: http(bundlerUrl),
+  //     signer: ethersSigner,
+  //     transport: http(chain.rpcUrls.default.http[0])
+  //   })
 
-    expect(await ethOwnerNexusClient.account.getAddress()).toBeTruthy()
-  })
+  //   expect(await ethOwnerNexusClient.account.getAddress()).toBeTruthy()
+  // })
 
   test("should read estimated user op gas values", async () => {
     const userOp = await nexusClient.prepareUserOperation({
@@ -234,7 +234,7 @@ describe("nexus.client", async () => {
         module: {
           type: "validator",
           address: addresses.K1Validator,
-          context: "0x"
+          data: "0x"
         }
       }),
       nexusClient.supportsExecutionMode({
@@ -261,13 +261,13 @@ describe("nexus.client", async () => {
   })
 
   // Not working
-  test.skip("should uninstall modules", async () => {
+  test("should uninstall modules", async () => {
     const result = await nexusClient.uninstallModules({
       modules: [
         {
           type: "validator",
           address: addresses.K1Validator,
-          context: "0x"
+          data: "0x"
         }
       ]
     })

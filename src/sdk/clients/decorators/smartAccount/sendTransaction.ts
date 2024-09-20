@@ -43,7 +43,8 @@ export async function sendTransaction<
   client: Client<Transport, chain, account>,
   args:
     | SendTransactionParameters<chain, account, chainOverride>
-    | SendUserOperationParameters<account, accountOverride, calls>
+    | SendUserOperationParameters<account, accountOverride, calls>,
+  signature?: `0x${string}`
 ): Promise<Hash> {
   let userOpHash: Hash
 
@@ -83,6 +84,7 @@ export async function sendTransaction<
       account,
       maxFeePerGas,
       maxPriorityFeePerGas,
+      signature,
       nonce: nonce ? BigInt(nonce) : undefined
     })
   } else {
@@ -90,7 +92,7 @@ export async function sendTransaction<
       client,
       sendUserOperation,
       "sendUserOperation"
-    )({ ...args } as SendUserOperationParameters<account, accountOverride>)
+    )({ ...args, signature } as SendUserOperationParameters<account, accountOverride>)
   }
 
   const userOperationReceipt = await getAction(

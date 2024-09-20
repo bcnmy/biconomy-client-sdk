@@ -20,7 +20,7 @@ import contracts from "../__contracts"
 import type { Call } from "../account/utils/Types"
 
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
-import type { UnknownHolder } from "../account/utils/toHolder"
+import type { UnknownSigner } from "../account/utils/toSigner"
 import type { BaseExecutionModule } from "../modules/base/BaseExecutionModule"
 import type { BaseValidationModule } from "../modules/base/BaseValidationModule"
 import { createBicoBundlerClient } from "./createBicoBundlerClient"
@@ -135,7 +135,7 @@ export type NexusClientConfig<
         }
       | undefined
     /** Owner of the account. */
-    holder: UnknownHolder
+    signer: UnknownSigner
     /** Index of the account. */
     index?: bigint
     /** Active module of the account. */
@@ -164,7 +164,7 @@ export type NexusClientConfig<
  *   chain: mainnet,
  *   transport: http('https://mainnet.infura.io/v3/YOUR-PROJECT-ID'),
  *   bundlerTransport: http('https://api.biconomy.io'),
- *   holder: '0x...',
+ *   signer: '0x...',
  * })
  */
 export async function createNexusClient(
@@ -173,7 +173,7 @@ export async function createNexusClient(
   const {
     client: client_,
     chain = parameters.chain ?? client_?.chain,
-    holder,
+    signer,
     index = 0n,
     key = "nexus client",
     name = "Nexus Client",
@@ -202,7 +202,7 @@ export async function createNexusClient(
   const nexusAccount = await toNexusAccount({
     transport,
     chain,
-    holder,
+    signer,
     index,
     activeModule,
     factoryAddress,

@@ -44,6 +44,10 @@ import {
   type UninstallModulesParameters,
   uninstallModules
 } from "./uninstallModules.js"
+import {
+  type GetPreviousModuleParameters,
+  getPreviousModule
+} from "./getPreviousModule.js"
 
 export type Erc7579Actions<TSmartAccount extends SmartAccount | undefined> = {
   accountId: (args?: GetSmartAccountParameter<TSmartAccount>) => Promise<string>
@@ -76,6 +80,7 @@ export type Erc7579Actions<TSmartAccount extends SmartAccount | undefined> = {
   getFallbackBySelector: (
     args: GetFallbackBySelectorParameters<TSmartAccount>
   ) => Promise<[Hex, Hex]>
+  getPreviousModule: (args: GetPreviousModuleParameters<TSmartAccount>) => Promise<Hex>
 }
 
 export type {
@@ -89,7 +94,8 @@ export type {
   UninstallModuleParameters,
   GetInstalledValidatorsParameters,
   GetInstalledExecutorsParameters,
-  GetActiveHookParameters
+  GetActiveHookParameters,
+  GetPreviousModuleParameters
 }
 
 export {
@@ -104,7 +110,8 @@ export {
   getInstalledValidators,
   getInstalledExecutors,
   getActiveHook,
-  getFallbackBySelector
+  getFallbackBySelector,
+  getPreviousModule
 }
 
 export function erc7579Actions() {
@@ -122,13 +129,14 @@ export function erc7579Actions() {
     getInstalledValidators: (args) => getInstalledValidators(client, args),
     getInstalledExecutors: (args) => getInstalledExecutors(client, args),
     getActiveHook: (args) => getActiveHook(client, args),
-    getFallbackBySelector: (args) => getFallbackBySelector(client, args)
+    getFallbackBySelector: (args) => getFallbackBySelector(client, args),
+    getPreviousModule: (args) => getPreviousModule(client, args)
   })
 }
 
 export type Module = {
   address: Address
-  context: Hex
+  data?: Hex
   additionalContext?: Hex
   type: ModuleType
 

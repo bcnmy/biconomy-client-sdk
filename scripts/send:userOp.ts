@@ -49,7 +49,7 @@ const accountTwo = privateKeyToAccount(`0x${privateKeyTwo}`)
 const recipient = accountTwo.address
 
 const nexusClient = await createNexusClient({
-  holder: account,
+  signer: account,
   chain,
   transport: http(),
   bundlerTransport: http(bundlerUrl),

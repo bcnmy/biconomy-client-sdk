@@ -10,7 +10,7 @@ type FetchDetails = {
 }
 const {
   nexusDeploymentPath = "../node_modules/nexus/deployments",
-  chainName = "anvil-51139",
+  chainName = "anvil-55261",
   forSrc = ["K1ValidatorFactory", "Nexus", "K1Validator"]
 } = yargs(hideBin(process.argv)).argv as unknown as FetchDetails
 
@@ -51,8 +51,8 @@ export const getDeployments = async () => {
       )} as const;\n`
 
       const tsAbiPath = isForCore
-        ? `${__dirname}/../src/__contracts/abi/${name}Abi.ts`
-        : `${__dirname}/../test/__contracts/abi/${name}Abi.ts`
+        ? `${__dirname}/../src/sdk/__contracts/abi/${name}Abi.ts`
+        : `${__dirname}/../src/test/__contracts/abi/${name}Abi.ts`
 
       fs.writeFileSync(tsAbiPath, tsAbiContent)
 
@@ -73,15 +73,15 @@ export const getDeployments = async () => {
     .join("\n")}`
 
   // Write the ABIs
-  const abiIndexPath = `${__dirname}/../src/__contracts/abi/index.ts`
+  const abiIndexPath = `${__dirname}/../src/sdk/__contracts/abi/index.ts`
   fs.writeFileSync(abiIndexPath, abiIndexContent)
 
-  const testAbiIndexPath = `${__dirname}/../test/__contracts/abi/index.ts`
+  const testAbiIndexPath = `${__dirname}/../src/test/__contracts/abi/index.ts`
   fs.writeFileSync(testAbiIndexPath, testAbiIndexContent)
 
   // Write addresses to src folder
-  const writeAddressesPath = `${__dirname}/../src/__contracts/addresses.ts`
-  const writeAddressesPathTest = `${__dirname}/../test/__contracts/mockAddresses.ts`
+  const writeAddressesPath = `${__dirname}/../src/sdk/__contracts/addresses.ts`
+  const writeAddressesPathTest = `${__dirname}/../src/test/__contracts/mockAddresses.ts`
 
   const addressesContent = `// The contents of this folder is auto-generated. Please do not edit as your changes are likely to be overwritten\n
   export const addresses = ${JSON.stringify(

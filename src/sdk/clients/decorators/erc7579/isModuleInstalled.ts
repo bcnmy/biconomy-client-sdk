@@ -52,7 +52,7 @@ export async function isModuleInstalled<
 ): Promise<boolean> {
   const {
     account: account_ = client.account,
-    module: { address, context, type }
+    module: { address, data, type }
   } = parameters
 
   if (!account_) {
@@ -100,7 +100,7 @@ export async function isModuleInstalled<
     )({
       abi,
       functionName: "isModuleInstalled",
-      args: [parseModuleTypeId(type), getAddress(address), context],
+      args: [parseModuleTypeId(type), getAddress(address), data ?? "0x"],
       address: account.address
     })) as unknown as Promise<boolean>
   } catch (error) {
@@ -118,7 +118,7 @@ export async function isModuleInstalled<
         data: encodeFunctionData({
           abi,
           functionName: "isModuleInstalled",
-          args: [parseModuleTypeId(type), getAddress(address), context]
+          args: [parseModuleTypeId(type), getAddress(address), data ?? "0x"]
         })
       })
 

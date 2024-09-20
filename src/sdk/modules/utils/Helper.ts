@@ -17,7 +17,7 @@ import {
   getChain
 } from "../../account/index.js"
 import type {
-  ChainInfo,
+  ChainInfo
   // createOwnableValidatorModule
 } from "../../index.js"
 

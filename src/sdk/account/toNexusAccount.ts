@@ -60,7 +60,7 @@ import {
   packUserOp,
   typeToString
 } from "./utils/Utils"
-import { type UnknownHolder, toHolder } from "./utils/toHolder"
+import { Signer, type UnknownSigner, toSigner } from "./utils/toSigner"
 
 /**
  * Parameters for creating a Nexus Smart Account
@@ -70,8 +70,8 @@ export type ToNexusSmartAccountParameters = {
   chain: Chain
   /** The transport configuration */
   transport: ClientConfig["transport"]
-  /** The holder account or address */
-  holder: UnknownHolder
+  /** The signer account or address */
+  signer: UnknownSigner
   /** Optional index for the account */
   index?: bigint | undefined
   /** Optional active validation module */
@@ -113,6 +113,9 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
     encodeExecute: (call: Call) => Promise<Hex>
     encodeExecuteBatch: (calls: readonly Call[]) => Promise<Hex>
     getUserOpHash: (userOp: Partial<UserOperationStruct>) => Promise<Hex>
+    setActiveValidationModule: (validationModule: BaseValidationModule) => void
+    getActiveValidationModule: () => BaseValidationModule
+    getSigner: () => Promise<Signer>
     factoryData: Hex
     factoryAddress: Address
   }
@@ -132,7 +135,7 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
  * const account = await toNexusAccount({
  *   chain: mainnet,
  *   transport: http(),
- *   holder: '0x...',
+ *   signer: '0x...',
  * })
  */
 export const toNexusAccount = async (
@@ -141,7 +144,7 @@ export const toNexusAccount = async (
   const {
     chain,
     transport,
-    holder: holder_,
+    signer: _signer,
     index = 0n,
     activeModule,
     factoryAddress = contracts.k1ValidatorFactory.address,
@@ -150,10 +153,10 @@ export const toNexusAccount = async (
     name = "Nexus Account"
   } = parameters
 
-  const holder = await toHolder({ holder: holder_ })
+  const signer = await toSigner({ signer: _signer })
 
   const masterClient = createWalletClient({
-    account: holder,
+    account: signer,
     chain,
     transport,
     key,
@@ -178,16 +181,16 @@ export const toNexusAccount = async (
     args: [signerAddress, index, [], 0]
   })
 
-  const defaultedActiveModule =
+  let defaultedActiveModule =
     activeModule ??
     new K1ValidatorModule(
       {
         address: k1ValidatorAddress,
         type: "validator",
-        context: signerAddress,
+        data: signerAddress,
         additionalContext: "0x"
       },
-      holder
+      signer
     )
 
   let _accountAddress: Address
@@ -200,6 +203,14 @@ export const toNexusAccount = async (
       args: [signerAddress, index, [], 0]
     })) as Address
     return _accountAddress
+  }
+
+  /**
+   * @description Gets the signer associated with this account
+   * @returns A Promise that resolves to the signer
+   */
+  const getSigner = async (): Promise<Signer> => {
+    return signer
   }
 
   /**
@@ -346,6 +357,24 @@ export const toNexusAccount = async (
   }
 
   /**
+   * @description Changes the active module for the account
+   * @param newModule - The new module to set as active
+   * @returns void
+   */
+  const setActiveValidationModule = (validationModule: BaseValidationModule): void => {
+    defaultedActiveModule = validationModule;
+  }
+
+  /**
+   * @description Gets the active validation module for the account
+   * @returns The active validation module
+   */
+  const getActiveValidationModule = (): BaseValidationModule => {
+    return defaultedActiveModule;
+  }
+
+
+  /**
    * @description Signs a message
    * @param params - The parameters for signing
    * @param params.message - The message to sign
@@ -355,7 +384,7 @@ export const toNexusAccount = async (
     message
   }: { message: SignableMessage }): Promise<Hex> => {
     const tempSignature = await defaultedActiveModule
-      .getHolder()
+      .getSigner()
       .signMessage({ message })
 
     const signature = encodePacked(
@@ -494,12 +523,14 @@ export const toNexusAccount = async (
         parameters
       const address = await getCounterFactualAddress()
       const userOperation = { ...userOpWithoutSender, sender: address }
+      console.log(userOperation, "userOperation");
       const hash = getUserOperationHash({
         chainId,
         entryPointAddress: entryPoint07Address,
         entryPointVersion: "0.7",
         userOperation
       })
+      console.log('calling signUserOpHash');
       return await defaultedActiveModule.signUserOpHash(hash)
     },
     getNonce,
@@ -510,6 +541,9 @@ export const toNexusAccount = async (
       encodeExecute,
       encodeExecuteBatch,
       getUserOpHash,
+      setActiveValidationModule,
+      getActiveValidationModule: () => defaultedActiveModule,
+      getSigner,
       factoryData,
       factoryAddress
     }

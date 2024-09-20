@@ -64,7 +64,7 @@ const publicClient = createPublicClient({
 
 const main = async () => {
   const nexusAccount = await toNexusAccount({
-    holder: account,
+    signer: account,
     chain,
     transport: http(),
     k1ValidatorAddress,

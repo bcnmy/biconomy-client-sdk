@@ -49,7 +49,7 @@ export async function installModule<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    module: { type, address, context }
+    module: { address, data, type }
   } = parameters
 
   if (!account_) {
@@ -93,7 +93,7 @@ export async function installModule<
             }
           ],
           functionName: "installModule",
-          args: [parseModuleTypeId(type), getAddress(address), context]
+          args: [parseModuleTypeId(type), getAddress(address), data ?? "0x"]
         })
       }
     ],

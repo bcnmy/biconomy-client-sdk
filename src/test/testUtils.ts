@@ -12,18 +12,12 @@ import {
   createPublicClient,
   createTestClient,
   createWalletClient,
-  encodeAbiParameters,
-  encodePacked,
-  keccak256,
   parseAbi,
-  parseAbiParameters,
-  publicActions,
-  toBytes,
-  walletActions,
   parseEther,
+  publicActions,
+  walletActions,
   zeroAddress
 } from "viem"
-import { createBundlerClient } from "viem/account-abstraction"
 import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts"
 import contracts from "../sdk/__contracts"
 import { getChain, getCustomChain } from "../sdk/account/utils"
@@ -33,14 +27,14 @@ import {
   createNexusClient
 } from "../sdk/clients/createNexusClient"
 
+import { waitForTransactionReceipt } from "viem/actions"
+import { createBicoBundlerClient } from "../sdk/clients/createBicoBundlerClient"
 import {
   ENTRY_POINT_SIMULATIONS_CREATECALL,
   ENTRY_POINT_V07_CREATECALL,
   TEST_CONTRACTS
 } from "./callDatas"
 import * as hardhatExec from "./executables"
-import { NexusAccount } from "../sdk/account/toNexusAccount"
-import { createBicoBundlerClient } from "../sdk/clients/createBicoBundlerClient"
 
 config()
 
@@ -81,53 +75,65 @@ export const getTestAccount = (
 
 /**
  * Creates a test smart account for testing purposes.
- * 
+ *
  * @param account - The account to use as the signer for the smart account.
  * @param chain - The chain on which to deploy the smart account.
  * @param bundlerUrl - The URL of the bundler service to use.
  * @param index - Optional index to use for account derivation. Defaults to 0 if not provided.
  * @returns A Promise that resolves to a NexusSmartAccount instance.
- * 
+ *
  * @remarks
  * This function creates a smart account, funds it and deploys it if not already deployed,
  * and returns the instance. It's useful for setting up test environments
  * that require a deployed smart account.
- * 
+ *
  * @throws Will throw an error if the smart account deployment fails.
  */
 
-export const getTestSmartAccount = async (
-  account: Account,
-  chain: Chain,
-  bundlerUrl: string,
+export const getTestSmartAccountClient = async ({
+  account,
+  chain,
+  bundlerUrl,
+  index
+}: {
+  account: Account
+  chain: Chain
+  bundlerUrl: string
   index?: bigint
-): Promise<NexusAccount> => {
-  const walletClient = createWalletClient({
-    account,
-    chain,
-    transport: http()
-  })
-
+}): Promise<NexusClient> => {
   const smartAccount = await createNexusClient({
-    signer: walletClient,
+    signer: account,
     chain,
-    bundlerUrl,
+    client: toTestClient(chain, account),
+    transport: http(),
+    bundlerTransport: http(bundlerUrl),
     index
   })
 
-  const isDeployed = await smartAccount.isAccountDeployed();
-  console.log("isDeployed", isDeployed);
+  const isDeployed = await smartAccount.account.isDeployed()
 
-  const smartAccountBalance = await smartAccount.getBalances();
-  if (smartAccountBalance[0].amount === 0n) {
-    const masterClient = toTestClient(chain, account);
-    await topUp(masterClient, await smartAccount.getAddress(), parseEther("0.1"))
+  const smartAccountBalance = await getBalance(
+    smartAccount.client as MasterClient,
+    smartAccount.account.address
+  )
+  console.log(smartAccountBalance, "smartAccountBalance")
+
+  if (smartAccountBalance === 0n) {
+    const masterClient = toTestClient(chain, account)
+    await topUp(masterClient, smartAccount.account.address, parseEther("0.1"))
   }
 
   if (!isDeployed) {
-    const response = await smartAccount.deploy()
-    const receipt = await response.wait()
-    if (!receipt.success) {
+    const hash = await smartAccount.sendTransaction({
+      to: zeroAddress,
+      data: "0x",
+      chain
+    })
+    const receipt = await waitForTransactionReceipt(
+      smartAccount.client as MasterClient,
+      { hash }
+    )
+    if (receipt.status !== "success") {
       throw new Error("Smart account deployment failed")
     }
   }
@@ -368,7 +374,7 @@ export const toFundedTestClients = async ({
   const testClient = toTestClient(chain, getTestAccount())
 
   const nexus = await createNexusClient({
-    holder: account,
+    signer: account,
     transport: http(),
     bundlerTransport: http(bundlerUrl),
     chain

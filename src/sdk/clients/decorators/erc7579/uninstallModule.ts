@@ -57,7 +57,7 @@ export async function uninstallModule<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    module: { address, context, type }
+    module: { address, data, type }
   } = parameters
 
   if (!account_) {
@@ -67,6 +67,7 @@ export async function uninstallModule<
   }
 
   const account = parseAccount(account_) as SmartAccount
+  console.log(account.address, "account.address")
 
   return getAction(
     client,
@@ -101,13 +102,13 @@ export async function uninstallModule<
             }
           ],
           functionName: "uninstallModule",
-          args: [parseModuleTypeId(type), getAddress(address), context]
+          args: [parseModuleTypeId(type), getAddress(address), data ?? "0x"]
         })
       }
     ],
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    account: account
+    account
   })
 }

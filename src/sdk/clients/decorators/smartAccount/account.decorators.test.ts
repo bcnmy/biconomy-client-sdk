@@ -9,6 +9,7 @@ import {
   fundAndDeployClients,
   getBalance,
   getTestAccount,
+  getTestSmartAccountClient,
   killNetwork,
   toTestClient
 } from "../../../../test/testUtils"
@@ -37,11 +38,10 @@ describe("account.decorators", async () => {
     recipientAddress = recipient.address
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await createNexusClient({
-      holder: account,
+    nexusClient = await getTestSmartAccountClient({
+      account,
       chain,
-      transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerUrl
     })
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()

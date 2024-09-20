@@ -29,6 +29,7 @@ import { toNetwork } from "../../test/testSetup"
 import {
   fundAndDeployClients,
   getTestAccount,
+  getTestSmartAccountClient,
   killNetwork,
   toTestClient
 } from "../../test/testUtils"
@@ -77,11 +78,10 @@ describe("nexus.account", async () => {
       transport: http()
     })
 
-    nexusClient = await createNexusClient({
-      holder: account,
+    nexusClient = await getTestSmartAccountClient({
+      account,
       chain,
-      transport: http(),
-      bundlerTransport: http(bundlerUrl)
+      bundlerUrl
     })
 
     nexusAccount = nexusClient.account
