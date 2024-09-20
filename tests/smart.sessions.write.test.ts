@@ -193,12 +193,15 @@ describe("smart.sessions", () => {
     // make EOA owner of SA session key as well
     const sessionKeyEOA = account.address
 
+    // Todo: Add a negative test case for time range policy
     const sessionRequestedInfo: CreateSessionDataParams = {
       sessionPublicKey: sessionKeyEOA,
       sessionValidatorAddress: TEST_CONTRACTS.SimpleSigner.address,
       sessionKeyData: toHex(toBytes(sessionKeyEOA)),
       contractAddress: TEST_CONTRACTS.Counter.address, // counter address
       functionSelector: "0x273ea3e3" as Hex, // function selector for increment count
+      validUntil: 0,
+      validAfter: 0,
       rules: [], // no other rules and conditions applied
       valueLimit: BigInt(0)
     }

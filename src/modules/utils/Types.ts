@@ -322,12 +322,6 @@ export type DanModuleInfo = {
 
 // Review: can make type
 export interface CreateSessionDataParams {
-  // TimeLimitPolicy?
-  // /** window end for the session key */
-  // validUntil: number
-  // /** window start for the session key */
-  // validAfter: number
-  // /** Address of the session validation module */
 
   // Note: below is only taking information specific to universal policy.
   // Other two fields of seesions object (7739 policy and userOp policy will be empty by default)
@@ -339,11 +333,27 @@ export interface CreateSessionDataParams {
 
   sessionKeyData: Hex
 
+  // Note: Maybe below 4 should be arrays
+  // You see for a combination of contractAddress and functionSelector (makes "actionId") multiple action policies can be applied
+  // UniActionAction is only one type of policy that can be applied for given above actionId (so this makes abi SVM)
+  // but someone may not want abiSVM and just some other action policy for selector + destination address
+  // someone may want both universal + timeframe for same selector + destination address
+  // if you have applied multiple selectors + destination addresses combo then you must apply array of rules for each (if using uni action policy)..
+  // this will still make single session object, with array of actionDatas
+  // actionDatas have multiple actionpolicies per actionIds(combo of contractAddress + functionSelector)
+  // I mean above you can also do with making two different sessions one for each functionselector+destination but it makes no sense
+  // so instead of array of CreateSessionDataParams, we could pass inside array of objects referenced by combination of contractAddress+functionSelector
+
   /** The address of the contract to be included in the policy */
   contractAddress: Hex;
 
   /** The specific function selector from the contract to be included in the policy */
   functionSelector: string | AbiFunction;
+
+    /** window end timestamp */
+  validUntil: number
+    /** window start timestamp */
+  validAfter: number
 
   /** The rules  to be included in the policy */
   rules: Rule[];

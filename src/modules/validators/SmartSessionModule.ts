@@ -1,4 +1,4 @@
-import { AbiFunction, Address, encodeAbiParameters, encodeFunctionData, PublicClient, type Hex } from "viem"
+import { AbiFunction, Address, encodeAbiParameters, encodeFunctionData, encodePacked, pad, PublicClient, toBytes, toHex, type Hex } from "viem"
 import addresses from "../../__contracts/addresses.js"
 import type { SmartAccountSigner } from "../../account/index.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
@@ -11,6 +11,7 @@ const DUMMY_ECDSA_SIG = "0xe8b94748580ca0b4993c9a1b86b5be851bfc076ff5ce3a1ff65bf
 
 // Todo: review and discuss importing and naming between addresses and TEST_CONTRACTS
 const UNIVERSAL_POLICY_ADDRESS = addresses.UniActionPolicy
+const TIMEFRAME_POLICY_ADDRESS = addresses.TimeframePolicy
 const SMART_SESSION_ADDRESS = addresses.SmartSession
 const SIMPLE_SESSION_VALIDATOR_ADDRESS = addresses.SimpleSigner
 
@@ -107,7 +108,7 @@ export class SmartSessionModule extends BaseValidationModule {
       const actionConfig = createActionConfig(sessionInfo.rules, sessionInfo.valueLimit);
 
       // Build PolicyData
-      const policyData: PolicyData = {
+      const uniActionPolicyData: PolicyData = {
         policy: UNIVERSAL_POLICY_ADDRESS,
         // Build initData for UniversalActionPolicy
         initData: encodeAbiParameters(universalActionPolicyAbi, [
@@ -116,10 +117,29 @@ export class SmartSessionModule extends BaseValidationModule {
         
       };
 
+      // note: optimise
+
+      const validUntilBytes = pad(toBytes(sessionInfo.validUntil, { size: 6 }), { dir: 'right', size: 16 }); // Convert to bytes16
+      const validAfterBytes = pad(toBytes(sessionInfo.validAfter, { size: 6 }), { dir: 'right', size: 16 }); // Convert to bytes16
+
+      // Pack them using encodePacked to replicate Solidity abi.encodePacked
+      const packedData = encodePacked(['bytes16', 'bytes16'], [toHex(validUntilBytes), toHex(validAfterBytes)]);
+      console.log("packedData", packedData)
+
+      const timeFramePolicyData: PolicyData = {
+        policy: TIMEFRAME_POLICY_ADDRESS,
+        // Build initData for TimeframePolicy
+        initData: packedData
+      };
+
       // Create policyDataArray with single element
       // here and above policies can be stacked.
-      const policyDataArray: PolicyData[] = [policyData];
+      const policyDataArray: PolicyData[] = [uniActionPolicyData, timeFramePolicyData];
 
+
+      // one action data per combination of contract address and function selector
+      // which can have many action polciies (abi savm = uni action can be one of them)
+      // and they all apply to combo of contract address and function selector aka actionId
 
       // Build ActionData
       const actionData = createActionData(
@@ -133,7 +153,7 @@ export class SmartSessionModule extends BaseValidationModule {
         sessionValidator: sessionInfo.sessionValidatorAddress ?? SIMPLE_SESSION_VALIDATOR_ADDRESS,
         sessionValidatorInitData: sessionInfo.sessionKeyData, // sessionValidatorInitData: abi.encodePacked(sessionSigner1.addr),
         salt: generateSalt(),
-        userOpPolicies: [],
+        userOpPolicies: [], //note: timeframe policy can also be applied to userOp, so it will have to be provided separately
         actions: [actionData],
         erc7739Policies: {
           allowedERC7739Content: [],
