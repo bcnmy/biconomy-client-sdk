@@ -119,12 +119,17 @@ export class SmartSessionModule extends BaseValidationModule {
 
       // note: optimise
 
-      const validUntilBytes = pad(toBytes(sessionInfo.validUntil, { size: 6 }), { dir: 'right', size: 16 }); // Convert to bytes16
-      const validAfterBytes = pad(toBytes(sessionInfo.validAfter, { size: 6 }), { dir: 'right', size: 16 }); // Convert to bytes16
+      // Assuming `sessionInfo.validUntil` and `sessionInfo.validAfter` are already provided.
+      const validUntil = BigInt(sessionInfo.validUntil); // uint128 in Solidity is represented as BigInt in TypeScript
+      const validAfter = BigInt(sessionInfo.validAfter);
+
+      // Convert to bytes16 using 128-bit representation (uint128) and pad them correctly
+      const validUntilBytes = pad(toBytes(validUntil, { size: 16 }), { dir: 'right', size: 16 });
+      const validAfterBytes = pad(toBytes(validAfter, { size: 16 }), { dir: 'right', size: 16 });
 
       // Pack them using encodePacked to replicate Solidity abi.encodePacked
       const packedData = encodePacked(['bytes16', 'bytes16'], [toHex(validUntilBytes), toHex(validAfterBytes)]);
-      console.log("packedData", packedData)
+      // console.log("packedData", packedData);
 
       const timeFramePolicyData: PolicyData = {
         policy: TIMEFRAME_POLICY_ADDRESS,
@@ -147,6 +152,8 @@ export class SmartSessionModule extends BaseValidationModule {
         sessionInfo.functionSelector,
         policyDataArray
       );
+
+      // console.log("actionData", actionData)
 
       // Build Session object
       const session: Session = {

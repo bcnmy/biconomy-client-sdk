@@ -200,7 +200,7 @@ describe("smart.sessions", () => {
       sessionKeyData: toHex(toBytes(sessionKeyEOA)),
       contractAddress: TEST_CONTRACTS.Counter.address, // counter address
       functionSelector: "0x273ea3e3" as Hex, // function selector for increment count
-      validUntil: 0,
+      validUntil: 0, // 1717001666
       validAfter: 0,
       rules: [], // no other rules and conditions applied
       valueLimit: BigInt(0)
@@ -269,6 +269,11 @@ describe("smart.sessions", () => {
       abi: CounterAbi,
       functionName: "getNumber",
       args: []
+    })
+
+    // helpful for out of range test
+    await testClient.setNextBlockTimestamp({ 
+      timestamp: 3727001666n
     })
 
     // Make userop to increase counter
