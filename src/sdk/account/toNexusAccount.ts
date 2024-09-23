@@ -60,7 +60,7 @@ import {
   packUserOp,
   typeToString
 } from "./utils/Utils"
-import { Signer, type UnknownSigner, toSigner } from "./utils/toSigner"
+import { type UnknownSigner, toSigner } from "./utils/toSigner"
 
 /**
  * Parameters for creating a Nexus Smart Account

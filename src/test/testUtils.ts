@@ -13,7 +13,6 @@ import {
   createTestClient,
   createWalletClient,
   parseAbi,
-  parseEther,
   publicActions,
   walletActions,
   zeroAddress
@@ -26,8 +25,6 @@ import {
   type NexusClient,
   createNexusClient
 } from "../sdk/clients/createNexusClient"
-
-import { waitForTransactionReceipt } from "viem/actions"
 import { createBicoBundlerClient } from "../sdk/clients/createBicoBundlerClient"
 import {
   ENTRY_POINT_SIMULATIONS_CREATECALL,

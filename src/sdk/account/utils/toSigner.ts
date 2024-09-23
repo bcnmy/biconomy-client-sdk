@@ -22,6 +22,7 @@ export type UnknownSigner = OneOf<
   | EIP1193Provider
   | WalletClient<Transport, Chain | undefined, Account>
   | LocalAccount
+  | Account
 >
 export async function toSigner({
   signer,

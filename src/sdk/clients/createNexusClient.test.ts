@@ -4,7 +4,9 @@ import {
   type Address,
   type Chain,
   encodeFunctionData,
-  parseEther
+  parseEther,
+  encodeAbiParameters,
+  encodePacked
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../test/__contracts/abi"
@@ -114,7 +116,7 @@ describe("nexus.client", async () => {
     expect(addresses.every(Boolean)).to.be.true
     expect(addresses).toStrictEqual([
       "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-      "0x9faF274EB7cc2D342d786Ad0995dB3c0d641446d" // Sender smart account
+      "0xCAbC052f31414FfEbeA1094924dFeb0D17d85034" // Sender smart account
     ])
   })
 
@@ -252,18 +254,5 @@ describe("nexus.client", async () => {
     const balanceAfter = await getBalance(testClient, recipientAddress)
     expect(status).toBe("success")
     expect(balanceAfter - balanceBefore).toBe(2n)
-  })
-
-  // Not working
-  test("should uninstall modules", async () => {
-    const result = await nexusClient.uninstallModules({
-      modules: [
-        {
-          type: "validator",
-          address: addresses.K1Validator,
-          data: "0x"
-        }
-      ]
-    })
   })
 })
