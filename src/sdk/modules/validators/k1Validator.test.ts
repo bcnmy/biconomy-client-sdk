@@ -78,7 +78,6 @@ describe("modules.k1Validator.write", async () => {
         data: encodePacked(["address"], [account.address])
       }
     })
-    console.log(isInstalledBefore, "isInstalledBefore");
 
     if (!isInstalledBefore) {
       const hash = await nexusClient.installModule({

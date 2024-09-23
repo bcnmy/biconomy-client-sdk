@@ -133,7 +133,6 @@ describe("modules.ownableValidator", async () => {
       functionName: "getOwners",
       args: [nexusClient.account.address]
     })
-    console.log(owners, "owners");
     expect(owners).toContain(recipient.address)
   })
 
@@ -159,7 +158,6 @@ describe("modules.ownableValidator", async () => {
         }
       ]
     })
-    console.log(userOpHash, "userOpHash");
     expect(userOpHash).toBeDefined()
   }, 90000)
 

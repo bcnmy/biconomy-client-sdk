@@ -116,7 +116,6 @@ export const getTestSmartAccountClient = async ({
     smartAccount.client as MasterClient,
     smartAccount.account.address
   )
-  console.log(smartAccountBalance, "smartAccountBalance")
 
   if (smartAccountBalance === 0n) {
     const masterClient = toTestClient(chain, account)

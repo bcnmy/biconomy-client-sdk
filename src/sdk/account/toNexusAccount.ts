@@ -226,7 +226,6 @@ export const toNexusAccount = async (
         _accountAddress = e?.cause.data.args[0] as Address
         return _accountAddress
       }
-      console.log("Im in here", e)
     }
     throw new Error("Failed to get counterfactual account address")
   }
@@ -523,14 +522,12 @@ export const toNexusAccount = async (
         parameters
       const address = await getCounterFactualAddress()
       const userOperation = { ...userOpWithoutSender, sender: address }
-      console.log(userOperation, "userOperation");
       const hash = getUserOperationHash({
         chainId,
         entryPointAddress: entryPoint07Address,
         entryPointVersion: "0.7",
         userOperation
       })
-      console.log('calling signUserOpHash');
       return await defaultedActiveModule.signUserOpHash(hash)
     },
     getNonce,
