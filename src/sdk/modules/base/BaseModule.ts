@@ -1,6 +1,6 @@
 import { type Address, type Hex, encodeFunctionData, parseAbi } from "viem"
 import contracts from "../../__contracts/index.js"
-import type { Holder } from "../../account/utils/toHolder.js"
+import type { Signer } from "../../account/utils/toSigner.js"
 import type { Module } from "../../clients/decorators/erc7579/index.js"
 import {
   type ModuleType,
@@ -10,21 +10,21 @@ import {
 
 export abstract class BaseModule {
   address: Address
-  context: Hex
+  data: Hex
   additionalContext: Hex
   type: ModuleType
   hook?: Address
   version: ModuleVersion = "1.0.0-beta"
   entryPoint: Address = contracts.entryPoint.address
-  holder: Holder
+  signer: Signer
 
-  constructor(module: Module, holder: Holder) {
+  constructor(module: Module, signer: Signer) {
     this.address = module.address
-    this.context = module.context ?? "0x"
+    this.data = module.data ?? "0x"
     this.additionalContext = module.additionalContext ?? "0x"
     this.hook = module.hook
     this.type = module.type
-    this.holder = holder
+    this.signer = signer
   }
 
   public installModule(): Hex {
@@ -33,11 +33,7 @@ export abstract class BaseModule {
         "function installModule(uint256 moduleTypeId, address module, bytes calldata initData) external"
       ]),
       functionName: "installModule",
-      args: [
-        BigInt(moduleTypeIds[this.type]),
-        this.address,
-        this.context ?? "0x"
-      ]
+      args: [BigInt(moduleTypeIds[this.type]), this.address, this.data ?? "0x"]
     })
 
     return installModuleData
@@ -82,14 +78,14 @@ export abstract class BaseModule {
    * @returns True if the module is initialized for the given smart account, false otherwise.
    */
   public isInitialized(smartAccount: Address): Hex {
-    const isInitializedeData = encodeFunctionData({
+    const isInitializedData = encodeFunctionData({
       abi: parseAbi([
         "function isInitialized(address smartAccount) external view returns (bool)"
       ]),
       functionName: "isInitialized",
       args: [smartAccount]
     })
-    return isInitializedeData
+    return isInitializedData
   }
 
   public getAddress(): Hex {

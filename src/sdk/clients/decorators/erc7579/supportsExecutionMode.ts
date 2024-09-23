@@ -25,7 +25,7 @@ export type ExecutionMode<callType extends CallType> = {
   type: callType
   revertOnError?: boolean
   selector?: Hex
-  context?: Hex
+  data?: Hex
 }
 
 export type SupportsExecutionModeParameters<
@@ -54,7 +54,7 @@ export function encodeExecutionMode<callType extends CallType>({
   type,
   revertOnError,
   selector,
-  context
+  data
 }: ExecutionMode<callType>): Hex {
   return encodePacked(
     ["bytes1", "bytes1", "bytes4", "bytes4", "bytes22"],
@@ -63,7 +63,7 @@ export function encodeExecutionMode<callType extends CallType>({
       toHex(toBytes(revertOnError ? "0x01" : "0x00", { size: 1 })),
       toHex(toBytes("0x0", { size: 4 })),
       toHex(toBytes(selector ?? "0x", { size: 4 })),
-      toHex(toBytes(context ?? "0x", { size: 22 }))
+      toHex(toBytes(data ?? "0x", { size: 22 }))
     ]
   )
 }
@@ -98,7 +98,7 @@ export async function supportsExecutionMode<
     type,
     revertOnError,
     selector,
-    context
+    data
   } = args
 
   if (!account_) {
@@ -115,7 +115,7 @@ export async function supportsExecutionMode<
     type,
     revertOnError,
     selector,
-    context
+    data
   })
 
   const abi = [

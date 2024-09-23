@@ -72,7 +72,7 @@ export async function uninstallModules<
     sendUserOperation,
     "sendUserOperation"
   )({
-    calls: modules.map(({ type, address, context }) => ({
+    calls: modules.map(({ type, address, data }) => ({
       to: account.address,
       value: BigInt(0),
       data: encodeFunctionData({
@@ -99,7 +99,7 @@ export async function uninstallModules<
           }
         ],
         functionName: "uninstallModule",
-        args: [parseModuleTypeId(type), getAddress(address), context]
+        args: [parseModuleTypeId(type), getAddress(address), data ?? "0x"]
       })
     })),
     maxFeePerGas,

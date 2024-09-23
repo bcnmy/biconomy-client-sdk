@@ -98,7 +98,7 @@
     "execa": "^9.3.1",
     "get-port": "^7.1.0",
     "gh-pages": "^6.1.1",
-    "nexus": "github:bcnmy/nexus#7f8410d6f8037b698b9dd08e6da9008cbd30418a",
+    "nexus": "github:bcnmy/nexus#16273fdb3baa26e03c8b536ca3a9156197c8410a",
     "prool": "^0.0.16",
     "rimraf": "^5.0.5",
     "simple-git-hooks": "^2.9.0",
@@ -125,6 +125,7 @@
     "commit-msg": "npx --no -- commitlint --edit ${1}"
   },
   "dependencies": {
+    "@rhinestone/module-sdk": "^0.1.17",
     "merkletreejs": "^0.3.11"
   }
 }

@@ -20,7 +20,7 @@ import contracts from "../__contracts"
 import type { Call } from "../account/utils/Types"
 
 import { type NexusAccount, toNexusAccount } from "../account/toNexusAccount"
-import type { UnknownHolder } from "../account/utils/toHolder"
+import type { UnknownSigner } from "../account/utils/toSigner"
 import type { BaseExecutionModule } from "../modules/base/BaseExecutionModule"
 import type { BaseValidationModule } from "../modules/base/BaseValidationModule"
 import { createBicoBundlerClient } from "./createBicoBundlerClient"
@@ -51,34 +51,34 @@ export type NexusClient<
     ClientConfig<transport, chain, account, rpcSchema>,
     "cacheTime" | "chain" | "key" | "name" | "pollingInterval" | "rpcSchema"
   > &
-    BundlerActions<NexusAccount> &
-    Erc7579Actions<NexusAccount> &
-    SmartAccountActions<chain, NexusAccount> & {
-      /**
-       * The Nexus account associated with this client
-       */
-      account: NexusAccount
-      /**
-       * Optional client for additional functionality
-       */
-      client?: client | Client | undefined
-      /**
-       * Transport configuration for the bundler
-       */
-      bundlerTransport?: BundlerClientConfig["transport"]
-      /**
-       * Optional paymaster configuration
-       */
-      paymaster?: BundlerClientConfig["paymaster"] | undefined
-      /**
-       * Optional paymaster context
-       */
-      paymasterContext?: BundlerClientConfig["paymasterContext"] | undefined
-      /**
-       * Optional user operation configuration
-       */
-      userOperation?: BundlerClientConfig["userOperation"] | undefined
-    }
+  BundlerActions<NexusAccount> &
+  Erc7579Actions<NexusAccount> &
+  SmartAccountActions<chain, NexusAccount> & {
+    /**
+     * The Nexus account associated with this client
+     */
+    account: NexusAccount
+    /**
+     * Optional client for additional functionality
+     */
+    client?: client | Client | undefined
+    /**
+     * Transport configuration for the bundler
+     */
+    bundlerTransport?: BundlerClientConfig["transport"]
+    /**
+     * Optional paymaster configuration
+     */
+    paymaster?: BundlerClientConfig["paymaster"] | undefined
+    /**
+     * Optional paymaster context
+     */
+    paymasterContext?: BundlerClientConfig["paymasterContext"] | undefined
+    /**
+     * Optional user operation configuration
+     */
+    userOperation?: BundlerClientConfig["userOperation"] | undefined
+  }
 >
 
 /**
@@ -109,37 +109,37 @@ export type NexusClientConfig<
     client?: client | Client | undefined
     /** Paymaster configuration. */
     paymaster?:
-      | true
-      | {
-          /** Retrieves paymaster-related User Operation properties to be used for sending the User Operation. */
-          getPaymasterData?: PaymasterActions["getPaymasterData"] | undefined
-          /** Retrieves paymaster-related User Operation properties to be used for gas estimation. */
-          getPaymasterStubData?:
-            | PaymasterActions["getPaymasterStubData"]
-            | undefined
-        }
+    | true
+    | {
+      /** Retrieves paymaster-related User Operation properties to be used for sending the User Operation. */
+      getPaymasterData?: PaymasterActions["getPaymasterData"] | undefined
+      /** Retrieves paymaster-related User Operation properties to be used for gas estimation. */
+      getPaymasterStubData?:
+      | PaymasterActions["getPaymasterStubData"]
       | undefined
+    }
+    | undefined
     /** Paymaster context to pass to `getPaymasterData` and `getPaymasterStubData` calls. */
     paymasterContext?: unknown
     /** User Operation configuration. */
     userOperation?:
-      | {
-          /** Prepares fee properties for the User Operation request. */
-          estimateFeesPerGas?:
-            | ((parameters: {
-                account: account | SmartAccount
-                bundlerClient: Client
-                userOperation: UserOperationRequest
-              }) => Promise<EstimateFeesPerGasReturnType<"eip1559">>)
-            | undefined
-        }
+    | {
+      /** Prepares fee properties for the User Operation request. */
+      estimateFeesPerGas?:
+      | ((parameters: {
+        account: account | SmartAccount
+        bundlerClient: Client
+        userOperation: UserOperationRequest
+      }) => Promise<EstimateFeesPerGasReturnType<"eip1559">>)
       | undefined
+    }
+    | undefined
     /** Owner of the account. */
-    holder: UnknownHolder
+    signer: UnknownSigner
     /** Index of the account. */
     index?: bigint
     /** Active module of the account. */
-    activeModule?: BaseValidationModule
+    activeValidationModule?: BaseValidationModule
     /** Executor module of the account. */
     executorModule?: BaseExecutionModule
     /** Factory address of the account. */
@@ -164,7 +164,7 @@ export type NexusClientConfig<
  *   chain: mainnet,
  *   transport: http('https://mainnet.infura.io/v3/YOUR-PROJECT-ID'),
  *   bundlerTransport: http('https://api.biconomy.io'),
- *   holder: '0x...',
+ *   signer: '0x...',
  * })
  */
 export async function createNexusClient(
@@ -173,11 +173,11 @@ export async function createNexusClient(
   const {
     client: client_,
     chain = parameters.chain ?? client_?.chain,
-    holder,
+    signer,
     index = 0n,
     key = "nexus client",
     name = "Nexus Client",
-    activeModule,
+    activeValidationModule,
     factoryAddress = contracts.k1ValidatorFactory.address,
     k1ValidatorAddress = contracts.k1Validator.address,
     bundlerTransport,
@@ -202,9 +202,9 @@ export async function createNexusClient(
   const nexusAccount = await toNexusAccount({
     transport,
     chain,
-    holder,
+    signer,
     index,
-    activeModule,
+    activeValidationModule,
     factoryAddress,
     k1ValidatorAddress
   })

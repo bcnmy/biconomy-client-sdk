@@ -40,7 +40,7 @@ describe("smart.sessions", async () => {
     testClient = toTestClient(chain, getTestAccount(5))
 
     nexusClient = await createNexusClient({
-      holder: account,
+      signer: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)

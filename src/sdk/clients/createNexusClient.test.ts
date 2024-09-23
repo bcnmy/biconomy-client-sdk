@@ -1,16 +1,12 @@
-import { AbiCoder, ParamType } from "ethers/abi"
-import { JsonRpcProvider } from "ethers/providers"
-import { Wallet } from "ethers/wallet"
 import {
   http,
-  type AbiParameter,
   type Account,
   type Address,
   type Chain,
-  type Hex,
-  encodeAbiParameters,
   encodeFunctionData,
-  parseEther
+  parseEther,
+  encodeAbiParameters,
+  encodePacked
 } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { CounterAbi } from "../../test/__contracts/abi"
@@ -56,7 +52,7 @@ describe("nexus.client", async () => {
     testClient = toTestClient(chain, getTestAccount(5))
 
     nexusClient = await createNexusClient({
-      holder: account,
+      signer: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
@@ -120,7 +116,7 @@ describe("nexus.client", async () => {
     expect(addresses.every(Boolean)).to.be.true
     expect(addresses).toStrictEqual([
       "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-      "0x9faF274EB7cc2D342d786Ad0995dB3c0d641446d" // Sender smart account
+      "0xCAbC052f31414FfEbeA1094924dFeb0D17d85034" // Sender smart account
     ])
   })
 
@@ -157,19 +153,19 @@ describe("nexus.client", async () => {
     expect(result).toBeTruthy()
   }, 30000)
 
-  test.skip("should create a nexusAccount from an ethers signer", async () => {
-    const ethersProvider = new JsonRpcProvider(chain.rpcUrls.default.http[0])
-    const ethersSigner = new Wallet(pKey, ethersProvider)
+  // test("should create a nexusAccount from an ethers signer", async () => {
+  //   const ethersProvider = new JsonRpcProvider(chain.rpcUrls.default.http[0])
+  //   const ethersSigner = new Wallet(pKey, ethersProvider)
 
-    const ethOwnerNexusClient = await createNexusClient({
-      chain,
-      owner: (await ethersSigner.getAddress()) as Hex,
-      bundlerTransport: http(bundlerUrl),
-      transport: http(chain.rpcUrls.default.http[0])
-    })
+  //   const ethOwnerNexusClient = await createNexusClient({
+  //     chain,
+  //     bundlerTransport: http(bundlerUrl),
+  //     signer: ethersSigner,
+  //     transport: http(chain.rpcUrls.default.http[0])
+  //   })
 
-    expect(await ethOwnerNexusClient.account.getAddress()).toBeTruthy()
-  })
+  //   expect(await ethOwnerNexusClient.account.getAddress()).toBeTruthy()
+  // })
 
   test("should read estimated user op gas values", async () => {
     const userOp = await nexusClient.prepareUserOperation({
@@ -202,19 +198,19 @@ describe("nexus.client", async () => {
   test("should have correct fields", async () => {
     const chainId = 1
     const chain = getChain(chainId)
-    ;[
-      "blockExplorers",
-      "contracts",
-      "fees",
-      "formatters",
-      "id",
-      "name",
-      "nativeCurrency",
-      "rpcUrls",
-      "serializers"
-    ].every((field) => {
-      expect(chain).toHaveProperty(field)
-    })
+      ;[
+        "blockExplorers",
+        "contracts",
+        "fees",
+        "formatters",
+        "id",
+        "name",
+        "nativeCurrency",
+        "rpcUrls",
+        "serializers"
+      ].every((field) => {
+        expect(chain).toHaveProperty(field)
+      })
   })
 
   test("should throw an error, chain id not found", async () => {
@@ -234,7 +230,7 @@ describe("nexus.client", async () => {
         module: {
           type: "validator",
           address: addresses.K1Validator,
-          context: "0x"
+          data: "0x"
         }
       }),
       nexusClient.supportsExecutionMode({
@@ -258,18 +254,5 @@ describe("nexus.client", async () => {
     const balanceAfter = await getBalance(testClient, recipientAddress)
     expect(status).toBe("success")
     expect(balanceAfter - balanceBefore).toBe(2n)
-  })
-
-  // Not working
-  test.skip("should uninstall modules", async () => {
-    const result = await nexusClient.uninstallModules({
-      modules: [
-        {
-          type: "validator",
-          address: addresses.K1Validator,
-          context: "0x"
-        }
-      ]
-    })
   })
 })

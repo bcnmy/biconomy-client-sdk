@@ -44,12 +44,22 @@ import {
   type UninstallModulesParameters,
   uninstallModules
 } from "./uninstallModules.js"
+import {
+  type GetPreviousModuleParameters,
+  getPreviousModule
+} from "./getPreviousModule.js"
 
 export type Erc7579Actions<TSmartAccount extends SmartAccount | undefined> = {
   accountId: (args?: GetSmartAccountParameter<TSmartAccount>) => Promise<string>
-  installModule: (args: InstallModuleParameters<TSmartAccount>) => Promise<Hash>
+  installModule: (
+    args: InstallModuleParameters<TSmartAccount> & {
+      signatureOverride?: Hex
+    }
+  ) => Promise<Hash>
   installModules: (
-    args: InstallModulesParameters<TSmartAccount>
+    args: InstallModulesParameters<TSmartAccount> & {
+      signatureOverride?: Hex
+    }
   ) => Promise<Hash>
   isModuleInstalled: (
     args: IsModuleInstalledParameters<TSmartAccount>
@@ -61,10 +71,14 @@ export type Erc7579Actions<TSmartAccount extends SmartAccount | undefined> = {
     args: SupportsModuleParameters<TSmartAccount>
   ) => Promise<boolean>
   uninstallModule: (
-    args: UninstallModuleParameters<TSmartAccount>
+    args: UninstallModuleParameters<TSmartAccount> & {
+      signatureOverride?: Hex
+    }
   ) => Promise<Hash>
   uninstallModules: (
-    args: UninstallModulesParameters<TSmartAccount>
+    args: UninstallModulesParameters<TSmartAccount> & {
+      signatureOverride?: Hex
+    }
   ) => Promise<Hash>
   getInstalledValidators: (
     args: GetInstalledValidatorsParameters<TSmartAccount>
@@ -76,6 +90,7 @@ export type Erc7579Actions<TSmartAccount extends SmartAccount | undefined> = {
   getFallbackBySelector: (
     args: GetFallbackBySelectorParameters<TSmartAccount>
   ) => Promise<[Hex, Hex]>
+  getPreviousModule: (args: GetPreviousModuleParameters<TSmartAccount>) => Promise<Hex>
 }
 
 export type {
@@ -89,7 +104,8 @@ export type {
   UninstallModuleParameters,
   GetInstalledValidatorsParameters,
   GetInstalledExecutorsParameters,
-  GetActiveHookParameters
+  GetActiveHookParameters,
+  GetPreviousModuleParameters
 }
 
 export {
@@ -104,7 +120,8 @@ export {
   getInstalledValidators,
   getInstalledExecutors,
   getActiveHook,
-  getFallbackBySelector
+  getFallbackBySelector,
+  getPreviousModule
 }
 
 export function erc7579Actions() {
@@ -122,13 +139,14 @@ export function erc7579Actions() {
     getInstalledValidators: (args) => getInstalledValidators(client, args),
     getInstalledExecutors: (args) => getInstalledExecutors(client, args),
     getActiveHook: (args) => getActiveHook(client, args),
-    getFallbackBySelector: (args) => getFallbackBySelector(client, args)
+    getFallbackBySelector: (args) => getFallbackBySelector(client, args),
+    getPreviousModule: (args) => getPreviousModule(client, args)
   })
 }
 
 export type Module = {
   address: Address
-  context: Hex
+  data?: Hex
   additionalContext?: Hex
   type: ModuleType
 

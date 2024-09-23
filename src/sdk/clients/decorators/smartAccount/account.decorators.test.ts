@@ -38,12 +38,11 @@ describe("account.decorators", async () => {
     testClient = toTestClient(chain, getTestAccount(5))
 
     nexusClient = await createNexusClient({
-      holder: account,
+      signer: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
     })
-
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
     await fundAndDeployClients(testClient, [nexusClient])
   })
@@ -56,7 +55,7 @@ describe("account.decorators", async () => {
     const signedMessage = await nexusClient.signMessage({ message: "hello" })
 
     expect(signedMessage).toEqual(
-      "0x6854688d3d9a87a33addd5f4deb5cea1b97fa5b7f16ea9a3478698f695fd1401bfe27e9e4a7e8e3da94aa72b021125e31fa899cc573c48ea3fe1d4ab61a9db10c19032026e3ed2dbccba5a178235ac27f94504311c"
+      "0x08fca672878ad598fbdaddebfbb71dd9ba90b75af16ea9a3478698f695fd1401bfe27e9e4a7e8e3da94aa72b021125e31fa899cc573c48ea3fe1d4ab61a9db10c19032026e3ed2dbccba5a178235ac27f94504311c"
     )
   })
 

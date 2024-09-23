@@ -1,6 +1,14 @@
-import { textSpanOverlapsWith } from "typescript"
-import { http, type Account, type Address, type Chain, isHex } from "viem"
+import {
+  http,
+  type Account,
+  type Address,
+  type Chain,
+  encodePacked,
+  isHex,
+  encodeAbiParameters,
+} from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
+import mockAddresses from "../../../../test/__contracts/mockAddresses"
 import { toNetwork } from "../../../../test/testSetup"
 import {
   type MasterClient,
@@ -20,7 +28,7 @@ describe("erc7579.decorators", async () => {
 
   // Test utils
   let testClient: MasterClient
-  let account: Account
+  let eoaAccount: Account
   let nexusClient: NexusClient
   let nexusAccountAddress: Address
   let recipient: Account
@@ -31,13 +39,13 @@ describe("erc7579.decorators", async () => {
 
     chain = network.chain
     bundlerUrl = network.bundlerUrl
-    account = getTestAccount(0)
+    eoaAccount = getTestAccount(0)
     recipient = getTestAccount(1)
     recipientAddress = recipient.address
     testClient = toTestClient(chain, getTestAccount(5))
 
     nexusClient = await createNexusClient({
-      holder: account,
+      signer: eoaAccount,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
@@ -71,7 +79,7 @@ describe("erc7579.decorators", async () => {
         module: {
           type: "validator",
           address: contracts.k1Validator.address,
-          context: "0x"
+          data: "0x"
         }
       })
     ])
@@ -85,15 +93,12 @@ describe("erc7579.decorators", async () => {
     expect(isK1ValidatorInstalled).toBe(true)
   })
 
-  test.skip("should uninstall a module", async () => {
-    const gas = await testClient.estimateFeesPerGas()
-
-    const hash = await nexusClient.uninstallModule({
-      ...gas,
+  test("should install a module", async () => {
+    const hash = await nexusClient.installModule({
       module: {
         type: "validator",
-        address: contracts.k1Validator.address,
-        context: "0x"
+        address: mockAddresses.MockValidator,
+        data: encodePacked(["address"], [eoaAccount.address])
       }
     })
 
@@ -101,12 +106,28 @@ describe("erc7579.decorators", async () => {
     expect(success).toBe(true)
   })
 
-  test.skip("should install a module", async () => {
-    const hash = await nexusClient.installModule({
+  test("should uninstall a module", async () => {
+    const [installedValidators, nextCursor] = await nexusClient.getInstalledValidators({})
+
+    const prevModule = await nexusClient.getPreviousModule({
+      module: {
+        address: mockAddresses.MockValidator,
+        type: "validator"
+      },
+      installedValidators
+    })
+
+    const hash = await nexusClient.uninstallModule({
       module: {
         type: "validator",
-        address: contracts.k1Validator.address,
-        context: "0x"
+        address: mockAddresses.MockValidator,
+        data: encodeAbiParameters(
+          [
+            { name: "prev", type: "address" },
+            { name: "disableModuleData", type: "bytes" }
+          ],
+          [prevModule, encodePacked(["address"], [eoaAccount.address])]
+        )
       }
     })
 

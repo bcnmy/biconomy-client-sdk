@@ -1,4 +1,4 @@
-import { type Client, type Hex, encodeFunctionData, getAddress } from "viem"
+import { type Chain, type Client, type Hex, type Transport, encodeFunctionData, getAddress } from "viem"
 import {
   type GetSmartAccountParameter,
   type SmartAccount,
@@ -41,7 +41,7 @@ export type InstallModuleParameters<
 export async function installModule<
   TSmartAccount extends SmartAccount | undefined
 >(
-  client: Client,
+  client: Client<Transport, Chain | undefined, TSmartAccount>,
   parameters: InstallModuleParameters<TSmartAccount>
 ): Promise<Hex> {
   const {
@@ -49,7 +49,7 @@ export async function installModule<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    module: { type, address, context }
+    module: { address, data, type }
   } = parameters
 
   if (!account_) {
@@ -93,7 +93,7 @@ export async function installModule<
             }
           ],
           functionName: "installModule",
-          args: [parseModuleTypeId(type), getAddress(address), context]
+          args: [parseModuleTypeId(type), getAddress(address), data ?? "0x"]
         })
       }
     ],

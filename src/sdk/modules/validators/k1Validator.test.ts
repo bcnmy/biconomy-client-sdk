@@ -1,4 +1,4 @@
-import { http, type Account, type Address, type Chain } from "viem"
+import { encodeAbiParameters, encodePacked, http, type Account, type Address, type Chain } from "viem"
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { toNetwork } from "../../../test/testSetup"
 import {
@@ -40,7 +40,7 @@ describe("modules.k1Validator.write", async () => {
     testClient = toTestClient(chain, getTestAccount(5))
 
     nexusClient = await createNexusClient({
-      holder: account,
+      signer: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)
@@ -70,12 +70,12 @@ describe("modules.k1Validator.write", async () => {
     expect(balanceAfter - balanceBefore).toBe(1n)
   })
 
-  test.skip("should install k1 validator with 1 owner", async () => {
+  test("should install k1 validator with 1 owner", async () => {
     const isInstalledBefore = await nexusClient.isModuleInstalled({
       module: {
         type: "validator",
         address: addresses.K1Validator,
-        context: "0x"
+        data: encodePacked(["address"], [account.address])
       }
     })
 
@@ -84,7 +84,7 @@ describe("modules.k1Validator.write", async () => {
         module: {
           address: addresses.K1Validator,
           type: "validator",
-          context: "0x"
+          data: encodePacked(["address"], [account.address])
         }
       })
 
@@ -92,35 +92,61 @@ describe("modules.k1Validator.write", async () => {
         await nexusClient.waitForUserOperationReceipt({ hash })
       expect(installSuccess).toBe(true)
 
-      const hashUninstall = await nexusClient.uninstallModule({
+      const [installedValidators] = await nexusClient.getInstalledValidators({})
+
+      const prevModule = await nexusClient.getPreviousModule({
+        module: {
+          address: addresses.K1Validator,
+          type: "validator"
+        },
+        installedValidators
+      })
+
+      const deInitData = encodeAbiParameters(
+        [
+          { name: "prev", type: "address" },
+          { name: "disableModuleData", type: "bytes" }
+        ],
+        [prevModule, encodePacked(["address"], [account.address])]
+      )
+
+      const hashUninstall = nexusClient.uninstallModule({
         module: {
           address: addresses.K1Validator,
           type: "validator",
-          context: "0x"
+          data: deInitData
         }
       })
 
-      const { success: uninstallSuccess } =
-        await nexusClient.waitForUserOperationReceipt({ hash: hashUninstall })
-      expect(uninstallSuccess).toBe(true)
+      expect(hashUninstall).rejects.toThrow()
     } else {
-      // Uninstall
+      const [installedValidators] = await nexusClient.getInstalledValidators({})
 
-      const byteCode = await testClient.getCode({
-        address: addresses.K1Validator
+      const prevModule = await nexusClient.getPreviousModule({
+        module: {
+          address: addresses.K1Validator,
+          type: "validator"
+        },
+        installedValidators
       })
 
-      const hash = await nexusClient.uninstallModule({
+      const deInitData = encodeAbiParameters(
+        [
+          { name: "prev", type: "address" },
+          { name: "disableModuleData", type: "bytes" }
+        ],
+        [prevModule, encodePacked(["address"], [account.address])]
+      )
+
+      const hashUninstall = nexusClient.uninstallModule({
         module: {
           address: addresses.K1Validator,
           type: "validator",
-          context: "0x"
+          data: deInitData
         }
       })
-      const { success } = await nexusClient.waitForUserOperationReceipt({
-        hash
-      })
-      expect(success).toBe(true)
+
+      expect(hashUninstall).rejects.toThrow()
     }
     // Get installed modules
   })

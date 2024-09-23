@@ -1,5 +1,5 @@
 import type { Address, Chain, Hex } from "viem"
-import type { Holder, UnknownHolder } from "../../account/utils/toHolder"
+import type { Signer, UnknownSigner } from "../../account/utils/toSigner"
 
 export type ModuleVersion = "1.0.0-beta" // | 'V1_0_1'
 
@@ -14,7 +14,7 @@ export interface K1ValidationModuleConfig extends BaseValidationModuleConfig {
   /** Version of the module */
   version?: ModuleVersion
   /** Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
-  signer: UnknownHolder
+  signer: UnknownSigner
 }
 
 export interface K1ValidatorModuleConfigConstructorProps
@@ -23,8 +23,8 @@ export interface K1ValidatorModuleConfigConstructorProps
   moduleAddress?: Hex
   /** Version of the module */
   version?: ModuleVersion
-  /** Signer: Converted from viemWallet or ethers signer to Holder */
-  holder: Holder
+  /** Signer: Converted from viemWallet or ethers signer to Signer */
+  signer: Signer
 }
 
 export type SessionDataTuple = [
@@ -40,7 +40,7 @@ export type SessionParams = {
   /** ID of the session */
   sessionID?: string
   /** Session Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
-  sessionSigner: UnknownHolder
+  sessionSigner: UnknownSigner
   /** The session validation module is a sub-module smart-contract which works with session key manager validation module. It validates the userop calldata against the defined session permissions (session key data) within the contract. */
   sessionValidationModule?: Hex
   /** Additional info if needed to be appended in signature */
@@ -49,7 +49,7 @@ export type SessionParams = {
 
 export type StrictSessionParams = {
   sessionID: string
-  sessionSigner: UnknownHolder
+  sessionSigner: UnknownSigner
 }
 
 export type ModuleInfo = {
@@ -57,7 +57,7 @@ export type ModuleInfo = {
   // sessionParams?: SessionParams[] // where SessionParams is below four
   sessionID?: string
   /** Session Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
-  sessionHolder?: UnknownHolder
+  sessionHolder?: UnknownSigner
   /** The session validation module is a sub-module smart-contract which works with session key manager validation module. It validates the userop calldata against the defined session permissions (session key data) within the contract. */
   sessionValidationModule?: Hex
   /** Additional info if needed to be appended in signature */
@@ -104,7 +104,7 @@ export interface MultiChainValidationModuleConfig
   /** Version of the module */
   version?: ModuleVersion
   /** Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
-  signer: UnknownHolder
+  signer: UnknownSigner
 }
 export interface MultiChainValidationModuleConfigConstructorProps
   extends BaseValidationModuleConfig {
@@ -113,7 +113,7 @@ export interface MultiChainValidationModuleConfigConstructorProps
   /** Version of the module */
   version?: ModuleVersion
   /** Signer: viemWallet or ethers signer. Ingested when passed into smartAccount */
-  holder: Holder
+  signer: Signer
 }
 
 export interface BaseSessionKeyData {

@@ -50,14 +50,17 @@ export async function uninstallModule<
   TSmartAccount extends SmartAccount | undefined
 >(
   client: Client<Transport, Chain | undefined, TSmartAccount>,
-  parameters: UninstallModuleParameters<TSmartAccount>
+  parameters: UninstallModuleParameters<TSmartAccount> & {
+    signatureOverride?: Hex
+  }
 ): Promise<Hex> {
   const {
     account: account_ = client.account,
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    module: { address, context, type }
+    module: { address, data, type },
+    signatureOverride
   } = parameters
 
   if (!account_) {
@@ -101,13 +104,14 @@ export async function uninstallModule<
             }
           ],
           functionName: "uninstallModule",
-          args: [parseModuleTypeId(type), getAddress(address), context]
+          args: [parseModuleTypeId(type), getAddress(address), data ?? "0x"]
         })
       }
     ],
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    account: account
+    account,
+    signature: signatureOverride
   })
 }

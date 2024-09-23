@@ -1,7 +1,6 @@
 import type { Hex } from "viem"
-import type { DeployerParams } from "./testUtils"
 
-export const TEST_CONTRACTS: Record<string, DeployerParams> = {
+export const TEST_CONTRACTS: Record<string, { chainId: number; name: string; address: Hex }> = {
   // Rhinestone Ownables
   OwnableValidator: {
     chainId: 84532,
@@ -12,6 +11,11 @@ export const TEST_CONTRACTS: Record<string, DeployerParams> = {
     chainId: 84532,
     name: "OwnableExecutor",
     address: "0x989110e958902f619148b8171fbDF1Dca0c5AE0B"
+  },
+  OwnableExecutorSepolia: {
+    chainId: 11155111,
+    name: "OwnableExecutorSepolia",
+    address: "0xc98B026383885F41d9a995f85FC480E9bb8bB891"
   },
   // Smart sessions
   SmartSession: {

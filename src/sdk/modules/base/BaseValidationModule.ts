@@ -1,10 +1,10 @@
 import { type Hex, getAddress } from "viem"
-import type { Holder } from "../../account/utils/toHolder.js"
+import type { Signer } from "../../account/utils/toSigner.js"
 import { BaseModule } from "./BaseModule.js"
 
 export abstract class BaseValidationModule extends BaseModule {
-  public getHolder(): Holder {
-    return this.holder
+  public getSigner(): Signer {
+    return this.signer
   }
 
   getDummySignature(): Hex {
@@ -19,7 +19,7 @@ export abstract class BaseValidationModule extends BaseModule {
   }
 
   async signUserOpHash(userOpHash: string): Promise<Hex> {
-    const signature = await this.holder.signMessage({
+    const signature = await this.signer.signMessage({
       message: { raw: userOpHash as Hex }
     })
     return signature as Hex
@@ -27,10 +27,10 @@ export abstract class BaseValidationModule extends BaseModule {
 
   async signMessageHolder(
     _message: string | Uint8Array,
-    holder: Holder
+    signer: Signer
   ): Promise<string> {
     const message = typeof _message === "string" ? _message : { raw: _message }
-    let signature: `0x${string}` = await holder.signMessage({ message })
+    let signature: `0x${string}` = await signer.signMessage({ message })
 
     const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
     if (![27, 28].includes(potentiallyIncorrectV)) {
@@ -42,15 +42,15 @@ export abstract class BaseValidationModule extends BaseModule {
   }
 
   /**
-   * Signs a message using the appropriate method based on the type of holder.
+   * Signs a message using the appropriate method based on the type of signer.
    *
    * @param {Uint8Array | string} message - The message to be signed.
    * @returns {Promise<string>} A promise resolving to the signature or error message.
-   * @throws {Error} If the holder type is invalid or unsupported.
+   * @throws {Error} If the signer type is invalid or unsupported.
    */
   async signMessage(_message: Uint8Array | string): Promise<Hex> {
     const message = typeof _message === "string" ? _message : { raw: _message }
-    let signature = await this.holder.signMessage({ message })
+    let signature = await this.signer.signMessage({ message })
 
     const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16)
     if (![27, 28].includes(potentiallyIncorrectV)) {

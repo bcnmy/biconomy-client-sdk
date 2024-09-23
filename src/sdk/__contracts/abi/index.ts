@@ -1,6 +1,6 @@
+export * from "./EIP1271Abi"
 export * from "./UniActionPolicyAbi"
 export * from "./EntryPointABI"
-export * from "./EIP1271Abi"
 export * from "./NexusAbi"
 export * from "./K1ValidatorAbi"
 export * from "./K1ValidatorFactoryAbi"

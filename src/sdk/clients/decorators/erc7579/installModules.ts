@@ -23,7 +23,7 @@ export type InstallModulesParameters<
   modules: {
     type: ModuleType
     address: Address
-    context: Hex
+    data: Hex
   }[]
   maxFeePerGas?: bigint
   maxPriorityFeePerGas?: bigint
@@ -75,7 +75,7 @@ export async function installModules<
     sendUserOperation,
     "sendUserOperation"
   )({
-    calls: modules.map(({ type, address, context }) => ({
+    calls: modules.map(({ type, address, data }) => ({
       to: account.address,
       value: BigInt(0),
       data: encodeFunctionData({
@@ -102,7 +102,7 @@ export async function installModules<
           }
         ],
         functionName: "installModule",
-        args: [parseModuleTypeId(type), getAddress(address), context]
+        args: [parseModuleTypeId(type), getAddress(address), data]
       })
     })),
     maxFeePerGas,

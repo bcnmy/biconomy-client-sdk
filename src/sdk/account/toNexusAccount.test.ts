@@ -78,7 +78,7 @@ describe("nexus.account", async () => {
     })
 
     nexusClient = await createNexusClient({
-      holder: account,
+      signer: account,
       chain,
       transport: http(),
       bundlerTransport: http(bundlerUrl)

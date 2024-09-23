@@ -17,37 +17,38 @@ import { toAccount } from "viem/accounts"
 import { signTypedData } from "viem/actions"
 import { getAction } from "viem/utils"
 
-export type Holder = LocalAccount
-export type UnknownHolder = OneOf<
+export type Signer = LocalAccount
+export type UnknownSigner = OneOf<
   | EIP1193Provider
   | WalletClient<Transport, Chain | undefined, Account>
   | LocalAccount
+  | Account
 >
-export async function toHolder({
-  holder,
+export async function toSigner({
+  signer,
   address
 }: {
-  holder: UnknownHolder
+  signer: UnknownSigner
   address?: Address
 }): Promise<LocalAccount> {
-  if ("type" in holder && holder.type === "local") {
-    return holder as LocalAccount
+  if ("type" in signer && signer.type === "local") {
+    return signer as LocalAccount
   }
 
   let walletClient:
     | WalletClient<Transport, Chain | undefined, Account>
     | undefined = undefined
 
-  if ("request" in holder) {
+  if ("request" in signer) {
     if (!address) {
       try {
-        ;[address] = await (holder.request as EIP1193RequestFn<EIP1474Methods>)(
+        ;[address] = await (signer.request as EIP1193RequestFn<EIP1474Methods>)(
           {
             method: "eth_requestAccounts"
           }
         )
       } catch {
-        ;[address] = await (holder.request as EIP1193RequestFn<EIP1474Methods>)(
+        ;[address] = await (signer.request as EIP1193RequestFn<EIP1474Methods>)(
           {
             method: "eth_accounts"
           }
@@ -58,12 +59,12 @@ export async function toHolder({
 
     walletClient = createWalletClient({
       account: address,
-      transport: custom(holder as EIP1193Provider)
+      transport: custom(signer as EIP1193Provider)
     })
   }
 
   if (!walletClient) {
-    walletClient = holder as WalletClient<Transport, Chain | undefined, Account>
+    walletClient = signer as WalletClient<Transport, Chain | undefined, Account>
   }
 
   return toAccount({
