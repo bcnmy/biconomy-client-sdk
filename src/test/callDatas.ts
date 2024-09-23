@@ -1,7 +1,6 @@
 import type { Hex } from "viem"
-import type { DeployerParams } from "./testUtils"
 
-export const TEST_CONTRACTS: Record<string, DeployerParams> = {
+export const TEST_CONTRACTS: Record<string, { chainId: number; name: string; address: Hex }> = {
   // Rhinestone Ownables
   OwnableValidator: {
     chainId: 84532,

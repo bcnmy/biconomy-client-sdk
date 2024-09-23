@@ -6,11 +6,10 @@ import {
     parseAbi,
     parseAbiParameters
 } from "viem"
-import type { Hex } from "viem"
-import { NexusAccount, Signer, toSigner } from "../../account/index.js"
+import type { Hex, PublicClient } from "viem"
+import { type NexusAccount, type Signer, toSigner } from "../../account/index.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
-import { Module } from "../../clients/index.js"
-import { MasterClient } from "../../../test/testUtils.js"
+import { type Module } from "../../clients/index.js"
 
 export class OwnableValidator extends BaseValidationModule {
     public owners: Address[]
@@ -49,8 +48,8 @@ export class OwnableValidator extends BaseValidationModule {
     }): Promise<OwnableValidator> {
         let moduleInfo: Module
         let installData: Hex
-        const masterClient = smartAccount.client as MasterClient;
-        const isInitialized = await masterClient.readContract({
+        const client = smartAccount.client as PublicClient;
+        const isInitialized = await client.readContract({
             address, // @todo: change to real module address
             abi: parseAbi([
                 "function isInitialized(address smartAccount) public view returns (bool)"
@@ -59,7 +58,7 @@ export class OwnableValidator extends BaseValidationModule {
             args: [await smartAccount.getAddress()]
         })
         if (isInitialized) {
-            const _owners = await masterClient.readContract({
+            const _owners = await client.readContract({
                 address, // @todo: change to real module address
                 abi: parseAbi([
                     "function getOwners(address account) external view returns (address[])"
@@ -67,7 +66,7 @@ export class OwnableValidator extends BaseValidationModule {
                 functionName: "getOwners",
                 args: [await smartAccount.getAddress()]
             })
-            const _threshold = await masterClient.readContract({
+            const _threshold = await client.readContract({
                 address, // @todo: change to real module address
                 abi: parseAbi([
                     "function threshold(address account) external view returns (uint256)"
@@ -184,8 +183,8 @@ export class OwnableValidator extends BaseValidationModule {
 
     // public async getOwners(): Promise<Address[]> {
     //     try {
-    //         const masterClient = this.smartAccount.client as MasterClient;
-    //         const owners = (await masterClient.readContract({
+    //         const client = this.smartAccount.client as MasterClient;
+    //         const owners = (await client.readContract({
     //             address: this.address,
     //             abi: parseAbi([
     //                 "function getOwners(address account) external view returns (address[])"
@@ -229,8 +228,8 @@ export class OwnableValidator extends BaseValidationModule {
     }
 
     // public async isModuleInitialized(): Promise<boolean> {
-    //     const masterClient = this.smartAccount.client as MasterClient;
-    //     const isInitialized = await masterClient.readContract({
+    //     const client = this.smartAccount.client as MasterClient;
+    //     const isInitialized = await client.readContract({
     //         address: this.address,
     //         abi: parseAbi([
     //             "function isInitialized(address account) external view returns (bool)"

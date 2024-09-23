@@ -1,8 +1,8 @@
-import { Address, type Client, type Hex } from "viem"
+import { type Address, type Client, type Hex } from "viem"
 import { type GetSmartAccountParameter, type SmartAccount } from "viem/account-abstraction"
 import { getAddress } from "viem/utils"
 import { AccountNotFoundError } from "../../../account/utils/AccountNotFound"
-import { ModuleType } from "@rhinestone/module-sdk"
+import { type ModuleType } from "@rhinestone/module-sdk"
 
 const SENTINEL_ADDRESS = '0x0000000000000000000000000000000000000001' as const
 
