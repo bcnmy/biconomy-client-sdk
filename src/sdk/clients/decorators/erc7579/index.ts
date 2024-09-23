@@ -65,7 +65,9 @@ export type Erc7579Actions<TSmartAccount extends SmartAccount | undefined> = {
     args: SupportsModuleParameters<TSmartAccount>
   ) => Promise<boolean>
   uninstallModule: (
-    args: UninstallModuleParameters<TSmartAccount>
+    args: UninstallModuleParameters<TSmartAccount> & {
+      signatureOverride?: Hex
+    }
   ) => Promise<Hash>
   uninstallModules: (
     args: UninstallModulesParameters<TSmartAccount>

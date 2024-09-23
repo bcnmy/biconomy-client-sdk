@@ -34,7 +34,7 @@ import {
   ENTRY_POINT_V07_CREATECALL,
   TEST_CONTRACTS
 } from "./callDatas"
-import * as hardhatExec from "./executables"
+import { init, clean, deploy } from "./executables"
 
 config()
 
@@ -281,9 +281,9 @@ export const initDeployments = async (rpcPort: number) => {
   console.log(
     `using hardhat to deploy nexus contracts to http://localhost:${rpcPort}`
   )
-  await hardhatExec.init()
-  await hardhatExec.clean()
-  await hardhatExec.deploy(rpcPort)
+  await init()
+  await clean()
+  await deploy(rpcPort)
   console.log("hardhat deployment complete.")
 
   // Hardcoded bytecode deployment of contracts using setCode:

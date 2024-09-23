@@ -50,14 +50,17 @@ export async function uninstallModule<
   TSmartAccount extends SmartAccount | undefined
 >(
   client: Client<Transport, Chain | undefined, TSmartAccount>,
-  parameters: UninstallModuleParameters<TSmartAccount>
+  parameters: UninstallModuleParameters<TSmartAccount> & {
+    signatureOverride?: Hex
+  }
 ): Promise<Hex> {
   const {
     account: account_ = client.account,
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    module: { address, data, type }
+    module: { address, data, type },
+    signatureOverride
   } = parameters
 
   if (!account_) {
@@ -67,7 +70,6 @@ export async function uninstallModule<
   }
 
   const account = parseAccount(account_) as SmartAccount
-  console.log(account.address, "account.address")
 
   return getAction(
     client,
@@ -109,6 +111,7 @@ export async function uninstallModule<
     maxFeePerGas,
     maxPriorityFeePerGas,
     nonce,
-    account
+    account,
+    signature: signatureOverride
   })
 }
