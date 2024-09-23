@@ -13,6 +13,11 @@ export const TEST_CONTRACTS: Record<string, DeployerParams> = {
     name: "OwnableExecutor",
     address: "0x989110e958902f619148b8171fbDF1Dca0c5AE0B"
   },
+  OwnableExecutorSepolia: {
+    chainId: 11155111,
+    name: "OwnableExecutorSepolia",
+    address: "0xc98B026383885F41d9a995f85FC480E9bb8bB891"
+  },
   // Smart sessions
   SmartSession: {
     chainId: 84532,

@@ -75,7 +75,7 @@ export type ToNexusSmartAccountParameters = {
   /** Optional index for the account */
   index?: bigint | undefined
   /** Optional active validation module */
-  activeModule?: BaseValidationModule
+  activeValidationModule?: BaseValidationModule
   /** Optional factory address */
   factoryAddress?: Address
   /** Optional K1 validator address */
@@ -114,8 +114,7 @@ export type NexusSmartAccountImplementation = SmartAccountImplementation<
     encodeExecuteBatch: (calls: readonly Call[]) => Promise<Hex>
     getUserOpHash: (userOp: Partial<UserOperationStruct>) => Promise<Hex>
     setActiveValidationModule: (validationModule: BaseValidationModule) => void
-    getActiveValidationModule: () => BaseValidationModule
-    getSigner: () => Promise<Signer>
+    getActiveValidationModule: () => BaseValidationModule,
     factoryData: Hex
     factoryAddress: Address
   }
@@ -146,7 +145,7 @@ export const toNexusAccount = async (
     transport,
     signer: _signer,
     index = 0n,
-    activeModule,
+    activeValidationModule,
     factoryAddress = contracts.k1ValidatorFactory.address,
     k1ValidatorAddress = contracts.k1Validator.address,
     key = "nexus account",
@@ -182,7 +181,7 @@ export const toNexusAccount = async (
   })
 
   let defaultedActiveModule =
-    activeModule ??
+    activeValidationModule ??
     new K1ValidatorModule(
       {
         address: k1ValidatorAddress,
@@ -203,14 +202,6 @@ export const toNexusAccount = async (
       args: [signerAddress, index, [], 0]
     })) as Address
     return _accountAddress
-  }
-
-  /**
-   * @description Gets the signer associated with this account
-   * @returns A Promise that resolves to the signer
-   */
-  const getSigner = async (): Promise<Signer> => {
-    return signer
   }
 
   /**
@@ -365,15 +356,6 @@ export const toNexusAccount = async (
   }
 
   /**
-   * @description Gets the active validation module for the account
-   * @returns The active validation module
-   */
-  const getActiveValidationModule = (): BaseValidationModule => {
-    return defaultedActiveModule;
-  }
-
-
-  /**
    * @description Signs a message
    * @param params - The parameters for signing
    * @param params.message - The message to sign
@@ -382,9 +364,7 @@ export const toNexusAccount = async (
   const signMessage = async ({
     message
   }: { message: SignableMessage }): Promise<Hex> => {
-    const tempSignature = await defaultedActiveModule
-      .getSigner()
-      .signMessage({ message })
+    const tempSignature = await defaultedActiveModule.getSigner().signMessage({ message })
 
     const signature = encodePacked(
       ["address", "bytes"],
@@ -540,7 +520,6 @@ export const toNexusAccount = async (
       getUserOpHash,
       setActiveValidationModule,
       getActiveValidationModule: () => defaultedActiveModule,
-      getSigner,
       factoryData,
       factoryAddress
     }

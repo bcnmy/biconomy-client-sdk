@@ -7,7 +7,7 @@ import {
     parseAbiParameters
 } from "viem"
 import type { Hex } from "viem"
-import { NexusAccount, Signer } from "../../account/index.js"
+import { NexusAccount, Signer, toSigner } from "../../account/index.js"
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
 import { Module } from "../../clients/index.js"
 import { MasterClient } from "../../../test/testUtils.js"
@@ -101,7 +101,8 @@ export class OwnableValidator extends BaseValidationModule {
             additionalContext: "0x",
             hook
         }
-        const instance = new OwnableValidator(moduleInfo, await smartAccount.getSigner())
+        const account = smartAccount.client.account
+        const instance = new OwnableValidator(moduleInfo, await toSigner({ signer: account! }))
         return instance
     }
 

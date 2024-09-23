@@ -51,7 +51,11 @@ import {
 
 export type Erc7579Actions<TSmartAccount extends SmartAccount | undefined> = {
   accountId: (args?: GetSmartAccountParameter<TSmartAccount>) => Promise<string>
-  installModule: (args: InstallModuleParameters<TSmartAccount> & { signatureOverride?: Hex }) => Promise<Hash>
+  installModule: (
+    args: InstallModuleParameters<TSmartAccount> & {
+      signatureOverride?: Hex
+    }
+  ) => Promise<Hash>
   installModules: (
     args: InstallModulesParameters<TSmartAccount> & {
       signatureOverride?: Hex

@@ -1,4 +1,3 @@
-// import { OwnableExecutorModule } from "./executors/OwnableExecutor.js"
 import { K1ValidatorModule } from "./validators/K1ValidatorModule.js"
 import { OwnableValidator } from "./validators/OwnableValidator.js"
 import { ValidationModule } from "./validators/ValidationModule.js"

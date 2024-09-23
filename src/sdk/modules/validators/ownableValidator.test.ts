@@ -20,13 +20,13 @@ import { toNetwork } from "../../../test/testSetup"
 import {
   fundAndDeployClients,
   getTestAccount,
-  getTestSmartAccountClient,
   killNetwork,
   toTestClient
 } from "../../../test/testUtils"
 import type { MasterClient, NetworkConfig } from "../../../test/testUtils"
 import addresses from "../../__contracts/addresses"
 import {
+  createNexusClient,
   type NexusClient,
 } from "../../clients/createNexusClient"
 import { createK1ValidatorModule, createOwnableValidatorModule, toSigner } from "../.."
@@ -59,10 +59,11 @@ describe("modules.ownableValidator", async () => {
 
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await getTestSmartAccountClient({
-      account,
+    nexusClient = await createNexusClient({
+      signer: account,
       chain,
-      bundlerUrl
+      transport: http(),
+      bundlerTransport: http(bundlerUrl)
     })
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
@@ -114,7 +115,7 @@ describe("modules.ownableValidator", async () => {
     })
 
     if ("callData" in addOwnerExecution) {
-      const userOpHash = await nexusClient.sendTransaction({
+      const transactionHash = await nexusClient.sendTransaction({
         calls: [
           {
             to: TEST_CONTRACTS.OwnableValidator.address,
@@ -122,7 +123,9 @@ describe("modules.ownableValidator", async () => {
           }
         ]
       })
-      expect(userOpHash).toBeDefined()
+      expect(transactionHash).toBeDefined()
+      const receipt = await testClient.waitForTransactionReceipt({ hash: transactionHash })
+      expect(receipt.status).toBe("success")
     } else {
       throw new Error("Failed to get add owner execution")
     }
@@ -162,12 +165,12 @@ describe("modules.ownableValidator", async () => {
   }, 90000)
 
   test("should need 2 signatures to send a user operation", async () => {
-    const activeModule = nexusClient.account.getActiveValidationModule()
-    expect(activeModule.address).toBe(addresses.K1Validator)
+    const activeValidationModule = nexusClient.account.getActiveValidationModule()
+    expect(activeValidationModule.address).toBe(addresses.K1Validator)
 
     nexusClient.account.setActiveValidationModule(ownableValidatorModule)
-    const activeModuleAfter = nexusClient.account.getActiveValidationModule()
-    expect(activeModuleAfter.address).toBe(TEST_CONTRACTS.OwnableValidator.address)
+    const activeValidationModuleAfter = nexusClient.account.getActiveValidationModule()
+    expect(activeValidationModuleAfter.address).toBe(TEST_CONTRACTS.OwnableValidator.address)
 
     let dummyUserOp = await nexusClient.prepareUserOperation({
       calls: [

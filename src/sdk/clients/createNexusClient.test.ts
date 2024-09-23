@@ -1,14 +1,8 @@
-import { AbiCoder, ParamType } from "ethers/abi"
-import { JsonRpcProvider } from "ethers/providers"
-import { Wallet } from "ethers/wallet"
 import {
   http,
-  type AbiParameter,
   type Account,
   type Address,
   type Chain,
-  type Hex,
-  encodeAbiParameters,
   encodeFunctionData,
   parseEther
 } from "viem"
@@ -19,7 +13,6 @@ import { toNetwork } from "../../test/testSetup"
 import {
   getBalance,
   getTestAccount,
-  getTestSmartAccountClient,
   killNetwork,
   toTestClient,
   topUp
@@ -56,10 +49,11 @@ describe("nexus.client", async () => {
 
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await getTestSmartAccountClient({
-      account,
+    nexusClient = await createNexusClient({
+      signer: account,
       chain,
-      bundlerUrl
+      transport: http(),
+      bundlerTransport: http(bundlerUrl)
     })
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
@@ -202,19 +196,19 @@ describe("nexus.client", async () => {
   test("should have correct fields", async () => {
     const chainId = 1
     const chain = getChain(chainId)
-    ;[
-      "blockExplorers",
-      "contracts",
-      "fees",
-      "formatters",
-      "id",
-      "name",
-      "nativeCurrency",
-      "rpcUrls",
-      "serializers"
-    ].every((field) => {
-      expect(chain).toHaveProperty(field)
-    })
+      ;[
+        "blockExplorers",
+        "contracts",
+        "fees",
+        "formatters",
+        "id",
+        "name",
+        "nativeCurrency",
+        "rpcUrls",
+        "serializers"
+      ].every((field) => {
+        expect(chain).toHaveProperty(field)
+      })
   })
 
   test("should throw an error, chain id not found", async () => {

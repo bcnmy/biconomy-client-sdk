@@ -5,7 +5,6 @@ import {
   fundAndDeployClients,
   getBalance,
   getTestAccount,
-  getTestSmartAccountClient,
   killNetwork,
   toTestClient
 } from "../../../test/testUtils"
@@ -40,10 +39,11 @@ describe("modules.k1Validator.write", async () => {
 
     testClient = toTestClient(chain, getTestAccount(5))
 
-    nexusClient = await getTestSmartAccountClient({
-      account,
+    nexusClient = await createNexusClient({
+      signer: account,
       chain,
-      bundlerUrl
+      transport: http(),
+      bundlerTransport: http(bundlerUrl)
     })
 
     nexusAccountAddress = await nexusClient.account.getCounterFactualAddress()
