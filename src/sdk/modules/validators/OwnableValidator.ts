@@ -30,6 +30,7 @@ export class OwnableValidator extends BaseValidationModule {
         this.threshold = Number(moduleData[0])
         this.owners = [...moduleData[1]] as Address[]
         this.signer = signer
+        // review
         this.address = moduleConfig.address
     }
 

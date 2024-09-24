@@ -17,6 +17,7 @@ import {
   getChain
 } from "../../account/index.js"
 import type {
+  ActionConfig,
   ChainInfo
   // createOwnableValidatorModule
 } from "../../index.js"
@@ -202,3 +203,39 @@ export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
   }
   return result
 }
+
+export const toActionConfig = (config: ActionConfig): ActionConfig => {
+  // Ensure we always have 16 rules, filling with default values if necessary
+  const filledRules = [...config.paramRules.rules];
+
+  // Fill the rest with default ParamRule if the length is less than 16
+  while (filledRules.length < 16) {
+    filledRules.push({
+      condition: 0,  // Default condition (EQUAL)
+      offset: 0,  // Default offsetIndex
+      isLimited: false,  // Default isLimited flag
+      ref: "0x0000000000000000000000000000000000000000000000000000000000000000",  // Default bytes32 ref
+      usage: {
+        limit: BigInt(0),  // Default limit
+        used: BigInt(0)    // Default used
+      }
+    });
+  }
+
+  return {
+    valueLimitPerUse: BigInt(config.valueLimitPerUse),
+    paramRules: {
+      length: config.paramRules.length,
+      rules: filledRules.map((rule) => {
+        const parsedRef = parseReferenceValue(rule.ref);
+        return {
+          condition: rule.condition,
+          offset: rule.offset * 32,  // Ensure correct offset calculation
+          isLimited: rule.isLimited,
+          ref: parsedRef,
+          usage: rule.usage
+        };
+      })
+    }
+  };
+};
