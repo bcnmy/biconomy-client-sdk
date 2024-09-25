@@ -20,7 +20,8 @@ import {
 } from "../../account/index.js"
 import type {
   ActionConfig,
-  ChainInfo
+  ChainInfo,
+  SmartSessionModeType
   // createOwnableValidatorModule
 } from "../../index.js"
 import { type Session } from "@rhinestone/module-sdk"
@@ -279,4 +280,42 @@ export const isSessionEnabled = async ({
     functionName: 'isSessionEnabled',
     args: [permissionId, accountAddress],
   })) as boolean
+}
+
+export const getSessionDigest = async ({
+  client,
+  accountAddress,
+  session,
+  permissionId,
+  mode,
+}: {
+  client: PublicClient
+  accountAddress: Address
+  session: Session
+  permissionId: Hex
+  mode: SmartSessionModeType
+}) => {
+  return (await client.readContract({
+    address: addresses.SmartSession,
+    abi: smartSessionAbi,
+    functionName: 'getSessionDigest',
+    args: [permissionId, accountAddress, session, mode],
+  })) as Hex
+}
+
+export const getSessionNonce = async ({
+  client,
+  accountAddress,
+  permissionId,
+}: {
+  client: PublicClient
+  accountAddress: Address
+  permissionId: Hex
+}) => {
+  return (await client.readContract({
+    address: addresses.SmartSession,
+    abi: smartSessionAbi,
+    functionName: 'getNonce',
+    args: [permissionId, accountAddress],
+  })) as bigint
 }

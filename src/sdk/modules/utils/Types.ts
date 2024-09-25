@@ -1,6 +1,6 @@
 import type { AbiFunction, Address, Chain, Hex } from "viem"
 import type { Signer, UnknownSigner } from "../../account/utils/toSigner"
-import { SmartSessionMode } from "@rhinestone/module-sdk"
+import { ChainDigest, Session, SmartSessionMode } from "@rhinestone/module-sdk"
 
 export type ModuleVersion = "1.0.0-beta" // | 'V1_0_1'
 
@@ -141,6 +141,12 @@ export type CreateSessionDataParams = {
   //erc7739Policies?: PolicyData[]
 
   actionPoliciesInfo: ActionPolicyData[]
+
+  // useful for enable mode
+  // Note: I could create a new type
+
+  // which all chains we want to enable this particular session on
+  chainIds?: bigint[]
 } 
 
 export type ActionPolicyData = {
@@ -166,6 +172,13 @@ export type ActionPolicyData = {
 export type CreateSessionDataResponse = {
   permissionIds: Hex[]
   sessionsEnableData: Hex
+}
+
+export type CreateSessionWithEnableModeResponse = {
+  permissionIds: Hex[]
+  sessions: Session[]
+  chainDigests: ChainDigest[]
+  permissionEnableHash: Hex
 }
 
 export interface BaseSessionKeyData {
