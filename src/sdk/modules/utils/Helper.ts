@@ -1,8 +1,10 @@
 import {
+  type Address,
   type ByteArray,
   type Chain,
   type Hex,
   type PrivateKeyAccount,
+  type PublicClient,
   encodeAbiParameters,
   isHex,
   keccak256,
@@ -21,6 +23,9 @@ import type {
   ChainInfo
   // createOwnableValidatorModule
 } from "../../index.js"
+import { type Session } from "@rhinestone/module-sdk"
+import addresses from "../../__contracts/addresses.js"
+import { smartSessionAbi } from "./abi.js"
 
 /**
  * Rule
@@ -239,3 +244,39 @@ export const toActionConfig = (config: ActionConfig): ActionConfig => {
     }
   };
 };
+
+// Review
+// Note: presently created local helper.
+// Todo: If any changes are approved in module-sdk then start importing from there.
+export const getPermissionId = async ({
+  client,
+  session,
+}: {
+  client: PublicClient
+  session: Session
+}) => {
+  // Review address population
+  return (await client.readContract({
+    address: addresses.SmartSession,
+    abi: smartSessionAbi,
+    functionName: 'getPermissionId',
+    args: [session],
+  })) as Hex
+}
+
+export const isSessionEnabled = async ({
+  client,
+  accountAddress,
+  permissionId,
+}: {
+  client: PublicClient
+  accountAddress: Address
+  permissionId: Hex
+}) => {
+  return (await client.readContract({
+    address: addresses.SmartSession,
+    abi: smartSessionAbi,
+    functionName: 'isSessionEnabled',
+    args: [permissionId, accountAddress],
+  })) as boolean
+}

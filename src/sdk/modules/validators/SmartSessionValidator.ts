@@ -12,10 +12,10 @@ import { type NexusAccount, type Signer, toSigner } from "../../account/index.js
 import { BaseValidationModule } from "../base/BaseValidationModule.js"
 import { type Module } from "../../clients/index.js"
 import addresses from "../../__contracts/addresses.js"
-import { type ActionData, encodeSmartSessionSignature, getPermissionId, type PolicyData, type Session, SmartSessionMode } from "@rhinestone/module-sdk"
+import { type ActionData, encodeSmartSessionSignature, type PolicyData, type Session, SmartSessionMode } from "@rhinestone/module-sdk"
 import { type ActionConfig, type CreateSessionDataParams, type CreateSessionDataResponse, type ModuleInfo, type ParamRule } from "../utils/Types.js"
 import { smartSessionAbi, universalActionPolicyAbi } from "../utils/abi.js"
-import { toActionConfig } from "../index.js"
+import { getPermissionId, toActionConfig } from "../index.js"
 
 const DUMMY_ECDSA_SIG = "0xe8b94748580ca0b4993c9a1b86b5be851bfc076ff5ce3a1ff65bf16392acfcb800f9b4f1aef1555c7fce5599fffb17e7c635502154a0333ba21f3ae491839af51c";
 const UNIVERSAL_POLICY_ADDRESS = addresses.UniActionPolicy
@@ -23,16 +23,19 @@ const TIMEFRAME_POLICY_ADDRESS = addresses.TimeframePolicy
 const SIMPLE_SESSION_VALIDATOR_ADDRESS = addresses.SimpleSessionValidator
 
 export class SmartSessionValidator extends BaseValidationModule {
-    static client: PublicClient
+    public client: PublicClient
 
     private constructor(
         moduleConfig: Module,
-        signer: Signer
+        signer: Signer,
+        smartAccount: NexusAccount
     ) {
         // if (!moduleConfig.data) {
         //     throw new Error("Module data is required")
         // }
         super(moduleConfig, signer)
+        const client = smartAccount.client as PublicClient;
+        this.client = client
         this.signer = signer
         // Review: could be optional override. otherwise use SMART_SESSION_ADDRESS from addresses 
         this.address = moduleConfig.address
@@ -50,8 +53,7 @@ export class SmartSessionValidator extends BaseValidationModule {
     }): Promise<SmartSessionValidator> {
         let moduleInfo: Module
         // let installData: Hex
-        const client = smartAccount.client as PublicClient;
-        this.client = client
+        // const client = smartAccount.client as PublicClient;
         moduleInfo = {
             address, // @todo: change to real module address
             type: "validator",
@@ -62,7 +64,7 @@ export class SmartSessionValidator extends BaseValidationModule {
         const account = smartAccount.client.account
         // Note: here the signer provided is existing smart account's signer.
         // Review: this would be session key signer. Only applies in the case where SessionValidator supplied in SimpleValidator (ECDSA)
-        const instance = new SmartSessionValidator(moduleInfo, await toSigner({ signer: account! }))
+        const instance = new SmartSessionValidator(moduleInfo, await toSigner({ signer: account! }), smartAccount)
         return instance
     }
 
@@ -190,7 +192,8 @@ export class SmartSessionValidator extends BaseValidationModule {
                 }
               };
         
-              const permissionId = await getPermissionId({ client: SmartSessionValidator.client, session: session }) as Hex;
+              // todo: review should allow override of constant like SMART_SESSIONS_ADDRESS
+              const permissionId = await getPermissionId({ client: this.client, session: session }) as Hex;
               // push permissionId to the array
               permissionIds.push(permissionId);
         

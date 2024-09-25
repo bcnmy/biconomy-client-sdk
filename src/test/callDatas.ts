@@ -63,6 +63,11 @@ export const TEST_CONTRACTS: Record<string, { chainId: number; name: string; add
     name: "MockValidator",
     address: "0x61Cb30337CB980383704f2Debfb8bea66d0f26b3"
   },
+  Counter: {
+    chainId: 84532,
+    name: "Counter",
+    address: "0x14e4829E655F0b3a1793838dDd47273D5341d416"
+  },
   UserOperationBuilder: {
     chainId: 84532,
     name: "UserOperationBuilder",
