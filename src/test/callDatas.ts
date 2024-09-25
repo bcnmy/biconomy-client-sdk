@@ -21,11 +21,11 @@ export const TEST_CONTRACTS: Record<string, { chainId: number; name: string; add
   SmartSession: {
     chainId: 84532,
     name: "SmartSession",
-    address: "0x0ce452fD9d0a20BCC14A2C4830E22bEB7EA4C8ee"
+    address: "0x3834aD7f5f73fAd19C089a924F18e6F3417d1ac2"
   },
-  SimpleSigner: {
+  SimpleSessionValidator: {
     chainId: 84532,
-    name: "Simple Signer",
+    name: "Simple Session Validator",
     address: "0xAAAdFd794A1781e4Fd3eA64985F107a7Ac2b3872"
   },
   UniActionPolicy: {
@@ -62,6 +62,11 @@ export const TEST_CONTRACTS: Record<string, { chainId: number; name: string; add
     chainId: 84532,
     name: "MockValidator",
     address: "0x61Cb30337CB980383704f2Debfb8bea66d0f26b3"
+  },
+  Counter: {
+    chainId: 84532,
+    name: "Counter",
+    address: "0x14e4829E655F0b3a1793838dDd47273D5341d416"
   },
   UserOperationBuilder: {
     chainId: 84532,

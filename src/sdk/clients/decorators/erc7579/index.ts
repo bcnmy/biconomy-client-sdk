@@ -144,6 +144,7 @@ export function erc7579Actions() {
   })
 }
 
+// Review: if this should be imported from module-sdk
 export type Module = {
   address: Address
   data?: Hex

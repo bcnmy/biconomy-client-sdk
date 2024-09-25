@@ -7,6 +7,7 @@ export abstract class BaseValidationModule extends BaseModule {
     return this.signer
   }
 
+
   getDummySignature(): Hex {
     const moduleAddress = getAddress(this.getAddress())
     const dynamicPart = moduleAddress.substring(2).padEnd(40, "0")

@@ -1,8 +1,10 @@
 import {
+  type Address,
   type ByteArray,
   type Chain,
   type Hex,
   type PrivateKeyAccount,
+  type PublicClient,
   encodeAbiParameters,
   isHex,
   keccak256,
@@ -17,9 +19,13 @@ import {
   getChain
 } from "../../account/index.js"
 import type {
+  ActionConfig,
   ChainInfo
   // createOwnableValidatorModule
 } from "../../index.js"
+import { type Session } from "@rhinestone/module-sdk"
+import addresses from "../../__contracts/addresses.js"
+import { smartSessionAbi } from "./abi.js"
 
 /**
  * Rule
@@ -201,4 +207,76 @@ export function parseReferenceValue(referenceValue: AnyReferenceValue): Hex {
     throw new Error(ERROR_MESSAGES.INVALID_HEX)
   }
   return result
+}
+
+export const toActionConfig = (config: ActionConfig): ActionConfig => {
+  // Ensure we always have 16 rules, filling with default values if necessary
+  const filledRules = [...config.paramRules.rules];
+
+  // Fill the rest with default ParamRule if the length is less than 16
+  while (filledRules.length < 16) {
+    filledRules.push({
+      condition: 0,  // Default condition (EQUAL)
+      offset: 0,  // Default offsetIndex
+      isLimited: false,  // Default isLimited flag
+      ref: "0x0000000000000000000000000000000000000000000000000000000000000000",  // Default bytes32 ref
+      usage: {
+        limit: BigInt(0),  // Default limit
+        used: BigInt(0)    // Default used
+      }
+    });
+  }
+
+  return {
+    valueLimitPerUse: BigInt(config.valueLimitPerUse),
+    paramRules: {
+      length: config.paramRules.length,
+      rules: filledRules.map((rule) => {
+        const parsedRef = parseReferenceValue(rule.ref);
+        return {
+          condition: rule.condition,
+          offset: rule.offset * 32,  // Ensure correct offset calculation
+          isLimited: rule.isLimited,
+          ref: parsedRef,
+          usage: rule.usage
+        };
+      })
+    }
+  };
+};
+
+// Review
+// Note: presently created local helper.
+// Todo: If any changes are approved in module-sdk then start importing from there.
+export const getPermissionId = async ({
+  client,
+  session,
+}: {
+  client: PublicClient
+  session: Session
+}) => {
+  // Review address population
+  return (await client.readContract({
+    address: addresses.SmartSession,
+    abi: smartSessionAbi,
+    functionName: 'getPermissionId',
+    args: [session],
+  })) as Hex
+}
+
+export const isSessionEnabled = async ({
+  client,
+  accountAddress,
+  permissionId,
+}: {
+  client: PublicClient
+  accountAddress: Address
+  permissionId: Hex
+}) => {
+  return (await client.readContract({
+    address: addresses.SmartSession,
+    abi: smartSessionAbi,
+    functionName: 'isSessionEnabled',
+    args: [permissionId, accountAddress],
+  })) as boolean
 }
