@@ -1,4 +1,4 @@
-import { encodeAbiParameters, encodePacked, Hex, http, PublicClient, toBytes, toHex, type Account, type Address, type Chain } from "viem"
+import { encodeFunctionData, Hex, http, PublicClient, toBytes, toHex, type Account, type Address, type Chain } from "viem"
 import { TEST_CONTRACTS } from './../../../test/callDatas';
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
 import { toNetwork } from "../../../test/testSetup"
@@ -16,6 +16,7 @@ import {
   createNexusClient
 } from "../../clients/createNexusClient"
 import { CreateSessionDataParams, createSmartSessionValidatorModule, isSessionEnabled } from "../.."
+import { CounterAbi } from "../../__contracts/abi/CounterAbi";
 
 describe("modules.k1Validator.write", async () => {
   let network: NetworkConfig
@@ -106,8 +107,6 @@ describe("modules.k1Validator.write", async () => {
 
     expect(isInstalledBefore).toBe(true)
 
-    // const smartAccountSigner = await convertSigner(walletClient)
-
     const smartSessionModule = await createSmartSessionValidatorModule({
         smartAccount: nexusClient.account,
         address: TEST_CONTRACTS.SmartSession.address
@@ -169,5 +168,68 @@ describe("modules.k1Validator.write", async () => {
       permissionId
     })
     expect(isEnabled).toBe(true)
+  }, 60000)
+
+  test("should make use of already enabled session (USE mode) to increment a counter using a session key", async () => {
+
+    const isEnabled = await isSessionEnabled({
+        client: nexusClient.account.client as PublicClient,
+        accountAddress: await nexusClient.account.getAddress(),
+        permissionId: permissionIdCached
+      })
+      expect(isEnabled).toBe(true)
+
+    const smartSessionModule = await createSmartSessionValidatorModule({
+        smartAccount: nexusClient.account,
+        address: TEST_CONTRACTS.SmartSession.address
+    })
+    // set active validation module
+
+    nexusClient.account.setActiveValidationModule(smartSessionModule)
+
+    // must do this as we can not pass moduleInfo from sendUserOperation
+    smartSessionModule.setActivePermissionId(permissionIdCached)
+
+    // need permissionId from session object (both from some cache)
+
+    const pubClient = nexusClient.account.client as PublicClient
+
+    const counterBefore = await pubClient.readContract({
+      address: TEST_CONTRACTS.Counter.address,
+      abi: CounterAbi,
+      functionName: "getNumber",
+      args: []
+    })
+
+    // helpful for out of range test
+    await testClient.setNextBlockTimestamp({ 
+      timestamp: 3727001666n
+    })
+
+    // Make userop to increase counter
+    const hash  = await nexusClient.sendUserOperation({
+        calls: [
+        {
+          to: TEST_CONTRACTS.Counter.address,
+          data: encodeFunctionData({
+              abi: CounterAbi,
+              functionName: "incrementNumber",
+              args: []
+          })
+        }
+      ],
+    })
+        
+    const { success } = await nexusClient.waitForUserOperationReceipt({ hash })
+    expect(success).toBe(true)
+
+    const counterAfter = await pubClient.readContract({
+        address: TEST_CONTRACTS.Counter.address,
+        abi: CounterAbi,
+        functionName: "getNumber",
+        args: []
+      })
+
+    expect(counterAfter).toBe(counterBefore + BigInt(1))
   }, 60000)
 })

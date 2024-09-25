@@ -24,6 +24,7 @@ const SIMPLE_SESSION_VALIDATOR_ADDRESS = addresses.SimpleSessionValidator
 
 export class SmartSessionValidator extends BaseValidationModule {
     public client: PublicClient
+    public activePermissionId: Hex
 
     private constructor(
         moduleConfig: Module,
@@ -36,6 +37,7 @@ export class SmartSessionValidator extends BaseValidationModule {
         super(moduleConfig, signer)
         const client = smartAccount.client as PublicClient;
         this.client = client
+        this.activePermissionId = '0x'
         this.signer = signer
         // Review: could be optional override. otherwise use SMART_SESSION_ADDRESS from addresses 
         this.address = moduleConfig.address
@@ -68,20 +70,26 @@ export class SmartSessionValidator extends BaseValidationModule {
         return instance
     }
 
+    public setActivePermissionId(permissionId: Hex) {
+        this.activePermissionId = permissionId
+    }
+    
+    // Todo: moduleInfo marked for removal
     public override getDummySignature(moduleInfo?: ModuleInfo): Hex {
         const signature = encodeSmartSessionSignature({
             mode: moduleInfo?.mode ? moduleInfo.mode : SmartSessionMode.USE,
-            permissionId: moduleInfo?.permissionId ? moduleInfo.permissionId : '0x',
+            permissionId: moduleInfo?.permissionId ? moduleInfo.permissionId : this.activePermissionId,
             signature: DUMMY_ECDSA_SIG,
         }) as Hex
         return signature
     }
 
+    // Todo: moduleInfo marked for removal
     override async signUserOpHash(userOpHash: string, moduleInfo?: ModuleInfo): Promise<Hex>{
         const signature = await this.signer.signMessage({ message: { raw: userOpHash as Hex } }) as Hex
         return encodeSmartSessionSignature({
           mode: moduleInfo?.mode ? moduleInfo.mode : SmartSessionMode.USE,
-          permissionId: moduleInfo?.permissionId ? moduleInfo.permissionId : '0x',
+          permissionId: moduleInfo?.permissionId ? moduleInfo.permissionId : this.activePermissionId,
           signature,
         }) as Hex
     }

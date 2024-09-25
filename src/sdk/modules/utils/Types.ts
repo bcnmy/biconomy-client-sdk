@@ -73,6 +73,8 @@ export const moduleTypeIds: ModuleTypeIds = {
   hook: 4
 }
 
+// Todo: moduleInfo marked for removal
+// note: set the required needful info in the active module instance.
 export type ModuleInfo = {
   /** Smart session mode */
   mode?: SmartSessionModeType
