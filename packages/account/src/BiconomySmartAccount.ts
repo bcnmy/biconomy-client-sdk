@@ -3,7 +3,6 @@ import { ethers, BigNumberish, BytesLike, BigNumber } from "ethers";
 import { SmartAccount } from "./SmartAccount";
 import {
   Logger,
-  NODE_CLIENT_URL,
   RPC_PROVIDER_URLS,
   SmartAccountFactory_v100,
   SmartAccountFactory_v100__factory,
@@ -20,16 +19,7 @@ import { UserOperation, Transaction, SmartAccountType } from "@biconomy/core-typ
 import { IHybridPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { DEFAULT_ECDSA_OWNERSHIP_MODULE, ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import { IBiconomySmartAccount } from "./interfaces/IBiconomySmartAccount";
-import {
-  ISmartAccount,
-  SupportedChainsResponse,
-  BalancesResponse,
-  BalancesDto,
-  UsdBalanceResponse,
-  SmartAccountByOwnerDto,
-  SmartAccountsResponse,
-  SCWTransactionResponse,
-} from "@biconomy/node-client";
+import { ISmartAccount } from "@biconomy/node-client";
 import {
   ENTRYPOINT_ADDRESSES,
   BICONOMY_FACTORY_ADDRESSES,
@@ -70,7 +60,6 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       );
     }
     this.provider = new JsonRpcProvider(_rpcUrl);
-    // this.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL });
     this.signer = signer;
 
     if (paymaster) {
@@ -143,7 +132,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
   }
 
   private setEntryPointContractState(): void {
-    const _entryPointAddress = ENTRYPOINT_ADDRESSES_BY_VERSION["V0_0_6"];
+    const _entryPointAddress = ENTRYPOINT_ADDRESSES_BY_VERSION.V0_0_6;
     this.setEntryPointAddress(_entryPointAddress);
     if (!ENTRYPOINT_ADDRESSES[_entryPointAddress])
       throw new Error(
@@ -192,12 +181,9 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       if (this.factory == null) {
           this.factory = SmartAccountFactory_v100__factory.connect("0x000000f9ee1842bb72f6bbdd75e6d3d4e3e9594c", this.provider);
       }
-      const smartAccountAddress = await this.factory.getAddressForCounterFactualAccount(
-        this.owner,
-        ethers.BigNumber.from(accountIndex)
-      )
+      const smartAccountAddress = await this.factory.getAddressForCounterFactualAccount(this.owner, ethers.BigNumber.from(accountIndex))
 
-      Logger.log("smart account address: ", smartAccountAddress)
+      Logger.log("smart account address: ", smartAccountAddress);
 
       if(smartAccountAddress) {
         return smartAccountAddress;
