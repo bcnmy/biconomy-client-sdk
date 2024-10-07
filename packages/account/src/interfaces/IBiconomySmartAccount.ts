@@ -19,11 +19,11 @@ export interface IBiconomySmartAccount extends ISmartAccount {
   getExecuteCallData(_to: string, _value: BigNumberish, _data: BytesLike): string;
   getExecuteBatchCallData(_to: Array<string>, _value: Array<BigNumberish>, _data: Array<BytesLike>): string;
   buildUserOp(_transactions: Transaction[], _overrides?: Overrides): Promise<Partial<UserOperation>>;
-  getAllTokenBalances(_balancesDto: BalancesDto): Promise<BalancesResponse>;
-  getTotalBalanceInUsd(_balancesDto: BalancesDto): Promise<UsdBalanceResponse>;
-  getSmartAccountsByOwner(_smartAccountByOwnerDto: SmartAccountByOwnerDto): Promise<SmartAccountsResponse>;
-  getTransactionsByAddress(_chainId: number, _address: string): Promise<SCWTransactionResponse[]>;
-  getTransactionByHash(_txHash: string): Promise<SCWTransactionResponse>;
-  getAllSupportedChains(): Promise<SupportedChainsResponse>;
+  // getAllTokenBalances(_balancesDto: BalancesDto): Promise<BalancesResponse>;
+  // getTotalBalanceInUsd(_balancesDto: BalancesDto): Promise<UsdBalanceResponse>;
+  // getSmartAccountsByOwner(_smartAccountByOwnerDto: SmartAccountByOwnerDto): Promise<SmartAccountsResponse>;
+  // getTransactionsByAddress(_chainId: number, _address: string): Promise<SCWTransactionResponse[]>;
+  // getTransactionByHash(_txHash: string): Promise<SCWTransactionResponse>;
+  // getAllSupportedChains(): Promise<SupportedChainsResponse>;
   attachSigner(_signer: Signer): Promise<void>;
 }
