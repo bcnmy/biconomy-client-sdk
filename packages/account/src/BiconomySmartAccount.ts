@@ -179,20 +179,19 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
     try {
       this.isSignerDefined();
       if (this.factory == null) {
-          this.factory = SmartAccountFactory_v100__factory.connect("0x000000f9ee1842bb72f6bbdd75e6d3d4e3e9594c", this.provider);
+        this.factory = SmartAccountFactory_v100__factory.connect("0x000000f9ee1842bb72f6bbdd75e6d3d4e3e9594c", this.provider);
       }
-      const smartAccountAddress = await this.factory.getAddressForCounterFactualAccount(this.owner, ethers.BigNumber.from(accountIndex))
+      const smartAccountAddress = await this.factory.getAddressForCounterFactualAccount(this.owner, ethers.BigNumber.from(accountIndex));
 
       Logger.log("smart account address: ", smartAccountAddress);
 
-      if(smartAccountAddress) {
+      if (smartAccountAddress) {
         return smartAccountAddress;
       } else {
         throw new Error(
           "Failed to get smart account address. Please raise an issue on https://github.com/bcnmy/biconomy-client-sdk for further investigation.",
         );
       }
-      
     } catch (error) {
       Logger.error(`Failed to get smart account address: ${error}`);
       throw error;
