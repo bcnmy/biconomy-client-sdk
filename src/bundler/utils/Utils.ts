@@ -1,23 +1,21 @@
-export const extractChainIdFromBundlerUrl = (url: string): number => {
+export const extractChainIdFromUrl = (url: string) => {
   try {
-    const regex = /\/api\/v2\/(\d+)\/[a-zA-Z0-9.-]+$/
-    // biome-ignore lint/style/noNonNullAssertion: <explanation>
-    const match = regex.exec(url)!
-    return Number.parseInt(match[1])
-  } catch (error) {
-    throw new Error("Invalid chain id")
-  }
-}
+    const pathSegments = new URL(url).pathname.split("/");
+    const chainId = pathSegments[3];
+    const chainIdNumber = Number.parseInt(chainId);
 
-export const extractChainIdFromPaymasterUrl = (url: string): number => {
-  try {
-    const regex = /\/api\/v\d+\/(\d+)\//
-    const match = regex.exec(url)
-    if (!match) {
-      throw new Error("Invalid URL format")
+    if (!chainId || isNaN(chainIdNumber)) {
+      throw new Error();
     }
-    return Number.parseInt(match[1])
-  } catch (error) {
-    throw new Error("Invalid chain id")
+
+    return chainIdNumber;
+  } catch {
+    throw new Error("Invalid chain id");
   }
-}
+};
+
+export const extractChainIdFromBundlerUrl = (url: string): number =>
+  extractChainIdFromUrl(url);
+
+export const extractChainIdFromPaymasterUrl = (url: string): number =>
+  extractChainIdFromUrl(url);
