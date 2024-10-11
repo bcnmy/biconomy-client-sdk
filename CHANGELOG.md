@@ -1,5 +1,11 @@
 # @biconomy/account
 
+## 4.6.4
+
+### Patch Changes
+
+- shorten default pollInterval
+
 ## 4.6.3
 
 ### Patch Changes
@@ -15,8 +21,6 @@
 ## 4.6.1
 
 ### Patch Changes
-
-- Taiko testnet fix
 
 ## 4.5.5
 
