@@ -1,5 +1,11 @@
 # @biconomy/account
 
+## 4.5.7
+
+### Patch Changes
+
+- bundlerUrl fix
+
 ## 4.6.4
 
 ### Patch Changes
