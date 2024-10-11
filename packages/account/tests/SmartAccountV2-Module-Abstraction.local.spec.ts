@@ -51,7 +51,7 @@ describe("BiconomySmartAccountV2 Module Abstraction", () => {
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
       signer,
-      bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/..."
+      bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/...",
       /*defaultValidationModule: await ECDSAOwnershipValidationModule.create({
         signer: signer,
         moduleAddress: ecdsaModule.address,
@@ -73,7 +73,7 @@ describe("BiconomySmartAccountV2 Module Abstraction", () => {
       rpcUrl: "http://127.0.0.1:8545",
       entryPointAddress: entryPoint.address,
       signer,
-      bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/..."
+      bundlerUrl: "https://bundler.biconomy.io/api/v2/1337/...",
     });
 
     const address = await account.getAccountAddress();

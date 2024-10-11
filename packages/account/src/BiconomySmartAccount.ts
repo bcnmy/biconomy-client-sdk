@@ -3,9 +3,9 @@ import { ethers, BigNumberish, BytesLike, BigNumber } from "ethers";
 import { SmartAccount } from "./SmartAccount";
 import {
   Logger,
-  NODE_CLIENT_URL,
   RPC_PROVIDER_URLS,
   SmartAccountFactory_v100,
+  SmartAccountFactory_v100__factory,
   SmartAccount_v200,
   getEntryPointContract,
   getSAFactoryContract,
@@ -14,21 +14,12 @@ import {
 } from "@biconomy/common";
 import { BiconomySmartAccountConfig, Overrides, BiconomyTokenPaymasterRequest, InitilizationData } from "./utils/Types";
 import { UserOperation, Transaction, SmartAccountType } from "@biconomy/core-types";
-import NodeClient from "@biconomy/node-client";
-import INodeClient from "@biconomy/node-client";
+// import NodeClient from "@biconomy/node-client";
+// import INodeClient from "@biconomy/node-client";
 import { IHybridPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from "@biconomy/paymaster";
 import { DEFAULT_ECDSA_OWNERSHIP_MODULE, ECDSAOwnershipValidationModule } from "@biconomy/modules";
 import { IBiconomySmartAccount } from "./interfaces/IBiconomySmartAccount";
-import {
-  ISmartAccount,
-  SupportedChainsResponse,
-  BalancesResponse,
-  BalancesDto,
-  UsdBalanceResponse,
-  SmartAccountByOwnerDto,
-  SmartAccountsResponse,
-  SCWTransactionResponse,
-} from "@biconomy/node-client";
+import { ISmartAccount } from "@biconomy/node-client";
 import {
   ENTRYPOINT_ADDRESSES,
   BICONOMY_FACTORY_ADDRESSES,
@@ -36,13 +27,14 @@ import {
   DEFAULT_ENTRYPOINT_ADDRESS,
   DEFAULT_BICONOMY_IMPLEMENTATION_ADDRESS,
   BICONOMY_IMPLEMENTATION_ADDRESSES_BY_VERSION,
+  ENTRYPOINT_ADDRESSES_BY_VERSION,
 } from "./utils/Constants";
 import { Signer } from "ethers";
 
 export class BiconomySmartAccount extends SmartAccount implements IBiconomySmartAccount {
   private factory!: SmartAccountFactory_v100;
 
-  private nodeClient: INodeClient;
+  // private nodeClient: INodeClient;
 
   private accountIndex!: number;
 
@@ -53,7 +45,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
   private _isInitialised!: boolean;
 
   constructor(readonly biconomySmartAccountConfig: BiconomySmartAccountConfig) {
-    const { signer, rpcUrl, entryPointAddress, bundler, paymaster, chainId, nodeClientUrl } = biconomySmartAccountConfig;
+    const { signer, rpcUrl, entryPointAddress, bundler, paymaster, chainId } = biconomySmartAccountConfig;
 
     const _entryPointAddress = entryPointAddress ?? DEFAULT_ENTRYPOINT_ADDRESS;
     super({
@@ -68,7 +60,6 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       );
     }
     this.provider = new JsonRpcProvider(_rpcUrl);
-    this.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL });
     this.signer = signer;
 
     if (paymaster) {
@@ -127,13 +118,13 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
   }
 
   private setProxyContractState(): void {
-    if (!BICONOMY_IMPLEMENTATION_ADDRESSES[this.smartAccountInfo.implementationAddress])
+    if (!BICONOMY_IMPLEMENTATION_ADDRESSES["0x00006b7e42e01957da540dc6a8f7c30c4d816af5"])
       throw new Error(
         "Could not find attached implementation address against your smart account. Please raise an issue on https://github.com/bcnmy/biconomy-client-sdk for further investigation.",
       );
     const proxyInstanceDto = {
       smartAccountType: SmartAccountType.BICONOMY,
-      version: BICONOMY_IMPLEMENTATION_ADDRESSES[this.smartAccountInfo.implementationAddress],
+      version: BICONOMY_IMPLEMENTATION_ADDRESSES["0x00006b7e42e01957da540dc6a8f7c30c4d816af5"],
       contractAddress: this.address,
       provider: this.provider,
     };
@@ -141,7 +132,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
   }
 
   private setEntryPointContractState(): void {
-    const _entryPointAddress = this.smartAccountInfo.entryPointAddress;
+    const _entryPointAddress = ENTRYPOINT_ADDRESSES_BY_VERSION.V0_0_6;
     this.setEntryPointAddress(_entryPointAddress);
     if (!ENTRYPOINT_ADDRESSES[_entryPointAddress])
       throw new Error(
@@ -157,7 +148,7 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
   }
 
   private setFactoryContractState(): void {
-    const _factoryAddress = this.smartAccountInfo.factoryAddress;
+    const _factoryAddress = "0x000000f9ee1842bb72f6bbdd75e6d3d4e3e9594c";
     if (!BICONOMY_FACTORY_ADDRESSES[_factoryAddress])
       throw new Error(
         "Could not find attached factory address against your smart account. Please raise an issue on https://github.com/bcnmy/biconomy-client-sdk for further investigation.",
@@ -187,26 +178,20 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
   async getSmartAccountAddress(accountIndex = 0): Promise<string> {
     try {
       this.isSignerDefined();
-      let smartAccountsList: ISmartAccount[] = (
-        await this.getSmartAccountsByOwner({
-          chainId: this.chainId,
-          owner: this.owner,
-          index: accountIndex,
-        })
-      ).data;
-      if (!smartAccountsList)
+      if (this.factory == null) {
+        this.factory = SmartAccountFactory_v100__factory.connect("0x000000f9ee1842bb72f6bbdd75e6d3d4e3e9594c", this.provider);
+      }
+      const smartAccountAddress = await this.factory.getAddressForCounterFactualAccount(this.owner, ethers.BigNumber.from(accountIndex));
+
+      Logger.log("smart account address: ", smartAccountAddress);
+
+      if (smartAccountAddress) {
+        return smartAccountAddress;
+      } else {
         throw new Error(
           "Failed to get smart account address. Please raise an issue on https://github.com/bcnmy/biconomy-client-sdk for further investigation.",
         );
-      smartAccountsList = smartAccountsList.filter((smartAccount: ISmartAccount) => {
-        return accountIndex === smartAccount.index;
-      });
-      if (smartAccountsList.length === 0)
-        throw new Error(
-          "Failed to get smart account address. Please raise an issue on https://github.com/bcnmy/biconomy-client-sdk for further investigation.",
-        );
-      this.smartAccountInfo = smartAccountsList[0];
-      return this.smartAccountInfo.smartAccountAddress;
+      }
     } catch (error) {
       Logger.error(`Failed to get smart account address: ${error}`);
       throw error;
@@ -450,30 +435,6 @@ export class BiconomySmartAccount extends SmartAccount implements IBiconomySmart
       return userOp;
     }
     return userOp;
-  }
-
-  async getAllTokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse> {
-    return this.nodeClient.getAllTokenBalances(balancesDto);
-  }
-
-  async getTotalBalanceInUsd(balancesDto: BalancesDto): Promise<UsdBalanceResponse> {
-    return this.nodeClient.getTotalBalanceInUsd(balancesDto);
-  }
-
-  async getSmartAccountsByOwner(smartAccountByOwnerDto: SmartAccountByOwnerDto): Promise<SmartAccountsResponse> {
-    return this.nodeClient.getSmartAccountsByOwner(smartAccountByOwnerDto);
-  }
-
-  async getTransactionsByAddress(chainId: number, address: string): Promise<SCWTransactionResponse[]> {
-    return this.nodeClient.getTransactionByAddress(chainId, address);
-  }
-
-  async getTransactionByHash(txHash: string): Promise<SCWTransactionResponse> {
-    return this.nodeClient.getTransactionByHash(txHash);
-  }
-
-  async getAllSupportedChains(): Promise<SupportedChainsResponse> {
-    return this.nodeClient.getAllSupportedChains();
   }
 
   async getUpdateImplementationData(newImplementationAddress?: string): Promise<Transaction> {

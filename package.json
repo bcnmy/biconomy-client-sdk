@@ -31,14 +31,14 @@
     "link:all": "./linkAll.sh",
     "build": "lerna run build",
     "clean": "lerna clean && lerna run unbuild",
-    "format": "lerna run format --npm-client=yarn",
+    "format": "lerna run format",
     "prettier": "npx prettier --write .",
     "lint": "eslint -c .eslintrc.js 'packages/*/src/**/*.{ts,tsx}'",
     "lint:fix": "eslint -c .eslintrc.js 'packages/*/src/**/*.{ts,tsx}' --fix",
     "test:run": "yarn jest --runInBand",
     "test": "concurrently -k --success first 'yarn start:ganache' 'yarn test:run'",
     "start:ganache": "ganache -m 'direct buyer cliff train rice spirit census refuse glare expire innocent quote'",
-    "test:ci": "FORCE_COLOR=1 lerna run test:ci --stream --npm-client=yarn",
+    "test:ci": "FORCE_COLOR=1 lerna run test:ci --stream",
     "test:coverage": "concurrently -k --success first 'yarn start:ganache' 'yarn jest --runInBand --coverage'",
     "diff": "lerna diff",
     "release": "lerna version patch --no-git-tag-version --no-push --conventional-commits --yes"
@@ -59,6 +59,7 @@
     "typescript": "^5.2.2"
   },
   "devDependencies": {
+    "@nx/nx-darwin-arm64": "^20.0.0",
     "@types/debug": "^4.1.9",
     "@types/jest": "^29.5.4",
     "@typescript-eslint/eslint-plugin": "^6.7.0",

@@ -25,18 +25,7 @@ import {
 } from "./utils/Types";
 import { BaseValidationModule, ECDSAOwnershipValidationModule, ModuleInfo, SendUserOpParams } from "@biconomy/modules";
 import { UserOperation, Transaction } from "@biconomy/core-types";
-import NodeClient from "@biconomy/node-client";
-import INodeClient from "@biconomy/node-client";
 import { IHybridPaymaster, BiconomyPaymaster, SponsorUserOperationDto } from "@biconomy/paymaster";
-import {
-  SupportedChainsResponse,
-  BalancesResponse,
-  BalancesDto,
-  UsdBalanceResponse,
-  SmartAccountByOwnerDto,
-  SmartAccountsResponse,
-  SCWTransactionResponse,
-} from "@biconomy/node-client";
 import { UserOpResponse } from "@biconomy/bundler";
 import {
   ADDRESS_RESOLVER_ADDRESS,
@@ -49,7 +38,7 @@ import log from "loglevel";
 
 type UserOperationKey = keyof UserOperation;
 export class BiconomySmartAccountV2 extends BaseSmartAccount {
-  private nodeClient!: INodeClient;
+  // private nodeClient!: INodeClient;
 
   private SENTINEL_MODULE = "0x0000000000000000000000000000000000000001";
 
@@ -132,7 +121,7 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
       instance.provider = new JsonRpcProvider(rpcUrl);
     }
 
-    instance.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL });
+    // instance.nodeClient = new NodeClient({ txServiceUrl: nodeClientUrl ?? NODE_CLIENT_URL });
 
     instance.scanForUpgradedAccountsFromV1 = biconomySmartAccountConfig.scanForUpgradedAccountsFromV1 ?? false;
 
@@ -648,30 +637,6 @@ export class BiconomySmartAccountV2 extends BaseSmartAccount {
         "6492649264926492649264926492649264926492649264926492649264926492"; // magic suffix
     }
     return signature;
-  }
-
-  async getAllTokenBalances(balancesDto: BalancesDto): Promise<BalancesResponse> {
-    return this.nodeClient.getAllTokenBalances(balancesDto);
-  }
-
-  async getTotalBalanceInUsd(balancesDto: BalancesDto): Promise<UsdBalanceResponse> {
-    return this.nodeClient.getTotalBalanceInUsd(balancesDto);
-  }
-
-  async getSmartAccountsByOwner(smartAccountByOwnerDto: SmartAccountByOwnerDto): Promise<SmartAccountsResponse> {
-    return this.nodeClient.getSmartAccountsByOwner(smartAccountByOwnerDto);
-  }
-
-  async getTransactionsByAddress(chainId: number, address: string): Promise<SCWTransactionResponse[]> {
-    return this.nodeClient.getTransactionByAddress(chainId, address);
-  }
-
-  async getTransactionByHash(txHash: string): Promise<SCWTransactionResponse> {
-    return this.nodeClient.getTransactionByHash(txHash);
-  }
-
-  async getAllSupportedChains(): Promise<SupportedChainsResponse> {
-    return this.nodeClient.getAllSupportedChains();
   }
 
   getImplementationAddress(): string {
