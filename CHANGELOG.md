@@ -1,5 +1,23 @@
 # @biconomy/account
 
+## 4.5.7
+
+### Patch Changes
+
+- bundlerUrl fix
+
+## 4.6.4
+
+### Patch Changes
+
+- shorten default pollInterval
+
+## 4.6.3
+
+### Patch Changes
+
+- fix nextjs logs
+
 ## 4.6.2
 
 ### Patch Changes
@@ -9,8 +27,6 @@
 ## 4.6.1
 
 ### Patch Changes
-
-- Taiko testnet fix
 
 ## 4.5.5
 
