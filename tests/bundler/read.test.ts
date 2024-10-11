@@ -6,9 +6,8 @@ import {
   type BiconomySmartAccountV2Config,
   compareChainIds,
   createSmartAccountClient,
-  getCustomChain
 } from "../../src/account"
-import { createBundler } from "../../src/bundler"
+import { createBundler, extractChainIdFromUrl } from "../../src/bundler"
 import { getBundlerUrl, getConfig } from "../utils"
 
 describe("Bundler:Read", () => {
@@ -51,11 +50,11 @@ describe("Bundler:Read", () => {
         })
       )
     )
-    ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
-      [smartAccount, smartAccountTwo].map((account) =>
-        account.getAccountAddress()
+      ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+        [smartAccount, smartAccountTwo].map((account) =>
+          account.getAccountAddress()
+        )
       )
-    )
   })
 
   test.concurrent(
@@ -200,4 +199,30 @@ describe("Bundler:Read", () => {
       await expect(createAccount).rejects.toThrow()
     }
   )
+
+  test.concurrent('extracts chain ID from various URL structures', () => {
+    const testCases = [
+      { url: "https://example.com/api/v2/1234/endpoint", expected: 1234 },
+      { url: "https://api.example.com/v1/5678/resource", expected: 5678 },
+      { url: "http://localhost:3000/api/9876/action", expected: 9876 },
+      { url: "https://example.com/1234/api/v2/endpoint", expected: 1234 },
+      { url: "https://example.com/network/5678/resource/action", expected: 5678 },
+      { url: "https://api.example.com/prefix/9876/suffix", expected: 9876 },
+      { url: "https://example.com/api/v2/1234/5678/endpoint", expected: 1234 },
+      { url: "https://example.com/api/v2/endpoint/1234/", expected: 1234 },
+      { url: "https://example.com/api/v2/1234/endpoint?param=value", expected: 1234 },
+      { url: "https://example.com/api/v2/1234/endpoint#section", expected: 1234 },
+      { url: "https://subdomain.example.com/api/1234/endpoint", expected: 1234 },
+      { url: "http://192.168.1.1/api/1234/endpoint", expected: 1234 },
+      { url: "https://user:pass@example.com/api/1234/endpoint", expected: 1234 },
+      { url: "https://example.com/1234/", expected: 1234 },
+      { url: "https://api.example.com/v1/chain/5678/details", expected: 5678 },
+      { url: "https://paymaster.biconomy.io/api/v1/80001/-RObQRX9ei.fc6918eb-c582-4417-9d5a-0507b17cfe71", expected: 80001 },
+      { url: "https://bundler.biconomy.io/api/v2/80002/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44", expected: 80002 },
+    ];
+
+    for (const { url, expected } of testCases) {
+      expect(extractChainIdFromUrl(url)).toBe(expected);
+    }
+  })
 })

@@ -97,6 +97,7 @@
     "dotenv": "^16.4.5",
     "ethers": "^6.12.0",
     "gh-pages": "^6.1.1",
+    "node-gyp-build": "^4.8.1",
     "rimraf": "^5.0.5",
     "simple-git-hooks": "^2.9.0",
     "size-limit": "^11",
@@ -106,7 +107,7 @@
     "vitest": "^1.3.1"
   },
   "peerDependencies": {
-    "typescript": "^5",
+    "typescript": "^5.5.3",
     "viem": "^2"
   },
   "commitlint": {
@@ -119,7 +120,6 @@
     "commit-msg": "npx --no -- commitlint --edit ${1}"
   },
   "dependencies": {
-    "merkletreejs": "^0.4.0",
-    "@silencelaboratories/walletprovider-sdk": "^0.1.0"
+    "merkletreejs": "^0.4.0"
   }
 }

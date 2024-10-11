@@ -28,8 +28,7 @@ export enum DeploymentState {
 
 export abstract class BaseSmartContractAccount<
   TSigner extends SmartAccountSigner = SmartAccountSigner
-> implements ISmartContractAccount<TSigner>
-{
+> implements ISmartContractAccount<TSigner> {
   protected factoryAddress: Address
 
   protected deploymentState: DeploymentState = DeploymentState.UNDEFINED
@@ -132,7 +131,7 @@ export abstract class BaseSmartContractAccount<
    * @param _params -- Typed Data params to sign
    */
   async signTypedData(_params: SignTypedDataParams): Promise<`0x${string}`> {
-    return this.signer.signTypedData(_params)
+    throw new Error("signTypedData not supported")
   }
 
   /**
@@ -158,14 +157,16 @@ export abstract class BaseSmartContractAccount<
    * @param params -- Typed Data params to sign
    */
   async signTypedDataWith6492(
+    // @ts-ignore
     params: SignTypedDataParams
   ): Promise<`0x${string}`> {
-    const [isDeployed, signature] = await Promise.all([
-      this.isAccountDeployed(),
-      this.signTypedData(params)
-    ])
+    throw new Error("signTypedDataWith6492 not supported")
+    // const [isDeployed, signature] = await Promise.all([
+    //   this.isAccountDeployed(),
+    //   this.signTypedData(params)
+    // ])
 
-    return this.create6492Signature(isDeployed, signature)
+    // return this.create6492Signature(isDeployed, signature)
   }
 
   /**
@@ -207,6 +208,7 @@ export abstract class BaseSmartContractAccount<
   }
 
   async getInitCode(): Promise<Hex> {
+
     if (this.deploymentState === DeploymentState.DEPLOYED) {
       return "0x"
     }
@@ -226,12 +228,14 @@ export abstract class BaseSmartContractAccount<
   }
 
   async getAddress(): Promise<Address> {
+
     if (!this.accountAddress) {
       const initCode = await this._getAccountInitCode()
       Logger.log("[BaseSmartContractAccount](getAddress) initCode: ", initCode)
       try {
         await this.entryPoint.simulate.getSenderAddress([initCode])
       } catch (err: any) {
+
         Logger.log(
           "[BaseSmartContractAccount](getAddress) getSenderAddress err: ",
           err

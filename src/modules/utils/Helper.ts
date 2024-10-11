@@ -2,9 +2,7 @@ import {
   type Address,
   type ByteArray,
   type Chain,
-  type EIP1193Provider,
   type Hex,
-  type WalletClient,
   encodeAbiParameters,
   isAddress,
   keccak256,
@@ -22,10 +20,8 @@ import {
 import type {
   ChainInfo,
   HardcodedReference,
-  IBrowserWallet,
   Session,
   SignerData,
-  TypedData,
 } from "../../index.js"
 import type { ISessionStorage } from "../interfaces/ISessionStorage"
 import { getDefaultStorageClient } from "../session-storage/utils"
@@ -255,40 +251,4 @@ export const hexToUint8Array = (hex: string) => {
   return array
 }
 
-// Sign data using the secret key stored on Browser Wallet
-// It creates a popup window, presenting the human readable form of `request`
-// Throws an error if User rejected signature
-export class BrowserWallet implements IBrowserWallet {
-  provider: EIP1193Provider
 
-  constructor(provider: EIP1193Provider) {
-    this.provider = provider
-  }
-
-  async signTypedData<T>(
-    from: string,
-    request: TypedData<T>
-  ): Promise<unknown> {
-    return await this.provider.request({
-      method: "eth_signTypedData_v4",
-      // @ts-ignore
-      params: [from, JSON.stringify(request)]
-    })
-  }
-}
-
-// Sign data using the secret key stored on Browser Wallet
-// It creates a popup window, presenting the human readable form of `request`
-// Throws an error if User rejected signature
-export class NodeWallet implements IBrowserWallet {
-  walletClient: WalletClient
-
-  constructor(walletClient: WalletClient) {
-    this.walletClient = walletClient
-  }
-
-  async signTypedData<T>(_: string, request: TypedData<T>): Promise<unknown> {
-    // @ts-ignore
-    return await this.walletClient.signTypedData(request)
-  }
-}

@@ -5,6 +5,7 @@ import {
   type GetContractReturnType,
   type Hex,
   type PublicClient,
+  type WalletClient,
   concat,
   concatHex,
   createPublicClient,
@@ -21,7 +22,7 @@ import {
   toBytes,
   toHex,
 } from "viem";
-import type { Prettify } from "viem/chains";
+import { taikoHekla } from "viem/chains";
 import type { IBundler } from "../bundler/IBundler.js";
 import {
   Bundler,
@@ -36,8 +37,10 @@ import {
   type SessionType,
   createECDSAOwnershipValidationModule,
   getBatchSessionTxParams,
-  getSingleSessionTxParams,
-} from "../modules";
+  getSingleSessionTxParams
+} from "../modules"
+import type { ISessionStorage } from "../modules/interfaces/ISessionStorage.js"
+import { getDefaultStorageClient } from "../modules/session-storage/utils.js"
 import {
   BiconomyPaymaster,
   type FeeQuotesOrDataDto,
@@ -73,6 +76,7 @@ import {
   MAGIC_BYTES,
   NATIVE_TOKEN_ALIAS,
   PROXY_CREATION_CODE,
+  TAIKO_FACTORY_ADDRESS,
 } from "./utils/Constants.js";
 import type {
   BalancePayload,
@@ -82,6 +86,7 @@ import type {
   BiconomyTokenPaymasterRequest,
   BuildUserOpOptions,
   CounterFactualAddressParam,
+  GetSessionParams,
   NonceOptions,
   PaymasterUserOperationDto,
   QueryParamsForAddressResolver,
@@ -105,9 +110,11 @@ type UserOperationKey = keyof UserOperationStruct;
 export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   private sessionData?: ModuleInfo;
 
-  private sessionType: SessionType | null = null;
+  private sessionType: SessionType | null = null
 
-  private SENTINEL_MODULE = "0x0000000000000000000000000000000000000001";
+  private sessionStorageClient: ISessionStorage | undefined;
+
+  private SENTINEL_MODULE = "0x0000000000000000000000000000000000000001"
 
   private index: number;
 
@@ -141,27 +148,35 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   private constructor(
     readonly biconomySmartAccountConfig: BiconomySmartAccountV2ConfigConstructorProps,
   ) {
+
+    const chain = biconomySmartAccountConfig.viemChain ??
+      biconomySmartAccountConfig.customChain ??
+      getChain(biconomySmartAccountConfig.chainId)
+
+    const rpcClient = biconomySmartAccountConfig.rpcUrl ||
+      getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0]
+
+    const defaultedFactoryAddress = chain?.id === taikoHekla.id ? TAIKO_FACTORY_ADDRESS :
+      biconomySmartAccountConfig.factoryAddress ??
+      DEFAULT_BICONOMY_FACTORY_ADDRESS;
+
+    const isDefaultFactory = [DEFAULT_BICONOMY_FACTORY_ADDRESS, TAIKO_FACTORY_ADDRESS].some(address => addressEquals(defaultedFactoryAddress, address));
+
     super({
       ...biconomySmartAccountConfig,
-      chain:
-        biconomySmartAccountConfig.viemChain ??
-        biconomySmartAccountConfig.customChain ??
-        getChain(biconomySmartAccountConfig.chainId),
-      rpcClient:
-        biconomySmartAccountConfig.rpcUrl ||
-        getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0],
+      chain,
+      rpcClient,
       entryPointAddress:
         (biconomySmartAccountConfig.entryPointAddress as Hex) ??
         DEFAULT_ENTRYPOINT_ADDRESS,
       accountAddress:
         (biconomySmartAccountConfig.accountAddress as Hex) ?? undefined,
       factoryAddress:
-        biconomySmartAccountConfig.factoryAddress ??
-        DEFAULT_BICONOMY_FACTORY_ADDRESS,
+        defaultedFactoryAddress,
     });
 
-    this.sessionData = biconomySmartAccountConfig.sessionData;
-    this.sessionType = biconomySmartAccountConfig.sessionType ?? null;
+    this.sessionData = biconomySmartAccountConfig.sessionData
+    this.sessionType = biconomySmartAccountConfig.sessionType ?? null
 
     this.defaultValidationModule =
       biconomySmartAccountConfig.defaultValidationModule;
@@ -189,10 +204,12 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     this.bundler = biconomySmartAccountConfig.bundler;
 
+
     const defaultFallbackHandlerAddress =
-      this.factoryAddress === DEFAULT_BICONOMY_FACTORY_ADDRESS
+      isDefaultFactory
         ? DEFAULT_FALLBACK_HANDLER_ADDRESS
         : biconomySmartAccountConfig.defaultFallbackHandler;
+
     if (!defaultFallbackHandlerAddress) {
       throw new Error("Default Fallback Handler address is not provided");
     }
@@ -207,20 +224,15 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       biconomySmartAccountConfig.activeValidationModule!;
 
     this.provider = createPublicClient({
-      chain:
-        biconomySmartAccountConfig.viemChain ??
-        biconomySmartAccountConfig.customChain ??
-        getChain(biconomySmartAccountConfig.chainId),
-      transport: http(
-        biconomySmartAccountConfig.rpcUrl ||
-        getChain(biconomySmartAccountConfig.chainId).rpcUrls.default.http[0],
-      ),
-    });
+      chain,
+      transport: http(rpcClient)
+    })
 
     this.scanForUpgradedAccountsFromV1 =
-      biconomySmartAccountConfig.scanForUpgradedAccountsFromV1 ?? false;
-    this.maxIndexForScan = biconomySmartAccountConfig.maxIndexForScan ?? 10;
-    this.getAccountAddress();
+      biconomySmartAccountConfig.scanForUpgradedAccountsFromV1 ?? false
+    this.maxIndexForScan = biconomySmartAccountConfig.maxIndexForScan ?? 10
+    this.getAccountAddress()
+    this.sessionStorageClient = biconomySmartAccountConfig.sessionStorageClient;
   }
 
   /**
@@ -297,7 +309,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     if (!chainId) {
       throw new Error("chainId required");
     }
-
     const bundler: IBundler =
       biconomySmartAccountConfig.bundler ??
       new Bundler({
@@ -329,6 +340,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     if (!resolvedSmartAccountSigner) {
       throw new Error("signer required");
     }
+
     const config: BiconomySmartAccountV2ConfigConstructorProps = {
       ...biconomySmartAccountConfig,
       defaultValidationModule,
@@ -699,10 +711,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       }
     }
 
-    const counterFactualAddressV2 = await this.getCounterFactualAddressV2({
-      validationModule,
-      index,
-    });
+    const counterFactualAddressV2 = await this.getCounterFactualAddressV2({ validationModule, index });
     return counterFactualAddressV2;
   }
 
@@ -714,13 +723,31 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     const index = params?.index ?? this.index;
 
     try {
+
+      const owner = validationModule.getAddress()
+      const moduleSetupData = (await validationModule.getInitData()) as Hex
+
+      if (this.chainId === taikoHekla.id) {
+
+        const factoryContract = getContract({
+          address: TAIKO_FACTORY_ADDRESS,
+          abi: BiconomyFactoryAbi,
+          client: { public: this.provider, wallet: this.getSigner() as unknown as WalletClient }
+        })
+
+        const smartAccountAddressFromContracts =
+          await factoryContract.read.getAddressForCounterFactualAccount([owner, moduleSetupData, BigInt(index)])
+
+        return smartAccountAddressFromContracts
+      }
+
       const initCalldata = encodeFunctionData({
         abi: BiconomyAccountAbi,
         functionName: "init",
         args: [
           this.defaultFallbackHandlerAddress,
-          validationModule.getAddress() as Hex,
-          (await validationModule.getInitData()) as Hex,
+          owner,
+          moduleSetupData,
         ],
       });
 
@@ -839,15 +866,15 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * Return the value to put into the "initCode" field, if the account is not yet deployed.
    * This value holds the "factory" address, followed by this account's information
    */
-  async getAccountInitCode(): Promise<Hex> {
+  public override async getAccountInitCode(): Promise<Hex> {
+
     this.isDefaultValidationModuleDefined();
 
     if (await this.isAccountDeployed()) return "0x";
 
-    return concatHex([
-      this.factoryAddress as Hex,
-      (await this.getFactoryData()) ?? "0x",
-    ]);
+    const factoryData = await this.getFactoryData() as Hex;
+
+    return concatHex([this.factoryAddress, factoryData]);
   }
 
   /**
@@ -906,13 +933,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
   async getDummySignatures(params?: ModuleInfo): Promise<Hex> {
     const defaultedParams = {
       ...(this.sessionData ? this.sessionData : {}),
-      ...params,
-    };
+      ...params
+    }
 
-    this.isActiveValidationModuleDefined();
+    this.isActiveValidationModuleDefined()
     return (await this.activeValidationModule.getDummySignature(
-      defaultedParams,
-    )) as Hex;
+      defaultedParams
+    )) as Hex
   }
 
   // TODO: review this
@@ -939,13 +966,14 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
   async signUserOp(
     userOp: Partial<UserOperationStruct>,
-    params?: SendUserOpParams,
+    params?: SendUserOpParams
   ): Promise<UserOperationStruct> {
     const defaultedParams = {
       ...(this.sessionData ? this.sessionData : {}),
       ...params,
-    };
-    this.isActiveValidationModuleDefined();
+      rawUserOperation: userOp
+    }
+    this.isActiveValidationModuleDefined()
     const requiredFields: UserOperationKey[] = [
       "sender",
       "nonce",
@@ -956,25 +984,25 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       "preVerificationGas",
       "maxFeePerGas",
       "maxPriorityFeePerGas",
-      "paymasterAndData",
-    ];
-    this.validateUserOp(userOp, requiredFields);
+      "paymasterAndData"
+    ]
+    this.validateUserOp(userOp, requiredFields)
 
-    const userOpHash = await this.getUserOpHash(userOp);
+    const userOpHash = await this.getUserOpHash(userOp)
 
     const moduleSig = (await this.activeValidationModule.signUserOpHash(
       userOpHash,
-      defaultedParams,
-    )) as Hex;
+      defaultedParams
+    )) as Hex
 
     const signatureWithModuleAddress = this.getSignatureWithModuleAddress(
       moduleSig,
       this.activeValidationModule.getAddress() as Hex,
     );
 
-    userOp.signature = signatureWithModuleAddress;
+    userOp.signature = signatureWithModuleAddress
 
-    return userOp as UserOperationStruct;
+    return userOp as UserOperationStruct
   }
 
   getSignatureWithModuleAddress(
@@ -982,13 +1010,13 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     moduleAddress?: Hex,
   ): Hex {
     const moduleAddressToUse =
-      moduleAddress ?? (this.activeValidationModule.getAddress() as Hex);
+      moduleAddress ?? (this.activeValidationModule.getAddress() as Hex)
     const result = encodeAbiParameters(parseAbiParameters("bytes, address"), [
       moduleSignature,
-      moduleAddressToUse,
-    ]);
+      moduleAddressToUse
+    ])
 
-    return result;
+    return result
   }
 
   public async getPaymasterUserOp(
@@ -1255,7 +1283,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     delete userOp.signature;
     const userOperation = await this.signUserOp(userOp, params);
 
-    const bundlerResponse = await this.sendSignedUserOp(userOperation);
+    const bundlerResponse = await this.sendSignedUserOp(userOperation)
 
     return bundlerResponse;
   }
@@ -1310,6 +1338,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     userOp: Partial<UserOperationStruct>,
     stateOverrideSet?: StateOverrideSet,
   ): Promise<Partial<UserOperationStruct>> {
+
     if (!this.bundler) throw new Error("Bundler is not provided");
     const requiredFields: UserOperationKey[] = [
       "sender",
@@ -1329,12 +1358,17 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       maxFeePerGas,
       maxPriorityFeePerGas,
     } = await this.bundler.estimateUserOpGas(userOp, stateOverrideSet);
+
+
+
     // if neither user sent gas fee nor the bundler, estimate gas from provider
     if (
       !userOp.maxFeePerGas &&
       !userOp.maxPriorityFeePerGas &&
       (!maxFeePerGas || !maxPriorityFeePerGas)
     ) {
+
+
       const feeData = await this.provider.estimateFeesPerGas();
       if (feeData.maxFeePerGas?.toString()) {
         finalUserOp.maxFeePerGas = `0x${feeData.maxFeePerGas.toString(
@@ -1416,7 +1450,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    * @description This function will transfer ownership of the smart account to a new owner. If you use session key manager module, after transferring the ownership
    * you will need to re-create a session for the smart account with the new owner (signer) and specify "accountAddress" in "createSmartAccountClient" function.
    * @example
-   * ```typescript
    * 
    * let walletClient = createWalletClient({
         account,
@@ -1445,7 +1478,6 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
         chainId: 84532,
         accountAddress: await smartAccount.getAccountAddress()
       })
-   * ```
    */
   async transferOwnership(
     newOwner: Address,
@@ -1475,10 +1507,11 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * @param manyOrOneTransactions Array of {@link Transaction} to be batched and sent. Can also be a single {@link Transaction}.
    * @param buildUseropDto {@link BuildUserOpOptions}.
-   * @param sessionData
+   * @param sessionData - Optional parameter. If you are using session keys, you can pass the sessionIds, the session and the storage client to retrieve the session data while sending a tx {@link GetSessionParams}
    * @returns Promise<{@link UserOpResponse}> that you can use to track the user operation.
    *
    * @example
+   * ```ts
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
@@ -1504,11 +1537,45 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *
    * const { waitForTxHash } = await smartAccount.sendTransaction(transaction);
    * const { transactionHash, userOperationReceipt } = await wait();
+   * ```
+   */
+  async sendTransaction(
+    manyOrOneTransactions: Transaction | Transaction[],
+    buildUseropDto?: BuildUserOpOptions,
+    sessionData?: GetSessionParams
+  ): Promise<UserOpResponse> {
+    let defaultedBuildUseropDto = { ...buildUseropDto } ?? {}
+    if (this.sessionType && sessionData) {
+      const store = this.sessionStorageClient ?? sessionData?.store;
+      const getSessionParameters = await this.getSessionParams({ ...sessionData, store, txs: manyOrOneTransactions })
+      defaultedBuildUseropDto = {
+        ...defaultedBuildUseropDto,
+        ...getSessionParameters
+      }
+    }
+
+    const userOp = await this.buildUserOp(
+      Array.isArray(manyOrOneTransactions)
+        ? manyOrOneTransactions
+        : [manyOrOneTransactions],
+      defaultedBuildUseropDto
+    )
+
+    return this.sendUserOp(userOp, { ...defaultedBuildUseropDto?.params })
+  }
+  /**
+   * Retrieves the session parameters for sending the session transaction
+   * 
+   * @description This method is called under the hood with the third argument passed into the smartAccount.sendTransaction(...args) method. It is used to retrieve the relevant session parameters while sending the session transaction.
    *
-   *  @remarks
-   * This example shows how to increase the estimated gas values for a transaction using `gasOffset` parameter.
+   * @param leafIndex - The leaf index(es) of the session in the storage client to be used. If you want to use the last leaf index, you can pass "LAST_LEAVES" as the value.
+   * @param store - The {@link ISessionStorage} client to be used. If you want to use the default storage client (localStorage in the browser), you can pass "DEFAULT_STORE" as the value. Alternatively you can pass in {@link SessionSearchParam} for more control over how the leaves are stored and retrieved.
+   * @param chain - Optional, will be inferred if left unset
+   * @param txs - Optional, used only for validation while using Batched session type
+   * @returns Promise<{@link GetSessionParams}> 
    *
-   *  @example
+   * @example
+   * ```ts
    * import { createClient } from "viem"
    * import { createSmartAccountClient } from "@biconomy/account"
    * import { createWalletClient, http } from "viem";
@@ -1532,94 +1599,65 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
    *   data: encodedCall
    * }
    *
-   * const { waitForTxHash } = await smartAccount.sendTransaction(transaction, {
-   *  gasOffset: {
-   *      verificationGasLimitOffsetPct: 25, // 25% increase for the already estimated gas limit
-   *      preVerificationGasOffsetPct: 10 // 10% increase for the already estimated gas limit
-   *     }
-   * });
+   * const { waitForTxHash } = await smartAccount.sendTransaction(transaction);
    * const { transactionHash, userOperationReceipt } = await wait();
-   *
+   * ```
    */
-  async sendTransaction(
-    manyOrOneTransactions: Transaction | Transaction[],
-    buildUseropDto?: BuildUserOpOptions,
-    sessionData?: Prettify<Parameters<typeof this.getSessionParams>>,
-  ): Promise<UserOpResponse> {
-    let defaultedBuildUseropDto = { ...buildUseropDto } ?? {};
+  public async getSessionParams({
+    leafIndex,
+    store,
+    chain,
+    txs
+  }: GetSessionParams): Promise<{ params: ModuleInfo }> {
 
-    if (this.sessionType && sessionData) {
-      const getSessionParameters = await this.getSessionParams(
-        ...(sessionData ?? []),
-      );
-      defaultedBuildUseropDto = {
-        ...defaultedBuildUseropDto,
-        ...getSessionParameters,
-      };
-    }
-
-    const userOp = await this.buildUserOp(
-      Array.isArray(manyOrOneTransactions)
-        ? manyOrOneTransactions
-        : [manyOrOneTransactions],
-      defaultedBuildUseropDto,
-    );
-
-    if (defaultedBuildUseropDto?.params?.danModuleInfo) {
-      defaultedBuildUseropDto.params.danModuleInfo.userOperation = {
-        ...userOp,
-      };
-    }
-
-    return this.sendUserOp(userOp, { ...defaultedBuildUseropDto?.params });
-  }
-
-  public async getSessionParams(
-    correspondingIndexes?: number[] | number | undefined | null,
-    conditionalSession?: SessionSearchParam,
-    chain?: Chain,
-    txs?: Transaction | Transaction[],
-  ): Promise<{ params: ModuleInfo }> {
+    const accountAddress = await this.getAccountAddress()
     const defaultedTransactions: Transaction[] | null = txs
       ? Array.isArray(txs)
         ? [...txs]
         : [txs]
-      : [];
+      : []
 
-    const defaultedConditionalSession: SessionSearchParam =
-      conditionalSession ?? (await this.getAccountAddress());
+    const defaultedConditionalSession: SessionSearchParam = store === "DEFAULT_STORE" ? getDefaultStorageClient(accountAddress) :
+      store ?? (await this.getAccountAddress())
 
-    const defaultedCorrespondingIndexes: number[] | null = correspondingIndexes
-      ? Array.isArray(correspondingIndexes)
-        ? [...correspondingIndexes]
-        : [correspondingIndexes]
-      : null;
+    const defaultedCorrespondingIndexes: (number[] | null) = ["LAST_LEAF", "LAST_LEAVES"].includes(String(leafIndex)) ? null : leafIndex
+      ? (Array.isArray(leafIndex)
+        ? leafIndex
+        : [leafIndex]) as number[]
+      : null
 
     const correspondingIndex: number | null = defaultedCorrespondingIndexes
       ? defaultedCorrespondingIndexes[0]
-      : null;
+      : null
 
     const defaultedChain: Chain =
-      chain ?? getChain(await this.provider.getChainId());
+      chain ?? getChain(await this.provider.getChainId())
 
-    if (!defaultedChain) throw new Error("Chain is not provided");
+    if (!defaultedChain) throw new Error("Chain is not provided")
 
+    if (this.sessionType === "DISTRIBUTED_KEY") {
+      // return getDanSessionTxParams(
+      //   defaultedConditionalSession,
+      //   defaultedChain,
+      //   correspondingIndex
+      // )
+    }
     if (this.sessionType === "BATCHED") {
       return getBatchSessionTxParams(
         defaultedTransactions,
         defaultedCorrespondingIndexes,
         defaultedConditionalSession,
-        defaultedChain,
-      );
+        defaultedChain
+      )
     }
     if (this.sessionType === "STANDARD") {
       return getSingleSessionTxParams(
         defaultedConditionalSession,
         defaultedChain,
-        correspondingIndex,
-      );
+        correspondingIndex
+      )
     }
-    throw new Error("Session type is not provided");
+    throw new Error("Session type is not provided")
   }
 
   /**
@@ -1683,6 +1721,8 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
       dummySignatureFetchPromise,
     ]);
 
+    const sender = await this.getAccountAddress() as Hex
+
     if (transactions.length === 0) {
       throw new Error("Transactions array cannot be empty");
     }
@@ -1697,7 +1737,7 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
     }
 
     let userOp: Partial<UserOperationStruct> = {
-      sender: (await this.getAccountAddress()) as Hex,
+      sender,
       nonce: toHex(nonceFromFetch),
       initCode,
       callData,
@@ -2104,23 +2144,22 @@ export class BiconomySmartAccountV2 extends BaseSmartContractAccount {
 
     this.isDefaultValidationModuleDefined();
 
+    const defaultValidationModuleAddress = this.defaultValidationModule.getAddress();
+    const defaultValidationInitData = await this.defaultValidationModule.getInitData();
+
     return encodeFunctionData({
       abi: BiconomyFactoryAbi,
       functionName: "deployCounterFactualAccount",
-      args: [
-        this.defaultValidationModule.getAddress() as Hex,
-        (await this.defaultValidationModule.getInitData()) as Hex,
-        BigInt(this.index),
-      ],
+      args: [defaultValidationModuleAddress, defaultValidationInitData, BigInt(this.index)],
     });
   }
 
   async signMessage(message: string | Uint8Array): Promise<Hex> {
     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    let signature: any;
-    this.isActiveValidationModuleDefined();
-    const dataHash = typeof message === "string" ? toBytes(message) : message;
-    signature = await this.activeValidationModule.signMessage(dataHash);
+    let signature: any
+    this.isActiveValidationModuleDefined()
+    const dataHash = typeof message === "string" ? toBytes(message) : message
+    signature = await this.activeValidationModule.signMessage(dataHash)
 
     const potentiallyIncorrectV = Number.parseInt(signature.slice(-2), 16);
     if (![27, 28].includes(potentiallyIncorrectV)) {

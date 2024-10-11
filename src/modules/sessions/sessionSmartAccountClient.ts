@@ -148,7 +148,7 @@ export const createSessionSmartAccountClient = async (
   const activeValidationModule =
     defaultedSessionType === "BATCHED"
       ? batchedSessionValidationModule
-      : sessionModule
+      : sessionModule;
 
   return await createSmartAccountClient({
     ...biconomySmartAccountConfig,

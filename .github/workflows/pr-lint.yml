@@ -12,8 +12,6 @@ jobs:
 
       - name: Install dependencies
         uses: ./.github/actions/install-dependencies
-        env:
-          SILENCE_LABS_NPM_TOKEN: ${{ secrets.SILENCE_LABS_NPM_TOKEN }}
 
       - name: Use commitlint to check PR title
         run: echo "${{ github.event.pull_request.title }}" | bun commitlint

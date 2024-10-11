@@ -1,10 +1,26 @@
 # @biconomy/account
 
-## 4.5.6
+## 4.6.4
 
 ### Patch Changes
 
 - shorten default pollInterval
+
+## 4.6.3
+
+### Patch Changes
+
+- fix nextjs logs
+
+## 4.6.2
+
+### Patch Changes
+
+- Temporary removal of DAN
+
+## 4.6.1
+
+### Patch Changes
 
 ## 4.5.5
 
@@ -20,9 +36,11 @@
 
 ## 4.5.3
 
+## 4.6.0
+
 ### Minor Changes
 
-- Sessions Dx
+- Distributed Sessions
 
 ## 4.5.2
 

@@ -13,16 +13,10 @@ import {
   extractChainIdFromBundlerUrl,
   extractChainIdFromPaymasterUrl
 } from "../src/bundler"
+import { PaymasterMode } from "../src/paymaster"
 
 export const getEnvVars = () => {
-  const fields = [
-    "BUNDLER_URL",
-    "E2E_PRIVATE_KEY_ONE",
-    "E2E_PRIVATE_KEY_TWO",
-    "E2E_BICO_PAYMASTER_KEY_AMOY",
-    "E2E_BICO_PAYMASTER_KEY_BASE",
-    "CHAIN_ID"
-  ]
+  const fields = ["E2E_PRIVATE_KEY_ONE"]
 
   const errorFields = fields.filter((field) => !process?.env?.[field])
   if (errorFields.length) {
@@ -187,5 +181,11 @@ export const topUp = async (
   }
 }
 
-export const getBundlerUrl = (chainId: number) =>
-  `https://bundler.biconomy.io/api/v2/${chainId}/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f14`
+export const getBundlerUrl = (chainId: number, apiKey?: string) =>
+  `https://bundler.biconomy.io/api/v2/${chainId}/${apiKey ?? "nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f14"}`
+
+export const getPaymasterUrl = (chainId: number, apiKey: string) => `https://paymaster.biconomy.io/api/v1/${chainId}/${apiKey}`
+
+export const withSponsorship = {
+  paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+};

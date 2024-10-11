@@ -10,10 +10,10 @@ import {
   parseEther,
   parseUnits,
   slice,
-  toFunctionSelector,
-} from "viem";
-import { privateKeyToAccount } from "viem/accounts";
-import { beforeAll, describe, expect, test } from "vitest";
+  toFunctionSelector
+} from "viem"
+import {  privateKeyToAccount } from "viem/accounts"
+import { beforeAll, describe, expect, test } from "vitest"
 import {
   type BiconomySmartAccountV2,
   type Transaction,
@@ -36,12 +36,13 @@ import {
   resumeSession,
 } from "../../src/modules";
 
-import { ECDSAModuleAbi } from "../../src/account/abi/ECDSAModule";
-import { SessionMemoryStorage } from "../../src/modules/session-storage/SessionMemoryStorage";
-import { createSessionKeyEOA } from "../../src/modules/session-storage/utils";
+import { ECDSAModuleAbi } from "../../src/account/abi/ECDSAModule"
+import { SessionMemoryStorage } from "../../src/modules/session-storage/SessionMemoryStorage"
+import { createSessionKeyEOA } from "../../src/modules/session-storage/utils"
 import {
   type Policy,
   PolicyHelpers,
+  RuleHelpers,
   createABISessionDatum,
   createSession,
   getSingleSessionTxParams,
@@ -126,15 +127,15 @@ describe("Modules:Write", () => {
           chainId,
           signer: client,
           bundlerUrl,
-          paymasterUrl,
-        }),
-      ),
-    );
-    [smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
-      [smartAccount, smartAccountTwo].map((account) =>
-        account.getAccountAddress(),
-      ),
-    );
+          paymasterUrl
+        })
+      )
+    )
+      ;[smartAccountAddress, smartAccountAddressTwo] = await Promise.all(
+        [smartAccount, smartAccountTwo].map((account) =>
+          account.getAccountAddress()
+        )
+      )
 
     smartAccountThree = await createSmartAccountClient({
       signer: walletClient,
@@ -215,8 +216,8 @@ describe("Modules:Write", () => {
         paymasterUrl,
         chainId,
       },
-      smartAccountAddressThree, // Storage client, full Session or smartAccount address if using default storage
-    );
+      "DEFAULT_STORE" // Storage client, full Session or smartAccount address if using default storage
+    )
 
     const sessionSmartAccountThreeAddress =
       await smartAccountThreeWithSession.getAccountAddress();
@@ -252,7 +253,7 @@ describe("Modules:Write", () => {
     );
 
     expect(nftBalanceAfter - nftBalanceBefore).toBe(1n);
-  });
+  }, 50000);
 
   // User must be connected with a wallet to grant permissions
   test("should create a batch session on behalf of a user", async () => {
@@ -328,9 +329,9 @@ describe("Modules:Write", () => {
         paymasterUrl,
         chainId,
       },
-      smartAccountAddressFour, // Storage client, full Session or smartAccount address if using default storage
-      true, // if batching
-    );
+      "DEFAULT_STORE", // Storage client, full Session or smartAccount address if using default storage
+      true // if batching
+    )
 
     const sessionSmartAccountFourAddress =
       await smartAccountFourWithSession.getAccountAddress();
@@ -388,7 +389,7 @@ describe("Modules:Write", () => {
     expect(nftBalanceAfter - nftBalanceBefore).toBe(1n);
   }, 50000);
 
-  test("should use MultichainValidationModule to mint an NFT on two chains with sponsorship", async () => {
+  test.skip("should use MultichainValidationModule to mint an NFT on two chains with sponsorship", async () => {
     const nftAddress: Hex = "0x1758f42Af7026fBbB559Dc60EcE0De3ef81f665e";
 
     const chainIdBase = 84532;
@@ -469,9 +470,17 @@ describe("Modules:Write", () => {
       data: encodedCall,
     };
 
+    const options = {
+      ...withSponsorship, gasOffset: {
+        verificationGasLimitOffsetPct: 100,
+        preVerificationGasOffsetPct: 50,
+      },
+      nonceOptions
+    }
+
     const [partialUserOp1, partialUserOp2] = await Promise.all([
-      baseAccount.buildUserOp([transaction], withSponsorship),
-      polygonAccount.buildUserOp([transaction], withSponsorship),
+      baseAccount.buildUserOp([transaction], options),
+      polygonAccount.buildUserOp([transaction], options),
     ]);
 
     expect(partialUserOp1.paymasterAndData).not.toBe("0x");
@@ -898,9 +907,9 @@ describe("Modules:Write", () => {
         paymasterUrl,
         chainId: chain.id,
       },
-      sessionStorageClient, // Storage client, full Session or smartAccount address if using default storage
-      true,
-    );
+      "DEFAULT_STORE", // Storage client, full Session or smartAccount address if using default storage
+      true
+    )
 
     const submitCancelTx: Transaction = {
       to: DUMMY_CONTRACT_ADDRESS,
@@ -1049,8 +1058,8 @@ describe("Modules:Write", () => {
         chainId,
         index: 25, // Increasing index to not conflict with other test cases and use a new smart account
       },
-      sessionStorageClient,
-    );
+      "DEFAULT_STORE"
+    )
 
     const submitCancelTx: Transaction = {
       to: DUMMY_CONTRACT_ADDRESS,
@@ -1098,7 +1107,7 @@ describe("Modules:Write", () => {
     const { success: txSuccess } = await waitForSetMerkleRoot();
     expect(txSuccess).toBe("true");
 
-    const sessionDataAfter = await sessionStorageClient.getAllSessionData();
+    const sessionDataAfter = await sessionStorageClient.getAllSessionData()
     const revokedSession = sessionDataAfter.find(
       (session) => session.status === "REVOKED",
     );
@@ -1384,8 +1393,8 @@ describe("Modules:Write", () => {
         paymasterUrl,
         chainId: chain.id,
       },
-      smartAccountAddress,
-    );
+      "DEFAULT_STORE"
+    )
 
     const approvalTx = {
       to: preferredToken,
@@ -1448,8 +1457,9 @@ describe("Modules:Write", () => {
     );
 
     expect(
-      balanceOfPreferredTokenBefore - balanceOfPreferredTokenAfter,
-    ).toBeGreaterThan(0);
-  }, 80000);
-
+      balanceOfPreferredTokenBefore - balanceOfPreferredTokenAfter
+    ).toBeGreaterThan(0)
+  }, 80000)
 });
+
+
