@@ -1,0 +1,17 @@
+name: pr lint
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, edited]
+jobs:
+  enforce_title:
+    name: pr lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependencies
+
+      - name: Use commitlint to check PR title
+        run: echo "${{ github.event.pull_request.title }}" | bun commitlint

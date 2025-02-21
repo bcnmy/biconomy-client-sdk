@@ -1,0 +1,25 @@
+name: test-playground
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - test/*
+jobs:
+  test-playground:
+    name: test-playground
+    permissions: write-all
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependencies
+
+      - name: Run the tests
+        run: bun run test:ci -t=Playground
+        env:
+          E2E_PRIVATE_KEY_ONE: ${{ secrets.E2E_PRIVATE_KEY_ONE }}
+          TESTING: true

@@ -1,5 +1,0 @@
-# .prettierrc or .prettierrc.yaml
-printWidth: 100
-semi: false
-singleQuote: true
-trailingComma: none

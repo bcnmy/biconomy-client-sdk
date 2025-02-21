@@ -1,71 +1,85 @@
-# Biconomy SDK: Your Gateway to ERC4337 Account Abstraction & Smart Accounts 🛠️
+[![Biconomy](https://img.shields.io/badge/Made_with_%F0%9F%8D%8A_by-Biconomy-ff4e17?style=flat)](https://biconomy.io) [![License MIT](https://img.shields.io/badge/License-MIT-blue?&style=flat)](./LICENSE) [![codecov](https://codecov.io/gh/bcnmy/biconomy-client-sdk/graph/badge.svg?token=DTdIR5aBDA)](https://codecov.io/gh/bcnmy/biconomy-client-sdk)
 
-![Biconomy SDK](https://img.shields.io/badge/Biconomy-SDK-blue.svg) ![TypeScript](https://img.shields.io/badge/-TypeScript-blue) ![Test Coverage](https://img.shields.io/badge/Coverage-45%25-yellow.svg)
+# SDK 🚀
 
-<p align="center"><img src="./assets/readme/biconomy-client-sdk.png" width="550" alt="Biconomy SDK Banner"></p>
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/bcnmy/biconomy-client-sdk)
 
-## Introduction
+The Biconomy SDK is your all-in-one toolkit for building decentralized applications (dApps) with **ERC4337 Account Abstraction** and **Smart Accounts**. It is designed for seamless user experiences and offers non-custodial solutions for user onboarding, sending transactions (userOps), gas sponsorship and much more.
 
-The Biconomy SDK is your all-in-one toolkit for building decentralized applications (dApps) with **ERC4337 Account Abstraction** and **Smart Accounts**. This SDK is designed for seamless user experiences and offers non-custodial solutions for **ERC6900 compliant** user onboarding, transaction management, and gas abstraction.
+> :warning: **Building with React?**: [Use our hooks package](https://github.com/bcnmy/useAA)
 
-<p align="center"><img src="./assets/readme/biconomy-sdk.png" width="550" alt="Biconomy SDK Diagram"></p>
+## 📚 Table of Contents
 
-## 🌟 Features
+- [SDK 🚀](#sdk-)
 
-- **ERC4337 Account Abstraction**: Simplify user operations and gas payments.
-- **Smart Accounts**: Enhance user experience with ERC6900 compliant accounts.
-- **Paymaster Service**: Enable third-party gas sponsorship.
-- **Bundler Infrastructure**: Ensure efficient and reliable transaction bundling.
-- **Backend Node**: Manage chain configurations and gas estimations.
+  - [📚 Table of Contents](#-table-of-contents)
+  - [🛠️ Quickstart](#-quickstart)
 
-## 📦 Packages
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
 
-### Account
-
-Unlock the full potential of **ERC4337 Account Abstraction** with methods that simplify the creation and dispatch of UserOperations, streamlining dApp development and management.
-
-```javascript
-const biconomyAccount = new BiconomySmartAccount(biconomySmartAccountConfig);
-const biconomySmartAccount = await biconomyAccount.init();
-console.log("owner: ", biconomySmartAccount.owner);
-console.log("address: ", biconomySmartAccount.address);
-```
-
-### Bundler
-
-Leverage standardized bundler infrastructure for efficient operation of account abstraction across EVM networks.
-
-```javascript
-const bundler: IBundler = new Bundler({
-    bundlerUrl: '', // From Biconomy Dashboard
-    chainId: ChainId.POLYGON_MUMBAI,
-    entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
-});
-```
-
-### Paymaster
-
-Acting as third-party intermediaries, Paymasters have the capability to sponsor gas fees for an account, provided specific predefined conditions are met. Additionally, they can accept gas payments in ERC20 tokens from users' smart accounts, with the Paymaster managing the conversion to native tokens for gas payment.
-
-```javascript
-const paymaster: IPaymaster = new BiconomyPaymaster({
-    paymasterUrl: '' // From Biconomy Dashboard
-});
-```
+  - [📄 Documentation and Resources](#-documentation-and-resources)
+  - [💼 Examples](#-examples)
+  - [License](#license)
+  - [Connect with Biconomy 🍊](#connect-with-biconomy-🍊)
 
 ## 🛠️ Quickstart
 
-For a step-by-step guide on integrating **ERC4337 Account Abstraction** and **Smart Accounts** into your dApp using the Biconomy SDK, refer to the [official documentation](https://docs.biconomy.io/docs/overview).
+### Installation
 
-## 📚 Resources
+1. **Add the package and install dependencies:**
 
-- [Biconomy Documentation](https://docs.biconomy.io/docs/overview)
-- [Biconomy Dashboard](https://dashboard.biconomy.io/)
+```bash
+bun add @biconomy/account viem
+```
 
-## 🤝 Contributing
+2. **Install dependencies:**
 
-Community contributions are welcome! For guidelines on contributing, please read our [contribution guidelines](./CONTRIBUTING.md).
+```bash
+bun i
+```
 
-## 📜 License
+```typescript
+import { createSmartAccountClient } from "@biconomy/account";
 
-This project is licensed under the MIT License. See the [LICENSE.md](./LICENSE.md) file for details.
+const smartAccount = await createSmartAccountClient({
+  signer: viemWalletOrEthersSigner,
+  bundlerUrl: "", // From dashboard.biconomy.io
+  paymasterUrl: "", // From dashboard.biconomy.io
+});
+
+const { wait } = await smartAccount.sendTransaction({ to: "0x...", value: 1 });
+
+const {
+  receipt: { transactionHash },
+  success,
+} = await wait();
+```
+
+## Documentation and Resources
+
+For a comprehensive understanding of our project and to contribute effectively, please refer to the following resources:
+
+- [**Biconomy Documentation**](https://docs.biconomy.io)
+- [**Biconomy Dashboard**](https://dashboard.biconomy.io)
+- [**API Documentation**](https://bcnmy.github.io/biconomy-client-sdk)
+- [**Contributing Guidelines**](./CONTRIBUTING.md): Learn how to contribute to our project, from code contributions to documentation improvements.
+- [**Code of Conduct**](./CODE_OF_CONDUCT.md): Our commitment to fostering an open and welcoming environment.
+- [**Security Policy**](./SECURITY.md): Guidelines for reporting security vulnerabilities.
+- [**Changelog**](./CHANGELOG.md): Stay updated with the changes and versions
+
+## 💼 Examples
+
+- [Initialise a smartAccount](examples/INITIALISE_A_SMART_CONTRACT.md)
+- [send some eth with sponsorship](examples/SEND_SOME_ETH_WITH_SPONSORSHIP.md)
+- [send a multi tx and pay gas with an erc20 token](examples/SEND_A_MULTI_TX_AND_PAY_GAS_WITH_TOKEN.md)
+- [create and use a session](examples/CREATE_AND_USE_A_SESSION.md)
+- [create and use a batch session](examples/CREATE_AND_USE_A_BATCH_SESSION.md)
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details
+
+## Connect with Biconomy 🍊
+
+[![Website](https://img.shields.io/badge/🍊-Website-ff4e17?style=for-the-badge&logoColor=white)](https://biconomy.io) [![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/biconomy) [![Twitter](https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/biconomy) [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/company/biconomy) [![Discord](https://img.shields.io/badge/Discord-7289DA?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/biconomy) [![YouTube](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/channel/UC0CtA-Dw9yg-ENgav_VYjRw) [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/bcnmy/)

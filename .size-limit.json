@@ -1,0 +1,43 @@
+[
+  {
+    "name": "core (esm)",
+    "path": "./dist/_esm/index.js",
+    "limit": "140 kB",
+    "import": "*",
+    "ignore": ["node:fs", "fs"]
+  },
+  {
+    "name": "core (cjs)",
+    "path": "./dist/_cjs/index.js",
+    "limit": "140 kB",
+    "ignore": ["node:fs", "fs"]
+  },
+  {
+    "name": "account (tree-shaking)",
+    "path": "./dist/_esm/index.js",
+    "limit": "140 kB",
+    "import": "{ createSmartAccountClient }",
+    "ignore": ["node:fs", "fs"]
+  },
+  {
+    "name": "bundler (tree-shaking)",
+    "path": "./dist/_esm/bundler/index.js",
+    "limit": "5 kB",
+    "import": "{ createBundler }",
+    "ignore": ["node:fs", "fs"]
+  },
+  {
+    "name": "paymaster (tree-shaking)",
+    "path": "./dist/_esm/paymaster/index.js",
+    "limit": "5 kB",
+    "import": "{ createPaymaster }",
+    "ignore": ["node:fs", "fs"]
+  },
+  {
+    "name": "modules (tree-shaking)",
+    "path": "./dist/_esm/modules/index.js",
+    "limit": "140 kB",
+    "import": "{ createSessionKeyManagerModule }",
+    "ignore": ["node:fs", "fs"]
+  }
+]

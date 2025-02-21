@@ -1,0 +1,16 @@
+name: "Build"
+description: "Prepare repository, all dependencies and build"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Bun
+      uses: oven-sh/setup-bun@v1
+
+    - name: Install dependencies
+      shell: bash
+      run: bun install --frozen-lockfile
+
+    - name: Build
+      shell: bash
+      run: bun run build
