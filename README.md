@@ -60,7 +60,7 @@ const {
 
 For a comprehensive understanding of our project and to contribute effectively, please refer to the following resources:
 
-- [**Biconomy Documentation**](https://docs.biconomy.io)
+- [**Paymaster Migration Guide (v2 to v3)**](./docs/paymaster-migration-guide.md)
 - [**Biconomy Dashboard**](https://dashboard.biconomy.io)
 - [**API Documentation**](https://bcnmy.github.io/biconomy-client-sdk)
 - [**Contributing Guidelines**](./CONTRIBUTING.md): Learn how to contribute to our project, from code contributions to documentation improvements.
